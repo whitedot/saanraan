@@ -47,7 +47,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">일자별 생성 내역</h2>
     </div>
@@ -84,7 +84,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">Variant 분포</h2>
     </div>
@@ -111,7 +111,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
     </div>
 </section>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">캐시 파일</h2>
         <?php if ((int) ($cacheRowTotal ?? 0) > count($cacheRows)) { ?>
@@ -173,7 +173,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                     <input type="hidden" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>">
                     <input type="hidden" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>">
                     <input type="hidden" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>">
-                    <p class="admin-form-help">현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
+                    <p class="form-help">현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
                     <div class="admin-storage-cache-cleanup-summary">
                         <dl>
                             <div>
@@ -187,16 +187,16 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                         </dl>
                         <p>정리는 한 번에 최대 <?php echo sr_e(number_format($cleanupLimit)); ?>개씩 처리합니다. 실행 시점에 캐시 파일을 다시 확인하므로 실제 삭제 결과는 위 숫자와 다를 수 있습니다.</p>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="admin_storage_cache_cleanup_confirm_text">확인 문구 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <div class="validation-field">
                                 <input id="admin_storage_cache_cleanup_confirm_text" type="text" name="confirm_text" value="" maxlength="40" class="form-input form-control-icon-end" autocomplete="off" required aria-describedby="admin_storage_cache_cleanup_confirm_text_error" data-admin-confirm-phrase="정리" data-admin-confirm-message="정리를 정확히 입력하세요.">
                                 <div class="validation-static-icon" hidden data-admin-confirm-phrase-icon>
                                     <?php echo sr_material_icon_html('info', 'validation-error-icon', '정리를 정확히 입력하세요.'); ?>
                                 </div>
                             </div>
-                            <p class="admin-form-help">정리를 실행하려면 <strong class="admin-storage-cache-confirm-phrase">정리</strong>를 입력하세요.</p>
+                            <p class="form-help">정리를 실행하려면 <strong class="admin-storage-cache-confirm-phrase">정리</strong>를 입력하세요.</p>
                             <p id="admin_storage_cache_cleanup_confirm_text_error" class="validation-error-note" hidden data-admin-confirm-phrase-error>정리를 정확히 입력하세요.</p>
                         </div>
                     </div>

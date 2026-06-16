@@ -35,7 +35,7 @@ $assetTotals = sr_asset_reconciliation_summary($reconciliationResults);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">점검 요약</h2>
     </div>
@@ -91,7 +91,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         continue;
     }
     ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e((string) ($assetResult['label'] ?? $assetResult['module_key'] ?? '')); ?> 불일치</h2>
         </div>

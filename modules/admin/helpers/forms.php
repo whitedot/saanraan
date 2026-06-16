@@ -11,7 +11,7 @@ function sr_admin_form_label_help_html(string $forId, string $label, string $mod
     $helpLabel = trim($helpLabel) !== '' ? trim($helpLabel) : '설명 보기';
     $requiredHtml = $required ? ' <span class="sr-required-label">(필수)</span>' : '';
 
-    return '<div class="form-label admin-form-label-help">'
+    return '<div class="form-label form-label-help">'
         . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $helpLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
         . sr_material_icon_html('help')
         . '</button>'
@@ -116,7 +116,7 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                             <?php } ?>
                         </div>
                     <?php } ?>
-                    <section class="admin-card admin-list-card card admin-list-form">
+                    <section class="card admin-list-card admin-list-form">
                         <div class="card-header">
                             <h4 class="card-title"><?php echo sr_e('참조 목록'); ?></h4>
                             <span class="admin-summary-meta"><?php echo sr_e(number_format(count($rows)) . '건'); ?></span>
@@ -200,7 +200,7 @@ function sr_admin_checkbox_list_html(string $id, string $name, array $options, a
     $html = '<div id="' . sr_e($id) . '" class="admin-check-list" role="group">';
 
     if ($options === []) {
-        $html .= '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span>';
+        $html .= '<span class="form-help">' . sr_e($emptyLabel) . '</span>';
         return $html . '</div>';
     }
 
@@ -212,7 +212,7 @@ function sr_admin_checkbox_list_html(string $id, string $name, array $options, a
         }
 
         $inputId = $idBase . '_' . (string) $index;
-        $html .= '<label class="admin-form-check form-label" for="' . sr_e($inputId) . '">'
+        $html .= '<label class="form-check form-label" for="' . sr_e($inputId) . '">'
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" class="form-checkbox"' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
             . sr_admin_choice_label_html((string) $label)
             . '</label>';
@@ -530,7 +530,7 @@ function sr_admin_switch_html(string $id, string $name, string $value, bool $che
         $html .= '<input type="hidden" name="' . sr_e($name) . '" value="' . sr_e($uncheckedValue) . '">';
     }
 
-    $html .= '<label class="admin-form-check form-label" for="' . sr_e($inputId) . '">'
+    $html .= '<label class="form-check form-label" for="' . sr_e($inputId) . '">'
         . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-switch form-switch-light"' . $inputAttributes . ($checked ? ' checked' : '') . '>'
         . sr_admin_choice_label_html($label)
         . '</label>';
@@ -550,7 +550,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
     $html = '<div id="' . sr_e($id) . '" class="admin-select-badge-list" data-admin-select-badge-list' . $rootAttributes . '>';
 
     if ($options === []) {
-        $html .= '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span>';
+        $html .= '<span class="form-help">' . sr_e($emptyLabel) . '</span>';
         return $html . '</div>';
     }
 

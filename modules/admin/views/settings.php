@@ -147,11 +147,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('admin::ui.text.f6fc85bc')); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="admin_settings_name"><?php echo sr_e(sr_t('admin::ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php
                 $siteNameReferenceModalId = 'site-name-reference-modal';
                 $siteNameReferenceResult = isset($siteNameReadReferences) && is_array($siteNameReadReferences) ? $siteNameReadReferences : ['rows' => [], 'errors' => []];
@@ -162,29 +162,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_read_reference_button_html($siteNameReferenceModalId, $siteNameReferenceResult); ?>
                     </div>
                 </div>
-                <p class="admin-form-help"><?php echo sr_e('사이트명을 읽는 모듈 참조를 확인한 뒤 변경하세요.'); ?></p>
+                <p class="form-help"><?php echo sr_e('사이트명을 읽는 모듈 참조를 확인한 뒤 변경하세요.'); ?></p>
             </div>
         </div>
         <?php echo sr_admin_read_reference_modal_html($siteNameReferenceModalId, '사이트명 참조 현황', $siteNameReferenceResult); ?>
-        <div class="admin-form-row">
-            <span class="form-label admin-form-label-help">
+        <div class="form-row">
+            <span class="form-label form-label-help">
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('admin::ui.url.09f44187') . ' ' . $siteSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>" data-overlay="#<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>">
                     <?php echo sr_material_icon_html('help'); ?>
                 </button>
                 <span><?php echo sr_e(sr_t('admin::ui.url.09f44187')); ?></span>
             </span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php if ($values['base_url'] !== '') { ?>
                     <code><?php echo sr_e($values['base_url']); ?></code>
                 <?php } else { ?>
                     <span><?php echo sr_e(sr_t('admin::ui.settings.9182f8fe')); ?></span>
                 <?php } ?>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.search.active.admin.settings.7aedc357')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('admin::ui.search.active.admin.settings.7aedc357')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_timezone', sr_t('admin::ui.text.26e997a5'), $siteSettingsHelp['timezone']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="admin_settings_timezone" name="timezone" class="form-select" required>
                     <?php foreach ($timezoneOptions as $timezoneOption) { ?>
                         <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
@@ -194,9 +194,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_default_locale', sr_t('admin::ui.locale.c7cd39b4'), $siteSettingsHelp['default_locale']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="admin_settings_default_locale" name="default_locale" class="form-select" required data-admin-default-locale-select>
                     <?php foreach ($localeOptions as $localeOption) { ?>
                         <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
@@ -206,15 +206,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_supported_locales', sr_t('admin::ui.locale.list.51d8e798'), $siteSettingsHelp['supported_locales']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
                 <?php $selectedSupportedLocaleMap = array_fill_keys($selectedSupportedLocales, true); ?>
                 <div data-admin-required-checkbox-group data-admin-required-checkbox-message="지원 locale 목록은 최소 한 개 이상 선택하세요." data-admin-supported-locales>
                     <div id="admin_settings_supported_locales" class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                         <?php if ($localeOptions === []) { ?>
-                            <span class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.locale.9d745a6e')); ?></span>
+                            <span class="form-help"><?php echo sr_e(sr_t('admin::ui.locale.9d745a6e')); ?></span>
                         <?php } ?>
                         <?php foreach ($localeOptions as $localeIndex => $localeOption) { ?>
                             <?php
@@ -231,32 +231,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">기본 통화</span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <code><?php echo sr_e((string) ($values['default_currency'] ?? 'KRW')); ?></code>
-                <p class="admin-form-help">설치 시 선택한 값이며 일반 설정 저장으로 변경되지 않습니다. 신규 가격/정책 row의 기본값일 뿐 기존 가격, 로그, 구매력 snapshot은 변환하지 않습니다.</p>
+                <p class="form-help">설치 시 선택한 값이며 일반 설정 저장으로 변경되지 않습니다. 신규 가격/정책 row의 기본값일 뿐 기존 가격, 로그, 구매력 snapshot은 변환하지 않습니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_status', sr_t('admin::ui.status.e4163930'), $siteSettingsHelp['status']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_status', 'status', ['active' => sr_t('admin::ui.text.0928a1b8'), 'maintenance' => sr_t('admin::ui.text.4fd02e48')], (string) $values['status'], true); ?>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_member_only_enabled', '회원 전용 모드', $siteSettingsHelp['member_only']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_member_only_enabled', 'member_only_enabled', ['0' => '끄기', '1' => '켜기'], (string) ($values['member_only_enabled'] ?? '0'), true); ?>
-                <p class="admin-form-help">비로그인 방문자는 로그인 화면으로 이동하며, 로그인 후 원래 경로로 돌아갑니다.</p>
+                <p class="form-help">비로그인 방문자는 로그인 화면으로 이동하며, 로그인 후 원래 경로로 돌아갑니다.</p>
             </div>
         </div>
     </section>
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('admin::ui.text.b5361f64')); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_public_layout_key', sr_t('admin::ui.text.974e65f4'), $siteSettingsHelp['public_layout']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
                                     <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
@@ -266,9 +266,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_home_path', sr_t('admin::ui.text.214b5fb8'), $siteSettingsHelp['home_path']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="admin_settings_home_path" name="home_path" class="form-select">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
                         <?php $candidatePath = (string) ($candidate['path'] ?? ''); ?>
@@ -280,21 +280,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?> 회원 전용 모드가 켜져 있으면 비로그인 방문자에게 초기화면 대신 로그인 화면이 먼저 표시됩니다.</p>
+                <p class="form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?> 회원 전용 모드가 켜져 있으면 비로그인 방문자에게 초기화면 대신 로그인 화면이 먼저 표시됩니다.</p>
             </div>
         </div>
     </section>
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('admin::settings.section.admin_screen')); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_admin_color_scheme', sr_t('admin::ui.ui.cf6c41c6'), $siteSettingsHelp['admin_color_scheme']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_admin_color_scheme', 'admin_color_scheme', sr_color_scheme_options(), (string) $values['admin_color_scheme'], true, ' data-admin-color-scheme-select'); ?>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_admin_skin_key', sr_t('admin::ui.admin.1465c5b7'), $siteSettingsHelp['admin_skin']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
                     <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
                         <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -304,35 +304,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_list_pagination_per_page', '페이징 기본수', $siteSettingsHelp['list_pagination_per_page']['id'], $siteSettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <div class="input-group admin-input-unit">
                     <input id="admin_settings_list_pagination_per_page" type="number" name="list_pagination_per_page" value="<?php echo sr_e((string) $values['list_pagination_per_page']); ?>" class="form-input" min="10" max="500" required>
                     <span class="input-group-text">개</span>
                 </div>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e(sr_t('admin::ui.admin.menu.icon.8b29d6ef')); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <div class="admin-icon-settings-summary">
                     <span>Google Material Symbols</span>
                     <small><?php echo sr_e(number_format($adminIconOverrideCount)); ?>개 커스텀</small>
                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-icon-key-settings-modal" data-overlay="#admin-icon-key-settings-modal">설정</button>
                 </div>
-                <p class="admin-form-help">공용 아이콘 키를 Material 이름이나 업로드 이미지로 바꿀 수 있습니다.</p>
+                <p class="form-help">공용 아이콘 키를 Material 이름이나 업로드 이미지로 바꿀 수 있습니다.</p>
             </div>
         </div>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+    <div class="form-sticky-actions form-actions form-actions-primary">
         <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('admin::ui.text.b47e1675')); ?></a>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
     </div>
 </form>
 
 <?php if (!empty($currencyChangeCanChange)) { ?>
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">위험! 기본 통화 변경</h2>
         <div class="card-actions">
@@ -417,36 +417,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-body">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="currency_change">
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="admin_settings_new_default_currency">새 기본 통화 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="admin_settings_new_default_currency" name="new_default_currency" class="form-select" required data-admin-currency-change-target data-overlay-focus>
                             <?php foreach ($currencyChangeCurrencyOptions as $currencyCode) { ?>
                                 <option value="<?php echo sr_e((string) $currencyCode); ?>"><?php echo sr_e((string) $currencyCode); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="admin-form-help">현재 기본 통화는 <code><?php echo sr_e((string) $currencyChangeCurrentCurrency); ?></code>입니다.</p>
+                        <p class="form-help">현재 기본 통화는 <code><?php echo sr_e((string) $currencyChangeCurrentCurrency); ?></code>입니다.</p>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="admin_settings_currency_change_reason">변경 사유 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="admin_settings_currency_change_reason" name="currency_change_reason" class="form-textarea" rows="3" maxlength="1000" required></textarea>
-                        <p class="admin-form-help">설치 초기에 잘못 선택한 통화를 정정하는 경우처럼 운영 맥락을 남깁니다.</p>
+                        <p class="form-help">설치 초기에 잘못 선택한 통화를 정정하는 경우처럼 운영 맥락을 남깁니다.</p>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="admin_settings_currency_change_confirmation">확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="admin_settings_currency_change_confirmation" type="text" name="currency_change_confirmation" class="form-input" maxlength="120" required autocomplete="one-time-code" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-admin-currency-change-confirmation>
-                        <p class="admin-form-help">아래 문구를 그대로 입력하세요: <code data-admin-currency-change-phrase><?php echo sr_e((string) $currencyChangeConfirmationPhrase); ?></code></p>
+                        <p class="form-help">아래 문구를 그대로 입력하세요: <code data-admin-currency-change-phrase><?php echo sr_e((string) $currencyChangeConfirmationPhrase); ?></code></p>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="admin_settings_currency_change_password">현재 비밀번호 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="admin_settings_currency_change_password" type="password" name="currency_change_password" class="form-input" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" required>
-                        <p class="admin-form-help">변경 직전에 서버가 통화 값, 확인 문구, 사유, 비밀번호를 다시 검증하고 감사 로그를 남깁니다.</p>
+                        <p class="form-help">변경 직전에 서버가 통화 값, 확인 문구, 사유, 비밀번호를 다시 검증하고 감사 로그를 남깁니다.</p>
                     </div>
                 </div>
             </div>
@@ -531,10 +531,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-icon-key-add">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-icon-key-add><?php echo sr_material_icon_html('add'); ?>키 추가</button>
                 </div>
-                <p class="admin-form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
+                <p class="form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
             </div>
             <div class="modal-footer-note">
-                <p class="admin-form-help">이 모달의 저장 버튼은 공용 아이콘 설정만 바로 저장합니다. 위 사이트 설정 form에 작성 중인 값은 함께 저장되지 않습니다.</p>
+                <p class="form-help">이 모달의 저장 버튼은 공용 아이콘 설정만 바로 저장합니다. 위 사이트 설정 form에 작성 중인 값은 함께 저장되지 않습니다.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-icon-key-settings-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

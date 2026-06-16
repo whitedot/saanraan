@@ -93,13 +93,13 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.modal-body .admin-form-row > .admin-form-field.logo-manager-icon-size-grid {
+.modal-body .form-row > .form-field.logo-manager-icon-size-grid {
     align-items: start;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
 }
 
-.logo-manager-icon-size-grid > .admin-form-check {
+.logo-manager-icon-size-grid > .form-check {
     width: 100%;
 }
 

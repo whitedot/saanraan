@@ -251,7 +251,7 @@ if ($mode === 'list') {
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">퀴즈 목록</h2>
             <div class="card-actions">
@@ -359,54 +359,54 @@ if ($mode === 'list') {
                     </div>
                     <div class="modal-body">
                         <div class="admin-summary-list">
-                            <p class="admin-form-help">
+                            <p class="form-help">
                                 문제 <?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?>개,
                                 결과 규칙 <?php echo sr_e(number_format((int) ($quiz['result_rule_count'] ?? 0))); ?>개,
                                 연결 <?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?>개,
                                 보상 정책 <?php echo (int) ($quiz['reward_policy_count'] ?? 0) > 0 ? '있음' : '없음'; ?>
                             </p>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($copyModalId); ?>-key">새 퀴즈 Key <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($copyModalId); ?>-key" type="text" name="copy_quiz_key" value="<?php echo sr_e($copyKey); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input data-overlay-focus>
-                                <p class="admin-form-help">삭제된 퀴즈의 key까지 포함해 중복될 수 없습니다.</p>
+                                <p class="form-help">삭제된 퀴즈의 key까지 포함해 중복될 수 없습니다.</p>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($copyModalId); ?>-title">새 제목 <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($copyModalId); ?>-title" type="text" name="copy_title" value="<?php echo sr_e($copyTitle); ?>" class="form-input form-control-full" maxlength="190" required>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <span class="form-label">복사 범위</span>
-                            <div class="admin-form-field">
-                                <label class="admin-form-check form-label">
+                            <div class="form-field">
+                                <label class="form-check form-label">
                                     <input type="checkbox" class="form-checkbox" checked disabled>
                                     <?php echo sr_admin_choice_label_html('기본 정보, 채점, 문제, 결과 규칙'); ?>
                                 </label>
-                                <label class="admin-form-check form-label">
+                                <label class="form-check form-label">
                                     <input type="checkbox" name="copy_dates" value="1" class="form-checkbox">
                                     <?php echo sr_admin_choice_label_html('공개 기간 복사'); ?>
                                 </label>
-                                <label class="admin-form-check form-label">
+                                <label class="form-check form-label">
                                     <input type="checkbox" name="copy_member_groups" value="1" class="form-checkbox" checked>
                                     <?php echo sr_admin_choice_label_html('응시 가능 회원 그룹 복사'); ?>
                                 </label>
-                                <label class="admin-form-check form-label">
+                                <label class="form-check form-label">
                                     <input type="checkbox" name="copy_reward_policy" value="1" class="form-checkbox">
                                     <?php echo sr_admin_choice_label_html('보상 정책 복사'); ?>
                                 </label>
-                                <label class="admin-form-check form-label">
+                                <label class="form-check form-label">
                                     <input type="checkbox" name="copy_sources" value="1" class="form-checkbox">
                                     <?php echo sr_admin_choice_label_html('콘텐츠/커뮤니티 연결 복사'); ?>
                                 </label>
-                                <label class="admin-form-check form-label">
+                                <label class="form-check form-label">
                                     <input type="checkbox" name="copy_status" value="1" class="form-checkbox">
                                     <?php echo sr_admin_choice_label_html('원본 공개 상태 복사'); ?>
                                 </label>
-                                <p class="admin-form-help">기본 생성 상태는 초안입니다. 보상 정책과 연결 대상은 선택한 경우에도 서버에서 현재 사용 가능 여부를 다시 확인합니다.</p>
+                                <p class="form-help">기본 생성 상태는 초안입니다. 보상 정책과 연결 대상은 선택한 경우에도 서버에서 현재 사용 가능 여부를 다시 확인합니다.</p>
                             </div>
                         </div>
                     </div>
@@ -652,56 +652,56 @@ $quizSectionNavItems = [
     <input type="hidden" name="intent" value="save">
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
 
-    <section id="quiz-section-basic" class="admin-card card" data-admin-section-anchor>
+    <section id="quiz-section-basic" class="card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">기본 정보</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_key', 'Key', $quizHelp['quiz_key']['id'], $quizHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_key" type="text" name="quiz_key" value="<?php echo sr_e((string) ($values['quiz_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_title">제목 <span class="sr-required-label">(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_description">설명</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="quiz_description" name="description" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_cover_image_url">커버 이미지 URL</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
-                    <p class="admin-form-help">공개 퀴즈 목록과 상세 화면 상단, 공유 이미지에 사용할 이미지 URL입니다.</p>
+                    <p class="form-help">공개 퀴즈 목록과 상세 화면 상단, 공유 이미지에 사용할 이미지 URL입니다.</p>
                     <input id="quiz_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
-                    <p class="admin-form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_quiz_cover_image_upload_max_bytes())); ?>.</p>
+                    <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_quiz_cover_image_upload_max_bytes())); ?>.</p>
                     <?php if (sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
                         <?php echo sr_admin_checkbox_toggle_html('quiz_cover_image_delete', 'cover_image_delete', '1', false, '현재 커버 이미지 삭제'); ?>
                     <?php } ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_skin_key', '스킨', $quizHelp['display']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_skin_key" name="skin_key" class="form-select">
                         <option value="">환경설정 기본값 사용</option>
                         <?php foreach (sr_quiz_skin_options() as $skinKey => $skinLabel) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($values['skin_key'] ?? '') === (string) $skinKey ? ' selected' : ''; ?>><?php echo sr_e((string) $skinLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">퀴즈 상세, 응시, 결과 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
+                    <p class="form-help">퀴즈 상세, 응시, 결과 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_status', '상태', $quizHelp['status']['id'], $quizHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_status" name="status" class="form-select" required>
                         <?php foreach (sr_quiz_statuses() as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_status_label($status)); ?></option>
@@ -712,14 +712,14 @@ $quizSectionNavItems = [
         </div>
     </section>
 
-    <section id="quiz-section-result" class="admin-card card" data-admin-section-anchor>
+    <section id="quiz-section-result" class="card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">채점/결과</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_mode', '모드', $quizHelp['mode']['id'], $quizHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_mode" name="quiz_mode" class="form-select" required>
                         <?php foreach (sr_quiz_modes() as $quizMode) { ?>
                             <option value="<?php echo sr_e($quizMode); ?>"<?php echo (string) ($values['quiz_mode'] ?? 'scored') === $quizMode ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_mode_label($quizMode)); ?></option>
@@ -727,9 +727,9 @@ $quizSectionNavItems = [
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_scoring_model', '채점 모델', $quizHelp['scoring_model']['id'], $quizHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_scoring_model" name="scoring_model" class="form-select" required>
                         <?php foreach (sr_quiz_scoring_models() as $scoringModel) { ?>
                             <option value="<?php echo sr_e($scoringModel); ?>"<?php echo (string) ($values['scoring_model'] ?? 'correct_answer') === $scoringModel ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_scoring_model_label($scoringModel)); ?></option>
@@ -737,16 +737,16 @@ $quizSectionNavItems = [
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_pass_score">통과 점수</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_pass_score" type="number" name="pass_score" value="<?php echo sr_e((string) ($values['pass_score'] ?? '')); ?>" class="form-input" min="0" step="1">
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="quiz-section-result-rules" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
+    <section id="quiz-section-result-rules" class="card admin-list-card admin-list-form" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">결과 규칙</h2>
             <div class="card-actions">
@@ -805,49 +805,49 @@ $quizSectionNavItems = [
             <div class="modal-dialog modal-dialog-lg">
                 <div class="modal-content ui-form-theme">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($ruleModalId); ?>-label" class="modal-title admin-form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 <?php echo sr_e((string) ($ruleIndex + 1)); ?> 수정</span></h3>
+                        <h3 id="<?php echo sr_e($ruleModalId); ?>-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 <?php echo sr_e((string) ($ruleIndex + 1)); ?> 수정</span></h3>
                         <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($ruleModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_key_<?php echo sr_e((string) $ruleIndex); ?>">결과 Key <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_key_<?php echo sr_e((string) $ruleIndex); ?>" type="text" name="result_rule_key[]" value="<?php echo sr_e((string) ($rule['result_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input data-overlay-focus>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_title_<?php echo sr_e((string) $ruleIndex); ?>">제목 <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_title_<?php echo sr_e((string) $ruleIndex); ?>" type="text" name="result_rule_title[]" value="<?php echo sr_e((string) ($rule['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_min_score_<?php echo sr_e((string) $ruleIndex); ?>">최소 점수</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_min_score_<?php echo sr_e((string) $ruleIndex); ?>" type="number" name="result_rule_min_score[]" value="<?php echo ($rule['min_score'] ?? null) === null ? '' : sr_e((string) $rule['min_score']); ?>" class="form-input" step="1">
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_max_score_<?php echo sr_e((string) $ruleIndex); ?>">최대 점수</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_max_score_<?php echo sr_e((string) $ruleIndex); ?>" type="number" name="result_rule_max_score[]" value="<?php echo ($rule['max_score'] ?? null) === null ? '' : sr_e((string) $rule['max_score']); ?>" class="form-input" step="1">
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_category_key_<?php echo sr_e((string) $ruleIndex); ?>">카테고리 Key</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_category_key_<?php echo sr_e((string) $ruleIndex); ?>" type="text" name="result_rule_category_key[]" value="<?php echo sr_e((string) ($rule['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_threshold_value_<?php echo sr_e((string) $ruleIndex); ?>">기준값</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_result_rule_threshold_value_<?php echo sr_e((string) $ruleIndex); ?>" type="number" name="result_rule_threshold_value[]" value="<?php echo ($rule['threshold_value'] ?? null) === null ? '' : sr_e((string) $rule['threshold_value']); ?>" class="form-input" step="1">
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_result_rule_summary_<?php echo sr_e((string) $ruleIndex); ?>">요약</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <textarea id="quiz_result_rule_summary_<?php echo sr_e((string) $ruleIndex); ?>" name="result_rule_summary[]" class="form-textarea" rows="3"><?php echo sr_e((string) ($rule['summary'] ?? '')); ?></textarea>
                             </div>
                         </div>
@@ -864,49 +864,49 @@ $quizSectionNavItems = [
         <div class="modal-dialog modal-dialog-lg">
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
-                    <h3 id="quiz-result-rule-add-modal-label" class="modal-title admin-form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 추가</span></h3>
+                    <h3 id="quiz-result-rule-add-modal-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 추가</span></h3>
                     <button type="button" class="modal-close" aria-label="닫기" data-overlay="#quiz-result-rule-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_key_new">결과 Key <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_key_new" type="text" name="result_rule_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#quiz_result_rule_title_new" data-admin-key-suggest-fallback="result_rule_<?php echo sr_e((string) (count($resultRules) + 1)); ?>" data-overlay-focus>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_title_new">제목 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_title_new" type="text" name="result_rule_title[]" value="" class="form-input form-control-full" maxlength="190">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_min_score_new">최소 점수</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_min_score_new" type="number" name="result_rule_min_score[]" value="" class="form-input" step="1">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_max_score_new">최대 점수</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_max_score_new" type="number" name="result_rule_max_score[]" value="" class="form-input" step="1">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_category_key_new">카테고리 Key</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_category_key_new" type="text" name="result_rule_category_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_threshold_value_new">기준값</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_result_rule_threshold_value_new" type="number" name="result_rule_threshold_value[]" value="" class="form-input" step="1">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_result_rule_summary_new">요약</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <textarea id="quiz_result_rule_summary_new" name="result_rule_summary[]" class="form-textarea" rows="3"></textarea>
                         </div>
                     </div>
@@ -918,26 +918,26 @@ $quizSectionNavItems = [
         </div>
     </div>
 
-    <section id="quiz-section-access" class="admin-card card" data-admin-section-anchor>
+    <section id="quiz-section-access" class="card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">공개/응시 조건</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <label class="form-label" for="quiz_starts_at">공개 시작일시</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_ends_at">공개 종료일시</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_attempt_limit_policy', '응시 제한', $quizHelp['attempt_limit']['id'], $quizHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_attempt_limit_policy" name="attempt_limit_policy" class="form-select" required>
                         <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($values['attempt_limit_policy'] ?? 'unlimited') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_attempt_limit_policy_label($policy)); ?></option>
@@ -945,60 +945,60 @@ $quizSectionNavItems = [
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간(초) <span class="sr-required-label" data-quiz-attempt-period-required hidden>(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-attempt-period>
-                    <p class="admin-form-help">응시 제한이 기간당 1회일 때만 사용합니다.</p>
+                    <p class="form-help">응시 제한이 기간당 1회일 때만 사용합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_member_group_keys', '응시 가능 회원 그룹', $quizHelp['member_groups']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_member_group_key_badge_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
-                    <p class="admin-form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
+                    <p class="form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_comments_enabled', '댓글', $quizHelp['comments']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="quiz_comments_enabled">
+                <div class="form-field">
+                    <label class="form-check form-label" for="quiz_comments_enabled">
                         <input id="quiz_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         공개 댓글 사용
                     </label>
-                    <label class="admin-form-check form-label" for="quiz_secret_comments_enabled">
+                    <label class="form-check form-label" for="quiz_secret_comments_enabled">
                         <input id="quiz_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         비밀 댓글 선택 허용
                     </label>
-                    <p class="admin-form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
+                    <p class="form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_reaction_preset_key">퀴즈 리액션 프리셋</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reaction_preset_key" name="reaction_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">비워두면 퀴즈 환경설정의 프리셋을 사용합니다.</p>
+                    <p class="form-help">비워두면 퀴즈 환경설정의 프리셋을 사용합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="quiz_reaction_comment_preset_key">댓글 리액션 프리셋</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
+                    <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="quiz-section-questions" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
+    <section id="quiz-section-questions" class="card admin-list-card admin-list-form" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">문제 목록</h2>
             <div class="card-actions">
@@ -1065,14 +1065,14 @@ $quizSectionNavItems = [
             <div class="modal-dialog modal-dialog-lg">
                 <div class="modal-content ui-form-theme">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($questionModalId); ?>-label" class="modal-title admin-form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 <?php echo sr_e((string) ($questionIndex + 1)); ?> 수정</span></h3>
+                        <h3 id="<?php echo sr_e($questionModalId); ?>-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 <?php echo sr_e((string) ($questionIndex + 1)); ?> 수정</span></h3>
                         <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html('quiz_question_type_' . (string) $questionIndex, '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select" required>
                                     <?php foreach (sr_quiz_question_types() as $questionType) { ?>
                                         <option value="<?php echo sr_e($questionType); ?>"<?php echo (string) ($question['question_type'] ?? 'single_choice') === $questionType ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_question_type_label($questionType)); ?></option>
@@ -1080,27 +1080,27 @@ $quizSectionNavItems = [
                                 </select>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html('quiz_question_key_' . (string) $questionIndex, '문제 Key', $quizHelp['question_key']['id'], $quizHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input data-overlay-focus>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>">문제 <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <textarea id="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>" name="question_prompt[]" class="form-textarea" rows="3" required><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>">점수</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>" type="number" name="question_score[]" value="<?php echo sr_e((string) ($question['score_value'] ?? 1)); ?>" class="form-input" min="0" step="1">
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help"><?php echo $quizHelpButtonHtml('선택지와 카테고리', $quizHelp['choices']['id']); ?><span>선택지와 카테고리</span></span>
-                            <div class="admin-form-field">
+                        <div class="form-row">
+                            <span class="form-label form-label-help"><?php echo $quizHelpButtonHtml('선택지와 카테고리', $quizHelp['choices']['id']); ?><span>선택지와 카테고리</span></span>
+                            <div class="form-field">
                                 <div class="table-wrapper">
                                     <table class="table">
                                         <thead>
@@ -1151,14 +1151,14 @@ $quizSectionNavItems = [
         <div class="modal-dialog modal-dialog-lg">
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
-                    <h3 id="quiz-question-add-modal-label" class="modal-title admin-form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 추가</span></h3>
+                    <h3 id="quiz-question-add-modal-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 추가</span></h3>
                     <button type="button" class="modal-close" aria-label="닫기" data-overlay="#quiz-question-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="question_uid[]" value="<?php echo sr_e($newQuestionUid); ?>">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <?php echo sr_admin_form_label_help_html('quiz_question_type_new', '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true); ?>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="quiz_question_type_new" name="question_type[]" class="form-select">
                                 <?php foreach (sr_quiz_question_types() as $questionType) { ?>
                                     <option value="<?php echo sr_e($questionType); ?>"<?php echo $questionType === 'single_choice' ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_question_type_label($questionType)); ?></option>
@@ -1166,27 +1166,27 @@ $quizSectionNavItems = [
                             </select>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <?php echo sr_admin_form_label_help_html('quiz_question_key_new', '문제 Key', $quizHelp['question_key']['id'], $quizHelpOpenLabel, true); ?>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_question_key_new" type="text" name="question_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#quiz_question_prompt_new" data-admin-key-suggest-fallback="question_<?php echo sr_e((string) ($newQuestionIndex + 1)); ?>" data-overlay-focus>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_question_prompt_new">문제 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <textarea id="quiz_question_prompt_new" name="question_prompt[]" class="form-textarea" rows="3"></textarea>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="quiz_question_score_new">점수</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="quiz_question_score_new" type="number" name="question_score[]" value="1" class="form-input" min="0" step="1">
                         </div>
                     </div>
-                    <div class="admin-form-row">
-                        <span class="form-label admin-form-label-help"><?php echo $quizHelpButtonHtml('선택지와 카테고리', $quizHelp['choices']['id']); ?><span>선택지와 카테고리</span></span>
-                        <div class="admin-form-field">
+                    <div class="form-row">
+                        <span class="form-label form-label-help"><?php echo $quizHelpButtonHtml('선택지와 카테고리', $quizHelp['choices']['id']); ?><span>선택지와 카테고리</span></span>
+                        <div class="form-field">
                             <div class="table-wrapper">
                                 <table class="table">
                                     <thead>
@@ -1221,53 +1221,53 @@ $quizSectionNavItems = [
         </div>
     </div>
 
-    <section id="quiz-section-reward" class="admin-card card" data-admin-section-anchor>
+    <section id="quiz-section-reward" class="card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">보상 정책</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_reward_enabled', '보상 사용', $quizHelp['reward']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="quiz_reward_enabled">
+                <div class="form-field">
+                    <label class="form-check form-label" for="quiz_reward_enabled">
                         <input id="quiz_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?> data-quiz-reward-enabled>
                         <?php echo sr_admin_choice_label_html('자동 채점 통과 시 지급'); ?>
                     </label>
-                    <p class="admin-form-help">켜면 회원이 퀴즈 통과 조건을 만족했을 때 아래 보상 정책으로 지급을 시도합니다.</p>
+                    <p class="form-help">켜면 회원이 퀴즈 통과 조건을 만족했을 때 아래 보상 정책으로 지급을 시도합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-reward-policy-row>
+            <div class="form-row" data-quiz-reward-policy-row>
                 <?php echo sr_admin_form_label_help_html('quiz_reward_provider', '보상 종류', $quizHelp['reward_provider']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reward_provider" name="reward_provider" class="form-select" data-quiz-reward-provider>
                         <?php foreach (sr_quiz_reward_providers() as $provider) { ?>
                             <option value="<?php echo sr_e($provider); ?>"<?php echo (string) ($values['reward_provider'] ?? 'ledger_asset') === $provider ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_provider_label($provider)); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">포인트, 적립금, 예치금처럼 금액을 지급하려면 포인트/금액을 선택합니다. 쿠폰을 지급하려면 쿠폰 발급을 선택합니다.</p>
+                    <p class="form-help">포인트, 적립금, 예치금처럼 금액을 지급하려면 포인트/금액을 선택합니다. 쿠폰을 지급하려면 쿠폰 발급을 선택합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-reward-policy-row data-quiz-reward-ledger-row>
-                <div class="form-label admin-form-label-help">
+            <div class="form-row" data-quiz-reward-policy-row data-quiz-reward-ledger-row>
+                <div class="form-label form-label-help">
                     <?php echo $quizHelpButtonHtml('보상 자산', $quizHelp['reward_module']['id']); ?>
                     <label for="quiz_reward_module">보상 자산 <span class="sr-required-label" data-quiz-reward-required hidden>(필수)</span></label>
                 </div>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reward_module" name="reward_module" class="form-select" data-quiz-reward-ledger-control>
                         <option value="">선택안함</option>
                         <?php foreach ($assetOptions as $assetKey => $asset) { ?>
                             <option value="<?php echo sr_e((string) $assetKey); ?>"<?php echo (string) ($values['reward_module'] ?? '') === (string) $assetKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($asset['label'] ?? $assetKey)); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">보상 종류가 포인트/금액일 때 지급할 항목입니다. 쿠폰 발급에는 사용하지 않습니다.</p>
+                    <p class="form-help">보상 종류가 포인트/금액일 때 지급할 항목입니다. 쿠폰 발급에는 사용하지 않습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-reward-policy-row data-quiz-reward-coupon-row>
-                <div class="form-label admin-form-label-help">
+            <div class="form-row" data-quiz-reward-policy-row data-quiz-reward-coupon-row>
+                <div class="form-label form-label-help">
                     <?php echo $quizHelpButtonHtml('보상 쿠폰', $quizHelp['reward_coupon_definition']['id']); ?>
                     <label for="quiz_reward_coupon_definition_id">보상 쿠폰 <span class="sr-required-label" data-quiz-reward-required hidden>(필수)</span></label>
                 </div>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reward_coupon_definition_id" name="reward_coupon_definition_id" class="form-select" data-quiz-reward-coupon-control>
                         <option value="">선택안함</option>
                         <?php foreach ($couponRewardDefinitions as $couponDefinition) { ?>
@@ -1288,59 +1288,59 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e((string) $definitionId); ?>"<?php echo (string) ($values['reward_coupon_definition_id'] ?? '') === (string) $definitionId ? ' selected' : ''; ?>><?php echo sr_e($couponOptionLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">보상 종류가 쿠폰 발급일 때 지급할 사용 가능한 쿠폰을 선택합니다.</p>
+                    <p class="form-help">보상 종류가 쿠폰 발급일 때 지급할 사용 가능한 쿠폰을 선택합니다.</p>
                     <?php if ($couponRewardDefinitions === []) { ?>
-                        <p class="admin-form-help">현재 선택 가능한 활성 쿠폰이 없습니다. 쿠폰 관리에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
+                        <p class="form-help">현재 선택 가능한 활성 쿠폰이 없습니다. 쿠폰 관리에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
                     <?php } ?>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-reward-policy-row data-quiz-reward-ledger-row>
-                <div class="form-label admin-form-label-help">
+            <div class="form-row" data-quiz-reward-policy-row data-quiz-reward-ledger-row>
+                <div class="form-label form-label-help">
                     <?php echo $quizHelpButtonHtml('보상 금액', $quizHelp['reward_amount']['id']); ?>
                     <label for="quiz_reward_amount">보상 금액 <span class="sr-required-label" data-quiz-reward-required hidden>(필수)</span></label>
                 </div>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="quiz_reward_amount" type="number" name="reward_amount" value="<?php echo sr_e((string) ($values['reward_amount'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-reward-ledger-control>
-                    <p class="admin-form-help">보상 종류가 포인트/금액일 때 지급할 금액입니다. 쿠폰 발급에는 사용하지 않습니다.</p>
+                    <p class="form-help">보상 종류가 포인트/금액일 때 지급할 금액입니다. 쿠폰 발급에는 사용하지 않습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-reward-policy-row>
+            <div class="form-row" data-quiz-reward-policy-row>
                 <?php echo sr_admin_form_label_help_html('quiz_reward_dedupe_scope', '중복 지급 기준', $quizHelp['reward_dedupe']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="quiz_reward_dedupe_scope" name="reward_dedupe_scope" class="form-select" data-quiz-reward-policy-control>
                         <?php foreach (sr_quiz_reward_dedupe_scopes() as $scope) { ?>
                             <option value="<?php echo sr_e($scope); ?>"<?php echo (string) ($values['reward_dedupe_scope'] ?? 'per_quiz') === $scope ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_dedupe_scope_label($scope)); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">같은 회원에게 같은 보상을 다시 지급할 수 있는 범위를 정합니다.</p>
+                    <p class="form-help">같은 회원에게 같은 보상을 다시 지급할 수 있는 범위를 정합니다.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="quiz-section-links" class="admin-card card" data-admin-section-anchor>
+    <section id="quiz-section-links" class="card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">연결 대상</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_content_source_ids', '콘텐츠 ID', $quizHelp['sources']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="quiz_content_source_ids" name="content_source_ids" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['content_source_ids'] ?? '')); ?></textarea>
-                    <p class="admin-form-help">콘텐츠 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
+                    <p class="form-help">콘텐츠 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_community_source_ids', '커뮤니티 게시글 ID', $quizHelp['sources']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="quiz_community_source_ids" name="community_source_ids" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['community_source_ids'] ?? '')); ?></textarea>
-                    <p class="admin-form-help">커뮤니티 게시글 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
+                    <p class="form-help">커뮤니티 게시글 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="btn btn-solid-light">목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
@@ -1389,7 +1389,7 @@ $quizSectionNavItems = [
     function setControlsRequired(controls, required) {
         controls.forEach(function (control) {
             control.required = required;
-            var row = control.closest ? control.closest('.admin-form-row') : null;
+            var row = control.closest ? control.closest('.form-row') : null;
             if (!row) {
                 return;
             }

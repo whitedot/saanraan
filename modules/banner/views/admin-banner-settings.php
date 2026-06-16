@@ -49,14 +49,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/settings')); ?>" class="admin-form ui-form-theme">
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('banner::ui.banner.settings.cc368bd0')); ?></h2>
         <p><?php echo sr_e(sr_t('banner::ui.banner.banner.select.settings.115fa68f')); ?></p>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_banner_skin_key', sr_t('banner::ui.banner.46b4fae5'), $bannerSettingsHelp['skin_key']['id'], $bannerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="banner_admin_banner_settings_banner_skin_key" name="banner_skin_key" class="form-select" required>
                                     <?php foreach ($bannerSkinOptions as $skinKey => $skinOption) { ?>
                                         <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $bannerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -65,31 +65,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.skin_key.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('banner::settings.help.skin_key.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_status', sr_t('banner::settings.default_status'), $bannerSettingsHelp['default_status']['id'], $bannerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('banner_admin_banner_settings_default_status', 'banner_default_status', sr_admin_code_label_options($allowedStatuses, 'content_status'), (string) $bannerDefaultStatus, true); ?>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_status.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('banner::settings.help.default_status.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_target_service_key', '기본 서비스', $bannerSettingsHelp['default_target_option']['id'], $bannerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input type="hidden" name="banner_default_target_option" value="<?php echo sr_e($bannerDefaultTargetOption); ?>" data-admin-target-option>
                 <select id="banner_admin_banner_settings_default_target_service_key" name="banner_default_target_service_key" class="form-select" required data-admin-target-service>
                     <?php foreach ($bannerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
                         <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $bannerDefaultTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e('새 배너가 처음 사용할 서비스입니다. 공용은 직접 선택용 배너입니다.'); ?></p>
+                <p class="form-help"><?php echo sr_e('새 배너가 처음 사용할 서비스입니다. 공용은 직접 선택용 배너입니다.'); ?></p>
             </div>
         </div>
-        <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>>
+        <div class="form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>>
             <label class="form-label" for="banner_admin_banner_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="banner_admin_banner_settings_default_target_detail_option" name="banner_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
                         <?php $optionValue = sr_banner_target_option_value($target); ?>
@@ -98,25 +98,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_target_option.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('banner::settings.help.default_target_option.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_match_type', sr_t('banner::settings.default_match_type'), $bannerSettingsHelp['default_match_type']['id'], $bannerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('banner_admin_banner_settings_default_match_type', 'banner_default_match_type', sr_admin_code_label_options($allowedMatchTypes, 'match_type'), (string) $bannerDefaultMatchType, true); ?>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_match_type.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('banner::settings.help.default_match_type.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_sort_order', sr_t('banner::settings.default_sort_order'), $bannerSettingsHelp['default_sort_order']['id'], $bannerHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="banner_admin_banner_settings_default_sort_order" type="number" name="banner_default_sort_order" value="<?php echo sr_e((string) $bannerDefaultSortOrder); ?>" class="form-input">
-                <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_sort_order.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('banner::settings.help.default_sort_order.inline')); ?></p>
             </div>
         </div>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></a>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('banner::ui.banner.settings.save.760342b3')); ?></button>
     </div>

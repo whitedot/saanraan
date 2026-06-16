@@ -49,7 +49,7 @@
 - 영향 화면:
   - `/admin/banners/new`
   - `/admin/notifications/new`
-  - 유사한 `admin-form-sticky-actions` 사용 폼
+  - 유사한 `form-sticky-actions` 사용 폼
 - 증거 예시:
   - `admin-banners-new-mobile.png`
   - `admin-notifications-new-mobile.png`
@@ -103,12 +103,12 @@
 ## 2026-05-18 수정 반영
 
 - 모바일 표는 좁은 열에 내용을 강제로 줄바꿈하지 않고 카드 내부 가로 스크롤로 탐색하도록 조정했다.
-- 모바일 폼의 `admin-form-sticky-actions`는 입력 영역을 덮지 않도록 일반 흐름으로 내려오게 했다.
+- 모바일 폼의 `form-sticky-actions`는 입력 영역을 덮지 않도록 일반 흐름으로 내려오게 했다.
 - 감사 로그 필터는 데스크톱에서 여러 열을 쓰고 태블릿/모바일에서는 한 열로 접히도록 조정했다.
 - 감사 로그의 메시지와 메타 JSON은 기본 표 폭을 과도하게 밀지 않도록 메시지 폭을 제한하고 메타 원문은 펼침 영역에 넣었다.
 - 대표 화면 재확인 증거: `storage/layout-audit/2026-05-18-admin-after-fix/`
 
 ## 2026-05-21 수정 반영
 
-- 등록, 수정, 설정 화면의 제출 영역은 공통 `admin-form-sticky-actions` 기준으로 다시 하단 스티키 동작을 사용한다.
+- 등록, 수정, 설정 화면의 제출 영역은 공통 `form-sticky-actions` 기준으로 다시 하단 스티키 동작을 사용한다.
 - 모바일에서도 스티키 동작은 유지하고, 버튼 폭과 액션 배치만 모바일 기준으로 보정한다.

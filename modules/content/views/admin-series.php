@@ -104,7 +104,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <div>
             <h2 class="card-title">콘텐츠 시리즈 목록</h2>
@@ -221,27 +221,27 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                 <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body">
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_key_new">key <span class="sr-required-label">(필수)</span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="content_series_key_new" name="series_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" value="<?php echo sr_e((string) ($seriesFormValues['series_key'] ?? '')); ?>" required data-admin-key-input data-admin-key-suggest-source="#content_series_title_new" data-admin-key-suggest-fallback="series" data-overlay-focus class="form-input">
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_title_new">제목 <span class="sr-required-label">(필수)</span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="content_series_title_new" name="title" maxlength="160" value="<?php echo sr_e((string) ($seriesFormValues['title'] ?? '')); ?>" required class="form-input form-control-full">
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_description_new">설명</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="content_series_description_new" name="description" rows="3" class="form-textarea"><?php echo sr_e((string) ($seriesFormValues['description'] ?? '')); ?></textarea>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_status_new">상태 <span class="sr-required-label">(필수)</span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="content_series_status_new" name="status" class="form-select" required>
                             <?php foreach (sr_content_series_statuses() as $status) { ?>
                                 <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($seriesFormValues['status'] ?? 'active') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_status_label($status)); ?></option>
@@ -249,9 +249,9 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                         </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_visibility_new">공개 범위 <span class="sr-required-label">(필수)</span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="content_series_visibility_new" name="visibility" class="form-select" required>
                             <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
                                 <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) ($seriesFormValues['visibility'] ?? 'public') === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_visibility_label($visibility)); ?></option>
@@ -259,9 +259,9 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                         </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_series_sort_new">정렬</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="content_series_sort_new" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesFormValues['sort_order'] ?? 0)); ?>" class="form-input">
                     </div>
                 </div>

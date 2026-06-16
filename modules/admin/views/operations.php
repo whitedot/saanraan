@@ -18,7 +18,7 @@ $statusClass = static function (string $status): string {
 };
 ?>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">지연/실패 신호</h2>
     </div>

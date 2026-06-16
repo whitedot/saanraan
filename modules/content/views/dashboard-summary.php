@@ -4,7 +4,7 @@ $contentRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
 $reviewRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
 ?>
 
-<div class="content-dashboard-summary admin-card card">
+<div class="content-dashboard-summary card">
     <div class="content-dashboard-head">
         <p class="type-meta">서비스 콘텐츠</p>
         <h2 class="type-section-title"><?php echo sr_e($dashboardSectionTitle); ?></h2>

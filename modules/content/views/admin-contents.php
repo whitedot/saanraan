@@ -87,7 +87,7 @@ $pageGroupScopeRadioHtml = static function (string $name, string $selectedScope)
     $html = sr_t('content::ui.div.class.admin.setting.source.01280cd8');
     foreach ($pageGroupScopeLabels as $scope => $label) {
         $id = 'content_group_scope_' . $scope;
-        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<label class="form-check form-label" for="' . sr_e($id) . '">';
         $toast = (string) ($label['toast'] ?? '');
         $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($scope) . '" class="form-radio" data-content-group-scope-option' . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selectedScope === $scope ? ' checked' : '') . '>';
         $html .= $pageScopeLabelHtml($label);
@@ -115,7 +115,7 @@ $pageSettingSourceRadioHtml = static function (string $name, string $selectedSou
     $html = sr_t('content::ui.div.class.admin.setting.source.67eda3ac');
     foreach ($pageSettingSourceLabels as $source => $label) {
         $id = 'content_setting_source_' . $baseId . '_' . $source;
-        $html .= '<label class="admin-form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<label class="form-check form-label" for="' . sr_e($id) . '">';
         $toast = (string) ($label['toast'] ?? '');
         $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($isMaster ? ' data-admin-setting-source-master' : '') . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selectedSource === $source ? ' checked' : '') . '>';
         $html .= $pageScopeLabelHtml($label);
@@ -190,37 +190,37 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $contentId); ?>">
                         <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
-                        <p class="admin-form-help"><?php echo sr_e((string) ($content['title'] ?? '')); ?></p>
-                        <div class="admin-form-row">
+                        <p class="form-help"><?php echo sr_e((string) ($content['title'] ?? '')); ?></p>
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e((string) $suggestion['title']); ?>" class="form-input form-control-full" maxlength="160" required data-overlay-focus>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-slug"><?php echo sr_e('주소 이름'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-slug" type="text" name="slug" value="<?php echo sr_e((string) $suggestion['slug']); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
-                                <p class="admin-form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전은 복사하지 않습니다.'); ?></p>
+                                <p class="form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전은 복사하지 않습니다.'); ?></p>
                             </div>
                         </div>
                         <?php if ($seriesSuggestions !== []) { ?>
-                            <div class="admin-form-row">
+                            <div class="form-row">
                                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <?php echo sr_admin_checkbox_toggle_html($modalId . '-copy-series', 'copy_series', '1', false, '시리즈도 새 사본으로 복사', ' data-copy-series-toggle'); ?>
-                                    <p class="admin-form-help"><?php echo sr_e('원본 시리즈에 섞지 않고 새 시리즈 사본을 만들며, 현재 콘텐츠 항목만 새 콘텐츠로 연결합니다.'); ?></p>
+                                    <p class="form-help"><?php echo sr_e('원본 시리즈에 섞지 않고 새 시리즈 사본을 만들며, 현재 콘텐츠 항목만 새 콘텐츠로 연결합니다.'); ?></p>
                                     <?php foreach ($seriesSuggestions as $seriesSuggestion) { ?>
                                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
-                                        <div class="admin-form-row">
+                                        <div class="form-row">
                                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-series-key-<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 key'); ?> <span class="sr-required-label" data-copy-series-required-label hidden><?php echo sr_e('(필수)'); ?></span></label>
-                                            <div class="admin-form-field">
+                                            <div class="form-field">
                                                 <input id="<?php echo sr_e($modalId); ?>-series-key-<?php echo sr_e((string) $seriesId); ?>" type="text" name="content_series_keys[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['series_key']); ?>" class="form-input form-control-full" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input data-copy-series-input>
                                             </div>
                                         </div>
-                                        <div class="admin-form-row">
+                                        <div class="form-row">
                                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-series-title-<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 제목'); ?> <span class="sr-required-label" data-copy-series-required-label hidden><?php echo sr_e('(필수)'); ?></span></label>
-                                            <div class="admin-form-field">
+                                            <div class="form-field">
                                                 <input id="<?php echo sr_e($modalId); ?>-series-title-<?php echo sr_e((string) $seriesId); ?>" type="text" name="content_series_titles[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['title']); ?>" class="form-input form-control-full" maxlength="160" data-copy-series-input>
                                             </div>
                                         </div>
@@ -230,7 +230,7 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                         <?php } ?>
                     </div>
                     <div class="modal-footer-note">
-                        <p class="admin-form-help"><?php echo sr_e('복사는 이미 저장된 원본 콘텐츠 기준으로 새 초안을 만들며, 열려 있는 수정 form 입력값은 함께 저장하거나 복사하지 않습니다.'); ?></p>
+                        <p class="form-help"><?php echo sr_e('복사는 이미 저장된 원본 콘텐츠 기준으로 새 초안을 만들며, 열려 있는 수정 form 입력값은 함께 저장하거나 복사하지 않습니다.'); ?></p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>
@@ -394,27 +394,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </nav>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
-        <section id="content-section-basic" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="content_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_title', sr_t('content::ui.text.08b17e43'), $contentHelp['title']['id'], $contentHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_slug', '주소 이름', $contentHelp['slug']['id'], $contentHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
                     <br>
                                         <small><?php echo sr_e(sr_t('content::ui.content.slug.active.359891c0')); ?></small>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.content.5875c5b3'), $contentHelp['content_group']['id']); ?><label for="content_admin_contents_content_group_id"><?php echo sr_e(sr_t('content::ui.content.5875c5b3')); ?> <span class="sr-required-label" data-content-group-required hidden><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label></div>
-                <div class="admin-form-field">
+            <div class="form-row">
+                <div class="form-label form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.content.5875c5b3'), $contentHelp['content_group']['id']); ?><label for="content_admin_contents_content_group_id"><?php echo sr_e(sr_t('content::ui.content.5875c5b3')); ?> <span class="sr-required-label" data-content-group-required hidden><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label></div>
+                <div class="form-field">
                     <select id="content_admin_contents_content_group_id" name="content_group_id" class="form-select" data-content-group-select>
                         <option value="0"<?php echo (int) ($values['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.text.d435d292')); ?></option>
                         <?php foreach ($pageGroups as $pageGroup) { ?>
@@ -427,14 +427,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $pageGroupScopeRadioHtml('content_group_scope', (string) ($values['content_group_scope'] ?? 'here_only')); ?>
-                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 운영 묶음입니다. 목록 페이지와 메뉴 후보를 관리하며 읽기 순서나 회차 내비게이션은 만들지 않습니다.'); ?></p>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
+                    <p class="form-help"><?php echo sr_e('콘텐츠 그룹은 운영 묶음입니다. 목록 페이지와 메뉴 후보를 관리하며 읽기 순서나 회차 내비게이션은 만들지 않습니다.'); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_series_id"><?php echo sr_e('시리즈'); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_series_id" name="series_id" class="form-select">
                         <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
                         <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
@@ -443,7 +443,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
+                    <p class="form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
                     <div class="admin-form-inline">
                         <label for="content_admin_contents_series_episode_label">
                             <span><?php echo sr_e('회차 표시'); ?></span>
@@ -457,17 +457,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section id="content-section-body" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-body" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('본문과 대표 이미지'); ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_summary', sr_t('content::ui.text.50f30154'), $contentHelp['summary']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="content_admin_contents_summary" name="summary" maxlength="1000" class="form-textarea"><?php echo sr_e((string) ($values['summary'] ?? '')); ?></textarea>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_cover_image_url">커버 이미지</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php if ($contentCoverImageUrl !== '') { ?>
                         <div class="admin-content-cover-preview">
                             <?php echo sr_content_cover_image_html(['cover_image_url' => $contentCoverImageUrl, 'title' => (string) ($values['title'] ?? '')], 'admin-content-cover-preview-image', '커버 이미지'); ?>
@@ -486,12 +486,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if ($contentCoverImageUrl !== '') { ?>
                         <?php echo sr_admin_checkbox_toggle_html('content_admin_contents_cover_image_delete', 'cover_image_delete', '1', (int) ($values['cover_image_delete'] ?? 0) === 1, '현재 커버 이미지 삭제'); ?>
                     <?php } ?>
-                    <p class="admin-form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
+                    <p class="form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
                     <small><?php echo sr_e($contentEditorKey === 'ckeditor' ? 'CKEditor 제출은 허용된 HTML만 정화해 저장합니다.' : sr_t('content::ui.content.plain.save.723dab58')); ?></small>
@@ -508,11 +508,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section id="content-section-public" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-public" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('공개 설정'); ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_status', sr_t('content::ui.status.e10195a1'), $contentHelp['status']['id'], $contentHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_status" name="status" class="form-select" required data-content-status-select>
                                                 <?php foreach (sr_content_allowed_statuses() as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'draft') === $status ? ' selected' : ''; ?>>
@@ -521,19 +521,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php } ?>
                                             </select>
 	                    <?php echo $pageSettingSourceRadioHtml('source_status', $pageSettingSource($values, 'status')); ?>
-                    <p class="admin-form-help">예약 상태를 선택하면 아래 시각 이후 공개 콘텐츠로 전환됩니다.</p>
+                    <p class="form-help">예약 상태를 선택하면 아래 시각 이후 공개 콘텐츠로 전환됩니다.</p>
 	                </div>
 	            </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_scheduled_publish_at">예약 발행 시각 <span class="sr-required-label" data-content-scheduled-required hidden>(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_scheduled_publish_at" type="datetime-local" name="scheduled_publish_at" value="<?php echo sr_e(sr_content_datetime_local_value((string) ($values['scheduled_publish_at'] ?? $values['published_at'] ?? ''))); ?>" class="form-input" data-content-scheduled-input>
-                    <p class="admin-form-help">상태가 예약일 때만 저장에 사용됩니다. 즉시 공개는 상태를 공개로 선택하세요.</p>
+                    <p class="form-help">상태가 예약일 때만 저장에 사용됩니다. 즉시 공개는 상태를 공개로 선택하세요.</p>
                 </div>
             </div>
-	            <div class="admin-form-row">
+	            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_layout_key', sr_t('content::ui.content.fa985852'), $contentHelp['layout']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_layout_key" name="layout_key" class="form-select">
                                                 <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                                                     <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($values['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
@@ -542,15 +542,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php } ?>
                                             </select>
                     <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.content.05b39bf1')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('content::ui.content.05b39bf1')); ?></p>
                 </div>
             </div>
         </section>
-        <section id="content-section-reaction" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-reaction" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('리액션'); ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_reaction_preset_key">콘텐츠 리액션 프리셋</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_reaction_preset_key" name="reaction_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
@@ -558,12 +558,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">비어 있으면 콘텐츠 환경설정의 기본 프리셋을 사용합니다.</p>
+                    <p class="form-help">비어 있으면 콘텐츠 환경설정의 기본 프리셋을 사용합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_reaction_comment_preset_key">댓글 리액션 프리셋</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
@@ -574,44 +574,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section id="content-section-seo" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-seo" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('SEO 설정'); ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_description', sr_t('content::ui.seo.b6187d8d'), $contentHelp['seo_description']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
         </section>
-        <section id="content-section-access-asset" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-access-asset" class="card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
-                    <span class="admin-form-actions">
+                    <span class="form-actions">
                         <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
                     </span>
                 <?php } ?>
             </h2>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?> 사용</span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
+            <div class="form-row">
+                <div class="form-label form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?> 사용</span></div>
+                <div class="form-field">
+                    <label class="form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
                         <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
                     </label>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.member.content.42c8795b')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('content::ui.select.member.content.42c8795b')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_charge_policy', sr_t('content::ui.text.86803f52'), $contentHelp['asset_charge_policy']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_asset_charge_policy" name="asset_charge_policy" class="form-select">
                         <?php foreach (sr_content_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
                             <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($values['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
@@ -622,9 +622,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $pageSettingSourceRadioHtml('source_asset_charge_policy', $pageSettingSource($values, 'asset_charge_policy')); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.c9b3e6f0') . ' 포인트/금액 설정', $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php $selectedAccessAssetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''); ?>
                     <div class="admin-asset-setting-line" data-admin-setting-source-group>
                         <div class="admin-asset-setting-control admin-asset-setting-control-full">
@@ -632,7 +632,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="content_admin_contents_asset_access_amount" type="hidden" name="asset_access_amount" value="<?php echo sr_e((string) (int) ($values['asset_access_amount'] ?? 0)); ?>">
                                 <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_access_amounts_grouped', 'asset_module', 'asset_access_amounts', $assetModuleOptions, $selectedAccessAssetModules, $values['asset_access_amounts_json'] ?? '', (int) ($values['asset_access_amount'] ?? 0), sr_t('content::ui.text.a9f15a8b'), sr_t('content::ui.text.3e195cdd')); ?>
                             </div>
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                            <p class="form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         </div>
                         <div class="admin-asset-setting-scope">
                             <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module'), true); ?>
@@ -642,45 +642,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_asset_access_policy_set_ids"><?php echo sr_e('회원 그룹별 적용'); ?></label>
-                <div class="admin-form-field admin-policy-set-field">
+                <div class="form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_policy_set_id', $pageSettingSource($values, 'asset_access_policy_set_id')); ?>
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_access_policy_set_ids', 'asset_access_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_access_group_policies_json'] ?? '', (int) ($values['asset_access_policy_set_id'] ?? 0)), 'neutral', '', '#content_admin_contents_asset_access_amounts_grouped', $pdo); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <p class="form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
-        <section id="content-section-action-asset" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-action-asset" class="card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
-                    <span class="admin-form-actions">
+                    <span class="form-actions">
                         <a href="<?php echo sr_e($contentAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
                     </span>
                 <?php } ?>
             </h2>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.8bcecbe7'), $contentHelp['asset_action_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 사용</span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_action_enabled">
+            <div class="form-row">
+                <div class="form-label form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.8bcecbe7'), $contentHelp['asset_action_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 사용</span></div>
+                <div class="form-field">
+                    <label class="form-check form-label" for="modules_content_admin_contents_asset_action_enabled">
                                             <input id="modules_content_admin_contents_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.904d506b')); ?>
                                         </label>
                                         <?php echo $pageSettingSourceRadioHtml('source_asset_action_enabled', $pageSettingSource($values, 'asset_action_enabled')); ?>
-                                        <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.member.content.select.02996bc9')); ?></p>
+                                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.member.content.select.02996bc9')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_label', sr_t('content::ui.text.98fb4605'), $contentHelp['asset_action_label']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_contents_asset_action_label" type="text" name="asset_action_label" value="<?php echo sr_e((string) ($values['asset_action_label'] ?? sr_t('content::ui.text.727333ab'))); ?>" class="form-input" maxlength="80">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_label', $pageSettingSource($values, 'asset_action_label')); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_direction', sr_t('content::ui.text.af7873a8'), $contentHelp['asset_action_direction']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_contents_asset_action_direction" name="asset_action_direction" class="form-select" data-content-action-direction>
                                                 <?php foreach (sr_content_asset_action_directions() as $directionKey => $directionLabel) { ?>
                                                     <option value="<?php echo sr_e((string) $directionKey); ?>"<?php echo (string) ($values['asset_action_direction'] ?? 'grant') === (string) $directionKey ? ' selected' : ''; ?>>
@@ -691,9 +691,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_direction', $pageSettingSource($values, 'asset_action_direction')); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_module', sr_t('content::ui.text.76faa117') . ' 자산 설정', $contentHelp['asset_action_module']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php $selectedActionAssetModules = sr_content_asset_module_keys_from_value($values['asset_action_module'] ?? ''); ?>
                     <div class="admin-asset-setting-line" data-admin-setting-source-group>
                         <div class="admin-asset-setting-control admin-asset-setting-control-full">
@@ -701,7 +701,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="content_admin_contents_asset_action_amount" type="hidden" name="asset_action_amount" value="<?php echo sr_e((string) (int) ($values['asset_action_amount'] ?? 0)); ?>">
                                 <?php echo sr_content_asset_grouped_amount_inputs_html('content_admin_contents_asset_action_amounts_grouped', 'asset_action_module', 'asset_action_amounts', $assetModuleOptions, $selectedActionAssetModules, $values['asset_action_amounts_json'] ?? '', (int) ($values['asset_action_amount'] ?? 0), sr_t('content::ui.text.5c705e1a'), sr_t('content::ui.text.3e195cdd'), '#content_admin_contents_asset_action_direction', 'grant'); ?>
                             </div>
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                            <p class="form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         </div>
                         <div class="admin-asset-setting-scope">
                             <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module'), true); ?>
@@ -711,19 +711,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <span class="form-label"><?php echo sr_e('회원 그룹별 적용'); ?></span>
-                <div class="admin-form-field admin-policy-set-field">
+                <div class="form-field admin-policy-set-field">
                     <?php echo $pageSettingSourceRadioHtml('source_asset_action_policy_set_id', $pageSettingSource($values, 'asset_action_policy_set_id')); ?>
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_admin_contents_asset_action_policy_set_ids', 'asset_action_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($values['asset_action_group_policies_json'] ?? '', (int) ($values['asset_action_policy_set_id'] ?? 0)), (string) ($values['asset_action_direction'] ?? 'grant'), '#content_admin_contents_asset_action_direction', '#content_admin_contents_asset_action_amounts_grouped', $pdo); ?>
-                    <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
+                    <p class="form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
         </section>
-        <section id="content-section-display" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-display" class="card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.a052b2f6')); ?></span>
-                <span class="admin-form-actions">
+                <span class="form-actions">
                     <?php if (sr_module_enabled($pdo, 'banner')) { ?>
                         <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('content::ui.banner.42c18eb4')); ?></a>
                     <?php } ?>
@@ -732,9 +732,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </span>
             </h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_banner_before_content_id', sr_t('content::ui.banner.042ab3f3'), $contentHelp['banner_before']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_banner_before_content_id" name="banner_before_content_id" class="form-select form-control-full">
                             <option value="0"<?php echo (int) ($values['banner_before_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.active.4add3230')); ?></option>
@@ -748,9 +748,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_banner_after_content_id', sr_t('content::ui.banner.5818427a'), $contentHelp['banner_after']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_banner_after_content_id" name="banner_after_content_id" class="form-select form-control-full">
                             <option value="0"<?php echo (int) ($values['banner_after_content_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.active.4add3230')); ?></option>
@@ -762,12 +762,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                         <?php echo $pageSettingSourceRadioHtml('source_banner_after_content_id', $pageSettingSource($values, 'banner_after_content_id')); ?>
                     </div>
-                    <small class="admin-form-help"><?php echo sr_e(sr_t('content::ui.banner.select.banner.settings.f34a92f2')); ?></small>
+                    <small class="form-help"><?php echo sr_e(sr_t('content::ui.banner.select.banner.settings.f34a92f2')); ?></small>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_popup_layer_id', sr_t('content::ui.text.1063d585'), $contentHelp['popup_layer']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <div class="admin-setting-source-line">
                         <select id="content_admin_contents_popup_layer_id" name="popup_layer_id" class="form-select form-control-full">
                             <option value="0"<?php echo (int) ($values['popup_layer_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.active.4add3230')); ?></option>
@@ -779,38 +779,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                         <?php echo $pageSettingSourceRadioHtml('source_popup_layer_id', $pageSettingSource($values, 'popup_layer_id')); ?>
                     </div>
-                    <small class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.content.all.settings.bed25394')); ?></small>
+                    <small class="form-help"><?php echo sr_e(sr_t('content::ui.select.content.all.settings.bed25394')); ?></small>
                 </div>
             </div>
             <?php if ($editing) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('content::ui.url.644c2e7a')); ?></span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <a href="<?php echo sr_e($contentAdminPreviewUrl((string) $editPage['slug'])); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_content_path((string) $editPage['slug'])); ?></a>
                     </div>
                 </div>
             <?php } ?>
         </section>
-        <section id="content-section-files" class="admin-card card" data-admin-section-anchor>
+        <section id="content-section-files" class="card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.c7c88adc')); ?></span>
-                <span class="admin-form-actions">
+                <span class="form-actions">
                     <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-sm btn-solid-light">파일 관리</a>
                 </span>
             </h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_contents_download_file_links_select">연결 파일</label>
-                <div class="admin-form-field admin-policy-set-field">
+                <div class="form-field admin-policy-set-field">
                     <?php if ($downloadFiles !== []) { ?>
                         <?php echo sr_content_download_file_link_badge_select_html('content_admin_contents_download_file_links', 'content_file_link_ids', $downloadFiles, array_keys($linkedDownloadFileIds), $pdo); ?>
-                        <p class="admin-form-help">미리 등록한 사용 상태 파일만 연결할 수 있습니다. 파일 제목, 숨김, 다운로드 과금 정책은 파일 관리 화면에서 처리합니다.</p>
+                        <p class="form-help">미리 등록한 사용 상태 파일만 연결할 수 있습니다. 파일 제목, 숨김, 다운로드 과금 정책은 파일 관리 화면에서 처리합니다.</p>
                     <?php } else { ?>
-                        <p class="admin-form-help">연결할 다운로드 파일이 없습니다. 파일 관리 화면에서 파일을 먼저 등록하세요.</p>
+                        <p class="form-help">연결할 다운로드 파일이 없습니다. 파일 관리 화면에서 파일을 먼저 등록하세요.</p>
                     <?php } ?>
                 </div>
             </div>
         </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_e('복사'); ?></button>
@@ -883,7 +883,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <div>
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></h2>
@@ -1139,7 +1139,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             }
         };
         var syncDisabledLook = function (option) {
-            var label = option && option.closest ? option.closest('.admin-form-check') : null;
+            var label = option && option.closest ? option.closest('.form-check') : null;
             if (label) {
                 label.classList.toggle('is-disabled-look', option.disabled);
             }

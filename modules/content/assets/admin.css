@@ -60,11 +60,11 @@
 .admin-content-download-files .filtering-submit,.admin-content-file-downloads .filtering-submit{justify-content:center;width:auto}
 .admin-content-file-charge-control{width:100%}
 .admin-content-file-charge-main{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);width:100%}
-.admin-content-file-charge-main>.admin-form-check{min-height:calc(var(--spacing) * 9)}
+.admin-content-file-charge-main>.form-check{min-height:calc(var(--spacing) * 9)}
 .admin-content-file-charge-assets>.admin-check-list{margin-top:0}
 .admin-content-file-charge-amount{width:8rem}
 .admin-content-file-charge-policy{width:10rem}
-.admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
+.admin-content-file-charge-control>.form-help{margin-top:calc(var(--spacing) * 1.5)}
 .admin-content-cover-preview{border:1px solid var(--color-border);display:flex;min-height:9rem;max-width:18rem;overflow:hidden;width:100%}
 .admin-content-cover-preview-image{aspect-ratio:16/9;display:block;object-fit:cover;width:100%}
 .admin-content-cover-inputs{display:grid;gap:calc(var(--spacing) * 2.5);width:100%}

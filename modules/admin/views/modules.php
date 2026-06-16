@@ -89,7 +89,7 @@ $installedSections = [
 </div>
 <?php echo sr_admin_pagination_summary_html($installablePagination); ?>
 <?php if ($installableRows === []) { ?>
-    <section class="admin-card admin-list-card card">
+    <section class="card admin-list-card">
         <p><?php echo sr_e((string) $installableSection['empty']); ?></p>
     </section>
 <?php } else { ?>
@@ -100,7 +100,7 @@ $installedSections = [
             <?php $moduleInstallModalId = 'installable-module-install-' . $moduleKey; ?>
             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
             <?php $canInstall = $moduleErrors === []; ?>
-            <article class="admin-card admin-module-card card admin-list-form">
+            <article class="card admin-module-card admin-list-form">
                 <div class="admin-module-card-header">
                     <div class="admin-module-card-title">
                         <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
@@ -217,16 +217,16 @@ $installedSections = [
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="install">
                                     <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                    <div class="admin-form-row">
+                                    <div class="form-row">
                                         <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
-                                        <div class="admin-form-field">
+                                        <div class="form-field">
                                             <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                            <span class="admin-form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
+                                            <span class="form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
                                         </div>
                                     </div>
-                                    <div class="admin-form-row">
+                                    <div class="form-row">
                                         <label class="form-label" for="<?php echo sr_e($moduleInstallModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                        <div class="admin-form-field">
+                                        <div class="form-field">
                                             <select id="<?php echo sr_e($moduleInstallModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
                                                 <?php foreach ($allowedInstallStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo $status === 'enabled' ? ' selected' : ''; ?>>
@@ -261,7 +261,7 @@ $installedSections = [
 </div>
 <?php echo sr_admin_pagination_summary_html($installedPagination); ?>
 <?php if ($installedRows === []) { ?>
-    <section class="admin-card admin-list-card card">
+    <section class="card admin-list-card">
         <p><?php echo sr_e((string) $installedSection['title']); ?><?php echo sr_e('이 없습니다.'); ?></p>
     </section>
 <?php } else { ?>
@@ -276,7 +276,7 @@ $installedSections = [
         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
         <?php $moduleStatus = (string) $module['status']; ?>
         <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
-        <article class="admin-card admin-module-card card admin-list-form">
+        <article class="card admin-module-card admin-list-form">
             <div class="admin-module-card-header">
                 <div class="admin-module-card-title">
                     <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
@@ -466,33 +466,33 @@ $installedSections = [
                             </div>
                             <div class="modal-body">
                                 <?php if ($isRequired) { ?>
-                                    <p class="admin-form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.required.status.22c14e16')); ?></p>
+                                    <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.required.status.22c14e16')); ?></p>
                                 <?php } elseif ($foundationDependents !== []) { ?>
-                                    <p class="admin-form-help admin-module-status-help"><?php echo sr_e('활성 자산 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
+                                    <p class="form-help admin-module-status-help"><?php echo sr_e('활성 자산 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
                                 <?php } else { ?>
-                                    <p class="admin-form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.status.f9873f1e')); ?></p>
+                                    <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.status.f9873f1e')); ?></p>
                                 <?php } ?>
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="status">
                                 <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                <div class="admin-form-row">
+                                <div class="form-row">
                                     <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
-                                    <div class="admin-form-field">
+                                    <div class="form-field">
                                         <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                        <span class="admin-form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
+                                        <span class="form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
                                     </div>
                                 </div>
-                                <div class="admin-form-row">
+                                <div class="form-row">
                                     <span class="form-label"><?php echo sr_e(sr_t('admin::ui.status.a00fce68')); ?></span>
-                                    <div class="admin-form-field">
+                                    <div class="form-field">
                                         <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
                                             <?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?>
                                         </span>
                                     </div>
                                 </div>
-                                <div class="admin-form-row">
+                                <div class="form-row">
                                     <label class="form-label" for="<?php echo sr_e($moduleStatusModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.098d4cea')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                                    <div class="admin-form-field">
+                                    <div class="form-field">
                                         <select id="<?php echo sr_e($moduleStatusModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $moduleStatus === $status ? ' selected' : ''; ?>>
@@ -551,22 +551,22 @@ $installedSections = [
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="upload_module_zip">
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="admin_modules_module_zip"><?php echo sr_e(sr_t('admin::ui.zip.af88d6a3')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="admin_modules_module_zip" type="file" name="module_zip" accept=".zip,application/zip" required class="form-input" data-overlay-focus>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="admin_modules_upload_module_key"><?php echo sr_e(sr_t('admin::ui.key.d2f54e12')); ?></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="admin_modules_upload_module_key" type="text" name="upload_module_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
                             </div>
                         </div>
-                        <div class="admin-form-grid">
-                            <div class="admin-form-row">
+                        <div class="form-grid">
+                            <div class="form-row">
                                 <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.7313e7a0')); ?></span>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">
                                             <input id="modules_admin_modules_confirm_file_replace" type="checkbox" name="confirm_file_replace" value="1" class="form-choice-toggle-input sr-only">
@@ -575,9 +575,9 @@ $installedSections = [
                                     </div>
                                 </div>
                             </div>
-                            <div class="admin-form-row">
+                            <div class="form-row">
                                 <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.ab7807a7')); ?></span>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">
                                             <input id="modules_admin_modules_allow_downgrade" type="checkbox" name="allow_downgrade" value="1" class="form-choice-toggle-input sr-only">
@@ -587,9 +587,9 @@ $installedSections = [
                                 </div>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="admin_modules_owner_password"><?php echo sr_e(sr_t('admin::ui.password.6fda7f23')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="admin_modules_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                             </div>
                         </div>

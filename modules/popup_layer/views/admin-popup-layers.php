@@ -78,12 +78,12 @@ $popupLayerCopyModalHtml = static function (array $popup, string $returnTo): str
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popupId); ?>">
                         <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
-                        <p class="admin-form-help"><?php echo sr_e((string) ($popup['title'] ?? '')); ?></p>
-                        <div class="admin-form-row">
+                        <p class="form-help"><?php echo sr_e((string) ($popup['title'] ?? '')); ?></p>
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="120" required data-overlay-focus>
-                                <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장됩니다.'); ?></p>
+                                <p class="form-help"><?php echo sr_e('복사본은 draft로 저장됩니다.'); ?></p>
                             </div>
                         </div>
                     </div>
@@ -148,26 +148,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>">
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo sr_e($editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc')); ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="popup_layer_admin_popup_layers_title"><?php echo sr_e(sr_t('popup_layer::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="popup_layer_admin_popup_layers_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editPopup['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="popup_layer_admin_popup_layers_body_text"><?php echo sr_e(sr_t('popup_layer::ui.text.cb0f2404')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="popup_layer_admin_popup_layers_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $popupLayerEditorAttributes; ?>><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_status', sr_t('popup_layer::ui.status.e10195a1'), $popupLayerHelp['status']['id'], $popupLayerHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select" required>
                                                     <?php foreach ($allowedStatuses as $status) { ?>
                                                         <?php $currentStatus = $editing ? (string) $editPopup['status'] : (isset($popupLayerDefaultStatus) ? (string) $popupLayerDefaultStatus : 'draft'); ?>
@@ -178,9 +178,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_skin_key', sr_t('popup_layer::ui.text.9c7f107d'), $popupLayerHelp['skin_key']['id'], $popupLayerHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select" required>
                                                     <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
                                                         <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
@@ -192,20 +192,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <input type="hidden" name="target_option" value="<?php echo sr_e($selectedTargetOption); ?>" data-admin-target-option>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_target_service_key', '서비스', $popupLayerHelp['target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_target_service_key" name="target_service_key" class="form-select" required data-admin-target-service>
                             <?php foreach ($popupLayerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
                                 <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="admin-form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 팝업레이어이고, 서비스 선택 시 상세 노출 위치를 고릅니다.'); ?></p>
+                        <p class="form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 팝업레이어이고, 서비스 선택 시 상세 노출 위치를 고릅니다.'); ?></p>
                     </div>
                 </div>
-                <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
+                <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
                     <label class="form-label" for="popup_layer_admin_popup_layers_target_detail_option"><?php echo sr_e('상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
                             <?php foreach ($availableTargets as $target) { ?>
                                 <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
@@ -214,12 +214,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::ui.settings.select.active.a35cb577')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('popup_layer::ui.settings.select.active.a35cb577')); ?></p>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_match_type', sr_t('popup_layer::ui.text.175f56ba'), $popupLayerHelp['match_type']['id'], $popupLayerHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select" required>
                                                     <?php foreach ($allowedMatchTypes as $matchType) { ?>
                                                         <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
@@ -229,15 +229,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <div class="form-label admin-form-label-help"><?php echo $popupLayerHelpButtonHtml(sr_t('popup_layer::ui.subject.id.14852174'), $popupLayerHelp['subject_id']['id']); ?><label for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e(sr_t('popup_layer::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label></div>
-                    <div class="admin-form-field">
+                <div class="form-row">
+                    <div class="form-label form-label-help"><?php echo $popupLayerHelpButtonHtml(sr_t('popup_layer::ui.subject.id.14852174'), $popupLayerHelp['subject_id']['id']); ?><label for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e(sr_t('popup_layer::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label></div>
+                    <div class="form-field">
                         <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_starts_at', sr_t('popup_layer::ui.text.65bdaefd'), $popupLayerHelp['starts_at']['id'], $popupLayerHelpOpenLabel); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input type="datetime-local" name="starts_at" id="popup_starts_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['starts_at'] ?? null)) : ''; ?>" class="form-input">
                         <div class="admin-date-quick-actions">
                                                     <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick="now" data-datetime-target="popup_starts_at"><?php echo sr_e(sr_t('popup_layer::ui.text.df159f47')); ?></button>
@@ -247,9 +247,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </div>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_ends_at', sr_t('popup_layer::ui.text.26c25fca'), $popupLayerHelp['ends_at']['id'], $popupLayerHelpOpenLabel); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input type="datetime-local" name="ends_at" id="popup_ends_at" value="<?php echo $editing ? sr_e(sr_popup_layer_admin_datetime_value($editPopup['ends_at'] ?? null)) : ''; ?>" class="form-input">
                         <div class="admin-date-quick-actions">
                                                     <button type="button" class="btn btn-sm btn-solid-light" data-datetime-quick-days="1" data-datetime-target="popup_ends_at"><?php echo sr_e(sr_t('popup_layer::ui.text.4ec242e3')); ?></button>
@@ -258,14 +258,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </div>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_dismiss_cookie_days', sr_t('popup_layer::ui.close.06cddc6e'), $popupLayerHelp['dismiss_cookie_days']['id'], $popupLayerHelpOpenLabel); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : sr_e((string) ($popupLayerDefaultDismissCookieDays ?? 1)); ?>" class="form-input" min="0" max="365">
                     </div>
                 </div>
         </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('popup_layer::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="popup-layer-copy-modal-<?php echo sr_e((string) (int) $editPopup['id']); ?>" data-overlay="#popup-layer-copy-modal-<?php echo sr_e((string) (int) $editPopup['id']); ?>"><?php echo sr_e('복사'); ?></button>
@@ -348,7 +348,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('popup_layer::ui.text.bbd10514')); ?></a>

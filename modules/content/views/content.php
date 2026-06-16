@@ -419,7 +419,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <span>비밀 댓글</span>
                             </label>
                         <?php } ?>
-                        <p class="admin-form-help">@이름 형식으로 회원을 언급할 수 있습니다.</p>
+                        <p class="form-help">@이름 형식으로 회원을 언급할 수 있습니다.</p>
                         <button type="submit" class="btn btn-solid-light">댓글 등록</button>
                     </form>
                 <?php } ?>

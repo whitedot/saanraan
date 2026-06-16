@@ -71,7 +71,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
     ? '최종 금액과 증감 조정은 0 이상의 정수로 입력하고, 배율 적용은 1.5처럼 입력합니다. 금액 0 처리와 처리 안 함은 값을 비워도 됩니다.'
     : '최종 금액과 증감 조정은 0 이상의 정수로 입력하고, 배율 적용은 1.5처럼 입력합니다.';
 ?>
-<section class="admin-card admin-list-card card admin-list-form admin-asset-group-policy-editor" data-admin-asset-group-policy-editor>
+<section class="card admin-list-card admin-list-form admin-asset-group-policy-editor" data-admin-asset-group-policy-editor>
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e($assetGroupPolicySectionTitle); ?></h2>
         <div class="admin-row-actions">

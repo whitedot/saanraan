@@ -85,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></h2>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $privacyRequestCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($privacyRequestCreateModalId); ?>" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>">
@@ -152,7 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
                                     <input type="hidden" name="status" value="<?php echo sr_e($requestStatus); ?>" data-privacy-status>
-                                    <p class="admin-form-help">상태 변경은 대응 기록만 저장합니다. 실제 정정, 처리 제한, 동의 철회 조치는 소유 모듈 화면에서 처리하고 메모에 근거를 남기세요.</p>
+                                    <p class="form-help">상태 변경은 대응 기록만 저장합니다. 실제 정정, 처리 제한, 동의 철회 조치는 소유 모듈 화면에서 처리하고 메모에 근거를 남기세요.</p>
                                     <div class="admin-row-actions" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
                                         <?php if (!in_array($requestStatus, sr_admin_privacy_request_terminal_statuses(), true)) { ?>
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -168,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <label for="privacy_note_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?> <span class="sr-required-label" data-privacy-note-required<?php echo $noteRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                         <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
-                                        <small class="admin-form-help">처리 근거와 결과만 적고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+                                        <small class="form-help">처리 근거와 결과만 적고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
                                     </label>
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">
@@ -219,44 +219,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </ul>
                     </div>
                 <?php } ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="privacy_create_account_id">계정 ID</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="privacy_create_account_id" type="number" name="account_id" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['account_id'] ?? '')); ?>" class="form-input" min="1" inputmode="numeric" data-privacy-create-account data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요."<?php echo $privacyRequestCreateErrors === [] ? ' data-overlay-focus' : ''; ?>>
-                        <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
+                        <small class="form-help">회원 계정과 연결할 때만 입력하세요.</small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="privacy_create_requester_snapshot">요청자</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="privacy_create_requester_snapshot" type="text" name="requester_snapshot" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['requester_snapshot'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="off" data-privacy-create-requester data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요.">
-                        <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
+                        <small class="form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="privacy_create_request_type">요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="privacy_create_request_type" name="request_type" class="form-select" required data-validation-message="요청 유형을 선택하세요.">
                             <option value="">선택</option>
                             <?php foreach ($allowedTypes as $requestType) { ?>
                                 <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                             <?php } ?>
                         </select>
-                        <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                        <small class="form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="privacy_create_request_message">요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required data-validation-message="요청 내용을 입력하세요."><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
-                        <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
+                        <small class="form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="privacy_create_admin_note">관리자 메모</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"><?php echo sr_e((string) ($privacyRequestCreateDraft['admin_note'] ?? '')); ?></textarea>
-                        <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+                        <small class="form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
                     </div>
                 </div>
             </div>
@@ -269,23 +269,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <noscript>
-    <section class="admin-card card admin-form-card">
+    <section class="card form-card">
         <div class="card-header">
             <h2 class="card-title">대응 기록 추가</h2>
         </div>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="admin-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="create_request">
-            <div class="admin-form-grid">
+            <div class="form-grid">
                 <label for="privacy_create_nojs_account_id">
                     <span>계정 ID</span>
                     <input id="privacy_create_nojs_account_id" type="number" name="account_id" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['account_id'] ?? '')); ?>" class="form-input" min="1" inputmode="numeric">
-                    <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
+                    <small class="form-help">회원 계정과 연결할 때만 입력하세요.</small>
                 </label>
                 <label for="privacy_create_nojs_requester_snapshot">
                     <span>요청자</span>
                     <input id="privacy_create_nojs_requester_snapshot" type="text" name="requester_snapshot" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['requester_snapshot'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="off">
-                    <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요. 계정 ID 또는 요청자 중 하나는 서버에서 필수로 확인합니다.</small>
+                    <small class="form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요. 계정 ID 또는 요청자 중 하나는 서버에서 필수로 확인합니다.</small>
                 </label>
                 <label for="privacy_create_nojs_request_type">
                     <span>요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
@@ -295,20 +295,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                         <?php } ?>
                     </select>
-                    <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                    <small class="form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
                 </label>
             </div>
             <label for="privacy_create_nojs_request_message">
                 <span>요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                 <textarea id="privacy_create_nojs_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
-                <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
+                <small class="form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
             </label>
             <label for="privacy_create_nojs_admin_note">
                 <span>관리자 메모</span>
                 <textarea id="privacy_create_nojs_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"><?php echo sr_e((string) ($privacyRequestCreateDraft['admin_note'] ?? '')); ?></textarea>
-                <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+                <small class="form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
             </label>
-            <div class="admin-form-actions">
+            <div class="form-actions">
                 <button type="submit" class="btn btn-solid-primary">기록 추가</button>
             </div>
         </form>

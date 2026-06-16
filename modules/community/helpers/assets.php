@@ -1358,7 +1358,7 @@ function sr_community_asset_grouped_amount_inputs_html(string $id, string $modul
     $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'community_asset_amounts';
     $html = '<div id="' . sr_e($id) . '" class="admin-asset-amount-grid admin-asset-grouped-amount-grid" role="group" data-admin-asset-amount-sync>';
     if ($assetModuleOptions === []) {
-        return $html . '<span class="admin-form-help">' . sr_e($emptyLabel) . '</span></div>';
+        return $html . '<span class="form-help">' . sr_e($emptyLabel) . '</span></div>';
     }
 
     $index = 0;
@@ -1374,7 +1374,7 @@ function sr_community_asset_grouped_amount_inputs_html(string $id, string $modul
         $isSelected = isset($selectedMap[$assetModule]);
         $html .= '<div class="admin-asset-amount-field admin-asset-grouped-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
             . '<div class="input-group admin-asset-grouped-input-group">'
-            . '<label class="input-group-text admin-form-check form-label" for="' . sr_e($inputId) . '">'
+            . '<label class="input-group-text form-check form-label" for="' . sr_e($inputId) . '">'
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($moduleFieldName) . '[]" value="' . sr_e($assetModule) . '" class="form-checkbox"' . ($isSelected ? ' checked' : '') . '>'
             . sr_admin_choice_label_html($label)
             . '</label>'

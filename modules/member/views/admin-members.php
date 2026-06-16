@@ -93,51 +93,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="create">
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo sr_e(sr_t('member::ui.member.e9679572')); ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_email', sr_t('member::ui.email.3b7dbc4c'), $memberAdminHelp['email']['id'], $memberAdminHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="member_admin_create_email" type="email" name="email" value="<?php echo sr_e((string) ($memberCreateValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_login_id', sr_t('member::ui.login.0cdb28b5'), $memberAdminHelp['login_id']['id'], $memberAdminHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="member_admin_create_login_id" type="text" name="login_id" value="<?php echo sr_e((string) ($memberCreateValues['login_id'] ?? '')); ?>" class="form-input" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-admin-login-id-input>
-                    <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
+                    <small class="form-help"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="member_admin_create_display_name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
             <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="member_admin_create_nickname"><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="member_admin_create_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($memberCreateValues['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                     </div>
                 </div>
             <?php } ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_password', sr_t('member::ui.password.4fa210a0'), $memberAdminHelp['password']['id'], $memberAdminHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="member_admin_create_password" type="password" name="password" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="member_admin_create_password_confirm"><?php echo sr_e(sr_t('member::ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="member_admin_create_password_confirm" type="password" name="password_confirm" class="form-input" minlength="8" maxlength="255" autocomplete="new-password" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_locale', sr_t('member::help.members.locale.label'), $memberAdminHelp['locale']['id'], $memberAdminHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="member_admin_create_locale" name="locale" class="form-select" required>
                         <?php foreach ($memberLocaleOptions as $localeOption) { ?>
                             <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) ($memberCreateValues['locale'] ?? 'ko') === $localeOption ? ' selected' : ''; ?>>
@@ -147,9 +147,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_status', sr_t('member::ui.status.e10195a1'), $memberAdminHelp['status']['id'], $memberAdminHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="member_admin_create_status" name="status" class="form-select">
                         <?php foreach ($createStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($memberCreateValues['status'] ?? 'active') === $status ? ' selected' : ''; ?>>
@@ -159,15 +159,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.2f905abd'), $memberAdminHelp['email_verified']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span></span>
-                <div class="admin-form-field admin-form-check">
+            <div class="form-row">
+                <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.2f905abd'), $memberAdminHelp['email_verified']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span></span>
+                <div class="form-field form-check">
                     <input id="member_admin_create_email_verified" type="checkbox" name="email_verified" value="1" class="form-switch form-choice-dark"<?php echo (string) ($memberCreateValues['email_verified'] ?? '1') === '1' ? ' checked' : ''; ?>>
                     <label for="member_admin_create_email_verified"><?php echo sr_admin_choice_label_html(sr_t('member::ui.text.386deb8d')); ?></label>
                 </div>
             </div>
         </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
         </div>
@@ -178,38 +178,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="edit">
             <input type="hidden" name="account_id" value="<?php echo sr_e((string) ($memberEditValues['id'] ?? $editMember['id'])); ?>">
-            <section class="admin-card card">
+            <section class="card">
                 <h2><?php echo sr_e(sr_t('member::ui.member.edit.7eaadfda')); ?></h2>
-                <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.text.4ca2f9ab'), $memberAdminHelp['public_hash']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span></span>
-                    <div class="admin-form-field">
+                <div class="form-row">
+                    <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.text.4ca2f9ab'), $memberAdminHelp['public_hash']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span></span>
+                    <div class="form-field">
                         <code><?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></code>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('member_admin_edit_email', sr_t('member::ui.email.3b7dbc4c'), $memberAdminHelp['email']['id'], $memberAdminHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="member_admin_edit_email" type="email" name="email" value="<?php echo sr_e((string) ($memberEditValues['email'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" autocomplete="email" required>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="member_admin_edit_display_name"><?php echo sr_e(sr_t('member::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
                 <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="member_admin_edit_nickname"><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="member_admin_edit_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($memberEditValues['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                         </div>
                     </div>
                 <?php } ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('member_admin_edit_locale', sr_t('member::help.members.locale.label'), $memberAdminHelp['locale']['id'], $memberAdminHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="member_admin_edit_locale" name="locale" class="form-select" required>
                             <?php foreach ($memberLocaleOptions as $localeOption) { ?>
                                 <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) ($memberEditValues['locale'] ?? 'ko') === $localeOption ? ' selected' : ''; ?>>
@@ -219,9 +219,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('member_admin_edit_status', sr_t('member::ui.status.e10195a1'), $memberAdminHelp['status']['id'], $memberAdminHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="member_admin_edit_status" name="status" class="form-select">
                             <?php foreach ($allowedStatuses as $status) { ?>
                                 <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($memberEditValues['status'] ?? '') === $status ? ' selected' : ''; ?>>
@@ -232,13 +232,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </section>
-            <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <div class="form-sticky-actions form-actions form-actions-split">
                 <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
             </div>
         </form>
     <?php } else { ?>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
         </div>
     <?php } ?>
@@ -293,7 +293,7 @@ foreach ($allowedStatuses as $status) {
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.member.list.d8e6279a')); ?></h2>
         <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>

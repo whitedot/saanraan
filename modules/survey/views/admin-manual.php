@@ -2,29 +2,29 @@
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<section class="admin-card card">
+<section class="card">
     <div class="card-header"><h2 class="card-title">운영 순서</h2></div>
-    <div class="admin-form-grid">
-        <div class="admin-form-row">
+    <div class="form-grid">
+        <div class="form-row">
             <span class="form-label">1. 기본값</span>
-            <div class="admin-form-field"><p>환경설정에서 새 설문 기본 상태, 로그인/동의 필요 여부, 응답 제한, 공개 목록 노출 수를 먼저 정합니다.</p></div>
+            <div class="form-field"><p>환경설정에서 새 설문 기본 상태, 로그인/동의 필요 여부, 응답 제한, 공개 목록 노출 수를 먼저 정합니다.</p></div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">2. 설문 작성</span>
-            <div class="admin-form-field"><p>설문 관리에서 연구 목적, 대상자, 모집 방법, 동의 문구, 개인정보 안내, 문항과 선택지를 입력합니다.</p></div>
+            <div class="form-field"><p>설문 관리에서 연구 목적, 대상자, 모집 방법, 동의 문구, 개인정보 안내, 문항과 선택지를 입력합니다.</p></div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">3. 공개 전 점검</span>
-            <div class="admin-form-field"><p>필수 문항, 선택지 수, 숫자 범위, 기간 제한, 보상 중복 기준, 검색 색인 정책을 확인한 뒤 공개 상태로 바꿉니다.</p></div>
+            <div class="form-field"><p>필수 문항, 선택지 수, 숫자 범위, 기간 제한, 보상 중복 기준, 검색 색인 정책을 확인한 뒤 공개 상태로 바꿉니다.</p></div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">4. 응답 관리</span>
-            <div class="admin-form-field"><p>응답 관리에서 품질 상태를 포함, 검토, 제외로 표시하고 필요한 메모를 남깁니다. 통계 화면은 제외 응답을 집계에서 빼고 계산합니다.</p></div>
+            <div class="form-field"><p>응답 관리에서 품질 상태를 포함, 검토, 제외로 표시하고 필요한 메모를 남깁니다. 통계 화면은 제외 응답을 집계에서 빼고 계산합니다.</p></div>
         </div>
     </div>
 </section>
 
-<section class="admin-card card">
+<section class="card">
     <div class="card-header"><h2 class="card-title">보상과 개인정보</h2></div>
     <div class="card-body">
         <ul class="quiz-manual-list">

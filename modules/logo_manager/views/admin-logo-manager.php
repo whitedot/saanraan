@@ -17,7 +17,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<section class="admin-card card logo-manager-current">
+<section class="card logo-manager-current">
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e(sr_t('logo_manager::ui.text.25b72af8')); ?></h2>
@@ -73,80 +73,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('logo_manager::ui.logo.form_help')); ?></p>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="create_logo">
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_position_key"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="logo_manager_position_key" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                             <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
                                 <option value="<?php echo sr_e((string) $positionKey); ?>"><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
                             <?php } ?>
                         </select>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
                     </div>
                 </div>
-                <div class="admin-form-row" data-logo-manager-public-symbol-row>
+                <div class="form-row" data-logo-manager-public-symbol-row>
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
-                    <div class="admin-form-field">
-                        <label class="admin-form-check form-label" for="logo_manager_use_as_public_symbol">
+                    <div class="form-field">
+                        <label class="form-check form-label" for="logo_manager_use_as_public_symbol">
                             <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
                         </label>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_title"><?php echo sr_e(sr_t('logo_manager::ui.name.2b2c54b5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_title" type="text" name="title" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></span>
-                    <div class="admin-form-field">
-                        <label class="admin-form-check form-label" for="logo_manager_status_enabled">
+                    <div class="form-field">
+                        <label class="form-check form-label" for="logo_manager_status_enabled">
                             <input id="logo_manager_status_enabled" type="checkbox" name="status_enabled" value="1" class="form-switch form-choice-dark" checked>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.active.93c558d7')); ?>
                         </label>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_alt_text"><?php echo sr_e(sr_t('logo_manager::ui.text.c2f4a315')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_alt_text" type="text" name="alt_text" value="<?php echo sr_e($logoManagerDefaultAltText); ?>" class="form-input form-control-full" maxlength="160">
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_link_url"><?php echo sr_e(sr_t('logo_manager::ui.url.f7ca9b13')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_link_url" type="text" name="link_url" class="form-input form-control-full" maxlength="255" placeholder="<?php echo sr_e(sr_t('logo_manager::ui.https.example.com.9a232e78')); ?>">
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_logo_file"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_logo_file" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input" required>
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.1.save.save.cfcc4930')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.1.save.save.cfcc4930')); ?></small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_starts_at"><?php echo sr_e(sr_t('logo_manager::ui.text.65bdaefd')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_starts_at" type="datetime-local" name="starts_at" class="form-input">
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_ends_at"><?php echo sr_e(sr_t('logo_manager::ui.text.26c25fca')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_ends_at" type="datetime-local" name="ends_at" class="form-input">
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="logo_manager_sort_order"><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="logo_manager_sort_order" type="number" name="sort_order" value="100" class="form-input">
-                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></h2>
@@ -328,88 +328,88 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="update_logo">
                     <input type="hidden" name="logo_id" value="<?php echo sr_e((string) (int) $logo['id']); ?>">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                                 <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
                                     <option value="<?php echo sr_e((string) $positionKey); ?>"<?php echo (string) $positionKey === $logoManagerEditPositionKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
                                 <?php } ?>
                             </select>
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
                         </div>
                     </div>
-                    <div class="admin-form-row" data-logo-manager-public-symbol-row>
+                    <div class="form-row" data-logo-manager-public-symbol-row>
                         <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
-                        <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                        <div class="form-field">
+                            <label class="form-check form-label" for="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>">
                                 <input id="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch<?php echo !empty($logo['use_as_public_symbol']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
                             </label>
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_title_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.name.2b2c54b5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_title_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="title" value="<?php echo sr_e((string) $logo['title']); ?>" class="form-input form-control-full" maxlength="120" required>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_status_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="logo_manager_edit_status_<?php echo sr_e((string) (int) $logo['id']); ?>" name="status" class="form-select" required>
                                 <?php foreach ($logoStatuses as $logoStatus) { ?>
                                     <option value="<?php echo sr_e($logoStatus); ?>"<?php echo (string) $logo['status'] === $logoStatus ? ' selected' : ''; ?>><?php echo sr_e(sr_logo_manager_status_label($logoStatus)); ?></option>
                                 <?php } ?>
                             </select>
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_alt_text_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.c2f4a315')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_alt_text_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="alt_text" value="<?php echo sr_e((string) $logo['alt_text']); ?>" class="form-input form-control-full" maxlength="160">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_link_url_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.url.f7ca9b13')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_link_url_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="link_url" value="<?php echo sr_e((string) $logo['link_url']); ?>" class="form-input form-control-full" maxlength="255" placeholder="<?php echo sr_e(sr_t('logo_manager::ui.https.example.com.9a232e78')); ?>">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <span class="form-label">현재 이미지</span>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
-                            <small class="admin-form-help"><?php echo sr_e((string) ($logo['original_name'] ?? '')); ?></small>
+                            <small class="form-help"><?php echo sr_e((string) ($logo['original_name'] ?? '')); ?></small>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input">
-                            <small class="admin-form-help">새 파일을 선택하지 않으면 기존 이미지를 유지합니다.</small>
+                            <small class="form-help">새 파일을 선택하지 않으면 기존 이미지를 유지합니다.</small>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.65bdaefd')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['starts_at'] ?? null)); ?>" class="form-input">
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_ends_at_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.26c25fca')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_ends_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['ends_at'] ?? null)); ?>" class="form-input">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>" type="number" name="sort_order" value="<?php echo sr_e((string) $logo['sort_order']); ?>" class="form-input">
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
                         </div>
                     </div>
                 </div>
@@ -435,49 +435,49 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="generate_icon_set">
                         <input type="hidden" name="logo_id" value="<?php echo sr_e((string) (int) $logo['id']); ?>">
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <span class="form-label">원본 로고</span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
-                                <small class="admin-form-help"><?php echo sr_e((string) ($logo['width'] ?? 0) . 'x' . (string) ($logo['height'] ?? 0) . ' / ' . (string) ($logo['mime_type'] ?? '')); ?></small>
+                                <small class="form-help"><?php echo sr_e((string) ($logo['width'] ?? 0) . 'x' . (string) ($logo['height'] ?? 0) . ' / ' . (string) ($logo['mime_type'] ?? '')); ?></small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <span class="form-label">생성 크기 <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
-                            <div class="admin-form-field logo-manager-icon-size-grid" data-logo-manager-icon-size-group>
-                                <label class="admin-form-check form-label" for="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                            <div class="form-field logo-manager-icon-size-grid" data-logo-manager-icon-size-group>
+                                <label class="form-check form-label" for="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>">
                                     <input id="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" class="form-switch form-switch-light" data-logo-manager-icon-size-all>
                                     <?php echo sr_admin_choice_label_html('전체 선택'); ?>
                                 </label>
                                 <?php foreach ($logoManagerIconSizeOptions as $variantKey => $variantOption) { ?>
-                                    <label class="admin-form-check form-label" for="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>">
+                                    <label class="form-check form-label" for="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>">
                                         <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-switch form-switch-light" data-logo-manager-icon-size-choice <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html((string) $variantOption['label']); ?>
                                     </label>
                                 <?php } ?>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>">맞춤 방식</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>" name="fit_mode" class="form-select">
                                     <option value="contain">contain</option>
                                     <option value="cover">cover</option>
                                 </select>
-                                <small class="admin-form-help">contain은 전체 로고를 맞추고, cover는 정사각형을 꽉 채웁니다.</small>
+                                <small class="form-help">contain은 전체 로고를 맞추고, cover는 정사각형을 꽉 채웁니다.</small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>">배경색</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="background_color" value="transparent" class="form-input" maxlength="20" pattern="transparent|#[0-9a-fA-F]{6}">
-                                <small class="admin-form-help">transparent 또는 #RRGGBB 형식으로 입력하세요.</small>
+                                <small class="form-help">transparent 또는 #RRGGBB 형식으로 입력하세요.</small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <span class="form-label">적용</span>
-                            <div class="admin-form-field">
-                                <label class="admin-form-check form-label" for="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                            <div class="form-field">
+                                <label class="form-check form-label" for="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>">
                                     <input id="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="activate_icon_set" value="1" class="form-switch form-choice-dark" checked>
                                     <?php echo sr_admin_choice_label_html('생성 후 바로 사용'); ?>
                                 </label>

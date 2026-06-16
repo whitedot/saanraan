@@ -9,7 +9,7 @@ if (!isset($dashboardRows) || !is_array($dashboardRows)) {
 $dashboardLayout = (string) ($dashboardSection['layout'] ?? 'table');
 ?>
 
-<div class="admin-card admin-list-card card admin-list-form admin-dashboard-module-default">
+<div class="card admin-list-card admin-list-form admin-dashboard-module-default">
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e((string) ($dashboardSection['title'] ?? sr_t('admin::ui.text.6d2d8bf4'))); ?></h2>

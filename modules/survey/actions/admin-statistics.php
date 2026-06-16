@@ -60,9 +60,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 
 <?php if (!is_array($survey)): ?>
-    <section class="admin-card card"><div class="card-body admin-empty-state">통계를 볼 설문이 없습니다.</div></section>
+    <section class="card"><div class="card-body admin-empty-state">통계를 볼 설문이 없습니다.</div></section>
 <?php else: ?>
-    <section class="admin-card card admin-survey-statistics-summary-card">
+    <section class="card admin-survey-statistics-summary-card">
         <div class="card-header">
             <div>
                 <h2 class="card-title"><?php echo sr_e((string) $survey['title']); ?></h2>
@@ -79,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </dl>
         </div>
     </section>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title">문항별 통계</h2>
             <div class="admin-survey-statistics-export-actions">

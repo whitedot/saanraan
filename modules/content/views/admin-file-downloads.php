@@ -69,11 +69,11 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <div>
             <h2 class="card-title">다운로드 내역</h2>
-            <p class="admin-form-help">무료 다운로드는 로그인 회원만 회원 ID가 남고, 유료 다운로드는 차감 로그와 접근권을 함께 대조합니다.</p>
+            <p class="form-help">무료 다운로드는 로그인 회원만 회원 ID가 남고, 유료 다운로드는 차감 로그와 접근권을 함께 대조합니다.</p>
         </div>
         <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-sm btn-outline-secondary">파일 관리</a>
     </div>
@@ -138,9 +138,9 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                                     · <?php echo sr_e((string) (sr_content_asset_download_charge_policies()[(string) ($downloadLog['charge_policy'] ?? 'once')] ?? $downloadLog['charge_policy'] ?? '')); ?>
                                 <?php } ?>
                                 <?php if ($accessSummary !== '') { ?>
-                                    <p class="admin-form-help"><?php echo sr_e(str_replace("\n", ' / ', $accessSummary)); ?></p>
+                                    <p class="form-help"><?php echo sr_e(str_replace("\n", ' / ', $accessSummary)); ?></p>
                                 <?php } elseif (!$hasRefundAccessLogs && $downloadAmount > 0) { ?>
-                                    <p class="admin-form-help">연결된 차감 로그 없음</p>
+                                    <p class="form-help">연결된 차감 로그 없음</p>
                                 <?php } ?>
                             <?php } else { ?>
                                 차감 없음
@@ -149,7 +149,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                         <td class="admin-table-break">
                             <?php if ($refundStatus === 'refunded') { ?>
                                 <span class="admin-status is-normal">환불 완료</span>
-                                <p class="admin-form-help">
+                                <p class="form-help">
                                     <?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?>
                                     <?php if ((string) ($downloadLog['refund_note'] ?? '') !== '') { ?>
                                         · <?php echo sr_e((string) ($downloadLog['refund_note'] ?? '')); ?>
@@ -157,7 +157,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                                 </p>
                             <?php } elseif ($refundStatus === 'access_revoked') { ?>
                                 <span class="admin-status is-left">접근권 회수</span>
-                                <p class="admin-form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
+                                <p class="form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
                             <?php } elseif (!$isPaid) { ?>
                                 <span class="admin-status is-normal">대상 아님</span>
                             <?php } elseif ($canRefund) { ?>
@@ -213,21 +213,21 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                         <span class="admin-summary-meta">파일 <strong>#<?php echo sr_e((string) (int) ($downloadLog['file_id'] ?? 0)); ?></strong></span>
                         <span class="admin-summary-meta">금액 <strong><?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?></strong></span>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy">포인트 환불 유효기간</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy" name="refund_expiration_policy" class="form-select">
                                 <option value="original">환불 참조 원거래의 유효기간</option>
                                 <option value="reset">환불 시점부터 기본 유효기간 계산</option>
                             </select>
-                            <p class="admin-form-help">포인트 차감 환불에 적용합니다. 다른 포인트/금액 항목 환불에는 영향이 없습니다.</p>
+                            <p class="form-help">포인트 차감 환불에 적용합니다. 다른 포인트/금액 항목 환불에는 영향이 없습니다.</p>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_note">처리 사유 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="<?php echo sr_e($refundFieldPrefix); ?>_note" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-overlay-focus>
-                            <p class="admin-form-help">원장 거래가 있으면 같은 금액의 환불 거래를 만들고, 최초 1회 접근권은 함께 회수합니다.</p>
+                            <p class="form-help">원장 거래가 있으면 같은 금액의 환불 거래를 만들고, 최초 1회 접근권은 함께 회수합니다.</p>
                         </div>
                     </div>
                 </div>

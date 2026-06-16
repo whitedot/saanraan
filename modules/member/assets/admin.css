@@ -34,7 +34,7 @@
 .admin-page-member-groups .admin-member-group-key-cell,.admin-page-member-groups .admin-member-group-title-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-groups .admin-member-group-table thead th:nth-child(1),.admin-page-member-groups .admin-member-group-table thead th:nth-child(3),.admin-page-member-groups .admin-member-group-table thead th:nth-child(4),.admin-page-member-groups .admin-member-group-table thead th:nth-child(5){width:1%}
 .admin-page-member-groups .admin-member-group-number-cell,.admin-page-member-groups .admin-member-group-table thead th:nth-child(4){text-align:center}
-.admin-page-member-groups .member-group-rule-evaluate-dialog .admin-form-field>.form-select{width:100%}
+.admin-page-member-groups .member-group-rule-evaluate-dialog .form-field>.form-select{width:100%}
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list{width:100%}
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list-control{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%}
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list-select{max-width:none;width:100%}

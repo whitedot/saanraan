@@ -58,7 +58,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">출금 신청 목록</h2>
         <div class="card-actions">
@@ -131,10 +131,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                                     <input type="hidden" name="intent" value="reject">
-                                                    <p class="admin-form-help">이 출금 신청을 거부합니다. 거부하면 원장 거래는 생성되지 않고, 회원 신청 내역에 거부 사유가 표시됩니다.</p>
-                                                    <div class="admin-form-row">
-                                                        <label for="reward-withdrawal-reject-note-<?php echo sr_e((string) $request['id']); ?>" class="admin-form-label">거부 사유 <span class="text-danger">(필수)</span></label>
-                                                        <div class="admin-form-field">
+                                                    <p class="form-help">이 출금 신청을 거부합니다. 거부하면 원장 거래는 생성되지 않고, 회원 신청 내역에 거부 사유가 표시됩니다.</p>
+                                                    <div class="form-row">
+                                                        <label for="reward-withdrawal-reject-note-<?php echo sr_e((string) $request['id']); ?>" class="form-row-label">거부 사유 <span class="text-danger">(필수)</span></label>
+                                                        <div class="form-field">
                                                             <input id="reward-withdrawal-reject-note-<?php echo sr_e((string) $request['id']); ?>" type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="계좌 정보 오류, 대상 조건 미충족 등">
                                                         </div>
                                                     </div>
@@ -171,14 +171,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-body">
                 <?php echo sr_csrf_field(); ?>
-                <p class="admin-form-help">
+                <p class="form-help">
                     현재 필터와 검색 조건에 맞는 대기 출금 신청 <?php echo sr_e(number_format($requestBatchPendingCount)); ?>건을 처리합니다. 한 번에 최대 <?php echo sr_e(number_format($requestBatchLimit)); ?>건까지 처리할 수 있습니다.
                 </p>
-                <div class="admin-form-row">
-                    <label for="reward-withdrawal-batch-admin-note" class="admin-form-label">처리 메모 <span class="text-danger">(필수)</span></label>
-                    <div class="admin-form-field">
+                <div class="form-row">
+                    <label for="reward-withdrawal-batch-admin-note" class="form-row-label">처리 메모 <span class="text-danger">(필수)</span></label>
+                    <div class="form-field">
                         <input id="reward-withdrawal-batch-admin-note" type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="공통 이체 확인 번호 또는 거부 사유">
-                        <p class="admin-form-help">완료와 거부 모두 이 메모가 각 요청의 처리 정보에 저장됩니다.</p>
+                        <p class="form-help">완료와 거부 모두 이 메모가 각 요청의 처리 정보에 저장됩니다.</p>
                     </div>
                 </div>
             </div>

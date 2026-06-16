@@ -185,7 +185,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<div class="admin-card admin-list-card card admin-list-form">
+<div class="card admin-list-card admin-list-form">
 <div class="admin-permission-section-header">
     <div>
         <h2 class="card-title">권한 보유 회원</h2>
@@ -288,31 +288,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="intent" value="add_permission">
                 <input type="hidden" name="account_id" value="" data-admin-permission-account-id>
                 <div hidden data-admin-permission-hidden></div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('admin-permission-add-account-identifier', '회원', $roleHelp['add_member']['id'], $roleHelpOpenLabel, true); ?>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <div class="admin-lookup-control">
                             <input id="admin-permission-add-account-identifier" type="text" value="" class="form-input" maxlength="80" readonly required data-admin-permission-account-identifier data-admin-permission-selected-member data-overlay-focus placeholder="회원을 검색해 선택하세요.">
                             <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-member-lookup-modal" data-overlay="#admin-permission-member-lookup-modal" data-admin-permission-member-lookup-open data-target="#admin-permission-add-account-identifier">회원 검색</button>
                         </div>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help">
+                <div class="form-row">
+                    <span class="form-label form-label-help">
                         <?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?>
                         <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
                     </span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php echo sr_admin_switch_html('admin-permission-add-owner', 'is_owner', '1', false, sr_t('admin::ui.text.7258c171')); ?>
-                        <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
+                        <p class="form-help">소유자 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help">
+                <div class="form-row">
+                    <span class="form-label form-label-help">
                         <?php echo $roleHelpButtonHtml('대상 메뉴', $roleHelp['permission_group']['id']); ?>
                         <span>대상 메뉴 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                     </span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <div class="admin-permission-picker-grid">
                             <div class="admin-permission-picker-control">
                                 <label class="filtering-label" for="admin-permission-add-group">1차</label>
@@ -331,15 +331,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
                             </div>
                         </div>
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.save.member.admin.f97e1d67')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('admin::ui.save.member.admin.f97e1d67')); ?></p>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help">
+                <div class="form-row">
+                    <span class="form-label form-label-help">
                         <?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?>
                         <span>권한</span>
                     </span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
                             <legend class="sr-only">권한</legend>
                             <?php $permissionActionIndex = 0; ?>
@@ -356,11 +356,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </fieldset>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="admin-permission-add-owner-password">현재 비밀번호 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="admin-permission-add-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password" required>
-                        <p class="admin-form-help">관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 확인합니다.</p>
+                        <p class="form-help">관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 확인합니다.</p>
                     </div>
                 </div>
             </div>
@@ -422,12 +422,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
-                        <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help">
+                        <div class="form-row">
+                            <span class="form-label form-label-help">
                                 <?php echo $roleHelpButtonHtml(sr_t('admin::ui.member.e335b899'), $roleHelp['edit_member']['id']); ?>
                                 <span><?php echo sr_e(sr_t('admin::ui.member.e335b899')); ?></span>
                             </span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <div class="admin-permission-member-summary">
                                     <strong><?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?></strong>
                                     <span><?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?></span>
@@ -436,22 +436,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help">
+                        <div class="form-row">
+                            <span class="form-label form-label-help">
                                 <?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?>
                                 <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
                             </span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <?php echo sr_admin_checkbox_toggle_html($permissionModalId . '-owner', 'is_owner', '1', !empty($adminAccount['is_owner']), sr_t('admin::ui.text.7258c171'), ' data-overlay-focus'); ?>
-                                <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
+                                <p class="form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
                             </div>
                         </div>
-                        <div class="admin-form-row" data-admin-permission-owner-transition>
-                            <span class="form-label admin-form-label-help">
+                        <div class="form-row" data-admin-permission-owner-transition>
+                            <span class="form-label form-label-help">
                                 <?php echo $roleHelpButtonHtml('대상 메뉴', $roleHelp['permission_group']['id']); ?>
                                 <span>대상 메뉴</span>
                             </span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <div class="admin-permission-picker-grid">
                                     <div class="admin-permission-picker-control">
                                         <label class="filtering-label" for="<?php echo sr_e($permissionModalId); ?>-group">1차</label>
@@ -470,15 +470,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                                     </div>
                                 </div>
-                                <p class="admin-form-help">소유자 권한을 해제하려면 저장 전에 대체 메뉴 권한을 하나 이상 선택하세요.</p>
+                                <p class="form-help">소유자 권한을 해제하려면 저장 전에 대체 메뉴 권한을 하나 이상 선택하세요.</p>
                             </div>
                         </div>
-                        <div class="admin-form-row" data-admin-permission-owner-transition>
-                            <span class="form-label admin-form-label-help">
+                        <div class="form-row" data-admin-permission-owner-transition>
+                            <span class="form-label form-label-help">
                                 <?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?>
                                 <span>권한</span>
                             </span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <div class="admin-permission-action-picker-line">
                                     <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
                                         <legend class="sr-only">권한</legend>
@@ -498,12 +498,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help">
+                        <div class="form-row">
+                            <span class="form-label form-label-help">
                                 <?php echo $roleHelpButtonHtml(sr_t('admin::ui.text.4b72a63a'), $roleHelp['selected_permissions']['id']); ?>
                                 <span>선택된 메뉴 권한</span>
                             </span>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <div class="admin-permission-selected-list" data-admin-permission-selected>
                                     <?php
                                     $selectedByPath = $permissionSelectedByPath(array_keys($selectedPermissionMap));
@@ -548,11 +548,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($permissionModalId); ?>-owner-password">현재 비밀번호</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($permissionModalId); ?>-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password">
-                                <p class="admin-form-help">새 권한을 추가하거나 소유자 권한을 변경하는 저장 요청에서 필요합니다.</p>
+                                <p class="form-help">새 권한을 추가하거나 소유자 권한을 변경하는 저장 요청에서 필요합니다.</p>
                             </div>
                         </div>
                     </div>

@@ -17,7 +17,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
     $canCancel = in_array($jobStatus, ['pending', 'failed', 'paused'], true);
     ?>
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e('작업 #' . (string) (int) $job['id']); ?></h2>
         <dl class="admin-meta-list">
             <dt><?php echo sr_e('상태'); ?></dt>
@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <dd><?php echo sr_e((string) $job['last_error']); ?></dd>
             <?php } ?>
         </dl>
-        <div class="admin-form-actions">
+        <div class="form-actions">
             <?php if ($canRun || $canRetry || $canCancel) { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs?id=' . rawurlencode((string) (int) $job['id']))); ?>">
                     <?php echo sr_csrf_field(); ?>
@@ -57,7 +57,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<section class="admin-card card">
+<section class="card">
     <h2><?php echo sr_e('최근 작업'); ?></h2>
     <?php if ($jobs === []) { ?>
         <p class="admin-empty-state"><?php echo sr_e('배치 복사 작업이 없습니다.'); ?></p>

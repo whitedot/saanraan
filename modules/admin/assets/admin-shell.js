@@ -283,7 +283,7 @@ window.AdminShell = {
             return 'form-input-invalid';
         };
 
-        const validationFieldRoot = control => control.closest('.admin-form-field') || control.closest('.form-field') || control.parentElement;
+        const validationFieldRoot = control => control.closest('.form-field') || control.parentElement;
 
         const validationNoteId = control => {
             const existing = control.getAttribute('data-validation-error-id');
@@ -419,7 +419,7 @@ window.AdminShell = {
                     return;
                 }
 
-                const row = requiredLabel.closest('[data-admin-required-selection-root], .admin-form-row, .admin-setting-unit, fieldset, .admin-form-field') || requiredLabel.parentElement;
+                const row = requiredLabel.closest('[data-admin-required-selection-root], .form-row, .admin-setting-unit, fieldset, .form-field') || requiredLabel.parentElement;
                 if (row && !rows.includes(row)) {
                     rows.push(row);
                 }

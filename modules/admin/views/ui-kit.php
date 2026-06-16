@@ -54,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit.css')); ?>">
 
-<section class="admin-card card">
+<section class="card">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1f36938c')); ?></h2>
         <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="사용자 화면 UI Kit">
@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </nav>
     </div>
     <div class="card-body">
-        <p class="admin-card-subtitle"><?php echo sr_e(sr_t('admin::ui.admin.ui.49666d14')); ?></p>
+        <p class="card-subtitle"><?php echo sr_e(sr_t('admin::ui.admin.ui.49666d14')); ?></p>
         <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.ui.kit.03cf9fea')); ?>">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                 <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>

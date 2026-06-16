@@ -4,7 +4,7 @@ $accountRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
 $groupRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
 ?>
 
-<div class="member-dashboard-summary admin-card card">
+<div class="member-dashboard-summary card">
     <div class="member-dashboard-main">
         <p class="type-meta">회원 기반</p>
         <h2 class="type-section-title"><?php echo sr_e($dashboardSectionTitle); ?></h2>

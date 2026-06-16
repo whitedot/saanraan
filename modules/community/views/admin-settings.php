@@ -186,54 +186,54 @@ $communitySettingsSectionNavItems = [
     <input type="hidden" name="level_max_change_confirmed" value="0" data-community-settings-level-max-confirmed>
     <input type="hidden" name="level_max_change_confirm_text" value="" data-community-settings-level-max-confirm-text>
 
-    <section id="community-settings-section-level" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-level" class="card" data-admin-section-anchor>
         <h2>레벨 기본값</h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_settings_level_enabled">
+        <div class="form-grid">
+            <div class="form-row">
+                <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
+                <div class="form-field">
+                    <label class="form-check form-label" for="modules_community_admin_settings_level_enabled">
                         <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
+            <div class="form-row">
+                <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
+                <div class="form-field">
+                    <label class="form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
                         <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="community_admin_settings_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="community_admin_settings_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input" data-community-settings-level-max-value data-community-settings-level-max-initial="<?php echo sr_e((string) $settings['level_max_value']); ?>">
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+            <div class="form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
                 <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
                 </div>
             </div>
-            <div class="admin-form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></span></div>
-                <div class="admin-form-field">
+            <div class="form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+                <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></span></div>
+                <div class="form-field">
                     <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="community-settings-section-message" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-message" class="card" data-admin-section-anchor>
         <h2>쪽지 정책</h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php
                 $messagePolicyToggleOptions = [];
                 foreach (sr_community_message_write_policy_values() as $policy) {
@@ -241,18 +241,18 @@ $communitySettingsSectionNavItems = [
                 }
                 echo sr_admin_radio_toggle_group_html('community_admin_settings_message_write_policy', 'message_write_policy', $messagePolicyToggleOptions, (string) $settings['message_write_policy'], false, ' data-community-message-policy');
                 ?>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.message_policy.help')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('community::ui.message_policy.help')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_group_keys', sr_t('community::ui.member.69b1363d'), $communitySettingsHelp['message_group']['id'], $communitySettingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_member_group_key_badge_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_min_level', sr_t('community::ui.text.c96c86df'), $communitySettingsHelp['message_min_level']['id'], $communitySettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value($settings); $levelValue++) { ?>
                                         <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
@@ -264,22 +264,22 @@ $communitySettingsSectionNavItems = [
         </div>
     </section>
 
-    <section id="community-settings-section-privacy-consent" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-privacy-consent" class="card" data-admin-section-anchor>
         <h2>개인정보 수집 및 이용동의 기본값</h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <label class="form-label" for="community_admin_settings_privacy_consent_enabled">동의 사용</label>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="community_admin_settings_privacy_consent_enabled">
+                <div class="form-field">
+                    <label class="form-check form-label" for="community_admin_settings_privacy_consent_enabled">
                         <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('새 게시판 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
                     </label>
-                    <p class="admin-form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
+                    <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row" data-admin-required-selection-mode="any">
+            <div class="form-row" data-admin-required-selection-mode="any">
                 <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo !empty($settings['privacy_consent_enabled']) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                <div class="admin-form-field" data-community-privacy-consent-controls>
+                <div class="form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">
                         <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
                             <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
@@ -291,7 +291,7 @@ $communitySettingsSectionNavItems = [
                             </label>
                         <?php } ?>
                     </div>
-                    <p class="admin-form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
+                    <p class="form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
                     <input type="hidden" name="privacy_consent_title" value="">
                     <input type="hidden" name="privacy_consent_version" value="">
                     <input type="hidden" name="privacy_consent_body" value="">
@@ -300,14 +300,14 @@ $communitySettingsSectionNavItems = [
         </div>
     </section>
 
-    <section id="community-settings-section-assets" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-assets" class="card" data-admin-section-anchor>
         <h2>
             <span>자산/과금</span>
-            <span class="admin-form-actions">
+            <span class="form-actions">
                 <a href="<?php echo sr_e($communityAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 설정 변경 이력'); ?></a>
             </span>
         </h2>
-        <div class="admin-form-grid">
+        <div class="form-grid">
             <?php foreach ([
                 'post_reward' => sr_t('community::ui.text.a3cc976c'),
                 'comment_reward' => sr_t('community::ui.text.bb39df0e'),
@@ -320,13 +320,13 @@ $communitySettingsSectionNavItems = [
                 <?php $assetSourceId = 'community_admin_settings_' . (string) $assetPrefix . '_asset_source'; ?>
                 <?php $isRewardAsset = in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true); ?>
                 <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? '', true); ?>
-                <div class="admin-form-row">
-                    <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel, $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
-                    <div class="admin-form-field">
+                <div class="form-row">
+                    <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel, $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
+                    <div class="form-field">
                         <div class="admin-asset-setting-line">
                             <div class="admin-asset-setting-control">
                                 <div class="admin-asset-setting-primary">
-                                    <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
+                                    <label class="form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                         <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
@@ -336,10 +336,10 @@ $communitySettingsSectionNavItems = [
                     </div>
                 </div>
                 <?php if ($isRewardAsset) { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <span class="form-label"><?php echo sr_e($assetLabel . ' 회수'); ?></span>
-                        <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
+                        <div class="form-field">
+                            <label class="form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
                                 <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
                             </label>
@@ -347,42 +347,42 @@ $communitySettingsSectionNavItems = [
                     </div>
                 <?php } ?>
                 <?php if ($assetPrefix === 'paid_read') { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_read_charge_policy"><?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_paid_read_charge_policy', 'paid_read_charge_policy', ['once' => sr_t('community::ui.text.6eb4fe4e'), 'every_view' => sr_t('community::ui.text.53e8d077')], (string) ($settings['paid_read_charge_policy'] ?? 'once')); ?>
                         </div>
                     </div>
                 <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_attachment_download_charge_policy"><?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_paid_attachment_download_charge_policy', 'paid_attachment_download_charge_policy', ['once' => sr_t('community::ui.text.6eb4fe4e'), 'every_download' => sr_t('community::ui.text.e9d14df2')], (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once')); ?>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <span class="form-label">게시자 리워드</span>
-                        <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
+                        <div class="form-field">
+                            <label class="form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
                                 <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
                             </label>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <div class="input-group admin-asset-single-amount-group">
                                 <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e((string) (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)); ?>" class="form-input">
                                 <span class="input-group-text">%</span>
                             </div>
-                            <p class="admin-form-help">실제 차감된 자산과 같은 자산으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 통과, 이미 차감된 once 다운로드는 지급하지 않습니다.</p>
+                            <p class="form-help">실제 차감된 자산과 같은 자산으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 통과, 이미 차감된 once 다운로드는 지급하지 않습니다.</p>
                         </div>
                     </div>
                 <?php } ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php if ($isRewardAsset) { ?>
                             <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
                                 <select id="<?php echo sr_e($assetSourceId); ?>" name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
@@ -398,33 +398,33 @@ $communitySettingsSectionNavItems = [
                                 <?php echo sr_community_asset_grouped_amount_inputs_html($assetSourceId, (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $settings[$assetPrefix . '_amounts_json'] ?? '', (int) ($settings[$assetPrefix . '_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
                             </div>
                             <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_amount" value="<?php echo sr_e((string) ($settings[$assetPrefix . '_amount'] ?? 0)); ?>">
-                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                            <p class="form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         <?php } ?>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label>
-                    <div class="admin-form-field admin-policy-set-field">
+                    <div class="form-field admin-policy-set-field">
                         <?php echo sr_community_asset_policy_set_checkboxes_html('community_settings_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($settings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)), $isRewardAsset ? 'grant' : 'use', '#' . $assetSourceId, $pdo); ?>
-                        <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 회원 그룹별 설정 화면에서 관리합니다.</p>
+                        <p class="form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 회원 그룹별 설정 화면에서 관리합니다.</p>
                     </div>
                 </div>
             <?php } ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_once_history_policy', 'once_history_policy', sr_community_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="community-settings-section-reaction" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-reaction" class="card" data-admin-section-anchor>
         <h2>리액션</h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_reaction_post_preset_key">게시글 리액션 프리셋</label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_post_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
@@ -432,24 +432,24 @@ $communitySettingsSectionNavItems = [
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="community_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">게시판 그룹과 게시판에서 따로 선택하지 않은 대상에 적용합니다.</p>
+                <p class="form-help">게시판 그룹과 게시판에서 따로 선택하지 않은 대상에 적용합니다.</p>
             </div>
         </div>
     </section>
 
-    <section id="community-settings-section-display" class="admin-card card" data-admin-section-anchor>
+    <section id="community-settings-section-display" class="card" data-admin-section-anchor>
         <h2>공개 화면 구성</h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
                                     <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
@@ -461,26 +461,26 @@ $communitySettingsSectionNavItems = [
         </div>
         <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>
             <?php $communityLayoutMenuInputId = 'community_admin_settings_' . $communityLayoutMenuSettingKey; ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="<?php echo sr_e($communityLayoutMenuInputId); ?>"><?php echo sr_e((string) $communityLayoutMenuField['label']); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="<?php echo sr_e($communityLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $communityLayoutMenuSettingKey); ?>" class="form-select">
                         <?php $communitySiteMenuSelectOptions((string) ($settings[$communityLayoutMenuSettingKey] ?? $communityLayoutMenuField['default'])); ?>
                     </select>
-                    <p class="admin-form-help"><?php echo sr_e((string) $communityLayoutMenuField['help']); ?></p>
+                    <p class="form-help"><?php echo sr_e((string) $communityLayoutMenuField['help']); ?></p>
                 </div>
             </div>
         <?php } ?>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
-                <p class="admin-form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
+                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_toolbar_preset">툴바 구성 <span class="sr-required-label">(필수)</span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="community_admin_settings_post_toolbar_preset" name="post_toolbar_preset" class="form-select" required>
                     <?php foreach ($toolbarPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic') === (string) $presetKey ? ' selected' : ''; ?>>
@@ -488,33 +488,33 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">CKEditor를 사용할 때 커뮤니티 게시글 작성/수정 화면에 적용할 툴바입니다.</p>
+                <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글 작성/수정 화면에 적용할 툴바입니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">본문 URL 자동 링크</span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 게시글 안의 http/https URL을 링크로 변환'); ?>
-                <p class="admin-form-help">textarea로 저장된 plain text 게시글에만 적용합니다. HTML 게시글은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
+                <p class="form-help">textarea로 저장된 plain text 게시글에만 적용합니다. HTML 게시글은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">비밀글</span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_secret_posts_enabled', 'secret_posts_enabled', '1', !empty($settings['secret_posts_enabled']), '게시글 비밀글 선택 허용'); ?>
-                <p class="admin-form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
+                <p class="form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label">비밀 댓글</span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '댓글 비밀 댓글 선택 허용'); ?>
-                <p class="admin-form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
+                <p class="form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
             </div>
         </div>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+    <div class="form-sticky-actions form-actions form-actions-primary">
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.settings.save.59aa86cd')); ?></button>
     </div>
 </form>
@@ -747,24 +747,24 @@ $communitySettingsSectionNavItems = [
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_level_definitions">
     <input type="hidden" name="level_max_value" value="<?php echo sr_e((string) $settings['level_max_value']); ?>">
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.text.b2845de5')); ?></h2>
         </div>
-        <p class="admin-form-help">
+        <p class="form-help">
             <?php echo sr_e(sr_t('community::ui.level_definitions_help_score')); ?><br>
             <?php echo sr_e(sr_t('community::ui.level_definitions_help_formula')); ?><br>
             <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_change')); ?><br>
             <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_load')); ?>
         </p>
-        <p class="admin-form-help">레벨 설정 저장은 최소 점수만 저장합니다. 회원 레벨 재계산은 저장과 별도로 실행되며, 작성 중인 최소 점수 입력값을 함께 저장하지 않습니다.</p>
+        <p class="form-help">레벨 설정 저장은 최소 점수만 저장합니다. 회원 레벨 재계산은 저장과 별도로 실행되며, 작성 중인 최소 점수 입력값을 함께 저장하지 않습니다.</p>
         <div class="table-wrapper">
             <table class="table table-list">
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>
-                        <th><span class="admin-form-check admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.2ba8a858'), $communitySettingsHelp['level_min_score']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></span></span></th>
+                        <th><span class="form-check form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.2ba8a858'), $communitySettingsHelp['level_min_score']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.2ba8a858')); ?></span></span></th>
                         <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
                     </tr>
                 </thead>
@@ -794,7 +794,7 @@ $communitySettingsSectionNavItems = [
             </table>
         </div>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <button type="button" class="btn btn-solid-light"<?php echo $communityLevelEnabled ? '' : ' disabled'; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-overlay="#<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-community-level-recalculate-open><?php echo sr_e(sr_t('community::ui.member.9fba6ddf')); ?></button>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.save.bca4cb2b')); ?></button>
     </div>
@@ -851,7 +851,7 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="modal-footer-note">
-                <p class="admin-form-help">재계산 실행은 현재 저장된 레벨 기준으로 회원 레벨을 다시 계산합니다. 레벨 설정 form의 작성 중인 최소 점수 입력값은 함께 저장되지 않습니다.</p>
+                <p class="form-help">재계산 실행은 현재 저장된 레벨 기준으로 회원 레벨을 다시 계산합니다. 레벨 설정 form의 작성 중인 최소 점수 입력값은 함께 저장되지 않습니다.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-community-level-recalculate-cancel><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>

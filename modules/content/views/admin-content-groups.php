@@ -98,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <div>
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></h2>
@@ -202,7 +202,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_pagination_html($pageGroupPagination, '콘텐츠 그룹 목록 페이지'); ?>
     <?php $contentStorageCleanupFailures = is_array($contentStorageCleanupFailures ?? null) ? $contentStorageCleanupFailures : []; ?>
     <?php if ($contentStorageCleanupFailures !== []) { ?>
-        <section class="admin-card admin-list-card card admin-list-form">
+        <section class="card admin-list-card admin-list-form">
             <div class="card-header">
                 <div>
                     <h2 class="card-title">저장소 정리 실패</h2>
@@ -245,38 +245,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme">
-        <section id="content-group-section-basic" class="admin-card card" data-admin-section-anchor>
+        <section id="content-group-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240')); ?></h2>
-            <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 여러 콘텐츠를 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다. 독자가 순서대로 읽는 연재 흐름은 콘텐츠 시리즈를 사용하세요.'); ?></p>
+            <p class="form-help"><?php echo sr_e('콘텐츠 그룹은 여러 콘텐츠를 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다. 독자가 순서대로 읽는 연재 흐름은 콘텐츠 시리즈를 사용하세요.'); ?></p>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="<?php echo $editing ? 'update_group' : 'create_group'; ?>">
             <input type="hidden" name="group_id" value="<?php echo $editing ? sr_e((string) $editPageGroup['id']) : '0'; ?>">
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_groups_group_key"><?php echo sr_e(sr_t('content::ui.key.1057ecca')); ?><?php echo $editing ? '' : sr_t('content::ui.span.class.sr.required.label.07a9346b'); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php if ($editing) { ?>
                         <code><?php echo sr_e((string) ($values['group_key'] ?? '')); ?></code>
                     <?php } else { ?>
                         <input id="content_admin_groups_group_key" type="text" name="group_key" value="<?php echo sr_e((string) ($values['group_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#content_admin_groups_title" data-admin-key-suggest-fallback="content_group">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.active.bd86f3a1')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.active.bd86f3a1')); ?></p>
                     <?php } ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_groups_title"><?php echo sr_e(sr_t('content::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_groups_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_groups_description"><?php echo sr_e(sr_t('content::ui.text.8c3f651d')); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="content_admin_groups_description" name="description" rows="4" cols="60" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_groups_status"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_admin_groups_status" name="status" class="form-select">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'enabled') === $status ? ' selected' : ''; ?>>
@@ -286,9 +286,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_admin_groups_sort_order"><?php echo sr_e(sr_t('content::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($values['sort_order'] ?? 0)); ?>" required class="form-input">
                 </div>
             </div>
@@ -296,7 +296,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if ($editing) { ?>
             <?php $contentGroupDeleteModalId = 'content-group-delete-modal'; ?>
         <?php } ?>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
                 <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentGroupDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>">삭제</button>
@@ -317,7 +317,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
-                        <p class="admin-form-help">
+                        <p class="form-help">
                             콘텐츠 그룹을 삭제하면 그룹 정보가 삭제되고,
                             연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
                             댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,

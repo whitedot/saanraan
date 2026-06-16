@@ -24,55 +24,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="file_id" value="<?php echo sr_e((string) (int) ($editingFile['id'] ?? 0)); ?>">
-        <section class="admin-card card">
+        <section class="card">
             <h2>기본 정보</h2>
             <?php if (!$editing) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="content_download_file_upload">파일 <span class="sr-required-label">(필수)</span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="content_download_file_upload" type="file" name="download_file_upload" class="form-input">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())); ?></p>
                     </div>
                 </div>
             <?php } else { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label">원본 파일</span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php echo sr_e((string) ($editingFile['original_name'] ?? '')); ?>
-                        <p class="admin-form-help"><?php echo sr_e(sr_content_format_bytes((int) ($editingFile['size_bytes'] ?? 0))); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_content_format_bytes((int) ($editingFile['size_bytes'] ?? 0))); ?></p>
                     </div>
                 </div>
             <?php } ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_download_file_title">파일 제목</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_download_file_title" type="text" name="title" value="<?php echo sr_e((string) ($formValues['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
-                    <p class="admin-form-help">공개 콘텐츠 화면의 다운로드 링크에 표시됩니다. 비워 두면 원본 파일명이 사용됩니다.</p>
+                    <p class="form-help">공개 콘텐츠 화면의 다운로드 링크에 표시됩니다. 비워 두면 원본 파일명이 사용됩니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_download_file_status">상태</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_download_file_status" name="status" class="form-select">
                         <option value="active"<?php echo (string) ($formValues['status'] ?? 'active') === 'active' ? ' selected' : ''; ?>>사용</option>
                         <option value="hidden"<?php echo (string) ($formValues['status'] ?? 'active') === 'hidden' ? ' selected' : ''; ?>>숨김</option>
                     </select>
-                    <p class="admin-form-help">숨김 파일은 공개 다운로드와 콘텐츠 연결 후보에서 제외됩니다. 기존 콘텐츠 연결도 화면에 표시되지 않습니다.</p>
+                    <p class="form-help">숨김 파일은 공개 다운로드와 콘텐츠 연결 후보에서 제외됩니다. 기존 콘텐츠 연결도 화면에 표시되지 않습니다.</p>
                 </div>
             </div>
         </section>
 
-        <section class="admin-card card">
+        <section class="card">
             <h2>다운로드 과금</h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <span class="form-label">유료 다운로드 사용</span>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_switch_html('content_download_file_asset_download_enabled', 'new_content_file_asset_download_enabled', '1', (int) ($formValues['asset_download_enabled'] ?? 0) === 1, '사용'); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_download_file_asset_charge_policy">과금 방식</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_download_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select">
                         <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
                             <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($formValues['asset_charge_policy'] ?? 'once') === (string) $policyKey ? ' selected' : ''; ?>>
@@ -82,24 +82,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <span class="form-label">유료 다운로드 자산 설정</span>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_download_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_download_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedAssetModules, $formValues['asset_download_amounts_json'] ?? '', (int) ($formValues['asset_download_amount'] ?? 0), '차감 금액', sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <input type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($formValues['asset_download_amount'] ?? 0)); ?>">
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_download_file_asset_download_policy_set_ids">회원 그룹별 적용</label>
-                <div class="admin-form-field admin-policy-set-field">
+                <div class="form-field admin-policy-set-field">
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_download_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($formValues['asset_download_group_policies_json'] ?? '', (int) ($formValues['asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#content_download_file_asset_amounts_grouped', $pdo); ?>
                 </div>
             </div>
         </section>
 
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <div>
                 <h2 class="card-title">다운로드 파일 목록</h2>

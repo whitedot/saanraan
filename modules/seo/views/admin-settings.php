@@ -19,29 +19,29 @@ if (sr_is_http_url($defaultOgImage)) {
 <form method="post" action="<?php echo sr_e(sr_url('/admin/seo')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('seo::ui.text.c8ef75e9')); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="seo_admin_settings_title_suffix"><?php echo sr_e(sr_t('seo::ui.text.0404a3fe')); ?></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="seo_admin_settings_title_suffix" type="text" name="title_suffix" value="<?php echo sr_e((string) $settings['title_suffix']); ?>" class="form-input" maxlength="80">
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="seo_admin_settings_default_description"><?php echo sr_e(sr_t('seo::ui.text.dbf432cb')); ?></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="seo_admin_settings_default_description" type="text" name="default_description" value="<?php echo sr_e((string) $settings['default_description']); ?>" class="form-input form-control-full" maxlength="255">
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="seo_admin_settings_default_og_image_upload"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php if ($defaultOgImageUrl !== '') { ?>
                     <div class="seo-og-image-current">
                         <img src="<?php echo sr_e($defaultOgImageUrl); ?>" alt="<?php echo sr_e(sr_t('seo::ui.og.current.8f910aba')); ?>">
                         <div>
                             <a href="<?php echo sr_e($defaultOgImageUrl); ?>"><?php echo sr_e(sr_t('seo::ui.og.current.8f910aba')); ?></a>
-                            <label class="admin-form-check form-label" for="seo_admin_settings_delete_default_og_image">
+                            <label class="form-check form-label" for="seo_admin_settings_delete_default_og_image">
                                 <input id="seo_admin_settings_delete_default_og_image" type="checkbox" name="delete_default_og_image" value="1" class="form-checkbox">
                                 <?php echo sr_admin_choice_label_html(sr_t('seo::ui.og.delete.f7ca7f83')); ?>
                             </label>
@@ -49,50 +49,50 @@ if (sr_is_http_url($defaultOgImage)) {
                     </div>
                 <?php } ?>
                 <input id="seo_admin_settings_default_og_image_upload" type="file" name="default_og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
-                <p class="admin-form-help"><?php echo sr_e(sr_t('seo::ui.og.upload.help.80d2d781')); ?> <?php echo sr_e(sr_seo_format_bytes(sr_seo_og_image_upload_max_bytes())); ?><?php echo sr_e(sr_t('seo::ui.og.upload.help.suffix.1a055fd3')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('seo::ui.og.upload.help.80d2d781')); ?> <?php echo sr_e(sr_seo_format_bytes(sr_seo_og_image_upload_max_bytes())); ?><?php echo sr_e(sr_t('seo::ui.og.upload.help.suffix.1a055fd3')); ?></p>
             </div>
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('seo::ui.text.0c082164')); ?></h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.url.51ecf74b')); ?></span>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_seo_admin_settings_sitemap_include_home', 'sitemap_include_home', '1', !empty($settings['sitemap_include_home']), sr_t('seo::ui.url.51ecf74b')); ?>
                 </div>
             </div>
         </div>
         <?php if ($sitemapUrl !== '') { ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.text.2a5fd734')); ?></span>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <div class="seo-sitemap-actions">
                         <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
                         <button type="button" class="btn btn-sm btn-solid-light" data-seo-copy-url="<?php echo sr_e($sitemapUrl); ?>" data-copy-label="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?>" data-copy-success="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.success.9d96e6c2')); ?>" data-copy-fail="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.fail.54a85d2b')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?></button>
                     </div>
-                    <small class="admin-form-help seo-sitemap-url"><?php echo sr_e($sitemapUrl); ?></small>
+                    <small class="form-help seo-sitemap-url"><?php echo sr_e($sitemapUrl); ?></small>
                 </div>
             </div>
         <?php } ?>
     </section>
 
-    <section class="admin-card card">
+    <section class="card">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('seo::ui.settings.7ce8a229')); ?></h2>
             <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/robots.txt')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="seo_admin_settings_robots_disallow_paths"><?php echo sr_e(sr_t('seo::ui.text.553ea40a')); ?></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
                 <pre class="seo-robots-preview"><?php echo sr_e($robotsPreview); ?></pre>
             </div>
         </div>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+    <div class="form-sticky-actions form-actions form-actions-primary">
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('seo::ui.save.5fb92622')); ?></button>
     </div>
 </form>

@@ -23,47 +23,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/copy')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="board_id" value="<?php echo sr_e((string) (int) $sourceBoard['id']); ?>">
-    <section class="admin-card card admin-community-board-copy-info-card">
+    <section class="card admin-community-board-copy-info-card">
         <h2><?php echo sr_e('복사 정보'); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('원본 게시판'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> / 관리용 키: <?php echo sr_e((string) $sourceBoard['board_key']); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('복사 수'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('복사 상태'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('부하 등급'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['label']); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('중단/실패 시 상태'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['failure_state']); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('권장 실행 시점'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['recommended_time']); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('기록 위치'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('동기 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 배치 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></p>
             </div>
         </div>
@@ -81,31 +81,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e('복사 설정'); ?></h2>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_board_copy_key"><?php echo sr_e('새 게시판 관리용 키'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="community_board_copy_key" type="text" name="board_key" value="<?php echo sr_e((string) $values['board_key']); ?>" class="form-input form-control-full" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input>
-                <p class="admin-form-help">복사본 게시판을 구분하는 내부 식별값입니다. 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.</p>
+                <p class="form-help">복사본 게시판을 구분하는 내부 식별값입니다. 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <label class="form-label" for="community_board_copy_title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="community_board_copy_title" type="text" name="title" value="<?php echo sr_e((string) $values['title']); ?>" class="form-input form-control-full" maxlength="120" required>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <span class="form-label"><?php echo sr_e('복사 범위'); ?></span>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php foreach (sr_community_board_copy_modes() as $modeKey => $modeLabel) { ?>
-                    <label class="admin-form-check form-label" for="community_board_copy_mode_<?php echo sr_e($modeKey); ?>">
+                    <label class="form-check form-label" for="community_board_copy_mode_<?php echo sr_e($modeKey); ?>">
                         <input id="community_board_copy_mode_<?php echo sr_e($modeKey); ?>" type="radio" name="mode" value="<?php echo sr_e($modeKey); ?>" class="form-radio"<?php echo (string) $values['mode'] === (string) $modeKey ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html($modeLabel); ?>
                     </label>
                 <?php } ?>
-                <p class="admin-form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 아래 용량 안내를 확인하세요.'); ?></p>
+                <p class="form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 아래 용량 안내를 확인하세요.'); ?></p>
             </div>
         </div>
         <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
@@ -118,11 +118,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         <?php } ?>
         <?php if ((int) ($copyCounts['series'] ?? 0) > 0) { ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_checkbox_toggle_html('community_board_copy_series', 'copy_series', '1', !empty($values['copy_series']), '게시글 포함 복사 시 시리즈도 새 사본으로 복사', ' data-copy-series-toggle'); ?>
-                    <p class="admin-form-help"><?php echo sr_e('설정만 복사에서는 적용되지 않습니다. 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다.'); ?></p>
+                    <p class="form-help"><?php echo sr_e('설정만 복사에서는 적용되지 않습니다. 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다.'); ?></p>
                     <?php foreach ($communityBoardCopySeriesSuggestions as $seriesSuggestion) { ?>
                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
                         <div class="admin-setting-unit admin-setting-unit-wide">
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         <?php } ?>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split admin-community-board-copy-actions">
+    <div class="form-sticky-actions form-actions form-actions-split admin-community-board-copy-actions">
         <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
         <div class="admin-community-board-copy-submit-actions">
         <?php if ($batchAvailable) { ?>

@@ -57,7 +57,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header"><h2 class="card-title">환전 로그 목록</h2></div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($pagination); ?>

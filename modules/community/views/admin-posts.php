@@ -108,7 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.3956e082')); ?></h2></div>
     <div class="admin-list-summary-row">
         <?php if (empty($postSort['is_default'])) { ?>
@@ -280,7 +280,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.78c1708d')); ?></h2></div>
     <div class="admin-list-summary-row">
         <?php if (empty($commentSort['is_default'])) { ?>
@@ -407,9 +407,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="comment_id" value="" data-community-hide-comment-id>
                 <p class="admin-summary-meta">선택한 항목을 공개 화면에서 숨기고, 지정한 기간과 사유를 운영 기록으로 남깁니다.</p>
                 <p class="admin-form-static" data-community-hide-target-label></p>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label">숨김 기간</span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php echo sr_admin_radio_toggle_group_html('community_hidden_duration', 'hidden_duration', [
                             '7' => '7일',
                             '15' => '15일',
@@ -419,9 +419,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         ], '30', true); ?>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="community_hidden_reason">숨김 사유</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="community_hidden_reason" name="hidden_reason" class="form-select">
                             <option value="rights_request">권리 요청 대응</option>
                             <option value="moderation" selected>운영 검토</option>
@@ -431,9 +431,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                 </div>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="community_hidden_note">운영 메모</label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="community_hidden_note" name="hidden_note" class="form-textarea" rows="3" maxlength="1000"></textarea>
                     </div>
                 </div>

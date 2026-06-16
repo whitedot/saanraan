@@ -32,7 +32,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <div class="admin-dashboard-sections" data-admin-dashboard-sections>
-<section class="admin-card admin-list-card card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.text.b2c8d45c')); ?>" data-admin-dashboard-default-visible="1">
+<section class="card admin-list-card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.text.b2c8d45c')); ?>" data-admin-dashboard-default-visible="1">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.b2c8d45c')); ?></h2>
         <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.ab837ab1')); ?>"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>
@@ -54,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php if ($recoveryMarkers !== [] || (int) $moduleBackupSummary['count'] > 0) { ?>
-    <section class="admin-card admin-list-card card admin-list-form admin-dashboard-section" data-admin-dashboard-section="recovery" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.status.47a0c439')); ?>" data-admin-dashboard-default-visible="1">
+    <section class="card admin-list-card admin-list-form admin-dashboard-section" data-admin-dashboard-section="recovery" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.status.47a0c439')); ?>" data-admin-dashboard-default-visible="1">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.status.47a0c439')); ?></h2>
             <button type="button" class="admin-dashboard-section-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.status.879d9629')); ?>"><?php echo sr_material_icon_html('apps', 'admin-dashboard-section-handle-icon'); ?></button>

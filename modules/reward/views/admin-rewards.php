@@ -191,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($rewardAdminPage === 'transactions') { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('reward::ui.text.ce41e3f6')); ?></h2></div>
         <div class="admin-list-summary-row">
             <?php if (empty($transactionSort['is_default'])) { ?>
@@ -257,7 +257,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	    </section>
     <?php echo sr_admin_pagination_html($transactionPagination, '적립금 거래 목록 페이지'); ?>
 <?php } else { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('reward::ui.text.b62aead1')); ?></h2>
             <?php $rewardHeaderAdjustModalId = is_array($selectedAccount) ? 'reward-adjust-modal-' . (int) ($selectedAccount['id'] ?? 0) : 'reward-adjust-modal-0'; ?>
@@ -338,9 +338,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_t('reward::ui.text.4993967a')); ?> <strong><?php echo sr_e(number_format((int) $rewardAdjustModalAccount['balance'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></strong></span>
                             </div>
                         <?php } else { ?>
-                            <div class="admin-form-row">
+                            <div class="form-row">
                                 <?php echo sr_admin_form_label_help_html($rewardAdjustAccountInputId, sr_t('reward::ui.member.900e04a5'), $rewardHelp['member_hash']['id'], $rewardHelpOpenLabel, true); ?>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($rewardAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
                                         <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardAdjustMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($rewardAdjustMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($rewardAdjustAccountInputId); ?>"><?php echo sr_e(sr_t('reward::ui.member.search.f7a330b0')); ?></button>
@@ -348,9 +348,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                         <?php } ?>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardAdjustFieldPrefix . '_transaction_type', sr_t('reward::ui.text.3a7bc5ac'), $rewardHelp['transaction_type']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
                                     <?php foreach ($rewardAdjustTransactionTypes as $type) { ?>
                                         <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
@@ -358,16 +358,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardAdjustFieldPrefix . '_amount', sr_t('reward::ui.text.5c705e1a'), $rewardHelp['amount']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('reward::ui.active.d2de5076')); ?></p>
+                                <p class="form-help"><?php echo sr_e(sr_t('reward::ui.active.d2de5076')); ?></p>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardAdjustFieldPrefix . '_reason', sr_t('reward::ui.text.ab9442a2'), $rewardHelp['reason']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
                         </div>
@@ -423,18 +423,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($rewardRefundTransaction)); ?></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('reward::ui.text.64d5a726')); ?> <strong><?php echo sr_e(number_format((int) $rewardRefundTransaction['amount'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></strong></span>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardRefundFieldPrefix . '_amount', sr_t('reward::ui.text.a27af6c4'), $rewardHelp['refund_amount']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $rewardRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('reward::ui.save.1a5bb64e')); ?></p>
+                                <p class="form-help"><?php echo sr_e(sr_t('reward::ui.save.1a5bb64e')); ?></p>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardRefundFieldPrefix . '_reason', sr_t('reward::ui.text.ab9442a2'), $rewardHelp['refund_reason']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e(sr_t('reward::ui.text.5b471750') . (string) $rewardRefundTransactionId . sr_t('reward::ui.text.0a4d3a11')); ?>" maxlength="255" required class="form-input form-control-full">
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('reward::ui.id.0b5dbcb4')); ?> <?php echo sr_e($rewardRefundReferenceId); ?></p>
+                                <p class="form-help"><?php echo sr_e(sr_t('reward::ui.id.0b5dbcb4')); ?> <?php echo sr_e($rewardRefundReferenceId); ?></p>
                             </div>
                         </div>
                     </div>
@@ -481,18 +481,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('reward::ui.text.6c31ec31')); ?> <strong><?php echo sr_e(number_format((int) $rewardReclaimTransaction['amount'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('reward::ui.text.b00f056b')); ?> <strong><?php echo sr_e(number_format($rewardReclaimRemainingAmount)); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></strong></span>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardReclaimFieldPrefix . '_amount', sr_t('reward::ui.text.5c705e1a'), $rewardHelp['amount']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardReclaimFieldPrefix); ?>_amount" type="number" name="amount" value="-<?php echo sr_e((string) $rewardReclaimRemainingAmount); ?>" step="1" min="-<?php echo sr_e((string) $rewardReclaimRemainingAmount); ?>" max="-1" required class="form-input" data-overlay-focus>
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('reward::action.admin.reclaim_amount_exceeds_target')); ?></p>
+                                <p class="form-help"><?php echo sr_e(sr_t('reward::action.admin.reclaim_amount_exceeds_target')); ?></p>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($rewardReclaimFieldPrefix . '_reason', sr_t('reward::ui.text.ab9442a2'), $rewardHelp['reason']['id'], $rewardHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <input id="<?php echo sr_e($rewardReclaimFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e(sr_t('reward::ui.text.5b471750') . (string) $rewardReclaimTransactionId . ' ' . sr_t('reward::ui.text.f7cd7185')); ?>" maxlength="255" required class="form-input form-control-full">
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('reward::ui.text.f5f89fb1')); ?> <?php echo sr_e($rewardReclaimReferenceId); ?></p>
+                                <p class="form-help"><?php echo sr_e(sr_t('reward::ui.text.f5f89fb1')); ?> <?php echo sr_e($rewardReclaimReferenceId); ?></p>
                             </div>
                         </div>
                     </div>

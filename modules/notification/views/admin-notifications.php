@@ -118,7 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.077631f5')); ?></h2>
         </div>
@@ -250,7 +250,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></h2>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $notificationCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($notificationCreateModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>"><?php echo sr_e(sr_t('notification::ui.notification.create.fda77a84')); ?></button>
@@ -423,9 +423,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="create">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_audience"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="notification_admin_notifications_audience" name="audience" class="form-select" required data-notification-audience data-overlay-focus>
                                 <?php foreach ($allowedAudiences as $audience) { ?>
                                     <option value="<?php echo sr_e($audience); ?>"<?php echo (string) ($notificationCreateValues['audience'] ?? '') === $audience ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
@@ -433,46 +433,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                     </div>
-                    <div class="admin-form-row" data-notification-account-row<?php echo $notificationCreateAudience === 'account' ? '' : ' hidden'; ?>>
+                    <div class="form-row" data-notification-account-row<?php echo $notificationCreateAudience === 'account' ? '' : ' hidden'; ?>>
                         <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.900e04a5')); ?> <span class="sr-required-label" data-notification-account-required<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <div class="admin-lookup-control">
                                 <input id="<?php echo sr_e($notificationCreateAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input" data-notification-account-identifier<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? ' required' : ''; ?>>
                                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.search.f7a330b0')); ?></button>
                             </div>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_title"><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="notification_admin_notifications_title" type="text" name="title" value="<?php echo sr_e((string) ($notificationCreateValues['title'] ?? '')); ?>" maxlength="160" required class="form-input form-control-full">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_body_text"><?php echo sr_e(sr_t('notification::ui.text.cb0f2404')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $notificationEditorAttributes; ?>><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_link_url"><?php echo sr_e(sr_t('notification::ui.url.f7ca9b13')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="<?php echo sr_e(sr_t('notification::ui.path.https.example.com.a67f0fa1')); ?>">
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <span class="form-label"><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></span>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <div class="admin-check-list">
                                 <?php foreach ($allowedCreateChannels as $channel) { ?>
                                     <?php $channelInputId = 'notification_admin_notifications_channel_' . (string) $channel; ?>
-                                    <label class="admin-form-check form-label" for="<?php echo sr_e($channelInputId); ?>">
+                                    <label class="form-check form-label" for="<?php echo sr_e($channelInputId); ?>">
                                         <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-checkbox" data-notification-channel<?php echo in_array($channel, $notificationCreateChannels, true) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?>
                                     </label>
                                 <?php } ?>
                             </div>
-                            <small class="admin-form-help"><?php echo sr_e(sr_t('notification::ui.notification.create.notification.email.active.d3635deb')); ?></small>
+                            <small class="form-help"><?php echo sr_e(sr_t('notification::ui.notification.create.notification.email.active.d3635deb')); ?></small>
                         </div>
                     </div>
                 </div>

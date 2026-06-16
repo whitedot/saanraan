@@ -121,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">시도/보상 내역</h2>
     </div>
@@ -293,16 +293,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="admin-summary-meta">지급 <?php echo sr_e(number_format((int) ($reclaimGrant['reward_amount'] ?? 0))); ?></span>
                         <span class="admin-summary-meta">회수 가능 <strong><?php echo sr_e(number_format($reclaimRemainingAmount)); ?></strong></span>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($reclaimFieldPrefix); ?>_amount">회수 금액 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="<?php echo sr_e($reclaimFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $reclaimRemainingAmount); ?>" step="1" min="1" max="<?php echo sr_e((string) $reclaimRemainingAmount); ?>" required class="form-input" data-overlay-focus>
-                            <p class="admin-form-help">남은 회수 가능액을 초과하면 서버에서 거부됩니다.</p>
+                            <p class="form-help">남은 회수 가능액을 초과하면 서버에서 거부됩니다.</p>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($reclaimFieldPrefix); ?>_reason">사유</label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input id="<?php echo sr_e($reclaimFieldPrefix); ?>_reason" type="text" name="reason" value="퀴즈 보상 회수: grant #<?php echo sr_e((string) $reclaimGrantId); ?>" maxlength="255" class="form-input form-control-full">
                         </div>
                     </div>

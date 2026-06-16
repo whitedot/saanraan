@@ -97,14 +97,14 @@ $surveySettingsHelp = [
 <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="admin-card card">
+    <section class="card">
         <div class="card-header">
             <h2 class="card-title">공개 화면/새 설문 기본값</h2>
         </div>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
+        <div class="form-grid">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_layout_key', '설문 공개 레이아웃', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="survey_settings_layout_key" name="layout_key" class="form-select" required>
                         <?php foreach ($surveyLayoutOptions as $layoutKey => $layoutOption) { ?>
                             <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
@@ -112,12 +112,12 @@ $surveySettingsHelp = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">설문 공개 화면의 바깥 레이아웃입니다.</p>
+                    <p class="form-help">설문 공개 화면의 바깥 레이아웃입니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_skin_key', '설문 스킨', $surveySettingsHelp['skin_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="survey_settings_skin_key" name="skin_key" class="form-select" required>
                         <?php foreach (sr_survey_skin_options() as $skinKey => $skinLabel) { ?>
                             <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($settings['skin_key'] ?? 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
@@ -125,12 +125,12 @@ $surveySettingsHelp = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">공개 레이아웃 안쪽의 설문 본문 출력 스킨입니다.</p>
+                    <p class="form-help">공개 레이아웃 안쪽의 설문 본문 출력 스킨입니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php
                     $surveyStatusToggleOptions = [];
                     foreach (sr_survey_statuses() as $status) {
@@ -140,9 +140,9 @@ $surveySettingsHelp = [
                     ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_policy', '기본 응답 제한', $surveySettingsHelp['default_response_limit_policy']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php
                     $surveyLimitPolicyToggleOptions = [];
                     foreach (sr_survey_response_limit_policies() as $policy) {
@@ -152,57 +152,57 @@ $surveySettingsHelp = [
                     ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_period', '기본 제한 기간', $surveySettingsHelp['default_response_limit_period_seconds']['id'], $surveySettingsHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="survey_settings_response_limit_period" type="number" name="default_response_limit_period_seconds" value="<?php echo sr_e((string) (int) ($settings['default_response_limit_period_seconds'] ?? 0)); ?>" class="form-input" min="0">
-                    <p class="admin-form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                    <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_public_list_limit', '공개 목록 노출 수', $surveySettingsHelp['public_list_limit']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="survey_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) (int) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_login_required', '로그인 필요', $surveySettingsHelp['default_login_required']['id'], $surveySettingsHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_login_required', 'default_login_required', '1', (int) ($settings['default_login_required'] ?? 1) === 1, '새 설문에 기본 적용'); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '새 설문에 기본 적용'); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="survey_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
+                    <p class="form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_comment_preset_key', '댓글 리액션 프리셋', $surveySettingsHelp['reaction_comment_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="survey_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help">설문 댓글 리액션에 적용할 기본 프리셋입니다.</p>
+                    <p class="form-help">설문 댓글 리액션에 적용할 기본 프리셋입니다.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">설문 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>

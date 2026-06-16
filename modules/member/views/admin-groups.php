@@ -135,36 +135,36 @@ $memberGroupFormFields = static function (?array $formGroup, string $fieldPrefix
     <input type="hidden" name="group_id" value="<?php echo sr_e($isEdit ? (string) $formGroup['id'] : ''); ?>">
 
     <?php if ($isEdit) { ?>
-        <div class="admin-form-row">
-            <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?></span></span>
-            <div class="admin-form-field">
+        <div class="form-row">
+            <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.key.1057ecca')); ?></span></span>
+            <div class="form-field">
                 <code><?php echo sr_e((string) $formGroup['group_key']); ?></code>
             </div>
         </div>
     <?php } else { ?>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html($groupKeyId, sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="<?php echo sr_e($groupKeyId); ?>" type="text" name="group_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" value="<?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['group_key'] ?? '') : ''); ?>" required class="form-input"<?php echo $focusAttr; ?> data-admin-key-input data-admin-key-suggest-source="#<?php echo sr_e($titleId); ?>" data-admin-key-suggest-fallback="member_group">
             </div>
         </div>
     <?php } ?>
 
-    <div class="admin-form-row">
+    <div class="form-row">
         <label class="form-label" for="<?php echo sr_e($titleId); ?>"><?php echo sr_e(sr_t('member::ui.text.97e73d18')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
-        <div class="admin-form-field">
+        <div class="form-field">
             <input id="<?php echo sr_e($titleId); ?>" type="text" name="title" maxlength="120" value="<?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['title'] ?? '') : ''); ?>" class="form-input form-control-full" required<?php echo $titleFocusAttr; ?>>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <label class="form-label" for="<?php echo sr_e($descriptionId); ?>"><?php echo sr_e(sr_t('member::ui.text.8c3f651d')); ?></label>
-        <div class="admin-form-field">
+        <div class="form-field">
             <textarea id="<?php echo sr_e($descriptionId); ?>" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['description'] ?? '') : ''); ?></textarea>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($statusId, sr_t('member::ui.status.e10195a1'), $memberGroupHelp['group_status']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <select id="<?php echo sr_e($statusId); ?>" name="status" class="form-select">
                 <?php $currentStatus = is_array($formGroup) ? (string) ($formGroup['status'] ?? 'enabled') : 'enabled'; ?>
                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -175,9 +175,9 @@ $memberGroupFormFields = static function (?array $formGroup, string $fieldPrefix
             </select>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($sortOrderId, sr_t('member::ui.text.7d2dc215'), $memberGroupHelp['sort_order']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <input id="<?php echo sr_e($sortOrderId); ?>" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['sort_order'] ?? '0') : '0'); ?>" required class="form-input">
         </div>
     </div>
@@ -199,9 +199,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/member-group-rules')); ?>">
     <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($formRule) ? (string) $formRule['id'] : ''); ?>">
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($groupFieldId, sr_t('member::ui.text.5034bb32'), $memberGroupHelp['rule_group']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <select id="<?php echo sr_e($groupFieldId); ?>" name="group_id" required class="form-select"<?php echo $focusAttr; ?>>
                 <?php foreach ($groups as $group) { ?>
                     <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($formRule) && (int) $formRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
@@ -211,9 +211,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </select>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($definitionFieldId, sr_t('member::ui.text.7a1e6434'), $memberGroupHelp['rule_definition']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <select id="<?php echo sr_e($definitionFieldId); ?>" name="definition_key" required data-member-rule-definition class="form-select">
                 <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
                     <option value="<?php echo sr_e((string) $definitionKey); ?>"<?php echo $currentDefinitionKey === (string) $definitionKey ? ' selected' : ''; ?>>
@@ -223,9 +223,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </select>
         </div>
     </div>
-    <div class="admin-form-row">
-        <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.settings.7d7902a7'), $memberGroupHelp['rule_params']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span></span>
-        <div class="admin-form-field">
+    <div class="form-row">
+        <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.settings.7d7902a7'), $memberGroupHelp['rule_params']['id'], $memberGroupHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.settings.7d7902a7')); ?></span></span>
+        <div class="form-field">
             <div class="member-rule-param-panels" data-member-rule-param-panels>
                 <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
                     <?php $panelActive = $currentDefinitionKey === (string) $definitionKey || ($currentDefinitionKey === '' && $definitionKey === array_key_first($ruleDefinitions)); ?>
@@ -271,9 +271,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </div>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($evaluationPolicyFieldId, sr_t('member::ui.text.c3054578'), $memberGroupHelp['evaluation_policy']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <select id="<?php echo sr_e($evaluationPolicyFieldId); ?>" name="evaluation_policy" class="form-select">
                 <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
                     <option value="<?php echo sr_e($policy); ?>"<?php echo is_array($formRule) && (string) $formRule['evaluation_policy'] === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?></option>
@@ -281,9 +281,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </select>
         </div>
     </div>
-    <div class="admin-form-row">
+    <div class="form-row">
         <?php echo sr_admin_form_label_help_html($statusFieldId, sr_t('member::ui.status.e10195a1'), $memberGroupHelp['rule_status']['id'], $memberGroupHelpOpenLabel, true); ?>
-        <div class="admin-form-field">
+        <div class="form-field">
             <select id="<?php echo sr_e($statusFieldId); ?>" name="status" class="form-select">
                 <?php foreach ($allowedRuleStatuses as $status) { ?>
                     <option value="<?php echo sr_e($status); ?>"<?php echo is_array($formRule) && (string) $formRule['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
@@ -299,11 +299,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
 <?php if ($memberGroupsPage === 'group_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo sr_e(is_array($editGroup) ? sr_t('member::ui.edit.5784f889') : sr_t('member::ui.text.22129319')); ?></h2>
             <?php $memberGroupFormFields(is_array($editGroup) ? $editGroup : null, 'member_admin_groups'); ?>
         </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
         </div>
@@ -355,7 +355,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.list.c78d8209')); ?></h2>
             <?php if ($canEditMemberGroups) { ?>
@@ -511,9 +511,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
                             <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($manualAssignAccountInputId, sr_t('member::ui.member.hash.5a5dbe2b'), $memberGroupHelp['member_hash']['id'], $memberGroupHelpOpenLabel, true); ?>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <div class="admin-lookup-control">
                                     <input id="<?php echo sr_e($manualAssignAccountInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
                                     <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($manualAssignMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($manualAssignMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($manualAssignAccountInputId); ?>"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></button>
@@ -522,7 +522,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         </div>
                     </div>
                     <div class="modal-footer-note">
-                        <p class="admin-form-help">수동 배정은 회원 그룹 정보 저장과 별도로 회원 배정만 바로 반영합니다. 열려 있는 그룹 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
+                        <p class="form-help">수동 배정은 회원 그룹 정보 저장과 별도로 회원 배정만 바로 반영합니다. 열려 있는 그룹 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
@@ -556,7 +556,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
                             <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
                         </div>
-                        <section class="admin-card admin-list-card card admin-list-form">
+                        <section class="card admin-list-card admin-list-form">
                             <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.561bac1a')); ?></h4>
                             </div>
@@ -610,7 +610,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
 	    </section>
 
-                        <section class="admin-card admin-list-card card admin-list-form">
+                        <section class="card admin-list-card admin-list-form">
                             <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h4>
                             </div>
@@ -728,7 +728,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
             <div class="admin-row-actions">
@@ -817,9 +817,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/member-group-rules')); ?>">
                     <input type="hidden" name="intent" value="evaluate_group">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <?php echo sr_admin_form_label_help_html('member_group_rule_evaluate_group_id', sr_t('member::ui.text.5034bb32'), $memberGroupHelp['rule_group']['id'], $memberGroupHelpOpenLabel, true); ?>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="member_group_rule_evaluate_group_id" name="group_id" class="form-select" required data-overlay-focus>
                                 <option value=""><?php echo sr_e(sr_t('member::ui.text.72ea3d64')); ?></option>
                                 <?php foreach ($enabledRuleTargetGroups as $group) { ?>
@@ -829,9 +829,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         </div>
                     </div>
                     <?php if ($canSelectEvaluateExcludeGroups) { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="member_group_rule_evaluate_exclude_group_ids_select"><?php echo sr_e(sr_t('member::ui.member.exclude_group.9ad7aa30')); ?></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <?php
                             $excludeGroupOptions = [];
                             foreach ($selectableEvaluateExcludeGroups as $group) {
@@ -851,20 +851,20 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 sr_t('member::ui.member.exclude_group_select.b923ff94')
                             );
                             ?>
-                            <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.member.exclude_group_help.8a94a7f3')); ?></p>
+                            <p class="form-help"><?php echo sr_e(sr_t('member::ui.member.exclude_group_help.8a94a7f3')); ?></p>
                         </div>
                     </div>
                     <?php } else { ?>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <span class="form-label"><?php echo sr_e(sr_t('member::ui.member.exclude_group.9ad7aa30')); ?></span>
-                        <div class="admin-form-field">
-                            <p class="admin-form-help"><?php echo sr_e(sr_t('member::ui.member.exclude_group_single_group_help.19517db8')); ?></p>
+                        <div class="form-field">
+                            <p class="form-help"><?php echo sr_e(sr_t('member::ui.member.exclude_group_single_group_help.19517db8')); ?></p>
                         </div>
                     </div>
                     <?php } ?>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="admin-form-help">규칙 평가는 저장된 회원 그룹 규칙 기준으로 회원 배정을 다시 계산합니다. 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
+                    <p class="form-help">규칙 평가는 저장된 회원 그룹 규칙 기준으로 회원 배정을 다시 계산합니다. 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#member-group-rule-evaluate-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
@@ -1035,11 +1035,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     </div>
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo sr_e(is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae')); ?></h2>
             <?php $memberRuleFormFields(is_array($editRule) ? $editRule : null, 'member_admin_groups_rule_form'); ?>
         </section>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.95d3fea1')); ?></button>
         </div>

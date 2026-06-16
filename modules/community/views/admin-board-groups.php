@@ -144,7 +144,7 @@ $memberGroupAccessHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.member_group_a
     . '<li>' . sr_e(sr_t('community::ui.member_group_access_help_level')) . '</li>'
     . '</ul>';
 $memberGroupAccessLabelHtml = static function (string $forId, string $label) use ($memberGroupAccessHelpModalId): string {
-    return '<div class="form-label admin-form-label-help">'
+    return '<div class="form-label form-label-help">'
         . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . sr_t('community::ui.member_group_access_help_open')) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($memberGroupAccessHelpModalId) . '" data-overlay="#' . sr_e($memberGroupAccessHelpModalId) . '">'
         . sr_material_icon_html('help')
         . '</button>'
@@ -281,7 +281,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.8cd79e68')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.1f051912')); ?></a>
@@ -355,41 +355,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_pagination_html($boardGroupPagination, '게시판 그룹 목록 페이지'); ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form ui-form-theme">
-        <section id="community-board-group-section-basic" class="admin-card card" data-admin-section-anchor>
+        <section id="community-board-group-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.669f4ac3') : sr_t('community::ui.text.08aafae8')); ?></h2>
-            <p class="admin-form-help">게시판 그룹은 여러 게시판을 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다.</p>
+            <p class="form-help">게시판 그룹은 여러 게시판을 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다.</p>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('community::ui.key.1057ecca')); ?></span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <code><?php echo sr_e((string) $formBoardGroup['group_key']); ?></code>
                     </div>
                 </div>
             <?php } else { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="community_admin_board_groups_group_key"><?php echo sr_e(sr_t('community::ui.key.1057ecca')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="community_admin_board_groups_group_key" type="text" name="group_key" maxlength="60" value="<?php echo sr_e($groupField($formBoardGroup, 'group_key')); ?>" class="form-input" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_admin_board_groups_title" data-admin-key-suggest-fallback="board_group">
                     </div>
                 </div>
             <?php } ?>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="community_admin_board_groups_title"><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="community_admin_board_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input form-control-full" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="community_admin_board_groups_description"><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="community_admin_board_groups_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($groupField($formBoardGroup, 'description')); ?></textarea>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_board_groups_status', sr_t('community::ui.status.e10195a1'), $communityBoardGroupHelp['status']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="community_admin_board_groups_status" name="status" class="form-select">
                                             <?php foreach ($allowedGroupStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === $groupField($formBoardGroup, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
@@ -397,9 +397,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_board_groups_sort_order', sr_t('community::ui.text.7d2dc215'), $communityBoardGroupHelp['sort_order']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="community_admin_board_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" required class="form-input">
                 </div>
             </div>
@@ -408,7 +408,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if ($communityBoardGroupsPage === 'edit') { ?>
             <?php $boardGroupDeleteModalId = 'community-board-group-delete-modal'; ?>
         <?php } ?>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardGroupDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardGroupDeleteModalId); ?>">삭제</button>
@@ -430,7 +430,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
-                        <p class="admin-form-help">
+                        <p class="form-help">
                             게시판 그룹을 삭제하면 그룹 정보가 삭제되고,
                             연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
                             외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.

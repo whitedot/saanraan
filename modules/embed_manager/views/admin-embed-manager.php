@@ -32,14 +32,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 
 <?php if (!$tableReady) { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
         </div>
         <p class="admin-empty-state"><?php echo sr_e('임베드 매니저 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
     </section>
 <?php } else { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
         </div>

@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <div>
                 <h2 class="card-title">회원 그룹별 설정 목록</h2>
@@ -116,29 +116,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="set_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo $policySetPage === 'edit' ? '회원 그룹별 설정 수정' : '회원 그룹별 설정 생성'; ?></h2>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_policy_set_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_policy_set_key" type="text" name="set_key" value="<?php echo sr_e((string) ($values['set_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" required data-admin-key-input data-admin-key-suggest-source="#content_policy_set_title" data-admin-key-suggest-fallback="content_policy_set">
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_policy_set_title">이름 <span class="sr-required-label">(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="content_policy_set_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_policy_set_description">설명</label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="content_policy_set_description" name="description" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="content_policy_set_status">상태 <span class="sr-required-label">(필수)</span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <select id="content_policy_set_status" name="status" class="form-select" required>
                         <?php foreach (sr_content_asset_policy_set_statuses() as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'enabled') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
@@ -158,7 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $assetGroupPolicyHelpText = '이 규칙을 선택한 콘텐츠 포인트/금액 항목에서 회원 그룹별로 기본 금액을 조정합니다.';
         include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
         ?>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="btn btn-solid-light">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
         </div>

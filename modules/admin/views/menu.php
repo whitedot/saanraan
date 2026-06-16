@@ -14,7 +14,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <input type="hidden" name="reset_confirmed" value="0" data-admin-menu-reset-confirmed>
 </form>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="admin-card admin-list-card card admin-list-form admin-menu-form">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="card admin-list-card admin-list-form admin-menu-form">
     <?php echo sr_csrf_field(); ?>
     <div class="card-header admin-menu-toolbar-header">
         <div class="card-actions admin-menu-toolbar-actions" role="group" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.view.controls.2ef4208b')); ?>">
@@ -105,7 +105,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </td>
                     <td>
                         <?php if ($canHide) { ?>
-                            <label class="admin-form-check form-label" for="<?php echo sr_e($hiddenInputId); ?>">
+                            <label class="form-check form-label" for="<?php echo sr_e($hiddenInputId); ?>">
                                 <input id="<?php echo sr_e($hiddenInputId); ?>"
                                     type="checkbox"
                                     name="is_hidden[]"
@@ -124,7 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
-    <div class="admin-form-actions admin-form-sticky-actions admin-menu-form-actions">
+    <div class="form-actions form-sticky-actions admin-menu-form-actions">
         <button type="submit" form="admin-menu-reset-form" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>"><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
         <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.menu.settings.save.914d293b')); ?></button>
     </div>

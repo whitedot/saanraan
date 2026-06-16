@@ -7,14 +7,14 @@
 .privacy-request-create-error-summary{background:color-mix(in oklab,var(--color-danger) 12%,var(--color-card));color:var(--color-danger);margin-bottom:calc(var(--spacing) * 4);outline:none;padding:calc(var(--spacing) * 3)}
 .privacy-request-create-error-summary ul{margin:calc(var(--spacing) * 2) 0 0;padding-left:calc(var(--spacing) * 5)}
 .privacy-request-create-error-summary li+li{margin-top:calc(var(--spacing) * 1)}
-.privacy-request-edit-form .admin-form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
-.privacy-request-edit-form .admin-form-check input{width:1rem;min-height:1rem}
+.privacy-request-edit-form .form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
+.privacy-request-edit-form .form-check input{width:1rem;min-height:1rem}
 .admin-list-form .privacy-request-manage,
 .admin-list-form .privacy-request-manage form{align-items:stretch;flex-direction:column;white-space:normal}
 .admin-list-form .privacy-request-manage{min-width:18rem}
 .admin-list-form .privacy-request-manage .form-input,
 .admin-list-form .privacy-request-manage .form-select,
 .admin-list-form .privacy-request-manage .form-textarea{width:100%}
-.admin-list-form .privacy-request-manage .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
+.admin-list-form .privacy-request-manage .form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
 @media (max-width:1023px){.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:1fr}.admin-page-privacy-request-list .filtering-submit{justify-content:center;width:100%}}
 @media (max-width:767px){.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td):nth-child(5){display:none}.admin-list-form .privacy-request-manage{min-width:14rem}}

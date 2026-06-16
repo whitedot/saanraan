@@ -4,7 +4,7 @@ $postRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
 $reportRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
 ?>
 
-<div class="community-dashboard-summary admin-card card">
+<div class="community-dashboard-summary card">
     <div class="community-dashboard-main">
         <p class="type-meta"><?php echo sr_e(sr_t('community::ui.community.ae00cbeb')); ?></p>
         <h2 class="type-section-title"><?php echo sr_e($dashboardSectionTitle); ?></h2>

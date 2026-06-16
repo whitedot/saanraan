@@ -3,32 +3,32 @@
     gap:calc(var(--spacing) * 5);
 }
 
-.quiz-manual-page .admin-card{
+.quiz-manual-page .card{
     margin:0;
 }
 
-.quiz-manual-page .admin-form-grid{
+.quiz-manual-page .form-grid{
     gap:0;
 }
 
-.quiz-manual-page .admin-form-grid>.admin-form-row{
+.quiz-manual-page .form-grid>.form-row{
     border-top:1px dashed var(--color-default-200);
     column-gap:calc(var(--spacing) * 6);
     grid-template-columns:minmax(7rem,11rem) minmax(0,56rem);
     padding:calc(var(--spacing) * 4) calc(var(--spacing) * 5);
 }
 
-.quiz-manual-page .admin-form-grid>.admin-form-row:first-child{
+.quiz-manual-page .form-grid>.form-row:first-child{
     border-top:0;
 }
 
-.quiz-manual-page .admin-form-field{
+.quiz-manual-page .form-field{
     display:grid;
     gap:calc(var(--spacing) * 2);
     min-width:0;
 }
 
-.quiz-manual-page .admin-form-field p{
+.quiz-manual-page .form-field p{
     color:var(--color-default-800);
     line-height:1.8;
     margin:0;
@@ -108,7 +108,7 @@
     overflow-wrap:anywhere;
 }
 
-.quiz-manual-page .admin-form-field strong{
+.quiz-manual-page .form-field strong{
     color:var(--text-strong);
     font-weight:var(--font-weight-semibold);
 }
@@ -118,7 +118,7 @@
 }
 
 @media (max-width: 768px){
-    .quiz-manual-page .admin-form-grid>.admin-form-row{
+    .quiz-manual-page .form-grid>.form-row{
         gap:calc(var(--spacing) * 2);
         grid-template-columns:1fr;
         padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4);

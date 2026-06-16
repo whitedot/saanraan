@@ -24,7 +24,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <div>
             <h2 class="card-title">승인 목록</h2>
@@ -79,9 +79,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="return_to" value="<?php echo sr_e($authorReturnTo); ?>">
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($authorAddMemberInputId); ?>">회원 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <input type="hidden" name="account_identifier_field" value="all">
                             <div class="admin-lookup-control">
                                 <input id="<?php echo sr_e($authorAddMemberInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
@@ -89,18 +89,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="content_author_add_status">상태 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="content_author_add_status" name="status" class="form-select" required>
                                 <option value="allowed">허용</option>
                                 <option value="blocked">차단</option>
                             </select>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="content_author_add_review_required_override">검수 예외 <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field">
+                        <div class="form-field">
                             <select id="content_author_add_review_required_override" name="review_required_override" class="form-select" required>
                                 <option value="inherit">기본 설정 따름</option>
                                 <option value="required">항상 검수</option>
@@ -108,9 +108,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-row">
                         <label class="form-label" for="content_author_add_note">메모</label>
-                        <div class="admin-form-field"><textarea id="content_author_add_note" name="note" rows="3" class="form-input"></textarea></div>
+                        <div class="form-field"><textarea id="content_author_add_note" name="note" rows="3" class="form-input"></textarea></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -137,22 +137,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($authorReturnTo); ?>">
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) (int) $permission['account_id']); ?>">
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <span class="form-label">회원</span>
-                            <div class="admin-form-field"><p class="admin-form-static"><?php echo sr_e($authorLabel); ?></p></div>
+                            <div class="form-field"><p class="admin-form-static"><?php echo sr_e($authorLabel); ?></p></div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-status">상태 <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($authorEditModalId); ?>-status" name="status" class="form-select" required data-overlay-focus>
                                     <option value="allowed"<?php echo (string) $permission['status'] === 'allowed' ? ' selected' : ''; ?>>허용</option>
                                     <option value="blocked"<?php echo (string) $permission['status'] === 'blocked' ? ' selected' : ''; ?>>차단</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-review">검수 예외 <span class="sr-required-label">(필수)</span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($authorEditModalId); ?>-review" name="review_required_override" class="form-select" required>
                                     <option value="inherit"<?php echo (string) $permission['review_required_override'] === 'inherit' ? ' selected' : ''; ?>>기본 설정 따름</option>
                                     <option value="required"<?php echo (string) $permission['review_required_override'] === 'required' ? ' selected' : ''; ?>>항상 검수</option>
@@ -160,9 +160,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-note">메모</label>
-                            <div class="admin-form-field"><textarea id="<?php echo sr_e($authorEditModalId); ?>-note" name="note" rows="3" class="form-input"><?php echo sr_e((string) ($permission['note'] ?? '')); ?></textarea></div>
+                            <div class="form-field"><textarea id="<?php echo sr_e($authorEditModalId); ?>-note" name="note" rows="3" class="form-input"><?php echo sr_e((string) ($permission['note'] ?? '')); ?></textarea></div>
                         </div>
                     </div>
                     <div class="modal-footer">

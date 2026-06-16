@@ -55,13 +55,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/settings')); ?>" class="admin-form ui-form-theme">
-    <section class="admin-card card">
+    <section class="card">
         <h2><?php echo sr_e(sr_t('popup_layer::ui.settings.fca22866')); ?></h2>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_settings">
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_popup_layer_skin_key', sr_t('popup_layer::ui.text.58f7674b'), $popupLayerSettingsHelp['skin_key']['id'], $popupLayerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select" required>
                                     <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
                                         <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $popupLayerSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -69,12 +69,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.skin_key.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.skin_key.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_status', sr_t('popup_layer::settings.default_status'), $popupLayerSettingsHelp['default_status']['id'], $popupLayerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_default_status" name="popup_layer_default_status" class="form-select" required>
                     <?php foreach ($allowedStatuses as $status) { ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo $popupLayerDefaultStatus === $status ? ' selected' : ''; ?>>
@@ -82,24 +82,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_status.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_status.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_target_service_key', '기본 서비스', $popupLayerSettingsHelp['default_target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input type="hidden" name="popup_layer_default_target_option" value="<?php echo sr_e($popupLayerDefaultTargetOption); ?>" data-admin-target-option>
                 <select id="popup_layer_admin_popup_layer_settings_default_target_service_key" name="popup_layer_default_target_service_key" class="form-select" required data-admin-target-service>
                     <?php foreach ($popupLayerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
                         <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $popupLayerDefaultTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e('새 팝업레이어가 처음 사용할 서비스입니다. 공용은 직접 선택용 팝업레이어입니다.'); ?></p>
+                <p class="form-help"><?php echo sr_e('새 팝업레이어가 처음 사용할 서비스입니다. 공용은 직접 선택용 팝업레이어입니다.'); ?></p>
             </div>
         </div>
-        <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
+        <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
             <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_default_target_detail_option" name="popup_layer_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
                         <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
@@ -108,12 +108,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_target_option.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_target_option.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_match_type', sr_t('popup_layer::settings.default_match_type'), $popupLayerSettingsHelp['default_match_type']['id'], $popupLayerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_default_match_type" name="popup_layer_default_match_type" class="form-select" required>
                     <?php foreach ($allowedMatchTypes as $matchType) { ?>
                         <option value="<?php echo sr_e($matchType); ?>"<?php echo $popupLayerDefaultMatchType === $matchType ? ' selected' : ''; ?>>
@@ -121,25 +121,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_match_type.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_match_type.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_dismiss_cookie_days', sr_t('popup_layer::settings.default_dismiss_cookie_days'), $popupLayerSettingsHelp['default_dismiss_cookie_days']['id'], $popupLayerHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="popup_layer_admin_popup_layer_settings_default_dismiss_cookie_days" type="number" name="popup_layer_default_dismiss_cookie_days" value="<?php echo sr_e((string) $popupLayerDefaultDismissCookieDays); ?>" class="form-input" min="0" max="365">
-                <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_dismiss_cookie_days.inline')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_dismiss_cookie_days.inline')); ?></p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_editor', '본문 에디터', $popupLayerSettingsHelp['editor']['id'], $popupLayerHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('popup_layer_admin_popup_layer_settings_editor', 'popup_layer_editor', $popupLayerEditorOptions, $popupLayerEditorKey, true); ?>
-                <p class="admin-form-help">팝업 등록/수정 화면의 본문 입력에만 적용됩니다.</p>
+                <p class="form-help">팝업 등록/수정 화면의 본문 입력에만 적용됩니다.</p>
             </div>
         </div>
     </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></a>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('popup_layer::ui.settings.save.2132c0ee')); ?></button>
     </div>

@@ -87,7 +87,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.27da9d14')); ?></h2></div>
     <div class="admin-list-summary-row">
         <form id="community-report-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="community-report-bulk-form" data-community-report-bulk-form>
@@ -111,32 +111,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
-                            <p class="admin-form-help">대상 조치는 처리 완료 상태, 허위신고자 조치는 기각 상태로 저장할 때만 실행합니다.</p>
-                            <div class="admin-form-row">
+                            <p class="form-help">대상 조치는 처리 완료 상태, 허위신고자 조치는 기각 상태로 저장할 때만 실행합니다.</p>
+                            <div class="form-row">
                                 <label for="community_report_bulk_target_action" class="form-label">대상 조치</label>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <select id="community_report_bulk_target_action" name="target_action" class="form-select" data-community-report-bulk-target-action>
                                         <?php foreach (sr_community_report_batch_target_action_options() as $actionKey => $actionLabel) { ?>
                                             <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                         <?php } ?>
                                     </select>
-                                    <small class="admin-form-help">숨김/삭제는 게시글과 댓글 신고에만 적용할 수 있습니다. 쪽지 신고가 섞여 있으면 서버에서 거부됩니다.</small>
+                                    <small class="form-help">숨김/삭제는 게시글과 댓글 신고에만 적용할 수 있습니다. 쪽지 신고가 섞여 있으면 서버에서 거부됩니다.</small>
                                 </div>
                             </div>
-                            <div class="admin-form-row">
+                            <div class="form-row">
                                 <label for="community_report_bulk_reporter_action" class="form-label">신고자 조치</label>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <select id="community_report_bulk_reporter_action" name="reporter_action" class="form-select" data-community-report-bulk-reporter-action>
                                         <?php foreach (sr_community_report_reporter_action_options() as $actionKey => $actionLabel) { ?>
                                             <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                         <?php } ?>
                                     </select>
-                                    <small class="admin-form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
+                                    <small class="form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
                                 </div>
                             </div>
-                            <div class="admin-form-row">
+                            <div class="form-row">
                                 <label for="community_report_bulk_review_note" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="admin-form-field">
+                                <div class="form-field">
                                     <textarea id="community_report_bulk_review_note" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus></textarea>
                                 </div>
                             </div>
@@ -294,46 +294,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="modal-body">
                         <p class="admin-summary-meta"><?php echo sr_e($targetSummary); ?> · <?php echo sr_e(sr_community_report_reason_label((string) ($report['reason_key'] ?? ''))); ?></p>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessStatusId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($reportProcessStatusId); ?>" name="status" class="form-select" required>
                                     <?php foreach ($allowedStatuses as $status) { ?>
                                         <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) ($report['status'] ?? '') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
                                     <?php } ?>
                                 </select>
-                                <small class="admin-form-help">
+                                <small class="form-help">
                                     <?php foreach ($reportStatusPolicyDescriptions as $statusKey => $description) { ?>
                                         <span data-community-report-status-help="<?php echo sr_e((string) $statusKey); ?>"<?php echo $statusKey === (string) ($report['status'] ?? '') ? '' : ' hidden'; ?>><?php echo sr_e((string) $description); ?></span>
                                     <?php } ?>
                                 </small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessTargetActionId); ?>" class="form-label">대상 조치</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($reportProcessTargetActionId); ?>" name="target_action" class="form-select">
                                     <?php foreach (sr_community_report_target_action_options($targetType) as $actionKey => $actionLabel) { ?>
                                         <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                     <?php } ?>
                                 </select>
-                                <small class="admin-form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/게시자 조치를 되돌리지 않습니다.</small>
+                                <small class="form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/게시자 조치를 되돌리지 않습니다.</small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessReporterActionId); ?>" class="form-label">신고자 조치</label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <select id="<?php echo sr_e($reportProcessReporterActionId); ?>" name="reporter_action" class="form-select">
                                     <?php foreach (sr_community_report_reporter_action_options() as $actionKey => $actionLabel) { ?>
                                         <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                     <?php } ?>
                                 </select>
-                                <small class="admin-form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
+                                <small class="form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
                             </div>
                         </div>
-                        <div class="admin-form-row">
+                        <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessReviewNoteId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                            <div class="admin-form-field">
+                            <div class="form-field">
                                 <textarea id="<?php echo sr_e($reportProcessReviewNoteId); ?>" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
                             </div>
                         </div>

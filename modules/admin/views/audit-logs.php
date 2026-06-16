@@ -96,7 +96,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
     </div>
 </form>
 
-<div class="admin-card admin-list-card card admin-list-form">
+<div class="card admin-list-card admin-list-form">
     <div class="admin-list-summary-row">
         <?php if (empty($auditSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url($auditSortOptions, $auditDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="작업 로그 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
@@ -181,8 +181,8 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
                 </button>
             </div>
             <div class="modal-body">
-                <p class="admin-form-help" data-admin-audit-actor-loading>회원 정보를 불러오는 중입니다.</p>
-                <p class="admin-form-help hidden" data-admin-audit-actor-error></p>
+                <p class="form-help" data-admin-audit-actor-loading>회원 정보를 불러오는 중입니다.</p>
+                <p class="form-help hidden" data-admin-audit-actor-error></p>
                 <dl class="admin-module-detail-list hidden" data-admin-audit-actor-detail>
                     <dt>공개 해시</dt>
                     <dd data-admin-audit-actor-field="account_public_hash">-</dd>

@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($moduleVersionDrifts !== []) { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.5fec9b05')); ?></h2>
         </div>
@@ -77,7 +77,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.6b574fee')); ?></h2>
     </div>
@@ -126,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="apply_updates">
     </form>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+    <div class="form-sticky-actions form-actions form-actions-primary">
         <span class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
             <span class="filtering-toggle-item">
                 <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-choice-toggle-input sr-only" required form="modules_admin_updates_apply_form">
@@ -137,7 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.488e2350')); ?></h2>
     </div>

@@ -17,7 +17,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
-<section class="admin-card admin-list-card card admin-list-form">
+<section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <div>
             <h2 class="card-title">신청 목록</h2>
@@ -40,7 +40,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break"><?php echo nl2br(sr_e((string) ($application['application_note'] ?? ''))); ?></td>
                             <td>
                                 <?php if ((string) ($application['status'] ?? '') === 'pending') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="admin-form-actions">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="form-actions">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/content/author-applications')); ?>">
                                         <input type="hidden" name="application_id" value="<?php echo sr_e((string) (int) $application['id']); ?>">

@@ -68,38 +68,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($policyDocumentAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <?php if ($creatingDocument) { ?>
-            <section class="admin-card card">
+            <section class="card">
                 <h2><?php echo sr_e(sr_t('policy_documents::ui.document.create')); ?></h2>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.document.form_description')); ?></p>
+                <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.document.form_description')); ?></p>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="action" value="save_document">
                 <input type="hidden" name="form_mode" value="document_new">
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_document_title"><?php echo sr_e(sr_t('policy_documents::ui.title')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="policy_document_document_title" class="form-input form-control-full" type="text" name="title" maxlength="190" required>
                     </div>
                 </div>
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_document_key"><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="policy_document_document_key" class="form-input" type="text" name="document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.document_key_invalid')); ?>">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.document_key.help')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.document_key.help')); ?></p>
                     </div>
                 </div>
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_document_description"><?php echo sr_e(sr_t('policy_documents::ui.document_description')); ?></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <textarea id="policy_document_document_description" class="form-textarea form-control-full" name="description" rows="3" maxlength="2000"></textarea>
                     </div>
                 </div>
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_document_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="policy_document_document_status" class="form-select" name="status" required>
                             <option value="enabled"><?php echo sr_e(sr_t('policy_documents::ui.status.enabled')); ?></option>
                             <option value="disabled"><?php echo sr_e(sr_t('policy_documents::ui.status.disabled')); ?></option>
@@ -107,17 +107,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
 
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_document_sort_order"><?php echo sr_e(sr_t('policy_documents::ui.sort_order')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="policy_document_document_sort_order" class="form-input" type="number" name="sort_order" min="0" max="1000000" value="100" required>
                     </div>
                 </div>
             </section>
         <?php } else { ?>
-        <section class="admin-card card">
+        <section class="card">
             <h2><?php echo sr_e($pageTitle); ?></h2>
-            <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.version.form_description')); ?></p>
+            <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.version.form_description')); ?></p>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="action" value="save_version">
             <input type="hidden" name="form_mode" value="<?php echo $editingVersion ? 'edit' : 'new'; ?>">
@@ -127,43 +127,43 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
 
             <?php if (is_array($selectedDocument)) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.document.selected')); ?></span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php echo sr_e((string) $selectedDocument['title']); ?>
-                        <p class="admin-form-help"><?php echo sr_e((string) $selectedDocument['document_key']); ?></p>
+                        <p class="form-help"><?php echo sr_e((string) $selectedDocument['document_key']); ?></p>
                     </div>
                 </div>
             <?php } ?>
 
             <?php if ($editingVersion) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></span>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <?php echo sr_e((string) $formVersion['version_key']); ?>
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::error.version_edit_draft_only')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::error.version_edit_draft_only')); ?></p>
                     </div>
                 </div>
             <?php } else { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_version_key"><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <input id="policy_document_version_key" class="form-input" type="text" name="version_key" maxlength="40" pattern="[A-Za-z0-9._-]{1,40}" placeholder="<?php echo sr_e(sr_t('policy_documents::ui.version_key.placeholder')); ?>" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-version-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.version_key_invalid')); ?>">
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.version_key.help')); ?></p>
+                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.version_key.help')); ?></p>
                     </div>
                 </div>
             <?php } ?>
 
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="policy_document_title"><?php echo sr_e(sr_t('policy_documents::ui.title')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="policy_document_title" class="form-input form-control-full" type="text" name="title" maxlength="190" value="<?php echo sr_e($policyDocumentVersionValue('title')); ?>" required>
                 </div>
             </div>
 
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="policy_document_body_html"><?php echo sr_e(sr_t('policy_documents::ui.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                <div class="admin-form-field" data-admin-body-editor-mode-group>
+                <div class="form-field" data-admin-body-editor-mode-group>
                     <div>
                         <?php echo sr_admin_radio_toggle_group_html('policy_document_body_editor_mode', 'body_editor_mode', $policyDocumentBodyEditorOptions, $policyDocumentBodyEditorMode, true, ' data-admin-body-editor-mode'); ?>
                     </div>
@@ -178,21 +178,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <textarea id="policy_document_body_ckeditor_html" class="form-textarea form-control-full" name="body_ckeditor_html" rows="14"<?php echo $policyDocumentCkeditorAttributes; ?>><?php echo sr_e($policyDocumentBodyHtmlValue); ?></textarea>
                         </div>
                     <?php } ?>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
+                    <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
                 </div>
             </div>
 
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="policy_document_summary_text"><?php echo sr_e(sr_t('policy_documents::ui.summary')); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <textarea id="policy_document_summary_text" class="form-textarea form-control-full" name="summary_text" rows="3" maxlength="1000"><?php echo sr_e($policyDocumentVersionValue('summary_text')); ?></textarea>
                 </div>
             </div>
 
             <?php if (!$editingVersion) { ?>
-                <div class="admin-form-row">
+                <div class="form-row">
                     <label class="form-label" for="policy_document_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="admin-form-field">
+                    <div class="form-field">
                         <select id="policy_document_status" class="form-select" name="status" required>
                             <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
                             <option value="published"><?php echo sr_e(sr_t('policy_documents::ui.status.published')); ?></option>
@@ -202,22 +202,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } ?>
 
-            <div class="admin-form-row">
+            <div class="form-row">
                 <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
-                <div class="admin-form-field">
+                <div class="form-field">
                     <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from" value="<?php echo sr_e(str_replace(' ', 'T', $policyDocumentVersionValue('effective_from'))); ?>">
                 </div>
             </div>
         </section>
         <?php } ?>
 
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/policy-documents?document_id=' . (string) $selectedDocumentId)); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
             <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($creatingDocument ? sr_t('policy_documents::ui.save_document') : ($editingVersion ? sr_t('policy_documents::ui.save_update') : sr_t('policy_documents::ui.save_new_version'))); ?></button>
         </div>
     </form>
 <?php } else { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('policy_documents::ui.policy_document_list')); ?></h2>
             <a href="<?php echo sr_e(sr_url('/admin/policy-documents/document-new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('policy_documents::ui.document.create')); ?></a>
@@ -276,7 +276,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
-                        <section class="admin-card admin-list-card card admin-list-form">
+                        <section class="card admin-list-card admin-list-form">
                             <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e((string) $document['title']); ?></h4>
                             </div>
@@ -340,7 +340,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     <?php } ?>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section class="card admin-list-card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></h2>
         </div>

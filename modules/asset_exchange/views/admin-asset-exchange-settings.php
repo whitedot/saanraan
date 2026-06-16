@@ -109,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
-    <section class="admin-card card">
+    <section class="card">
         <div class="card-header">
             <h2 class="card-title">정책 등록 기본값</h2>
             <div class="card-actions">
@@ -118,27 +118,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </button>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_status', '기본 상태', $settingsHelp['status']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="asset_exchange_settings_policy_default_status" name="policy_default_status" class="form-select" required>
                     <?php foreach ($policyStatusLabels as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo (string) $settings['policy_default_status'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">새 정책 등록 모달의 상태 초기값입니다.</p>
+                <p class="form-help">새 정책 등록 모달의 상태 초기값입니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_rate_ratio', '기본 환전 비율', $settingsHelp['rate']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_rate_ratio" type="text" name="policy_default_rate_ratio" value="<?php echo sr_e((string) $settings['policy_default_rate_ratio']); ?>" class="form-input" maxlength="80" pattern="[0-9]+\s*[:/]\s*[0-9]+" required placeholder="1:1">
-                <p class="admin-form-help">출금 기준량:입금 환산량 형식입니다. 예: 100:1</p>
+                <p class="form-help">출금 기준량:입금 환산량 형식입니다. 예: 100:1</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_rounding_mode', '기본 반올림', $settingsHelp['rounding']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="asset_exchange_settings_policy_default_rounding_mode" name="policy_default_rounding_mode" class="form-select" required>
                     <?php foreach ($roundingModeLabels as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo (string) $settings['policy_default_rounding_mode'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
@@ -146,22 +146,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_min_amount', '기본 최소 환전량', $settingsHelp['amount_limit']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_min_amount" type="number" name="policy_default_min_amount" value="<?php echo sr_e((string) $settings['policy_default_min_amount']); ?>" class="form-input" min="1" required>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_max_amount', '기본 최대 환전량', $settingsHelp['amount_limit']['id'], $settingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_max_amount" type="number" name="policy_default_max_amount" value="<?php echo sr_e((string) $settings['policy_default_max_amount']); ?>" class="form-input" min="0">
-                <p class="admin-form-help">비워두면 새 정책의 1회 최대 금액을 제한하지 않는 값으로 시작합니다.</p>
+                <p class="form-help">비워두면 새 정책의 1회 최대 금액을 제한하지 않는 값으로 시작합니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_trigger', '기본 수수료 적용', $settingsHelp['fee_trigger']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="asset_exchange_settings_policy_default_fee_trigger" name="policy_default_fee_trigger" class="form-select" required>
                     <?php foreach ($feeTriggerLabels as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo (string) $settings['policy_default_fee_trigger'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
@@ -169,9 +169,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="rate">
+        <div class="form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="rate">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_basis', '기본 수수료 기준', $settingsHelp['fee_basis']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="asset_exchange_settings_policy_default_fee_basis" name="policy_default_fee_basis" class="form-select" required>
                     <?php foreach ($feeBasisLabels as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo (string) $settings['policy_default_fee_basis'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
@@ -179,9 +179,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row>
+        <div class="form-row" data-asset-exchange-settings-fee-row>
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_type', '기본 수수료 방식', $settingsHelp['fee_type']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <select id="asset_exchange_settings_policy_default_fee_type" name="policy_default_fee_type" class="form-select" required>
                     <?php foreach ($feeTypeLabels as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo (string) $settings['policy_default_fee_type'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
@@ -189,40 +189,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="rate">
+        <div class="form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="rate">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_rate_numerator', '기본 정률 수수료', $settingsHelp['fee_amount']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_fee_rate_numerator" type="number" name="policy_default_fee_rate_numerator" value="<?php echo sr_e((string) $settings['policy_default_fee_rate_numerator']); ?>" class="form-input" min="0">
-                <p class="admin-form-help">5%라면 5를 입력합니다.</p>
+                <p class="form-help">5%라면 5를 입력합니다.</p>
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="fixed">
+        <div class="form-row" data-asset-exchange-settings-fee-row data-asset-exchange-settings-fee-type="fixed">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_fixed_amount', '기본 정액 수수료', $settingsHelp['fee_amount']['id'], $settingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_fee_fixed_amount" type="number" name="policy_default_fee_fixed_amount" value="<?php echo sr_e((string) $settings['policy_default_fee_fixed_amount']); ?>" class="form-input" min="0">
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row>
+        <div class="form-row" data-asset-exchange-settings-fee-row>
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_min_amount', '기본 최소 수수료', $settingsHelp['fee_amount']['id'], $settingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_fee_min_amount" type="number" name="policy_default_fee_min_amount" value="<?php echo sr_e((string) $settings['policy_default_fee_min_amount']); ?>" class="form-input" min="0">
             </div>
         </div>
-        <div class="admin-form-row" data-asset-exchange-settings-fee-row>
+        <div class="form-row" data-asset-exchange-settings-fee-row>
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_fee_max_amount', '기본 최대 수수료', $settingsHelp['fee_amount']['id'], $settingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_fee_max_amount" type="number" name="policy_default_fee_max_amount" value="<?php echo sr_e((string) $settings['policy_default_fee_max_amount']); ?>" class="form-input" min="0">
             </div>
         </div>
-        <div class="admin-form-row">
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('asset_exchange_settings_policy_default_sort_order', '기본 정렬순서', $settingsHelp['sort_order']['id'], $settingsHelpOpenLabel); ?>
-            <div class="admin-form-field">
+            <div class="form-field">
                 <input id="asset_exchange_settings_policy_default_sort_order" type="number" name="policy_default_sort_order" value="<?php echo sr_e((string) $settings['policy_default_sort_order']); ?>" class="form-input">
             </div>
         </div>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="btn btn-solid-light">정책 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
