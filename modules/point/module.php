@@ -35,4 +35,9 @@ return [
             'notification-events.php',
         ],
     ],
+    'settings' => [
+        'display_name' => '포인트',
+        'unit_label' => 'P',
+        'default_expiration_days' => '0',
+    ],
 ];
