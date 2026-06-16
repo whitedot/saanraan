@@ -318,7 +318,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-setting-control-full{flex:1 1 32rem;min-width:min(100%,28rem)}
 .admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
 .admin-asset-setting-primary>.admin-form-check{min-height:auto}
-.admin-asset-setting-target{min-width:0;--admin-asset-amount-width:7rem}
+.admin-asset-setting-target{min-width:0;--admin-asset-amount-width:5rem}
 .admin-asset-setting-target>.admin-check-list{align-items:flex-start;margin-top:0;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-target>.form-select{min-width:8rem}
 .admin-asset-single-setting-target{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}

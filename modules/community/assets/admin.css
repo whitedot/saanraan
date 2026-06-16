@@ -76,6 +76,10 @@
 .admin-list-actions.community-bulk-actions{justify-content:flex-start;gap:calc(var(--spacing) * 2)}
 .admin-list-actions.community-bulk-actions .community-action-select{border-radius:0;flex:0 0 14rem;width:14rem;min-width:12rem;max-width:100%;min-height:2.5rem}
 .admin-list-actions.community-bulk-actions .community-action-submit{flex:none;min-height:2.5rem}
+.community-privacy-consent-document-list{display:grid;gap:calc(var(--spacing) * 2);margin-top:calc(var(--spacing) * 2);max-width:36rem}
+.community-privacy-consent-document-row{align-items:center;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(6rem,max-content) minmax(12rem,1fr)}
+.community-privacy-consent-document-row>span{color:var(--admin-muted-text);font-size:var(--type-small-size);font-weight:var(--font-weight-semibold);line-height:var(--type-small-line-height)}
+@media (max-width:640px){.community-privacy-consent-document-row{grid-template-columns:1fr}}
 .community-member-list-toolbar{align-items:center;display:flex;gap:calc(var(--spacing) * 2);justify-content:space-between}
 .community-member-list-summary-text{margin-left:auto;text-align:right}
 .community-member-level-bulk-actions{align-items:center;background:transparent;border:0;display:flex;flex:0 1 auto;flex-wrap:wrap;padding:0}

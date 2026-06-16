@@ -73,6 +73,30 @@ $settingLabels = [
 $groupSettingValue = static function (array $settings, string $key, string $default): string {
     return (string) ($settings[$key] ?? $default);
 };
+$privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
+if (isset($formGroupSettings) && is_array($formGroupSettings)) {
+    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formGroupSettings['privacy_consent_document_key'] ?? ''));
+}
+foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
+    $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
+    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[$privacyConsentDocumentSettingKey] ?? ''));
+    if (isset($formGroupSettings) && is_array($formGroupSettings)) {
+        $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formGroupSettings[$privacyConsentDocumentSettingKey] ?? ''));
+    }
+}
+$privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocumentKey) use ($privacyConsentDocumentOptions): string {
+    $html = '<option value="">' . sr_e('선택 안 함') . '</option>';
+    foreach ($privacyConsentDocumentOptions as $privacyConsentDocumentKey => $privacyConsentDocumentOption) {
+        $privacyConsentDocumentTitle = is_array($privacyConsentDocumentOption)
+            ? (string) ($privacyConsentDocumentOption['title'] ?? $privacyConsentDocumentKey)
+            : (string) $privacyConsentDocumentOption;
+        $html .= '<option value="' . sr_e((string) $privacyConsentDocumentKey) . '"' . ($selectedDocumentKey === (string) $privacyConsentDocumentKey ? ' selected' : '') . '>'
+            . sr_e($privacyConsentDocumentTitle)
+            . '</option>';
+    }
+
+    return $html;
+};
 $groupKeysSettingValue = static function (array $settings, string $key): array {
     $value = (string) ($settings[$key] ?? '');
     if ($value === '') {
@@ -637,32 +661,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="community_admin_board_groups_group_privacy_consent_enabled">동의 사용</label>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="community_admin_board_groups_group_privacy_consent_enabled">
-                            <input id="community_admin_board_groups_group_privacy_consent_enabled" type="checkbox" name="group_privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, 'privacy_consent_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                            <input id="community_admin_board_groups_group_privacy_consent_enabled" type="checkbox" name="group_privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, 'privacy_consent_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                             <?php echo sr_admin_choice_label_html('이 그룹 기본값을 쓰는 게시판 제출 흐름에 개인정보 수집 및 이용동의를 적용'); ?>
                         </label>
                         <p class="admin-form-help">게시판 설정에서 그룹값 상속을 선택한 항목에 적용됩니다. 기존 게시판의 현재만 저장 값은 자동 변경되지 않습니다.</p>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_document_key">정책 문서 키</label>
-                    <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_privacy_consent_document_key" type="text" name="group_privacy_consent_document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_document_key', 'community_privacy_default')); ?>" class="form-input form-control-full" data-admin-key-input>
+                    <span class="form-label">동의 적용 대상</span>
+                    <div class="admin-form-field" data-community-privacy-consent-controls>
+                        <div class="community-privacy-consent-document-list">
+                            <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                                <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
+                                <label class="community-privacy-consent-document-row" for="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentDocumentSettingKey); ?>">
+                                    <span><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></span>
+                                    <select id="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e('group_' . $privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                        <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($formGroupSettings, $privacyConsentTargetKey)); ?>
+                                    </select>
+                                </label>
+                            <?php } ?>
+                        </div>
+                        <p class="admin-form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
                         <input type="hidden" name="group_privacy_consent_title" value="">
                         <input type="hidden" name="group_privacy_consent_version" value="">
                         <input type="hidden" name="group_privacy_consent_body" value="">
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <span class="form-label">적용 대상</span>
-                    <div class="admin-form-field admin-checkbox-list">
-                        <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
-                            <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
-                            <label class="admin-form-check form-label" for="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentSettingKey); ?>">
-                                <input id="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e('group_' . $privacyConsentSettingKey); ?>" value="1" class="form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, $privacyConsentSettingKey, '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
-                            </label>
-                        <?php } ?>
-                        <p class="admin-form-help">동의 사용 시 서버에서 적용 대상 하나 이상, 제목, 본문, 버전을 검증합니다.</p>
                     </div>
                 </div>
             </div>
@@ -890,6 +912,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardGroupsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
+    var privacyConsentEnabled = document.querySelector('[data-community-privacy-consent-enabled]');
+    var privacyConsentControls = document.querySelector('[data-community-privacy-consent-controls]');
+    if (privacyConsentEnabled && privacyConsentControls) {
+        function syncPrivacyConsentControls() {
+            Array.prototype.slice.call(privacyConsentControls.querySelectorAll('[data-community-privacy-consent-document]')).forEach(function (select) {
+                select.disabled = !privacyConsentEnabled.checked;
+                select.required = false;
+            });
+        }
+
+        privacyConsentEnabled.addEventListener('change', syncPrivacyConsentControls);
+        syncPrivacyConsentControls();
+    }
+
     function syncPolicy(kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_board_groups_group_' + kind + '_group_keys');

@@ -56,6 +56,20 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     : sr_t('community::ui.text.3e195cdd');
 $communityAssetAuditUrl = sr_admin_asset_settings_audit_url('community.settings.asset_settings.updated', 'module', 'community');
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
+$privacyConsentDocumentOptions = isset($privacyConsentDocumentOptions) && is_array($privacyConsentDocumentOptions) ? $privacyConsentDocumentOptions : [];
+$privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocumentKey) use ($privacyConsentDocumentOptions): string {
+    $html = '<option value="">' . sr_e('선택 안 함') . '</option>';
+    foreach ($privacyConsentDocumentOptions as $privacyConsentDocumentKey => $privacyConsentDocumentOption) {
+        $privacyConsentDocumentTitle = is_array($privacyConsentDocumentOption)
+            ? (string) ($privacyConsentDocumentOption['title'] ?? $privacyConsentDocumentKey)
+            : (string) $privacyConsentDocumentOption;
+        $html .= '<option value="' . sr_e((string) $privacyConsentDocumentKey) . '"' . ($selectedDocumentKey === (string) $privacyConsentDocumentKey ? ' selected' : '') . '>'
+            . sr_e($privacyConsentDocumentTitle)
+            . '</option>';
+    }
+
+    return $html;
+};
 $messageWritePolicyLabels = [
     'member' => sr_t('community::ui.message_policy.member'),
     'group' => sr_t('community::ui.message_policy.group'),
@@ -257,33 +271,30 @@ $communitySettingsSectionNavItems = [
                 <label class="form-label" for="community_admin_settings_privacy_consent_enabled">동의 사용</label>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="community_admin_settings_privacy_consent_enabled">
-                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?>>
+                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('새 게시판과 그룹 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
                     </label>
                     <p class="admin-form-help">게시판 개별 설정이나 게시판 그룹 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_settings_privacy_consent_document_key">정책 문서 키</label>
-                <div class="admin-form-field">
-                    <input id="community_admin_settings_privacy_consent_document_key" type="text" name="privacy_consent_document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" value="<?php echo sr_e((string) ($settings['privacy_consent_document_key'] ?? 'community_privacy_default')); ?>" class="form-input form-control-full" data-admin-key-input>
-                    <p class="admin-form-help">정책 문서 모듈의 published version을 제출 시점에 다시 조회합니다.</p>
+                <span class="form-label">동의 적용 대상</span>
+                <div class="admin-form-field" data-community-privacy-consent-controls>
+                    <div class="community-privacy-consent-document-list">
+                        <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                            <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
+                            <label class="community-privacy-consent-document-row" for="<?php echo sr_e('community_admin_settings_' . $privacyConsentDocumentSettingKey); ?>">
+                                <span><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></span>
+                                <select id="<?php echo sr_e('community_admin_settings_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                    <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($settings, $privacyConsentTargetKey)); ?>
+                                </select>
+                            </label>
+                        <?php } ?>
+                    </div>
+                    <p class="admin-form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
                     <input type="hidden" name="privacy_consent_title" value="">
                     <input type="hidden" name="privacy_consent_version" value="">
                     <input type="hidden" name="privacy_consent_body" value="">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label">적용 대상</span>
-                <div class="admin-form-field admin-checkbox-list">
-                    <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
-                        <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
-                        <label class="admin-form-check form-label" for="<?php echo sr_e('community_admin_settings_' . $privacyConsentSettingKey); ?>">
-                            <input id="<?php echo sr_e('community_admin_settings_' . $privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e($privacyConsentSettingKey); ?>" value="1" class="form-choice-dark"<?php echo !empty($settings[$privacyConsentSettingKey]) ? ' checked' : ''; ?>>
-                            <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
-                        </label>
-                    <?php } ?>
-                    <p class="admin-form-help">동의 사용 시 서버에서 적용 대상 하나 이상, 제목, 본문, 버전을 검증합니다.</p>
                 </div>
             </div>
         </div>
@@ -544,6 +555,24 @@ $communitySettingsSectionNavItems = [
     <?php echo sr_admin_help_modal_html((string) $communitySettingsHelpModal['id'], (string) $communitySettingsHelpModal['title'], (string) $communitySettingsHelpModal['body']); ?>
 <?php } ?>
 <script>
+(function () {
+    var enabled = document.querySelector('[data-community-privacy-consent-enabled]');
+    var controls = document.querySelector('[data-community-privacy-consent-controls]');
+    if (!enabled || !controls) {
+        return;
+    }
+
+    function syncPrivacyConsentControls() {
+        Array.prototype.slice.call(controls.querySelectorAll('[data-community-privacy-consent-document]')).forEach(function (select) {
+            select.disabled = !enabled.checked;
+            select.required = false;
+        });
+    }
+
+    enabled.addEventListener('change', syncPrivacyConsentControls);
+    syncPrivacyConsentControls();
+})();
+
 (function () {
     var toggle = document.querySelector('[data-community-level-auto-toggle]');
     var fields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-auto-field]'));

@@ -71,6 +71,30 @@ $boardField = static function (array $board, string $key, string $default = ''):
 $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
+$privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
+if (isset($formBoard) && is_array($formBoard)) {
+    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard['privacy_consent_document_key'] ?? ''));
+}
+foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
+    $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
+    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[$privacyConsentDocumentSettingKey] ?? ''));
+    if (isset($formBoard) && is_array($formBoard)) {
+        $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard[$privacyConsentDocumentSettingKey] ?? ''));
+    }
+}
+$privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocumentKey) use ($privacyConsentDocumentOptions): string {
+    $html = '<option value="">' . sr_e('선택 안 함') . '</option>';
+    foreach ($privacyConsentDocumentOptions as $privacyConsentDocumentKey => $privacyConsentDocumentOption) {
+        $privacyConsentDocumentTitle = is_array($privacyConsentDocumentOption)
+            ? (string) ($privacyConsentDocumentOption['title'] ?? $privacyConsentDocumentKey)
+            : (string) $privacyConsentDocumentOption;
+        $html .= '<option value="' . sr_e((string) $privacyConsentDocumentKey) . '"' . ($selectedDocumentKey === (string) $privacyConsentDocumentKey ? ' selected' : '') . '>'
+            . sr_e($privacyConsentDocumentTitle)
+            . '</option>';
+    }
+
+    return $html;
+};
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
 }
@@ -826,33 +850,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_privacy_consent_enabled">동의 사용</label>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="community_admin_boards_privacy_consent_enabled">
-                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('이 게시판 제출 흐름에 개인정보 수집 및 이용동의를 표시하고 서버에서 검증'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_privacy_consent_document_key">정책 문서 키</label>
-                <div class="admin-form-field">
-                    <input id="community_admin_boards_privacy_consent_document_key" type="text" name="privacy_consent_document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" value="<?php echo sr_e($boardField($formBoard, 'privacy_consent_document_key', 'community_privacy_default')); ?>" class="form-input form-control-full" data-admin-key-input>
-                    <?php echo $settingSourceRadioHtml('source_privacy_consent_document_key', $boardSettingSource($formBoard, 'privacy_consent_document_key')); ?>
+                <span class="form-label">동의 적용 대상</span>
+                <div class="admin-form-field" data-community-privacy-consent-controls>
+                    <div class="community-privacy-consent-document-list">
+                        <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                            <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
+                            <div>
+                                <label class="community-privacy-consent-document-row" for="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>">
+                                    <span><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></span>
+                                    <select id="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                        <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($formBoard, $privacyConsentTargetKey)); ?>
+                                    </select>
+                                </label>
+                                <?php echo $settingSourceRadioHtml('source_' . $privacyConsentDocumentSettingKey, $boardSettingSource($formBoard, $privacyConsentDocumentSettingKey)); ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <p class="admin-form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
                     <input type="hidden" name="privacy_consent_title" value="">
                     <input type="hidden" name="privacy_consent_version" value="">
                     <input type="hidden" name="privacy_consent_body" value="">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <span class="form-label">적용 대상</span>
-                <div class="admin-form-field">
-                    <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
-                        <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
-                        <label class="admin-form-check form-label" for="community_admin_boards_<?php echo sr_e($privacyConsentSettingKey); ?>">
-                            <input id="community_admin_boards_<?php echo sr_e($privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e($privacyConsentSettingKey); ?>" value="1" class="form-checkbox"<?php echo $boardField($formBoard, $privacyConsentSettingKey, '0') === '1' ? ' checked' : ''; ?>>
-                            <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
-                        </label>
-                        <?php echo $settingSourceRadioHtml('source_' . $privacyConsentSettingKey, $boardSettingSource($formBoard, $privacyConsentSettingKey)); ?>
-                    <?php } ?>
                 </div>
             </div>
         </section>
@@ -1610,6 +1634,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
+    var privacyConsentEnabled = document.querySelector('[data-community-privacy-consent-enabled]');
+    var privacyConsentControls = document.querySelector('[data-community-privacy-consent-controls]');
+    if (privacyConsentEnabled && privacyConsentControls) {
+        function syncPrivacyConsentControls() {
+            Array.prototype.slice.call(privacyConsentControls.querySelectorAll('[data-community-privacy-consent-document]')).forEach(function (select) {
+                select.disabled = !privacyConsentEnabled.checked;
+                select.required = false;
+            });
+        }
+
+        privacyConsentEnabled.addEventListener('change', syncPrivacyConsentControls);
+        syncPrivacyConsentControls();
+    }
+
     function communityExtraFieldAllowedType(value) {
         return ['text', 'textarea', 'select', 'checkbox'].indexOf(value) !== -1 ? value : 'text';
     }

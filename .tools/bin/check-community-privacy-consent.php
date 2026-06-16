@@ -48,6 +48,7 @@ $mustContain('modules/community/helpers/privacy-consents.php', [
     'privacy_consent_document_key',
     'sr_policy_document_snapshot($pdo, $documentKey)',
     'sr_community_privacy_consent_admin_summary_html',
+    'sr_community_privacy_consent_admin_document_key_from_settings',
     'privacy_consent_require_attachment_upload',
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
@@ -66,7 +67,9 @@ $mustContain('modules/community/helpers/boards.php', [
 ]);
 $mustContain('modules/community/actions/admin-boards.php', [
     'privacy_consent_enabled',
-    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'array_key_exists($privacyConsentDocumentSettingKey, $_POST)',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $targetDocumentKey)',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
     'privacy_consent_require_attachment_upload',
 ]);
@@ -76,7 +79,10 @@ $mustNotContain('modules/community/actions/admin-boards.php', [
 ]);
 $mustContain('modules/community/actions/admin-settings.php', [
     'privacy_consent_enabled',
-    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
+    'sr_community_privacy_consent_policy_document_options($pdo',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'array_key_exists($privacyConsentDocumentSettingKey, $_POST)',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $targetDocumentKey)',
     'privacy_consent_require_post',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
 ]);
@@ -86,13 +92,20 @@ $mustNotContain('modules/community/actions/admin-settings.php', [
 ]);
 $mustContain('modules/community/views/admin-settings.php', [
     'community-settings-section-privacy-consent',
-    'privacy_consent_document_key',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'community-privacy-consent-document-row',
+    '$privacyConsentDocumentOptions',
     'sr_community_privacy_consent_target_keys',
+]);
+$mustNotContain('modules/community/views/admin-settings.php', [
+    'data-community-privacy-consent-target',
 ]);
 $mustContain('modules/community/actions/admin-board-groups.php', [
     'group_privacy_consent_enabled',
-    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
-    'group_privacy_consent_require_post',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'array_key_exists(\'group_\' . $privacyConsentDocumentSettingKey, $_POST)',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $targetDocumentKey)',
+    'privacy_consent_require_post',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
 ]);
 $mustNotContain('modules/community/actions/admin-board-groups.php', [
@@ -101,13 +114,22 @@ $mustNotContain('modules/community/actions/admin-board-groups.php', [
 ]);
 $mustContain('modules/community/views/admin-board-groups.php', [
     'community-board-group-section-privacy-consent',
-    'group_privacy_consent_document_key',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'community-privacy-consent-document-row',
     'sr_community_privacy_consent_target_keys',
+]);
+$mustNotContain('modules/community/views/admin-board-groups.php', [
+    'data-community-privacy-consent-target',
 ]);
 $mustContain('modules/community/views/admin-boards.php', [
     'community-board-section-privacy-consent',
-    'privacy_consent_document_key',
+    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
+    'community-privacy-consent-document-row',
     'sr_community_privacy_consent_target_keys',
+]);
+$mustNotContain('modules/community/views/admin-boards.php', [
+    'data-community-privacy-consent-target',
+    'source_\' . $privacyConsentSettingKey',
 ]);
 $mustContain('modules/community/actions/write.php', [
     'sr_community_privacy_consent_post_targets_from_request($values)',
@@ -362,6 +384,8 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
     foreach ([
         ['privacy_consent_enabled', '1', 'bool'],
         ['privacy_consent_document_key', 'community_privacy_default', 'string'],
+        ['privacy_consent_comment_document_key', 'community_privacy_board', 'string'],
+        ['privacy_consent_attachment_upload_document_key', 'community_privacy_board', 'string'],
         ['privacy_consent_require_post', '1', 'bool'],
         ['privacy_consent_require_comment', '1', 'bool'],
         ['privacy_consent_require_attachment_upload', '0', 'bool'],
@@ -386,6 +410,19 @@ function sr_community_privacy_consent_check_runtime(): void
     sr_community_privacy_consent_check_assert(($normalized['privacy_consent_enabled'] ?? null) === true, 'community settings must normalize privacy consent enabled.');
     sr_community_privacy_consent_check_assert(($normalized['privacy_consent_document_key'] ?? '') === 'community_privacy_default', 'community settings must normalize privacy consent document key.');
     sr_community_privacy_consent_check_assert(($normalized['privacy_consent_require_post'] ?? null) === true, 'community settings must normalize privacy consent post target.');
+    sr_community_privacy_consent_check_assert(sr_community_privacy_consent_admin_document_key_from_settings([
+        'privacy_consent_document_key' => 'community_privacy_default',
+        'privacy_consent_require_post' => '1',
+    ], 'post') === 'community_privacy_default', 'admin document select must reflect legacy required post document.');
+    sr_community_privacy_consent_check_assert(sr_community_privacy_consent_admin_document_key_from_settings([
+        'privacy_consent_document_key' => 'community_privacy_default',
+        'privacy_consent_comment_document_key' => 'community_privacy_board',
+        'privacy_consent_require_comment' => '1',
+    ], 'comment') === 'community_privacy_board', 'admin document select must prefer target document over legacy document.');
+    sr_community_privacy_consent_check_assert(sr_community_privacy_consent_admin_document_key_from_settings([
+        'privacy_consent_document_key' => 'community_privacy_default',
+        'privacy_consent_require_attachment_upload' => '0',
+    ], 'attachment_upload') === '', 'admin document select must keep disabled legacy target unselected.');
 
     $pdo = sr_community_privacy_consent_check_pdo();
     sr_community_privacy_consent_check_schema($pdo);
@@ -397,6 +434,15 @@ function sr_community_privacy_consent_check_runtime(): void
     sr_community_privacy_consent_check_assert(in_array('post', (array) ($config['targets'] ?? []), true), 'group privacy consent post target must be effective.');
     sr_community_privacy_consent_check_assert(in_array('comment', (array) ($config['targets'] ?? []), true), 'group privacy consent comment target must be effective.');
     sr_community_privacy_consent_check_assert(!in_array('attachment_upload', (array) ($config['targets'] ?? []), true), 'disabled attachment consent target must remain disabled.');
+    sr_community_privacy_consent_check_assert(sr_community_privacy_consent_required_actions($pdo, $board, ['attachment_upload']) === [], 'disabled attachment consent target must stay disabled even with a document key.');
+
+    $fieldHtml = sr_community_privacy_consent_field_html($pdo, $board, ['post', 'comment'], true, 'fixture');
+    sr_community_privacy_consent_check_assert(str_contains($fieldHtml, '기본 커뮤니티 동의'), 'public consent field must render the post policy document title.');
+    sr_community_privacy_consent_check_assert(str_contains($fieldHtml, '게시판 커뮤니티 동의'), 'public consent field must render the comment policy document title.');
+    sr_community_privacy_consent_check_assert(str_contains($fieldHtml, '게시글 작성/수정'), 'public consent field must show the post target label.');
+    sr_community_privacy_consent_check_assert(str_contains($fieldHtml, '댓글 작성'), 'public consent field must show the comment target label.');
+    sr_community_privacy_consent_check_assert(str_contains($fieldHtml, 'community_privacy_consent_accepted'), 'public consent field must render the acceptance input.');
+    sr_community_privacy_consent_check_assert(sr_community_privacy_consent_field_html($pdo, $board, ['attachment_upload'], true, 'fixture') === '', 'public consent field must not render disabled attachment consent.');
 
     $_POST = [];
     $errorsWithoutConsent = sr_community_privacy_consent_validation_errors($pdo, $board, ['post']);
@@ -417,6 +463,7 @@ function sr_community_privacy_consent_check_runtime(): void
     sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT ip_hash FROM sr_community_submission_consents WHERE id = 1') === hash('sha256', '203.0.113.10'), 'consent record must hash IP.');
     $insertedComment = sr_community_record_submission_consents($pdo, 1, 7, 'community.comment', 21, ['comment'], $board);
     sr_community_privacy_consent_check_assert($insertedComment === 1, 'comment consent record must insert a snapshot.');
+    sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT policy_document_key_snapshot FROM sr_community_submission_consents WHERE id = 2') === 'community_privacy_board', 'comment consent record must snapshot target policy document key.');
 
     $adminPosts = sr_community_admin_posts($pdo, 10);
     sr_community_privacy_consent_check_assert((int) ($adminPosts[0]['privacy_consent_count'] ?? 0) === 1, 'admin post list must expose consent count.');
