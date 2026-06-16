@@ -1028,6 +1028,22 @@ function sr_public_layout_normalize_key(string $layoutKey): string
     return (string) ($legacyMap[$layoutKey] ?? $layoutKey);
 }
 
+function sr_public_layout_module_stylesheet(string $layoutKey): string
+{
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    $providerKey = strtok($layoutKey, '.');
+    $providerKey = is_string($providerKey) ? $providerKey : '';
+    if ($providerKey === '' || $providerKey === 'common' || $providerKey === 'core') {
+        return '';
+    }
+    if (!sr_is_safe_module_key($providerKey)) {
+        return '';
+    }
+
+    $path = '/modules/' . $providerKey . '/assets/layout.css';
+    return is_file(SR_ROOT . $path) ? $path : '';
+}
+
 function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModules = false): array
 {
     $cache = $GLOBALS['sr_public_layout_options_runtime_cache'] ?? [];

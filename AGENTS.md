@@ -62,6 +62,12 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Preserve the original exact timestamp in the markup and expose it through a tooltip on hover or click, such as a `title` attribute on a `<time>` element.
 - Keep the exact timestamp escaped and machine-readable where practical, for example with `<time datetime="...">상대 시간</time>`.
 
+## Public Layout Stylesheets
+
+- When a public module screen lets administrators choose a layout, load the layout shell stylesheet owned by the selected `layout_key` provider, not necessarily the current screen's module. For example, a community screen using `content.*` must load `/modules/content/assets/layout.css`.
+- If a module public screen is rendered inside the common public layout, let the common layout own `/assets/layout.css`, header markup, footer markup, and public layout script. The module should add only its reset, UI kit, module body, and skin styles needed inside the selected layout shell.
+- Keep module layout shell CSS, markup, and JavaScript aligned by namespace. For example, a `quiz.*` layout should use `quiz-layout-*` selectors and `/modules/quiz/assets/layout.css`, while `common.*` should use the common `public-layout-*` shell.
+
 ## Documentation
 
 - When changing behavior, features, database schema, admin screens, module contracts, request flow, security/privacy policy, deployment assumptions, or operational procedures, update the relevant GitHub Wiki pages in the same work item.

@@ -616,7 +616,10 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/quiz/assets/reset.css';
     $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
-    $stylesheets[] = '/modules/quiz/assets/layout.css';
+    $layoutStylesheet = sr_public_layout_module_stylesheet($layoutKey);
+    if ($layoutStylesheet !== '') {
+        $stylesheets[] = $layoutStylesheet;
+    }
     $stylesheets[] = '/modules/quiz/assets/module.css';
     $stylesheets[] = '/modules/quiz/assets/skin.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));

@@ -667,15 +667,16 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         }
 
         $body = (string) ($matches['body'] ?? '');
-        $layoutMarker = in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)
-            ? "'/modules/" . $moduleKey . "/assets/layout.css'"
-            : "'/assets/layout.css'";
         $expectedOrder = [
             "'/modules/" . $moduleKey . "/assets/reset.css'",
             "'/modules/" . $moduleKey . "/assets/ui-kit.css'",
-            $layoutMarker,
             "'/modules/" . $moduleKey . "/assets/module.css'",
         ];
+        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+            if (!str_contains($body, 'sr_public_layout_module_stylesheet($layoutKey)') || !str_contains($body, '$stylesheets[] = $layoutStylesheet')) {
+                sr_check_add_error('Module public layout context selected layout stylesheet helper is missing: ' . $helperFile);
+            }
+        }
         $lastIndex = -1;
         foreach ($expectedOrder as $marker) {
             $index = strpos($body, $marker);
@@ -684,6 +685,14 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 break;
             }
             $lastIndex = $index;
+        }
+        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+            $uiKitIndex = strpos($body, "'/modules/" . $moduleKey . "/assets/ui-kit.css'");
+            $layoutIndex = strpos($body, '$stylesheets[] = $layoutStylesheet');
+            $moduleIndex = strpos($body, "'/modules/" . $moduleKey . "/assets/module.css'");
+            if ($uiKitIndex === false || $layoutIndex === false || $moduleIndex === false || $layoutIndex < $uiKitIndex || $layoutIndex > $moduleIndex) {
+                sr_check_add_error('Module public layout context selected layout stylesheet order is invalid: ' . $helperFile);
+            }
         }
 
         if ($moduleKey === 'quiz') {

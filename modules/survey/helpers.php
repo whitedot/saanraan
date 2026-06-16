@@ -482,7 +482,10 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/survey/assets/reset.css';
     $stylesheets[] = '/modules/survey/assets/ui-kit.css';
-    $stylesheets[] = '/modules/survey/assets/layout.css';
+    $layoutStylesheet = sr_public_layout_module_stylesheet($layoutKey);
+    if ($layoutStylesheet !== '') {
+        $stylesheets[] = $layoutStylesheet;
+    }
     $stylesheets[] = '/modules/survey/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
