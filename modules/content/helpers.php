@@ -101,6 +101,7 @@ function sr_content_default_settings(): array
 {
     return [
         'editor' => 'textarea',
+        'editor_toolbar_preset' => 'content_basic',
         'plain_text_auto_link_urls' => false,
         'secret_comments_enabled' => false,
         'once_history_policy' => 'all_access',
