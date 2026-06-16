@@ -30,8 +30,8 @@ $dashboardLayout = (string) ($dashboardSection['layout'] ?? 'table');
         </dl>
     <?php } else { ?>
         <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+            <table class="table table-list">
+                <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('admin::ui.text.962f286b')); ?></th>
                         <th><?php echo sr_e(sr_t('admin::ui.text.e1042931')); ?></th>

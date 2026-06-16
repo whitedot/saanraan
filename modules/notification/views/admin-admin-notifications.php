@@ -93,9 +93,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($adminNotificationPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-notification-table">
+    <table class="table table-list admin-notification-table">
         <caption class="sr-only">운영 알림 목록</caption>
-        <thead class="ui-table-head">
+        <thead>
             <tr>
                 <th class="admin-table-checkbox-cell admin-notification-select-cell">
                     <label class="sr-only" for="admin_notification_bulk_select_all">현재 페이지 운영 알림 전체 선택</label>

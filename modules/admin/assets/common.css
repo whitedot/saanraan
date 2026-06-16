@@ -219,23 +219,23 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .table-card .table-wrapper{min-width:0;width:100%;overflow:auto;padding:0}
 .table-summary{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}
 .table-summary strong{color:var(--text-strong)}
-.table-list,.admin-list-form .table{border-collapse:collapse;border-radius:0!important;min-width:100%;width:100%}
-.table-list thead th,.admin-list-form .table thead th{background-color:var(--color-default-100);border-bottom:1px solid var(--color-default-300);color:var(--text-strong);font-size:var(--type-meta-size);font-weight:var(--font-weight-semibold);line-height:var(--type-meta-line-height);padding-block:calc(var(--spacing) * 3);padding-inline:calc(var(--spacing) * 2.5);text-align:left;vertical-align:middle;white-space:nowrap}
-.table-list tbody td,.admin-list-form .table tbody td{border-bottom:1px solid var(--color-default-300);color:var(--color-body-color);font-size:var(--type-small-size);line-height:var(--type-small-line-height);padding-block:calc(var(--spacing) * 3);padding-inline:calc(var(--spacing) * 2.5);vertical-align:middle;white-space:nowrap}
-.table-list tbody tr:last-child td,.admin-list-form .table tbody tr:last-child td{border-bottom:0}
-.table-list :is(th,td):first-child,.admin-list-form .table :is(th,td):first-child{padding-left:calc(var(--spacing) * 4)}
-.table-list :is(th,td):last-child,.admin-list-form .table :is(th,td):last-child{padding-right:calc(var(--spacing) * 4)}
-.admin-content :is(.table,.table-list) :is(th,td).admin-table-checkbox-cell,.admin-content .admin-list-form .table :is(th,td).admin-table-checkbox-cell{width:50px!important;min-width:50px;max-width:50px;padding-inline:0;text-align:center;white-space:nowrap}
-.admin-content :is(.table,.table-list) :is(th,td).admin-table-checkbox-cell:first-child,.admin-content .admin-list-form .table :is(th,td).admin-table-checkbox-cell:first-child{padding-left:0}
-.admin-content :is(.table,.table-list) :is(th,td).admin-table-checkbox-cell .form-checkbox,.admin-content .admin-list-form .table :is(th,td).admin-table-checkbox-cell .form-checkbox{margin-inline:auto}
-.admin-content :is(.table,.table-list) th.admin-table-checkbox-cell+th,.admin-content .admin-list-form .table th.admin-table-checkbox-cell+th{width:auto!important}
-.table-align-end,.admin-list-form .table thead th.text-end,.admin-list-form .table tbody td.text-end{text-align:end!important}
+.table-list{border-collapse:collapse;border-radius:0!important;min-width:100%;width:100%}
+.table-list thead th{background-color:var(--color-default-100);border-bottom:1px solid var(--color-default-300);color:var(--text-strong);font-size:var(--type-meta-size);font-weight:var(--font-weight-semibold);line-height:var(--type-meta-line-height);padding-block:calc(var(--spacing) * 3);padding-inline:calc(var(--spacing) * 2.5);text-align:left;vertical-align:middle;white-space:nowrap}
+.table-list tbody td{border-bottom:1px solid var(--color-default-300);color:var(--color-body-color);font-size:var(--type-small-size);line-height:var(--type-small-line-height);padding-block:calc(var(--spacing) * 3);padding-inline:calc(var(--spacing) * 2.5);vertical-align:middle;white-space:nowrap}
+.table-list tbody tr:last-child td{border-bottom:0}
+.table-list :is(th,td):first-child{padding-left:calc(var(--spacing) * 4)}
+.table-list :is(th,td):last-child{padding-right:calc(var(--spacing) * 4)}
+.admin-content .table-list :is(th,td).admin-table-checkbox-cell{width:50px!important;min-width:50px;max-width:50px;padding-inline:0;text-align:center;white-space:nowrap}
+.admin-content .table-list :is(th,td).admin-table-checkbox-cell:first-child{padding-left:0}
+.admin-content .table-list :is(th,td).admin-table-checkbox-cell .form-checkbox{margin-inline:auto}
+.admin-content .table-list th.admin-table-checkbox-cell+th{width:auto!important}
+.table-align-end,.table-list thead th.text-end,.table-list tbody td.text-end{text-align:end!important}
 .table-nowrap,.table-actions-cell,.admin-list-form .admin-table-nowrap,.admin-list-form .admin-table-actions-cell{white-space:nowrap}
 .table-actions-cell,.admin-list-form .admin-table-actions-cell{min-width:9.75rem;text-align:end}
 .table-break,.admin-list-form .admin-table-break{white-space:normal;word-break:break-all}
-.admin-list-form .table thead th.text-end{width:1%}
-.admin-list-form .table td :is(input,select,textarea){max-width:18rem}
-.admin-list-form .table td ul{margin-block:calc(var(--spacing) * 1) 0;padding-left:calc(var(--spacing) * 4);white-space:normal}
+.table-list thead th.text-end{width:1%}
+.table-list td :is(input,select,textarea){max-width:18rem}
+.table-list td ul{margin-block:calc(var(--spacing) * 1) 0;padding-left:calc(var(--spacing) * 4);white-space:normal}
 .table-meta{color:var(--text-muted);display:block;font-size:var(--type-caption-size);line-height:var(--type-caption-line-height);margin-top:calc(var(--spacing) * .75)}
 .table-row-actions,.admin-list-form .admin-row-actions,.admin-list-form .admin-row-actions form{justify-content:flex-end;align-items:center;gap:calc(var(--spacing) * 1.5);white-space:nowrap;flex-wrap:nowrap;display:flex}
 .admin-list-form .admin-row-actions form{margin:0}

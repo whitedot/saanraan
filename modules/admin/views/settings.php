@@ -348,7 +348,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <?php if (!empty($currencyChangeImpactSummary['totals_by_currency'])) { ?>
         <div class="table-wrapper">
-            <table class="table">
+            <table class="table table-list">
                 <thead>
                     <tr>
                         <th>대상</th>
@@ -382,7 +382,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
     <?php if (!empty($currencyChangeImpactSummary['asset_purchase_power'])) { ?>
         <div class="table-wrapper">
-            <table class="table table-sm">
+            <table class="table table-list table-sm">
                 <thead>
                     <tr>
                         <th>자산</th>

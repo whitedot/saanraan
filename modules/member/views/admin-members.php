@@ -318,9 +318,9 @@ foreach ($allowedStatuses as $status) {
     </div>
     <?php $memberListShowNicknameColumn = !empty($memberSettings['nickname_enabled']); ?>
     <div class="table-wrapper">
-        <table class="table admin-member-table">
+        <table class="table table-list admin-member-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th class="admin-table-checkbox-cell admin-member-select-cell">
                         <label class="sr-only" for="member_bulk_select_all">현재 페이지 회원 전체 선택</label>

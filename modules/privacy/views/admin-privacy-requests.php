@@ -99,9 +99,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($privacyRequestPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-privacy-request-table">
+    <table class="table table-list admin-privacy-request-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></caption>
-        <thead class="ui-table-head">
+        <thead>
             <tr>
                 <th<?php echo sr_admin_sort_aria('request_type', $privacyRequestSort); ?>><?php echo sr_admin_sort_header_html(sr_t('privacy::ui.text.5cf2792b'), 'request_type', $privacyRequestSort, sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('status', $privacyRequestSort); ?>><?php echo sr_admin_sort_header_html(sr_t('privacy::ui.status.e10195a1'), 'status', $privacyRequestSort, sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort()); ?></th>

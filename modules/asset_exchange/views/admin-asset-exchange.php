@@ -195,8 +195,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($policyPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th>출금 항목</th>
                     <th>입금 항목</th>

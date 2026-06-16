@@ -223,9 +223,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/policy-documents/document-new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('policy_documents::ui.document.create')); ?></a>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-policy-document-table">
+            <table class="table table-list admin-policy-document-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.document.list')); ?></caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
@@ -281,9 +281,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <h4 class="card-title"><?php echo sr_e((string) $document['title']); ?></h4>
                             </div>
                             <div class="table-wrapper">
-                                <table class="table admin-policy-document-version-table">
+                                <table class="table table-list admin-policy-document-version-table">
                                     <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></caption>
-                                    <thead class="ui-table-head">
+                                    <thead>
                                         <tr>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
@@ -345,9 +345,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></h2>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-policy-document-mail-job-table">
+            <table class="table table-list admin-policy-document-mail-job-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>

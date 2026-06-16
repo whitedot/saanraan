@@ -314,9 +314,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($boardPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-community-board-table">
+        <table class="table table-list admin-community-board-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('board_key', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.key.cf056766'), 'board_key', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
@@ -380,9 +380,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-dashboard-meta">게시판 삭제 후 남은 첨부 파일 정리 대상입니다.</p>
             </div>
             <div class="table-wrapper">
-                <table class="table">
+                <table class="table table-list">
                     <caption class="sr-only">커뮤니티 저장소 정리 실패 목록</caption>
-                    <thead class="ui-table-head">
+                    <thead>
                         <tr>
                             <th>대상</th>
                             <th>저장소</th>
@@ -522,9 +522,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <p class="admin-form-help">게시글 작성/수정 폼에서 받을 추가 항목을 관리합니다. 항목 추가, 수정, 정렬, 제거 후 게시판 저장을 눌러야 최종 반영됩니다.</p>
             <div class="table-wrapper" data-community-extra-field-table-wrap hidden>
-                <table class="table" data-community-extra-field-table>
+                <table class="table table-list" data-community-extra-field-table>
                     <caption class="sr-only">추가 입력 항목 목록</caption>
-                    <thead class="ui-table-head">
+                    <thead>
                         <tr>
                             <th>순서</th>
                             <th>라벨</th>
@@ -1318,9 +1318,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다. 권한 부여와 회수는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
             <div class="table-wrapper">
-                <table class="table">
+                <table class="table table-list">
                     <caption class="sr-only">게시판 관리권한 목록</caption>
-                    <thead class="ui-table-head">
+                    <thead>
                         <tr>
                             <th>회원</th>
                             <th>권한</th>
@@ -1458,9 +1458,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다. 카테고리 추가, 수정, 삭제는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
             <div class="table-wrapper">
-                <table class="table">
+                <table class="table table-list">
                     <caption class="sr-only">게시판 카테고리 목록</caption>
-                    <thead class="ui-table-head">
+                    <thead>
                         <tr>
                             <th>관리용 키</th>
                             <th>이름</th>

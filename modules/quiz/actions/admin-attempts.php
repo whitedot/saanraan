@@ -132,8 +132,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($attemptPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-quiz-attempt-table">
-            <thead class="ui-table-head">
+        <table class="table table-list admin-quiz-attempt-table">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('updated_at', $attemptSort); ?>><?php echo sr_admin_sort_header_html('갱신일', 'updated_at', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('quiz', $attemptSort); ?>><?php echo sr_admin_sort_header_html('퀴즈', 'quiz', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>

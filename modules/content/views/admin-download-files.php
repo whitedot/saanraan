@@ -160,9 +160,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($downloadFilePagination); ?>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-content-download-file-table">
+            <table class="table table-list admin-content-download-file-table">
                 <caption class="sr-only">다운로드 파일 목록</caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th class="admin-table-checkbox-cell content-file-select-cell">
                             <label class="sr-only" for="content_file_bulk_select_all">현재 페이지 다운로드 파일 전체 선택</label>

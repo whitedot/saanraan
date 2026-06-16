@@ -129,9 +129,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($deliveryPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-notification-delivery-table">
+        <table class="table table-list admin-notification-delivery-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.56c30db0')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('notification', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.notification.12ddd6ca'), 'notification', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('channel', $deliverySort); ?>><?php echo sr_admin_sort_header_html(sr_t('notification::ui.text.a391a59a'), 'channel', $deliverySort, $deliverySortOptions, $deliveryDefaultSort); ?></th>
@@ -275,9 +275,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($notificationPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-notification-table">
+        <table class="table table-list admin-notification-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th class="admin-table-checkbox-cell notification-select-cell">
                         <label class="sr-only" for="notification_bulk_select_all">현재 페이지 알림 전체 선택</label>

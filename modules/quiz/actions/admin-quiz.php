@@ -265,8 +265,8 @@ if ($mode === 'list') {
             <?php echo sr_admin_pagination_summary_html($quizPagination); ?>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-quiz-table">
-                <thead class="ui-table-head">
+            <table class="table table-list admin-quiz-table">
+                <thead>
                     <tr>
                         <th<?php echo sr_admin_sort_aria('quiz_key', $quizSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'quiz_key', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('title', $quizSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
@@ -755,8 +755,8 @@ $quizSectionNavItems = [
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-quiz-result-rule-table">
-                <thead class="ui-table-head">
+            <table class="table table-list admin-quiz-result-rule-table">
+                <thead>
                     <tr>
                         <th>순서</th>
                         <th>결과 Key</th>
@@ -1006,8 +1006,8 @@ $quizSectionNavItems = [
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-quiz-question-table">
-                <thead class="ui-table-head">
+            <table class="table table-list admin-quiz-question-table">
+                <thead>
                     <tr>
                         <th>순서</th>
                         <th>문제 Key</th>
@@ -1103,7 +1103,7 @@ $quizSectionNavItems = [
                             <div class="admin-form-field">
                                 <div class="table-wrapper">
                                     <table class="table">
-                                        <thead class="ui-table-head">
+                                        <thead>
                                             <tr>
                                                 <th>정답</th>
                                                 <th>선택지 Key</th>
@@ -1189,7 +1189,7 @@ $quizSectionNavItems = [
                         <div class="admin-form-field">
                             <div class="table-wrapper">
                                 <table class="table">
-                                    <thead class="ui-table-head">
+                                    <thead>
                                         <tr>
                                             <th>정답</th>
                                             <th>선택지 Key</th>

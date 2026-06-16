@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="table-wrapper">
             <table class="table table-list">
                 <caption class="sr-only">설문 문항별 통계 목록</caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th>문항</th>
                         <th>유형</th>

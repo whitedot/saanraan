@@ -164,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-coupon-definition-table">
+    <table class="table table-list admin-coupon-definition-table">
         <thead>
             <tr>
                 <th class="admin-table-checkbox-cell admin-coupon-definition-select-cell">
@@ -644,7 +644,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-coupon-issue-table">
+    <table class="table table-list admin-coupon-issue-table">
         <thead>
             <tr>
                 <th<?php echo sr_admin_sort_aria('member', $issueSort); ?>><?php echo sr_admin_sort_header_html('회원', 'member', $issueSort, sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()); ?></th>
@@ -761,7 +761,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-coupon-redemption-table">
+    <table class="table table-list admin-coupon-redemption-table">
         <thead>
             <tr>
                 <th<?php echo sr_admin_sort_aria('member', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('회원', 'member', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>

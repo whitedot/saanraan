@@ -186,9 +186,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($logoPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table logo-manager-assignments-table">
+        <table class="table table-list logo-manager-assignments-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th class="admin-table-checkbox-cell logo-manager-select-cell">
                         <label class="sr-only" for="logo_manager_bulk_select_all">현재 페이지 로고 배치 전체 선택</label>

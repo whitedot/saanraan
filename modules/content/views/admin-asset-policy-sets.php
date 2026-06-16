@@ -65,9 +65,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($policySetPagination); ?>
         </div>
         <div class="table-wrapper">
-            <table class="table">
+            <table class="table table-list">
                 <caption class="sr-only">콘텐츠 회원 그룹별 설정 목록</caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th<?php echo sr_admin_sort_aria('title', $policySetSort); ?>><?php echo sr_admin_sort_header_html('이름', 'title', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('set_key', $policySetSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'set_key', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>

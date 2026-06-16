@@ -79,7 +79,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-asset-group-policy-table">
+        <table class="table table-list admin-asset-group-policy-table">
             <caption class="sr-only"><?php echo sr_e('회원 그룹별 설정 규칙 목록'); ?></caption>
             <colgroup>
                 <col class="admin-asset-group-policy-col-group">
@@ -94,7 +94,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                 <col class="admin-asset-group-policy-col-status">
                 <col class="admin-asset-group-policy-col-actions">
             </colgroup>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th><?php echo sr_e('회원 그룹'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></th>
                     <th>

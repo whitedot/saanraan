@@ -153,9 +153,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($reportPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-community-report-table">
+    <table class="table table-list admin-community-report-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
-        <thead class="ui-table-head">
+        <thead>
             <tr>
                 <th class="admin-table-checkbox-cell community-report-select-cell">
                     <label class="sr-only" for="community_report_bulk_select_all">현재 페이지 신고 전체 선택</label>

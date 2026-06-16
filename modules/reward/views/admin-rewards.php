@@ -200,8 +200,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($transactionPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-asset-transaction-table">
-            <thead class="ui-table-head">
+        <table class="table table-list admin-asset-transaction-table">
+            <thead>
                 <tr>
                     <th>회원 정보</th>
                     <th<?php echo sr_admin_sort_aria('member', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.member.e335b899'), 'member', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
@@ -271,8 +271,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($balancePagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-asset-balance-table">
-            <thead class="ui-table-head">
+        <table class="table table-list admin-asset-balance-table">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('member', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.member.e335b899'), 'member', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.status.e10195a1'), 'status', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>

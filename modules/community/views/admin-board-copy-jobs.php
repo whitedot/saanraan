@@ -62,8 +62,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php if ($jobs === []) { ?>
         <p class="admin-empty-state"><?php echo sr_e('배치 복사 작업이 없습니다.'); ?></p>
     <?php } else { ?>
-        <div class="admin-table-responsive">
-            <table class="admin-table">
+        <div class="table-wrapper">
+            <table class="table table-list admin-community-board-copy-job-table">
                 <thead>
                 <tr>
                     <th><?php echo sr_e('작업'); ?></th>

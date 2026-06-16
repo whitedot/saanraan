@@ -104,8 +104,8 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
         <?php echo sr_admin_pagination_summary_html($auditPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-audit-log-table">
-        <thead class="ui-table-head">
+    <table class="table table-list admin-audit-log-table">
+        <thead>
             <tr>
                 <th<?php echo sr_admin_sort_aria('created_at', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.faea4ccf'), 'created_at', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.750086e9')); ?></th>

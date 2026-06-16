@@ -49,9 +49,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-embed-manager-table">
+            <table class="table table-list admin-embed-manager-table">
                 <caption class="sr-only"><?php echo sr_e('임베드 매니저 참조 목록'); ?></caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th><?php echo sr_e('참조'); ?></th>
                         <th><?php echo sr_e('소유 대상'); ?></th>

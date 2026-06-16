@@ -119,9 +119,9 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
         <?php echo sr_admin_pagination_summary_html($seriesPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-content-series-table">
+        <table class="table table-list admin-content-series-table">
             <caption class="sr-only">콘텐츠 시리즈 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('series_key', $seriesSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'series_key', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>

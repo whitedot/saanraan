@@ -759,8 +759,8 @@ $communitySettingsSectionNavItems = [
         </p>
         <p class="admin-form-help">레벨 설정 저장은 최소 점수만 저장합니다. 회원 레벨 재계산은 저장과 별도로 실행되며, 작성 중인 최소 점수 입력값을 함께 저장하지 않습니다.</p>
         <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+            <table class="table table-list">
+                <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?></th>

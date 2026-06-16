@@ -46,9 +46,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($publisherRewardPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-community-publisher-reward-table">
+        <table class="table table-list admin-community-publisher-reward-table">
             <caption class="sr-only">첨부 다운로드 게시자 리워드 로그</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>상태</th>

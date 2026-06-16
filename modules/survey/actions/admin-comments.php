@@ -101,8 +101,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title">댓글 목록</h2>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-survey-comment-table">
-            <thead class="ui-table-head">
+        <table class="table table-list admin-survey-comment-table">
+            <thead>
                 <tr>
                     <th>작성일</th>
                     <th>설문</th>

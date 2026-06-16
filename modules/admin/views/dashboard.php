@@ -62,8 +62,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <?php if ($recoveryMarkers !== []) { ?>
             <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+            <table class="table table-list">
+                <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('admin::ui.text.962f286b')); ?></th>
                         <th><?php echo sr_e(sr_t('admin::ui.text.29ee1bb7')); ?></th>

@@ -911,9 +911,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-content-table">
+            <table class="table table-list admin-content-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th class="admin-table-checkbox-cell content-select-cell">
                             <label class="sr-only" for="content_bulk_select_all">현재 페이지 콘텐츠 전체 선택</label>

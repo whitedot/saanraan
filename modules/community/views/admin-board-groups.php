@@ -293,9 +293,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($boardGroupPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-community-board-group-table">
+        <table class="table table-list admin-community-board-group-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.339c91e7')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('group_key', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.key.1057ecca'), 'group_key', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>

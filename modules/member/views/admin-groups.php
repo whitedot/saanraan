@@ -371,9 +371,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <?php echo sr_admin_pagination_summary_html($groupPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-member-group-table">
+        <table class="table table-list admin-member-group-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('group_key', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.key.1057ecca'), 'group_key', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.97e73d18'), 'title', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
@@ -561,8 +561,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.561bac1a')); ?></h4>
                             </div>
                             <div class="table-wrapper">
-                                <table class="table">
-                                    <thead class="ui-table-head">
+                                <table class="table table-list">
+                                    <thead>
                                         <tr>
                                             <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.text.5cf2792b')); ?></th>
@@ -615,8 +615,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 <h4 class="card-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h4>
                             </div>
                             <div class="table-wrapper">
-                                <table class="table">
-                                    <thead class="ui-table-head">
+                                <table class="table table-list">
+                                    <thead>
                                         <tr>
                                             <th><?php echo sr_e(sr_t('member::ui.member.e335b899')); ?></th>
                                             <th><?php echo sr_e(sr_t('member::ui.text.46b289bb')); ?></th>
@@ -745,8 +745,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <?php echo sr_admin_pagination_summary_html($groupRulePagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('group_title', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html('대상 그룹', 'group_title', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('source_module_key', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.291ac971'), 'source_module_key', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>

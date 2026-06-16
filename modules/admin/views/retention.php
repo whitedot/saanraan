@@ -218,8 +218,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="intent" value="cleanup">
                     <p><?php echo sr_e(sr_t('admin::ui.save.5d203a1c')); ?></p>
                     <div class="table-wrapper">
-                    <table class="table">
-                        <thead class="ui-table-head">
+                    <table class="table table-list">
+                        <thead>
                             <tr>
                                 <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
                                 <th><?php echo sr_e(sr_t('admin::ui.text.8e07f3ae')); ?></th>

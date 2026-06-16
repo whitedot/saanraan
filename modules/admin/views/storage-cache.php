@@ -60,8 +60,8 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th>일자</th>
                     <th>파일 수</th>
@@ -89,8 +89,8 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
         <h2 class="card-title">Variant 분포</h2>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th>Variant key</th>
                     <th>파일 수</th>
@@ -122,8 +122,8 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
         <?php } ?>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th>수정 시각</th>
                     <th>모듈</th>

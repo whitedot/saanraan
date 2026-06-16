@@ -122,8 +122,8 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                             <span class="admin-summary-meta"><?php echo sr_e(number_format(count($rows)) . '건'); ?></span>
                         </div>
                         <div class="table-wrapper">
-                            <table class="table">
-                                <thead class="ui-table-head">
+                            <table class="table table-list">
+                                <thead>
                                     <tr>
                                         <th><?php echo sr_e('모듈'); ?></th>
                                         <th><?php echo sr_e('참조'); ?></th>

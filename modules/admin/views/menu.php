@@ -24,8 +24,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-menu-table">
-        <thead class="ui-table-head">
+    <table class="table table-list admin-menu-table">
+        <thead>
             <tr>
                 <th><?php echo sr_e(sr_t('admin::ui.text.83b651b8')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>

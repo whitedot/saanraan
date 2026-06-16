@@ -818,8 +818,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         <?php } ?>
         <div class="table-wrapper">
-            <table class="table admin-survey-table">
-                <thead class="ui-table-head">
+            <table class="table table-list admin-survey-table">
+                <thead>
                     <tr>
                         <th<?php echo sr_admin_sort_aria('survey_key', $surveySort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'survey_key', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('title', $surveySort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
@@ -1485,8 +1485,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="table-wrapper">
-                <table class="table admin-survey-question-table">
-                    <thead class="ui-table-head">
+                <table class="table table-list admin-survey-question-table">
+                    <thead>
                         <tr>
                             <th>순서</th>
                             <th>관리용 키</th>

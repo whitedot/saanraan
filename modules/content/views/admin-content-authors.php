@@ -34,9 +34,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </div>
     <div class="table-wrapper">
-        <table class="table">
+        <table class="table table-list">
             <caption class="sr-only">콘텐츠 작성자 승인 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr><th>회원</th><th>상태</th><th>검수</th><th>메모</th><th>수정일</th><?php if ($canEditContentAuthors) { ?><th class="text-end">관리</th><?php } ?></tr>
             </thead>
             <tbody>

@@ -35,8 +35,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.5fec9b05')); ?></h2>
         </div>
         <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></th>
                     <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.364d60db')); ?></th>
@@ -82,8 +82,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.6b574fee')); ?></h2>
     </div>
     <div class="table-wrapper">
-    <table class="table">
-        <thead class="ui-table-head">
+    <table class="table table-list">
+        <thead>
             <tr>
                 <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
                 <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.002f73c3')); ?></th>
@@ -142,8 +142,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.488e2350')); ?></h2>
     </div>
     <div class="table-wrapper">
-    <table class="table">
-        <thead class="ui-table-head">
+    <table class="table table-list">
+        <thead>
             <tr>
                 <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
                 <th scope="col"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></th>

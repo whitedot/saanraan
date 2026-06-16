@@ -48,8 +48,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th>포인트/금액 항목</th>
                     <th>상태</th>
@@ -101,8 +101,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="table-wrapper">
-            <table class="table">
-                <thead class="ui-table-head">
+            <table class="table table-list">
+                <thead>
                     <tr>
                         <th>계정 ID</th>
                         <th>저장 잔액</th>

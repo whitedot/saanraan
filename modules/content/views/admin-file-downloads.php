@@ -84,9 +84,9 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
         <?php echo sr_admin_pagination_summary_html($downloadLogPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-content-file-download-table">
+        <table class="table table-list admin-content-file-download-table">
             <caption class="sr-only">콘텐츠 파일 다운로드 내역</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('created_at', $downloadLogSort); ?>><?php echo sr_admin_sort_header_html('다운로드 시각', 'created_at', $downloadLogSort, $downloadLogSortOptions, $downloadLogDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('content_title', $downloadLogSort); ?>><?php echo sr_admin_sort_header_html('콘텐츠', 'content_title', $downloadLogSort, $downloadLogSortOptions, $downloadLogDefaultSort); ?></th>

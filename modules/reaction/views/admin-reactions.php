@@ -118,9 +118,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-summary-meta">조회 결과 <?php echo sr_e(number_format(count($reactionRecords))); ?>건</span>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-reaction-record-table">
+        <table class="table table-list admin-reaction-record-table">
             <caption class="sr-only">리액션 레코드 최근 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>회원</th>
@@ -190,9 +190,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-reaction-definition-table">
+        <table class="table table-list admin-reaction-definition-table">
             <caption class="sr-only">리액션 정의 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th>키</th>
                     <th>표시</th>
@@ -260,9 +260,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p class="admin-empty-state">처리할 사용 중지 key 레코드가 없습니다.</p>
     <?php } else { ?>
         <div class="table-wrapper">
-            <table class="table admin-reaction-cleanup-table">
+            <table class="table table-list admin-reaction-cleanup-table">
                 <caption class="sr-only">사용 중지 리액션 레코드 처리 대상</caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th>키</th>
                         <th>표시명</th>
@@ -305,9 +305,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <p class="admin-summary-meta">1차 정책은 단일 선택만 지원합니다. 선택한 key 순서대로 공개 버튼이 표시됩니다.</p>
     <div class="table-wrapper">
-        <table class="table admin-reaction-preset-table">
+        <table class="table table-list admin-reaction-preset-table">
             <caption class="sr-only">리액션 preset 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th>키</th>
                     <th>이름</th>

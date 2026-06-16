@@ -127,9 +127,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($pageGroupPagination); ?>
         </div>
         <div class="table-wrapper">
-            <table class="table admin-content-group-table">
+            <table class="table table-list admin-content-group-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></caption>
-                <thead class="ui-table-head">
+                <thead>
                     <tr>
                         <th class="admin-table-checkbox-cell content-group-select-cell">
                             <label class="sr-only" for="content_group_bulk_select_all">현재 페이지 콘텐츠 그룹 전체 선택</label>
@@ -210,9 +210,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="table-wrapper">
-                <table class="table">
+                <table class="table table-list">
                     <caption class="sr-only">콘텐츠 저장소 정리 실패 목록</caption>
-                    <thead class="ui-table-head">
+                    <thead>
                         <tr>
                             <th>대상</th>
                             <th>저장소</th>

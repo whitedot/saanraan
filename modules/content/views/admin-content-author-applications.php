@@ -24,9 +24,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table">
+        <table class="table table-list">
             <caption class="sr-only">콘텐츠 등록자 신청 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr><th>회원</th><th>상태</th><th>신청 사유</th><th>검토</th><th>신청일</th></tr>
             </thead>
             <tbody>

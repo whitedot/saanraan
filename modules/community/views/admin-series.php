@@ -101,9 +101,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($seriesPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-community-series-table">
+        <table class="table table-list admin-community-series-table">
             <caption class="sr-only">커뮤니티 시리즈 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('게시판', 'board_title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>

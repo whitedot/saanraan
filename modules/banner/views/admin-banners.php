@@ -438,9 +438,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-banner-table">
+        <table class="table table-list admin-banner-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th class="admin-table-checkbox-cell admin-banner-select-cell">
                         <label class="sr-only" for="banner_bulk_select_all">현재 페이지 배너 전체 선택</label>

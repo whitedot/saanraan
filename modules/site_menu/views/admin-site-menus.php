@@ -351,8 +351,8 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal"><?php echo sr_e(sr_t('site_menu::ui.menu.ba050327')); ?></button>
     </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead class="ui-table-head">
+        <table class="table table-list">
+            <thead>
                 <tr>
                     <th><?php echo sr_e(sr_t('site_menu::ui.text.83b651b8')); ?></th>
                     <th><?php echo sr_e(sr_t('site_menu::ui.text.2281025b')); ?></th>

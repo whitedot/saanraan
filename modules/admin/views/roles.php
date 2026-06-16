@@ -200,8 +200,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_pagination_summary_html($accountPagination); ?>
 </div>
 <div class="table-wrapper">
-<table class="table">
-    <thead class="ui-table-head">
+<table class="table table-list">
+    <thead>
         <tr>
             <th<?php echo sr_admin_sort_aria('email', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4ca2f9ab') . ' / ' . sr_t('admin::ui.email.3b7dbc4c'), 'email', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('display_name', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.name.253d1510'), 'display_name', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>

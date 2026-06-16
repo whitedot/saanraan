@@ -373,9 +373,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_pagination_summary_html($popupPagination); ?>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-popup-layer-table">
+        <table class="table table-list admin-popup-layer-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th class="admin-table-checkbox-cell admin-popup-layer-select-cell">
                         <label class="sr-only" for="popup_layer_bulk_select_all">현재 페이지 팝업레이어 전체 선택</label>

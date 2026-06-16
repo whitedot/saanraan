@@ -129,9 +129,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($postPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-community-post-table">
+    <table class="table table-list admin-community-post-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
-        <thead class="ui-table-head">
+        <thead>
             <tr>
                 <th class="admin-table-checkbox-cell community-post-select-cell">
                     <label class="sr-only" for="community_post_bulk_select_all">현재 페이지 게시글 전체 선택</label>
@@ -301,9 +301,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
     </div>
     <div class="table-wrapper">
-    <table class="table admin-community-comment-table">
+    <table class="table table-list admin-community-comment-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
-        <thead class="ui-table-head">
+        <thead>
             <tr>
                 <th class="admin-table-checkbox-cell community-comment-select-cell">
                     <label class="sr-only" for="community_comment_bulk_select_all">현재 페이지 댓글 전체 선택</label>

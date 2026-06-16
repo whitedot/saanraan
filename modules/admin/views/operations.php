@@ -31,9 +31,9 @@ $statusClass = static function (string $status): string {
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table admin-operations-table">
+        <table class="table table-list admin-operations-table">
             <caption class="sr-only">지연/실패 신호 목록</caption>
-            <thead class="ui-table-head">
+            <thead>
                 <tr>
                     <th>상태</th>
                     <th>항목</th>
