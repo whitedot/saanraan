@@ -26,12 +26,6 @@ $requiredModules = [
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
-    'asset_ledger' => [
-        'name' => '잔액 처리 기반',
-        'version' => '2026.06.001',
-        'label' => '잔액 처리 기반',
-        'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
-    ],
     'policy_documents' => [
         'name' => '약관/방침 관리',
         'version' => '2026.06.001',
@@ -45,6 +39,28 @@ $requiredModules = [
         'description' => '운영자 개인정보 대응 기록과 개인정보 사본 제공 보조 기능을 제공합니다.',
     ],
 ];
+$foundationModuleDefaults = [
+    'asset_ledger' => [
+        'name' => '잔액 처리 기반',
+        'version' => '2026.06.001',
+        'label' => '잔액 처리 기반',
+        'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
+    ],
+];
+$foundationModules = [];
+foreach (sr_foundation_module_keys() as $foundationModuleKey) {
+    $foundationModuleKey = (string) $foundationModuleKey;
+    if ($foundationModuleKey === '') {
+        continue;
+    }
+
+    $foundationModules[$foundationModuleKey] = $foundationModuleDefaults[$foundationModuleKey] ?? [
+        'name' => $foundationModuleKey,
+        'version' => '2026.04.001',
+        'label' => $foundationModuleKey,
+        'description' => '선택 모듈이 필요로 하는 기반 기능을 제공합니다.',
+    ];
+}
 $optionalModules = [
     'seo' => [
         'name' => 'SEO',
@@ -191,6 +207,16 @@ function sr_install_module_definition(string $moduleKey, array $defaults): array
 
     $defaults['name'] = $name;
     $defaults['version'] = $version;
+    if (!isset($defaults['label']) || (string) $defaults['label'] === '') {
+        $defaults['label'] = $name;
+    }
+    if (
+        (!isset($defaults['description']) || (string) $defaults['description'] === '')
+        && is_string($metadata['description'] ?? null)
+        && (string) $metadata['description'] !== ''
+    ) {
+        $defaults['description'] = (string) $metadata['description'];
+    }
     $defaults['metadata_errors'] = array_values(array_unique($metadataErrors));
     return $defaults;
 }
@@ -210,6 +236,53 @@ function sr_install_module_main_page_option(string $moduleKey): ?array
         'label' => (string) ($mainPage['label'] ?? (string) ($metadata['name'] ?? $moduleKey)),
         'path' => $path,
     ];
+}
+
+function sr_install_module_definition_lookup(string $moduleKey, array $requiredModules, array $foundationModules, array $optionalModules): ?array
+{
+    if (isset($requiredModules[$moduleKey])) {
+        return $requiredModules[$moduleKey];
+    }
+
+    if (isset($foundationModules[$moduleKey])) {
+        return $foundationModules[$moduleKey];
+    }
+
+    if (isset($optionalModules[$moduleKey])) {
+        return $optionalModules[$moduleKey];
+    }
+
+    return null;
+}
+
+function sr_install_foundation_dependency_keys(array $moduleKeys, array $availableModuleKeys): array
+{
+    $available = array_fill_keys($availableModuleKeys, true);
+    $queued = array_values(array_unique(array_map('strval', $moduleKeys)));
+    $seen = array_fill_keys($queued, true);
+    $foundations = [];
+
+    while ($queued !== []) {
+        $moduleKey = array_shift($queued);
+        foreach (sr_module_foundation_dependencies((string) $moduleKey) as $foundationModuleKey) {
+            $foundationModuleKey = (string) $foundationModuleKey;
+            if ($foundationModuleKey === '' || !isset($available[$foundationModuleKey])) {
+                $foundations[$foundationModuleKey] = $foundationModuleKey;
+                continue;
+            }
+
+            if (!isset($foundations[$foundationModuleKey])) {
+                $foundations[$foundationModuleKey] = $foundationModuleKey;
+            }
+
+            if (!isset($seen[$foundationModuleKey])) {
+                $seen[$foundationModuleKey] = true;
+                $queued[] = $foundationModuleKey;
+            }
+        }
+    }
+
+    return array_values($foundations);
 }
 
 function sr_install_database_owner_count(PDO $pdo): int
@@ -232,6 +305,10 @@ foreach (array_keys($requiredModules) as $moduleKey) {
     $requiredModules[$moduleKey] = sr_install_module_definition($moduleKey, $requiredModules[$moduleKey]);
 }
 
+foreach (array_keys($foundationModules) as $moduleKey) {
+    $foundationModules[$moduleKey] = sr_install_module_definition($moduleKey, $foundationModules[$moduleKey]);
+}
+
 foreach (array_keys($optionalModules) as $moduleKey) {
     if (!is_file(SR_ROOT . '/modules/' . $moduleKey . '/module.php') || !is_file(SR_ROOT . '/modules/' . $moduleKey . '/install.sql')) {
         unset($optionalModules[$moduleKey]);
@@ -241,7 +318,22 @@ foreach (array_keys($optionalModules) as $moduleKey) {
     $optionalModules[$moduleKey] = sr_install_module_definition($moduleKey, $optionalModules[$moduleKey]);
 }
 
+$availableInstallModuleKeys = array_keys($requiredModules + $foundationModules + $optionalModules);
+foreach ($optionalModules as $moduleKey => $module) {
+    $foundationLabels = [];
+    foreach (sr_install_foundation_dependency_keys([(string) $moduleKey], $availableInstallModuleKeys) as $foundationModuleKey) {
+        if (!isset($foundationModules[$foundationModuleKey])) {
+            continue;
+        }
+
+        $foundationLabels[] = (string) ($foundationModules[$foundationModuleKey]['label'] ?? $foundationModuleKey);
+    }
+    $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($foundationLabels));
+}
+
 $selectedOptionalModuleKeys = [];
+$selectedAutoFoundationModuleKeys = [];
+$selectedInstallModuleKeys = [];
 $values = [
     'db_host' => 'localhost',
     'db_name' => '',
@@ -273,7 +365,7 @@ $mainPageOptions = [
     ],
 ];
 $mainPageOptionsByModule = [];
-foreach (array_keys($requiredModules + $optionalModules) as $moduleKey) {
+foreach (array_keys($requiredModules + $foundationModules + $optionalModules) as $moduleKey) {
     $option = sr_install_module_main_page_option((string) $moduleKey);
     if (is_array($option)) {
         $mainPageOptions[(string) $option['path']] = $option;
@@ -379,11 +471,35 @@ if (sr_request_method() === 'POST') {
         $selectedOptionalModuleKeys = array_values($selectedOptionalModuleKeys);
     }
     $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
+    $selectedAutoFoundationModuleKeys = [];
+    foreach (sr_install_foundation_dependency_keys($selectedOptionalModuleKeys, $availableInstallModuleKeys) as $foundationModuleKey) {
+        if (isset($requiredModules[$foundationModuleKey])) {
+            continue;
+        }
+
+        $foundationModule = sr_install_module_definition_lookup((string) $foundationModuleKey, $requiredModules, $foundationModules, $optionalModules);
+        if (!is_array($foundationModule)) {
+            $addInstallError((string) $foundationModuleKey . ' 기반 모듈을 찾을 수 없습니다.', 'account_modules');
+            continue;
+        }
+
+        $selectedAutoFoundationModuleKeys[$foundationModuleKey] = $foundationModuleKey;
+    }
+    $selectedAutoFoundationModuleKeys = array_values($selectedAutoFoundationModuleKeys);
+    $selectedInstallModuleKeys = array_values(array_unique(array_merge($selectedAutoFoundationModuleKeys, $selectedOptionalModuleKeys)));
 
     foreach ($requiredModules as $moduleKey => $module) {
         $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
             $addInstallError((string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
+        }
+    }
+
+    foreach ($selectedAutoFoundationModuleKeys as $moduleKey) {
+        $module = sr_install_module_definition_lookup((string) $moduleKey, $requiredModules, $foundationModules, $optionalModules);
+        $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
+        foreach ($moduleErrors as $moduleError) {
+            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 기반 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
         }
     }
 
@@ -590,7 +706,7 @@ if (sr_request_method() === 'POST') {
             foreach (array_keys($requiredModules) as $moduleKey) {
                 sr_execute_sql_file($pdo, SR_ROOT . '/modules/' . $moduleKey . '/install.sql');
             }
-            foreach ($selectedOptionalModuleKeys as $moduleKey) {
+            foreach ($selectedInstallModuleKeys as $moduleKey) {
                 sr_execute_sql_file($pdo, SR_ROOT . '/modules/' . $moduleKey . '/install.sql');
             }
 
@@ -619,8 +735,11 @@ if (sr_request_method() === 'POST') {
                 ];
             }
 
-            foreach ($selectedOptionalModuleKeys as $moduleKey) {
-                $module = $optionalModules[$moduleKey];
+            foreach ($selectedInstallModuleKeys as $moduleKey) {
+                $module = sr_install_module_definition_lookup((string) $moduleKey, $requiredModules, $foundationModules, $optionalModules);
+                if (!is_array($module)) {
+                    throw new RuntimeException('설치할 모듈 정의를 찾을 수 없습니다: ' . (string) $moduleKey);
+                }
                 $modules[] = [
                     'module_key' => $moduleKey,
                     'name' => (string) $module['name'],
@@ -659,7 +778,7 @@ if (sr_request_method() === 'POST') {
                 sr_site_menu_seed_default_header_menu(
                     $pdo,
                     $mainPageOptionsByModule,
-                    array_values(array_merge(array_keys($requiredModules), $selectedOptionalModuleKeys))
+                    array_values(array_merge(array_keys($requiredModules), $selectedInstallModuleKeys))
                 );
             }
 
@@ -694,8 +813,12 @@ if (sr_request_method() === 'POST') {
             foreach ($requiredModules as $moduleKey => $module) {
                 sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
             }
-            foreach ($selectedOptionalModuleKeys as $moduleKey) {
-                sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $optionalModules[$moduleKey]['version']);
+            foreach ($selectedInstallModuleKeys as $moduleKey) {
+                $module = sr_install_module_definition_lookup((string) $moduleKey, $requiredModules, $foundationModules, $optionalModules);
+                if (!is_array($module)) {
+                    throw new RuntimeException('설치한 모듈 정의를 찾을 수 없습니다: ' . (string) $moduleKey);
+                }
+                sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
             }
 
             require_once SR_ROOT . '/modules/member/helpers.php';
@@ -724,7 +847,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Initial installation completed.',
                 'metadata' => [
-                    'enabled_modules' => array_values(array_merge(array_keys($requiredModules), $selectedOptionalModuleKeys)),
+                    'enabled_modules' => array_values(array_merge(array_keys($requiredModules), $selectedInstallModuleKeys)),
                 ],
             ]);
 

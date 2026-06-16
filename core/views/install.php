@@ -34,6 +34,13 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
         $selectedOptionalModuleLabels[] = (string) $optionalModules[$moduleKey]['label'];
     }
 }
+$selectedAutoFoundationModuleLabels = [];
+foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
+    if (isset($foundationModules[$moduleKey])) {
+        $selectedAutoFoundationModuleLabels[] = (string) $foundationModules[$moduleKey]['label'] . ' (자동)';
+    }
+}
+$selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));
 ?>
 <!doctype html>
 <html lang="ko" data-color-scheme="system">
@@ -375,6 +382,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                         <div class="sr-install-module-grid">
                             <?php foreach ($optionalModules as $moduleKey => $module) { ?>
                                 <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
                                 <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
                                 <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
                                 <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
@@ -388,6 +396,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                                             class="form-checkbox"
                                             data-install-module-option
                                             data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
+                                            data-install-foundation-labels="<?php echo sr_e(sr_js_json_encode($moduleFoundationLabels)); ?>"
                                             <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                             <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                         >
@@ -398,6 +407,9 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                                     <?php } ?>
                                     <small>관리용 키: <?php echo sr_e((string) $moduleKey); ?></small>
                                     <p><?php echo sr_e((string) $module['description']); ?></p>
+                                    <?php if ($moduleFoundationLabels !== []) { ?>
+                                        <p class="sr-install-help">함께 설치됨: <?php echo sr_e(implode(', ', $moduleFoundationLabels)); ?></p>
+                                    <?php } ?>
                                     <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
                                         <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
                                             <input
@@ -516,8 +528,8 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <ol>
                         <li>설정 파일 작성 준비</li>
                         <li>DB 연결 및 코어 스키마 설치</li>
-                        <li>필수 모듈 설치: member → admin → asset_ledger → policy_documents → privacy</li>
-                        <li>선택 모듈 설치</li>
+                        <li>필수 모듈 설치: member → admin → policy_documents → privacy</li>
+                        <li>선택 모듈과 필요한 기반 모듈 설치</li>
                         <li>사이트 설정 저장</li>
                         <li>관리자 계정과 owner 권한 생성</li>
                         <li>설치 lock 작성</li>
@@ -718,8 +730,22 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 }
 
                 var moduleLabels = [];
+                var foundationLabels = [];
                 document.querySelectorAll('[data-install-module-option]:checked').forEach(function (input) {
                     moduleLabels.push(input.getAttribute('data-install-module-label') || input.value);
+                    try {
+                        JSON.parse(input.getAttribute('data-install-foundation-labels') || '[]').forEach(function (label) {
+                            if (label && foundationLabels.indexOf(label + ' (자동)') === -1) {
+                                foundationLabels.push(label + ' (자동)');
+                            }
+                        });
+                    } catch (error) {
+                    }
+                });
+                foundationLabels.forEach(function (label) {
+                    if (moduleLabels.indexOf(label) === -1) {
+                        moduleLabels.push(label);
+                    }
                 });
                 updateTextSummary('optional_modules', moduleLabels.length ? moduleLabels.join(', ') : '선택 없음');
             }

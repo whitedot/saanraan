@@ -95,7 +95,10 @@ sr_asset_reconciliation_check_file_contains('core/actions/install.php', [
 ]);
 
 sr_asset_reconciliation_check_file_contains('core/views/install.php', [
-    'member → admin → asset_ledger → policy_documents → privacy',
+    'member → admin → policy_documents → privacy',
+    '선택 모듈과 필요한 기반 모듈 설치',
+    '함께 설치됨:',
+    'data-install-foundation-labels',
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/actions/admin-assets-reconciliation.php', [
