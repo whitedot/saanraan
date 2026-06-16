@@ -89,6 +89,7 @@ return [
         'post_toolbar_preset' => 'community_post_basic',
         'plain_text_auto_link_urls' => false,
         'secret_posts_enabled' => false,
+        'secret_comments_enabled' => false,
         'privacy_consent_enabled' => false,
         'privacy_consent_document_key' => 'community_privacy_default',
         'privacy_consent_post_document_key' => '',
