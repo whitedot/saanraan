@@ -36,6 +36,11 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             </select>
         </label>
         <button type="submit" class="btn btn-solid-primary filtering-submit">조회</button>
+        <?php if ($canDeleteStorageCache) { ?>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-storage-cache-cleanup-modal" data-overlay="#admin-storage-cache-cleanup-modal">정리</button>
+            </div>
+        <?php } ?>
     </div>
 </form>
 
@@ -153,17 +158,6 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
 </section>
 
 <?php if ($canDeleteStorageCache) { ?>
-    <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header">
-            <h2 class="card-title">기간별 정리</h2>
-        </div>
-        <div class="admin-list-summary">
-            현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.
-        </div>
-        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-            <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-storage-cache-cleanup-modal" data-overlay="#admin-storage-cache-cleanup-modal">정리</button>
-        </div>
-    </section>
     <div id="admin-storage-cache-cleanup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-storage-cache-cleanup-modal-label" aria-hidden="true" inert>
         <div class="modal-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme">
