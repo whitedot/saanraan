@@ -72,6 +72,14 @@ function sr_check_community_board_settings_runtime(): void
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_community_boards (
+            id INTEGER PRIMARY KEY,
+            board_key TEXT NOT NULL,
+            title TEXT NOT NULL,
+            status TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_community_posts (
             id INTEGER PRIMARY KEY,
             board_id INTEGER NOT NULL,
@@ -79,6 +87,7 @@ function sr_check_community_board_settings_runtime(): void
             title TEXT NOT NULL,
             body_text TEXT NOT NULL,
             body_format TEXT NOT NULL DEFAULT 'plain',
+            is_secret INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL,
             view_count INTEGER NOT NULL DEFAULT 0,
             last_commented_at TEXT NULL,
@@ -116,6 +125,7 @@ function sr_check_community_board_settings_runtime(): void
     );
 
     $now = '2026-06-14 12:00:00';
+    $pdo->exec("INSERT INTO sr_community_boards (id, board_key, title, status) VALUES (10, 'fixture', 'Fixture Board', 'enabled')");
     $board = [
         'id' => 10,
         'board_group_id' => 20,
@@ -166,21 +176,23 @@ function sr_check_community_board_settings_runtime(): void
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (id, board_id, author_account_id, title, body_text, body_format, status, view_count, created_at, updated_at)
+            (id, board_id, author_account_id, title, body_text, body_format, is_secret, status, view_count, created_at, updated_at)
          VALUES
-            (:id, 10, 0, :title, :body_text, :body_format, :status, :view_count, :created_at, :updated_at)'
+            (:id, 10, 0, :title, :body_text, :body_format, :is_secret, :status, :view_count, :created_at, :updated_at)'
     );
     foreach ([
-        ['id' => 1, 'title' => 'first', 'body_text' => 'alpha body', 'body_format' => 'plain', 'status' => 'published', 'view_count' => 5],
-        ['id' => 2, 'title' => 'second', 'body_text' => 'beta body', 'body_format' => 'plain', 'status' => 'published', 'view_count' => 30],
-        ['id' => 3, 'title' => 'third', 'body_text' => '<p>gamma<br>body</p>', 'body_format' => 'html', 'status' => 'published', 'view_count' => 10],
-        ['id' => 4, 'title' => 'draft', 'body_text' => 'hidden', 'body_format' => 'plain', 'status' => 'draft', 'view_count' => 999],
+        ['id' => 1, 'title' => 'first', 'body_text' => 'alpha body', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'published', 'view_count' => 5],
+        ['id' => 2, 'title' => 'second', 'body_text' => 'beta body', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'published', 'view_count' => 30],
+        ['id' => 3, 'title' => 'third', 'body_text' => '<p>gamma<br>body</p>', 'body_format' => 'html', 'is_secret' => 0, 'status' => 'published', 'view_count' => 10],
+        ['id' => 4, 'title' => 'draft', 'body_text' => 'hidden', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'draft', 'view_count' => 999],
+        ['id' => 5, 'title' => 'secret alpha', 'body_text' => 'private token', 'body_format' => 'plain', 'is_secret' => 1, 'status' => 'published', 'view_count' => 1],
     ] as $post) {
         $stmt->execute([
             'id' => $post['id'],
             'title' => $post['title'],
             'body_text' => $post['body_text'],
             'body_format' => $post['body_format'],
+            'is_secret' => $post['is_secret'],
             'status' => $post['status'],
             'view_count' => $post['view_count'],
             'created_at' => $now,
@@ -216,7 +228,7 @@ function sr_check_community_board_settings_runtime(): void
     }
 
     $commentSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 10, 0, '', 0, 'comments'), 'id'));
-    if ($commentSortedIds !== [1, 3, 2]) {
+    if ($commentSortedIds !== [1, 3, 5, 2]) {
         sr_check_community_board_settings_error('community comment sort runtime order failed.');
     }
     $viewSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 2, 0, '', 0, 'views'), 'id'));
@@ -234,6 +246,17 @@ function sr_check_community_board_settings_runtime(): void
     }
     if (sr_community_validate_comment_body_length($pdo, $board, ['body_text' => 'abcde']) === []) {
         sr_check_community_board_settings_error('community comment body maximum runtime validation failed.');
+    }
+    $searchByBodyIds = array_map('intval', array_column(sr_community_search_posts($pdo, [10], 'alpha', 10, 0, [10]), 'id'));
+    if ($searchByBodyIds !== [5, 1]) {
+        sr_check_community_board_settings_error('community global search title/body runtime check failed.');
+    }
+    $searchTitleOnlyIds = array_map('intval', array_column(sr_community_search_posts($pdo, [10], 'alpha', 10, 0, []), 'id'));
+    if ($searchTitleOnlyIds !== [5]) {
+        sr_check_community_board_settings_error('community global search title-only board policy failed.');
+    }
+    if (sr_community_search_posts($pdo, [10], 'private', 10, 0, [10]) !== []) {
+        sr_check_community_board_settings_error('community global search secret body exclusion failed.');
     }
 }
 
@@ -257,6 +280,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts.php'
     'sr_community_validate_post_body_length',
     'sr_community_validate_comment_body_length',
     'sr_community_post_locked_by_comments',
+    'function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null)',
     'function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = \'\', int $categoryId = 0, string $sort = \'latest\')',
     'published_comment_count DESC, p.id DESC',
 ], 'community board runtime setting helpers');
