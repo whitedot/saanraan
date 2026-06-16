@@ -13,6 +13,7 @@ return [
         'category_order' => 0,
         'menu_order' => 990,
         'icon' => ['type' => 'symbol', 'name' => 'account_balance'],
+        'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

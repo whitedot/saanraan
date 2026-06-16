@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'label' => '자산 점검',
+    'label' => '포인트/금액 점검',
     'order' => 85,
     'items' => [
         [
-            'label' => '원장 정합성',
+            'label' => '정합성 점검',
             'path' => '/admin/assets/reconciliation',
             'order' => 10,
         ],

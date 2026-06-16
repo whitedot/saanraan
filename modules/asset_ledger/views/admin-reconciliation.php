@@ -1,6 +1,11 @@
 <?php
 
-$adminPageTitle = '자산 원장 정합성';
+$adminPageTitle = '포인트/금액 정합성 점검';
+$adminPageSubtitle = [
+    '회원 포인트/금액 모듈의 잔액 행과 거래 원장을 대조합니다.',
+    '조회는 읽기 전용이며 불일치 상세는 항목별 최대 50건까지 노출됩니다.',
+];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/assets/reconciliation');
 $assetIssueLabels = [
     'missing_balance_row' => '잔액 행 없음',
     'balance_sum_mismatch' => '잔액 합계 불일치',
@@ -18,32 +23,23 @@ $assetTotals = sr_asset_reconciliation_summary($reconciliationResults);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/assets/reconciliation')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
-    <div class="filtering-fields">
-        <div class="filtering-field">
-            <label for="asset-reconciliation-max-rows" class="filtering-label">표시 행 수</label>
-            <input id="asset-reconciliation-max-rows" type="number" name="max_rows" value="<?php echo sr_e((string) $maxRows); ?>" class="form-input filtering-input" min="1" max="500">
-            <p class="admin-form-help">자산별 불일치 상세 표시 한도</p>
-        </div>
-        <button type="submit" class="btn btn-solid-primary filtering-submit">점검</button>
-    </div>
-</form>
-
-<section class="admin-card admin-list-card card">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">점검 요약</h2>
     </div>
-    <div class="admin-summary-stats">
-        <span class="admin-summary-meta">점검 완료 <strong><?php echo sr_e((string) $assetTotals['checked']); ?></strong></span>
-        <span class="admin-summary-meta">건너뜀 <strong><?php echo sr_e((string) $assetTotals['skipped']); ?></strong></span>
-        <span class="admin-summary-meta">오류 <strong><?php echo sr_e((string) $assetTotals['error']); ?></strong></span>
-        <span class="admin-summary-meta">불일치 <strong><?php echo sr_e(number_format((int) $assetTotals['mismatch_count'])); ?></strong></span>
+    <div class="admin-list-summary-row admin-asset-ledger-reconciliation-summary-row">
+        <div class="badge-list">
+            <span class="badge badge-soft-secondary">점검 완료 <?php echo sr_e(number_format((int) $assetTotals['checked'])); ?></span>
+            <span class="badge badge-soft-secondary">건너뜀 <?php echo sr_e(number_format((int) $assetTotals['skipped'])); ?></span>
+            <span class="badge badge-soft-secondary">오류 <?php echo sr_e(number_format((int) $assetTotals['error'])); ?></span>
+            <span class="badge badge-soft-danger">불일치 <?php echo sr_e(number_format((int) $assetTotals['mismatch_count'])); ?></span>
+        </div>
     </div>
     <div class="table-wrapper">
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>자산</th>
+                    <th>포인트/금액 항목</th>
                     <th>상태</th>
                     <th>계정 수</th>
                     <th>불일치</th>
@@ -55,12 +51,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $assetStatus = (string) ($assetResult['status'] ?? '');
                     $assetStatusLabel = (string) ($assetStatusLabels[$assetStatus] ?? $assetStatus);
+                    $assetStatusClass = match ($assetStatus) {
+                        'checked' => 'is-normal',
+                        'skipped' => 'is-warning',
+                        'error' => 'is-danger',
+                        default => 'is-blocked',
+                    };
                     ?>
                     <tr>
                         <td><?php echo sr_e((string) ($assetResult['label'] ?? $assetResult['module_key'] ?? '')); ?></td>
-                        <td><?php echo sr_e($assetStatusLabel); ?></td>
-                        <td><?php echo sr_e(number_format((int) ($assetResult['total_accounts'] ?? 0))); ?></td>
-                        <td><?php echo sr_e(number_format((int) ($assetResult['mismatch_count'] ?? 0))); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($assetStatusClass); ?>"><?php echo sr_e($assetStatusLabel); ?></span></td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetResult['total_accounts'] ?? 0))); ?></td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetResult['mismatch_count'] ?? 0))); ?></td>
                         <td><?php echo sr_e((string) ($assetResult['message'] ?? '')); ?></td>
                     </tr>
                 <?php } ?>
@@ -76,9 +78,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         continue;
     }
     ?>
-    <section class="admin-card admin-list-card card">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e((string) ($assetResult['label'] ?? $assetResult['module_key'] ?? '')); ?> 불일치</h2>
+        </div>
+        <div class="admin-list-summary-row">
+            <div class="admin-list-summary">
+                불일치 <?php echo sr_e(number_format((int) ($assetResult['mismatch_count'] ?? count($assetMismatches)))); ?>건 중 최대 <?php echo sr_e(number_format(count($assetMismatches))); ?>건을 표시합니다.
+            </div>
         </div>
         <div class="table-wrapper">
             <table class="table">
@@ -103,13 +110,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         }
                         ?>
                         <tr>
-                            <td><?php echo sr_e((string) (int) ($assetMismatch['account_id'] ?? 0)); ?></td>
-                            <td><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['stored_balance'] ?? null)); ?></td>
-                            <td><?php echo sr_e(number_format((int) ($assetMismatch['ledger_balance'] ?? 0))); ?></td>
-                            <td><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['last_balance_after'] ?? null)); ?></td>
-                            <td><?php echo sr_e(number_format((int) ($assetMismatch['transaction_count'] ?? 0))); ?></td>
-                            <td><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['sequence_mismatch_transaction_id'] ?? null)); ?></td>
-                            <td>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($assetMismatch['account_id'] ?? 0)); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['stored_balance'] ?? null)); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetMismatch['ledger_balance'] ?? 0))); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['last_balance_after'] ?? null)); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetMismatch['transaction_count'] ?? 0))); ?></td>
+                            <td class="admin-table-nowrap text-end"><?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['sequence_mismatch_transaction_id'] ?? null)); ?></td>
+                            <td class="admin-table-nowrap text-end">
                                 <?php if (($assetMismatch['sequence_expected_balance_after'] ?? null) !== null || ($assetMismatch['sequence_actual_balance_after'] ?? null) !== null) { ?>
                                     <?php echo sr_e(sr_asset_reconcile_nullable_int($assetMismatch['sequence_expected_balance_after'] ?? null)); ?>
                                     /
@@ -118,14 +125,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     -
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e(implode(', ', $assetIssues)); ?></td>
+                            <td class="admin-table-break"><?php echo sr_e(implode(', ', $assetIssues)); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
         </div>
         <?php if (!empty($assetResult['truncated'])) { ?>
-            <p class="admin-empty-state">표시 행 수를 초과한 불일치가 있습니다.</p>
+            <p class="admin-list-summary">표시 한도 50건을 초과한 불일치가 있습니다. 전체 결과는 CLI 점검 도구로 확인하세요.</p>
         <?php } ?>
     </section>
 <?php } ?>
