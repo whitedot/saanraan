@@ -19,26 +19,22 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/publi
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/publisher-rewards')); ?>" class="filtering-form admin-community-publisher-reward-filter ui-form-theme">
-    <div class="filtering filtering-card">
-        <div class="filtering-fields admin-community-publisher-reward-search-grid">
-            <label class="filtering-field" for="community_publisher_reward_status">
-                <span class="filtering-label">상태</span>
-                <select id="community_publisher_reward_status" name="status" class="form-select filtering-input">
-                    <option value="">전체</option>
-                    <?php foreach (sr_community_publisher_reward_statuses() as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($publisherRewardFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_community_publisher_reward_status_label($status)); ?></option>
-                    <?php } ?>
-                </select>
-            </label>
-            <label class="filtering-field admin-community-publisher-reward-filter-keyword" for="community_publisher_reward_q">
-                <span class="filtering-label">검색</span>
-                <input id="community_publisher_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($publisherRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시글, 첨부, ID">
-            </label>
-            <div class="filtering-actions admin-community-publisher-reward-filter-actions">
-                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-            </div>
-        </div>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/publisher-rewards')); ?>" class="filtering-form filtering filtering-plain admin-community-publisher-reward-filter ui-form-theme">
+    <div class="filtering-fields admin-community-publisher-reward-search-grid">
+        <label class="filtering-field" for="community_publisher_reward_status">
+            <span class="filtering-label">상태</span>
+            <select id="community_publisher_reward_status" name="status" class="form-select filtering-input">
+                <option value="">전체</option>
+                <?php foreach (sr_community_publisher_reward_statuses() as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($publisherRewardFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_community_publisher_reward_status_label($status)); ?></option>
+                <?php } ?>
+            </select>
+        </label>
+        <label class="filtering-field admin-community-publisher-reward-filter-keyword" for="community_publisher_reward_q">
+            <span class="filtering-label">검색</span>
+            <input id="community_publisher_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($publisherRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시글, 첨부, ID">
+        </label>
+        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
 

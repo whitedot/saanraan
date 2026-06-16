@@ -52,7 +52,9 @@
 .admin-page-community-report-list .admin-community-report-action-log-link{flex:0 0 auto}
 .admin-page-community-report-list .community-report-bulk-summary-alert{justify-content:flex-end;text-align:end}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-filter{width:100%;max-width:100%}
-.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter-actions{display:flex;gap:calc(var(--spacing) * 2);justify-content:flex-start;margin-inline-start:0;width:fit-content}
+.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter.filtering-plain>.admin-community-publisher-reward-search-grid{align-items:end;grid-template-columns:max-content minmax(14rem,1fr) max-content;justify-content:stretch;width:100%}
+.admin-page-community-publisher-rewards .admin-community-publisher-reward-search-grid>.filtering-field{min-width:0}
+.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter-keyword,.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter-keyword .filtering-input{width:100%}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-table{table-layout:auto;min-width:72rem}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-table th,.admin-page-community-publisher-rewards .admin-community-publisher-reward-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-table th:nth-child(1),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table th:nth-child(2),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table th:nth-child(6),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table th:nth-child(7),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table th:nth-child(9){width:1%}
@@ -63,6 +65,31 @@
 .admin-page-community-series-list .admin-community-series-search-grid{grid-template-columns:fit-content(9rem) fit-content(10rem) fit-content(10rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
 .admin-community-asset-policy-sets .admin-community-asset-policy-set-search-grid{grid-template-columns:max-content max-content minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
 .admin-community-asset-policy-sets .admin-community-asset-policy-set-filter-keyword{width:100%}
+.admin-page-community-board-list .filtering-card>.filtering-fields{align-items:end;display:grid;grid-template-columns:max-content minmax(14rem,1fr);width:100%}
+.admin-page-community-board-group-list .filtering-card>.filtering-fields{align-items:end;display:grid;grid-template-columns:max-content minmax(14rem,1fr);width:100%}
+.admin-community-asset-policy-sets .filtering-card>.filtering-fields{align-items:end;display:grid;grid-template-columns:max-content minmax(14rem,1fr);width:100%}
+.admin-page-community-board-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-page-community-board-group-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-page-community-post-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-page-community-comment-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-page-community-report-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-page-community-series-list .filtering-card>.filtering-fields>.filtering-field,
+.admin-community-asset-policy-sets .filtering-card>.filtering-fields>.filtering-field{min-width:0}
+.admin-page-community-board-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-page-community-board-group-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-page-community-post-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-page-community-comment-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-page-community-report-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-page-community-series-list .filtering-card>.filtering-fields>.filtering-field-fill,
+.admin-community-asset-policy-sets .filtering-card>.filtering-fields>.filtering-field-fill{width:100%}
+.admin-page-community-board-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-page-community-board-group-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-page-community-post-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-page-community-comment-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-page-community-report-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-page-community-series-list .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input,
+.admin-community-asset-policy-sets .filtering-card>.filtering-fields>.filtering-field-fill .filtering-input{width:100%}
+.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter .filtering-submit{justify-content:center;width:auto}
 .admin-page-community-series-list .admin-community-series-table{table-layout:auto}
 .admin-page-community-series-list .admin-community-series-table th,.admin-page-community-series-list .admin-community-series-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-series-list .admin-community-series-table .admin-table-actions-cell{min-width:18rem;overflow:visible}
@@ -118,8 +145,9 @@
 @media (max-width:1023px){.admin-page-community-report-list .admin-community-report-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:767px){.admin-page-community-report-list .admin-community-report-search-grid{grid-template-columns:1fr}}
 @media (max-width:767px){.admin-page-community-report-list .admin-community-report-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-community-report-list .admin-community-report-table :is(th,td):nth-child(2),.admin-page-community-report-list .admin-community-report-table :is(th,td):nth-child(6),.admin-page-community-report-list .admin-community-report-table :is(th,td):nth-child(7),.admin-page-community-report-list .admin-community-report-table :is(th,td):nth-child(9){display:none}}
-@media (max-width:767px){.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter-actions{align-items:stretch;flex-direction:column}.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td):nth-child(6),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td):nth-child(8){display:none}.admin-page-community-publisher-rewards .admin-community-publisher-reward-subject-cell{min-width:14rem}}
+@media (max-width:767px){.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td):nth-child(6),.admin-page-community-publisher-rewards .admin-community-publisher-reward-table :is(th,td):nth-child(8){display:none}.admin-page-community-publisher-rewards .admin-community-publisher-reward-subject-cell{min-width:14rem}}
 @media (max-width:1023px){.admin-page-community-series-list .admin-community-series-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:1023px){.admin-community-asset-policy-sets .admin-community-asset-policy-set-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media (max-width:767px){.admin-community-board-copy-submit-actions{flex-direction:column;margin-left:0;width:100%}.admin-page-community-series-list .admin-community-series-search-grid{grid-template-columns:1fr}.admin-page-community-series-list .admin-community-series-table :is(th,td:not(.admin-empty-state)):nth-child(2),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(3),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(6),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(7){display:none}.admin-page-community-series-list .admin-community-series-table .admin-table-actions-cell{min-width:14rem}.admin-page-community-series-list .admin-community-series-note-input{min-width:9rem;max-width:12rem}}
+@media (max-width:1023px){.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter.filtering-plain>.admin-community-publisher-reward-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter .filtering-submit{grid-column:1 / -1;width:100%}.admin-page-community-board-list .filtering-card>.filtering-fields,.admin-page-community-board-group-list .filtering-card>.filtering-fields,.admin-community-asset-policy-sets .filtering-card>.filtering-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:767px){.admin-community-board-copy-submit-actions{flex-direction:column;margin-left:0;width:100%}.admin-page-community-series-list .admin-community-series-search-grid{grid-template-columns:1fr}.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter.filtering-plain>.admin-community-publisher-reward-search-grid{grid-template-columns:1fr}.admin-page-community-publisher-rewards .admin-community-publisher-reward-filter .filtering-submit{grid-column:auto}.admin-page-community-board-list .filtering-card>.filtering-fields,.admin-page-community-board-group-list .filtering-card>.filtering-fields,.admin-community-asset-policy-sets .filtering-card>.filtering-fields{grid-template-columns:1fr}.admin-page-community-series-list .admin-community-series-table :is(th,td:not(.admin-empty-state)):nth-child(2),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(3),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(6),.admin-page-community-series-list .admin-community-series-table :is(th,td):nth-child(7){display:none}.admin-page-community-series-list .admin-community-series-table .admin-table-actions-cell{min-width:14rem}.admin-page-community-series-list .admin-community-series-note-input{min-width:9rem;max-width:12rem}}
 @media (max-width:767px){.admin-community-asset-policy-sets .admin-community-asset-policy-set-search-grid{grid-template-columns:1fr}}
