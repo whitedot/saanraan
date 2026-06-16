@@ -74,7 +74,7 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 ## 서버별 처리
 
-Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/reset.css`, `/assets/theme.css`, `/assets/layout.css`, `/assets/module.css`, `/assets/ui-kit.css`, `/assets/ui-kit-layout.css`, `/modules/content/assets/reset.css`, `/modules/content/assets/layout.css`, `/modules/content/assets/module.css`, `/modules/community/assets/reset.css`, `/modules/community/assets/layout.css`, `/modules/community/assets/module.css`, `/modules/community/skins/compact/skin.css`, `/modules/quiz/assets/layout.css`, `/modules/survey/assets/layout.css`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/.gitignore`나 임의 storage 파일은 계속 막히는지도 확인한다.
+Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/reset.css`, `/assets/theme.css`, `/assets/layout.css`, `/assets/module.css`, `/assets/ui-kit.css`, `/assets/ui-kit-layout.css`, `/modules/content/assets/reset.css`, `/modules/content/assets/layout.css`, `/modules/content/assets/module.css`, `/modules/content/assets/layout.js`, `/modules/community/assets/reset.css`, `/modules/community/assets/layout.css`, `/modules/community/assets/module.css`, `/modules/community/skins/compact/skin.css`, `/modules/quiz/assets/layout.css`, `/modules/quiz/assets/layout.js`, `/modules/survey/assets/layout.css`, `/modules/survey/assets/layout.js`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/.gitignore`나 임의 storage 파일은 계속 막히는지도 확인한다.
 
 nginx는 PHP-FPM과 front controller 구성을 사용한다. 저장소의 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`, `/modules/{module_key}/skins/{skin_key}/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
 
@@ -93,13 +93,16 @@ nginx 적용 후 다음 응답을 확인한다.
 /modules/content/assets/reset.css 정적 CSS 응답
 /modules/content/assets/layout.css 정적 CSS 응답
 /modules/content/assets/module.css 정적 CSS 응답
+/modules/content/assets/layout.js 정적 JavaScript 응답
 /modules/community/assets/reset.css 정적 CSS 응답
 /modules/community/assets/layout.css 정적 CSS 응답
 /modules/community/assets/module.css 정적 CSS 응답
 /modules/community/assets/layout.js 정적 JavaScript 응답
 /modules/community/skins/compact/skin.css 정적 CSS 응답
 /modules/quiz/assets/layout.css 정적 CSS 응답
+/modules/quiz/assets/layout.js 정적 JavaScript 응답
 /modules/survey/assets/layout.css 정적 CSS 응답
+/modules/survey/assets/layout.js 정적 JavaScript 응답
 /modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js 정적 JavaScript 응답
 /login 또는 /admin 같은 가상 경로가 index.php를 통해 응답
 /database/core/install.sql 직접 접근 차단

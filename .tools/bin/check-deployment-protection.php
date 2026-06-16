@@ -149,13 +149,16 @@ foreach ([
     '/modules/content/assets/reset.css',
     '/modules/content/assets/layout.css',
     '/modules/content/assets/module.css',
+    '/modules/content/assets/layout.js',
     '/modules/community/assets/reset.css',
     '/modules/community/assets/layout.css',
     '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
     '/modules/community/skins/compact/skin.css',
     '/modules/quiz/assets/layout.css',
+    '/modules/quiz/assets/layout.js',
     '/modules/survey/assets/layout.css',
+    '/modules/survey/assets/layout.js',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {
     if ($doc !== '' && !str_contains($doc, $path)) {

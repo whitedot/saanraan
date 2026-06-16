@@ -35,17 +35,17 @@ $layoutFooterNavigationHtml = [];
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
-        'class' => 'public-layout-brand-logo public-layout-brand-logo-desktop',
+        'class' => 'quiz-layout-brand-logo quiz-layout-brand-logo-desktop',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
-            ? 'public-layout-brand-logo public-layout-brand-logo-mobile'
-            : 'public-layout-brand-logo',
+            ? 'quiz-layout-brand-logo quiz-layout-brand-logo-mobile'
+            : 'quiz-layout-brand-logo',
     ]);
     $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
-            'class' => 'public-layout-brand-logo public-layout-brand-symbol',
+            'class' => 'quiz-layout-brand-logo quiz-layout-brand-symbol',
         ]);
         if ($layoutBrandLogoHtml !== '') {
             $layoutBrandUsesPublicSymbol = true;
@@ -207,34 +207,34 @@ if (
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
-<body class="<?php echo sr_e(trim('public-layout-body ' . $layoutBodyClass)); ?>">
-    <header class="public-layout-header" data-public-scroll-header>
-        <a class="public-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+<body class="<?php echo sr_e(trim('quiz-layout-body ' . $layoutBodyClass)); ?>">
+    <header class="quiz-layout-header" data-quiz-scroll-header>
+        <a class="quiz-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
             <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
                 <?php echo $layoutMobileBrandLogoHtml; ?>
                 <?php echo $layoutBrandLogoHtml; ?>
                 <?php if ($layoutBrandUsesPublicSymbol) { ?>
-                    <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                    <span class="quiz-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             <?php } else { ?>
-                <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                <span class="quiz-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
-            <span class="public-layout-module-name"><?php echo sr_e('퀴즈'); ?></span>
+            <span class="quiz-layout-module-name"><?php echo sr_e('퀴즈'); ?></span>
         </a>
-        <nav class="public-layout-nav" aria-label="<?php echo sr_e('퀴즈 메뉴'); ?>">
+        <nav class="quiz-layout-nav" aria-label="<?php echo sr_e('퀴즈 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
-        <div class="public-layout-actions">
+        <div class="quiz-layout-actions">
             <?php if ($layoutNotificationEnabled) { ?>
-                <details class="public-layout-notification-menu">
-                    <summary class="public-layout-icon-button public-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
+                <details class="quiz-layout-notification-menu">
+                    <summary class="quiz-layout-icon-button quiz-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>notifications</span>
                         <?php if ((int) $layoutNotificationSummary['unread'] > 0) { ?>
-                            <span class="public-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
+                            <span class="quiz-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
                         <?php } ?>
                     </summary>
-                    <div class="public-layout-notification-dropdown">
-                        <div class="public-layout-notification-header">
+                    <div class="quiz-layout-notification-dropdown">
+                        <div class="quiz-layout-notification-header">
                             <strong><?php echo sr_e('알림'); ?></strong>
                             <?php if ($layoutNotificationHasAccount) { ?>
                                 <a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e('전체'); ?></a>
@@ -243,29 +243,29 @@ if (
                             <?php } ?>
                         </div>
                         <?php if (!$layoutNotificationHasAccount) { ?>
-                            <p class="public-layout-notification-empty"><?php echo sr_e('로그인 후 알림을 확인할 수 있습니다.'); ?></p>
+                            <p class="quiz-layout-notification-empty"><?php echo sr_e('로그인 후 알림을 확인할 수 있습니다.'); ?></p>
                         <?php } elseif ($layoutNotificationSummary['items'] === []) { ?>
-                            <p class="public-layout-notification-empty"><?php echo sr_e('새 알림이 없습니다.'); ?></p>
+                            <p class="quiz-layout-notification-empty"><?php echo sr_e('새 알림이 없습니다.'); ?></p>
                         <?php } else { ?>
-                            <div class="public-layout-notification-list">
+                            <div class="quiz-layout-notification-list">
                                 <?php foreach ($layoutNotificationSummary['items'] as $layoutNotification) { ?>
                                     <?php
                                     $layoutNotificationLinkAttributes = sr_notification_item_link_attributes($layoutNotification, (int) ($layoutCurrentAccount['id'] ?? 0), true);
                                     $layoutNotificationBody = trim(strip_tags((string) ($layoutNotification['body_text'] ?? '')));
                                     $layoutNotificationClass = (string) ($layoutNotification['status'] ?? '') === 'unread'
-                                        ? 'public-layout-notification-item is-unread'
-                                        : 'public-layout-notification-item';
+                                        ? 'quiz-layout-notification-item is-unread'
+                                        : 'quiz-layout-notification-item';
                                     ?>
                                     <?php if ($layoutNotificationLinkAttributes !== '') { ?>
                                         <a class="<?php echo sr_e($layoutNotificationClass); ?>"<?php echo $layoutNotificationLinkAttributes; ?>>
                                     <?php } else { ?>
                                         <div class="<?php echo sr_e($layoutNotificationClass); ?>">
                                     <?php } ?>
-                                        <span class="public-layout-notification-title"><?php echo sr_e((string) ($layoutNotification['title'] ?? '알림')); ?></span>
+                                        <span class="quiz-layout-notification-title"><?php echo sr_e((string) ($layoutNotification['title'] ?? '알림')); ?></span>
                                         <?php if ($layoutNotificationBody !== '') { ?>
-                                            <span class="public-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
+                                            <span class="quiz-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
                                         <?php } ?>
-                                        <span class="public-layout-notification-date"><?php echo sr_notification_time_html((string) ($layoutNotification['created_at'] ?? '')); ?></span>
+                                        <span class="quiz-layout-notification-date"><?php echo sr_notification_time_html((string) ($layoutNotification['created_at'] ?? '')); ?></span>
                                     <?php if ($layoutNotificationLinkAttributes !== '') { ?>
                                         </a>
                                     <?php } else { ?>
@@ -280,39 +280,39 @@ if (
             <?php if ($layoutMemberEnabled) { ?>
                 <?php if (is_array($layoutCurrentAccount)) { ?>
                     <?php if ($layoutAdminEnabled) { ?>
-                        <a class="public-layout-icon-button public-layout-admin-link" href="<?php echo sr_e($layoutAdminUrl); ?>" aria-label="<?php echo sr_e('관리자 모드'); ?>" title="<?php echo sr_e('관리자 모드'); ?>">
+                        <a class="quiz-layout-icon-button quiz-layout-admin-link" href="<?php echo sr_e($layoutAdminUrl); ?>" aria-label="<?php echo sr_e('관리자 모드'); ?>" title="<?php echo sr_e('관리자 모드'); ?>">
                             <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>settings</span>
                         </a>
                     <?php } ?>
-                    <details class="public-layout-member-menu">
-                        <summary class="public-layout-icon-button public-layout-member-link public-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
+                    <details class="quiz-layout-member-menu">
+                        <summary class="quiz-layout-icon-button quiz-layout-member-link quiz-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
                             <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
                             <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                            <span class="material-symbols-outlined public-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                            <span class="material-symbols-outlined quiz-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
                         </summary>
-                        <div class="public-layout-member-dropdown">
-                            <div class="public-layout-member-dropdown-header">
+                        <div class="quiz-layout-member-dropdown">
+                            <div class="quiz-layout-member-dropdown-header">
                                 <strong><?php echo sr_e($layoutMemberDisplayLabel); ?></strong>
                             </div>
-                            <a class="public-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>">
+                            <a class="quiz-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>">
                                 <span><?php echo sr_e('정보수정'); ?></span>
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
                             <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
-                                <a class="public-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>">
+                                <a class="quiz-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>">
                                     <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
                                 </a>
                             <?php } ?>
                             <?php foreach ($layoutMemberActionRows as $layoutMemberActionRow) { ?>
-                                <a class="public-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>">
+                                <a class="quiz-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>">
                                     <span><?php echo sr_e((string) ($layoutMemberActionRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberActionRow['value'] ?? '')); ?></strong>
                                 </a>
                             <?php } ?>
-                            <form class="public-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
+                            <form class="quiz-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
                                 <?php echo sr_csrf_field(); ?>
-                                <button class="public-layout-member-logout-button" type="submit">
+                                <button class="quiz-layout-member-logout-button" type="submit">
                                     <span><?php echo sr_e('로그아웃'); ?></span>
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
                                 </button>
@@ -320,26 +320,26 @@ if (
                         </div>
                     </details>
                 <?php } else { ?>
-                    <a class="public-layout-icon-button public-layout-member-link public-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
+                    <a class="quiz-layout-icon-button quiz-layout-member-link quiz-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>login</span>
                     </a>
                 <?php } ?>
             <?php } ?>
         </div>
     </header>
-    <div class="public-layout-main">
+    <div class="quiz-layout-main">
         <?php echo $layoutContent; ?>
     </div>
-    <footer class="public-layout-footer">
+    <footer class="quiz-layout-footer">
         <?php foreach ($layoutFooterNavigationHtml as $layoutFooterNavigationSlotKey => $layoutFooterNavigation) { ?>
-            <nav class="public-layout-footer-nav public-layout-footer-nav-<?php echo sr_e($layoutFooterNavigationSlotKey); ?>" aria-label="<?php echo sr_e((string) ($layoutFooterNavigation['label'] ?? '하단 메뉴')); ?>">
+            <nav class="quiz-layout-footer-nav quiz-layout-footer-nav-<?php echo sr_e($layoutFooterNavigationSlotKey); ?>" aria-label="<?php echo sr_e((string) ($layoutFooterNavigation['label'] ?? '하단 메뉴')); ?>">
                 <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
             </nav>
         <?php } ?>
         <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
-    <script src="<?php echo sr_e(sr_asset_url('/assets/public-layout.js')); ?>" defer></script>
+    <script src="<?php echo sr_e(sr_asset_url('/assets/quiz-layout.js')); ?>" defer></script>
     <?php echo $layoutPrivacyCookieConsentHtml; ?>
     <?php echo sr_pwa_registration_script(); ?>
 </body>

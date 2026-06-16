@@ -432,9 +432,9 @@ $checks = [
         'path' => '/modules/quiz/assets/layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '.public-layout-header',
-            '.public-layout-main',
-            '.public-layout-footer',
+            '.quiz-layout-header',
+            '.quiz-layout-main',
+            '.quiz-layout-footer',
         ],
     ],
     [
@@ -445,6 +445,33 @@ $checks = [
             '.survey-layout-header',
             '.survey-layout-main',
             '.survey-layout-footer',
+        ],
+    ],
+    [
+        'label' => 'content layout script',
+        'path' => '/modules/content/assets/layout.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '[data-content-scroll-header]',
+            'is-content-layout-header-hidden',
+        ],
+    ],
+    [
+        'label' => 'quiz layout script',
+        'path' => '/modules/quiz/assets/layout.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '[data-quiz-scroll-header]',
+            'is-quiz-layout-header-hidden',
+        ],
+    ],
+    [
+        'label' => 'survey layout script',
+        'path' => '/modules/survey/assets/layout.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '[data-survey-scroll-header]',
+            'is-survey-layout-header-hidden',
         ],
     ],
     [

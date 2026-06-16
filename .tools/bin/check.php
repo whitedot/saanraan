@@ -631,8 +631,19 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Module public stylesheet must not own skin selectors: ' . $moduleCssPath);
         }
 
-        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true) && !is_file('modules/' . $moduleKey . '/assets/layout.css')) {
-            sr_check_add_error('Module public layout stylesheet is missing: modules/' . $moduleKey . '/assets/layout.css');
+        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+            $moduleLayoutCssPath = 'modules/' . $moduleKey . '/assets/layout.css';
+            $moduleLayoutCss = is_file($moduleLayoutCssPath) ? file_get_contents($moduleLayoutCssPath) : false;
+            if (!is_string($moduleLayoutCss)) {
+                sr_check_add_error('Module public layout stylesheet is missing: ' . $moduleLayoutCssPath);
+            } else {
+                if (!str_contains($moduleLayoutCss, '.' . $moduleKey . '-layout-main')) {
+                    sr_check_add_error('Module public layout stylesheet is missing module layout selectors: ' . $moduleLayoutCssPath);
+                }
+                if ($moduleKey !== 'public' && str_contains($moduleLayoutCss, '.public-layout-')) {
+                    sr_check_add_error('Module public layout stylesheet must not use public layout selectors: ' . $moduleLayoutCssPath);
+                }
+            }
         }
 
         if ($moduleKey === 'quiz' && !is_file('modules/quiz/assets/skin.css')) {
