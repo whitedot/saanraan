@@ -856,7 +856,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="admin-form-row" data-admin-required-selection-mode="any">
                 <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                 <div class="admin-form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">

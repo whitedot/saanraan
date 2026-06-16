@@ -393,6 +393,150 @@ window.AdminShell = {
             return invalidControls.length === 0;
         };
 
+        const adminFormShouldValidateRequiredSelection = form => {
+            if (!form || !form.matches) {
+                return false;
+            }
+
+            return String(form.method || '').toLowerCase() === 'post';
+        };
+
+        const adminValidationElementVisible = element => {
+            if (!element || !element.closest) {
+                return false;
+            }
+            if (element.hidden || element.closest('[hidden]')) {
+                return false;
+            }
+
+            return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+        };
+
+        const adminRequiredSelectionRows = form => {
+            const rows = [];
+            Array.prototype.slice.call(form.querySelectorAll('.sr-required-label')).forEach(requiredLabel => {
+                if (!adminValidationElementVisible(requiredLabel)) {
+                    return;
+                }
+
+                const row = requiredLabel.closest('[data-admin-required-selection-root], .admin-form-row, .admin-setting-unit, fieldset, .admin-form-field') || requiredLabel.parentElement;
+                if (row && !rows.includes(row)) {
+                    rows.push(row);
+                }
+            });
+
+            return rows;
+        };
+
+        const adminRequiredSelectionLabel = row => {
+            const label = row.querySelector('.form-label') || row.querySelector('legend') || row.querySelector('label') || row;
+            const text = String(label.textContent || '').replace(/\(필수\)/g, '').replace(/\s+/g, ' ').trim();
+            return text || '필수 항목';
+        };
+
+        const adminSelectHasValue = select => {
+            if (select.multiple) {
+                return Array.prototype.slice.call(select.selectedOptions || []).some(option => String(option.value || '').trim() !== '');
+            }
+
+            return String(select.value || '').trim() !== '';
+        };
+
+        const adminSelectionControlEnabled = control => control
+            && !control.disabled
+            && adminValidationElementVisible(control);
+
+        const adminChoiceGroups = (row, form) => {
+            const groups = new Map();
+            Array.prototype.slice.call(row.querySelectorAll('input[type="checkbox"], input[type="radio"]')).filter(adminSelectionControlEnabled).forEach(control => {
+                const key = control.name || control.id || '';
+                if (key === '') {
+                    return;
+                }
+                if (!groups.has(key)) {
+                    groups.set(key, []);
+                }
+                groups.get(key).push(control);
+            });
+
+            return Array.prototype.slice.call(groups.entries()).map(entry => {
+                const name = entry[0];
+                const controls = entry[1];
+                const escapedName = window.CSS && typeof window.CSS.escape === 'function' ? window.CSS.escape(name) : name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                const sameNameControls = name !== ''
+                    ? Array.prototype.slice.call(form.querySelectorAll('input[name="' + escapedName + '"]')).filter(adminSelectionControlEnabled)
+                    : controls;
+                return sameNameControls.length > controls.length ? sameNameControls : controls;
+            });
+        };
+
+        const adminRequiredSelectionMissing = (row, form) => {
+            const mode = row.getAttribute('data-admin-required-selection-mode') === 'any' ? 'any' : 'all';
+            const selects = Array.prototype.slice.call(row.querySelectorAll('select')).filter(adminSelectionControlEnabled);
+            const choiceGroups = adminChoiceGroups(row, form);
+            const badgeValues = Array.prototype.slice.call(row.querySelectorAll('[data-admin-select-badge-value]')).filter(element => String(element.value || element.getAttribute('data-admin-select-badge-value') || '').trim() !== '');
+            const checks = [];
+
+            if (badgeValues.length > 0) {
+                return false;
+            }
+
+            if (selects.length > 0) {
+                if (mode === 'any') {
+                    checks.push(selects.some(adminSelectHasValue));
+                } else {
+                    selects.forEach(select => {
+                        checks.push(adminSelectHasValue(select));
+                    });
+                }
+            }
+            choiceGroups.forEach(group => {
+                checks.push(group.some(control => control.checked));
+            });
+
+            return checks.length > 0 && !checks.every(Boolean);
+        };
+
+        const markAdminRequiredSelectionRow = row => {
+            Array.prototype.slice.call(row.querySelectorAll('select')).filter(adminSelectionControlEnabled).forEach(control => {
+                control.classList.add(validationInvalidClass(control));
+                control.setAttribute('aria-invalid', 'true');
+            });
+            Array.prototype.slice.call(row.querySelectorAll('input[type="checkbox"], input[type="radio"]')).filter(adminSelectionControlEnabled).forEach(control => {
+                control.classList.add(validationInvalidClass(control));
+                control.setAttribute('aria-invalid', 'true');
+            });
+        };
+
+        const clearAdminRequiredSelectionRows = form => {
+            adminRequiredSelectionRows(form).forEach(row => {
+                Array.prototype.slice.call(row.querySelectorAll('select, input[type="checkbox"], input[type="radio"]')).forEach(clearValidationState);
+            });
+        };
+
+        const validateAdminRequiredSelections = form => {
+            if (!adminFormShouldValidateRequiredSelection(form)) {
+                return true;
+            }
+
+            clearAdminRequiredSelectionRows(form);
+
+            const missingRow = adminRequiredSelectionRows(form).find(row => adminRequiredSelectionMissing(row, form));
+            if (!missingRow) {
+                return true;
+            }
+
+            markAdminRequiredSelectionRow(missingRow);
+            const label = adminRequiredSelectionLabel(missingRow);
+            window.alert(label + '을(를) 선택해 주세요.');
+            const focusTarget = missingRow.querySelector('select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled)');
+            if (focusTarget && typeof focusTarget.focus === 'function') {
+                focusTarget.focus({ preventScroll: true });
+            }
+            missingRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            return false;
+        };
+
         const cssNumberValue = value => {
             const number = parseFloat(String(value || '0'));
             return Number.isFinite(number) ? number : 0;
@@ -1721,6 +1865,12 @@ window.AdminShell = {
             syncBodyEditorValuesBeforeSubmit(event.target);
             syncBodyEditorGroups(event.target);
             if (validationForm && (!validationForm.checkValidity() || !validateSrForm(validationForm, true))) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            if (!validateAdminRequiredSelections(event.target)) {
                 event.preventDefault();
                 event.stopPropagation();
                 return;

@@ -277,7 +277,7 @@ $communitySettingsSectionNavItems = [
                     <p class="admin-form-help">게시판 개별 설정이나 게시판 그룹 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="admin-form-row" data-admin-required-selection-mode="any">
                 <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo !empty($settings['privacy_consent_enabled']) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                 <div class="admin-form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">

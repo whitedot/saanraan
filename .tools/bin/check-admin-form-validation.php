@@ -17,6 +17,9 @@ $files = [
         'aria-invalid' => 'Admin shell must expose invalid state to assistive technology.',
         'aria-describedby' => 'Admin shell must connect controls with validation notes.',
         'validation-error-note' => 'Admin shell must render validation notes with the shared class.',
+        'validateAdminRequiredSelections' => 'Admin shell must block missing required selection groups before admin POST submission.',
+        'data-admin-required-selection-mode' => 'Admin shell must support explicit required selection group modes.',
+        'fieldset' => 'Admin shell must detect required checkbox groups rendered as fieldsets.',
     ],
     'modules/site_menu/views/admin-site-menus.php' => [
         'data-sr-validate-form' => 'Site menu modals must opt in to admin form validation.',
@@ -34,6 +37,22 @@ $files = [
         'data-admin-subject-form' => 'Banner form must keep conditional subject validation handling.',
         'subject && exact && scopeVisible && exact.checked' => 'Banner subject required state must be based on the subject control.',
         'data-admin-target-detail-required' => 'Banner target detail required label must stay conditional.',
+    ],
+    'modules/community/views/admin-settings.php' => [
+        'data-admin-required-selection-mode="any"' => 'Community settings consent target row must require at least one document selection on the client.',
+        'data-community-privacy-consent-required' => 'Community settings consent required label must stay conditional.',
+    ],
+    'modules/community/views/admin-board-groups.php' => [
+        'data-admin-required-selection-mode="any"' => 'Community board group consent target row must require at least one document selection on the client.',
+        'data-community-privacy-consent-required' => 'Community board group consent required label must stay conditional.',
+    ],
+    'modules/community/views/admin-boards.php' => [
+        'data-admin-required-selection-mode="any"' => 'Community board consent target row must require at least one document selection on the client.',
+        'data-community-privacy-consent-required' => 'Community board consent required label must stay conditional.',
+    ],
+    'modules/reaction/views/admin-reactions.php' => [
+        '<legend>리액션 key <span class="sr-required-label">(필수)</span></legend>' => 'Reaction preset key checkbox groups must keep the required legend marker.',
+        'name="reaction_keys[]"' => 'Reaction preset key checkbox groups must submit selected reaction keys.',
     ],
 ];
 
