@@ -20,17 +20,6 @@ function sr_community_publisher_reward_status_label(string $status): string
     };
 }
 
-function sr_community_publisher_reward_config(PDO $pdo, array $board, array $settings): array
-{
-    $enabled = sr_community_asset_bool_config($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_enabled');
-    $rate = (int) sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_rate', (string) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0));
-
-    return [
-        'enabled' => $enabled,
-        'rate' => min(100, max(0, $rate)),
-    ];
-}
-
 function sr_community_publisher_reward_filters_from_request(): array
 {
     $status = sr_get_string('status', 20);

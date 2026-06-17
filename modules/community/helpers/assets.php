@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
-require_once SR_ROOT . '/modules/community/helpers/publisher-rewards.php';
 
 function sr_community_asset_modules(?PDO $pdo = null): array
 {
@@ -920,6 +919,17 @@ function sr_community_asset_prefix_setting_keys(string $prefix): array
 function sr_community_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
+}
+
+function sr_community_publisher_reward_config(PDO $pdo, array $board, array $settings): array
+{
+    $enabled = sr_community_asset_bool_config($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_enabled');
+    $rate = (int) sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_rate', (string) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0));
+
+    return [
+        'enabled' => $enabled,
+        'rate' => min(100, max(0, $rate)),
+    ];
 }
 
 function sr_community_asset_prefix_from_setting_key(string $settingKey): string

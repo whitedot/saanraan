@@ -340,6 +340,7 @@ function sr_check_module_contract_files(): void
         'antispam-providers.php',
         'oauth-providers.php',
         'embed-manager-targets.php',
+        'reaction-targets.php',
     ];
     $requiredConsumes = [
         'admin' => [
