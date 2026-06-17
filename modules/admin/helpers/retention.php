@@ -624,15 +624,31 @@ function sr_admin_retention_query_params(array $paramCutoffKeys, array $cutoffs)
     return $params;
 }
 
-function sr_admin_retention_module_backup_dirs(string $cutoff): array
+function sr_admin_module_backup_root(): string
 {
-    $backupRoot = SR_ROOT . '/storage/module-backups';
-    if (!is_dir($backupRoot)) {
-        return [];
+    return SR_ROOT . '/storage/module-backups';
+}
+
+function sr_admin_module_backup_dir_is_safe(string $directory): bool
+{
+    if ($directory === '' || is_link($directory) || !is_dir($directory)) {
+        return false;
     }
 
-    $cutoffTime = strtotime($cutoff);
-    if ($cutoffTime === false) {
+    $backupRoot = sr_admin_module_backup_root();
+    $realRoot = realpath($backupRoot);
+    $realDirectory = realpath($directory);
+    if ($realRoot === false || $realDirectory === false) {
+        return false;
+    }
+
+    return $realDirectory !== $realRoot && strpos($realDirectory, $realRoot . DIRECTORY_SEPARATOR) === 0;
+}
+
+function sr_admin_module_backup_dirs(): array
+{
+    $backupRoot = sr_admin_module_backup_root();
+    if (!is_dir($backupRoot)) {
         return [];
     }
 
@@ -641,8 +657,26 @@ function sr_admin_retention_module_backup_dirs(string $cutoff): array
         return [];
     }
 
-    $oldDirectories = [];
+    $safeDirectories = [];
     foreach ($directories as $directory) {
+        if (sr_admin_module_backup_dir_is_safe($directory)) {
+            $safeDirectories[] = $directory;
+        }
+    }
+
+    sort($safeDirectories, SORT_STRING);
+    return $safeDirectories;
+}
+
+function sr_admin_retention_module_backup_dirs(string $cutoff): array
+{
+    $cutoffTime = strtotime($cutoff);
+    if ($cutoffTime === false) {
+        return [];
+    }
+
+    $oldDirectories = [];
+    foreach (sr_admin_module_backup_dirs() as $directory) {
         $modifiedAt = filemtime($directory);
         if ($modifiedAt !== false && $modifiedAt < $cutoffTime) {
             $oldDirectories[] = $directory;

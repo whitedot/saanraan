@@ -603,23 +603,14 @@ function sr_admin_dashboard_recovery_markers(): array
 
 function sr_admin_dashboard_module_backup_summary(): array
 {
-    $backupRoot = SR_ROOT . '/storage/module-backups';
     $summary = [
         'count' => 0,
         'latest_name' => '',
         'latest_modified_at' => '',
     ];
-    if (!is_dir($backupRoot)) {
-        return $summary;
-    }
-
-    $directories = glob($backupRoot . '/*', GLOB_ONLYDIR);
-    if (!is_array($directories)) {
-        return $summary;
-    }
 
     $latestTime = 0;
-    foreach ($directories as $directory) {
+    foreach (sr_admin_module_backup_dirs() as $directory) {
         $summary['count']++;
         $modifiedAt = filemtime($directory);
         if ($modifiedAt !== false && $modifiedAt > $latestTime) {

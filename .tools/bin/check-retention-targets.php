@@ -15,6 +15,32 @@ function sr_retention_check_error(array &$errors, string $message): void
     $errors[] = $message;
 }
 
+function sr_retention_check_remove_path(string $path): void
+{
+    if (is_link($path) || is_file($path)) {
+        unlink($path);
+        return;
+    }
+
+    if (!is_dir($path)) {
+        return;
+    }
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($items as $item) {
+        if ($item->isDir() && !$item->isLink()) {
+            rmdir($item->getPathname());
+        } else {
+            unlink($item->getPathname());
+        }
+    }
+
+    rmdir($path);
+}
+
 $expectedKeys = [
     'auth_logs',
     'audit_logs',
@@ -191,8 +217,52 @@ if (!is_string($retentionHelper)) {
 } elseif (
     strpos($retentionHelper, 'sr_admin_post_int_in_range($key, 1, 3650, 5) ?? 0') === false
     || strpos($retentionHelper, "(int) sr_post_string('auth_logs_days', 5)") !== false
+    || strpos($retentionHelper, 'function sr_admin_module_backup_dir_is_safe') === false
+    || strpos($retentionHelper, 'is_link($directory)') === false
+    || strpos($retentionHelper, 'strpos($realDirectory, $realRoot . DIRECTORY_SEPARATOR) === 0') === false
 ) {
-    sr_retention_check_error($errors, 'Retention post values must reject malformed or out-of-range raw day inputs.');
+    sr_retention_check_error($errors, 'Retention post values and module backup directory filters must stay safe.');
+}
+
+$backupRoot = sr_admin_module_backup_root();
+$backupFixtureSuffix = bin2hex(random_bytes(4));
+$safeBackupDir = $backupRoot . '/retention_safe_' . $backupFixtureSuffix;
+$unsafeTargetDir = sys_get_temp_dir() . '/sr-retention-unsafe-' . $backupFixtureSuffix;
+$unsafeBackupLink = $backupRoot . '/retention_unsafe_' . $backupFixtureSuffix;
+try {
+    if (!is_dir($backupRoot) && !mkdir($backupRoot, 0777, true) && !is_dir($backupRoot)) {
+        sr_retention_check_error($errors, 'Retention backup fixture root cannot be created.');
+    } else {
+        mkdir($safeBackupDir, 0777, true);
+        file_put_contents($safeBackupDir . '/marker.txt', 'safe');
+        touch($safeBackupDir, strtotime('2026-01-01 00:00:00'));
+
+        mkdir($unsafeTargetDir, 0777, true);
+        file_put_contents($unsafeTargetDir . '/marker.txt', 'unsafe');
+        $symlinkCreated = symlink($unsafeTargetDir, $unsafeBackupLink);
+
+        $backupDirs = sr_admin_module_backup_dirs();
+        if (!in_array($safeBackupDir, $backupDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module backup fixture did not include a safe backup directory.');
+        }
+
+        if ($symlinkCreated && in_array($unsafeBackupLink, $backupDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module backup fixture included an unsafe symlink directory.');
+        }
+
+        $oldBackupDirs = sr_admin_retention_module_backup_dirs('2026-01-02 00:00:00');
+        if (!in_array($safeBackupDir, $oldBackupDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module backup cutoff fixture did not include an old safe backup directory.');
+        }
+
+        if ($symlinkCreated && in_array($unsafeBackupLink, $oldBackupDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module backup cutoff fixture included an unsafe symlink directory.');
+        }
+    }
+} finally {
+    sr_retention_check_remove_path($unsafeBackupLink);
+    sr_retention_check_remove_path($safeBackupDir);
+    sr_retention_check_remove_path($unsafeTargetDir);
 }
 
 if ($errors !== []) {
