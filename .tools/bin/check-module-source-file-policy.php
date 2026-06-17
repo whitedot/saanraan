@@ -45,6 +45,38 @@ function sr_check_module_source_policy_write_file(string $root, string $relative
     file_put_contents($path, 'fixture');
 }
 
+function sr_check_module_source_policy_write_module(string $moduleKey, string $route): void
+{
+    $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+    if (!is_dir($moduleDir . '/actions') && !mkdir($moduleDir . '/actions', 0777, true) && !is_dir($moduleDir . '/actions')) {
+        throw new RuntimeException('Cannot create fixture module directory: ' . $moduleDir);
+    }
+
+    file_put_contents(
+        $moduleDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => '" . $moduleKey . "',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "    'contracts' => [\n"
+        . "        'provides' => ['paths.php'],\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    file_put_contents(
+        $moduleDir . '/paths.php',
+        "<?php\nreturn [\n"
+        . "    '" . $route . "' => 'actions/page.php',\n"
+        . "];\n"
+    );
+    file_put_contents($moduleDir . '/actions/page.php', "<?php\n");
+}
+
 function sr_check_module_source_policy_create_test_zip(string $root, string $zipPath): void
 {
     $zip = new ZipArchive();
@@ -589,6 +621,66 @@ try {
                 fwrite(STDERR, 'Multi-module upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
                 exit(1);
             }
+        }
+    }
+
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, version TEXT NOT NULL, status TEXT NOT NULL)');
+
+    $existingModuleKey = 'zip_policy_existing_' . strtolower(bin2hex(random_bytes(3)));
+    $candidateModuleKey = 'zip_policy_candidate_' . strtolower(bin2hex(random_bytes(3)));
+    $inactiveCandidateModuleKey = 'zip_policy_inactive_' . strtolower(bin2hex(random_bytes(3)));
+    $fixtureModuleKeys = [$existingModuleKey, $candidateModuleKey, $inactiveCandidateModuleKey];
+
+    try {
+        sr_check_module_source_policy_write_module($existingModuleKey, 'GET /zip-policy/*');
+        $candidateDir = $fixtureRoot . '/candidate-source';
+        mkdir($candidateDir . '/actions', 0777, true);
+        sr_check_module_source_policy_write_file($candidateDir, 'install.sql');
+        sr_check_module_source_policy_write_file($candidateDir, 'actions/page.php');
+        file_put_contents(
+            $candidateDir . '/paths.php',
+            "<?php\nreturn [\n"
+            . "    'GET /zip-policy/new' => 'actions/page.php',\n"
+            . "];\n"
+        );
+
+        foreach ([
+            [$existingModuleKey, '2026.06.001', 'enabled'],
+            [$candidateModuleKey, '2026.06.001', 'enabled'],
+            [$inactiveCandidateModuleKey, '2026.06.001', 'disabled'],
+        ] as $row) {
+            $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, version, status) VALUES (:module_key, :version, :status)');
+            $stmt->execute([
+                'module_key' => $row[0],
+                'version' => $row[1],
+                'status' => $row[2],
+            ]);
+        }
+
+        $conflictErrors = sr_module_source_route_conflict_errors($pdo, $candidateModuleKey, $candidateDir);
+        $foundConflict = false;
+        foreach ($conflictErrors as $error) {
+            if (str_contains($error, $existingModuleKey) && str_contains($error, 'GET /zip-policy/new') && str_contains($error, 'GET /zip-policy/*')) {
+                $foundConflict = true;
+                break;
+            }
+        }
+
+        if (!$foundConflict) {
+            fwrite(STDERR, "Enabled module replacement route conflict was not rejected:\n" . implode("\n", $conflictErrors) . "\n");
+            exit(1);
+        }
+
+        $inactiveConflictErrors = sr_module_source_route_conflict_errors($pdo, $inactiveCandidateModuleKey, $candidateDir);
+        if ($inactiveConflictErrors !== []) {
+            fwrite(STDERR, "Inactive module replacement route conflict should not be rejected before activation:\n" . implode("\n", $inactiveConflictErrors) . "\n");
+            exit(1);
+        }
+    } finally {
+        foreach ($fixtureModuleKeys as $fixtureModuleKey) {
+            sr_check_module_source_policy_remove_dir(SR_ROOT . '/modules/' . $fixtureModuleKey);
         }
     }
 } finally {
