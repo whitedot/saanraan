@@ -14,6 +14,27 @@ require_once SR_ROOT . '/core/helpers/ops.php';
 require_once SR_ROOT . '/core/helpers/output.php';
 require_once SR_ROOT . '/modules/admin/helpers/action-results.php';
 
+function sr_member_reauth_throttle_status(PDO $pdo, int $accountId): array
+{
+    return ['limited' => false, 'reason' => ''];
+}
+
+function sr_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, string $result): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_member_auth_logs (account_id, event_type, result, ip_address, user_agent, created_at)
+         VALUES (:account_id, :event_type, :result, :ip_address, :user_agent, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'event_type' => $eventType,
+        'result' => $result,
+        'ip_address' => sr_client_ip(),
+        'user_agent' => sr_client_user_agent(),
+        'created_at' => sr_now(),
+    ]);
+}
+
 function sr_save_site_setting(PDO $pdo, string $key, string $value, string $valueType = 'string'): void
 {
     $now = sr_now();
@@ -62,6 +83,17 @@ $pdo->exec(
         user_agent TEXT NOT NULL,
         message TEXT NOT NULL,
         metadata_json TEXT NULL,
+        created_at TEXT NOT NULL
+    )'
+);
+$pdo->exec(
+    'CREATE TABLE sr_member_auth_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NULL,
+        event_type TEXT NOT NULL,
+        result TEXT NOT NULL,
+        ip_address TEXT NOT NULL DEFAULT "",
+        user_agent TEXT NULL,
         created_at TEXT NOT NULL
     )'
 );
@@ -127,6 +159,97 @@ if (
     || $metadata['validation_errors'] === []
 ) {
     fwrite(STDERR, "Module upload preflight failure audit metadata is incomplete.\n");
+    exit(1);
+}
+
+$ownerPassword = 'module-source-runtime-password';
+$ownerAccount = [
+    'id' => 1,
+    'password_hash' => password_hash($ownerPassword, PASSWORD_DEFAULT),
+];
+
+$_POST = [
+    'intent' => 'enable_module_source_writes',
+    'owner_password' => $ownerPassword,
+];
+
+$result = sr_admin_handle_modules_post(
+    $pdo,
+    $ownerAccount,
+    true,
+    [],
+    ['enabled', 'disabled'],
+    ['enabled', 'disabled'],
+    false,
+    false
+);
+
+$setting = $pdo
+    ->query("SELECT setting_value, value_type FROM sr_site_settings WHERE setting_key = 'admin.module_sources_enabled'")
+    ->fetch(PDO::FETCH_ASSOC);
+$log = $pdo
+    ->query('SELECT event_type, result, message, metadata_json FROM sr_audit_logs ORDER BY id DESC LIMIT 1')
+    ->fetch(PDO::FETCH_ASSOC);
+
+if (!is_array($result) || ($result['errors'] ?? []) !== []) {
+    fwrite(STDERR, "Module source enable should succeed with owner reauthentication.\n");
+    exit(1);
+}
+
+if (!is_array($setting) || $setting['setting_value'] !== '1' || $setting['value_type'] !== 'bool') {
+    fwrite(STDERR, "Module source enable should save a bool true setting.\n");
+    exit(1);
+}
+
+if (
+    !is_array($log)
+    || $log['event_type'] !== 'module.source.enabled'
+    || $log['result'] !== 'success'
+    || $log['message'] !== 'Module source writes enabled temporarily.'
+) {
+    fwrite(STDERR, "Module source enable should write a success audit log.\n");
+    exit(1);
+}
+
+$_POST = [
+    'intent' => 'disable_module_source_writes',
+];
+
+$result = sr_admin_handle_modules_post(
+    $pdo,
+    $ownerAccount,
+    true,
+    [],
+    ['enabled', 'disabled'],
+    ['enabled', 'disabled'],
+    false,
+    true
+);
+
+$setting = $pdo
+    ->query("SELECT setting_value, value_type FROM sr_site_settings WHERE setting_key = 'admin.module_sources_enabled'")
+    ->fetch(PDO::FETCH_ASSOC);
+$log = $pdo
+    ->query('SELECT event_type, result, message FROM sr_audit_logs ORDER BY id DESC LIMIT 1')
+    ->fetch(PDO::FETCH_ASSOC);
+
+if (!is_array($result) || ($result['errors'] ?? []) !== []) {
+    fwrite(STDERR, "Module source disable should succeed for owners.\n");
+    exit(1);
+}
+
+if (!is_array($setting) || $setting['setting_value'] !== '0' || $setting['value_type'] !== 'bool') {
+    fwrite(STDERR, "Module source disable should save a bool false setting.\n");
+    exit(1);
+}
+
+if (
+    !is_array($log)
+    || $log['event_type'] !== 'module.source.disabled'
+    || $log['result'] !== 'success'
+    || $log['message'] !== 'Module source writes disabled.'
+) {
+    fwrite(STDERR, "Module source disable should write a success audit log.\n");
     exit(1);
 }
 
