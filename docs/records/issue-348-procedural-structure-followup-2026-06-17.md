@@ -10,7 +10,7 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/quiz/helpers.php` | 3,446 | 퀴즈 공개/관리자/응시/스킨 helper가 함께 있음. 댓글/멘션, 보상 provider/지급/회수/쿠폰 참조 helper는 별도 파일로 분리함 | 높음 |
+| `modules/quiz/helpers.php` | 2,743 | 퀴즈 공개/관리자/스킨 helper가 함께 있음. 응시/채점, 댓글/멘션, 보상 provider/지급/회수/쿠폰 참조 helper는 별도 파일로 분리함 | 높음 |
 | `modules/community/helpers/posts.php` | 3,334 | 게시글 조회, 렌더링, 권한, 상태 helper가 함께 있음 | 높음 |
 | `modules/notification/helpers.php` | 2,891 | 발송 상태, 외부 채널, 암호화, push endpoint, 관리자 기록 helper가 함께 있음 | 높음 |
 | `modules/content/helpers/assets.php` | 2,483 | 콘텐츠 유료 접근, 권한, 자산 로그, 결제/환불 helper가 함께 있음 | 높음 |
@@ -52,10 +52,11 @@
 - `modules/content/helpers.php`의 콘텐츠 그룹, 그룹 설정, 그룹 scope 적용, 그룹 삭제 참조 helper를 `modules/content/helpers/groups.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/quiz/helpers.php`의 보상 provider, 보상 지급/재시도/회수, 쿠폰 보상 정의/참조 helper를 `modules/quiz/helpers/rewards.php`로 분리했다.
 - `modules/quiz/helpers.php`의 댓글 조회/입력/권한, 댓글 멘션 알림, 관리자 댓글 조회 helper를 `modules/quiz/helpers/comments.php`로 분리했다.
+- `modules/quiz/helpers.php`의 응시 가능 여부, 응시 저장, 채점, 결과 선택/스냅샷 helper를 `modules/quiz/helpers/attempts.php`로 분리했다.
 
 ## 후속 후보
 
-1. `modules/quiz/helpers.php`는 보상/응시/관리자 설정/스킨 helper 경계를 확인한 뒤 분리한다.
+1. `modules/quiz/helpers.php`는 관리자 설정/저장, 공개 조회, 스킨 helper 경계를 확인한 뒤 추가 분리한다.
 2. `modules/community/helpers/posts.php`는 공개 조회/작성 권한/상태 라벨/관리자 보조 helper 경계를 확인한다.
 3. `modules/notification/helpers.php`는 외부 발송 채널/secret 암호화/push endpoint/관리자 기록 helper를 나눌 후보를 표시한다.
 4. `modules/content/helpers/assets.php`는 접근 권한, 자산 로그, 환불/취소, 관리자 조회 helper를 나눌 후보를 표시한다.
