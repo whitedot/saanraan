@@ -3,6 +3,7 @@
 
   var SCROLL_NAV_SELECTOR = '[data-community-scroll-nav]';
   var HIDDEN_CLASS = 'is-community-layout-nav-hidden';
+  var STUCK_CLASS = 'is-community-layout-nav-stuck';
   var MIN_DELTA = 4;
   var TOP_OFFSET = 8;
 
@@ -18,6 +19,8 @@
       var currentY = getScrollY();
       var delta = currentY - lastY;
       var hideAfter = Math.max(nav.offsetHeight + 16, 76);
+
+      nav.classList.toggle(STUCK_CLASS, currentY > TOP_OFFSET);
 
       if (currentY <= TOP_OFFSET) {
         nav.classList.remove(HIDDEN_CLASS);

@@ -94,7 +94,7 @@
 }
 
 .sr-survey-card-meta {
-    color: #697386;
+    color: var(--sr-muted, #47505c);
     font-size: .72rem;
     line-height: 1.3;
     margin: 0 0 10px;
@@ -116,7 +116,7 @@
 }
 
 .sr-survey-card-summary {
-    color: #3b424d;
+    color: var(--sr-muted, #47505c);
     font-size: .86rem;
     line-height: 1.5;
     margin: 14px 0 0;
@@ -146,7 +146,7 @@
 }
 
 .sr-survey-card-footer time {
-    color: #687386;
+    color: var(--sr-muted, #47505c);
     flex: 0 0 auto;
     font-size: .72rem;
     line-height: 1;
@@ -395,12 +395,12 @@
 }
 
 /* Shared mention UI used by this module comment flows. */
-.sr-mention-list{background:var(--color-card,#fff);border:1px solid color-mix(in oklab,var(--color-default-500,#777) 24%,transparent);border-radius:8px;box-shadow:0 10px 24px #0000001f;color:var(--text-strong,#242424);display:grid;gap:2px;max-height:240px;overflow:auto;padding:4px;position:fixed;z-index:1200}
+.sr-mention-list{background:var(--sr-surface,var(--color-card,#fff));border:1px solid color-mix(in oklab,var(--color-default-500,#777) 24%,transparent);border-radius:8px;box-shadow:0 10px 24px #0000001f;color:var(--sr-text,var(--text-strong,#242424));display:grid;gap:2px;max-height:240px;overflow:auto;padding:4px;position:fixed;z-index:1200}
 .sr-mention-list[hidden]{display:none}
 .sr-mention-option{align-items:center;background:transparent;border-radius:6px;color:inherit;display:flex;gap:8px;justify-content:space-between;min-height:36px;padding:7px 9px;text-align:left;width:100%}
 .sr-mention-option:is(:hover,.is-active){background:color-mix(in oklab,var(--color-primary,#2563eb) 10%,transparent)}
 .sr-mention-option span{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sr-mention-option code{color:var(--text-muted,#666);font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold);white-space:nowrap}
-.sr-mention-empty{color:var(--text-muted,#666);font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
-.sr-mention{border-radius:4px;color:var(--text-strong,#242424);font-weight:var(--font-weight-semibold)}
-.sr-mention-prefix{color:var(--text-muted,#666);font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size:.92em;font-weight:var(--font-weight-medium);margin-left:1px}
+.sr-mention-option code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold);white-space:nowrap}
+.sr-mention-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
+.sr-mention{border-radius:4px;color:var(--sr-text,var(--text-strong,#242424));font-weight:var(--font-weight-semibold)}
+.sr-mention-prefix{color:var(--sr-muted,var(--text-muted,#666));font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size:.92em;font-weight:var(--font-weight-medium);margin-left:1px}

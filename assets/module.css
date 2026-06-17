@@ -77,7 +77,7 @@
     width: 3rem;
     height: 3rem;
     font-size: 2.35rem;
-    color: #111111;
+    color: var(--sr-text, #20242a);
     background: transparent;
     opacity: .78;
 }

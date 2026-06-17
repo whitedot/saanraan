@@ -3,6 +3,7 @@
 
   var HEADER_SELECTOR = '[data-survey-scroll-header]';
   var HIDDEN_CLASS = 'is-survey-layout-header-hidden';
+  var STUCK_CLASS = 'is-survey-layout-header-stuck';
   var MIN_DELTA = 4;
   var TOP_OFFSET = 8;
 
@@ -18,6 +19,8 @@
       var currentY = getScrollY();
       var delta = currentY - lastY;
       var hideAfter = Math.max(header.offsetHeight + 16, 76);
+
+      header.classList.toggle(STUCK_CLASS, currentY > TOP_OFFSET);
 
       if (currentY <= TOP_OFFSET) {
         header.classList.remove(HIDDEN_CLASS);
