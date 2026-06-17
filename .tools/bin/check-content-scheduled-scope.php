@@ -57,9 +57,9 @@ if (!is_string($action)) {
     }
 }
 
-$helper = file_get_contents($root . '/modules/content/helpers.php');
+$helper = file_get_contents($root . '/modules/content/helpers/groups.php');
 if (!is_string($helper)) {
-    $errors[] = 'Content helper cannot be read.';
+    $errors[] = 'Content group helper cannot be read.';
 } else {
     foreach ([
         'sr_content_apply_scope_target_ids',
@@ -68,7 +68,7 @@ if (!is_string($helper)) {
         'sr_content_apply_setting_scope',
     ] as $functionName) {
         if (sr_check_function_body($helper, $functionName) === '') {
-            $errors[] = 'Content helper function is missing: ' . $functionName;
+            $errors[] = 'Content group helper function is missing: ' . $functionName;
         }
     }
 
