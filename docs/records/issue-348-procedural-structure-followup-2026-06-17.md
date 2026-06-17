@@ -10,7 +10,6 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/survey/helpers.php` | 2,364 | 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper가 함께 있음 | 높음 |
 | `modules/community/helpers/boards.php` | 1,990 | 게시판/그룹 설정, 목록 조회, 저장, 표시 row helper가 함께 있음 | 중간 |
 | `modules/survey/actions/admin-surveys.php` | 1,663 | 설문 저장 입력, 문항 교체, 보상 정책 저장, 감사 payload가 긴 action에 함께 있음 | 높음 |
 | `modules/reaction/helpers.php` | 1,618 | 반응 대상 해석, preset/definition 관리, 기록, 알림 helper가 함께 있음 | 중간 |
@@ -31,6 +30,9 @@
 | `modules/notification/helpers.php` | 1,014 | 알림 설정, 템플릿, 계정 이벤트, 일반 알림 생성 helper만 남김. delivery runner와 관리자 알림 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/notification/helpers/deliveries.php` | 1,285 | 알림 delivery 상태, secret 암호화, 외부 push endpoint, email/external 발송 runner helper를 맡음 | 낮음 |
 | `modules/content/helpers.php` | 1,256 | 콘텐츠 공통 설정, 공개 렌더링, 관리자 목록 helper만 남김. 커버 이미지, 그룹/그룹 설정, 회원 제출/작성자 신청, 외부 참조, 레코드 변경 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/survey/helpers.php` | 1,085 | 설문 기본 설정, 공개 조회, 통계/export helper만 남김. 댓글/멘션/관리자 댓글과 응답 제출/보상 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/survey/helpers/comments.php` | 644 | 설문 댓글, 비밀 댓글 권한, 멘션 알림, 관리자 댓글 조회 helper를 맡음 | 낮음 |
+| `modules/survey/helpers/responses.php` | 642 | 설문 응답 가능 여부, 답변 수집/검증/저장, 보상 지급 helper를 맡음 | 낮음 |
 | `modules/community/actions/admin-boards.php` | 1,253 | 게시판 관리자 입력, 검증, 저장, 감사 로그가 긴 문단으로 이어짐. 화면 row 보강 클로저는 helper로 분리함 | 중간 |
 | `modules/community/actions/admin-settings.php` | 726 | 환경설정과 레벨 설정 처리 문단이 큼 | 낮음 |
 
@@ -66,9 +68,10 @@
 - `modules/content/helpers/assets.php`의 유료 열람/다운로드 접근권, 차감 로그, 쿠폰 접근권 helper를 `modules/content/helpers/asset-access.php`로 분리했다.
 - `modules/content/helpers/assets.php`의 콘텐츠 완료 버튼 자산 처리 helper를 `modules/content/helpers/asset-actions.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/community/helpers/assets.php`의 paid read 세션, 접근권, 자산 로그, 이벤트 실행, 게시자 보상/회수 helper를 `modules/community/helpers/asset-events.php`로 분리해 1,500줄 미만으로 줄였다.
+- `modules/survey/helpers.php`의 댓글/비밀 댓글 권한/멘션 알림/관리자 댓글 조회 helper를 `modules/survey/helpers/comments.php`로 분리했다.
+- `modules/survey/helpers.php`의 응답 가능 여부, 답변 수집/검증/저장, 보상 지급 helper를 `modules/survey/helpers/responses.php`로 분리해 1,500줄 미만으로 줄였다.
 
 ## 후속 후보
 
-1. `modules/survey/helpers.php`는 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper 경계를 확인한다.
-2. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
-3. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.
+1. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
+2. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.

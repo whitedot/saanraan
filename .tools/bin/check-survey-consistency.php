@@ -212,7 +212,7 @@ foreach ([
     'ip_hash',
 ] as $needle) {
     sr_survey_check_contains(
-        'modules/survey/helpers.php',
+        'modules/survey/helpers/responses.php',
         $needle,
         'Survey response helpers must preserve multi-choice answers and anonymous duplicate checks'
     );

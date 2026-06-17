@@ -366,7 +366,7 @@ sr_reward_check_file('modules/survey/install.sql', [
     'dedupe_key VARCHAR(190)',
     'UNIQUE KEY uq_sr_survey_reward_grants_dedupe',
 ]);
-sr_reward_check_file('modules/survey/helpers.php', [
+sr_reward_check_file('modules/survey/helpers/responses.php', [
     '$insertVerb = \'INSERT IGNORE\';',
     '$insertVerb = \'INSERT OR IGNORE\';',
     '$insertVerb . \' INTO sr_survey_reward_grants',
