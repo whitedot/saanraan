@@ -820,6 +820,7 @@ if (
 }
 if (
     strpos($moduleSourceSafetyContent, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
+    || strpos($moduleSourceSafetyContent, "str_contains(\$name, '\\\\')") === false
     || strpos($moduleSourceSafetyContent, "str_contains(\$name, ':')") === false
     || strpos($moduleSourceSafetyContent, "str_contains(\$name, '//')") === false
     || strpos($moduleSourceSafetyContent, "\$segment === '.'") === false

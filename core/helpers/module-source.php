@@ -182,6 +182,10 @@ function sr_path_is_inside(string $path, string $root): bool
 
 function sr_module_zip_entry_is_safe(string $name): bool
 {
+    if (str_contains($name, '\\')) {
+        return false;
+    }
+
     $name = str_replace('\\', '/', $name);
     $pathName = rtrim($name, '/');
     if (

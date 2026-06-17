@@ -454,6 +454,34 @@ try {
         exit(1);
     }
 
+    $unsafePathZip = $fixtureRoot . '/unsafe-path.zip';
+    $unsafeZip = new ZipArchive();
+    if ($unsafeZip->open($unsafePathZip, ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('Cannot create unsafe path fixture zip.');
+    }
+    $unsafeZip->addFromString('bad\\module.php', "<?php\nreturn [];\n");
+    $unsafeZip->close();
+
+    try {
+        $unsafeUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($unsafePathZip),
+            'size' => filesize($unsafePathZip),
+            'tmp_name' => $unsafePathZip,
+        ], '');
+        if (is_string($unsafeUploadResult['extract_dir'] ?? null) && is_dir($unsafeUploadResult['extract_dir'])) {
+            sr_remove_directory($unsafeUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a backslash path was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '안전하지 않은 경로')) {
+            fwrite(STDERR, 'Backslash path upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $uploadDir = $fixtureRoot . '/upload';
     mkdir($uploadDir . '/pkg/module', 0777, true);
     sr_check_module_source_policy_write_file($uploadDir, 'pkg/.env.local');
