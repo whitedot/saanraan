@@ -360,6 +360,29 @@ try {
 
     file_put_contents(
         $moduleContentDir . '/module.php',
+        "<?php\nreturn array(\n"
+        . "    'name' => 'Static Legacy Array Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => array(\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => array('0.2.0'),\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ),\n"
+        . "    'settings' => array(\n"
+        . "        'ratio' => 1.25,\n"
+        . "        'threshold' => .5,\n"
+        . "    ),\n"
+        . ");\n"
+    );
+    $moduleContentErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if ($moduleContentErrors !== []) {
+        fwrite(STDERR, "Module source module.php with static array() values was rejected:\n" . implode("\n", $moduleContentErrors) . "\n");
+        exit(1);
+    }
+
+    file_put_contents(
+        $moduleContentDir . '/module.php',
         "<?php\nreturn [\n"
         . "    'meta' => [\n"
         . "        'name' => 'Nested Module',\n"
