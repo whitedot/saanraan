@@ -580,7 +580,7 @@
 }
 
 .content-layout-footer {
-    color: var(--color-body-color);
+    color: var(--sr-muted-strong, var(--color-body-color));
     margin: 0 auto;
     padding: 28px 0 42px;
     width: calc(100% - clamp(32px, 5vw, 96px));
