@@ -240,9 +240,6 @@ function sr_quiz_check_paths_and_admin(): void
         'skin_key = :skin_key',
         "'card' => '카드형'",
         "'focus' => '집중형'",
-        'sr_quiz_create_comment',
-        'sr_quiz_create_comment_mention_notifications',
-        'sr_quiz_account_has_result',
         'attempt_limit_policy',
         'Quiz to update was not found.',
         'sr_quiz_admin_reward_grants_for_attempts',
@@ -252,6 +249,11 @@ function sr_quiz_check_paths_and_admin(): void
         '\'display_score\' => $displayScore',
         'a.result_snapshot_json',
         '$rows[$index][\'result_title\']',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers/comments.php', [
+        'sr_quiz_create_comment',
+        'sr_quiz_create_comment_mention_notifications',
+        'sr_quiz_account_has_result',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers/rewards.php', [
         'sr_quiz_default_reward_providers',
