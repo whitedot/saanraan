@@ -499,14 +499,44 @@ function sr_find_module_source(string $extractDir, string $requestedModuleKey, s
         ];
     }
 
+    $sources = [];
+    $sourceKeys = [];
     foreach ($candidates as $candidate) {
         $source = sr_module_source_candidate($candidate);
         if (is_array($source)) {
-            return $source;
+            $realSourceDir = realpath((string) $source['source_dir']);
+            $sourceKey = (string) $source['module_key'] . "\0" . ($realSourceDir !== false ? $realSourceDir : (string) $source['source_dir']);
+            if (!isset($sourceKeys[$sourceKey])) {
+                $sourceKeys[$sourceKey] = true;
+                $sources[] = $source;
+            }
         }
     }
 
-    throw new RuntimeException('zip 안에서 모듈 구조를 찾을 수 없습니다. 최상위 {module_key}/module.php 구조를 사용하거나 module_key를 입력하세요.');
+    if ($sources === []) {
+        throw new RuntimeException('zip 안에서 모듈 구조를 찾을 수 없습니다. 최상위 {module_key}/module.php 구조를 사용하거나 module_key를 입력하세요.');
+    }
+
+    if ($requestedModuleKey !== '') {
+        $matchingSources = [];
+        foreach ($sources as $source) {
+            if ((string) $source['module_key'] === $requestedModuleKey) {
+                $matchingSources[] = $source;
+            }
+        }
+
+        if (count($matchingSources) !== 1 || count($sources) !== 1) {
+            throw new RuntimeException('zip 안에는 요청한 모듈 하나만 포함해야 합니다.');
+        }
+
+        return $matchingSources[0];
+    }
+
+    if (count($sources) !== 1) {
+        throw new RuntimeException('zip 안에 여러 모듈 구조가 있습니다. 모듈 zip에는 하나의 모듈만 포함하세요.');
+    }
+
+    return $sources[0];
 }
 
 function sr_validate_module_source(string $moduleKey, string $sourceDir, array $metadata): array

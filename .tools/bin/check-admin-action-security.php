@@ -861,6 +861,8 @@ if (
     || strpos($moduleSourceSafetyContent, "'key' => true") === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($extractDir)') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($sourceDir)') === false
+    || strpos($moduleSourceSafetyContent, 'zip 안에 여러 모듈 구조가 있습니다.') === false
+    || strpos($moduleSourceSafetyContent, 'zip 안에는 요청한 모듈 하나만 포함해야 합니다.') === false
 ) {
     $errors[] = 'Admin module source validation must reject server config files and unsafe executable extensions.';
 }
