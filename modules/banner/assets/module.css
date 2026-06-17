@@ -2,7 +2,7 @@
     display: grid;
     gap: 8px;
     margin: 0 0 20px;
-    border: 1px solid var(--sr-border, var(--color-default-300));
+    border: 0;
     border-radius: 8px;
     background: var(--sr-surface, var(--color-card));
     padding: 16px;

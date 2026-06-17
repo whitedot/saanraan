@@ -31,7 +31,7 @@
 
 .community-comments-panel {
     background: #fafafa;
-    border: 1px solid #e6e6e6;
+    border: 0;
     border-radius: 8px;
     display: flex;
     flex-direction: column;

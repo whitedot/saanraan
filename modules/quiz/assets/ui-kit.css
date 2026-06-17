@@ -92,7 +92,7 @@ input:checked + .btn-choice-light:where([data-theme=dark],[data-theme=dark] *),.
 input:checked + .btn-choice-light:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light.is-active:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light[aria-pressed=true]:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active){background-color:var(--color-choice-light-active);border-color:var(--color-choice-light-active);color:var(--color-white)}
 input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible){z-index:3;box-shadow:0 0 0 3px color-mix(in oklab,var(--btn-choice-color,var(--color-primary)) 14%,transparent)}
 input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowed;opacity:.5;pointer-events:none}
-.card{border-radius:var(--radius);background-color:var(--color-card);overflow-wrap:break-word;height:fit-content;box-shadow:var(--shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
+.card{border:0;border-radius:var(--radius);background-color:var(--color-card);overflow-wrap:break-word;height:fit-content;box-shadow:var(--shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
 .card .card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .card .card-body{padding:calc(var(--spacing) * 5);flex:auto}
 .card .card-footer{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-top:1px solid var(--color-light);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
@@ -151,7 +151,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .table-bordered td,.table-bordered th{border:1px solid var(--color-light)}
 .table-striped tbody tr:nth-child(odd),.table-hover tbody tr:hover{background-color:color-mix(in oklab,var(--color-light) 45%,transparent)!important}
 .table-sm thead th,.table-sm tbody td{padding:calc(var(--spacing) * 2)}
-.table-card{border:1px solid var(--color-default-300);box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
+.table-card{border:0;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
 .table-card>.card-header{border-bottom:1px dashed var(--color-default-300)}
 .table-card .table-wrapper{min-width:0;width:100%;overflow:auto;padding:0}
 .table-summary{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}

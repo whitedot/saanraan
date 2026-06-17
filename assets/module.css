@@ -8,27 +8,115 @@
     color: var(--sr-text, var(--color-body-color));
     min-height: inherit;
     display: grid;
-    place-items: center;
-    padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem);
+    place-items: start center;
+    padding: clamp(9rem, 19vh, 15rem) clamp(1.25rem, 5vw, 4rem) clamp(3rem, 8vw, 7rem);
 }
 
 .public-home-hero {
-    width: min(48rem, 100%);
+    width: min(56rem, 100%);
     display: grid;
-    gap: 1.25rem;
+    gap: 1.75rem;
     justify-items: center;
     text-align: center;
 }
 
 .public-home-module-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .65rem;
-    justify-content: center;
+    width: min(56rem, 100%);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    text-align: left;
 }
 
 .public-home-hero > p {
     color: var(--public-ui-muted);
     font-weight: var(--font-weight-normal);
     max-width: 42rem;
+}
+
+.public-home-module-card {
+    min-height: 18rem;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: .95rem;
+    padding: 1.35rem;
+    color: var(--sr-text, var(--color-body-color));
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    position: relative;
+    transition: color .18s ease;
+}
+
+.public-home-module-card:hover .public-home-module-card-title,
+.public-home-module-card:focus-visible .public-home-module-card-title {
+    text-decoration: underline;
+    text-underline-offset: .12em;
+}
+
+.public-home-module-card:focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--sr-primary, #243b5a) 24%, transparent);
+    outline-offset: 3px;
+}
+
+.public-home-module-card-icon {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 999px;
+}
+
+.public-home-module-card-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 2.35rem;
+    color: #111111;
+    background: transparent;
+    opacity: .78;
+}
+
+.public-home-module-card-icon-image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.public-home-module-card-title,
+.public-home-module-card-description {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.public-home-module-card-title {
+    color: var(--sr-text, var(--color-body-color));
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.02;
+    word-break: keep-all;
+}
+
+.public-home-module-card-description {
+    color: var(--sr-muted, #47505c);
+    font-size: .91rem;
+    line-height: 1.48;
+    max-width: 11.75rem;
+    word-break: keep-all;
+}
+
+@media (max-width: 767px) {
+    .public-home-module-links {
+        grid-template-columns: 1fr;
+    }
+
+    .public-home-module-card {
+        min-height: 15rem;
+    }
 }
