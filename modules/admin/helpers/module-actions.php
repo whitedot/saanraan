@@ -173,6 +173,30 @@ function sr_admin_handle_modules_post(
 
     $errors = array_values(array_unique($errors));
 
+    if ($errors !== [] && $intent === 'upload_module_zip') {
+        $uploadFailureReasons = array_map(
+            static fn($error): string => sr_log_sensitive_text_sanitize(sr_log_line_value((string) $error, 500)),
+            $errors
+        );
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'module.source.uploaded',
+            'target_type' => 'module',
+            'target_id' => $moduleKey,
+            'result' => 'failure',
+            'message' => 'Module source zip upload failed.',
+            'metadata' => [
+                'source' => 'upload',
+                'stage' => 'preflight',
+                'reason' => implode('; ', $uploadFailureReasons),
+                'validation_errors' => $uploadFailureReasons,
+                'module_sources_enabled' => $moduleSourcesEnabled,
+                'zip_upload_available' => $moduleUploadAvailable,
+            ],
+        ]);
+    }
+
     if ($errors === [] && $intent === 'enable_module_source_writes') {
         sr_save_site_setting($pdo, 'admin.module_sources_enabled', '1', 'bool');
         sr_audit_log($pdo, [

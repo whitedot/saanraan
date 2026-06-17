@@ -929,6 +929,8 @@ if (!is_string($adminModuleActionsHelper)) {
 } elseif (
     strpos($adminModuleActionsHelper, "'result' => 'failure'") === false
     || strpos($adminModuleActionsHelper, 'Module source zip upload failed.') === false
+    || strpos($adminModuleActionsHelper, "\$errors !== [] && \$intent === 'upload_module_zip'") === false
+    || strpos($adminModuleActionsHelper, "'stage' => 'preflight'") === false
     || substr_count($adminModuleActionsHelper, 'sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') < 2
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
