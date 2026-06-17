@@ -203,7 +203,7 @@ $limitedQueryFiles = [
     'modules/community/helpers/boards.php',
     'modules/community/helpers/reports.php',
     'modules/community/helpers/series.php',
-    'modules/community/helpers/assets.php',
+    'modules/community/helpers/publisher-rewards.php',
     'modules/coupon/helpers.php',
     'modules/notification/helpers.php',
     'modules/privacy/helpers/requests.php',
