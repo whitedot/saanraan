@@ -303,6 +303,7 @@ $installedSections = [
         <?php $moduleKey = (string) $module['module_key']; ?>
         <?php $moduleModalId = 'module-detail-' . $moduleKey; ?>
         <?php $moduleStatusModalId = 'module-status-' . $moduleKey; ?>
+        <?php $moduleSyncOwnerPasswordId = 'modules_admin_modules_owner_password_' . $moduleKey; ?>
         <?php $isRequired = in_array($moduleKey, $requiredModules, true); ?>
         <?php $foundationDependents = isset($module['foundation_dependents']) && is_array($module['foundation_dependents']) ? $module['foundation_dependents'] : []; ?>
         <?php $statusLocked = $isRequired || $foundationDependents !== []; ?>
@@ -350,9 +351,9 @@ $installedSections = [
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="sync_module_version">
                                         <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
-                                        <label for="modules_admin_modules_owner_password">
+                                        <label for="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>">
                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.password.6fda7f23')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
-                                            <input id="modules_admin_modules_owner_password" type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="<?php echo sr_e(sr_t('admin::ui.password.6fda7f23')); ?>">
+                                            <input id="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>" type="password" name="owner_password" class="form-input" autocomplete="current-password" required placeholder="<?php echo sr_e(sr_t('admin::ui.password.6fda7f23')); ?>">
                                         </label>
                                         <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.d39a4955')); ?></button>
                                     </form>

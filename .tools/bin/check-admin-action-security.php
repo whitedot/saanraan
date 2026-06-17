@@ -553,6 +553,13 @@ if (is_string($adminModulesView) && (
 )) {
     $errors[] = 'Admin modules view must keep module zip upload hidden behind owner permission, ZipArchive availability, and temporary source-write allowance.';
 }
+if (is_string($adminModulesView) && (
+    strpos($adminModulesView, "\$moduleSyncOwnerPasswordId = 'modules_admin_modules_owner_password_' . \$moduleKey") === false
+    || strpos($adminModulesView, '<label for="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>">') === false
+    || strpos($adminModulesView, '<input id="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>" type="password" name="owner_password"') === false
+)) {
+    $errors[] = 'Admin module sync forms must use a unique owner password input id per module card.';
+}
 
 $adminAuditLogsHelper = file_get_contents($root . '/modules/admin/helpers/audit-logs.php');
 if (!is_string($adminAuditLogsHelper)) {
