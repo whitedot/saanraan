@@ -432,7 +432,7 @@
 .btn-choice-info { --btn-choice-color: var(--color-info); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-dark { --btn-choice-color: var(--color-dark); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-light { --btn-choice-color: var(--color-default-600); --btn-choice-hover-bg: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); background-color: var(--color-white); --btn-focus-color: var(--color-default-500); }
-.btn-choice-light:where([data-theme=dark], [data-theme=dark] *) { --btn-choice-hover-bg: var(--color-default-200); background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); }
+.btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *) { --btn-choice-hover-bg: var(--color-default-200); background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); }
 .btn-group, .filtering-toggle-group { align-items: stretch; display: inline-flex; gap: 0; max-width: 100%; vertical-align: middle; }
 .filtering-toggle-group { overflow-x: auto; }
 .filtering-toggle-item { display: inline-flex; min-width: 0; }
@@ -453,8 +453,8 @@ input.form-choice-toggle-input[type=checkbox]:checked + [class*=btn-choice-]::be
 input.form-choice-toggle-input[type=radio]:checked + [class*=btn-choice-]::before { background: radial-gradient(circle at center, var(--btn-choice-color, var(--color-primary)) 0 32%, var(--color-white) 36% 100%); border-color: var(--color-white); opacity: 1; }
 input.form-choice-toggle-input[type=checkbox]:checked + .btn-choice-light::before { color: var(--color-dark); }
 input.form-choice-toggle-input[type=radio]:checked + .btn-choice-light::before { background: radial-gradient(circle at center, var(--color-dark) 0 32%, var(--color-white) 36% 100%); }
-input.form-choice-toggle-input[type=checkbox]:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *)::before { background-color: var(--color-slate-950); border-color: var(--color-slate-950); color: var(--color-white); }
-input.form-choice-toggle-input[type=radio]:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *)::before { background: radial-gradient(circle at center, var(--color-slate-950) 0 32%, var(--color-white) 36% 100%); border-color: var(--color-slate-950); }
+input.form-choice-toggle-input[type=checkbox]:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *)::before { background-color: var(--color-slate-950); border-color: var(--color-slate-950); color: var(--color-white); }
+input.form-choice-toggle-input[type=radio]:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *)::before { background: radial-gradient(circle at center, var(--color-slate-950) 0 32%, var(--color-white) 36% 100%); border-color: var(--color-slate-950); }
 input:checked + [class*=btn-choice-],
 [class*=btn-choice-]:has(> .form-choice-toggle-input:checked),
 [class*=btn-choice-].is-active,
@@ -483,20 +483,20 @@ input:checked + .btn-choice-light:is(:focus, :focus-visible, :active),
 .btn-choice-light:has(> .form-choice-toggle-input:checked):is(:focus, :focus-visible, :active),
 .btn-choice-light.is-active:is(:focus, :focus-visible, :active),
 .btn-choice-light[aria-pressed=true]:is(:focus, :focus-visible, :active) { background-color: var(--color-dark); border-color: var(--color-dark); color: var(--color-white); }
-input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *),
-.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *),
-.btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *),
-.btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *) { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
+input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *),
+.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *),
+.btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *),
+.btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *) { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
 @media (hover: hover) {
-    input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *):hover,
-    .btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *):hover,
-    .btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *):hover,
-    .btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *):hover { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
+    input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):hover,
+    .btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):hover,
+    .btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):hover,
+    .btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):hover { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
 }
-input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active),
-.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active),
-.btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active),
-.btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active) { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
+input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):is(:focus, :focus-visible, :active),
+.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):is(:focus, :focus-visible, :active),
+.btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):is(:focus, :focus-visible, :active),
+.btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *):is(:focus, :focus-visible, :active) { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
 input:focus-visible + [class*=btn-choice-],
 [class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible) { z-index: 3; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
 .form-checkbox:focus-visible,
