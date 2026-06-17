@@ -688,7 +688,7 @@ sr_community_release_file_contains('modules/community/actions/write.php', [
     'sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues)',
     "'event_type' => 'community.post.created'",
 ], 'Community write action policy');
-sr_community_release_file_contains('modules/community/helpers/posts.php', [
+sr_community_release_file_contains('modules/community/helpers/posts-extra-fields.php', [
     'function sr_community_extra_field_scalar_string',
     'function sr_community_extra_field_definition_validation_errors',
     'function sr_community_extra_field_definitions_input_errors',
