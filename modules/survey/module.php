@@ -46,6 +46,7 @@ return [
             'coupon-references.php',
             'member-group-references.php',
             'sitemap.php',
+            'member-only-routes.php',
             'embed-manager-targets.php',
             'reaction-targets.php',
         ],

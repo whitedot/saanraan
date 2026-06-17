@@ -59,6 +59,7 @@ return [
             'dashboard.php',
             'coupon-references.php',
             'sitemap.php',
+            'member-only-routes.php',
             'embed-manager-targets.php',
             'reaction-targets.php',
         ],

@@ -34,7 +34,7 @@ function sr_site_member_only_guard(PDO $pdo, ?array $site, string $method, strin
         return;
     }
 
-    $decision = sr_site_member_only_route_decision($method, $path, $routeMatch);
+    $decision = sr_site_member_only_route_decision($pdo, $method, $path, $routeMatch);
     if ($decision === 'allow') {
         return;
     }
@@ -48,7 +48,7 @@ function sr_site_member_only_guard(PDO $pdo, ?array $site, string $method, strin
     sr_redirect('/login?next=' . rawurlencode(sr_site_member_only_current_request_next_path()));
 }
 
-function sr_site_member_only_route_decision(string $method, string $path, ?array $routeMatch = null): string
+function sr_site_member_only_route_decision(PDO $pdo, string $method, string $path, ?array $routeMatch = null): string
 {
     if (sr_site_member_only_public_auth_route($method, $path)) {
         return 'allow';
@@ -89,22 +89,13 @@ function sr_site_member_only_route_decision(string $method, string $path, ?array
         return 'allow';
     }
 
-    if (sr_site_member_only_direct_protected_file_route($method, $path)) {
-        return 'forbid';
-    }
-
     if ($method === 'GET' && $path === '/banner/click') {
         return 'forbid';
     }
 
-    if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
-        if (sr_site_member_only_public_screen_route($moduleKey, $method, $path, $matchedRoute)) {
-            return in_array($method, ['GET', 'HEAD'], true) ? 'redirect' : 'forbid';
-        }
-
-        if (sr_site_member_only_module_public_path($moduleKey, $path)) {
-            return in_array($method, ['GET', 'HEAD'], true) ? 'redirect' : 'forbid';
-        }
+    $moduleDecision = sr_site_member_only_module_route_decision($pdo, $moduleKey, $method, $path, $matchedRoute);
+    if ($moduleDecision !== '') {
+        return $moduleDecision;
     }
 
     return 'allow';
@@ -145,43 +136,54 @@ function sr_site_member_only_direct_public_route(string $path): bool
     ], true);
 }
 
-function sr_site_member_only_direct_protected_file_route(string $method, string $path): bool
+function sr_site_member_only_module_route_decision(PDO $pdo, string $moduleKey, string $method, string $path, string $matchedRoute): string
 {
-    if (!in_array($method, ['GET', 'POST'], true)) {
-        return false;
+    if (!sr_is_safe_module_key($moduleKey)) {
+        return '';
     }
 
-    return in_array($path, [
-        '/content/download',
-        '/content/cover-image',
-        '/content/body-file',
-        '/community/body-file',
-        '/community/attachment',
-    ], true);
+    $contractFiles = sr_enabled_module_contract_files($pdo, 'member-only-routes.php');
+    if (!isset($contractFiles[$moduleKey])) {
+        return '';
+    }
+
+    $contract = sr_load_module_contract_file($moduleKey, $contractFiles[$moduleKey]);
+    if (!is_array($contract)) {
+        return '';
+    }
+
+    $routeKey = $method . ' ' . $path;
+    $protectedRoutes = sr_site_member_only_contract_string_list($contract['protected_routes'] ?? []);
+    if (in_array($routeKey, $protectedRoutes, true)) {
+        return 'forbid';
+    }
+
+    $publicRoutes = sr_site_member_only_contract_string_list($contract['public_routes'] ?? []);
+    if (in_array($matchedRoute, $publicRoutes, true) || in_array($routeKey, $publicRoutes, true)) {
+        return in_array($method, ['GET', 'HEAD'], true) ? 'redirect' : 'forbid';
+    }
+
+    foreach (sr_site_member_only_contract_string_list($contract['public_path_prefixes'] ?? []) as $prefix) {
+        if ($prefix !== '' && ($path === $prefix || str_starts_with($path, $prefix . '/'))) {
+            return in_array($method, ['GET', 'HEAD'], true) ? 'redirect' : 'forbid';
+        }
+    }
+
+    return '';
 }
 
-function sr_site_member_only_public_screen_route(string $moduleKey, string $method, string $path, string $matchedRoute): bool
+function sr_site_member_only_contract_string_list(mixed $value): array
 {
-    if ($moduleKey === 'content') {
-        return in_array($matchedRoute, ['GET /content', 'GET /content/group', 'GET /content/ui-kit', 'GET /content/*', 'POST /content/*'], true);
+    if (!is_array($value)) {
+        return [];
     }
 
-    if ($moduleKey === 'community') {
-        return in_array($matchedRoute, ['GET /community', 'GET /community/group', 'GET /community/board', 'GET /community/post', 'POST /community/post', 'GET /community/ui-kit'], true);
+    $strings = [];
+    foreach ($value as $item) {
+        if (is_string($item) && $item !== '') {
+            $strings[] = $item;
+        }
     }
 
-    if ($moduleKey === 'quiz') {
-        return in_array($matchedRoute, ['GET /quiz', 'GET /quiz/ui-kit', 'GET /quiz/*', 'POST /quiz/*'], true);
-    }
-
-    if ($moduleKey === 'survey') {
-        return in_array($matchedRoute, ['GET /survey', 'GET /survey/ui-kit', 'GET /survey/*', 'POST /survey/*'], true);
-    }
-
-    return false;
-}
-
-function sr_site_member_only_module_public_path(string $moduleKey, string $path): bool
-{
-    return $path === '/' . $moduleKey || str_starts_with($path, '/' . $moduleKey . '/');
+    return array_values(array_unique($strings));
 }

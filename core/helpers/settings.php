@@ -658,6 +658,7 @@ function sr_module_known_contract_files(): array
         'member-assets.php',
         'member-withdrawal-assets.php',
         'member-action-rows.php',
+        'member-only-routes.php',
         'member-registration.php',
         'homepage-candidates.php',
         'editor-options.php',

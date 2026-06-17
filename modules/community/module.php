@@ -37,6 +37,7 @@ return [
             'banner-references.php',
             'popup-layer-references.php',
             'member-group-references.php',
+            'member-only-routes.php',
             'embed-manager-targets.php',
             'reaction-targets.php',
         ],
