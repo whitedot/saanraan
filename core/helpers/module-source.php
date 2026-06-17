@@ -475,15 +475,11 @@ function sr_module_source_candidate(array $candidate): ?array
 {
     $moduleKey = (string) ($candidate['module_key'] ?? '');
     $sourceDir = (string) ($candidate['source_dir'] ?? '');
-    if (!sr_is_safe_module_key($moduleKey) || !is_dir($sourceDir)) {
+    if (!sr_is_safe_module_key($moduleKey) || !is_dir($sourceDir) || !is_file($sourceDir . '/module.php')) {
         return null;
     }
 
     $metadata = sr_load_module_metadata_from_file($sourceDir . '/module.php');
-    if ($metadata === []) {
-        return null;
-    }
-
     return [
         'module_key' => $moduleKey,
         'source_dir' => $sourceDir,
@@ -590,6 +586,11 @@ function sr_validate_module_source(string $moduleKey, string $sourceDir, array $
 
     if (!is_file($sourceDir . '/module.php')) {
         $errors[] = 'module.php 파일이 필요합니다.';
+    } else {
+        $moduleContent = file_get_contents($sourceDir . '/module.php');
+        if (!is_string($moduleContent) || !sr_php_starts_with_return_array($moduleContent)) {
+            $errors[] = 'module.php는 정적 return 배열로 시작해야 합니다.';
+        }
     }
 
     if (!is_file($sourceDir . '/install.sql')) {

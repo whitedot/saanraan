@@ -233,6 +233,44 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $routeDir . '/paths.php',
+        "<?php\n"
+        . "file_put_contents(sys_get_temp_dir() . '/sr-route-side-effect', 'x');\n"
+        . "return [\n"
+        . "    'GET /route-check' => 'actions/page.php',\n"
+        . "];\n"
+    );
+    $routeErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.', $routeErrors, true)) {
+        fwrite(STDERR, "Module source paths.php with a pre-return statement was not rejected:\n" . implode("\n", $routeErrors) . "\n");
+        exit(1);
+    }
+
+    $moduleContentDir = $fixtureRoot . '/module-content';
+    mkdir($moduleContentDir, 0777, true);
+    sr_check_module_source_policy_write_file($moduleContentDir, 'install.sql');
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\n"
+        . "file_put_contents(sys_get_temp_dir() . '/sr-module-side-effect', 'x');\n"
+        . "return [\n"
+        . "    'name' => 'Module Content',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $moduleContentErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if (!in_array('module.php는 정적 return 배열로 시작해야 합니다.', $moduleContentErrors, true)) {
+        fwrite(STDERR, "Module source module.php with a pre-return statement was not rejected:\n" . implode("\n", $moduleContentErrors) . "\n");
+        exit(1);
+    }
+
     if (!class_exists('ZipArchive')) {
         fwrite(STDERR, "ZipArchive is required for module source policy checks.\n");
         exit(1);
@@ -340,6 +378,50 @@ try {
     } catch (Throwable $exception) {
         if (!str_contains($exception->getMessage(), '실행 파일을 찾을 수 없습니다')) {
             fwrite(STDERR, 'Route upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
+    $moduleUploadDir = $fixtureRoot . '/module-upload';
+    mkdir($moduleUploadDir . '/modulecontent', 0777, true);
+    file_put_contents(
+        $moduleUploadDir . '/modulecontent/module.php',
+        "<?php\n"
+        . "file_put_contents(sys_get_temp_dir() . '/sr-module-upload-side-effect', 'x');\n"
+        . "return [\n"
+        . "    'name' => 'Module Content',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    sr_check_module_source_policy_write_file($moduleUploadDir, 'modulecontent/install.sql');
+    $moduleZipPath = $fixtureRoot . '/modulecontent.zip';
+    sr_check_module_source_policy_zip_files($moduleUploadDir, $moduleZipPath, [
+        'modulecontent/module.php',
+        'modulecontent/install.sql',
+    ]);
+
+    try {
+        $moduleUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($moduleZipPath),
+            'size' => filesize($moduleZipPath),
+            'tmp_name' => $moduleZipPath,
+        ], '');
+        if (is_string($moduleUploadResult['extract_dir'] ?? null) && is_dir($moduleUploadResult['extract_dir'])) {
+            sr_remove_directory($moduleUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a pre-return module.php statement was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), 'module.php는 정적 return 배열로 시작해야 합니다')) {
+            fwrite(STDERR, 'Module upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
             exit(1);
         }
     }

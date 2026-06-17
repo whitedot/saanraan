@@ -156,6 +156,10 @@ function sr_php_decode_quoted_string(string $value): string
 
 function sr_php_return_string_map(string $content): ?array
 {
+    if (!sr_php_starts_with_return_array($content)) {
+        return null;
+    }
+
     $tokens = token_get_all($content);
     $count = count($tokens);
     $index = 0;
@@ -273,6 +277,48 @@ function sr_php_return_string_map(string $content): ?array
     return null;
 }
 
+function sr_php_starts_with_return_array(string $content): bool
+{
+    $tokens = token_get_all($content);
+    $count = count($tokens);
+    $index = 0;
+
+    while ($index < $count) {
+        $token = $tokens[$index];
+        if (is_array($token) && $token[0] === T_OPEN_TAG) {
+            $index++;
+            continue;
+        }
+
+        if (sr_php_token_is_ignored($token)) {
+            $index++;
+            continue;
+        }
+
+        break;
+    }
+
+    $token = $tokens[$index] ?? null;
+    if (!is_array($token) || $token[0] !== T_RETURN) {
+        return false;
+    }
+
+    $index++;
+    sr_php_skip_ignored_tokens($tokens, $index);
+    $token = $tokens[$index] ?? null;
+    if ($token === '[') {
+        return true;
+    }
+
+    if (!is_array($token) || $token[0] !== T_ARRAY) {
+        return false;
+    }
+
+    $index++;
+    sr_php_skip_ignored_tokens($tokens, $index);
+    return ($tokens[$index] ?? null) === '(';
+}
+
 function sr_php_skip_ignored_tokens(array $tokens, int &$index): void
 {
     while (isset($tokens[$index]) && sr_php_token_is_ignored($tokens[$index])) {
@@ -333,7 +379,7 @@ function sr_load_module_metadata_from_file(string $file): array
     }
 
     $content = file_get_contents($file);
-    if (!is_string($content) || preg_match('/\breturn\s+(?:\[|array\s*\()/i', $content) !== 1) {
+    if (!is_string($content) || !sr_php_starts_with_return_array($content)) {
         return [];
     }
 
