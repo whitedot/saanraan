@@ -418,6 +418,48 @@ function sr_module_source_is_server_config_name(string $basename): bool
         || str_starts_with($basename, 'web.config.');
 }
 
+function sr_module_source_route_errors(string $moduleKey, string $sourceDir): array
+{
+    $pathsFile = $sourceDir . '/paths.php';
+    if (!is_file($pathsFile)) {
+        return [];
+    }
+
+    $content = file_get_contents($pathsFile);
+    $paths = is_string($content) ? sr_php_return_string_map($content) : null;
+    if (!is_array($paths)) {
+        return [$moduleKey . ' 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.'];
+    }
+
+    $errors = [];
+    foreach ($paths as $route => $actionRelativePath) {
+        if (!sr_is_valid_module_route((string) $route)) {
+            $errors[] = $moduleKey . ' 모듈 주소 경로 형식이 올바르지 않습니다: ' . (string) $route;
+            continue;
+        }
+
+        if (!sr_module_source_action_path_is_safe((string) $actionRelativePath)) {
+            $errors[] = $moduleKey . ' 모듈 실행 파일 경로가 올바르지 않습니다: ' . (string) $route;
+            continue;
+        }
+
+        if (!is_file($sourceDir . '/' . (string) $actionRelativePath)) {
+            $errors[] = $moduleKey . ' 모듈 실행 파일을 찾을 수 없습니다: ' . (string) $route;
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
+function sr_module_source_action_path_is_safe(string $path): bool
+{
+    if ($path === '' || strpos($path, '..') !== false || strpos($path, '\\') !== false) {
+        return false;
+    }
+
+    return preg_match('/\Aactions\/[a-z0-9_\-\/]+\.php\z/', $path) === 1;
+}
+
 function sr_infer_module_key_from_filename(string $filename): string
 {
     $name = strtolower(pathinfo($filename, PATHINFO_FILENAME));
@@ -563,6 +605,10 @@ function sr_validate_module_source(string $moduleKey, string $sourceDir, array $
     }
 
     foreach (sr_module_contract_file_errors($sourceDir, $metadata) as $error) {
+        $errors[] = $error;
+    }
+
+    foreach (sr_module_source_route_errors($moduleKey, $sourceDir) as $error) {
         $errors[] = $error;
     }
 

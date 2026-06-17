@@ -144,6 +144,147 @@ function sr_php_string_list_array_value(string $content, string $key): array
     return array_values(array_unique($values));
 }
 
+function sr_php_decode_quoted_string(string $value): string
+{
+    $quote = substr($value, 0, 1);
+    if (($quote !== '\'' && $quote !== '"') || substr($value, -1) !== $quote) {
+        return '';
+    }
+
+    return stripcslashes(substr($value, 1, -1));
+}
+
+function sr_php_return_string_map(string $content): ?array
+{
+    $tokens = token_get_all($content);
+    $count = count($tokens);
+    $index = 0;
+    while ($index < $count) {
+        $token = $tokens[$index];
+        if (is_array($token) && $token[0] === T_RETURN) {
+            break;
+        }
+
+        $index++;
+    }
+
+    if ($index >= $count) {
+        return null;
+    }
+
+    $index++;
+    sr_php_skip_ignored_tokens($tokens, $index);
+    $openToken = $tokens[$index] ?? null;
+    $closeToken = null;
+    if ($openToken === '[') {
+        $closeToken = ']';
+    } elseif (is_array($openToken) && $openToken[0] === T_ARRAY) {
+        $index++;
+        sr_php_skip_ignored_tokens($tokens, $index);
+        if (($tokens[$index] ?? null) !== '(') {
+            return null;
+        }
+
+        $closeToken = ')';
+    } else {
+        return null;
+    }
+
+    $index++;
+    $map = [];
+    $state = 'key_or_close';
+    $key = '';
+    while ($index < $count) {
+        sr_php_skip_ignored_tokens($tokens, $index);
+        $token = $tokens[$index] ?? null;
+        if ($token === null) {
+            return null;
+        }
+
+        if ($token === $closeToken && ($state === 'key_or_close' || $state === 'comma_or_close')) {
+            $index++;
+            sr_php_skip_ignored_tokens($tokens, $index);
+            if (($tokens[$index] ?? null) === ';') {
+                $index++;
+                sr_php_skip_ignored_tokens($tokens, $index);
+            }
+
+            while ($index < $count) {
+                $tailToken = $tokens[$index];
+                if (is_array($tailToken) && $tailToken[0] === T_CLOSE_TAG) {
+                    $index++;
+                    continue;
+                }
+
+                if (!sr_php_token_is_ignored($tailToken)) {
+                    return null;
+                }
+
+                $index++;
+            }
+
+            return $map;
+        }
+
+        if ($state === 'key_or_close') {
+            if (!is_array($token) || $token[0] !== T_CONSTANT_ENCAPSED_STRING) {
+                return null;
+            }
+
+            $key = sr_php_decode_quoted_string($token[1]);
+            $state = 'arrow';
+            $index++;
+            continue;
+        }
+
+        if ($state === 'arrow') {
+            if (!is_array($token) || $token[0] !== T_DOUBLE_ARROW) {
+                return null;
+            }
+
+            $state = 'value';
+            $index++;
+            continue;
+        }
+
+        if ($state === 'value') {
+            if (!is_array($token) || $token[0] !== T_CONSTANT_ENCAPSED_STRING) {
+                return null;
+            }
+
+            $map[$key] = sr_php_decode_quoted_string($token[1]);
+            $key = '';
+            $state = 'comma_or_close';
+            $index++;
+            continue;
+        }
+
+        if ($state === 'comma_or_close') {
+            if ($token !== ',') {
+                return null;
+            }
+
+            $state = 'key_or_close';
+            $index++;
+            continue;
+        }
+    }
+
+    return null;
+}
+
+function sr_php_skip_ignored_tokens(array $tokens, int &$index): void
+{
+    while (isset($tokens[$index]) && sr_php_token_is_ignored($tokens[$index])) {
+        $index++;
+    }
+}
+
+function sr_php_token_is_ignored(mixed $token): bool
+{
+    return is_array($token) && in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true);
+}
+
 function sr_php_saanraan_metadata(string $content): array
 {
     $block = sr_php_array_block($content, 'saanraan');
@@ -165,6 +306,24 @@ function sr_php_saanraan_metadata(string $content): array
     }
 
     return $saanraan;
+}
+
+function sr_php_contracts_metadata(string $content): array
+{
+    $block = sr_php_array_block($content, 'contracts');
+    if ($block === '') {
+        return [];
+    }
+
+    $contracts = [];
+    foreach (['provides', 'consumes'] as $key) {
+        $values = sr_php_string_list_array_value($block, $key);
+        if ($values !== []) {
+            $contracts[$key] = $values;
+        }
+    }
+
+    return $contracts;
 }
 
 function sr_load_module_metadata_from_file(string $file): array
@@ -191,6 +350,10 @@ function sr_load_module_metadata_from_file(string $file): array
         $metadata['saanraan'] = $saanraan;
     }
 
+    $contracts = sr_php_contracts_metadata($content);
+    if ($contracts !== []) {
+        $metadata['contracts'] = $contracts;
+    }
+
     return $metadata;
 }
-
