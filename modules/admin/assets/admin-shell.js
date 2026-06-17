@@ -12,6 +12,7 @@ window.AdminShell = {
 
         const menuStorageKey = 'sr_admin_sidebar_collapsed';
         const menuCollapseStorageKey = 'sr_admin_menu_editor_collapsed';
+        const colorSchemeStorageKey = 'sr_public_color_scheme';
         const mobileQuery = window.matchMedia('(max-width: 1023px)');
         const body = document.body;
         const gnb = document.getElementById('gnb');
@@ -1134,6 +1135,28 @@ window.AdminShell = {
 
         const systemPrefersDark = () => systemColorSchemeQuery && systemColorSchemeQuery.matches;
 
+        const normalizeColorScheme = scheme => {
+            const normalized = String(scheme || '').trim().toLowerCase();
+            return ['light', 'dark', 'system'].includes(normalized) ? normalized : 'light';
+        };
+
+        const storeColorScheme = scheme => {
+            try {
+                window.localStorage.setItem(colorSchemeStorageKey, normalizeColorScheme(scheme));
+            } catch (error) {}
+        };
+
+        const syncColorSchemeControls = scheme => {
+            const nextScheme = normalizeColorScheme(scheme);
+            colorSchemeControls.forEach(control => {
+                if (control.type === 'radio') {
+                    control.checked = control.value === nextScheme;
+                } else {
+                    control.value = nextScheme;
+                }
+            });
+        };
+
         const resolvedThemeForScheme = scheme => {
             if (scheme === 'dark') {
                 return 'dark';
@@ -1147,10 +1170,12 @@ window.AdminShell = {
         };
 
         const applyColorScheme = scheme => {
-            const nextScheme = ['light', 'dark', 'system'].includes(scheme) ? scheme : 'light';
+            const nextScheme = normalizeColorScheme(scheme);
             const nextTheme = resolvedThemeForScheme(nextScheme);
             document.documentElement.setAttribute('data-color-scheme', nextScheme);
             document.documentElement.setAttribute('data-theme', nextTheme);
+            storeColorScheme(nextScheme);
+            syncColorSchemeControls(nextScheme);
             syncThemeUI();
         };
 
@@ -3189,7 +3214,7 @@ window.AdminShell = {
             }
         } catch (err) {}
         window.requestAnimationFrame(clearSidebarRestoring);
-        syncThemeUI();
+        applyColorScheme(document.documentElement.getAttribute('data-color-scheme') || 'light');
         document.querySelectorAll('.table-wrapper').forEach(wrapper => {
             if (wrapper.getAttribute('tabindex') === '0') {
                 wrapper.removeAttribute('tabindex');

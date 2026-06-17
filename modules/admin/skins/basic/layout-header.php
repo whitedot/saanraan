@@ -88,6 +88,13 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
     <script>
     (function () {
         var scheme = document.documentElement.getAttribute('data-color-scheme') || 'light';
+        try {
+            var storedScheme = localStorage.getItem('sr_public_color_scheme');
+            if (storedScheme === 'light' || storedScheme === 'dark' || storedScheme === 'system') {
+                scheme = storedScheme;
+                document.documentElement.setAttribute('data-color-scheme', scheme);
+            }
+        } catch (error) {}
         var dark = scheme === 'dark' || (scheme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
