@@ -420,17 +420,24 @@ function sr_module_source_is_server_config_name(string $basename): bool
 
 function sr_module_source_route_errors(string $moduleKey, string $sourceDir): array
 {
+    $routeMap = sr_module_source_route_map($moduleKey, $sourceDir);
+    return $routeMap['errors'];
+}
+
+function sr_module_source_route_map(string $moduleKey, string $sourceDir): array
+{
     $pathsFile = $sourceDir . '/paths.php';
     if (!is_file($pathsFile)) {
-        return [];
+        return ['routes' => [], 'errors' => []];
     }
 
     $content = file_get_contents($pathsFile);
     $paths = is_string($content) ? sr_php_return_string_map($content) : null;
     if (!is_array($paths)) {
-        return [$moduleKey . ' 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.'];
+        return ['routes' => [], 'errors' => [$moduleKey . ' 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.']];
     }
 
+    $routes = [];
     $errors = [];
     foreach ($paths as $route => $actionRelativePath) {
         if (!sr_is_valid_module_route((string) $route)) {
@@ -445,6 +452,55 @@ function sr_module_source_route_errors(string $moduleKey, string $sourceDir): ar
 
         if (!is_file($sourceDir . '/' . (string) $actionRelativePath)) {
             $errors[] = $moduleKey . ' 모듈 실행 파일을 찾을 수 없습니다: ' . (string) $route;
+            continue;
+        }
+
+        $routes[(string) $route] = (string) $actionRelativePath;
+    }
+
+    return ['routes' => $routes, 'errors' => array_values(array_unique($errors))];
+}
+
+function sr_module_source_route_conflict_errors(PDO $pdo, string $moduleKey, string $sourceDir): array
+{
+    if (!sr_is_safe_module_key($moduleKey)) {
+        return ['모듈 키가 올바르지 않습니다.'];
+    }
+
+    if (sr_module_record_status($pdo, $moduleKey) !== 'enabled') {
+        return [];
+    }
+
+    $candidateRoutes = sr_module_source_route_map($moduleKey, $sourceDir);
+    if ($candidateRoutes['errors'] !== []) {
+        return $candidateRoutes['errors'];
+    }
+
+    $candidateRouteMap = $candidateRoutes['routes'];
+    if ($candidateRouteMap === []) {
+        return [];
+    }
+
+    $errors = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'paths.php', [$moduleKey]) as $enabledModuleKey => $pathsFile) {
+        $paths = sr_load_module_contract_file($enabledModuleKey, $pathsFile);
+        if (!is_array($paths)) {
+            continue;
+        }
+
+        foreach ($paths as $route => $actionRelativePath) {
+            $route = (string) $route;
+            if (!sr_is_valid_module_route($route)) {
+                continue;
+            }
+
+            foreach (array_keys($candidateRouteMap) as $candidateRoute) {
+                if (!sr_module_routes_conflict((string) $candidateRoute, $route)) {
+                    continue;
+                }
+
+                $errors[] = $moduleKey . ' 모듈 주소 경로가 ' . $enabledModuleKey . ' 모듈과 충돌합니다: ' . (string) $candidateRoute . ' / ' . $route;
+            }
         }
     }
 

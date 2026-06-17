@@ -848,6 +848,14 @@ if (
     $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
 }
 if (
+    strpos($moduleSourceSafetyContent, 'function sr_module_source_route_conflict_errors') === false
+    || strpos($moduleSourceSafetyContent, "sr_module_record_status(\$pdo, \$moduleKey) !== 'enabled'") === false
+    || strpos($moduleSourceSafetyContent, "sr_enabled_module_contract_files(\$pdo, 'paths.php', [\$moduleKey])") === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_routes_conflict((string) $candidateRoute, $route)') === false
+) {
+    $errors[] = 'Admin module source upload must be able to reject route conflicts before replacing enabled module files.';
+}
+if (
     strpos($moduleSourceSafetyContent, 'function sr_module_source_file_errors') === false
     || strpos($moduleSourceSafetyContent, "function sr_module_source_is_server_config_name") === false
     || strpos($moduleSourceSafetyContent, "function sr_module_source_is_repository_meta_name") === false
@@ -884,6 +892,9 @@ if (!is_string($adminModuleActionsHelper)) {
     || substr_count($adminModuleActionsHelper, 'sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') < 2
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
+}
+if (is_string($adminModuleActionsHelper) && strpos($adminModuleActionsHelper, 'sr_module_source_route_conflict_errors($pdo, $moduleKey, (string) $source[\'source_dir\'])') === false) {
+    $errors[] = 'Admin module source upload must reject enabled module route conflicts before installing source files.';
 }
 if (is_string($adminModuleActionsHelper) && (
     strpos($adminModuleActionsHelper, '$closeModuleSourcesAfterRequest = false;') === false

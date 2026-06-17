@@ -229,6 +229,10 @@ function sr_admin_handle_modules_post(
                 throw new RuntimeException($versionError);
             }
 
+            foreach (sr_module_source_route_conflict_errors($pdo, $moduleKey, (string) $source['source_dir']) as $routeConflictError) {
+                throw new RuntimeException($routeConflictError);
+            }
+
             $result = sr_install_module_source_files($moduleKey, (string) $source['source_dir']);
 
             sr_audit_log($pdo, [
