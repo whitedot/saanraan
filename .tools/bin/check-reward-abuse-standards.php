@@ -344,7 +344,7 @@ sr_reward_check_file('modules/quiz/install.sql', [
     'dedupe_key VARCHAR(190)',
     'UNIQUE KEY uq_sr_quiz_reward_grants_dedupe',
 ]);
-sr_reward_check_file('modules/quiz/helpers.php', [
+sr_reward_check_file('modules/quiz/helpers/rewards.php', [
     '$insertVerb = \'INSERT IGNORE\';',
     '$insertVerb = \'INSERT OR IGNORE\';',
     '$insertVerb . \' INTO sr_quiz_reward_grants',

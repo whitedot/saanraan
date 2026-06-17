@@ -10,7 +10,7 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/quiz/helpers.php` | 4,606 | 퀴즈 공개/관리자/보상/스킨 helper가 함께 있음 | 높음 |
+| `modules/quiz/helpers.php` | 3,909 | 퀴즈 공개/관리자/응시/스킨 helper가 함께 있음. 보상 provider/지급/회수/쿠폰 참조 helper는 별도 파일로 분리함 | 높음 |
 | `modules/community/helpers/posts.php` | 3,334 | 게시글 조회, 렌더링, 권한, 상태 helper가 함께 있음 | 높음 |
 | `modules/notification/helpers.php` | 2,891 | 발송 상태, 외부 채널, 암호화, push endpoint, 관리자 기록 helper가 함께 있음 | 높음 |
 | `modules/content/helpers/assets.php` | 2,483 | 콘텐츠 유료 접근, 권한, 자산 로그, 결제/환불 helper가 함께 있음 | 높음 |
@@ -50,6 +50,7 @@
 - `modules/content/helpers.php`의 쿠폰 target, link-card 검색, banner/popup/member-group 참조 helper를 `modules/content/helpers/references.php`로 분리했다.
 - `modules/content/helpers.php`의 입력값 수집/검증, 저장, 복사, 숨김, 삭제 helper를 `modules/content/helpers/records.php`로 분리했다.
 - `modules/content/helpers.php`의 콘텐츠 그룹, 그룹 설정, 그룹 scope 적용, 그룹 삭제 참조 helper를 `modules/content/helpers/groups.php`로 분리해 1,500줄 미만으로 줄였다.
+- `modules/quiz/helpers.php`의 보상 provider, 보상 지급/재시도/회수, 쿠폰 보상 정의/참조 helper를 `modules/quiz/helpers/rewards.php`로 분리했다.
 
 ## 후속 후보
 
