@@ -3,8 +3,11 @@
  * Owns this module public layout shell only.
  */
 .content-layout-body {
-    background: #ffffff;
+    color: var(--sr-text, #20242a);
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .content-layout-header {
@@ -337,6 +340,93 @@
     white-space: nowrap;
 }
 
+.content-layout-footer-row {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin: 0 auto;
+    padding-top: 18px;
+    width: min(1360px, 100%);
+}
+
+.content-layout-footer-row p {
+    margin: 0;
+    min-width: 0;
+    padding-top: 0;
+    width: auto;
+}
+
+.content-theme-dropdown {
+    flex: 0 0 auto;
+    position: relative;
+}
+
+.content-theme-toggle {
+    align-items: center;
+    background: var(--sr-surface, #fff);
+    border: 1px solid var(--sr-border-soft, #e8edf3);
+    border-radius: 999px;
+    color: var(--sr-muted, #47505c);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: .6875rem;
+    font-weight: 700;
+    gap: 3px;
+    line-height: 1;
+    padding: 6px 8px;
+}
+
+.content-theme-toggle .material-symbols-outlined {
+    font-size: .875rem;
+    line-height: 1;
+}
+
+.content-theme-menu {
+    background: var(--sr-surface, #fff);
+    border: 1px solid var(--sr-border-soft, #e8edf3);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px var(--sr-shadow-floating, rgba(32, 36, 42, .12));
+    box-sizing: border-box;
+    display: none;
+    padding: 4px;
+    width: 8.5rem;
+    z-index: 50;
+}
+
+.content-theme-option {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--sr-muted, #47505c);
+    cursor: pointer;
+    display: flex;
+    font-size: .6875rem;
+    font-weight: 700;
+    gap: 5px;
+    line-height: 1.2;
+    padding: 7px 8px;
+    text-align: left;
+    width: 100%;
+}
+
+.content-theme-option:hover,
+.content-theme-option[aria-checked="true"] {
+    background: var(--sr-surface-muted, #eceff4);
+    color: var(--sr-muted-strong, #303741);
+}
+
+.content-theme-option-check {
+    font-size: .875rem;
+    line-height: 1;
+    opacity: 0;
+}
+
+.content-theme-option[aria-checked="true"] .content-theme-option-check {
+    opacity: 1;
+}
+
 .content-layout-member-logout-form {
     display: block;
     margin: 0;
@@ -484,7 +574,8 @@
 }
 
 .content-layout-main {
-    min-height: calc(100vh - 132px);
+    flex: 1 0 auto;
+    min-height: 0;
     min-width: 0;
 }
 

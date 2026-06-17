@@ -7,7 +7,7 @@ $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
 $layoutContextScripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
-$layoutStylesheets = [];
+$layoutStylesheets = ['/assets/theme.css'];
 $layoutScripts = ['/assets/common-ui.js', '/modules/quiz/assets/layout.js'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 $layoutBodyClass = sr_ui_icon_class_attr((string) ($layoutContext['body_class'] ?? ''));
@@ -30,6 +30,8 @@ $layoutFooterMenuSlots = [
     'quinary' => ['slot_key' => 'quinary_navigation', 'label' => '추가 메뉴 3'],
 ];
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
+$layoutColorScheme = sr_color_scheme($layoutSite);
+$layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
@@ -226,13 +228,14 @@ if (
 }
 ?>
 <!doctype html>
-<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="light">
+<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e($layoutColorScheme); ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
     <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
+    <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
@@ -391,7 +394,24 @@ if (
                 <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
             </nav>
         <?php } ?>
-        <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
+        <div class="quiz-layout-footer-row">
+            <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
+            <div class="quiz-theme-dropdown dropdown" data-dropdown-placement="top-end">
+                <button class="quiz-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>
+                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>dark_mode</span>
+                    <span data-sr-color-scheme-current><?php echo sr_e($layoutColorSchemeOptions[$layoutColorScheme] ?? '라이트'); ?></span>
+                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>expand_less</span>
+                </button>
+                <div class="quiz-theme-menu dropdown-menu" role="menu" aria-label="<?php echo sr_e('화면 모드'); ?>">
+                    <?php foreach ($layoutColorSchemeOptions as $layoutColorSchemeKey => $layoutColorSchemeLabel) { ?>
+                        <button class="quiz-theme-option dropdown-item" type="button" role="menuitemradio" aria-checked="<?php echo $layoutColorSchemeKey === $layoutColorScheme ? 'true' : 'false'; ?>" data-sr-color-scheme-option="<?php echo sr_e($layoutColorSchemeKey); ?>">
+                            <span class="material-symbols-outlined quiz-theme-option-check" aria-hidden="true" data-sr-material-icon>check</span>
+                            <span><?php echo sr_e($layoutColorSchemeLabel); ?></span>
+                        </button>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
     </footer>
     <?php echo sr_script_tags($layoutScripts); ?>
     <?php echo $layoutPrivacyCookieConsentHtml; ?>

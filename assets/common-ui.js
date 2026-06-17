@@ -490,6 +490,91 @@
 (function () {
   'use strict';
 
+  var STORAGE_KEY = 'sr_public_color_scheme';
+  var OPTION_SELECTOR = '[data-sr-color-scheme-option]';
+  var CURRENT_SELECTOR = '[data-sr-color-scheme-current]';
+  var OPTIONS = {
+    light: '라이트',
+    dark: '다크',
+    system: '시스템 설정'
+  };
+
+  function normalizeScheme(value) {
+    value = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(OPTIONS, value) ? value : '';
+  }
+
+  function getStoredScheme() {
+    try {
+      return normalizeScheme(window.localStorage.getItem(STORAGE_KEY));
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function setStoredScheme(scheme) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, scheme);
+    } catch (error) {
+      return;
+    }
+  }
+
+  function currentScheme() {
+    return normalizeScheme(document.documentElement.getAttribute('data-color-scheme')) || 'light';
+  }
+
+  function applyScheme(scheme) {
+    scheme = normalizeScheme(scheme) || 'light';
+    document.documentElement.setAttribute('data-color-scheme', scheme);
+    Array.prototype.slice.call(document.querySelectorAll(CURRENT_SELECTOR)).forEach(function (label) {
+      label.textContent = OPTIONS[scheme];
+    });
+    Array.prototype.slice.call(document.querySelectorAll(OPTION_SELECTOR)).forEach(function (option) {
+      option.setAttribute('aria-checked', option.getAttribute('data-sr-color-scheme-option') === scheme ? 'true' : 'false');
+    });
+  }
+
+  function bindOptions() {
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      var option = target.closest(OPTION_SELECTOR);
+      if (!option) {
+        return;
+      }
+
+      var scheme = normalizeScheme(option.getAttribute('data-sr-color-scheme-option'));
+      if (!scheme) {
+        return;
+      }
+
+      event.preventDefault();
+      setStoredScheme(scheme);
+      applyScheme(scheme);
+    });
+  }
+
+  function init() {
+    applyScheme(getStoredScheme() || currentScheme());
+    bindOptions();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+    return;
+  }
+
+  init();
+})();
+
+
+(function () {
+  'use strict';
+
   var NAV_SELECTOR = '.public-layout-nav .sr-site-menu, .content-layout-nav .sr-site-menu, .community-layout-nav .sr-site-menu';
   var ITEM_SELECTOR = '.sr-site-menu-item-has-children';
   var OPEN_CLASS = 'is-site-menu-open';
