@@ -151,6 +151,21 @@ function sr_check_module_source_policy_metadata(string $name = 'Route Test'): ar
     ];
 }
 
+function sr_check_module_source_policy_module_php(string $name = 'Upload Policy Module', string $tail = ''): string
+{
+    return "<?php\nreturn [\n"
+        . "    'name' => '" . $name . "',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+        . $tail;
+}
+
 $fixtureRoot = sys_get_temp_dir() . '/sr-module-source-policy-' . bin2hex(random_bytes(6));
 mkdir($fixtureRoot, 0777, true);
 $uploadWorkDirsBefore = sr_check_module_source_policy_upload_work_dirs();
@@ -1025,6 +1040,112 @@ try {
         if (!str_contains($exception->getMessage(), 'module.php는 정적 return 배열로 시작해야 합니다')) {
             fwrite(STDERR, 'Module upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
             exit(1);
+        }
+    }
+
+    $moduleTailUploadDir = $fixtureRoot . '/module-tail-upload';
+    mkdir($moduleTailUploadDir . '/moduletail', 0777, true);
+    file_put_contents(
+        $moduleTailUploadDir . '/moduletail/module.php',
+        sr_check_module_source_policy_module_php('Module Tail Upload', "file_put_contents(sys_get_temp_dir() . '/sr-module-upload-tail-side-effect', 'x');\n")
+    );
+    sr_check_module_source_policy_write_file($moduleTailUploadDir, 'moduletail/install.sql');
+    $moduleTailZipPath = $fixtureRoot . '/moduletail.zip';
+    sr_check_module_source_policy_zip_files($moduleTailUploadDir, $moduleTailZipPath, [
+        'moduletail/module.php',
+        'moduletail/install.sql',
+    ]);
+
+    try {
+        $moduleTailUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($moduleTailZipPath),
+            'size' => filesize($moduleTailZipPath),
+            'tmp_name' => $moduleTailZipPath,
+        ], '');
+        if (is_string($moduleTailUploadResult['extract_dir'] ?? null) && is_dir($moduleTailUploadResult['extract_dir'])) {
+            sr_remove_directory($moduleTailUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a post-return module.php statement was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), 'module.php는 정적 리터럴 배열만 반환해야 합니다')) {
+            fwrite(STDERR, 'Module tail upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
+    $moduleInlineUploadDir = $fixtureRoot . '/module-inline-upload';
+    mkdir($moduleInlineUploadDir . '/moduleinline', 0777, true);
+    file_put_contents(
+        $moduleInlineUploadDir . '/moduleinline/module.php',
+        sr_check_module_source_policy_module_php('Module Inline Upload', "?>inline output\n")
+    );
+    sr_check_module_source_policy_write_file($moduleInlineUploadDir, 'moduleinline/install.sql');
+    $moduleInlineZipPath = $fixtureRoot . '/moduleinline.zip';
+    sr_check_module_source_policy_zip_files($moduleInlineUploadDir, $moduleInlineZipPath, [
+        'moduleinline/module.php',
+        'moduleinline/install.sql',
+    ]);
+
+    try {
+        $moduleInlineUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($moduleInlineZipPath),
+            'size' => filesize($moduleInlineZipPath),
+            'tmp_name' => $moduleInlineZipPath,
+        ], '');
+        if (is_string($moduleInlineUploadResult['extract_dir'] ?? null) && is_dir($moduleInlineUploadResult['extract_dir'])) {
+            sr_remove_directory($moduleInlineUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with inline HTML after module.php return was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), 'module.php는 정적 리터럴 배열만 반환해야 합니다')) {
+            fwrite(STDERR, 'Module inline upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
+    foreach ([
+        'assetphp' => ['assets/runtime.php', 'assets 디렉터리에는 실행 파일 또는 SQL 파일'],
+        'assetsql' => ['assets/schema.sql', 'assets 디렉터리에는 실행 파일 또는 SQL 파일'],
+    ] as $assetModuleKey => $assetFixture) {
+        $assetUploadDir = $fixtureRoot . '/' . $assetModuleKey . '-upload';
+        mkdir($assetUploadDir . '/' . $assetModuleKey . '/assets', 0777, true);
+        file_put_contents(
+            $assetUploadDir . '/' . $assetModuleKey . '/module.php',
+            sr_check_module_source_policy_module_php('Asset Upload ' . $assetModuleKey)
+        );
+        sr_check_module_source_policy_write_file($assetUploadDir, $assetModuleKey . '/install.sql');
+        sr_check_module_source_policy_write_file($assetUploadDir, $assetModuleKey . '/' . $assetFixture[0]);
+        $assetZipPath = $fixtureRoot . '/' . $assetModuleKey . '.zip';
+        sr_check_module_source_policy_zip_files($assetUploadDir, $assetZipPath, [
+            $assetModuleKey . '/module.php',
+            $assetModuleKey . '/install.sql',
+            $assetModuleKey . '/' . $assetFixture[0],
+        ]);
+
+        try {
+            $assetUploadResult = sr_extract_module_upload([
+                'error' => UPLOAD_ERR_OK,
+                'name' => basename($assetZipPath),
+                'size' => filesize($assetZipPath),
+                'tmp_name' => $assetZipPath,
+            ], '');
+            if (is_string($assetUploadResult['extract_dir'] ?? null) && is_dir($assetUploadResult['extract_dir'])) {
+                sr_remove_directory($assetUploadResult['extract_dir']);
+            }
+
+            fwrite(STDERR, 'Upload fixture with a blocked public asset was accepted: ' . $assetFixture[0] . "\n");
+            exit(1);
+        } catch (Throwable $exception) {
+            if (!str_contains($exception->getMessage(), $assetFixture[1])) {
+                fwrite(STDERR, 'Public asset upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+                exit(1);
+            }
         }
     }
 
