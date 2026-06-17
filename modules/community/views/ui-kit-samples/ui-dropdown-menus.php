@@ -2,13 +2,13 @@
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <!-- 기본 메뉴 -->
-                        <div class="card ui-kit-column-xl-2">
+                        <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">기본 메뉴</h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">아바타, 상태 배지, 액션 행, 인라인 토글을 포함한 드롭다운 메뉴 스타일입니다.</p>
+                                <p class="ui-kit-hint ui-kit-space-after-4">아바타, 상태 배지, 액션 행, 인라인 토글을 포함한 드롭다운 메뉴 스타일입니다.</p>
 
                                 <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="menu" aria-orientation="vertical" aria-label="회원 드롭다운 메뉴 샘플">
                                     <div class="dropdown-profile-header">

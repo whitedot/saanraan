@@ -30,13 +30,13 @@ $memberAvatarSamples = [
 <div class="ui-kit-sample-section" data-ui-kit-sample="member-avatars">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
-                        <div class="card ui-kit-column-xl-2">
+                        <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">기본 회원 아바타 색상표</h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">아바타 이미지가 없을 때 회원 공개 해시 앞 6글자와 가장 가까운 색상을 적용합니다.</p>
+                                <p class="ui-kit-hint ui-kit-space-after-4">아바타 이미지가 없을 때 회원 공개 해시 앞 6글자와 가장 가까운 색상을 적용합니다.</p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-3">
                                     <?php foreach ($memberAvatarPalette as $memberAvatarColorIndex => $memberAvatarColor) { ?>

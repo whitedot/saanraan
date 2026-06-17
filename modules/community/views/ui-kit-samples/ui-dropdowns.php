@@ -8,7 +8,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.99b41e46')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.99b41e46')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
@@ -64,7 +64,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>data-dropdown-placement="bottom-right"</code>
                                     <?php echo sr_e(sr_t('ui.active.menu.8cf273b0')); ?>
                                 </p>
@@ -92,7 +92,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.eab18637')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.eab18637')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
@@ -132,7 +132,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.4aa7ed8f')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.text.4aa7ed8f')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown-split">
@@ -225,7 +225,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.3ed4e224')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.3ed4e224')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
@@ -288,7 +288,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.5548d650')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.5548d650')); ?></p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
                                     <div class="dropdown">
@@ -375,7 +375,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="top"</code>
                                     <?php echo sr_e(sr_t('ui.text.82d047b9')); ?>
@@ -430,7 +430,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="left-start"</code>
                                     <?php echo sr_e(sr_t('ui.active.menu.a4009a70')); ?>
@@ -484,7 +484,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.d40aee63')); ?>
                                     <code>data-dropdown-placement="right-end"</code>
                                     <?php echo sr_e(sr_t('ui.active.menu.6049a1ab')); ?>
@@ -538,7 +538,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.fb7e1c75')); ?>
                                     <code>.active</code>
                                     <?php echo sr_e(sr_t('ui.active.select.42d6d19e')); ?>
@@ -568,7 +568,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.fb7e1c75')); ?>
                                     <code>.disabled</code>
                                     <?php echo sr_e(sr_t('ui.active.menu.active.4ac36575')); ?>
@@ -598,7 +598,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.menu.8e3b133d')); ?>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.menu.8e3b133d')); ?>
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
@@ -627,7 +627,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.menu.1a2ccc44')); ?>
                                     <code>data-theme="dark"</code>
                                     <?php echo sr_e(sr_t('ui.menu.69b294ff')); ?>
@@ -661,7 +661,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>data-dropdown-placement="bottom"</code>
                                     <?php echo sr_e(sr_t('ui.text.82d047b9')); ?>
                                     <code>data-dropdown-placement="top"</code>
@@ -711,7 +711,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.menu.autoclose.active.ebf30f94')); ?>
                                 </p>
 
@@ -786,7 +786,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.menu.d08ffdf3')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.active.menu.d08ffdf3')); ?></p>
                                 <div class="dropdown" data-dropdown-placement="bottom-end">
                                     <button type="button"
                                         class="dropdown-toggle btn btn-solid-primary"
@@ -796,8 +796,8 @@
                                     </button>
 
                                     <div class="dropdown-menu dropdown-menu-wide dropdown-menu-padded" role="menu" aria-orientation="vertical">
-                                        <span class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.ab99a84e')); ?></span>
-                                        <p class="sample-muted"><?php echo sr_e(sr_t('ui.text.f96634d5')); ?></p>
+                                        <span class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.ab99a84e')); ?></span>
+                                        <p class="ui-kit-hint"><?php echo sr_e(sr_t('ui.text.f96634d5')); ?></p>
                                     </div>
                                 </div>
                             </div>

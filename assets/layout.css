@@ -671,7 +671,7 @@
 .public-layout-member-asset-row + .public-layout-member-asset-row,
 .public-layout-member-dropdown-link + .public-layout-member-asset-row,
 .public-layout-member-logout-form {
-    border-top: 1px dashed var(--layout-profile-divider);
+    border-top: 1px solid var(--layout-profile-divider);
     margin-top: 6px;
     padding-top: 6px;
 }
@@ -843,7 +843,7 @@
 
 
 .public-layout-member-divider {
-    border-top: 1px dashed var(--layout-profile-divider);
+    border-top: 1px solid var(--layout-profile-divider);
     display: block;
     margin: 6px 4px;
 }

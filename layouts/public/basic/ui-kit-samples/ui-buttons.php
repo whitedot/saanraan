@@ -1,13 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-buttons">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
-                        <div class="card ui-kit-column-xl-2">
+                        <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.d0d02938')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.btn</code> <?php echo sr_e(sr_t('ui.text.88267bd2')); ?> <code>&lt;a&gt;</code>, <code>&lt;button&gt;</code><?php echo sr_e(sr_t('ui.text.62022cc7')); ?>
                                     <code>&lt;input&gt;</code> <?php echo sr_e(sr_t('ui.active.e668dab7')); ?> <code>.btn-solid-*</code>, <code>.btn-outline-*</code>, <code>.btn-soft-*</code>,
                                     <code>.btn-ghost-*</code> <?php echo sr_e(sr_t('ui.text.7e27e505')); ?>
@@ -42,7 +42,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-pill</code><?php echo sr_e(sr_t('ui.text.211d3bdd')); ?>
                             </p>
 
@@ -76,7 +76,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-outline-*</code> <?php echo sr_e(sr_t('ui.active.a1403aa4')); ?>
                             </p>
 
@@ -111,7 +111,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-pill</code><?php echo sr_e(sr_t('ui.text.893a82e2')); ?>
                             </p>
 
@@ -146,7 +146,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-soft-*</code> <?php echo sr_e(sr_t('ui.active.d10febcb')); ?>
                             </p>
 
@@ -179,7 +179,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-soft-*</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>.btn-pill</code><?php echo sr_e(sr_t('ui.text.b339cfd0')); ?>
                             </p>
 
@@ -212,7 +212,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><code>.btn-ghost-*</code> <?php echo sr_e(sr_t('ui.text.73a42bb0')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><code>.btn-ghost-*</code> <?php echo sr_e(sr_t('ui.text.73a42bb0')); ?></p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
@@ -245,7 +245,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <?php echo sr_e(sr_t('ui.text.c733f91e')); ?> <code>.btn-pill</code><?php echo sr_e(sr_t('ui.text.8a06b85b')); ?>
                             </p>
 
@@ -280,7 +280,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.active.11246df8')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.active.11246df8')); ?></p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <button type="button"
@@ -309,7 +309,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('ui.text.76d07f2d')); ?> <code>.btn-pill</code><?php echo sr_e(sr_t('ui.text.d91e0973')); ?>
                                 </p>
 
@@ -340,7 +340,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.btn-lg</code> <?php echo sr_e(sr_t('ui.text.82d047b9')); ?> <code>.btn-sm</code><?php echo sr_e(sr_t('ui.active.d237a39b')); ?>
                                 </p>
 
@@ -362,7 +362,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>&lt;button&gt;</code><?php echo sr_e(sr_t('ui.text.dd7f4bf0')); ?> <code>disabled</code> <?php echo sr_e(sr_t('ui.active.status.8e401937')); ?>
                             </p>
 
@@ -385,7 +385,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn-block</code> <?php echo sr_e(sr_t('ui.all.94b16698')); ?>
                             </p>
 
@@ -406,7 +406,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.active.active.735d21f9')); ?>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.active.active.735d21f9')); ?>
                             </p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
@@ -515,7 +515,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4">
+                            <p class="ui-kit-hint ui-kit-space-after-4">
                                 <code>.btn</code> <?php echo sr_e(sr_t('ui.text.fb9af65a')); ?> <code>&lt;button&gt;</code>, <code>&lt;a&gt;</code>,
                                 <code>&lt;input&gt;</code> <?php echo sr_e(sr_t('ui.text.41a82404')); ?>
                             </p>
@@ -536,13 +536,13 @@
                     </div>
                     <!-- end card-->
 
-                    <div class="card ui-kit-column-xl-2">
+                    <div class="card">
                         <div class="card-header">
                             <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.5844f076')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>inline-flex</code><?php echo sr_e(sr_t('ui.active.29dfc8fb')); ?>
                                 </p>
 

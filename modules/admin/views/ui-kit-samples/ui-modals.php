@@ -7,7 +7,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7e7bb680')); ?></p>
+                                <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7e7bb680')); ?></p>
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                     <!-- Standard modal content -->
                                     <div>
@@ -38,7 +38,7 @@
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.e2e62d72')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.48bc8889')); ?>
                                                         </p>
-                                                        <hr class="sample-divider" />
+                                                        <hr class="ui-kit-divider-top ui-kit-block-space-4" />
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.aa096f4f')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.2d5768ee')); ?>
                                                         </p>
@@ -149,7 +149,7 @@
                                                     <div class="modal-body">
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.e2e62d72')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.all.active.f80dbc9e')); ?></p>
-                                                        <hr class="sample-divider" />
+                                                        <hr class="ui-kit-divider-top ui-kit-block-space-4" />
                                                         <h5 class="ui-kit-space-after-2"><?php echo sr_e(sr_t('admin::ui.text.aa096f4f')); ?></h5>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.all.active.e049f4e9')); ?></p>
                                                         <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.62923020')); ?></p>
@@ -242,7 +242,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.page.354cddad')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.page.354cddad')); ?></p>
 
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Top modal content -->
@@ -386,7 +386,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.623f1f1c')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.623f1f1c')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Modal Heading -->
                                 <div>
@@ -474,7 +474,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><code>data-overlay</code> <?php echo sr_e(sr_t('admin::ui.text.1f4997e4')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><code>data-overlay</code> <?php echo sr_e(sr_t('admin::ui.text.1f4997e4')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <div>
                                     <button type="button"
@@ -564,7 +564,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.07d37118')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.active.all.07d37118')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Full Screen Modal -->
                                 <div>
@@ -622,9 +622,9 @@
                                         class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenSm-label">
                                         <div
-                                            class="modal-dialog-responsive modal-open-sm-mt ui-kit-inline-margin-sm-auto ui-kit-space-before-sm-0 ui-kit-auto-height-sm ui-kit-max-height-sm-none ui-kit-max-width-sm-lg">
+                                            class="modal-dialog-responsive modal-open-sm-mt">
                                             <div
-                                                class="modal-content-fluid sample-radius-md sample-frame">
+                                                class="modal-content-fluid">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenSm-label"
@@ -666,9 +666,9 @@
                                         class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenMd-label">
                                         <div
-                                            class="modal-dialog-responsive modal-open-md-mt ui-kit-inline-margin-md-auto ui-kit-space-before-md-0 ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg">
+                                            class="modal-dialog-responsive modal-open-md-mt">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-md ui-kit-max-height-md-none ui-kit-max-width-md-lg sample-radius-md-xl modal-border-md ui-kit-shadow-md-subtle">
+                                                class="modal-content-fluid modal-border-md">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenMd-label"
@@ -710,9 +710,9 @@
                                         class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenLg-label">
                                         <div
-                                            class="modal-dialog-responsive modal-open-lg-mt ui-kit-inline-margin-lg-auto ui-kit-space-before-lg-0 ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg">
+                                            class="modal-dialog-responsive modal-open-lg-mt">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-lg ui-kit-max-height-lg-none ui-kit-max-width-lg-lg modal-radius-lg modal-border-lg ui-kit-shadow-lg-subtle">
+                                                class="modal-content-fluid modal-radius-lg modal-border-lg">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenLg-label"
@@ -754,9 +754,9 @@
                                         class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXl-label">
                                         <div
-                                            class="modal-dialog-responsive modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
+                                            class="modal-dialog-responsive modal-open-xl-mt">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg modal-radius-xl modal-border-xl ui-kit-shadow-xl-subtle">
+                                                class="modal-content-fluid modal-radius-xl modal-border-xl">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenXl-label"
@@ -798,9 +798,9 @@
                                         class="modal-overlay overlay overlay-closed-static"
                                         role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXxl-label">
                                         <div
-                                            class="modal-dialog-responsive modal-open-xl-mt ui-kit-inline-margin-xl-auto ui-kit-space-before-xl-0 ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-xl">
+                                            class="modal-dialog-responsive modal-open-xl-mt">
                                             <div
-                                                class="modal-content-fluid ui-kit-auto-height-xl ui-kit-max-height-xl-none ui-kit-max-width-xl-lg modal-radius-xl modal-border-xl ui-kit-shadow-xl-subtle">
+                                                class="modal-content-fluid modal-radius-xl modal-border-xl">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenXxl-label"
@@ -838,7 +838,7 @@
                         </div>
 
                         <div class="card-body">
-                            <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.static.settings.4d8a4647')); ?></p>
+                            <p class="ui-kit-hint ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.static.settings.4d8a4647')); ?></p>
                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2-5">
                                 <!-- Static Backdrop modal -->
                                 <div>

@@ -7,7 +7,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge</code><?php echo sr_e(sr_t('admin::ui.text.d536e625')); ?> <code>.badge-solid-*</code> <?php echo sr_e(sr_t('admin::ui.active.91786a1a')); ?>
                                 </p>
 
@@ -33,7 +33,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-pill</code> <?php echo sr_e(sr_t('admin::ui.active.8bac75ab')); ?>
                                 </p>
 
@@ -59,7 +59,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-outline-*</code> <?php echo sr_e(sr_t('admin::ui.active.a93e18ae')); ?>
                                 </p>
 
@@ -83,7 +83,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('admin::ui.text.26da7bc5')); ?> <code>.badge-pill</code> <?php echo sr_e(sr_t('admin::ui.edit.active.88cd7e44')); ?>
                                 </p>
 
@@ -107,7 +107,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-soft-*</code> <?php echo sr_e(sr_t('admin::ui.active.e8538452')); ?>
                                 </p>
 
@@ -131,7 +131,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <?php echo sr_e(sr_t('admin::ui.text.13a3c408')); ?> <code>.badge-soft-*</code> <?php echo sr_e(sr_t('admin::ui.edit.active.88cd7e44')); ?>
                                 </p>
 
@@ -155,7 +155,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-label</code> <?php echo sr_e(sr_t('admin::ui.active.5a4954a6')); ?>
                                 </p>
 
@@ -181,7 +181,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-list</code> 안에 <code>.badge-list-item</code>을 배치하고, 보조 설명은 <code>.badge-list-summary</code>로 표시합니다.
                                 </p>
 
@@ -206,7 +206,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-square</code> <?php echo sr_e(sr_t('admin::ui.active.8bf7ee1c')); ?>
                                 </p>
 
@@ -232,7 +232,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4">
+                                <p class="ui-kit-hint ui-kit-space-after-4">
                                     <code>.badge-square</code><?php echo sr_e(sr_t('admin::ui.text.d536e625')); ?> <code>.badge-pill</code><?php echo sr_e(sr_t('admin::ui.active.f9a4c7c8')); ?>
                                 </p>
 

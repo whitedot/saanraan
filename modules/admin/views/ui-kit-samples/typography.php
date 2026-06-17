@@ -2,9 +2,9 @@
     <div class="container-fluid">
         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
             <div class="card">
-                <div class="card-header ui-kit-block-flow">
+                <div class="card-header">
                     <h3 class="card-title">Role Scale</h3>
-                    <p class="sample-caption">관리자 조밀 화면과 공개 콘텐츠가 같은 역할 기반 토큰을 소비하는 기준입니다.</p>
+                    <p class="ui-kit-ink-default-400 ui-kit-type-xs">관리자 조밀 화면과 공개 콘텐츠가 같은 역할 기반 토큰을 소비하는 기준입니다.</p>
                 </div>
                 <div class="card-body">
                     <div class="ui-kit-typography-list">
@@ -58,9 +58,9 @@
 
             <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                 <div class="card">
-                    <div class="card-header ui-kit-block-flow">
+                    <div class="card-header">
                         <h3 class="card-title">Admin Density</h3>
-                        <p class="sample-caption">운영 화면에서 제목, 본문, 메타 정보가 좁은 카드 안에 들어가는 경우입니다.</p>
+                        <p class="ui-kit-ink-default-400 ui-kit-type-xs">운영 화면에서 제목, 본문, 메타 정보가 좁은 카드 안에 들어가는 경우입니다.</p>
                     </div>
                     <div class="card-body">
                         <div class="ui-kit-stack-4">
@@ -75,9 +75,9 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header ui-kit-block-flow">
+                    <div class="card-header">
                         <h3 class="card-title">Public Content</h3>
-                        <p class="sample-caption">공개 콘텐츠에서 큰 제목과 읽기 본문이 함께 보이는 경우입니다.</p>
+                        <p class="ui-kit-ink-default-400 ui-kit-type-xs">공개 콘텐츠에서 큰 제목과 읽기 본문이 함께 보이는 경우입니다.</p>
                     </div>
                     <div class="card-body">
                         <article class="ui-kit-stack-4">

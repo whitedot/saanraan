@@ -163,7 +163,7 @@
 
 .sr-asset-exchange-empty {
     background: var(--public-ui-surface-soft);
-    border: 1px dashed var(--public-ui-border);
+    border: 1px solid var(--public-ui-border);
     border-radius: 8px;
     color: var(--public-ui-muted);
     margin: 0;

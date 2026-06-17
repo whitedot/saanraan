@@ -19,8 +19,8 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="valid-msg ui-kit-space-before-1 sample-hidden sample-body-small sample-success-text"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.name.b6997ef6')); ?></p>
+                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.name.b6997ef6')); ?></p>
                                     </div>
 
                                     <!-- Last Name -->
@@ -34,8 +34,8 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="valid-msg ui-kit-space-before-1 sample-hidden sample-body-small sample-success-text"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.text.90eea241')); ?></p>
+                                        <p class="valid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm ui-kit-ink-success"><?php echo sr_e(sr_t('ui.text.78dc433d')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.text.90eea241')); ?></p>
                                     </div>
 
                                     <!-- Username -->
@@ -50,7 +50,7 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.active.name.select.c8bf3683')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.active.name.select.c8bf3683')); ?></p>
                                     </div>
 
                                     <!-- City -->
@@ -64,7 +64,7 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.name.f5853c38')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.name.f5853c38')); ?></p>
                                     </div>
 
                                     <!-- State -->
@@ -83,7 +83,7 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-select validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-select validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.select.684bc485')); ?>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.select.684bc485')); ?>
                                         </p>
                                     </div>
 
@@ -98,15 +98,15 @@
                                             <?php echo sr_material_icon_html('check', 'valid-icon validation-status-icon validation-status-icon-success', sr_t('ui.text.35688a85')); ?>
                                             <?php echo sr_material_icon_html('info', 'invalid-icon validation-status-icon validation-status-icon-danger', sr_t('ui.text.b49f20d8')); ?>
                                         </div>
-                                        <p class="invalid-msg ui-kit-space-before-1 sample-hidden sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.text.286154b2')); ?></p>
+                                        <p class="invalid-msg ui-kit-space-before-1 ui-kit-hidden ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.text.286154b2')); ?></p>
                                     </div>
 
                                     <!-- Terms -->
                                     <div class="ui-kit-column-md-12">
                                         <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center">
                                             <input id="customTerms" type="checkbox" required class="form-checkbox" />
-                                            <label for="customTerms" class="ui-kit-start-margin-2 sample-body-small sample-strong-text"><?php echo sr_e(sr_t('ui.text.867eda7d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                                            <p class="invalid-msg ui-kit-space-before-2 sample-hidden ui-kit-fill-width sample-body-small validation-danger-label"><?php echo sr_e(sr_t('ui.text.6d48c575')); ?></p>
+                                            <label for="customTerms" class="ui-kit-start-margin-2 ui-kit-type-sm ui-kit-ink-default-700"><?php echo sr_e(sr_t('ui.text.867eda7d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                                            <p class="invalid-msg ui-kit-space-before-2 ui-kit-hidden ui-kit-fill-width ui-kit-type-sm validation-danger-label"><?php echo sr_e(sr_t('ui.text.6d48c575')); ?></p>
                                         </div>
                                     </div>
 
@@ -156,7 +156,7 @@
                                     <!-- Username -->
                                     <div class="ui-kit-column-md-4">
                                         <label for="serverUsername" class="form-label"><?php echo sr_e(sr_t('ui.active.name.username.b19d3d5e')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                                        <div class="validation-field ui-kit-cluster sample-radius-md">
+                                        <div class="validation-field ui-kit-cluster ui-kit-radius-md">
                                             <span
                                                 class="validation-addon">@</span>
                                             <input type="text" id="serverUsername" name="username"
@@ -356,7 +356,7 @@
                                     <div>
                                         <label class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-2" for="invalidCheck2">
                                             <input type="checkbox" id="invalidCheck2" required class="form-checkbox" />
-                                            <span class="sample-strong-text"><?php echo sr_e(sr_t('ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></span>
+                                            <span class="ui-kit-ink-default-700"><?php echo sr_e(sr_t('ui.text.07231b0d')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></span>
                                         </label>
                                     </div>
 

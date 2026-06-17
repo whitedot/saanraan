@@ -12,7 +12,7 @@
                                         <!-- Simple Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="simpleinput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.simple.input.cb0b2f70')); ?></label>
+                                                <label for="simpleinput" class="form-label"><?php echo sr_e(sr_t('admin::ui.simple.input.cb0b2f70')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -20,12 +20,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Floating Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.floating.input.cba11e12')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.floating.input.cba11e12')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -38,12 +38,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Validation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="validInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.valid.input.da64ada7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                                <label for="validInput" class="form-label"><?php echo sr_e(sr_t('admin::ui.valid.input.da64ada7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -53,18 +53,18 @@
                                                         aria-describedby="validation-name-success-helper" />
                                                     <div
                                                         class="validation-static-icon">
-                                                        <?php echo sr_material_icon_html('check', 'sample-success-text', sr_t('admin::ui.text.35688a85')); ?>
+                                                        <?php echo sr_material_icon_html('check', 'ui-kit-ink-success', sr_t('admin::ui.text.35688a85')); ?>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-rounded" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.rounded.input.f0ad333f')); ?></label>
+                                                <label for="example-rounded" class="form-label"><?php echo sr_e(sr_t('admin::ui.rounded.input.f0ad333f')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -73,12 +73,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Text Area -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-textarea" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.text.area.2dbabf8d')); ?></label>
+                                                <label for="example-textarea" class="form-label"><?php echo sr_e(sr_t('admin::ui.text.area.2dbabf8d')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -86,12 +86,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Disabled -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-disable" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.disabled.54612c16')); ?></label>
+                                                <label for="example-disable" class="form-label"><?php echo sr_e(sr_t('admin::ui.disabled.54612c16')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -100,27 +100,27 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Helping Text -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-helping" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.helping.text.e77e662a')); ?></label>
+                                                <label for="example-helping" class="form-label"><?php echo sr_e(sr_t('admin::ui.helping.text.e77e662a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <input type="text" id="example-helping" placeholder="<?php echo sr_e(sr_t('admin::ui.text.318b9368')); ?>"
                                                     class="form-input" />
-                                                <small class="sample-help-text"><?php echo sr_e(sr_t('admin::ui.text.b02e5a63')); ?></small>
+                                                <small class="ui-kit-hint"><?php echo sr_e(sr_t('admin::ui.text.b02e5a63')); ?></small>
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="discount" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.select.select.with.icon.623ff179')); ?></label>
+                                                <label for="discount" class="form-label"><?php echo sr_e(sr_t('admin::ui.select.select.with.icon.623ff179')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -141,7 +141,7 @@
                                         <!-- with Label Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.label.input.5bde99cc')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.label.input.5bde99cc')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -153,12 +153,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Search Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="SearchInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.search.search.style.ca458659')); ?></label>
+                                                <label for="SearchInput" class="form-label"><?php echo sr_e(sr_t('admin::ui.search.search.style.ca458659')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -170,12 +170,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Invalidation Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="inValidationInput" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.invalid.input.97005652')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                                <label for="inValidationInput" class="form-label"><?php echo sr_e(sr_t('admin::ui.invalid.input.97005652')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -189,12 +189,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Placeholder -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-placeholder" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.placeholder.37969de3')); ?></label>
+                                                <label for="example-placeholder" class="form-label"><?php echo sr_e(sr_t('admin::ui.placeholder.37969de3')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -203,12 +203,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Readonly -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-readonly" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.readonly.664fd112')); ?></label>
+                                                <label for="example-readonly" class="form-label"><?php echo sr_e(sr_t('admin::ui.readonly.664fd112')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -217,12 +217,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Static Control -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-static" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.static.control.e9099e05')); ?></label>
+                                                <label for="example-static" class="form-label"><?php echo sr_e(sr_t('admin::ui.static.control.e9099e05')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -231,12 +231,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Default select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.select.default.select.861b0eab')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.select.default.select.861b0eab')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -249,12 +249,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Checkbox List -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <span class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.list.checkbox.list.d31f7ae8')); ?></span>
+                                                <span class="form-label"><?php echo sr_e(sr_t('admin::ui.list.checkbox.list.d31f7ae8')); ?></span>
                                             </div>
 
                                             <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-x-4 ui-kit-column-lg-2">
@@ -296,7 +296,7 @@
                                         <!-- Email Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-email" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.email.email.8b8a829e')); ?></label>
+                                                <label for="example-email" class="form-label"><?php echo sr_e(sr_t('admin::ui.email.email.8b8a829e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -305,12 +305,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Show/Hide Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.password.show.hide.password.bffe9d7a')); ?></label>
+                                                <label for="password" class="form-label"><?php echo sr_e(sr_t('admin::ui.password.show.hide.password.bffe9d7a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -331,12 +331,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Time -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-time" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.time.a85f0011')); ?></label>
+                                                <label for="example-time" class="form-label"><?php echo sr_e(sr_t('admin::ui.time.a85f0011')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -344,12 +344,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Number -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-number" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.number.7e569561')); ?></label>
+                                                <label for="example-number" class="form-label"><?php echo sr_e(sr_t('admin::ui.number.7e569561')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -358,12 +358,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Range -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-range" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.range.c39250e4')); ?></label>
+                                                <label for="example-range" class="form-label"><?php echo sr_e(sr_t('admin::ui.range.c39250e4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -377,7 +377,7 @@
                                         <!-- Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-password" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.password.password.22c84385')); ?></label>
+                                                <label for="example-password" class="form-label"><?php echo sr_e(sr_t('admin::ui.password.password.22c84385')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -386,12 +386,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Month -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-month" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.month.b274c0c9')); ?></label>
+                                                <label for="example-month" class="form-label"><?php echo sr_e(sr_t('admin::ui.month.b274c0c9')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -399,12 +399,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Week -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-week" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.week.aab53b22')); ?></label>
+                                                <label for="example-week" class="form-label"><?php echo sr_e(sr_t('admin::ui.week.aab53b22')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -412,12 +412,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Color -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="example-color" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.color.aa8ae7a1')); ?></label>
+                                                <label for="example-color" class="form-label"><?php echo sr_e(sr_t('admin::ui.color.aa8ae7a1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -441,7 +441,7 @@
                                         <!-- Basic Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.active.name.username.b19d3d5e')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.active.name.username.b19d3d5e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -452,12 +452,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Currency Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.amount.f78975a2')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.amount.f78975a2')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -469,12 +469,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Textarea with Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.textarea.9cbf1bae')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.textarea.9cbf1bae')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -485,12 +485,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Flex-nowrap Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow sample-emphasis"><?php echo sr_e(sr_t('admin::ui.wrapping.4812dc30')); ?></label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.wrapping.4812dc30')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -501,12 +501,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Input group with text input and button -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.input.button.f4339c75')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.input.button.f4339c75')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -518,12 +518,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Multiple Files  -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="formFileMultiple01" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.multiple.files.48167df8')); ?></label>
+                                                <label for="formFileMultiple01" class="form-label"><?php echo sr_e(sr_t('admin::ui.multiple.files.48167df8')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -537,7 +537,7 @@
                                         <!-- Email-like Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.recipient.2c64ddc4')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.recipient.2c64ddc4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -548,12 +548,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Multi-field Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.email.login.email.login.62fef2c1')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.email.login.email.login.62fef2c1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -565,29 +565,29 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Vanity URL Input Group -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.url.vanity.url.3e033a6a')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.url.vanity.url.3e033a6a')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-group">
                                                     <span
-                                                        class="input-group-text sample-nowrap">https://example.com/users/</span>
+                                                        class="input-group-text">https://example.com/users/</span>
                                                     <input type="text" class="form-input" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Input group with dropdown and text input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="ui-kit-space-before-2 ui-kit-block-flow sample-emphasis"><?php echo sr_e(sr_t('admin::ui.dropdown.input.ffa2ab72')); ?></label>
+                                                <label class="ui-kit-space-before-2 ui-kit-block-flow ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.dropdown.input.ffa2ab72')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -616,12 +616,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- File input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="inputGroupFile04" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.file.input.c956dabe')); ?></label>
+                                                <label for="inputGroupFile04" class="form-label"><?php echo sr_e(sr_t('admin::ui.file.input.c956dabe')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -630,11 +630,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.select.input.group.select.ab4404f1')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.select.input.group.select.ab4404f1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -665,7 +665,7 @@
                                         <!-- Floating Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.email.e9abda44')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.email.e9abda44')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -681,12 +681,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Floating Textarea -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.comments.8eea4e12')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.comments.8eea4e12')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -704,7 +704,7 @@
                                         <!-- Floating Password -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.password.4fa210a0')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.password.4fa210a0')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -733,7 +733,7 @@
                                         <!-- Small Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-small" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.small.32265979')); ?></label>
+                                                <label for="input-small" class="form-label"><?php echo sr_e(sr_t('admin::ui.small.32265979')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -742,12 +742,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Large Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-large" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.large.865b14fe')); ?></label>
+                                                <label for="input-large" class="form-label"><?php echo sr_e(sr_t('admin::ui.large.865b14fe')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -756,12 +756,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Large Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.select.menu.9633940e')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.select.menu.9633940e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -779,7 +779,7 @@
                                         <!-- Normal Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-normal" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.normal.339d3ab4')); ?></label>
+                                                <label for="input-normal" class="form-label"><?php echo sr_e(sr_t('admin::ui.normal.339d3ab4')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -788,12 +788,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Grid Size Input -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label for="input-gridsize" class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.grid.sizes.dcc4d2ee')); ?></label>
+                                                <label for="input-gridsize" class="form-label"><?php echo sr_e(sr_t('admin::ui.grid.sizes.dcc4d2ee')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -806,12 +806,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Small Select -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.select.menu.c84a7b65')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.select.menu.c84a7b65')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-lg-2">
@@ -839,7 +839,7 @@
                                         <!-- Default Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.checkboxes.3f234b18')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.checkboxes.3f234b18')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
@@ -884,7 +884,7 @@
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
 
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="checkSize1" class="form-checkbox form-choice-md"
@@ -901,12 +901,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Switches -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.switches.86b5bc92')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.switches.86b5bc92')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
@@ -919,11 +919,11 @@
                                                 <!-- Disabled Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                     <input type="checkbox" id="switch2" class="form-switch" disabled />
-                                                    <label for="switch2" class="sample-muted"><?php echo sr_e(sr_t('admin::ui.text.b9af9dc0')); ?></label>
+                                                    <label for="switch2" class="ui-kit-hint"><?php echo sr_e(sr_t('admin::ui.text.b9af9dc0')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-base ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Switch -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
@@ -942,12 +942,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.text.1855fe4d')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.text.1855fe4d')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -999,12 +999,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Colored Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.text.1942c077')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.text.1942c077')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -1061,7 +1061,7 @@
                                         <!-- Default Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.radios.a8e1ef53')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.radios.a8e1ef53')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
@@ -1096,11 +1096,11 @@
                                                     <input type="radio" name="disabledRadioOptions" id="inlineRadio3"
                                                         value="option3" class="form-radio" checked
                                                         disabled />
-                                                    <label for="inlineRadio3" class="sample-muted"><?php echo sr_e(sr_t('admin::ui.status.457b2a9e')); ?></label>
+                                                    <label for="inlineRadio3" class="ui-kit-hint"><?php echo sr_e(sr_t('admin::ui.status.457b2a9e')); ?></label>
                                                 </div>
 
                                                 <!-- Sizes -->
-                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 sample-emphasis"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
+                                                <h5 class="ui-kit-space-before-5 ui-kit-space-after-2 ui-kit-weight-semibold"><?php echo sr_e(sr_t('admin::ui.text.82232621')); ?></h5>
 
                                                 <!-- 16px Radios -->
                                                 <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-inline-space-4">
@@ -1134,12 +1134,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Reverse -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.reverse.dfe78742')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.reverse.dfe78742')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-fill-width ui-kit-stack-3 ui-kit-column-lg-2 ui-kit-width-lg-half">
@@ -1166,12 +1166,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Colored Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.text.a133349e')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.text.a133349e')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-wrap ui-kit-gap-9 ui-kit-column-lg-2">
@@ -1224,29 +1224,29 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Toggle Checkboxes -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.checkbox.toggle.50291b0c')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.checkbox.toggle.50291b0c')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
                                                 <!-- Group Toggle -->
                                                 <div class="ui-kit-cluster">
                                                     <div>
-                                                        <input type="checkbox" id="toggle1" class="form-choice-toggle-input sample-hidden" />
+                                                        <input type="checkbox" id="toggle1" class="form-choice-toggle-input ui-kit-hidden" />
                                                         <label for="toggle1"
                                                             class="btn btn-choice-primary btn-group-start"><?php echo sr_e(sr_t('admin::ui.text.556dcbf0')); ?></label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle2" class="form-choice-toggle-input sample-hidden" />
+                                                        <input type="checkbox" id="toggle2" class="form-choice-toggle-input ui-kit-hidden" />
                                                         <label for="toggle2"
                                                             class="btn btn-choice-primary btn-group-middle"><?php echo sr_e(sr_t('admin::ui.text.ca76b128')); ?></label>
                                                     </div>
                                                     <div>
-                                                        <input type="checkbox" id="toggle3" class="form-choice-toggle-input sample-hidden" />
+                                                        <input type="checkbox" id="toggle3" class="form-choice-toggle-input ui-kit-hidden" />
                                                         <label for="toggle3"
                                                             class="btn btn-choice-primary btn-group-end"><?php echo sr_e(sr_t('admin::ui.text.28ed1f7d')); ?></label>
                                                     </div>
@@ -1254,11 +1254,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 토글 그룹 색상</label>
+                                                <label class="form-label">체크박스 토글 그룹 색상</label>
                                             </div>
 
                                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2 ui-kit-column-lg-2">
@@ -1266,11 +1266,11 @@
                                                     <?php $choiceColorId = 'toggleColor' . ucfirst($choiceColor); ?>
                                                     <div class="ui-kit-cluster">
                                                         <div>
-                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>A" class="form-choice-toggle-input sample-hidden" checked />
+                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>A" class="form-choice-toggle-input ui-kit-hidden" checked />
                                                             <label for="<?php echo sr_e($choiceColorId); ?>A" class="btn btn-choice-<?php echo sr_e($choiceColor); ?> btn-group-start"><?php echo sr_e($choiceLabel); ?></label>
                                                         </div>
                                                         <div>
-                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>B" class="form-choice-toggle-input sample-hidden" />
+                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>B" class="form-choice-toggle-input ui-kit-hidden" />
                                                             <label for="<?php echo sr_e($choiceColorId); ?>B" class="btn btn-choice-<?php echo sr_e($choiceColor); ?> btn-group-end">Alt</label>
                                                         </div>
                                                     </div>
@@ -1278,49 +1278,49 @@
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <!-- Toggle Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0"><?php echo sr_e(sr_t('admin::ui.radio.toggle.1512d5a1')); ?></label>
+                                                <label class="form-label"><?php echo sr_e(sr_t('admin::ui.radio.toggle.1512d5a1')); ?></label>
                                             </div>
 
                                             <div class="ui-kit-column-1 ui-kit-cluster ui-kit-column-lg-2">
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioLeft"
-                                                        class="form-choice-toggle-input sample-hidden" checked />
+                                                        class="form-choice-toggle-input ui-kit-hidden" checked />
                                                     <label for="radioLeft"
                                                         class="btn btn-choice-secondary btn-group-start"><?php echo sr_e(sr_t('admin::ui.text.dc0103c1')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioMiddle"
-                                                        class="form-choice-toggle-input sample-hidden" />
+                                                        class="form-choice-toggle-input ui-kit-hidden" />
                                                     <label for="radioMiddle"
                                                         class="btn btn-choice-secondary btn-group-middle"><?php echo sr_e(sr_t('admin::ui.text.d41ad4fc')); ?></label>
                                                 </div>
 
                                                 <div>
                                                     <input type="radio" name="radiotoggle" id="radioRight"
-                                                        class="form-choice-toggle-input sample-hidden" />
+                                                        class="form-choice-toggle-input ui-kit-hidden" />
                                                     <label for="radioRight"
                                                         class="btn btn-choice-secondary btn-group-end"><?php echo sr_e(sr_t('admin::ui.text.f594aa6a')); ?></label>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="sample-field-divider"></div>
+                                        <div class="ui-kit-divider-top ui-kit-block-space-base"></div>
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">라디오 토글 색상</label>
+                                                <label class="form-label">라디오 토글 색상</label>
                                             </div>
 
                                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2 ui-kit-column-lg-2">
                                                 <?php foreach (['primary' => 'Primary', 'secondary' => 'Secondary', 'success' => 'Success', 'info' => 'Info', 'warning' => 'Warning', 'danger' => 'Danger', 'dark' => 'Dark', 'light' => 'Light'] as $choiceColor => $choiceLabel) { ?>
                                                     <div>
-                                                        <input type="radio" name="radioToggleColor" id="radioToggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="form-choice-toggle-input sample-hidden"<?php echo $choiceColor === 'primary' ? ' checked' : ''; ?> />
+                                                        <input type="radio" name="radioToggleColor" id="radioToggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="form-choice-toggle-input ui-kit-hidden"<?php echo $choiceColor === 'primary' ? ' checked' : ''; ?> />
                                                         <label for="radioToggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="btn btn-choice-<?php echo sr_e($choiceColor); ?>"><?php echo sr_e($choiceLabel); ?></label>
                                                     </div>
                                                 <?php } ?>
