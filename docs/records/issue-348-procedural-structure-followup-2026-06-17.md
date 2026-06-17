@@ -10,7 +10,6 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/community/helpers/boards.php` | 1,990 | 게시판/그룹 설정, 목록 조회, 저장, 표시 row helper가 함께 있음 | 중간 |
 | `modules/survey/actions/admin-surveys.php` | 1,663 | 설문 저장 입력, 문항 교체, 보상 정책 저장, 감사 payload가 긴 action에 함께 있음 | 높음 |
 | `modules/reaction/helpers.php` | 1,618 | 반응 대상 해석, preset/definition 관리, 기록, 알림 helper가 함께 있음 | 중간 |
 
@@ -25,6 +24,9 @@
 | `modules/community/helpers/posts.php` | 1,329 | 커뮤니티 게시글 조회, 공개 표시, 관리자 게시글 목록 helper만 남김. 댓글, 작성/수정, 추가 필드 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/community/helpers/assets.php` | 1,470 | 커뮤니티 자산 설정, 정책 세트, 입력 UI, 감사용 설정 helper만 남김. paid read/attachment/event 실행 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/community/helpers/asset-events.php` | 1,010 | 커뮤니티 paid read 세션, 접근권, 자산 로그, 이벤트 실행, 게시자 보상/회수 helper를 맡음 | 낮음 |
+| `modules/community/helpers/boards.php` | 1,287 | 게시판 설정, 게시판 목록/저장, 효과 설정 helper만 남김. 게시판 그룹과 삭제/정리 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/community/helpers/board-cleanup.php` | 440 | 게시판/게시판 그룹 삭제 가능 여부, 참조 수, 저장소 정리 실패 기록/재시도 helper를 맡음 | 낮음 |
+| `modules/community/helpers/board-groups.php` | 271 | 게시판 그룹 목록/관리자 조회/저장, 기본 메뉴 fallback helper를 맡음 | 낮음 |
 | `modules/content/helpers/assets.php` | 1,179 | 콘텐츠 자산 설정, 정책 세트, 입력 UI, 감사용 설정 helper만 남김. 유료 접근/권한과 완료 버튼 실행 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/content/helpers/asset-access.php` | 997 | 콘텐츠 유료 열람/다운로드 접근권, 차감 로그, 쿠폰 접근권 helper를 맡음 | 낮음 |
 | `modules/notification/helpers.php` | 1,014 | 알림 설정, 템플릿, 계정 이벤트, 일반 알림 생성 helper만 남김. delivery runner와 관리자 알림 helper는 별도 파일로 분리함 | 낮음 |
@@ -70,8 +72,9 @@
 - `modules/community/helpers/assets.php`의 paid read 세션, 접근권, 자산 로그, 이벤트 실행, 게시자 보상/회수 helper를 `modules/community/helpers/asset-events.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/survey/helpers.php`의 댓글/비밀 댓글 권한/멘션 알림/관리자 댓글 조회 helper를 `modules/survey/helpers/comments.php`로 분리했다.
 - `modules/survey/helpers.php`의 응답 가능 여부, 답변 수집/검증/저장, 보상 지급 helper를 `modules/survey/helpers/responses.php`로 분리해 1,500줄 미만으로 줄였다.
+- `modules/community/helpers/boards.php`의 게시판 그룹 목록/관리자 조회/저장 helper를 `modules/community/helpers/board-groups.php`로 분리했다.
+- `modules/community/helpers/boards.php`의 게시판/게시판 그룹 삭제 가능 여부, 참조 수, 저장소 정리 실패 기록/재시도 helper를 `modules/community/helpers/board-cleanup.php`로 분리해 1,500줄 미만으로 줄였다.
 
 ## 후속 후보
 
 1. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
-2. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.
