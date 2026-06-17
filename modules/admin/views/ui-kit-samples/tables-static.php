@@ -83,7 +83,7 @@ $uiKitTableRows = [
                 </div>
                 <div class="filtering-actions">
                     <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="false" aria-controls="admin_ui_filtering_card_detail">상세검색</button>
-                    <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+                    <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
                     <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
                 </div>
             </form>

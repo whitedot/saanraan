@@ -62,7 +62,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
             </div>
             <div class="filtering-actions">
                 <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $downloadLogDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_file_download_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             </div>
         </div>

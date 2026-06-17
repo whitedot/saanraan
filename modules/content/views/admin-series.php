@@ -97,7 +97,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
             </div>
             <div class="filtering-actions">
                 <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $seriesDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_series_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+                <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             </div>
         </div>

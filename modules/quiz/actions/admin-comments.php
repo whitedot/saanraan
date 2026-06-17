@@ -90,7 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="filtering-actions">
             <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $commentDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="quiz_comment_detail_filters">상세검색</button>
-            <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
         </div>
     </div>

@@ -170,7 +170,7 @@
                                         role="alert">
                                         <?php echo sr_e(sr_t('ui.notification.08d4de3e')); ?>
 
-                                        <button class="alert-close-leading" data-remove-element="#dark-alert">
+                                        <button type="button" class="btn btn-sm btn-icon btn-ghost-default alert-close-leading" data-remove-element="#dark-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
@@ -180,7 +180,7 @@
                                         role="alert">
                                         <?php echo sr_e(sr_t('ui.notification.6ed99ebf')); ?>
 
-                                        <button class="alert-close-leading" data-remove-element="#success-alert">
+                                        <button type="button" class="btn btn-sm btn-icon btn-ghost-default alert-close-leading" data-remove-element="#success-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
@@ -190,7 +190,7 @@
                                         role="alert">
                                         <?php echo sr_e(sr_t('ui.notification.0a99c4bf')); ?>
 
-                                        <button class="alert-close-leading" data-remove-element="#danger-alert">
+                                        <button type="button" class="btn btn-sm btn-icon btn-ghost-default alert-close-leading" data-remove-element="#danger-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
@@ -200,8 +200,8 @@
                                         role="alert">
                                         <?php echo sr_e(sr_t('ui.close.notification.8d72e773')); ?>
 
-                                        <button
-                                            class="alert-close-leading ui-kit-icon-size-7-5 ui-kit-cluster ui-kit-distribute-center ui-kit-align-items-center alert-close-pill alert-close-warning sample-inverse-text"
+                                        <button type="button"
+                                            class="btn btn-sm btn-icon btn-solid-warning alert-close-leading alert-close-pill"
                                             data-remove-element="#warning-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
@@ -215,7 +215,7 @@
                                             <?php echo sr_e(sr_t('ui.notification.fd938fc5')); ?>
                                         </div>
 
-                                        <button class="alert-close-leading" data-remove-element="#info-alert">
+                                        <button type="button" class="btn btn-sm btn-icon btn-ghost-default alert-close-leading" data-remove-element="#info-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>
@@ -246,7 +246,7 @@
                                         role="alert">
                                         <?php echo sr_e(sr_t('ui.notification.close.notification.e9cfda1f')); ?>
 
-                                        <button class="alert-close-leading" data-remove-element="#dismiss-alert">
+                                        <button type="button" class="btn btn-sm btn-icon btn-ghost-default alert-close-leading" data-remove-element="#dismiss-alert">
                                             <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                         </button>
                                     </div>

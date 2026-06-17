@@ -25,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="filtering-actions">
             <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $detailFilterOpen ? 'true' : 'false'; ?>" aria-controls="embed_manager_detail_filters"><?php echo sr_e('상세검색'); ?></button>
-            <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?><?php echo sr_e('초기화'); ?></button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?><?php echo sr_e('초기화'); ?></button>
             <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e('검색'); ?></button>
         </div>
     </div>

@@ -349,7 +349,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </div>
             <div class="filtering-actions">
                 <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $memberGroupDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_group_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
             </div>
         </div>
@@ -722,7 +722,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </div>
             <div class="filtering-actions">
                 <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $memberGroupRuleDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_group_rule_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
             </div>
         </div>
