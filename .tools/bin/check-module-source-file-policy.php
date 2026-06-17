@@ -271,6 +271,27 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'meta' => [\n"
+        . "        'name' => 'Nested Module',\n"
+        . "        'version' => '2026.06.001',\n"
+        . "        'type' => 'module',\n"
+        . "        'saanraan' => [\n"
+        . "            'min_version' => '0.2.0',\n"
+        . "            'tested_with' => ['0.2.0'],\n"
+        . "            'module_contract' => '2.0',\n"
+        . "        ],\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $nestedMetadata = sr_load_module_metadata_from_file($moduleContentDir . '/module.php');
+    if ($nestedMetadata !== []) {
+        fwrite(STDERR, "Nested-only module.php metadata was read as top-level metadata:\n" . var_export($nestedMetadata, true) . "\n");
+        exit(1);
+    }
+
     if (!class_exists('ZipArchive')) {
         fwrite(STDERR, "ZipArchive is required for module source policy checks.\n");
         exit(1);

@@ -144,6 +144,183 @@ function sr_php_string_list_array_value(string $content, string $key): array
     return array_values(array_unique($values));
 }
 
+function sr_php_return_array_block(string $content): string
+{
+    if (!sr_php_starts_with_return_array($content)) {
+        return '';
+    }
+
+    $tokens = token_get_all($content);
+    $count = count($tokens);
+    $index = 0;
+    $offset = 0;
+    while ($index < $count) {
+        $token = $tokens[$index];
+        if (is_array($token) && $token[0] === T_RETURN) {
+            break;
+        }
+
+        $offset += strlen(sr_php_token_text($token));
+        $index++;
+    }
+
+    if ($index >= $count) {
+        return '';
+    }
+
+    $offset += strlen(sr_php_token_text($tokens[$index]));
+    $index++;
+    sr_php_skip_ignored_tokens_with_offset($tokens, $index, $offset);
+    $token = $tokens[$index] ?? null;
+    if ($token === '[') {
+        return sr_php_balanced_block($content, $offset, '[', ']');
+    }
+
+    if (!is_array($token) || $token[0] !== T_ARRAY) {
+        return '';
+    }
+
+    $offset += strlen(sr_php_token_text($token));
+    $index++;
+    sr_php_skip_ignored_tokens_with_offset($tokens, $index, $offset);
+    if (($tokens[$index] ?? null) !== '(') {
+        return '';
+    }
+
+    return sr_php_balanced_block($content, $offset, '(', ')');
+}
+
+function sr_php_top_level_array_entries(string $content): ?array
+{
+    $block = sr_php_return_array_block($content);
+    if ($block === '') {
+        return null;
+    }
+
+    $inner = substr($block, 1, -1);
+    if (!is_string($inner)) {
+        return null;
+    }
+
+    $entries = [];
+    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '') {
+            continue;
+        }
+
+        if (preg_match('/\A((?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"))\s*=>\s*(.+)\z/s', $segment, $matches) !== 1) {
+            return null;
+        }
+
+        $key = sr_php_decode_quoted_string((string) $matches[1]);
+        if ($key === '') {
+            return null;
+        }
+
+        $entries[$key] = trim((string) $matches[2]);
+    }
+
+    return $entries;
+}
+
+function sr_php_split_top_level_array_segments(string $content): array
+{
+    $segments = [];
+    $start = 0;
+    $length = strlen($content);
+    $depth = 0;
+    $quote = '';
+    $lineComment = false;
+    $blockComment = false;
+    for ($i = 0; $i < $length; $i++) {
+        $char = $content[$i];
+        $next = $i + 1 < $length ? $content[$i + 1] : '';
+
+        if ($lineComment) {
+            if ($char === "\n") {
+                $lineComment = false;
+            }
+            continue;
+        }
+
+        if ($blockComment) {
+            if ($char === '*' && $next === '/') {
+                $i++;
+                $blockComment = false;
+            }
+            continue;
+        }
+
+        if ($quote !== '') {
+            if ($char === '\\' && $next !== '') {
+                $i++;
+                continue;
+            }
+
+            if ($char === $quote) {
+                $quote = '';
+            }
+            continue;
+        }
+
+        if ($char === '\'' || $char === '"') {
+            $quote = $char;
+            continue;
+        }
+
+        if (($char === '/' && $next === '/') || $char === '#') {
+            $lineComment = true;
+            if ($char === '/') {
+                $i++;
+            }
+            continue;
+        }
+
+        if ($char === '/' && $next === '*') {
+            $i++;
+            $blockComment = true;
+            continue;
+        }
+
+        if ($char === '[' || $char === '(' || $char === '{') {
+            $depth++;
+            continue;
+        }
+
+        if ($char === ']' || $char === ')' || $char === '}') {
+            $depth--;
+            continue;
+        }
+
+        if ($char === ',' && $depth === 0) {
+            $segments[] = substr($content, $start, $i - $start);
+            $start = $i + 1;
+        }
+    }
+
+    $segments[] = substr($content, $start);
+    return $segments;
+}
+
+function sr_php_top_level_string_value(array $entries, string $key): string
+{
+    $value = trim((string) ($entries[$key] ?? ''));
+    if (preg_match('/\A(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\z/s', $value) !== 1) {
+        return '';
+    }
+
+    return sr_php_decode_quoted_string($value);
+}
+
+function sr_php_skip_ignored_tokens_with_offset(array $tokens, int &$index, int &$offset): void
+{
+    while (isset($tokens[$index]) && sr_php_token_is_ignored($tokens[$index])) {
+        $offset += strlen(sr_php_token_text($tokens[$index]));
+        $index++;
+    }
+}
+
 function sr_php_decode_quoted_string(string $value): string
 {
     $quote = substr($value, 0, 1);
@@ -331,9 +508,15 @@ function sr_php_token_is_ignored(mixed $token): bool
     return is_array($token) && in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true);
 }
 
+function sr_php_token_text(mixed $token): string
+{
+    return is_array($token) ? (string) $token[1] : (string) $token;
+}
+
 function sr_php_saanraan_metadata(string $content): array
 {
-    $block = sr_php_array_block($content, 'saanraan');
+    $entries = sr_php_top_level_array_entries($content);
+    $block = is_array($entries) ? trim((string) ($entries['saanraan'] ?? '')) : '';
     if ($block === '') {
         return [];
     }
@@ -356,7 +539,8 @@ function sr_php_saanraan_metadata(string $content): array
 
 function sr_php_contracts_metadata(string $content): array
 {
-    $block = sr_php_array_block($content, 'contracts');
+    $entries = sr_php_top_level_array_entries($content);
+    $block = is_array($entries) ? trim((string) ($entries['contracts'] ?? '')) : '';
     if ($block === '') {
         return [];
     }
@@ -383,9 +567,14 @@ function sr_load_module_metadata_from_file(string $file): array
         return [];
     }
 
+    $entries = sr_php_top_level_array_entries($content);
+    if (!is_array($entries)) {
+        return [];
+    }
+
     $metadata = [];
     foreach (['name', 'version', 'type', 'description'] as $key) {
-        $value = sr_php_string_array_value($content, $key);
+        $value = sr_php_top_level_string_value($entries, $key);
         if ($value !== '') {
             $metadata[$key] = $value;
         }
