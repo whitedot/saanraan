@@ -6,9 +6,18 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $errors = [];
 
-$content = file_get_contents($root . '/modules/content/helpers/assets.php');
+$contentBase = file_get_contents($root . '/modules/content/helpers/assets.php');
+$contentAccess = file_get_contents($root . '/modules/content/helpers/asset-access.php');
+$contentActions = file_get_contents($root . '/modules/content/helpers/asset-actions.php');
+$content = (is_string($contentBase) ? $contentBase : '')
+    . "\n"
+    . (is_string($contentAccess) ? $contentAccess : '')
+    . "\n"
+    . (is_string($contentActions) ? $contentActions : '');
 if (
-    !is_string($content)
+    !is_string($contentBase)
+    || !is_string($contentAccess)
+    || !is_string($contentActions)
     || strpos($content, 'function sr_content_asset_retry_operation(PDO $pdo, callable $operation): array') === false
     || preg_match('/function\s+sr_content_charge_view_access_once\s*\(\s*PDO\s+\$pdo\s*,\s*array\s+\$page\s*,\s*int\s+\$accountId\b/', $content) !== 1
     || preg_match('/function\s+sr_content_charge_file_download_once\s*\(\s*PDO\s+\$pdo\s*,\s*array\s+\$file\s*,\s*int\s+\$accountId\b/', $content) !== 1

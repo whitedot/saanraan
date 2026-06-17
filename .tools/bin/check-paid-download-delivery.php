@@ -87,8 +87,12 @@ if (!is_string($contentDownload)) {
     }
 }
 
-$contentAssets = file_get_contents($root . '/modules/content/helpers/assets.php');
-if (!is_string($contentAssets)) {
+$contentAssetsBase = file_get_contents($root . '/modules/content/helpers/assets.php');
+$contentAssetsAccess = file_get_contents($root . '/modules/content/helpers/asset-access.php');
+$contentAssets = (is_string($contentAssetsBase) ? $contentAssetsBase : '')
+    . "\n"
+    . (is_string($contentAssetsAccess) ? $contentAssetsAccess : '');
+if (!is_string($contentAssetsBase) || !is_string($contentAssetsAccess)) {
     $errors[] = 'Content asset helper cannot be read.';
 } else {
     if (strpos($contentAssets, "return in_array(\$chargePolicy, ['once', 'every_view', 'every_download'], true);") === false) {

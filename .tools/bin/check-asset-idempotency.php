@@ -401,13 +401,21 @@ foreach ([
 
 foreach ([
     'modules/content/helpers/assets.php' => [
+        'sr_content_asset_log_status_pending()',
+        'sr_content_asset_log_status_completed()',
+        'sr_content_asset_confirmation_request_token_valid',
+    ],
+    'modules/content/helpers/asset-access.php' => [
         'INSERT IGNORE INTO sr_content_asset_access_logs',
-        'INSERT IGNORE INTO sr_content_asset_action_logs',
         'sr_content_asset_log_status_pending()',
         'sr_content_asset_log_status_completed()',
         'sr_content_delete_asset_access_placeholder',
+    ],
+    'modules/content/helpers/asset-actions.php' => [
+        'INSERT IGNORE INTO sr_content_asset_action_logs',
+        'sr_content_asset_log_status_pending()',
+        'sr_content_asset_log_status_completed()',
         'sr_content_delete_asset_action_placeholder',
-        'sr_content_asset_confirmation_request_token_valid',
     ],
     'modules/community/helpers/assets.php' => [
         '$insertVerb = \'INSERT IGNORE\';',
@@ -443,7 +451,7 @@ if (str_contains(sr_asset_idempotency_file('modules/asset_exchange/actions/accou
     sr_asset_idempotency_error('Asset exchange account action must reject overlong exchange_submit_token instead of truncating it.');
 }
 
-$contentHelpers = 'modules/content/helpers/assets.php';
+$contentAccessHelpers = 'modules/content/helpers/asset-access.php';
 foreach ([
     'sr_content_insert_asset_access_placeholder' => [
         'INSERT IGNORE INTO sr_content_asset_access_logs',
@@ -461,6 +469,17 @@ foreach ([
         'AND log_status = :log_status',
         'sr_content_asset_log_status_pending()',
     ],
+] as $functionName => $markers) {
+    $body = sr_asset_idempotency_function_body($contentAccessHelpers, $functionName);
+    foreach ($markers as $marker) {
+        if (!str_contains($body, $marker)) {
+            sr_asset_idempotency_error($contentAccessHelpers . ' function ' . $functionName . ' is missing marker: ' . $marker);
+        }
+    }
+}
+
+$contentActionHelpers = 'modules/content/helpers/asset-actions.php';
+foreach ([
     'sr_content_insert_asset_action_placeholder' => [
         'INSERT IGNORE INTO sr_content_asset_action_logs',
         'sr_content_asset_log_status_pending()',
@@ -477,10 +496,10 @@ foreach ([
         'sr_content_asset_log_status_pending()',
     ],
 ] as $functionName => $markers) {
-    $body = sr_asset_idempotency_function_body($contentHelpers, $functionName);
+    $body = sr_asset_idempotency_function_body($contentActionHelpers, $functionName);
     foreach ($markers as $marker) {
         if (!str_contains($body, $marker)) {
-            sr_asset_idempotency_error($contentHelpers . ' function ' . $functionName . ' is missing marker: ' . $marker);
+            sr_asset_idempotency_error($contentActionHelpers . ' function ' . $functionName . ' is missing marker: ' . $marker);
         }
     }
 }
@@ -502,9 +521,10 @@ foreach ([
         ['rollBack()', 'sr_content_asset_is_retryable_transaction_exception($exception)'],
     ],
 ] as $functionName => $orders) {
-    $body = sr_asset_idempotency_function_body($contentHelpers, $functionName);
+    $functionFile = $functionName === 'sr_content_run_asset_action_once' ? $contentActionHelpers : $contentAccessHelpers;
+    $body = sr_asset_idempotency_function_body($functionFile, $functionName);
     foreach ($orders as $order) {
-        sr_asset_idempotency_order($contentHelpers . ' function ' . $functionName, $body, $order[0], $order[1]);
+        sr_asset_idempotency_order($functionFile . ' function ' . $functionName, $body, $order[0], $order[1]);
     }
 }
 

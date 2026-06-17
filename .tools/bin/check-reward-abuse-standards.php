@@ -431,6 +431,8 @@ sr_reward_check_file('modules/content/install.sql', [
 sr_reward_check_file('modules/content/helpers/assets.php', [
     'sr_content_asset_policy_requires_confirmation',
     'sr_content_asset_log_status_pending',
+]);
+sr_reward_check_file('modules/content/helpers/asset-access.php', [
     'sr_content_grant_access_entitlement',
     'sr_content_once_access_already_granted',
     'sr_content_has_coupon_access_history',
