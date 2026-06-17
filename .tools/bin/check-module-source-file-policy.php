@@ -702,6 +702,90 @@ try {
         exit(1);
     }
 
+    $inferredUploadDir = $fixtureRoot . '/inferred-upload';
+    mkdir($inferredUploadDir . '/pkg/module', 0777, true);
+    file_put_contents(
+        $inferredUploadDir . '/pkg/module/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Inferred Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    sr_check_module_source_policy_write_file($inferredUploadDir, 'pkg/module/install.sql');
+
+    $inferredZipPath = $fixtureRoot . '/inferredmod-2026.06.001.zip';
+    sr_check_module_source_policy_zip_files($inferredUploadDir, $inferredZipPath, [
+        'pkg/module/module.php',
+        'pkg/module/install.sql',
+    ]);
+
+    $inferredUploadResult = [];
+    try {
+        $inferredUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($inferredZipPath),
+            'size' => filesize($inferredZipPath),
+            'tmp_name' => $inferredZipPath,
+        ], '');
+        if ((string) ($inferredUploadResult['module_key'] ?? '') !== 'inferredmod') {
+            fwrite(STDERR, 'Upload fixture did not infer the module key from the filename: ' . (string) ($inferredUploadResult['module_key'] ?? '') . "\n");
+            exit(1);
+        }
+    } finally {
+        if (is_array($inferredUploadResult) && is_string($inferredUploadResult['extract_dir'] ?? null) && is_dir($inferredUploadResult['extract_dir'])) {
+            sr_remove_directory($inferredUploadResult['extract_dir']);
+        }
+    }
+
+    $mismatchedKeyDir = $fixtureRoot . '/mismatched-key';
+    mkdir($mismatchedKeyDir . '/inferredmod', 0777, true);
+    file_put_contents(
+        $mismatchedKeyDir . '/inferredmod/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Mismatched Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    sr_check_module_source_policy_write_file($mismatchedKeyDir, 'inferredmod/install.sql');
+
+    $mismatchedKeyZipPath = $fixtureRoot . '/mismatched-key.zip';
+    sr_check_module_source_policy_zip_files($mismatchedKeyDir, $mismatchedKeyZipPath, [
+        'inferredmod/module.php',
+        'inferredmod/install.sql',
+    ]);
+
+    try {
+        $mismatchedUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($mismatchedKeyZipPath),
+            'size' => filesize($mismatchedKeyZipPath),
+            'tmp_name' => $mismatchedKeyZipPath,
+        ], 'othermod');
+        if (is_string($mismatchedUploadResult['extract_dir'] ?? null) && is_dir($mismatchedUploadResult['extract_dir'])) {
+            sr_remove_directory($mismatchedUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a mismatched requested module key was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '요청한 모듈 하나')) {
+            fwrite(STDERR, 'Mismatched module key upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $routeUploadDir = $fixtureRoot . '/route-upload';
     mkdir($routeUploadDir . '/routetest/actions', 0777, true);
     file_put_contents(
