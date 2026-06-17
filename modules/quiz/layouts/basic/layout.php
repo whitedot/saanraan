@@ -108,6 +108,7 @@ $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
 $layoutMemberEmail = '';
 $layoutMemberInitial = 'M';
+$layoutMemberAvatarColorClass = 'member-avatar-color-8';
 $layoutMemberBadgeLabel = '회원';
 $layoutCommunityMemberMenuEnabled = false;
 $layoutUnreadCommunityMessageCount = 0;
@@ -122,6 +123,7 @@ if (
 ) {
     $layoutMemberEnabled = true;
     require_once SR_ROOT . '/modules/member/helpers.php';
+    $layoutRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
     $layoutCurrentAccount = sr_member_current_account($layoutPdo);
     if (is_array($layoutCurrentAccount)) {
         $layoutCurrentAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
@@ -130,6 +132,7 @@ if (
         $layoutMemberEmail = trim((string) ($layoutCurrentAccount['email'] ?? ''));
         $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
         $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
+        $layoutMemberAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash($layoutRuntimeConfig, $layoutCurrentAccountId));
         if (sr_module_enabled($layoutPdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers/messages.php')) {
             require_once SR_ROOT . '/modules/community/helpers/messages.php';
             $layoutCommunityMemberMenuEnabled = true;
@@ -318,7 +321,7 @@ if (
                         </summary>
                         <div class="quiz-layout-member-dropdown" role="menu" aria-orientation="vertical">
                             <div class="quiz-layout-member-dropdown-header">
-                                <span class="quiz-layout-member-avatar" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
+                                <span class="quiz-layout-member-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
                                 <span class="quiz-layout-member-identity">
                                     <strong><?php echo sr_e($layoutMemberDisplayName); ?></strong>
                                     <?php if ($layoutMemberEmail !== '') { ?>

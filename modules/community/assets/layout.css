@@ -837,7 +837,7 @@
 .community-layout-member-avatar {
     align-items: center;
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7);
+    background: var(--sr-member-avatar-bg, linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7));
     border-radius: 999px;
     color: #fff;
     display: inline-flex;
@@ -848,6 +848,19 @@
     overflow: hidden;
     width: 2.5rem;
 }
+
+.community-layout-member-avatar.member-avatar-color-0 { --sr-member-avatar-bg: #b91c1c; }
+.community-layout-member-avatar.member-avatar-color-1 { --sr-member-avatar-bg: #c2410c; }
+.community-layout-member-avatar.member-avatar-color-2 { --sr-member-avatar-bg: #a16207; }
+.community-layout-member-avatar.member-avatar-color-3 { --sr-member-avatar-bg: #4d7c0f; }
+.community-layout-member-avatar.member-avatar-color-4 { --sr-member-avatar-bg: #047857; }
+.community-layout-member-avatar.member-avatar-color-5 { --sr-member-avatar-bg: #0f766e; }
+.community-layout-member-avatar.member-avatar-color-6 { --sr-member-avatar-bg: #0369a1; }
+.community-layout-member-avatar.member-avatar-color-7 { --sr-member-avatar-bg: #1d4ed8; }
+.community-layout-member-avatar.member-avatar-color-8 { --sr-member-avatar-bg: #4f46e5; }
+.community-layout-member-avatar.member-avatar-color-9 { --sr-member-avatar-bg: #7e22ce; }
+.community-layout-member-avatar.member-avatar-color-10 { --sr-member-avatar-bg: #be185d; }
+.community-layout-member-avatar.member-avatar-color-11 { --sr-member-avatar-bg: #9f1239; }
 
 .community-layout-member-identity {
     display: grid;

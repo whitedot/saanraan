@@ -273,6 +273,70 @@ function sr_member_avatar_src(string $reference): string
     return sr_is_http_url($url) ? $url : sr_url($url);
 }
 
+function sr_member_default_avatar_color(string $publicHash): string
+{
+    $palette = sr_member_default_avatar_color_palette();
+    return $palette[sr_member_default_avatar_color_index($publicHash)] ?? '#4f46e5';
+}
+
+function sr_member_default_avatar_color_class(string $publicHash): string
+{
+    return 'member-avatar-color-' . (string) sr_member_default_avatar_color_index($publicHash);
+}
+
+function sr_member_default_avatar_color_palette(): array
+{
+    return [
+        '#b91c1c',
+        '#c2410c',
+        '#a16207',
+        '#4d7c0f',
+        '#047857',
+        '#0f766e',
+        '#0369a1',
+        '#1d4ed8',
+        '#4f46e5',
+        '#7e22ce',
+        '#be185d',
+        '#9f1239',
+    ];
+}
+
+function sr_member_default_avatar_color_index(string $publicHash): int
+{
+    $hashPrefix = strtolower(substr(trim($publicHash), 0, 6));
+    if (preg_match('/\A[a-f0-9]{6}\z/', $hashPrefix) !== 1) {
+        return 8;
+    }
+
+    $target = [
+        hexdec(substr($hashPrefix, 0, 2)),
+        hexdec(substr($hashPrefix, 2, 2)),
+        hexdec(substr($hashPrefix, 4, 2)),
+    ];
+    $palette = sr_member_default_avatar_color_palette();
+
+    $closestIndex = 0;
+    $closestDistance = PHP_INT_MAX;
+    foreach ($palette as $index => $color) {
+        $colorPrefix = substr($color, 1);
+        $candidate = [
+            hexdec(substr($colorPrefix, 0, 2)),
+            hexdec(substr($colorPrefix, 2, 2)),
+            hexdec(substr($colorPrefix, 4, 2)),
+        ];
+        $distance = ($target[0] - $candidate[0]) ** 2
+            + ($target[1] - $candidate[1]) ** 2
+            + ($target[2] - $candidate[2]) ** 2;
+        if ($distance < $closestDistance) {
+            $closestDistance = $distance;
+            $closestIndex = (int) $index;
+        }
+    }
+
+    return $closestIndex;
+}
+
 function sr_member_delete_avatar_reference(string $reference): void
 {
     $storage = sr_member_avatar_storage_reference($reference);
