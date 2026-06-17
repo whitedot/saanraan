@@ -380,6 +380,11 @@ function sr_module_source_file_errors(string $sourceDir): array
             continue;
         }
 
+        if (sr_module_source_is_public_asset_executable($relative, $extension)) {
+            $errors[] = '모듈 zip의 assets 디렉터리에는 실행 파일 또는 SQL 파일을 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
         if ($extension !== '' && isset($blockedExtensions[$extension])) {
             $errors[] = '모듈 zip에는 허용되지 않는 실행 파일 확장자를 포함할 수 없습니다: ' . $relative;
         }
@@ -416,6 +421,26 @@ function sr_module_source_is_server_config_name(string $basename): bool
         || str_starts_with($basename, 'php.ini.')
         || $basename === 'web.config'
         || str_starts_with($basename, 'web.config.');
+}
+
+function sr_module_source_is_public_asset_executable(string $relative, string $extension): bool
+{
+    if (!str_starts_with($relative, 'assets/')) {
+        return false;
+    }
+
+    return in_array($extension, [
+        'phar',
+        'php',
+        'php3',
+        'php4',
+        'php5',
+        'php6',
+        'php7',
+        'php8',
+        'phtml',
+        'sql',
+    ], true);
 }
 
 function sr_module_source_route_errors(string $moduleKey, string $sourceDir): array

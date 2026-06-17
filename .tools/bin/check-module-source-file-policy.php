@@ -158,6 +158,8 @@ try {
         'actions/route.php7',
         'actions/hook.pht',
         'actions/template.phtml',
+        'assets/runtime.php',
+        'assets/schema.sql',
         'bin/task.sh',
     ];
     foreach ($blockedFiles as $relative) {

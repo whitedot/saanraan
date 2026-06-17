@@ -876,6 +876,9 @@ if (
     || strpos($moduleSourceSafetyContent, "'pht' => true") === false
     || strpos($moduleSourceSafetyContent, "'sqlite' => true") === false
     || strpos($moduleSourceSafetyContent, "'key' => true") === false
+    || strpos($moduleSourceSafetyContent, 'function sr_module_source_is_public_asset_executable') === false
+    || strpos($moduleSourceSafetyContent, "str_starts_with(\$relative, 'assets/')") === false
+    || strpos($moduleSourceSafetyContent, "assets 디렉터리에는 실행 파일 또는 SQL 파일을 포함할 수 없습니다") === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($extractDir)') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($sourceDir)') === false
     || strpos($moduleSourceSafetyContent, 'zip 안에 여러 모듈 구조가 있습니다.') === false
