@@ -23,19 +23,39 @@ function sr_admin_handle_modules_post(
         $moduleKey = strtolower(trim(sr_post_string('upload_module_key', 60)));
     }
 
-    if (!in_array($intent, ['upload_module_zip', 'sync_module_version', 'status', 'install'], true)) {
+    if (!in_array($intent, ['enable_module_source_writes', 'disable_module_source_writes', 'upload_module_zip', 'sync_module_version', 'status', 'install'], true)) {
         $errors[] = '지원하지 않는 모듈 관리 요청입니다.';
     }
 
-    if ($intent !== 'upload_module_zip' && !sr_is_safe_module_key($moduleKey)) {
+    if (!in_array($intent, ['enable_module_source_writes', 'disable_module_source_writes', 'upload_module_zip'], true) && !sr_is_safe_module_key($moduleKey)) {
         $errors[] = '모듈 키가 올바르지 않습니다.';
     }
 
-    $sourceWriteIntents = ['upload_module_zip', 'sync_module_version'];
+    $sourceWriteIntents = ['enable_module_source_writes', 'upload_module_zip', 'sync_module_version'];
 
-    if ($intent === 'upload_module_zip') {
+    if ($intent === 'enable_module_source_writes') {
         if (!$canManageModuleSources) {
             $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+        }
+
+        if (!$moduleUploadAvailable) {
+            $errors[] = 'PHP ZipArchive 확장이 없어 모듈 zip 업로드를 허용할 수 없습니다.';
+        }
+
+        if ($moduleSourcesEnabled) {
+            $errors[] = '모듈 파일 반영은 이미 일시 허용되어 있습니다.';
+        }
+    } elseif ($intent === 'disable_module_source_writes') {
+        if (!$canManageModuleSources) {
+            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+        }
+    } elseif ($intent === 'upload_module_zip') {
+        if (!$canManageModuleSources) {
+            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+        }
+
+        if (!$moduleSourcesEnabled) {
+            $errors[] = '모듈 zip 업로드는 소유자 재인증 요청에서만 일시 허용됩니다.';
         }
 
         if (!$moduleUploadAvailable) {
@@ -153,7 +173,34 @@ function sr_admin_handle_modules_post(
 
     $errors = array_values(array_unique($errors));
 
-    if ($errors === [] && $intent === 'upload_module_zip') {
+    if ($errors === [] && $intent === 'enable_module_source_writes') {
+        sr_save_site_setting($pdo, 'admin.module_sources_enabled', '1', 'bool');
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'module.source.enabled',
+            'target_type' => 'module_source',
+            'target_id' => 'admin.module_sources_enabled',
+            'result' => 'success',
+            'message' => 'Module source writes enabled temporarily.',
+            'metadata' => [
+                'zip_upload_available' => $moduleUploadAvailable,
+            ],
+        ]);
+        $notice = '모듈 파일 반영을 일시 허용했습니다. 작업이 끝나면 자동 또는 수동으로 다시 닫힙니다.';
+    } elseif ($errors === [] && $intent === 'disable_module_source_writes') {
+        sr_save_site_setting($pdo, 'admin.module_sources_enabled', '0', 'bool');
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'module.source.disabled',
+            'target_type' => 'module_source',
+            'target_id' => 'admin.module_sources_enabled',
+            'result' => 'success',
+            'message' => 'Module source writes disabled.',
+        ]);
+        $notice = '모듈 파일 반영 허용을 닫았습니다.';
+    } elseif ($errors === [] && $intent === 'upload_module_zip') {
         $extractDir = '';
         $sourceType = 'upload';
         try {

@@ -72,6 +72,43 @@ $installedSections = [
 ];
 ?>
 
+<div class="admin-section-heading">
+    <h2>모듈 파일 반영</h2>
+    <?php if ($canManageModuleSources && $moduleUploadAvailable && !$moduleSourcesEnabled) { ?>
+        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-source-enable-modal" data-overlay="#module-source-enable-modal">
+            <?php echo sr_material_icon_html('lock_open'); ?>
+            <span>일시 허용</span>
+        </button>
+    <?php } elseif ($canManageModuleSources && $moduleUploadAvailable && $moduleSourcesEnabled) { ?>
+        <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
+            <?php echo sr_material_icon_html('upload'); ?>
+            <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
+        </button>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="disable_module_source_writes">
+            <button type="submit" class="btn btn-solid-light">
+                <?php echo sr_material_icon_html('lock'); ?>
+                <span>허용 닫기</span>
+            </button>
+        </form>
+    <?php } elseif ($canManageModuleSources) { ?>
+        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
+            <?php echo sr_material_icon_html('upload'); ?>
+            <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
+        </button>
+    <?php } ?>
+</div>
+<section class="card admin-list-card">
+    <?php if (!$moduleUploadAvailable) { ?>
+        <p>PHP ZipArchive 확장이 없어 zip 업로드를 처리할 수 없습니다. FTP나 호스팅 파일 관리자로 모듈 파일을 배치하세요.</p>
+    <?php } elseif ($moduleSourcesEnabled) { ?>
+        <p>모듈 파일 반영이 일시 허용되어 있습니다. zip 업로드 또는 파일 업데이트 반영을 마치면 자동으로 닫히며, 필요하면 즉시 허용을 닫을 수 있습니다.</p>
+    <?php } else { ?>
+        <p>모듈 zip 업로드와 파일 전용 업데이트 반영은 소유자 비밀번호 재확인 후 일시 허용됩니다. 기본 운영 경로는 FTP나 호스팅 파일 관리자로 파일을 배치한 뒤 설치와 업데이트를 진행하는 방식입니다.</p>
+    <?php } ?>
+</section>
+
 <?php foreach ($installableSections as $installableSection) { ?>
     <?php $installableRows = $installableSection['rows']; ?>
     <?php $installablePagination = $installableSection['pagination']; ?>
@@ -82,10 +119,6 @@ $installedSections = [
             <?php echo sr_e($showFoundationModules ? '기반 모듈 숨기기' : '기반 모듈 보기'); ?>
         </a>
     <?php } ?>
-    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal" hidden>
-        <?php echo sr_material_icon_html('upload'); ?>
-        <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
-    </button>
 </div>
 <?php echo sr_admin_pagination_summary_html($installablePagination); ?>
 <?php if ($installableRows === []) { ?>
@@ -519,11 +552,39 @@ $installedSections = [
 <?php } ?>
 <?php } ?>
 
-<?php $moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable) ? 'module-upload-modal-label-unavailable' : 'module-upload-modal-label'; ?>
+<div id="module-source-enable-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="module-source-enable-modal-label">
+    <div class="modal-dialog">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="modal-content admin-form ui-form-theme">
+            <div class="modal-header">
+                <h3 id="module-source-enable-modal-label" class="modal-title">모듈 파일 반영 일시 허용</h3>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-source-enable-modal">
+                    <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="enable_module_source_writes">
+                <div class="form-row">
+                    <label class="form-label" for="admin_modules_source_enable_owner_password"><?php echo sr_e(sr_t('admin::ui.password.6fda7f23')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    <div class="form-field">
+                        <input id="admin_modules_source_enable_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input" data-overlay-focus>
+                    </div>
+                </div>
+                <p>허용 후 모듈 zip 업로드와 파일 전용 업데이트 반영을 실행할 수 있습니다. zip 업로드가 끝나면 허용 값은 자동으로 다시 꺼집니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-source-enable-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                <button type="submit" class="btn btn-solid-primary modal-action">일시 허용</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<?php $moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled) ? 'module-upload-modal-label-unavailable' : 'module-upload-modal-label'; ?>
 <div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleUploadModalLabelId); ?>">
     <div class="modal-dialog modal-dialog-lg">
         <div class="modal-content">
-            <?php if (!$canManageModuleSources || !$moduleUploadAvailable) { ?>
+            <?php if (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled) { ?>
                 <div class="modal-header">
                     <h3 id="module-upload-modal-label-unavailable" class="modal-title"><?php echo sr_e(sr_t('admin::ui.zip.270ef751')); ?></h3>
                     <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
@@ -535,6 +596,8 @@ $installedSections = [
                         <p><?php echo sr_e(sr_t('admin::ui.text.db7d2323')); ?></p>
                     <?php } elseif (!$moduleUploadAvailable) { ?>
                         <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{모듈관리용키}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
+                    <?php } elseif (!$moduleSourcesEnabled) { ?>
+                        <p>모듈 zip 업로드는 소유자 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.</p>
                     <?php } ?>
                 </div>
                 <div class="modal-footer">

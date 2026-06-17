@@ -480,8 +480,13 @@ if (is_string($adminSettingsHelper) && (
     strpos($adminSettingsHelper, 'function sr_admin_sensitive_site_setting_keys') === false
     || strpos($adminSettingsHelper, "'admin.module_sources_enabled' => true") === false
     || !is_string($adminModuleActionsHelper ?? null)
+    || strpos($adminModuleActionsHelper, 'enable_module_source_writes') === false
+    || strpos($adminModuleActionsHelper, 'disable_module_source_writes') === false
     || strpos($adminModuleActionsHelper, 'sr_admin_module_source_reauth_errors($pdo, $account, $intent)') === false
+    || strpos($adminModuleActionsHelper, '!$moduleSourcesEnabled') === false
+    || strpos($adminModuleActionsHelper, '모듈 zip 업로드는 소유자 재인증 요청에서만 일시 허용됩니다.') === false
     || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '0', 'bool')") === false
+    || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '1', 'bool')") === false
 )) {
     $errors[] = 'Admin settings helper must keep sensitive site toggles narrow and protect module source writes with reauthentication.';
 }
@@ -529,9 +534,12 @@ $adminModulesView = file_get_contents($root . '/modules/admin/views/modules.php'
 if (!is_string($adminModulesView)) {
     $errors[] = 'Admin modules view cannot be read.';
 } elseif (
-    substr_count($adminModulesView, 'name="owner_password"') < 2
+    substr_count($adminModulesView, 'name="owner_password"') < 3
+    || strpos($adminModulesView, 'name="intent" value="enable_module_source_writes"') === false
+    || strpos($adminModulesView, 'name="intent" value="disable_module_source_writes"') === false
     || strpos($adminModulesView, 'name="module_zip"') === false
     || strpos($adminModulesView, 'name="confirm_file_replace"') === false
+    || strpos($adminModulesView, '$moduleSourcesEnabled') === false
 ) {
     $errors[] = 'Admin modules view must collect owner reauthentication for module source writes.';
 }

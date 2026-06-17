@@ -400,6 +400,8 @@ function sr_admin_audit_log_display_message(array $log): string
         'Admin settings updated.' => '관리자 설정이 변경되었습니다.',
         'Admin menu display settings updated.' => '관리자 메뉴 표시 설정이 변경되었습니다.',
         'Privacy request list viewed.' => '개인정보 대응 기록 목록을 조회했습니다.',
+        'Module source writes enabled temporarily.' => '모듈 소스 쓰기가 일시 허용되었습니다.',
+        'Module source writes disabled.' => '모듈 소스 쓰기가 비활성화되었습니다.',
         'Module source zip uploaded.' => '모듈 소스 zip이 업로드되었습니다.',
         'Module source zip upload failed.' => '모듈 소스 zip 업로드에 실패했습니다.',
         'Module installed.' => '모듈이 설치되었습니다.',
