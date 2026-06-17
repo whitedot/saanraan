@@ -147,6 +147,9 @@ $mustContain('modules/community/actions/comment.php', [
 $mustContain('modules/community/helpers/posts.php', [
     'privacy_consent_count',
     "pc.subject_type = \\'community.post\\'",
+]);
+$mustContain('modules/community/helpers/posts-comments.php', [
+    'privacy_consent_count',
     "pc.subject_type = \\'community.comment\\'",
 ]);
 $mustContain('modules/community/views/admin-posts.php', [

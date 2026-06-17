@@ -241,6 +241,8 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 'function sr_community_post_body_html(',
                 'sr_community_sanitize_post_html($bodyText)',
                 'sr_embed_manager_render_body_html($pdo, $html, \'community\', \'post\'',
+            ],
+            'modules/community/helpers/posts-writing.php' => [
                 'function sr_community_post_input_values(',
                 'if ($bodyFormat === \'html\' && is_string($bodyText))',
                 '$bodyText = sr_community_sanitize_post_html($bodyText);',

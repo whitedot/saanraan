@@ -738,7 +738,7 @@ sr_community_release_file_contains('modules/community/actions/view.php', [
     "'actor_type' => \$isAuthorOgRemove ? 'member' : (\$isAdminOgRemove ? 'admin' : 'community_board_manager')",
     "'permission_source' => \$isAuthorOgRemove ? 'author' : (\$isAdminOgRemove ? 'admin' : 'board_manager')",
 ], 'Community delegated OG removal audit policy');
-sr_community_release_file_contains('modules/community/helpers/posts.php', [
+sr_community_release_file_contains('modules/community/helpers/posts-writing.php', [
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
 ], 'Community delegated post delete policy');

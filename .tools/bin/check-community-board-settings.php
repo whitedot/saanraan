@@ -277,13 +277,17 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
 sr_check_community_board_settings_contains('modules/community/helpers/posts.php', [
     'sr_community_board_list_sort_values',
     'sr_community_board_list_per_page',
-    'sr_community_validate_post_body_length',
-    'sr_community_validate_comment_body_length',
-    'sr_community_post_locked_by_comments',
     'function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null)',
     'function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = \'\', int $categoryId = 0, string $sort = \'latest\')',
     'published_comment_count DESC, p.id DESC',
 ], 'community board runtime setting helpers');
+sr_check_community_board_settings_contains('modules/community/helpers/posts-writing.php', [
+    'sr_community_validate_post_body_length',
+    'sr_community_post_locked_by_comments',
+], 'community post write runtime setting helpers');
+sr_check_community_board_settings_contains('modules/community/helpers/posts-comments.php', [
+    'sr_community_validate_comment_body_length',
+], 'community comment runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/actions/admin-boards.php', array_merge($settingKeys, [
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',

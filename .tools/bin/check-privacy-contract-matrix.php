@@ -322,7 +322,7 @@ foreach ([
     ['needle' => 'sr_privacy_export_runtime_check_community', 'file' => '.tools/bin/check-privacy-export-runtime.php'],
     ['needle' => 'sr_privacy_export_runtime_check_retained_modules', 'file' => '.tools/bin/check-privacy-export-runtime.php'],
     ['needle' => 'PRAGMA table_info(sr_content_comments)', 'file' => 'modules/content/helpers/comments.php'],
-    ['needle' => 'PRAGMA table_info(sr_community_comments)', 'file' => 'modules/community/helpers/posts.php'],
+    ['needle' => 'PRAGMA table_info(sr_community_comments)', 'file' => 'modules/community/helpers/posts-comments.php'],
     ['needle' => 'PRAGMA table_info(', 'file' => 'modules/content/privacy-cleanup.php'],
     ['needle' => 'PRAGMA table_info(', 'file' => 'modules/community/privacy-cleanup.php'],
     ['needle' => 'sr_privacy_cleanup_runtime_check_content', 'file' => '.tools/bin/check-privacy-cleanup-runtime.php'],
