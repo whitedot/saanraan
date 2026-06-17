@@ -292,36 +292,53 @@ function sr_module_source_file_errors(string $sourceDir): array
 
     $errors = [];
     $blockedNames = [
-        '.ds_store' => true,
-        '.env' => true,
-        '.htaccess' => true,
-        '.htpasswd' => true,
-        '.user.ini' => true,
-        'php.ini' => true,
-        'web.config' => true,
-    ];
-    $blockedDirs = [
-        '.git' => true,
-        '.hg' => true,
-        '.svn' => true,
+        '.ds_store' => '서버 설정 또는 비밀 파일',
+        '.npmrc' => '패키지 레지스트리 인증 파일',
+        '.yarnrc' => '패키지 레지스트리 인증 파일',
+        'auth.json' => '패키지 레지스트리 인증 파일',
+        'id_dsa' => 'SSH key 파일',
+        'id_ecdsa' => 'SSH key 파일',
+        'id_ed25519' => 'SSH key 파일',
+        'id_rsa' => 'SSH key 파일',
     ];
     $blockedExtensions = [
+        'asp' => true,
+        'aspx' => true,
+        'bak' => true,
         'bash' => true,
         'bat' => true,
+        'backup' => true,
         'cgi' => true,
         'cmd' => true,
         'com' => true,
+        'db' => true,
         'dll' => true,
+        'dump' => true,
         'exe' => true,
+        'hta' => true,
+        'jsp' => true,
+        'key' => true,
         'msi' => true,
+        'old' => true,
+        'orig' => true,
+        'p12' => true,
+        'pem' => true,
         'phar' => true,
+        'pfx' => true,
+        'pht' => true,
         'php3' => true,
         'php4' => true,
         'php5' => true,
+        'php6' => true,
+        'php7' => true,
+        'php8' => true,
         'phtml' => true,
         'pl' => true,
         'py' => true,
+        'shtml' => true,
         'sh' => true,
+        'sqlite' => true,
+        'sqlite3' => true,
     ];
 
     $items = new RecursiveIteratorIterator(
@@ -339,7 +356,7 @@ function sr_module_source_file_errors(string $sourceDir): array
             continue;
         }
 
-        if ($item->isDir() && isset($blockedDirs[$basename])) {
+        if ($item->isDir() && sr_module_source_is_repository_meta_name($basename)) {
             $errors[] = '모듈 zip에는 저장소 메타 디렉터리를 포함할 수 없습니다: ' . $relative;
             continue;
         }
@@ -348,8 +365,18 @@ function sr_module_source_file_errors(string $sourceDir): array
             continue;
         }
 
-        if (isset($blockedNames[$basename])) {
+        if (sr_module_source_is_repository_meta_name($basename)) {
+            $errors[] = '모듈 zip에는 저장소 메타 파일을 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
+        if (sr_module_source_is_server_config_name($basename)) {
             $errors[] = '모듈 zip에는 서버 설정 또는 비밀 파일을 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
+        if (isset($blockedNames[$basename])) {
+            $errors[] = '모듈 zip에는 ' . $blockedNames[$basename] . '을 포함할 수 없습니다: ' . $relative;
             continue;
         }
 
@@ -359,6 +386,36 @@ function sr_module_source_file_errors(string $sourceDir): array
     }
 
     return $errors;
+}
+
+function sr_module_source_is_repository_meta_name(string $basename): bool
+{
+    return in_array($basename, [
+        '.git',
+        '.gitattributes',
+        '.gitignore',
+        '.gitmodules',
+        '.hg',
+        '.hgignore',
+        '.hgrc',
+        '.svn',
+    ], true);
+}
+
+function sr_module_source_is_server_config_name(string $basename): bool
+{
+    return $basename === '.env'
+        || str_starts_with($basename, '.env.')
+        || $basename === '.htaccess'
+        || str_starts_with($basename, '.htaccess.')
+        || $basename === '.htpasswd'
+        || str_starts_with($basename, '.htpasswd.')
+        || $basename === '.user.ini'
+        || str_starts_with($basename, '.user.ini.')
+        || $basename === 'php.ini'
+        || str_starts_with($basename, 'php.ini.')
+        || $basename === 'web.config'
+        || str_starts_with($basename, 'web.config.');
 }
 
 function sr_infer_module_key_from_filename(string $filename): string

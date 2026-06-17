@@ -114,36 +114,53 @@ function sr_check_sql_runtime_table_prefix_placeholders(): void
 function sr_check_module_source_files(): void
 {
     $blockedNames = [
-        '.ds_store' => true,
-        '.env' => true,
-        '.htaccess' => true,
-        '.htpasswd' => true,
-        '.user.ini' => true,
-        'php.ini' => true,
-        'web.config' => true,
-    ];
-    $blockedDirs = [
-        '.git' => true,
-        '.hg' => true,
-        '.svn' => true,
+        '.ds_store' => 'server config or secret files',
+        '.npmrc' => 'package registry auth files',
+        '.yarnrc' => 'package registry auth files',
+        'auth.json' => 'package registry auth files',
+        'id_dsa' => 'SSH key files',
+        'id_ecdsa' => 'SSH key files',
+        'id_ed25519' => 'SSH key files',
+        'id_rsa' => 'SSH key files',
     ];
     $blockedExtensions = [
+        'asp' => true,
+        'aspx' => true,
+        'bak' => true,
         'bash' => true,
         'bat' => true,
+        'backup' => true,
         'cgi' => true,
         'cmd' => true,
         'com' => true,
+        'db' => true,
         'dll' => true,
+        'dump' => true,
         'exe' => true,
+        'hta' => true,
+        'jsp' => true,
+        'key' => true,
         'msi' => true,
+        'old' => true,
+        'orig' => true,
+        'p12' => true,
+        'pem' => true,
         'phar' => true,
+        'pfx' => true,
+        'pht' => true,
         'php3' => true,
         'php4' => true,
         'php5' => true,
+        'php6' => true,
+        'php7' => true,
+        'php8' => true,
         'phtml' => true,
         'pl' => true,
         'py' => true,
+        'shtml' => true,
         'sh' => true,
+        'sqlite' => true,
+        'sqlite3' => true,
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
@@ -160,7 +177,7 @@ function sr_check_module_source_files(): void
             $basename = strtolower($item->getFilename());
             $extension = strtolower(pathinfo($item->getFilename(), PATHINFO_EXTENSION));
 
-            if ($item->isDir() && isset($blockedDirs[$basename])) {
+            if ($item->isDir() && sr_check_module_source_is_repository_meta_name($basename)) {
                 sr_check_add_error('Module source must not include repository metadata directories: ' . $moduleDir . '/' . $relative);
                 continue;
             }
@@ -169,8 +186,18 @@ function sr_check_module_source_files(): void
                 continue;
             }
 
-            if (isset($blockedNames[$basename])) {
+            if (sr_check_module_source_is_repository_meta_name($basename)) {
+                sr_check_add_error('Module source must not include repository metadata files: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if (sr_check_module_source_is_server_config_name($basename)) {
                 sr_check_add_error('Module source must not include server config or secret files: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if (isset($blockedNames[$basename])) {
+                sr_check_add_error('Module source must not include ' . $blockedNames[$basename] . ': ' . $moduleDir . '/' . $relative);
                 continue;
             }
 
@@ -179,6 +206,36 @@ function sr_check_module_source_files(): void
             }
         }
     }
+}
+
+function sr_check_module_source_is_repository_meta_name(string $basename): bool
+{
+    return in_array($basename, [
+        '.git',
+        '.gitattributes',
+        '.gitignore',
+        '.gitmodules',
+        '.hg',
+        '.hgignore',
+        '.hgrc',
+        '.svn',
+    ], true);
+}
+
+function sr_check_module_source_is_server_config_name(string $basename): bool
+{
+    return $basename === '.env'
+        || str_starts_with($basename, '.env.')
+        || $basename === '.htaccess'
+        || str_starts_with($basename, '.htaccess.')
+        || $basename === '.htpasswd'
+        || str_starts_with($basename, '.htpasswd.')
+        || $basename === '.user.ini'
+        || str_starts_with($basename, '.user.ini.')
+        || $basename === 'php.ini'
+        || str_starts_with($basename, 'php.ini.')
+        || $basename === 'web.config'
+        || str_starts_with($basename, 'web.config.');
 }
 
 function sr_check_version_format(string $version): string
@@ -1097,6 +1154,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-notification-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-navigation-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-source-file-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-antispam-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-guest-runtime.php'));

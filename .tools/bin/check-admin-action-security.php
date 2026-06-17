@@ -848,9 +848,17 @@ if (
 }
 if (
     strpos($moduleSourceSafetyContent, 'function sr_module_source_file_errors') === false
-    || strpos($moduleSourceSafetyContent, "'.htaccess' => true") === false
+    || strpos($moduleSourceSafetyContent, "function sr_module_source_is_server_config_name") === false
+    || strpos($moduleSourceSafetyContent, "function sr_module_source_is_repository_meta_name") === false
+    || strpos($moduleSourceSafetyContent, "\$basename === '.htaccess'") === false
+    || strpos($moduleSourceSafetyContent, "str_starts_with(\$basename, '.htaccess.')") === false
+    || strpos($moduleSourceSafetyContent, "str_starts_with(\$basename, '.env.')") === false
     || strpos($moduleSourceSafetyContent, "'phtml' => true") === false
     || strpos($moduleSourceSafetyContent, "'phar' => true") === false
+    || strpos($moduleSourceSafetyContent, "'php7' => true") === false
+    || strpos($moduleSourceSafetyContent, "'pht' => true") === false
+    || strpos($moduleSourceSafetyContent, "'sqlite' => true") === false
+    || strpos($moduleSourceSafetyContent, "'key' => true") === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($sourceDir)') === false
 ) {
     $errors[] = 'Admin module source validation must reject server config files and unsafe executable extensions.';
