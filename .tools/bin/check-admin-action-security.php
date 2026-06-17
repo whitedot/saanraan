@@ -859,6 +859,7 @@ if (
     || strpos($moduleSourceSafetyContent, "'pht' => true") === false
     || strpos($moduleSourceSafetyContent, "'sqlite' => true") === false
     || strpos($moduleSourceSafetyContent, "'key' => true") === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($extractDir)') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($sourceDir)') === false
 ) {
     $errors[] = 'Admin module source validation must reject server config files and unsafe executable extensions.';

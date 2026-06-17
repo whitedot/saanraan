@@ -640,6 +640,10 @@ function sr_extract_module_upload(array $file, string $requestedModuleKey): arra
 
     try {
         sr_validate_extracted_module_tree($extractDir);
+        $packageErrors = sr_module_source_file_errors($extractDir);
+        if ($packageErrors !== []) {
+            throw new RuntimeException(implode(' ', $packageErrors));
+        }
 
         $source = sr_find_module_source($extractDir, $requestedModuleKey, $filename);
         if ($requestedModuleKey !== '' && (string) $source['module_key'] !== $requestedModuleKey) {
