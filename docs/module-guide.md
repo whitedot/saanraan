@@ -1544,7 +1544,7 @@ return function (PDO $pdo, ?array $site): array {
 
 Git을 사용할 수 없는 운영 환경을 기본 지원 대상으로 본다. 따라서 운영 설치는 zip 배포물 또는 FTP/파일 관리자 배치를 기준으로 설명한다. 관리자 화면에서 zip을 업로드하려면 소유자가 `/admin/modules`에서 모듈 파일 반영을 일시 허용한 뒤 업로드한다.
 
-모듈 단독 배포물은 같은 모듈 key를 유지하는 한 해당 모듈 폴더만 포함한다. 산란은 `modules/{module_key}/module.php`, `install.sql`, `updates/`, `paths.php`와 `module.php`에 선언된 계약 파일을 현재 폴더에서 읽는다. 본체 파일, 다른 모듈 파일, 저장소 문서, Wiki 문서, 로컬 점검 스크립트는 모듈 zip에 포함하지 않고 본체 릴리스나 별도 문서 작업으로 관리한다.
+모듈 단독 배포물은 같은 모듈 key를 유지하는 한 해당 모듈 폴더만 포함한다. 산란은 `modules/{module_key}/module.php`, `install.sql`, `updates/`, `paths.php`와 `module.php`에 선언된 계약 파일을 현재 폴더에서 읽는다. 본체 파일, 다른 모듈 파일, 저장소 문서, Wiki 문서, 로컬 점검 스크립트, 서버 설정/비밀 파일, 저장소 메타 디렉터리, 우회 실행 확장자는 모듈 zip에 포함하지 않고 본체 릴리스나 별도 문서 작업으로 관리한다.
 
 모듈 배포 흐름:
 

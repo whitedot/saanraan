@@ -284,6 +284,83 @@ function sr_validate_extracted_module_tree(string $extractDir): void
     }
 }
 
+function sr_module_source_file_errors(string $sourceDir): array
+{
+    if (!is_dir($sourceDir)) {
+        return ['모듈 소스 디렉터리를 찾을 수 없습니다.'];
+    }
+
+    $errors = [];
+    $blockedNames = [
+        '.ds_store' => true,
+        '.env' => true,
+        '.htaccess' => true,
+        '.htpasswd' => true,
+        '.user.ini' => true,
+        'php.ini' => true,
+        'web.config' => true,
+    ];
+    $blockedDirs = [
+        '.git' => true,
+        '.hg' => true,
+        '.svn' => true,
+    ];
+    $blockedExtensions = [
+        'bash' => true,
+        'bat' => true,
+        'cgi' => true,
+        'cmd' => true,
+        'com' => true,
+        'dll' => true,
+        'exe' => true,
+        'msi' => true,
+        'phar' => true,
+        'php3' => true,
+        'php4' => true,
+        'php5' => true,
+        'phtml' => true,
+        'pl' => true,
+        'py' => true,
+        'sh' => true,
+    ];
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($sourceDir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($items as $item) {
+        $path = $item->getPathname();
+        $relative = str_replace(DIRECTORY_SEPARATOR, '/', substr($path, strlen($sourceDir) + 1));
+        $basename = strtolower($item->getFilename());
+        $extension = strtolower(pathinfo($item->getFilename(), PATHINFO_EXTENSION));
+
+        if ($relative === '' || preg_match('/[\x00-\x1F\x7F]/', $relative) === 1) {
+            $errors[] = '모듈 파일 경로에 사용할 수 없는 문자가 있습니다.';
+            continue;
+        }
+
+        if ($item->isDir() && isset($blockedDirs[$basename])) {
+            $errors[] = '모듈 zip에는 저장소 메타 디렉터리를 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
+        if (!$item->isFile()) {
+            continue;
+        }
+
+        if (isset($blockedNames[$basename])) {
+            $errors[] = '모듈 zip에는 서버 설정 또는 비밀 파일을 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
+        if ($extension !== '' && isset($blockedExtensions[$extension])) {
+            $errors[] = '모듈 zip에는 허용되지 않는 실행 파일 확장자를 포함할 수 없습니다: ' . $relative;
+        }
+    }
+
+    return $errors;
+}
+
 function sr_infer_module_key_from_filename(string $filename): string
 {
     $name = strtolower(pathinfo($filename, PATHINFO_FILENAME));
@@ -388,6 +465,10 @@ function sr_validate_module_source(string $moduleKey, string $sourceDir, array $
 
     if (!is_file($sourceDir . '/install.sql')) {
         $errors[] = 'install.sql 파일이 필요합니다.';
+    }
+
+    foreach (sr_module_source_file_errors($sourceDir) as $error) {
+        $errors[] = $error;
     }
 
     foreach (sr_module_metadata_errors($metadata) as $error) {

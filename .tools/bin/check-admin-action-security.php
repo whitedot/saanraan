@@ -847,6 +847,15 @@ if (
     $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
 }
 if (
+    strpos($moduleSourceSafetyContent, 'function sr_module_source_file_errors') === false
+    || strpos($moduleSourceSafetyContent, "'.htaccess' => true") === false
+    || strpos($moduleSourceSafetyContent, "'phtml' => true") === false
+    || strpos($moduleSourceSafetyContent, "'phar' => true") === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_source_file_errors($sourceDir)') === false
+) {
+    $errors[] = 'Admin module source validation must reject server config files and unsafe executable extensions.';
+}
+if (
     strpos($moduleSourceSafetyContent, 'function sr_install_module_source_files') === false
     || strpos($moduleSourceSafetyContent, '!rename($backupDir, $targetDir)') === false
     || strpos($moduleSourceSafetyContent, "throw new RuntimeException('기존 모듈 백업을 복구할 수 없습니다.', 0, \$exception)") === false

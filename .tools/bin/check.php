@@ -111,6 +111,76 @@ function sr_check_sql_runtime_table_prefix_placeholders(): void
     }
 }
 
+function sr_check_module_source_files(): void
+{
+    $blockedNames = [
+        '.ds_store' => true,
+        '.env' => true,
+        '.htaccess' => true,
+        '.htpasswd' => true,
+        '.user.ini' => true,
+        'php.ini' => true,
+        'web.config' => true,
+    ];
+    $blockedDirs = [
+        '.git' => true,
+        '.hg' => true,
+        '.svn' => true,
+    ];
+    $blockedExtensions = [
+        'bash' => true,
+        'bat' => true,
+        'cgi' => true,
+        'cmd' => true,
+        'com' => true,
+        'dll' => true,
+        'exe' => true,
+        'msi' => true,
+        'phar' => true,
+        'php3' => true,
+        'php4' => true,
+        'php5' => true,
+        'phtml' => true,
+        'pl' => true,
+        'py' => true,
+        'sh' => true,
+    ];
+
+    foreach (sr_check_module_dirs() as $moduleDir) {
+        $items = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($moduleDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($items as $item) {
+            if (!$item instanceof SplFileInfo) {
+                continue;
+            }
+
+            $relative = str_replace(DIRECTORY_SEPARATOR, '/', substr($item->getPathname(), strlen($moduleDir) + 1));
+            $basename = strtolower($item->getFilename());
+            $extension = strtolower(pathinfo($item->getFilename(), PATHINFO_EXTENSION));
+
+            if ($item->isDir() && isset($blockedDirs[$basename])) {
+                sr_check_add_error('Module source must not include repository metadata directories: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if (!$item->isFile()) {
+                continue;
+            }
+
+            if (isset($blockedNames[$basename])) {
+                sr_check_add_error('Module source must not include server config or secret files: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if ($extension !== '' && isset($blockedExtensions[$extension])) {
+                sr_check_add_error('Module source must not include blocked executable extensions: ' . $moduleDir . '/' . $relative);
+            }
+        }
+    }
+}
+
 function sr_check_version_format(string $version): string
 {
     if (preg_match('/\Av?\d+\.\d+\.\d+\z/', $version) === 1) {
@@ -299,7 +369,7 @@ function sr_check_module_lifecycle_ui_contract(): void
         }
     }
 
-    foreach (['sr_module_zip_upload_stats', 'sr_validate_extracted_module_tree', 'sr_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
+    foreach (['sr_module_zip_upload_stats', 'sr_validate_extracted_module_tree', 'sr_module_source_file_errors', 'sr_module_upload_version_errors', '기존 모듈 백업을 복구할 수 없습니다.'] as $needle) {
         if (!str_contains($moduleLifecycleContent, $needle)) {
             sr_check_add_error('Admin module source safety marker is missing: ' . $needle);
         }
@@ -1055,6 +1125,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-seo-runtime.php'));
 sr_check_sql_files();
 sr_check_sql_runtime_table_prefix_placeholders();
+sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
