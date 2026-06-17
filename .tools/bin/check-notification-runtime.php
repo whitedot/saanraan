@@ -681,6 +681,8 @@ $adminView = file_get_contents($root . '/modules/notification/views/admin-notifi
 $adminNotificationAction = file_get_contents($root . '/modules/notification/actions/admin-admin-notifications.php');
 $adminNotificationView = file_get_contents($root . '/modules/notification/views/admin-admin-notifications.php');
 $notificationHelpers = file_get_contents($root . '/modules/notification/helpers.php');
+$notificationDeliveryHelpers = file_get_contents($root . '/modules/notification/helpers/deliveries.php');
+$notificationAdminHelpers = file_get_contents($root . '/modules/notification/helpers/admin-notifications.php');
 $notificationPrivacyExport = file_get_contents($root . '/modules/notification/privacy-export.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, '$allowedDeliveryStatuses = sr_notification_delivery_statuses();'), 'notification delivery admin action must use shared delivery statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "array_merge(['email'], sr_notification_admin_external_channel_keys())"), 'notification delivery admin action must expose all admin external delivery filters.');
@@ -692,15 +694,15 @@ sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAct
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'operation' => \$operation"), 'notification delivery audit log must include operation.');
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
 sr_notification_runtime_assert(
-    is_string($notificationHelpers)
-        && str_contains($notificationHelpers, 'function sr_notification_claim_delivery(')
-        && str_contains($notificationHelpers, 'function sr_notification_process_delivery(')
-        && str_contains($notificationHelpers, 'function sr_notification_process_external_push_delivery('),
+    is_string($notificationDeliveryHelpers)
+        && str_contains($notificationDeliveryHelpers, 'function sr_notification_claim_delivery(')
+        && str_contains($notificationDeliveryHelpers, 'function sr_notification_process_delivery(')
+        && str_contains($notificationDeliveryHelpers, 'function sr_notification_process_external_push_delivery('),
     'notification delivery runner must use common claim/process helpers with external push dispatch.'
 );
 sr_notification_runtime_assert(
-    is_string($notificationHelpers)
-        && str_contains($notificationHelpers, 'sr_notification_queue_admin_external_deliveries($pdo, $id)'),
+    is_string($notificationAdminHelpers)
+        && str_contains($notificationAdminHelpers, 'sr_notification_queue_admin_external_deliveries($pdo, $id)'),
     'admin notification creation must queue configured external push deliveries.'
 );
 sr_notification_runtime_assert(
@@ -714,8 +716,8 @@ sr_notification_runtime_assert(
     'notification privacy export must include only endpoint-reference push deliveries from account external exports.'
 );
 sr_notification_runtime_assert(
-    is_string($notificationHelpers)
-        && str_contains($notificationHelpers, 'DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id'),
+    is_string($notificationAdminHelpers)
+        && str_contains($notificationAdminHelpers, 'DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id'),
     'admin notification duplicate reopen must clear per-account read rows so the topbar unread badge returns.'
 );
 $settingsAction = sr_notification_runtime_file('modules/notification/actions/admin-notification-settings.php');
@@ -733,9 +735,9 @@ sr_notification_runtime_assert(str_contains($settingsView, 'type="password" name
 sr_notification_runtime_assert(str_contains($settingsView, 'type="password" name="telegram_bot_token"'), 'notification settings view must render Telegram bot token as a password field.');
 sr_notification_runtime_assert(str_contains($settingsView, 'sr_notification_secret_display'), 'notification settings view must mask stored Slack webhook URLs.');
 sr_notification_runtime_assert(
-    is_string($notificationHelpers)
-        && str_contains($notificationHelpers, 'function sr_notification_admin_mark_unread(')
-        && str_contains($notificationHelpers, 'AND account_id = :account_id'),
+    is_string($notificationAdminHelpers)
+        && str_contains($notificationAdminHelpers, 'function sr_notification_admin_mark_unread(')
+        && str_contains($notificationAdminHelpers, 'AND account_id = :account_id'),
     'admin notification unread helper must clear only the current admin account read row.'
 );
 sr_notification_runtime_assert(
