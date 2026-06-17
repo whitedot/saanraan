@@ -1225,94 +1225,13 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$communityAdminPrepareBoard = static function (array $board) use ($pdo, $settings, $publicDisplaySettingLabels): array {
-    $board['setting_sources'] = sr_community_board_setting_sources($pdo, (int) $board['id']);
-    $board['attachment_max_bytes'] = sr_community_board_own_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['attachment_max_count'] = sr_community_board_own_attachment_max_count($pdo, (int) $board['id'], $settings);
-    foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
-        $board[$displaySettingKey] = (int) (sr_community_board_setting_value($pdo, (int) $board['id'], $displaySettingKey) ?? 0);
-    }
-    $board['effective_attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['effective_attachment_max_count'] = sr_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
-    $board['file_uploads_enabled'] = sr_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0');
-    $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
-    $board['file_attachment_max_bytes'] = sr_community_board_own_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['file_attachment_max_count'] = sr_community_board_own_file_attachment_max_count($pdo, (int) $board['id'], $settings);
-    $board['effective_file_attachment_max_bytes'] = sr_community_board_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['effective_file_attachment_max_count'] = sr_community_board_file_attachment_max_count($pdo, (int) $board['id'], $settings);
-    $board['file_allowed_extensions'] = sr_community_board_own_file_allowed_extensions($pdo, (int) $board['id'], $settings);
-    $board['effective_file_allowed_extensions'] = sr_community_board_file_allowed_extensions($pdo, (int) $board['id'], $settings);
-    $board['read_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-    $board['write_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'write_group_keys');
-    $board['comment_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
-    $board['effective_read_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-    $board['effective_write_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
-    $board['effective_comment_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
-    $board['read_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'read_min_level');
-    $board['write_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'write_min_level');
-    $board['comment_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'comment_min_level');
-    $board['category_enabled'] = sr_community_board_category_enabled($pdo, (int) $board['id']) ? '1' : '0';
-    $board['category_required'] = sr_community_board_category_required($pdo, (int) $board['id']) ? '1' : '0';
-    $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
-    $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
-    $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
-    $board['categories'] = sr_community_categories($pdo, (int) $board['id'], false);
-    $board['level_post_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
-    $board['level_comment_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
-    $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
-    $board['effective_level_comment_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
-    $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
-    $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? 'textarea'));
-    $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
-    $board['reaction_post_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_post_preset_key') ?? '');
-    $board['reaction_comment_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_comment_preset_key') ?? '');
-    foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
-        $defaultValue = match ($privacyConsentSettingKey) {
-            'privacy_consent_title' => '개인정보 수집 및 이용동의',
-            'privacy_consent_version' => '1',
-            'privacy_consent_document_key' => 'community_privacy_default',
-            'privacy_consent_document_inherit_policy' => 'inherit',
-            default => '0',
-        };
-        $board[$privacyConsentSettingKey] = sr_community_effective_board_setting($pdo, $board, (string) $privacyConsentSettingKey, $defaultValue);
-    }
-    $storedExtraFieldDefinitions = sr_community_board_setting_source($pdo, (int) $board['id'], 'extra_fields_json') === 'board'
-        ? sr_community_extra_field_definitions_from_storage($pdo, (int) $board['id'])
-        : [];
-    $board['extra_fields_json'] = $storedExtraFieldDefinitions !== []
-        ? json_encode($storedExtraFieldDefinitions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-        : sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
-    foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
-        $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
-    }
-    foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
-        $board[$assetPrefix . '_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_enabled', !empty($settings[$assetPrefix . '_enabled']) ? '1' : '0');
-        $board[$assetPrefix . '_asset_module'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? ''));
-        $board[$assetPrefix . '_amount'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0));
-        $board[$assetPrefix . '_group_policies_json'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_group_policies_json', (string) ($settings[$assetPrefix . '_group_policies_json'] ?? ''));
-        $board[$assetPrefix . '_policy_set_id'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_policy_set_id', (string) ($settings[$assetPrefix . '_policy_set_id'] ?? 0));
-        if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
-            $board[$assetPrefix . '_amounts_json'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amounts_json', (string) ($settings[$assetPrefix . '_amounts_json'] ?? ''));
-        }
-        if (in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true)) {
-            $board[$assetPrefix . '_charge_policy'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_charge_policy', (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'));
-        }
-    }
-    $board['paid_attachment_download_publisher_reward_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_enabled', !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? '1' : '0');
-    $board['paid_attachment_download_publisher_reward_rate'] = sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_rate', (string) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0));
-    $board['source_paid_attachment_download_publisher_reward_enabled'] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], 'paid_attachment_download_publisher_reward_enabled');
-    $board['source_paid_attachment_download_publisher_reward_rate'] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], 'paid_attachment_download_publisher_reward_rate');
-
-    return $board;
-};
-
 $boardStatusCounts = sr_community_admin_board_status_counts($pdo, $allowedStatuses);
 $boardSort = sr_admin_sort_from_request(sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort());
 $boardPagination = sr_admin_pagination_from_total($pdo, $communityBoardsPage === 'list' ? sr_community_admin_board_count($pdo, $boardListFilters) : 0);
 $boards = [];
 if ($communityBoardsPage === 'list') {
     foreach (sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination), $boardSort) as $board) {
-        $boards[] = $communityAdminPrepareBoard($board);
+        $boards[] = sr_community_admin_prepare_board_row($pdo, $board, $settings, $publicDisplaySettingLabels);
     }
 }
 $communityStorageCleanupFailures = $communityBoardsPage === 'list' ? sr_community_storage_cleanup_failures($pdo) : [];
@@ -1323,7 +1242,7 @@ if ($communityBoardsPage === 'edit') {
     $editBoardId = preg_match('/\A[1-9][0-9]*\z/', $editBoardIdValue) === 1 ? (int) $editBoardIdValue : 0;
     $editBoard = sr_community_board_by_id($pdo, $editBoardId);
     if (is_array($editBoard)) {
-        $editBoard = $communityAdminPrepareBoard($editBoard);
+        $editBoard = sr_community_admin_prepare_board_row($pdo, $editBoard, $settings, $publicDisplaySettingLabels);
     }
 
     if (!is_array($editBoard)) {
