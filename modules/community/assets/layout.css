@@ -791,6 +791,7 @@
 }
 
 .community-layout-member-asset-row strong,
+.community-layout-member-dropdown-link strong,
 .community-layout-member-action-row strong {
     color: var(--layout-profile-muted);
     font-size: .8125rem;

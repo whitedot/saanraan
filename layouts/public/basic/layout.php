@@ -108,6 +108,8 @@ $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
 $layoutMemberEmail = '';
 $layoutMemberInitial = 'M';
+$layoutCommunityMemberMenuEnabled = false;
+$layoutUnreadCommunityMessageCount = 0;
 $layoutMemberAssetRows = [];
 $layoutAdminEnabled = false;
 $layoutAdminUrl = sr_url('/admin');
@@ -126,6 +128,15 @@ if (
         $layoutMemberEmail = trim((string) ($layoutCurrentAccount['email'] ?? ''));
         $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
         $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
+        if (sr_module_enabled($layoutPdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers/messages.php')) {
+            require_once SR_ROOT . '/modules/community/helpers/messages.php';
+            $layoutCommunityMemberMenuEnabled = true;
+            try {
+                $layoutUnreadCommunityMessageCount = function_exists('sr_community_unread_message_count') ? sr_community_unread_message_count($layoutPdo, $layoutCurrentAccountId) : 0;
+            } catch (Throwable) {
+                $layoutUnreadCommunityMessageCount = 0;
+            }
+        }
         if (sr_module_enabled($layoutPdo, 'point') && is_file(SR_ROOT . '/modules/point/helpers.php')) {
             require_once SR_ROOT . '/modules/point/helpers.php';
             try {
@@ -313,6 +324,20 @@ if (
                                 <span><?php echo sr_e('정보수정'); ?></span>
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
+                            <?php if ($layoutCommunityMemberMenuEnabled) { ?>
+                                <span class="public-layout-member-divider" aria-hidden="true"></span>
+                                <a class="public-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
+                                    <span><?php echo sr_e('쪽지'); ?></span>
+                                    <strong><?php echo sr_e(number_format($layoutUnreadCommunityMessageCount) . '개'); ?></strong>
+                                </a>
+                                <a class="public-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/community/scraps')); ?>" role="menuitem">
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bookmark</span>
+                                    <span><?php echo sr_e('스크랩'); ?></span>
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
+                                </a>
+                                <span class="public-layout-member-divider" aria-hidden="true"></span>
+                            <?php } ?>
                             <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
                                 <a class="public-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>account_balance_wallet</span>

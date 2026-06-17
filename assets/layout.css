@@ -907,6 +907,7 @@
 }
 
 .public-layout-member-asset-row strong,
+.public-layout-member-dropdown-link strong,
 .public-layout-member-action-row strong {
     color: var(--layout-profile-muted);
     font-size: .8125rem;

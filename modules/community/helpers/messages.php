@@ -43,6 +43,24 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
     return $stmt->fetchAll();
 }
 
+function sr_community_unread_message_count(PDO $pdo, int $accountId): int
+{
+    if ($accountId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_community_messages
+         WHERE recipient_account_id = :account_id
+           AND recipient_deleted_at IS NULL
+           AND read_at IS NULL'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
 function sr_community_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null, ?string $nickname = null, ?array $communitySettings = null): string
 {
     $label = sr_community_public_display_name([
