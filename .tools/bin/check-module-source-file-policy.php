@@ -851,6 +851,47 @@ try {
         }
     }
 
+    $replaceModuleKey = 'zip_policy_replace_' . strtolower(bin2hex(random_bytes(3)));
+    $replaceModuleDir = SR_ROOT . '/modules/' . $replaceModuleKey;
+    $replaceSourceDir = $fixtureRoot . '/replace-source';
+    $replaceResult = [];
+    try {
+        mkdir($replaceModuleDir . '/assets', 0777, true);
+        file_put_contents($replaceModuleDir . '/module.php', "<?php\nreturn ['version' => 'old'];\n");
+        file_put_contents($replaceModuleDir . '/assets/old.txt', 'old');
+
+        mkdir($replaceSourceDir . '/assets', 0777, true);
+        file_put_contents($replaceSourceDir . '/module.php', "<?php\nreturn ['version' => 'new'];\n");
+        file_put_contents($replaceSourceDir . '/assets/new.txt', 'new');
+
+        $replaceResult = sr_install_module_source_files($replaceModuleKey, $replaceSourceDir);
+        $replaceBackupDir = (string) ($replaceResult['backup_dir'] ?? '');
+        if (!is_dir($replaceBackupDir)) {
+            fwrite(STDERR, "Existing module replacement did not create a backup directory.\n");
+            exit(1);
+        }
+
+        if ((string) file_get_contents($replaceBackupDir . '/module.php') !== "<?php\nreturn ['version' => 'old'];\n") {
+            fwrite(STDERR, "Existing module replacement backup did not preserve the old module file.\n");
+            exit(1);
+        }
+
+        if ((string) file_get_contents($replaceModuleDir . '/module.php') !== "<?php\nreturn ['version' => 'new'];\n") {
+            fwrite(STDERR, "Existing module replacement target did not receive the new module file.\n");
+            exit(1);
+        }
+
+        if (!is_file($replaceModuleDir . '/assets/new.txt') || is_file($replaceModuleDir . '/assets/old.txt')) {
+            fwrite(STDERR, "Existing module replacement target did not switch to the new source tree.\n");
+            exit(1);
+        }
+    } finally {
+        sr_check_module_source_policy_remove_dir($replaceModuleDir);
+        if (is_array($replaceResult) && is_string($replaceResult['backup_dir'] ?? null)) {
+            sr_check_module_source_policy_remove_dir((string) $replaceResult['backup_dir']);
+        }
+    }
+
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, version TEXT NOT NULL, status TEXT NOT NULL)');
