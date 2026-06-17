@@ -13,6 +13,7 @@ $uiKitSamples = [
     'ui-modals' => 'Modals',
     'ui-dropdowns' => 'Dropdowns',
     'ui-dropdown-menus' => 'Dropdown Menus',
+    'member-avatars' => 'Member Avatars',
     'ui-tabs' => 'Tabs',
     'form-elements' => 'Form Elements',
     'form-validation' => 'Form Validation',

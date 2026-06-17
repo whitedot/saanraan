@@ -42,6 +42,36 @@
     min-height: 50rem;
 }
 
+.member-avatar-palette-item,
+.member-avatar-preview-item {
+    align-items: center;
+    display: inline-flex;
+    gap: calc(var(--spacing) * 2);
+}
+
+.member-avatar-palette-item {
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    padding: calc(var(--spacing) * 2);
+}
+
+.member-avatar-preview-text {
+    display: grid;
+    gap: calc(var(--spacing) * .5);
+    min-width: 0;
+}
+
+.member-avatar-preview-text strong {
+    color: var(--color-default-900);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+}
+
+.member-avatar-preview-text code {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+}
+
 /* UI-KIT sample layout helpers */
 .ui-kit-grid { display: grid; }
 .ui-kit-grid-1 { grid-template-columns: minmax(0, 1fr); }
@@ -1166,19 +1196,34 @@
     padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2) calc(var(--spacing) * 3);
 }
 
-.dropdown-profile-avatar {
+.dropdown-profile-avatar,
+.member-default-avatar {
     align-items: center;
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7);
+    background: var(--sr-member-avatar-bg, linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7));
     border-radius: 999px;
     color: var(--color-white);
     display: inline-flex;
     font-size: var(--text-sm);
     font-weight: var(--font-weight-bold);
     justify-content: center;
+    line-height: 1;
     overflow: hidden;
     width: 2.5rem;
 }
+
+.member-avatar-color-0 { --sr-member-avatar-bg: #b91c1c; }
+.member-avatar-color-1 { --sr-member-avatar-bg: #c2410c; }
+.member-avatar-color-2 { --sr-member-avatar-bg: #a16207; }
+.member-avatar-color-3 { --sr-member-avatar-bg: #4d7c0f; }
+.member-avatar-color-4 { --sr-member-avatar-bg: #047857; }
+.member-avatar-color-5 { --sr-member-avatar-bg: #0f766e; }
+.member-avatar-color-6 { --sr-member-avatar-bg: #0369a1; }
+.member-avatar-color-7 { --sr-member-avatar-bg: #1d4ed8; }
+.member-avatar-color-8 { --sr-member-avatar-bg: #4f46e5; }
+.member-avatar-color-9 { --sr-member-avatar-bg: #7e22ce; }
+.member-avatar-color-10 { --sr-member-avatar-bg: #be185d; }
+.member-avatar-color-11 { --sr-member-avatar-bg: #9f1239; }
 
 .dropdown-profile-identity {
     min-width: 0;
