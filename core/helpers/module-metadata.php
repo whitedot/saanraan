@@ -131,14 +131,22 @@ function sr_php_string_list_array_value(string $content, string $key): array
     }
 
     $values = [];
-    foreach (['\'', '"'] as $quote) {
-        $quotedQuote = preg_quote($quote, '/');
-        $pattern = '/' . $quotedQuote . '((?:\\\\.|[^' . $quotedQuote . '\\\\])*)' . $quotedQuote . '/';
-        if (preg_match_all($pattern, $block, $matches) !== false) {
-            foreach ($matches[1] as $value) {
-                $values[] = stripcslashes((string) $value);
-            }
+    $inner = substr($block, 1, -1);
+    if (!is_string($inner)) {
+        return [];
+    }
+
+    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '') {
+            continue;
         }
+
+        if (preg_match('/\A(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\z/s', $segment) !== 1) {
+            return [];
+        }
+
+        $values[] = sr_php_decode_quoted_string($segment);
     }
 
     return array_values(array_unique($values));

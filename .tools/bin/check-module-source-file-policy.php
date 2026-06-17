@@ -292,6 +292,49 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Nested List Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => [['0.2.0']],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $nestedListMetadata = sr_load_module_metadata_from_file($moduleContentDir . '/module.php');
+    $nestedListErrors = sr_module_metadata_errors($nestedListMetadata);
+    if (!in_array('module.php의 saanraan.tested_with는 배열이어야 합니다.', $nestedListErrors, true)) {
+        fwrite(STDERR, "Nested saanraan.tested_with list was read as a flat string list:\n" . implode("\n", $nestedListErrors) . "\n");
+        exit(1);
+    }
+
+    sr_check_module_source_policy_write_file($moduleContentDir, 'paths.php');
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Nested Contract Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "    'contracts' => [\n"
+        . "        'provides' => [['paths.php']],\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $nestedContractErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if (!in_array('paths.php 파일은 module.php의 contracts.provides에 선언해야 합니다.', $nestedContractErrors, true)) {
+        fwrite(STDERR, "Nested contracts.provides list was read as a flat contract file list:\n" . implode("\n", $nestedContractErrors) . "\n");
+        exit(1);
+    }
+
     if (!class_exists('ZipArchive')) {
         fwrite(STDERR, "ZipArchive is required for module source policy checks.\n");
         exit(1);
