@@ -172,9 +172,14 @@ try {
     mkdir($blockedDir, 0777, true);
     $blockedFiles = [
         '.env.local',
+        '.netrc',
         '.gitignore',
         '.npmrc',
+        '.aws/credentials',
+        '.ssh/authorized_keys',
         'composer/auth.json',
+        'secrets/credentials.json',
+        'secrets/service-account.json',
         'keys/id_rsa',
         'certs/client.p12',
         'data/export.sqlite',
@@ -190,6 +195,14 @@ try {
         sr_check_module_source_policy_write_file($blockedDir, $relative);
     }
 
+    foreach ([
+        '.docker/config.json',
+        '.gnupg/pubring.kbx',
+        '.kube/config',
+    ] as $relative) {
+        sr_check_module_source_policy_write_file($blockedDir, $relative);
+    }
+
     $blockedErrors = sr_module_source_file_errors($blockedDir);
     foreach ($blockedFiles as $relative) {
         $found = false;
@@ -202,6 +215,22 @@ try {
 
         if (!$found) {
             fwrite(STDERR, 'Blocked module source fixture was not rejected: ' . $relative . "\n");
+            fwrite(STDERR, implode("\n", $blockedErrors) . "\n");
+            exit(1);
+        }
+    }
+
+    foreach (['.docker', '.gnupg', '.kube'] as $relative) {
+        $found = false;
+        foreach ($blockedErrors as $error) {
+            if (str_contains($error, $relative)) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            fwrite(STDERR, 'Blocked credential directory fixture was not rejected: ' . $relative . "\n");
             fwrite(STDERR, implode("\n", $blockedErrors) . "\n");
             exit(1);
         }

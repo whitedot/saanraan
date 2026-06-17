@@ -347,13 +347,22 @@ function sr_module_source_file_errors(string $sourceDir): array
     $errors = [];
     $blockedNames = [
         '.ds_store' => '서버 설정 또는 비밀 파일',
+        '.dockercfg' => '컨테이너 레지스트리 인증 파일',
+        '.dockerconfigjson' => '컨테이너 레지스트리 인증 파일',
+        '.netrc' => '인증 정보 파일',
         '.npmrc' => '패키지 레지스트리 인증 파일',
         '.yarnrc' => '패키지 레지스트리 인증 파일',
+        'authorized_keys' => 'SSH 인증 파일',
         'auth.json' => '패키지 레지스트리 인증 파일',
+        'credentials' => '클라우드 인증 정보 파일',
+        'credentials.json' => '클라우드 인증 정보 파일',
         'id_dsa' => 'SSH key 파일',
         'id_ecdsa' => 'SSH key 파일',
         'id_ed25519' => 'SSH key 파일',
         'id_rsa' => 'SSH key 파일',
+        'known_hosts' => 'SSH 인증 파일',
+        'service-account.json' => '클라우드 서비스 계정 파일',
+        'service_account.json' => '클라우드 서비스 계정 파일',
     ];
     $blockedExtensions = [
         'asp' => true,
@@ -415,6 +424,11 @@ function sr_module_source_file_errors(string $sourceDir): array
             continue;
         }
 
+        if ($item->isDir() && sr_module_source_is_credential_meta_name($basename)) {
+            $errors[] = '모듈 zip에는 인증 정보 디렉터리를 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
         if (!$item->isFile()) {
             continue;
         }
@@ -458,6 +472,17 @@ function sr_module_source_is_repository_meta_name(string $basename): bool
         '.hgignore',
         '.hgrc',
         '.svn',
+    ], true);
+}
+
+function sr_module_source_is_credential_meta_name(string $basename): bool
+{
+    return in_array($basename, [
+        '.aws',
+        '.docker',
+        '.gnupg',
+        '.kube',
+        '.ssh',
     ], true);
 }
 
