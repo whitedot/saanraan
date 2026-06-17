@@ -558,6 +558,67 @@ try {
         }
     }
 
+    $tooManyEntriesZipPath = $fixtureRoot . '/too-many-entries.zip';
+    $tooManyEntriesZip = new ZipArchive();
+    if ($tooManyEntriesZip->open($tooManyEntriesZipPath, ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('Cannot create too-many-entries fixture zip.');
+    }
+    for ($entryIndex = 0; $entryIndex < 1001; $entryIndex++) {
+        $tooManyEntriesZip->addFromString('bad/file-' . $entryIndex . '.txt', 'x');
+    }
+    $tooManyEntriesZip->close();
+
+    try {
+        $tooManyEntriesResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($tooManyEntriesZipPath),
+            'size' => filesize($tooManyEntriesZipPath),
+            'tmp_name' => $tooManyEntriesZipPath,
+        ], '');
+        if (is_string($tooManyEntriesResult['extract_dir'] ?? null) && is_dir($tooManyEntriesResult['extract_dir'])) {
+            sr_remove_directory($tooManyEntriesResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with too many entries was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '항목 수')) {
+            fwrite(STDERR, 'Too-many-entries upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
+    $tooLargeUncompressedZipPath = $fixtureRoot . '/too-large-uncompressed.zip';
+    $tooLargeUncompressedZip = new ZipArchive();
+    if ($tooLargeUncompressedZip->open($tooLargeUncompressedZipPath, ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('Cannot create too-large-uncompressed fixture zip.');
+    }
+    $tooLargeUncompressedZip->addFromString(
+        'bad/payload.txt',
+        str_repeat('x', sr_module_source_uncompressed_limit_bytes() + 1)
+    );
+    $tooLargeUncompressedZip->close();
+
+    try {
+        $tooLargeUncompressedResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($tooLargeUncompressedZipPath),
+            'size' => filesize($tooLargeUncompressedZipPath),
+            'tmp_name' => $tooLargeUncompressedZipPath,
+        ], '');
+        if (is_string($tooLargeUncompressedResult['extract_dir'] ?? null) && is_dir($tooLargeUncompressedResult['extract_dir'])) {
+            sr_remove_directory($tooLargeUncompressedResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture over the uncompressed size limit was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '압축 해제 후 모듈 크기')) {
+            fwrite(STDERR, 'Uncompressed size upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $conflictPathZip = $fixtureRoot . '/conflict-path.zip';
     $conflictZip = new ZipArchive();
     if ($conflictZip->open($conflictPathZip, ZipArchive::CREATE) !== true) {
