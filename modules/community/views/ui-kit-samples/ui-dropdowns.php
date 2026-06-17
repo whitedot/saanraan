@@ -802,57 +802,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Forms -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.90a8402c')); ?></h4>
-                            </div>
-
-                            <div class="card-body">
-                                <p class="sample-note ui-kit-space-after-4"><?php echo sr_e(sr_t('ui.menu.menu.active.deecc2cd')); ?></p>
-                                <div class="ui-kit-cluster ui-kit-wrap ui-kit-align-items-center ui-kit-gap-2-5">
-                                    <div
-                                        class="dropdown" data-dropdown-placement="bottom-end" data-dropdown-auto-close="inside">
-                                        <button type="button"
-                                            class="dropdown-toggle btn btn-solid-secondary"
-                                            aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-                                            <?php echo sr_e(sr_t('ui.text.90a8402c')); ?>
-                                            <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
-                                        </button>
-
-                                        <div class="dropdown-menu dropdown-menu-min-wide" role="menu"
-                                            aria-orientation="forms-dropdown-menu">
-                                            <form class="dropdown-form">
-                                                <div class="ui-kit-space-after-5">
-                                                    <label class="form-label" for="dropdown-form-email"><?php echo sr_e(sr_t('ui.email.e9abda44')); ?></label>
-                                                    <input id="dropdown-form-email" class="form-input form-input-sm" type="email"
-                                                        placeholder="email@example.com" />
-                                                </div>
-
-                                                <div class="ui-kit-space-after-5">
-                                                    <label class="form-label" for="dropdown-form-password"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?></label>
-                                                    <input id="dropdown-form-password" class="form-input form-input-sm" type="password"
-                                                        placeholder="<?php echo sr_e(sr_t('ui.password.4fa210a0')); ?>" />
-                                                </div>
-
-                                                <div class="ui-kit-space-after-4 ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2-5">
-                                                    <input type="checkbox" class="form-checkbox"
-                                                        id="dropdownCheck" />
-                                                    <label for="dropdownCheck" class="dropdown-note"><?php echo sr_e(sr_t('ui.login.status.29a71548')); ?></label>
-                                                </div>
-
-                                                <button type="submit"
-                                                    class="btn btn-solid-primary"><?php echo sr_e(sr_t('ui.login.6d253673')); ?></button>
-                                            </form>
-                                            <hr class="dropdown-divider" />
-                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('ui.member.295b31c3')); ?></a>
-                                            <a class="dropdown-item" href="#"><?php echo sr_e(sr_t('ui.password.93b93e29')); ?></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 </div>
 </div>

@@ -973,6 +973,16 @@ input:focus-visible + [class*=btn-choice-],
     visibility: visible !important;
 }
 
+.ui-kit-sample-body .dropdown-menu-profile-preview {
+    display: block !important;
+    left: auto !important;
+    margin-top: 0;
+    opacity: 1 !important;
+    position: static !important;
+    top: auto !important;
+    visibility: visible !important;
+}
+
 /* Semantic sample states */
 .sample-note,
 .sample-muted {

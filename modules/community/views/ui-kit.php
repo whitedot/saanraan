@@ -8,6 +8,7 @@ $uiKitSamples = [
     'ui-badges' => 'Badges',
     'ui-modals' => 'Modals',
     'ui-dropdowns' => 'Dropdowns',
+    'ui-dropdown-menus' => 'Dropdown Menus',
     'ui-tabs' => 'Tabs',
     'form-elements' => 'Form Elements',
     'form-validation' => 'Form Validation',
