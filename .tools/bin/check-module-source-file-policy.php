@@ -376,6 +376,19 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $routeDir . '/paths.php',
+        "<?php\nreturn [\n"
+        . "    'GET /route-check' => 'actions/page.php',\n"
+        . "];\n"
+        . "?>inline output\n"
+    );
+    $routeErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.', $routeErrors, true)) {
+        fwrite(STDERR, "Module source paths.php with inline HTML after return was not rejected:\n" . implode("\n", $routeErrors) . "\n");
+        exit(1);
+    }
+
     mkdir($routeDir . '/updates', 0777, true);
     sr_check_module_source_policy_write_file($routeDir, 'updates/not-a-version.sql');
     $updateErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
@@ -468,6 +481,26 @@ try {
     $moduleContentErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
     if (!in_array('module.php는 정적 리터럴 배열만 반환해야 합니다.', $moduleContentErrors, true)) {
         fwrite(STDERR, "Module source module.php with a post-return statement was not rejected:\n" . implode("\n", $moduleContentErrors) . "\n");
+        exit(1);
+    }
+
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Inline HTML Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+        . "?>inline output\n"
+    );
+    $moduleContentErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if (!in_array('module.php는 정적 리터럴 배열만 반환해야 합니다.', $moduleContentErrors, true)) {
+        fwrite(STDERR, "Module source module.php with inline HTML after return was not rejected:\n" . implode("\n", $moduleContentErrors) . "\n");
         exit(1);
     }
 
