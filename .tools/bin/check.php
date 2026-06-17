@@ -115,13 +115,22 @@ function sr_check_module_source_files(): void
 {
     $blockedNames = [
         '.ds_store' => 'server config or secret files',
+        '.dockercfg' => 'container registry auth files',
+        '.dockerconfigjson' => 'container registry auth files',
+        '.netrc' => 'credential files',
         '.npmrc' => 'package registry auth files',
         '.yarnrc' => 'package registry auth files',
+        'authorized_keys' => 'SSH auth files',
         'auth.json' => 'package registry auth files',
+        'credentials' => 'cloud credential files',
+        'credentials.json' => 'cloud credential files',
         'id_dsa' => 'SSH key files',
         'id_ecdsa' => 'SSH key files',
         'id_ed25519' => 'SSH key files',
         'id_rsa' => 'SSH key files',
+        'known_hosts' => 'SSH auth files',
+        'service-account.json' => 'cloud service account files',
+        'service_account.json' => 'cloud service account files',
     ];
     $blockedExtensions = [
         'asp' => true,
@@ -182,12 +191,27 @@ function sr_check_module_source_files(): void
                 continue;
             }
 
+            if ($item->isDir() && sr_check_module_source_is_server_config_name($basename)) {
+                sr_check_add_error('Module source must not include server config or secret directories: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if ($item->isDir() && sr_check_module_source_is_credential_meta_name($basename)) {
+                sr_check_add_error('Module source must not include credential directories: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
             if (!$item->isFile()) {
                 continue;
             }
 
             if (sr_check_module_source_is_repository_meta_name($basename)) {
                 sr_check_add_error('Module source must not include repository metadata files: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
+            if (sr_check_module_source_is_credential_meta_name($basename)) {
+                sr_check_add_error('Module source must not include credential files: ' . $moduleDir . '/' . $relative);
                 continue;
             }
 
@@ -219,6 +243,17 @@ function sr_check_module_source_is_repository_meta_name(string $basename): bool
         '.hgignore',
         '.hgrc',
         '.svn',
+    ], true);
+}
+
+function sr_check_module_source_is_credential_meta_name(string $basename): bool
+{
+    return in_array($basename, [
+        '.aws',
+        '.docker',
+        '.gnupg',
+        '.kube',
+        '.ssh',
     ], true);
 }
 
