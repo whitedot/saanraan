@@ -363,6 +363,19 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $routeDir . '/paths.php',
+        "<?php\nreturn [\n"
+        . "    'GET /route-check' => 'actions/page.php',\n"
+        . "];\n"
+        . "file_put_contents(sys_get_temp_dir() . '/sr-route-tail-side-effect', 'x');\n"
+    );
+    $routeErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈의 paths.php는 정적 문자열 배열을 반환해야 합니다.', $routeErrors, true)) {
+        fwrite(STDERR, "Module source paths.php with a post-return statement was not rejected:\n" . implode("\n", $routeErrors) . "\n");
+        exit(1);
+    }
+
     mkdir($routeDir . '/updates', 0777, true);
     sr_check_module_source_policy_write_file($routeDir, 'updates/not-a-version.sql');
     $updateErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
