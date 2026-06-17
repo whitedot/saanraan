@@ -1206,33 +1206,33 @@ input:focus-visible + [class*=btn-choice-],
     .btn-ghost-info:hover { background-color: color-mix(in oklab, var(--color-info) 12%, transparent); }
     .btn-ghost-dark:hover { background-color: color-mix(in oklab, var(--color-dark) 26%, transparent); color: var(--color-default-950); }
 }
-.btn:not([class*=btn-solid-]):not([class*=btn-outline-]):not([class*=btn-soft-]):not([class*=btn-ghost-]):not([class*=btn-gradient-]):not([class*=btn-choice-]):not([class*=ui-kit-surface-]):is(:focus, :focus-visible, :active) { border-color: transparent; background-color: var(--color-default-100); color: var(--color-default-900); }
-.btn-primary:is(:focus, :focus-visible, :active),
-.btn-solid-primary:is(:focus, :focus-visible, :active) { background-color: var(--color-primary-hover); border-color: var(--color-primary-hover); color: var(--color-white); }
-.btn-secondary:is(:focus, :focus-visible, :active) { background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-900); }
-:is(.btn-light, .btn-surface, .btn-surface-default, .btn-surface-default-soft, .btn-subtle-light):is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); color: var(--color-default-950); }
-:is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):is(:focus, :focus-visible, :active) { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
-:is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):is(:focus, :focus-visible, :active) { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
-.btn-solid-danger:is(:focus, :focus-visible, :active) { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
-.btn-solid-warning:is(:focus, :focus-visible, :active) { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
-:is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):is(:focus, :focus-visible, :active) { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
-.btn-solid-dark:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
-.btn-solid-light:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }
-:is(.btn-outline-default, .btn-outline-light):is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); border-color: var(--color-default-300); color: var(--color-default-950); }
-:is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-warning, .btn-outline-info, .btn-outline-dark):is(:focus, :focus-visible, :active) { background-color: var(--btn-outline-color, currentColor); border-color: var(--btn-outline-color, currentColor); color: var(--btn-outline-on-color, var(--color-white)); }
-:is(.btn-soft-default, .btn-soft-light):is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: transparent; color: var(--color-default-950); }
-.btn-soft-primary:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-primary) 24%, transparent); border-color: transparent; }
-.btn-soft-secondary:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-secondary) 24%, transparent); border-color: transparent; }
-.btn-soft-success:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-success) 24%, transparent); border-color: transparent; }
-.btn-soft-danger:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-danger) 24%, transparent); border-color: transparent; }
-.btn-soft-warning:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-warning) 24%, transparent); border-color: transparent; }
-.btn-soft-info:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-info) 24%, transparent); border-color: transparent; }
-.btn-soft-dark:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-dark) 36%, transparent); border-color: transparent; color: var(--color-default-950); }
-:is(.btn-ghost-default, .btn-ghost-light):is(:focus, :focus-visible, :active) { background-color: var(--color-default-100); color: var(--color-default-900); }
-.btn-ghost-primary:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-primary) 12%, transparent); }
-.btn-ghost-secondary:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-secondary) 12%, transparent); }
-.btn-ghost-success:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-success) 12%, transparent); }
-.btn-ghost-danger:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-danger) 12%, transparent); }
-.btn-ghost-warning:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-warning) 12%, transparent); }
-.btn-ghost-info:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-info) 12%, transparent); }
-.btn-ghost-dark:is(:focus, :focus-visible, :active) { background-color: color-mix(in oklab, var(--color-dark) 26%, transparent); color: var(--color-default-950); }
+.btn:not([class*=btn-solid-]):not([class*=btn-outline-]):not([class*=btn-soft-]):not([class*=btn-ghost-]):not([class*=btn-gradient-]):not([class*=btn-choice-]):not([class*=ui-kit-surface-]):active { border-color: transparent; background-color: var(--color-default-100); color: var(--color-default-900); }
+.btn-primary:active,
+.btn-solid-primary:active { background-color: var(--color-primary-hover); border-color: var(--color-primary-hover); color: var(--color-white); }
+.btn-secondary:active { background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-900); }
+:is(.btn-light, .btn-surface, .btn-surface-default, .btn-surface-default-soft, .btn-subtle-light):active { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); color: var(--color-default-950); }
+:is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):active { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
+:is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):active { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
+.btn-solid-danger:active { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
+.btn-solid-warning:active { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
+:is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):active { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
+.btn-solid-dark:active { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
+.btn-solid-light:active { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }
+:is(.btn-outline-default, .btn-outline-light):active { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); border-color: var(--color-default-300); color: var(--color-default-950); }
+:is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-warning, .btn-outline-info, .btn-outline-dark):active { background-color: var(--btn-outline-color, currentColor); border-color: var(--btn-outline-color, currentColor); color: var(--btn-outline-on-color, var(--color-white)); }
+:is(.btn-soft-default, .btn-soft-light):active { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: transparent; color: var(--color-default-950); }
+.btn-soft-primary:active { background-color: color-mix(in oklab, var(--color-primary) 24%, transparent); border-color: transparent; }
+.btn-soft-secondary:active { background-color: color-mix(in oklab, var(--color-secondary) 24%, transparent); border-color: transparent; }
+.btn-soft-success:active { background-color: color-mix(in oklab, var(--color-success) 24%, transparent); border-color: transparent; }
+.btn-soft-danger:active { background-color: color-mix(in oklab, var(--color-danger) 24%, transparent); border-color: transparent; }
+.btn-soft-warning:active { background-color: color-mix(in oklab, var(--color-warning) 24%, transparent); border-color: transparent; }
+.btn-soft-info:active { background-color: color-mix(in oklab, var(--color-info) 24%, transparent); border-color: transparent; }
+.btn-soft-dark:active { background-color: color-mix(in oklab, var(--color-dark) 36%, transparent); border-color: transparent; color: var(--color-default-950); }
+:is(.btn-ghost-default, .btn-ghost-light):active { background-color: var(--color-default-100); color: var(--color-default-900); }
+.btn-ghost-primary:active { background-color: color-mix(in oklab, var(--color-primary) 12%, transparent); }
+.btn-ghost-secondary:active { background-color: color-mix(in oklab, var(--color-secondary) 12%, transparent); }
+.btn-ghost-success:active { background-color: color-mix(in oklab, var(--color-success) 12%, transparent); }
+.btn-ghost-danger:active { background-color: color-mix(in oklab, var(--color-danger) 12%, transparent); }
+.btn-ghost-warning:active { background-color: color-mix(in oklab, var(--color-warning) 12%, transparent); }
+.btn-ghost-info:active { background-color: color-mix(in oklab, var(--color-info) 12%, transparent); }
+.btn-ghost-dark:active { background-color: color-mix(in oklab, var(--color-dark) 26%, transparent); color: var(--color-default-950); }
