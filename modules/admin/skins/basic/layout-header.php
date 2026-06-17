@@ -32,6 +32,7 @@ $adminShell = [
     'profile_url' => sr_url('/account'),
     'logout_url' => sr_url('/logout'),
     'account_display_name' => '',
+    'account_avatar_color_class' => 'member-avatar-color-8',
     'navigation_items' => [],
     'auxiliary_links' => [],
 ];
@@ -46,6 +47,9 @@ if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account
 $adminShellAccountEmail = isset($account) && is_array($account) ? trim((string) ($account['email'] ?? '')) : '';
 $adminShellAccountInitialSource = $adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : ($adminShellAccountEmail !== '' ? $adminShellAccountEmail : 'A');
 $adminShellAccountInitial = function_exists('mb_substr') ? mb_substr($adminShellAccountInitialSource, 0, 1) : substr($adminShellAccountInitialSource, 0, 1);
+$adminShellAccountAvatarColorClass = preg_match('/\Amember-avatar-color-(?:[0-9]|1[01])\z/', (string) ($adminShell['account_avatar_color_class'] ?? '')) === 1
+    ? (string) $adminShell['account_avatar_color_class']
+    : 'member-avatar-color-8';
 $adminShellProfileBadgeLabel = '스탭';
 if (isset($pdo) && $pdo instanceof PDO && isset($account) && is_array($account) && function_exists('sr_admin_is_owner')) {
     $adminShellProfileBadgeLabel = sr_admin_is_owner($pdo, (int) ($account['id'] ?? 0)) ? '매니저' : '스탭';
@@ -313,7 +317,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                 </summary>
                                 <ul class="tnb_mb_area admin-toolbar-menu" role="menu" aria-orientation="vertical">
                                     <li class="admin-profile-dropdown-header" aria-hidden="true">
-                                        <span class="admin-profile-avatar"><?php echo sr_e($adminShellAccountInitial); ?></span>
+                                        <span class="admin-profile-avatar <?php echo sr_e($adminShellAccountAvatarColorClass); ?>"><?php echo sr_e($adminShellAccountInitial); ?></span>
                                         <span class="admin-profile-identity">
                                             <strong><?php echo sr_e($adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : '관리자'); ?></strong>
                                             <?php if ($adminShellAccountEmail !== '') { ?>

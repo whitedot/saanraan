@@ -13,6 +13,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         $profileUrl = sr_url('/admin/members/edit?id=' . rawurlencode((string) $accountId));
     }
     $accountDisplayName = '';
+    $accountAvatarColorClass = 'member-avatar-color-8';
     if ($accountId > 0) {
         try {
             $stmt = $pdo->prepare('SELECT display_name FROM sr_member_accounts WHERE id = :id LIMIT 1');
@@ -20,6 +21,9 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
             $accountDisplayName = trim((string) $stmt->fetchColumn());
         } catch (Throwable $exception) {
             $accountDisplayName = '';
+        }
+        if (function_exists('sr_member_public_account_hash') && function_exists('sr_member_default_avatar_color_class')) {
+            $accountAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash(sr_runtime_config(), $accountId));
         }
     }
     $adminNotificationSummary = ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
@@ -47,6 +51,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'profile_url' => $profileUrl,
         'logout_url' => sr_url('/logout'),
         'account_display_name' => $accountDisplayName,
+        'account_avatar_color_class' => $accountAvatarColorClass,
         'navigation_items' => $navigationItems,
         'auxiliary_links' => $auxiliaryLinks,
         'admin_notification_summary' => $adminNotificationSummary,
