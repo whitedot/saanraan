@@ -75,6 +75,7 @@ git checkout origin/main -- modules/point
 - `install.sql` 존재 확인
 - module key 형식 확인
 - 모듈 계약 버전 확인
+- `updates/YYYY.MM.NNN.sql` 파일명과 module.php version 이하 업데이트 버전 확인
 - zip 안의 유효 모듈 구조가 하나인지 확인
 - zip 항목 수와 압축 해제 크기 제한
 - 서버 설정/비밀 파일, 저장소 메타 파일, 우회 실행 확장자 차단

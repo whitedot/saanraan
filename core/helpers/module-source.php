@@ -507,6 +507,50 @@ function sr_module_source_route_conflict_errors(PDO $pdo, string $moduleKey, str
     return array_values(array_unique($errors));
 }
 
+function sr_module_source_update_errors(string $moduleKey, string $sourceDir, array $metadata): array
+{
+    $updatesDir = $sourceDir . '/updates';
+    if (!is_dir($updatesDir)) {
+        return [];
+    }
+
+    $moduleVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+    $moduleVersionIsValid = preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', $moduleVersion) === 1;
+    $errors = [];
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($updatesDir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($items as $item) {
+        $relative = str_replace(DIRECTORY_SEPARATOR, '/', substr($item->getPathname(), strlen($updatesDir) + 1));
+        if ($relative === '') {
+            continue;
+        }
+
+        if ($item->isDir()) {
+            $errors[] = $moduleKey . ' 모듈 updates 디렉터리에는 버전 SQL 파일만 포함할 수 있습니다: updates/' . $relative;
+            continue;
+        }
+
+        if (!$item->isFile()) {
+            continue;
+        }
+
+        if (dirname($relative) !== '.' || preg_match('/\A\d{4}\.\d{2}\.\d{3}\.sql\z/', basename($relative)) !== 1) {
+            $errors[] = $moduleKey . ' 모듈 업데이트 SQL 파일명은 updates/YYYY.MM.NNN.sql 형식이어야 합니다: updates/' . $relative;
+            continue;
+        }
+
+        $updateVersion = pathinfo($relative, PATHINFO_FILENAME);
+        if ($moduleVersionIsValid && strcmp($updateVersion, $moduleVersion) > 0) {
+            $errors[] = $moduleKey . ' 모듈 업데이트 SQL 버전은 module.php version보다 높을 수 없습니다: updates/' . $relative;
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
 function sr_module_source_action_path_is_safe(string $path): bool
 {
     if ($path === '' || strpos($path, '..') !== false || strpos($path, '\\') !== false) {
@@ -662,6 +706,10 @@ function sr_validate_module_source(string $moduleKey, string $sourceDir, array $
     }
 
     foreach (sr_module_contract_file_errors($sourceDir, $metadata) as $error) {
+        $errors[] = $error;
+    }
+
+    foreach (sr_module_source_update_errors($moduleKey, $sourceDir, $metadata) as $error) {
         $errors[] = $error;
     }
 

@@ -856,6 +856,14 @@ if (
     $errors[] = 'Admin module source upload must be able to reject route conflicts before replacing enabled module files.';
 }
 if (
+    strpos($moduleSourceSafetyContent, 'function sr_module_source_update_errors') === false
+    || strpos($moduleSourceSafetyContent, 'sr_module_source_update_errors($moduleKey, $sourceDir, $metadata)') === false
+    || strpos($moduleSourceSafetyContent, "업데이트 SQL 파일명은 updates/YYYY.MM.NNN.sql 형식이어야 합니다") === false
+    || strpos($moduleSourceSafetyContent, "업데이트 SQL 버전은 module.php version보다 높을 수 없습니다") === false
+) {
+    $errors[] = 'Admin module source upload must reject ignored or future module update SQL files.';
+}
+if (
     strpos($moduleSourceSafetyContent, 'function sr_module_source_file_errors') === false
     || strpos($moduleSourceSafetyContent, "function sr_module_source_is_server_config_name") === false
     || strpos($moduleSourceSafetyContent, "function sr_module_source_is_repository_meta_name") === false

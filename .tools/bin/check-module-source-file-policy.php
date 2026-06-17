@@ -281,6 +281,35 @@ try {
         exit(1);
     }
 
+    mkdir($routeDir . '/updates', 0777, true);
+    sr_check_module_source_policy_write_file($routeDir, 'updates/not-a-version.sql');
+    $updateErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈 업데이트 SQL 파일명은 updates/YYYY.MM.NNN.sql 형식이어야 합니다: updates/not-a-version.sql', $updateErrors, true)) {
+        fwrite(STDERR, "Invalid module source update SQL filename was not rejected:\n" . implode("\n", $updateErrors) . "\n");
+        exit(1);
+    }
+
+    unlink($routeDir . '/updates/not-a-version.sql');
+    sr_check_module_source_policy_write_file($routeDir, 'updates/2026.06.002.sql');
+    $updateErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈 업데이트 SQL 버전은 module.php version보다 높을 수 없습니다: updates/2026.06.002.sql', $updateErrors, true)) {
+        fwrite(STDERR, "Newer-than-module module source update SQL was not rejected:\n" . implode("\n", $updateErrors) . "\n");
+        exit(1);
+    }
+
+    unlink($routeDir . '/updates/2026.06.002.sql');
+    mkdir($routeDir . '/updates/nested', 0777, true);
+    sr_check_module_source_policy_write_file($routeDir, 'updates/nested/2026.06.001.sql');
+    $updateErrors = sr_validate_module_source('routecheck', $routeDir, sr_check_module_source_policy_metadata());
+    if (!in_array('routecheck 모듈 updates 디렉터리에는 버전 SQL 파일만 포함할 수 있습니다: updates/nested', $updateErrors, true)) {
+        fwrite(STDERR, "Nested module source update SQL directory was not rejected:\n" . implode("\n", $updateErrors) . "\n");
+        exit(1);
+    }
+
+    unlink($routeDir . '/updates/nested/2026.06.001.sql');
+    rmdir($routeDir . '/updates/nested');
+    rmdir($routeDir . '/updates');
+
     $moduleContentDir = $fixtureRoot . '/module-content';
     mkdir($moduleContentDir, 0777, true);
     sr_check_module_source_policy_write_file($moduleContentDir, 'install.sql');
