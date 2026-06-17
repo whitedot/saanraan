@@ -69,7 +69,7 @@ $pdo->exec(
     "INSERT INTO sr_site_settings
         (setting_key, setting_value, value_type, created_at, updated_at)
      VALUES
-        ('admin.module_sources_enabled', '1', 'bool', '2026-06-17 00:00:00', '2026-06-17 00:00:00')"
+        ('admin.module_sources_enabled', 'yes', 'string', '2026-06-17 00:00:00', '2026-06-17 00:00:00')"
 );
 
 $_POST = [
@@ -87,12 +87,12 @@ $result = sr_admin_handle_modules_post(
     ['enabled', 'disabled'],
     ['enabled', 'disabled'],
     false,
-    true
+    false
 );
 
 $setting = $pdo
-    ->query("SELECT setting_value FROM sr_site_settings WHERE setting_key = 'admin.module_sources_enabled'")
-    ->fetchColumn();
+    ->query("SELECT setting_value, value_type FROM sr_site_settings WHERE setting_key = 'admin.module_sources_enabled'")
+    ->fetch(PDO::FETCH_ASSOC);
 $log = $pdo
     ->query('SELECT event_type, result, message, metadata_json FROM sr_audit_logs ORDER BY id DESC LIMIT 1')
     ->fetch(PDO::FETCH_ASSOC);
@@ -102,7 +102,7 @@ if (!is_array($result) || ($result['errors'] ?? []) === []) {
     exit(1);
 }
 
-if ($setting !== '0') {
+if (!is_array($setting) || $setting['setting_value'] !== '0' || $setting['value_type'] !== 'bool') {
     fwrite(STDERR, "Module source allowance should close after upload preflight failure.\n");
     exit(1);
 }
@@ -121,7 +121,7 @@ $metadata = json_decode((string) $log['metadata_json'], true);
 if (
     !is_array($metadata)
     || ($metadata['stage'] ?? '') !== 'preflight'
-    || ($metadata['module_sources_enabled'] ?? false) !== true
+    || ($metadata['module_sources_enabled'] ?? true) !== false
     || ($metadata['zip_upload_available'] ?? true) !== false
     || !is_array($metadata['validation_errors'] ?? null)
     || $metadata['validation_errors'] === []

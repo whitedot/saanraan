@@ -33,7 +33,7 @@ function sr_admin_handle_modules_post(
     }
 
     $sourceWriteIntents = ['enable_module_source_writes', 'upload_module_zip', 'sync_module_version'];
-    if (in_array($intent, ['upload_module_zip', 'sync_module_version'], true) && $moduleSourcesEnabled) {
+    if (in_array($intent, ['upload_module_zip', 'sync_module_version'], true)) {
         $closeModuleSourcesAfterRequest = true;
     }
 
