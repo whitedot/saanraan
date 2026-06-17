@@ -892,6 +892,49 @@ try {
         }
     }
 
+    $restoreModuleKey = 'zip_policy_restore_' . strtolower(bin2hex(random_bytes(3)));
+    $restoreModuleDir = SR_ROOT . '/modules/' . $restoreModuleKey;
+    $restoreSourceDir = $fixtureRoot . '/restore-source';
+    $restoreLink = $restoreSourceDir . '/bad-link';
+    $restoreSymlinkCreated = false;
+    try {
+        mkdir($restoreModuleDir . '/assets', 0777, true);
+        file_put_contents($restoreModuleDir . '/module.php', "<?php\nreturn ['version' => 'restore-old'];\n");
+        file_put_contents($restoreModuleDir . '/assets/old.txt', 'old');
+
+        mkdir($restoreSourceDir, 0777, true);
+        file_put_contents($restoreSourceDir . '/module.php', "<?php\nreturn ['version' => 'restore-new'];\n");
+        $restoreSymlinkCreated = symlink($restoreSourceDir . '/module.php', $restoreLink);
+
+        if ($restoreSymlinkCreated) {
+            try {
+                sr_install_module_source_files($restoreModuleKey, $restoreSourceDir);
+                fwrite(STDERR, "Existing module replacement accepted a source tree symlink.\n");
+                exit(1);
+            } catch (Throwable $exception) {
+                if (!str_contains($exception->getMessage(), '심볼릭 링크')) {
+                    fwrite(STDERR, 'Existing module replacement failed for the wrong reason: ' . $exception->getMessage() . "\n");
+                    exit(1);
+                }
+            }
+
+            if ((string) file_get_contents($restoreModuleDir . '/module.php') !== "<?php\nreturn ['version' => 'restore-old'];\n") {
+                fwrite(STDERR, "Existing module replacement failure did not restore the old module file.\n");
+                exit(1);
+            }
+
+            if (!is_file($restoreModuleDir . '/assets/old.txt')) {
+                fwrite(STDERR, "Existing module replacement failure did not restore the old module tree.\n");
+                exit(1);
+            }
+        }
+    } finally {
+        if ($restoreSymlinkCreated && is_link($restoreLink)) {
+            unlink($restoreLink);
+        }
+        sr_check_module_source_policy_remove_dir($restoreModuleDir);
+    }
+
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, version TEXT NOT NULL, status TEXT NOT NULL)');
