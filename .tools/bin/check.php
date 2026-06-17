@@ -225,6 +225,11 @@ function sr_check_module_source_files(): void
                 continue;
             }
 
+            if (sr_check_module_source_is_public_asset_executable($relative, $extension)) {
+                sr_check_add_error('Module source assets must not include executable or SQL files: ' . $moduleDir . '/' . $relative);
+                continue;
+            }
+
             if ($extension !== '' && isset($blockedExtensions[$extension])) {
                 sr_check_add_error('Module source must not include blocked executable extensions: ' . $moduleDir . '/' . $relative);
             }
@@ -271,6 +276,26 @@ function sr_check_module_source_is_server_config_name(string $basename): bool
         || str_starts_with($basename, 'php.ini.')
         || $basename === 'web.config'
         || str_starts_with($basename, 'web.config.');
+}
+
+function sr_check_module_source_is_public_asset_executable(string $relative, string $extension): bool
+{
+    if (!str_starts_with($relative, 'assets/')) {
+        return false;
+    }
+
+    return in_array($extension, [
+        'phar',
+        'php',
+        'php3',
+        'php4',
+        'php5',
+        'php6',
+        'php7',
+        'php8',
+        'phtml',
+        'sql',
+    ], true);
 }
 
 function sr_check_version_format(string $version): string
