@@ -43,6 +43,9 @@ $adminShellAccountDisplayName = trim((string) ($adminShell['account_display_name
 if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account)) {
     $adminShellAccountDisplayName = trim((string) ($account['display_name'] ?? ''));
 }
+$adminShellAccountEmail = isset($account) && is_array($account) ? trim((string) ($account['email'] ?? '')) : '';
+$adminShellAccountInitialSource = $adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : ($adminShellAccountEmail !== '' ? $adminShellAccountEmail : 'A');
+$adminShellAccountInitial = function_exists('mb_substr') ? mb_substr($adminShellAccountInitialSource, 0, 1) : substr($adminShellAccountInitialSource, 0, 1);
 $adminNotificationSummary = isset($adminShell['admin_notification_summary']) && is_array($adminShell['admin_notification_summary'])
     ? $adminShell['admin_notification_summary']
     : ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
@@ -305,6 +308,16 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                     <?php } ?>
                                 </summary>
                                 <ul class="tnb_mb_area admin-toolbar-menu" role="menu" aria-orientation="vertical">
+                                    <li class="admin-profile-dropdown-header" aria-hidden="true">
+                                        <span class="admin-profile-avatar"><?php echo sr_e($adminShellAccountInitial); ?></span>
+                                        <span class="admin-profile-identity">
+                                            <strong><?php echo sr_e($adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : '관리자'); ?></strong>
+                                            <?php if ($adminShellAccountEmail !== '') { ?>
+                                                <span><?php echo sr_e($adminShellAccountEmail); ?></span>
+                                            <?php } ?>
+                                        </span>
+                                        <span class="admin-profile-badge">관리자</span>
+                                    </li>
                                     <li>
                                         <a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">
                                             <?php echo sr_icon('manage_accounts', 'admin-profile-menu-icon'); ?>

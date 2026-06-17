@@ -94,7 +94,7 @@
 #gnb .admin-sidebar-auxiliary-link.is-current{color:var(--color-primary)}
 #wrapper{background-color:var(--color-default-100);min-height:100vh;transition-property:all;transition-timing-function:var(--default-transition-timing-function);transition-duration:.3s;padding-left:var(--admin-sidebar-width);transition-duration:.3s}
 body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transition:none!important}
-#hd_top{top:calc(var(--spacing) * 0);z-index:var(--admin-z-layout);justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 4);border-bottom-style:solid;border-bottom-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);display:flex;position:sticky}
+#hd_top{top:calc(var(--spacing) * 0);z-index:3200;justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 4);border-bottom-style:solid;border-bottom-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);display:flex;position:sticky}
 @supports (color:color-mix(in lab, red, red)){#hd_top{background-color:color-mix(in oklab, var(--color-card) 95%, transparent)}}
 #hd_top{padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 0);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 @media (min-width:64rem){#hd_top{padding-inline:calc(var(--spacing) * 8)}}
@@ -123,6 +123,22 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 #tnb .admin-profile-menu-icon{width:1rem;height:1rem;flex:0 0 auto}
 @media (hover:hover){#tnb .tnb_mb_area :is(a,button):hover{background-color:var(--color-default-100);color:var(--color-default-950)}}
 #tnb .admin-profile-dropdown:not([open])>.tnb_mb_area{display:none!important}
+#tnb .admin-profile-dropdown[open]{z-index:3000}
+#tnb .admin-profile-dropdown>.tnb_mb_area{--admin-profile-muted:var(--color-default-500);--admin-profile-icon:var(--color-default-500);--admin-profile-hover:var(--color-default-100);--admin-profile-divider:var(--color-default-200);box-sizing:border-box;width:min(19.5rem,calc(100vw - 2rem));max-width:min(19.5rem,calc(100vw - 2rem));padding:calc(var(--spacing) * 3);border-color:color-mix(in oklab,var(--color-default-300) 72%,transparent);border-radius:1.125rem;background:var(--color-card);box-shadow:0 .75rem 1.25rem rgba(15,23,42,.08),0 .125rem .375rem rgba(15,23,42,.06)}
+#tnb .admin-profile-dropdown[open]>.tnb_mb_area{z-index:3000}
+#tnb .admin-profile-dropdown-header{align-items:center;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:calc(var(--spacing) * 3);padding:calc(var(--spacing) * 1) calc(var(--spacing) * 2) calc(var(--spacing) * 3)}
+#tnb .admin-profile-avatar{align-items:center;aspect-ratio:1;border-radius:999px;background:linear-gradient(135deg,#8f6ee8,#ffc66d 54%,#5db7a7);color:var(--color-white);display:inline-flex;font-size:var(--text-sm);font-weight:var(--font-weight-bold);justify-content:center;overflow:hidden;width:2.5rem}
+#tnb .admin-profile-identity{min-width:0}
+#tnb .admin-profile-identity strong,#tnb .admin-profile-identity span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tnb .admin-profile-identity strong{color:var(--color-default-950);font-size:var(--text-sm);font-weight:var(--font-weight-semibold);line-height:var(--text-sm--line-height)}
+#tnb .admin-profile-identity span{color:var(--admin-profile-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height);margin-top:calc(var(--spacing) * .5)}
+#tnb .admin-profile-badge{align-items:center;border-radius:999px;background-color:color-mix(in oklab,var(--color-warning) 14%,transparent);color:var(--color-warning);display:inline-flex;font-size:var(--text-xs);line-height:1;font-weight:var(--font-weight-bold);padding:calc(var(--spacing) * 1) calc(var(--spacing) * 1.75)}
+#tnb .tnb_mb_area li:not(.admin-profile-dropdown-header)+li{border-top:1px dashed var(--admin-profile-divider);margin-top:calc(var(--spacing) * 1.5);padding-top:calc(var(--spacing) * 1.5)}
+#tnb .tnb_mb_area :is(a,button){border-radius:.75rem;color:var(--color-default-700);display:grid;font-size:var(--text-sm);grid-template-columns:1.25rem minmax(0,1fr) auto;gap:calc(var(--spacing) * 3);line-height:var(--text-sm--line-height);min-height:2.5rem;padding:calc(var(--spacing) * 2) calc(var(--spacing) * 2.25);text-align:start}
+#tnb .admin-profile-menu-icon{color:var(--admin-profile-icon);font-size:1.25rem;height:1.25rem;line-height:1;width:1.25rem}
+#tnb .tnb_mb_area :is(a,button)::after{color:var(--admin-profile-muted);content:"chevron_right";display:inline-flex;font-family:"Material Symbols Outlined";font-size:1.25rem;font-weight:400;line-height:1}
+#tnb .tnb_mb_area form button::after{content:""}
+@media (hover:hover){#tnb .tnb_mb_area :is(a,button):hover{background:var(--admin-profile-hover);color:var(--color-default-950)}}
 #container{padding-inline:calc(var(--spacing) * 4);padding-top:calc(var(--spacing) * 6);padding-bottom:calc(var(--spacing) * 8)}
 @media (min-width:64rem){#container{padding-inline:calc(var(--spacing) * 8)}}
 #container_title{margin-bottom:calc(var(--spacing) * 5);border-bottom-style:solid;border-bottom-width:1px;border-color:var(--color-default-300);padding-bottom:calc(var(--spacing) * 3);position:relative}

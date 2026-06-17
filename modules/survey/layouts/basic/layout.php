@@ -106,6 +106,8 @@ $layoutMemberEnabled = false;
 $layoutCurrentAccount = null;
 $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
+$layoutMemberEmail = '';
+$layoutMemberInitial = 'M';
 $layoutMemberAssetRows = [];
 $layoutMemberActionRows = [];
 $layoutAdminEnabled = false;
@@ -122,6 +124,9 @@ if (
         $layoutCurrentAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
         $layoutMemberDisplayName = sr_member_public_name_for_account_id($layoutPdo, (int) ($layoutCurrentAccount['id'] ?? 0), '내 계정');
         $layoutMemberDisplayLabel = $layoutMemberDisplayName . ' 님';
+        $layoutMemberEmail = trim((string) ($layoutCurrentAccount['email'] ?? ''));
+        $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
+        $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
         if (sr_module_enabled($layoutPdo, 'point') && is_file(SR_ROOT . '/modules/point/helpers.php')) {
             require_once SR_ROOT . '/modules/point/helpers.php';
             try {
@@ -295,31 +300,43 @@ if (
                             <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
                             <span class="material-symbols-outlined survey-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
                         </summary>
-                        <div class="survey-layout-member-dropdown">
+                        <div class="survey-layout-member-dropdown" role="menu" aria-orientation="vertical">
                             <div class="survey-layout-member-dropdown-header">
-                                <strong><?php echo sr_e($layoutMemberDisplayLabel); ?></strong>
+                                <span class="survey-layout-member-avatar" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
+                                <span class="survey-layout-member-identity">
+                                    <strong><?php echo sr_e($layoutMemberDisplayName); ?></strong>
+                                    <?php if ($layoutMemberEmail !== '') { ?>
+                                        <span><?php echo sr_e($layoutMemberEmail); ?></span>
+                                    <?php } ?>
+                                </span>
+                                <span class="survey-layout-member-badge"><?php echo sr_e('회원'); ?></span>
                             </div>
-                            <a class="survey-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>">
+                            <a class="survey-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
+                                <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>manage_accounts</span>
                                 <span><?php echo sr_e('정보수정'); ?></span>
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
                             <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
-                                <a class="survey-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>">
+                                <a class="survey-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>" role="menuitem">
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>account_balance_wallet</span>
                                     <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
                                 </a>
                             <?php } ?>
                             <?php foreach ($layoutMemberActionRows as $layoutMemberActionRow) { ?>
-                                <a class="survey-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>">
+                                <a class="survey-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>" role="menuitem">
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bolt</span>
                                     <span><?php echo sr_e((string) ($layoutMemberActionRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberActionRow['value'] ?? '')); ?></strong>
                                 </a>
                             <?php } ?>
+                            <span class="survey-layout-member-divider" aria-hidden="true"></span>
                             <form class="survey-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
                                 <?php echo sr_csrf_field(); ?>
-                                <button class="survey-layout-member-logout-button" type="submit">
-                                    <span><?php echo sr_e('로그아웃'); ?></span>
+                                <button class="survey-layout-member-logout-button" type="submit" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
+                                    <span><?php echo sr_e('로그아웃'); ?></span>
+                                    <span></span>
                                 </button>
                             </form>
                         </div>
