@@ -6,11 +6,11 @@
 
 ## 현재 큰 파일
 
-2026-06-17 현재 줄 수 기준:
+2026-06-17 현재 줄 수 기준으로 1,500줄 이상 helper/action 파일은 없다.
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/reaction/helpers.php` | 1,618 | 반응 대상 해석, preset/definition 관리, 기록, 알림 helper가 함께 있음 | 중간 |
+| 없음 | - | 1,500줄 이상 helper/action 파일 없음 | - |
 
 ## 추가 관심 파일
 
@@ -28,6 +28,8 @@
 | `modules/community/helpers/board-groups.php` | 271 | 게시판 그룹 목록/관리자 조회/저장, 기본 메뉴 fallback helper를 맡음 | 낮음 |
 | `modules/survey/actions/admin-surveys.php` | 1,486 | 설문 관리자 POST 분기와 list/edit view 흐름만 남김. 문항 교체/signature/보상 정책 저장 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/survey/helpers/admin-surveys.php` | 180 | 설문 관리자 문항 교체, 질문 signature, 보상 정책 저장 helper를 맡음 | 낮음 |
+| `modules/reaction/helpers.php` | 919 | 반응 대상 해석, 공개 definition/widget, 기록, 알림, 쓰기 helper만 남김. 관리자 definition/preset/icon/cleanup helper는 별도 파일로 분리함 | 낮음 |
+| `modules/reaction/helpers/admin.php` | 702 | 반응 관리자 definition/preset/icon 업로드, 관리자 기록 조회, disabled 기록 정리 helper를 맡음 | 낮음 |
 | `modules/content/helpers/assets.php` | 1,179 | 콘텐츠 자산 설정, 정책 세트, 입력 UI, 감사용 설정 helper만 남김. 유료 접근/권한과 완료 버튼 실행 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/content/helpers/asset-access.php` | 997 | 콘텐츠 유료 열람/다운로드 접근권, 차감 로그, 쿠폰 접근권 helper를 맡음 | 낮음 |
 | `modules/notification/helpers.php` | 1,014 | 알림 설정, 템플릿, 계정 이벤트, 일반 알림 생성 helper만 남김. delivery runner와 관리자 알림 helper는 별도 파일로 분리함 | 낮음 |
@@ -76,7 +78,8 @@
 - `modules/community/helpers/boards.php`의 게시판 그룹 목록/관리자 조회/저장 helper를 `modules/community/helpers/board-groups.php`로 분리했다.
 - `modules/community/helpers/boards.php`의 게시판/게시판 그룹 삭제 가능 여부, 참조 수, 저장소 정리 실패 기록/재시도 helper를 `modules/community/helpers/board-cleanup.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/survey/actions/admin-surveys.php`의 문항 교체, 질문 signature, 보상 정책 저장 helper를 `modules/survey/helpers/admin-surveys.php`로 분리해 1,500줄 미만으로 줄였다.
+- `modules/reaction/helpers.php`의 관리자 definition/preset/icon 업로드, 관리자 기록 조회, disabled 기록 정리 helper를 `modules/reaction/helpers/admin.php`로 분리해 1,500줄 미만으로 줄였다.
 
 ## 후속 후보
 
-1. `modules/reaction/helpers.php`의 반응 대상 해석, preset/definition 관리, 기록, 알림 helper 경계를 나눌 후보를 확인한다.
+- 현재 1,500줄 이상 helper/action 파일은 없다.
