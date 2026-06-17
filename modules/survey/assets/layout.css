@@ -574,7 +574,7 @@
 }
 
 .survey-layout-footer {
-    color: var(--sr-muted-strong, var(--color-body-color));
+    color: var(--sr-muted-strong, var(--sr-text, var(--text-strong, #20242a)));
     margin: 0 auto;
     padding: 28px 0 42px;
     width: calc(100% - clamp(32px, 5vw, 96px));

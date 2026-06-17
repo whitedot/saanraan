@@ -5,7 +5,7 @@
 
 .public-home {
     background: transparent;
-    color: var(--sr-text, var(--color-body-color));
+    color: var(--sr-text, var(--text-strong, #20242a));
     min-height: inherit;
     display: grid;
     place-items: start center;
@@ -41,7 +41,7 @@
     justify-items: start;
     gap: .95rem;
     padding: 1.35rem;
-    color: var(--sr-text, var(--color-body-color));
+    color: var(--sr-text, var(--text-strong, #20242a));
     text-align: left;
     background: transparent;
     border: 0;
@@ -96,7 +96,7 @@
 }
 
 .public-home-module-card-title {
-    color: var(--sr-text, var(--color-body-color));
+    color: var(--sr-text, var(--text-strong, #20242a));
     font-size: 3rem;
     font-weight: 900;
     line-height: 1.02;

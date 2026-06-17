@@ -49,7 +49,7 @@
     border: 1px solid color-mix(in oklab, var(--color-info) 24%, transparent);
     border-radius: var(--radius);
     background: color-mix(in oklab, var(--color-info) 10%, transparent);
-    color: var(--sr-text, var(--color-body-color));
+    color: var(--sr-text, var(--text-strong, #20242a));
 }
 
 .sr-quiz-preview-notice p {
@@ -431,7 +431,7 @@
 }
 
 /* Shared mention UI used by this module comment flows. */
-.sr-mention-list{border:1px solid color-mix(in oklab,var(--color-default-500,#777) 24%,transparent);border-radius:8px;color:var(--sr-text,var(--text-strong,#242424));display:grid;gap:2px;max-height:240px;overflow:auto;padding:4px;position:fixed;z-index:1200}
+.sr-mention-list{border:1px solid var(--sr-border,color-mix(in oklab,var(--color-default-500,#777) 24%,transparent));border-radius:8px;color:var(--sr-text,var(--text-strong,#242424));display:grid;gap:2px;max-height:240px;overflow:auto;padding:4px;position:fixed;z-index:1200}
 .sr-mention-list[hidden]{display:none}
 .sr-mention-option{align-items:center;background:transparent;border-radius:6px;color:inherit;display:flex;gap:8px;justify-content:space-between;min-height:36px;padding:7px 9px;text-align:left;width:100%}
 .sr-mention-option span{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
