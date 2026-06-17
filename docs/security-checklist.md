@@ -180,7 +180,11 @@
 - 업로드 원본을 `modules/{module_key}/assets`에 저장하지 않는가
 - 다운로드는 직접 경로 노출 대신 action 파일을 통하는가
 - 비공개 다운로드는 짧은 만료 token이나 같은 수준의 서버 측 권한 검사를 통과하는가
-- 모듈 zip은 크기, checksum, 경로, symlink, module key, version, downgrade 정책을 통과하는가
+- 모듈 zip은 크기, checksum, 경로, symlink, 파일/디렉터리 경로 충돌, 단일 모듈 구조, module key, version, downgrade 정책을 통과하는가
+- 모듈 zip의 금지 파일 검사는 선택된 모듈 폴더뿐 아니라 압축 해제된 zip 전체에 적용되는가
+- 모듈 zip은 서버 설정/비밀 파일, 저장소 메타 파일, 인증 정보 파일/디렉터리, DB/백업 파일, 우회 실행 확장자를 거부하는가
+- 모듈 zip은 `module.php` 정적 return 배열, `paths.php` 정적 route map, `updates/YYYY.MM.NNN.sql` 파일명과 module.php version 이하 업데이트 버전을 검증하는가
+- 모듈 zip은 공개 `assets/` 아래 PHP 실행 파일과 SQL 파일을 거부하는가
 
 ## 캐시
 
