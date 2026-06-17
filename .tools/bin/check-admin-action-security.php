@@ -538,6 +538,7 @@ if (!is_string($adminModulesView)) {
     || strpos($adminModulesView, 'name="intent" value="enable_module_source_writes"') === false
     || strpos($adminModulesView, 'name="intent" value="disable_module_source_writes"') === false
     || strpos($adminModulesView, 'name="module_zip"') === false
+    || strpos($adminModulesView, 'name="upload_module_key" maxlength="40" pattern="[a-z][a-z0-9_]{1,39}"') === false
     || strpos($adminModulesView, 'name="confirm_file_replace"') === false
     || strpos($adminModulesView, '$moduleSourcesEnabled') === false
 ) {

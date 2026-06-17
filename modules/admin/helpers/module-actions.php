@@ -20,7 +20,7 @@ function sr_admin_handle_modules_post(
     $module = null;
 
     if ($intent === 'upload_module_zip') {
-        $moduleKey = strtolower(trim(sr_post_string('upload_module_key', 60)));
+        $moduleKey = strtolower(trim(sr_post_string('upload_module_key', 40)));
     }
 
     if (!in_array($intent, ['enable_module_source_writes', 'disable_module_source_writes', 'upload_module_zip', 'sync_module_version', 'status', 'install'], true)) {
