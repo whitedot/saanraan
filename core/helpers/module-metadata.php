@@ -298,7 +298,7 @@ function sr_php_array_literal_is_static(string $block): bool
 function sr_php_return_array_is_static(string $content): bool
 {
     $block = sr_php_return_array_block($content);
-    return $block !== '' && sr_php_array_literal_is_static($block);
+    return $block !== '' && sr_php_array_literal_is_static($block) && sr_php_return_array_tail_is_ignored($content);
 }
 
 function sr_php_return_array_block(string $content): string
@@ -345,6 +345,92 @@ function sr_php_return_array_block(string $content): string
     }
 
     return sr_php_balanced_block($content, $offset, '(', ')');
+}
+
+function sr_php_return_array_tail_is_ignored(string $content): bool
+{
+    if (!sr_php_starts_with_return_array($content)) {
+        return false;
+    }
+
+    $tokens = token_get_all($content);
+    $count = count($tokens);
+    $index = 0;
+    while ($index < $count) {
+        $token = $tokens[$index];
+        if (is_array($token) && $token[0] === T_RETURN) {
+            break;
+        }
+
+        $index++;
+    }
+
+    if ($index >= $count) {
+        return false;
+    }
+
+    $index++;
+    sr_php_skip_ignored_tokens($tokens, $index);
+    $token = $tokens[$index] ?? null;
+    if ($token === '[') {
+        $openToken = '[';
+    } elseif (is_array($token) && $token[0] === T_ARRAY) {
+        $index++;
+        sr_php_skip_ignored_tokens($tokens, $index);
+        if (($tokens[$index] ?? null) !== '(') {
+            return false;
+        }
+
+        $openToken = '(';
+    } else {
+        return false;
+    }
+
+    $depth = 0;
+    while ($index < $count) {
+        $tokenText = sr_php_token_text($tokens[$index]);
+        if (in_array($tokenText, ['[', '(', '{'], true)) {
+            $depth++;
+        } elseif (in_array($tokenText, [']', ')', '}'], true)) {
+            $depth--;
+            if ($depth === 0 && ($openToken === '[' && $tokenText === ']' || $openToken === '(' && $tokenText === ')')) {
+                $index++;
+                break;
+            }
+
+            if ($depth < 0) {
+                return false;
+            }
+        }
+
+        $index++;
+    }
+
+    if ($depth !== 0) {
+        return false;
+    }
+
+    sr_php_skip_ignored_tokens($tokens, $index);
+    if (($tokens[$index] ?? null) === ';') {
+        $index++;
+        sr_php_skip_ignored_tokens($tokens, $index);
+    }
+
+    while ($index < $count) {
+        $tailToken = $tokens[$index];
+        if (is_array($tailToken) && $tailToken[0] === T_CLOSE_TAG) {
+            $index++;
+            continue;
+        }
+
+        if (!sr_php_token_is_ignored($tailToken)) {
+            return false;
+        }
+
+        $index++;
+    }
+
+    return true;
 }
 
 function sr_php_top_level_array_entries(string $content): ?array

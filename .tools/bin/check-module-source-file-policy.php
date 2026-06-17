@@ -440,6 +440,26 @@ try {
 
     file_put_contents(
         $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Tail Code Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "];\n"
+        . "file_put_contents(sys_get_temp_dir() . '/sr-module-tail-side-effect', 'x');\n"
+    );
+    $moduleContentErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if (!in_array('module.php는 정적 리터럴 배열만 반환해야 합니다.', $moduleContentErrors, true)) {
+        fwrite(STDERR, "Module source module.php with a post-return statement was not rejected:\n" . implode("\n", $moduleContentErrors) . "\n");
+        exit(1);
+    }
+
+    file_put_contents(
+        $moduleContentDir . '/module.php',
         "<?php\nreturn array(\n"
         . "    'name' => 'Static Legacy Array Module',\n"
         . "    'version' => '2026.06.001',\n"
