@@ -10,7 +10,6 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/quiz/helpers.php` | 2,743 | 퀴즈 공개/관리자/스킨 helper가 함께 있음. 응시/채점, 댓글/멘션, 보상 provider/지급/회수/쿠폰 참조 helper는 별도 파일로 분리함 | 높음 |
 | `modules/community/helpers/posts.php` | 3,334 | 게시글 조회, 렌더링, 권한, 상태 helper가 함께 있음 | 높음 |
 | `modules/notification/helpers.php` | 2,891 | 발송 상태, 외부 채널, 암호화, push endpoint, 관리자 기록 helper가 함께 있음 | 높음 |
 | `modules/content/helpers/assets.php` | 2,483 | 콘텐츠 유료 접근, 권한, 자산 로그, 결제/환불 helper가 함께 있음 | 높음 |
@@ -26,6 +25,8 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
+| `modules/quiz/helpers.php` | 1,350 | 퀴즈 공통 설정, 공개 조회, 스킨, 관리자 목록 helper만 남김. 관리자 저장/복사/삭제, 응시/채점, 댓글/멘션, 보상 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/quiz/helpers/admin.php` | 1,397 | 퀴즈 관리자 입력값, 검증, 복사, 저장, 삭제 helper를 맡음 | 낮음 |
 | `modules/content/helpers.php` | 1,256 | 콘텐츠 공통 설정, 공개 렌더링, 관리자 목록 helper만 남김. 커버 이미지, 그룹/그룹 설정, 회원 제출/작성자 신청, 외부 참조, 레코드 변경 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/community/actions/admin-boards.php` | 1,253 | 게시판 관리자 입력, 검증, 저장, 감사 로그가 긴 문단으로 이어짐. 화면 row 보강 클로저는 helper로 분리함 | 중간 |
 | `modules/community/actions/admin-settings.php` | 726 | 환경설정과 레벨 설정 처리 문단이 큼 | 낮음 |
@@ -53,14 +54,14 @@
 - `modules/quiz/helpers.php`의 보상 provider, 보상 지급/재시도/회수, 쿠폰 보상 정의/참조 helper를 `modules/quiz/helpers/rewards.php`로 분리했다.
 - `modules/quiz/helpers.php`의 댓글 조회/입력/권한, 댓글 멘션 알림, 관리자 댓글 조회 helper를 `modules/quiz/helpers/comments.php`로 분리했다.
 - `modules/quiz/helpers.php`의 응시 가능 여부, 응시 저장, 채점, 결과 선택/스냅샷 helper를 `modules/quiz/helpers/attempts.php`로 분리했다.
+- `modules/quiz/helpers.php`의 관리자 기본값/POST 값, 관리자 검증, 복사, 저장, 삭제 helper를 `modules/quiz/helpers/admin.php`로 분리해 1,500줄 미만으로 줄였다.
 
 ## 후속 후보
 
-1. `modules/quiz/helpers.php`는 관리자 설정/저장, 공개 조회, 스킨 helper 경계를 확인한 뒤 추가 분리한다.
-2. `modules/community/helpers/posts.php`는 공개 조회/작성 권한/상태 라벨/관리자 보조 helper 경계를 확인한다.
-3. `modules/notification/helpers.php`는 외부 발송 채널/secret 암호화/push endpoint/관리자 기록 helper를 나눌 후보를 표시한다.
-4. `modules/content/helpers/assets.php`는 접근 권한, 자산 로그, 환불/취소, 관리자 조회 helper를 나눌 후보를 표시한다.
-5. `modules/community/helpers/assets.php`는 자산 정책 설정과 실행/정산 helper 경계를 나눌 후보를 표시한다.
-6. `modules/survey/helpers.php`는 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper 경계를 확인한다.
-7. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
-8. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.
+1. `modules/community/helpers/posts.php`는 공개 조회/작성 권한/상태 라벨/관리자 보조 helper 경계를 확인한다.
+2. `modules/notification/helpers.php`는 외부 발송 채널/secret 암호화/push endpoint/관리자 기록 helper를 나눌 후보를 표시한다.
+3. `modules/content/helpers/assets.php`는 접근 권한, 자산 로그, 환불/취소, 관리자 조회 helper를 나눌 후보를 표시한다.
+4. `modules/community/helpers/assets.php`는 자산 정책 설정과 실행/정산 helper 경계를 나눌 후보를 표시한다.
+5. `modules/survey/helpers.php`는 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper 경계를 확인한다.
+6. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
+7. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.

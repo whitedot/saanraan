@@ -216,13 +216,10 @@ function sr_quiz_check_paths_and_admin(): void
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
         'deleted_at IS NULL',
         'sr_quiz_attempts',
-        'sr_quiz_attempt_answers',
         'sr_quiz_reward_grants',
-        'sr_quiz_comments',
         'SELECT 1 FROM sr_quiz_sets WHERE quiz_key = :quiz_key',
         'sr_quiz_key_is_reserved',
         'member_group_keys_json',
-        'comments_enabled',
         'sr_quiz_display_settings_for_quiz',
         "\$normalized['default_reward_enabled'] = \$normalized['default_reward_provider'] !== 'none';",
         "\$provider === 'none'",
@@ -230,11 +227,9 @@ function sr_quiz_check_paths_and_admin(): void
         "'/modules/quiz/assets/module.js'",
         'sr_quiz_optional_option_key_from_post',
         '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
-        'skin_key = :skin_key',
         "'card' => '카드형'",
         "'focus' => '집중형'",
         'attempt_limit_policy',
-        'Quiz to update was not found.',
         'sr_quiz_admin_reward_grants_for_attempts',
         'a.result_snapshot_json',
         '$rows[$index][\'result_title\']',
@@ -247,6 +242,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_account_can_attempt',
         'sr_quiz_lock_quiz_for_attempt',
         'sr_quiz_public_window_is_open',
+        'sr_quiz_attempt_answers',
         '\'choice_keys\' => $choiceKeys',
         'count(array_filter($choiceKeys)) === 1',
         'sr_quiz_attempt_display_score',
@@ -256,6 +252,12 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
         'sr_quiz_account_has_result',
+        'sr_quiz_comments',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers/admin.php', [
+        'comments_enabled',
+        'skin_key = :skin_key',
+        'Quiz to update was not found.',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers/rewards.php', [
         'sr_quiz_default_reward_providers',
@@ -271,7 +273,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_reclaim_reward_grant',
         'reference_type\' => \'quiz_reward',
     ]);
-    sr_quiz_check_file_contains('modules/quiz/helpers.php', [
+    sr_quiz_check_file_contains('modules/quiz/helpers/admin.php', [
         "WHERE question_id IN (SELECT id FROM sr_quiz_questions WHERE quiz_id = :quiz_id)",
         "WHERE attempt_id IN (SELECT id FROM sr_quiz_attempts WHERE quiz_id = :quiz_id)",
         "source_title_snapshot = ''",
