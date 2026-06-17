@@ -12,10 +12,10 @@
 
                                 <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="menu" aria-orientation="vertical" aria-label="회원 드롭다운 메뉴 샘플">
                                     <div class="dropdown-profile-header">
-                                        <span class="dropdown-profile-avatar" aria-hidden="true">JB</span>
+                                        <span class="dropdown-profile-avatar member-avatar-color-4" aria-hidden="true">섭</span>
                                         <span class="dropdown-profile-identity">
-                                            <strong class="dropdown-profile-name">James Brown</strong>
-                                            <span class="dropdown-profile-email">james@example.com</span>
+                                            <strong class="dropdown-profile-name">섭웨이b</strong>
+                                            <span class="dropdown-profile-email">admin@saanraan.com</span>
                                         </span>
                                         <span class="badge badge-soft-warning badge-pill">PRO</span>
                                     </div>
