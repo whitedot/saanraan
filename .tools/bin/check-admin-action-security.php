@@ -885,6 +885,14 @@ if (!is_string($adminModuleActionsHelper)) {
 ) {
     $errors[] = 'Admin module source failures must write and display sanitized failure messages.';
 }
+if (is_string($adminModuleActionsHelper) && (
+    strpos($adminModuleActionsHelper, '$closeModuleSourcesAfterRequest = false;') === false
+    || strpos($adminModuleActionsHelper, "in_array(\$intent, ['upload_module_zip', 'sync_module_version'], true) && \$moduleSourcesEnabled") === false
+    || strpos($adminModuleActionsHelper, 'if ($closeModuleSourcesAfterRequest)') === false
+    || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '0', 'bool');") === false
+)) {
+    $errors[] = 'Admin module source write requests must close temporary source-write allowance after success or validation failure.';
+}
 if (is_string($adminModuleActionsHelper) && substr_count($adminModuleActionsHelper . "\n" . $moduleSourceSafetyContent, 'sr_module_metadata_errors($metadata)') < 3) {
     $errors[] = 'Admin module install, enable, and version sync actions must validate module metadata contracts server-side.';
 }

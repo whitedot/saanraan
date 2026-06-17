@@ -18,6 +18,7 @@ function sr_admin_handle_modules_post(
     $moduleKey = sr_post_string('module_key', 60);
     $status = '';
     $module = null;
+    $closeModuleSourcesAfterRequest = false;
 
     if ($intent === 'upload_module_zip') {
         $moduleKey = strtolower(trim(sr_post_string('upload_module_key', 40)));
@@ -32,6 +33,9 @@ function sr_admin_handle_modules_post(
     }
 
     $sourceWriteIntents = ['enable_module_source_writes', 'upload_module_zip', 'sync_module_version'];
+    if (in_array($intent, ['upload_module_zip', 'sync_module_version'], true) && $moduleSourcesEnabled) {
+        $closeModuleSourcesAfterRequest = true;
+    }
 
     if ($intent === 'enable_module_source_writes') {
         if (!$canManageModuleSources) {
@@ -267,7 +271,6 @@ function sr_admin_handle_modules_post(
             ]);
             $errors[] = sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500));
         } finally {
-            sr_save_site_setting($pdo, 'admin.module_sources_enabled', '0', 'bool');
             if ($extractDir !== '') {
                 try {
                     sr_remove_directory($extractDir);
@@ -339,6 +342,10 @@ function sr_admin_handle_modules_post(
         $notice = '모듈 상태를 저장했습니다.';
     } elseif ($errors === []) {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
+    }
+
+    if ($closeModuleSourcesAfterRequest) {
+        sr_save_site_setting($pdo, 'admin.module_sources_enabled', '0', 'bool');
     }
 
     return sr_admin_action_result($errors, $notice);

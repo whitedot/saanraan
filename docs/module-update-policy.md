@@ -66,7 +66,7 @@ git checkout origin/main -- modules/point
 
 ## zip 업로드 검증
 
-`/admin/modules`의 zip 업로드는 소유자가 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있다. 일시 허용과 zip 업로드 요청은 각각 소유자 비밀번호 재확인을 요구하며, 업로드 처리가 끝나면 `admin.module_sources_enabled` 값을 bool false로 다시 저장한다. 허용 상태가 켜진 동안에는 운영자가 수동으로 허용을 닫을 수도 있다.
+`/admin/modules`의 zip 업로드는 소유자가 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있다. 일시 허용과 zip 업로드 요청은 각각 소유자 비밀번호 재확인을 요구하며, 업로드 요청이 성공하거나 검증 실패로 끝나면 `admin.module_sources_enabled` 값을 bool false로 다시 저장한다. 허용 상태가 켜진 동안에는 운영자가 수동으로 허용을 닫을 수도 있다.
 
 `/admin/modules`의 zip 업로드는 다음만 담당한다.
 
