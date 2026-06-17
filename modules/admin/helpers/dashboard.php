@@ -500,19 +500,25 @@ function sr_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config): 
     foreach (sr_admin_sensitive_site_setting_keys() as $settingKey => $_enabled) {
         $row = is_array($settings[$settingKey] ?? null) ? $settings[$settingKey] : null;
         $valueType = is_array($row) ? (string) ($row['value_type'] ?? '') : '';
-        $enabled = is_array($row) && $valueType === 'bool'
-            ? (bool) sr_cast_setting_value($row['setting_value'] ?? '', $valueType)
-            : false;
+        if ($settingKey === 'admin.module_sources_enabled') {
+            $enabled = is_array($row) && $valueType === 'bool'
+                ? (bool) sr_cast_setting_value($row['setting_value'] ?? '', $valueType)
+                : sr_module_sources_enabled($pdo, $config);
+        } else {
+            $enabled = is_array($row) && $valueType === 'bool'
+                ? (bool) sr_cast_setting_value($row['setting_value'] ?? '', $valueType)
+                : false;
+        }
         $state = $enabled ? sr_t('admin::ui.text.acc90fbf') : sr_t('admin::ui.text.35688a85');
         $detail = sr_t('admin::ui.status.a37b0235');
 
-        if ($settingKey === 'admin.module_sources_enabled' && $enabled) {
+        if (is_array($row) && $valueType !== 'bool') {
+            $state = sr_t('admin::ui.text.acc90fbf');
+            $detail = sr_t('admin::ui.settings.bool.save.678349be');
+        } elseif ($settingKey === 'admin.module_sources_enabled' && $enabled) {
             $detail = sr_admin_runtime_is_production($config)
                 ? sr_t('admin::ui.text.c0ad1b1e')
                 : sr_t('admin::ui.text.f1259957');
-        } elseif (is_array($row) && $valueType !== 'bool') {
-            $state = sr_t('admin::ui.text.acc90fbf');
-            $detail = sr_t('admin::ui.settings.bool.save.678349be');
         }
 
         $summary[] = [
