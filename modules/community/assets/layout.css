@@ -246,10 +246,10 @@
 
 .community-layout-nav a[aria-current="page"]::after,
 .community-layout-nav a:hover::after {
-    background: var(--sr-text, #20242a);
+    border-bottom: 2px solid var(--sr-text, #20242a);
     bottom: 0;
     content: "";
-    height: 2px;
+    height: 0;
     left: 0;
     position: absolute;
     right: 0;
@@ -332,10 +332,8 @@
 }
 
 .community-layout-member-dropdown {
-    background: var(--sr-surface, #fff);
     border: 1px solid var(--sr-border-soft, #e8edf3);
     border-radius: 8px;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, .14);
     overflow: hidden;
     position: absolute;
     right: 0;
@@ -365,7 +363,6 @@
 .community-layout-member-action-row,
 .community-layout-member-logout-button {
     align-items: center;
-    background: var(--sr-surface, #fff);
     border: 0;
     color: var(--sr-text, #20242a);
     display: flex;
@@ -383,7 +380,6 @@
 .community-layout-member-asset-row:hover,
 .community-layout-member-action-row:hover,
 .community-layout-member-logout-button:hover {
-    background: var(--sr-surface-muted, #eceff4);
 }
 
 .community-layout-member-dropdown-link span:first-child,
@@ -471,10 +467,8 @@
 }
 
 .community-layout-notification-dropdown {
-    background: var(--sr-surface, #fff);
     border: 1px solid var(--sr-border-soft, #e8edf3);
     border-radius: 8px;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, .14);
     max-height: min(420px, calc(100vh - 90px));
     overflow-y: auto;
     position: absolute;
@@ -622,7 +616,6 @@
 
 .community-theme-toggle {
     align-items: center;
-    background: var(--sr-surface, #fff);
     border: 1px solid var(--sr-border-soft, #e8edf3);
     border-radius: 999px;
     color: var(--sr-muted, #47505c);
@@ -641,10 +634,8 @@
 }
 
 .community-theme-menu {
-    background: var(--sr-surface, #fff);
     border: 1px solid var(--sr-border-soft, #e8edf3);
     border-radius: 8px;
-    box-shadow: 0 12px 28px var(--sr-shadow-floating, rgba(32, 36, 42, .12));
     box-sizing: border-box;
     display: none;
     padding: 4px;
@@ -671,7 +662,6 @@
 
 .community-theme-option:hover,
 .community-theme-option[aria-checked="true"] {
-    background: var(--sr-surface-muted, #eceff4);
     color: var(--sr-muted-strong, #303741);
 }
 
@@ -754,10 +744,8 @@
     --layout-profile-icon: var(--sr-muted-soft, #5d6b7c);
     --layout-profile-hover: var(--sr-surface-muted, #eceff4);
     --layout-profile-divider: var(--sr-border-soft, #e8edf3);
-    background: var(--sr-surface, #fff);
     border-color: var(--sr-border-soft, #e8edf3);
     border-radius: 18px;
-    box-shadow: 0 .75rem 1.25rem rgba(15, 23, 42, .08), 0 .125rem .375rem rgba(15, 23, 42, .06);
     box-sizing: border-box;
     max-width: min(19.5rem, calc(100vw - 2rem));
     overflow: visible;
@@ -777,7 +765,6 @@
 .community-layout-member-dropdown-header::before {
     align-items: center;
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7);
     border-radius: 999px;
     color: #fff;
     content: "person";
@@ -793,7 +780,6 @@
 
 .community-layout-member-dropdown-header::after {
     align-items: center;
-    background: var(--sr-warning-bg, #fff9e6);
     border-radius: 999px;
     color: var(--sr-warning-text, #725600);
     content: "회원";
@@ -854,7 +840,6 @@
 .community-layout-member-asset-row:hover,
 .community-layout-member-action-row:hover,
 .community-layout-member-logout-button:hover {
-    background: var(--layout-profile-hover);
     color: var(--sr-text, #20242a);
 }
 
@@ -931,7 +916,7 @@
 .community-layout-member-avatar {
     align-items: center;
     aspect-ratio: 1;
-    background: var(--sr-member-avatar-bg, linear-gradient(135deg, #8f6ee8, #ffc66d 54%, #5db7a7));
+    background: var(--sr-member-avatar-bg, #4f46e5);
     border-radius: 999px;
     color: #fff;
     display: inline-flex;
@@ -983,7 +968,6 @@
 
 .community-layout-member-badge {
     align-items: center;
-    background: var(--sr-warning-bg, #fff9e6);
     border-radius: 999px;
     color: var(--sr-warning-text, #725600);
     display: inline-flex;
@@ -1045,7 +1029,6 @@
 .community-layout-member-dropdown-link.is-active,
 .community-layout-member-dropdown-link:hover,
 .community-layout-member-logout-button:hover {
-    background: var(--layout-profile-hover);
     color: var(--sr-text, #20242a);
 }
 

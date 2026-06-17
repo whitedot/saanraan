@@ -70,6 +70,17 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Modules that provide public layouts must not use `public-*`, `public-ui-*`, or `sr-public-*` class/data namespaces in their public layout, UI kit, module, or skin assets. Use the module namespace such as `content-*`, `community-*`, `quiz-*`, or `survey-*` instead.
 - For modules that provide public layouts, keep layout JavaScript and module/page JavaScript in separate files. The layout template owns `/modules/{provider}/assets/layout.js`; public module screens add their own `/modules/{module_key}/assets/module.js` through the layout context.
 
+## Dark Mode and Background Handling
+
+- Treat dark mode as a first-class state, not a visual afterthought. Any public or admin UI color change must preserve readable foreground, border, focus, icon, and interactive states in both `data-color-scheme="light"` and `data-color-scheme="dark"`.
+- When removing unwanted page, card, section, header, dropdown, or hover backgrounds, separate "unrequested surface fill" from "theme semantics". Do not disable, override, or force `color-scheme`, `data-color-scheme`, dark mode storage, or theme variables merely to remove a visible background.
+- Prefer semantic project tokens for theme-aware UI: `--sr-text`, `--sr-muted`, `--sr-muted-strong`, `--sr-border`, `--sr-border-soft`, `--sr-surface`, `--sr-surface-muted`, and state tokens such as danger, warning, success, and info. Module CSS should not prefer light-only UI kit tokens such as `--text-strong`, `--text-muted`, `--color-body-color`, or `--color-default-*` over `--sr-*` when the element appears on a public themed surface.
+- If a fallback is needed, place the theme-aware token first and the UI kit/static token second, for example `color: var(--sr-text, var(--text-strong, var(--color-default-900)));`.
+- Avatar fills, notification badges, validation/status messages, selected controls, modal backdrops, and sticky-header surfaces may keep semantic or functional background colors. Decorative card, dropdown, section, row hover, and full-document background colors must be removed only when they are not part of an explicit semantic state or requested design.
+- For sticky headers, keep the default unstuck state transparent unless the requested design says otherwise; apply a surface background only in the stuck state.
+- After dark-mode-sensitive CSS changes, verify computed styles rather than relying only on screenshots or static search. At minimum, inspect the relevant rendered screen or a focused browser fixture in both light and dark modes and confirm body/background, main text, muted text, links, borders, and active/hover or selected states have sufficient contrast.
+- If Playwright is unavailable, use an installed headless browser such as Chrome with a temporary HTML fixture that loads the actual CSS files and checks `getComputedStyle()` for representative selectors. Report when this fallback is used.
+
 ## Documentation
 
 - When changing behavior, features, database schema, admin screens, module contracts, request flow, security/privacy policy, deployment assumptions, or operational procedures, update the relevant GitHub Wiki pages in the same work item.
