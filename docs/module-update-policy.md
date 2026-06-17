@@ -174,7 +174,7 @@ Git으로 특정 모듈 경로만 갱신한 경우에도 같은 기준을 따른
 
 정적 검사:
 
-- `.tools/bin/check.php`가 필수 모듈 파일, 모듈 메타데이터, 계약 파일 선언/존재, update SQL 버전, route 충돌, lifecycle UI 안전장치를 확인한다.
+- `.tools/bin/check.php`가 필수 모듈 파일, 모듈 메타데이터, 계약 파일 선언/존재와 일부 반환 shape, update SQL 버전, route 충돌, lifecycle UI 안전장치를 확인한다.
 - 배포 전에는 정적 검사와 스모크 테스트를 실행해 관리자 모듈/업데이트 화면이 500 없이 열리는지 확인한다.
 
 ## 버전 의미

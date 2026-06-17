@@ -396,8 +396,30 @@ function sr_check_module_contract_files(): void
             }
 
             $providedFiles[$contractFile] = true;
-            if (!is_file($moduleDir . '/' . $contractFile)) {
-                sr_check_add_error('Module declared contract file is missing: ' . $moduleDir . '/' . $contractFile);
+            $contractPath = $moduleDir . '/' . $contractFile;
+            if (!is_file($contractPath)) {
+                sr_check_add_error('Module declared contract file is missing: ' . $contractPath);
+                continue;
+            }
+
+            $contractContents = file_get_contents($contractPath);
+            $contractContents = is_string($contractContents) ? $contractContents : '';
+            if (
+                $contractFile === 'member-action-rows.php'
+                && !str_contains($contractContents, 'return static function (PDO $pdo, int $accountId): array')
+                && !str_contains($contractContents, "'rows_function' =>")
+            ) {
+                sr_check_add_error('Module member-action-rows.php must expose a rows provider shape: ' . $contractPath);
+            }
+            if (
+                $contractFile === 'member-only-routes.php'
+                && (
+                    !str_contains($contractContents, "'protected_routes' => [")
+                    || !str_contains($contractContents, "'public_routes' => [")
+                    || !str_contains($contractContents, "'public_path_prefixes' => [")
+                )
+            ) {
+                sr_check_add_error('Module member-only-routes.php must expose route list arrays: ' . $contractPath);
             }
         }
 
