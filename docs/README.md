@@ -125,6 +125,7 @@
 - [마일스톤 28 통화·정산 정책 기록 - 2026-06-11](records/milestone-28-currency-settlement-policy-2026-06-11.md)
 - [개선 보강 검증 기록 - 2026-06-11](records/improvement-hardening-verification-2026-06-11.md)
 - [HTML Purifier 배포 방식 결정 - 2026-06-11](records/htmlpurifier-packaging-decision-2026-06-11.md)
+- [이슈 #348 절차형 구조 후속 점검 기록 - 2026-06-17](records/issue-348-procedural-structure-followup-2026-06-17.md)
 
 ## Wiki로 충분한 문서
 
