@@ -406,17 +406,17 @@ function sr_check_module_contract_files(): void
             $contractContents = is_string($contractContents) ? $contractContents : '';
             if (
                 $contractFile === 'member-action-rows.php'
-                && !str_contains($contractContents, 'return static function (PDO $pdo, int $accountId): array')
-                && !str_contains($contractContents, "'rows_function' =>")
+                && preg_match('/return\s+(?:static\s+)?function\s*\(\s*PDO\s+\$pdo\s*,\s*int\s+\$accountId\s*\)\s*:\s*array/', $contractContents) !== 1
+                && preg_match('/[\'"]rows_function[\'"]\s*=>/', $contractContents) !== 1
             ) {
                 sr_check_add_error('Module member-action-rows.php must expose a rows provider shape: ' . $contractPath);
             }
             if (
                 $contractFile === 'member-only-routes.php'
                 && (
-                    !str_contains($contractContents, "'protected_routes' => [")
-                    || !str_contains($contractContents, "'public_routes' => [")
-                    || !str_contains($contractContents, "'public_path_prefixes' => [")
+                    preg_match('/[\'"]protected_routes[\'"]\s*=>\s*\[/', $contractContents) !== 1
+                    || preg_match('/[\'"]public_routes[\'"]\s*=>\s*\[/', $contractContents) !== 1
+                    || preg_match('/[\'"]public_path_prefixes[\'"]\s*=>\s*\[/', $contractContents) !== 1
                 )
             ) {
                 sr_check_add_error('Module member-only-routes.php must expose route list arrays: ' . $contractPath);
