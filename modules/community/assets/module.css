@@ -30,7 +30,6 @@
 }
 
 .community-comments-panel {
-    background: #fafafa;
     border: 0;
     border-radius: 8px;
     display: flex;
@@ -43,7 +42,6 @@
 
 .community-comments-panel-header {
     align-items: center;
-    background: #fafafa;
     border-bottom: 1px solid #eeeeee;
     display: flex;
     gap: 12px;
@@ -345,7 +343,6 @@
     --community-text: var(--text-strong, var(--color-default-900));
     --community-muted: var(--text-muted, var(--color-default-600));
     --community-radius: var(--radius);
-    background: #ffffff;
     color: var(--community-text);
 }
 
@@ -371,15 +368,12 @@
 .community-comments-panel,
 .community-screen fieldset,
 .community-screen .sr-link-card-picker {
-    background: var(--community-surface);
     border-color: var(--community-border);
     border-radius: var(--community-radius);
-    box-shadow: var(--shadow);
 }
 
 .community-comments-panel-header,
 .community-screen th {
-    background: var(--community-surface-soft);
     border-color: var(--community-border);
 }
 
@@ -389,7 +383,6 @@
 }
 
 .community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
-    background: var(--community-surface);
     border-color: var(--community-border);
     border-radius: var(--community-radius);
     color: var(--community-text);
