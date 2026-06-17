@@ -10,7 +10,7 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/content/helpers.php` | 4,610 | 콘텐츠 설정, 렌더링, 관리자 보조 helper가 함께 있음. 커버 이미지 helper는 별도 파일로 분리함 | 높음 |
+| `modules/content/helpers.php` | 3,719 | 콘텐츠 설정, 렌더링, 관리자 보조 helper가 함께 있음. 커버 이미지와 회원 제출/작성자 신청 helper는 별도 파일로 분리함 | 높음 |
 | `modules/quiz/helpers.php` | 4,606 | 퀴즈 공개/관리자/보상/스킨 helper가 함께 있음 | 높음 |
 | `modules/community/helpers/posts.php` | 3,334 | 게시글 조회, 렌더링, 권한, 상태 helper가 함께 있음 | 높음 |
 | `modules/notification/helpers.php` | 2,891 | 발송 상태, 외부 채널, 암호화, push endpoint, 관리자 기록 helper가 함께 있음 | 높음 |
@@ -46,6 +46,7 @@
 - `modules/community/actions/admin-boards.php` 하단의 화면 표시용 게시판 row 보강 클로저를 `sr_community_admin_prepare_board_row()` helper로 분리해 action 하단이 목록/수정 대상 조회 흐름만 보이도록 줄였다.
 - `modules/community/helpers/assets.php`의 게시자 보상 관리자 상태/필터/목록 조회 helper를 `modules/community/helpers/publisher-rewards.php`로 분리했다.
 - `modules/content/helpers.php`의 커버 이미지 업로드/저장소/렌더링 helper를 `modules/content/helpers/cover-images.php`로 분리했다.
+- `modules/content/helpers.php`의 회원 제출, 작성자 신청/권한, 작성자 보상 helper를 `modules/content/helpers/member-submissions.php`로 분리했다.
 
 ## 후속 후보
 
