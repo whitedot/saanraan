@@ -68,7 +68,7 @@ function sr_module_sources_enabled(PDO $pdo, ?array $config = null): bool
             && (bool) sr_cast_setting_value($setting['setting_value'] ?? '', 'bool');
     }
 
-    return !sr_runtime_is_production($config);
+    return false;
 }
 
 function sr_module_source_uncompressed_limit_bytes(): int

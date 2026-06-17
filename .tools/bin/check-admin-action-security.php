@@ -837,6 +837,13 @@ if (
     $errors[] = 'Admin module source zip checks must reject symlink and file/directory conflict entries before extraction.';
 }
 if (
+    strpos($moduleSourceSafetyContent, 'function sr_module_sources_enabled') === false
+    || strpos($moduleSourceSafetyContent, "WHERE setting_key = 'admin.module_sources_enabled'") === false
+    || strpos($moduleSourceSafetyContent, 'return false;') === false
+) {
+    $errors[] = 'Admin module source writes must default to disabled when no explicit bool setting exists.';
+}
+if (
     strpos($moduleSourceSafetyContent, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
     || strpos($moduleSourceSafetyContent, "str_contains(\$name, '\\\\')") === false
     || strpos($moduleSourceSafetyContent, "str_contains(\$name, ':')") === false

@@ -171,6 +171,25 @@ mkdir($fixtureRoot, 0777, true);
 $uploadWorkDirsBefore = sr_check_module_source_policy_upload_work_dirs();
 
 try {
+    $moduleSourceSettingPdo = new PDO('sqlite::memory:');
+    $moduleSourceSettingPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $moduleSourceSettingPdo->exec('CREATE TABLE sr_site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, value_type TEXT NOT NULL)');
+    if (sr_module_sources_enabled($moduleSourceSettingPdo, ['env' => 'development'])) {
+        fwrite(STDERR, "Module source writes defaulted to enabled without an explicit setting in development.\n");
+        exit(1);
+    }
+
+    if (sr_module_sources_enabled($moduleSourceSettingPdo, ['env' => 'production'])) {
+        fwrite(STDERR, "Module source writes defaulted to enabled without an explicit setting in production.\n");
+        exit(1);
+    }
+
+    $moduleSourceSettingPdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('admin.module_sources_enabled', '1', 'bool')");
+    if (!sr_module_sources_enabled($moduleSourceSettingPdo, ['env' => 'production'])) {
+        fwrite(STDERR, "Module source writes did not honor an explicit enabled bool setting.\n");
+        exit(1);
+    }
+
     $allowedDir = $fixtureRoot . '/allowed';
     mkdir($allowedDir, 0777, true);
     foreach (['module.php', 'install.sql', 'assets/app.js', 'views/page.html', 'assets/style.css'] as $relative) {
