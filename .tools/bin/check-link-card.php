@@ -73,7 +73,7 @@ if ($multiTargetLimit !== 30) {
     sr_link_card_check_error('Embed manager multi-target searches must keep later target results reachable.');
 }
 
-$contentHelper = file_get_contents($root . '/modules/content/helpers.php');
+$contentHelper = file_get_contents($root . '/modules/content/helpers/records.php');
 if (!is_string($contentHelper) || strpos($contentHelper, 'legacy 링크 카드 토큰이 남아 있는 콘텐츠는 복사할 수 없습니다.') === false) {
     sr_link_card_check_error('Content copy must not create new content rows from source bodies that still contain legacy link card tokens.');
 }

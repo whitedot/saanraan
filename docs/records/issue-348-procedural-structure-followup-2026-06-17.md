@@ -10,7 +10,7 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/content/helpers.php` | 3,308 | 콘텐츠 설정, 렌더링, 관리자 보조 helper가 함께 있음. 커버 이미지, 회원 제출/작성자 신청, 외부 참조 helper는 별도 파일로 분리함 | 높음 |
+| `modules/content/helpers.php` | 2,163 | 콘텐츠 설정, 렌더링, 관리자 보조 helper가 함께 있음. 커버 이미지, 회원 제출/작성자 신청, 외부 참조, 레코드 변경 helper는 별도 파일로 분리함 | 높음 |
 | `modules/quiz/helpers.php` | 4,606 | 퀴즈 공개/관리자/보상/스킨 helper가 함께 있음 | 높음 |
 | `modules/community/helpers/posts.php` | 3,334 | 게시글 조회, 렌더링, 권한, 상태 helper가 함께 있음 | 높음 |
 | `modules/notification/helpers.php` | 2,891 | 발송 상태, 외부 채널, 암호화, push endpoint, 관리자 기록 helper가 함께 있음 | 높음 |
@@ -48,6 +48,7 @@
 - `modules/content/helpers.php`의 커버 이미지 업로드/저장소/렌더링 helper를 `modules/content/helpers/cover-images.php`로 분리했다.
 - `modules/content/helpers.php`의 회원 제출, 작성자 신청/권한, 작성자 보상 helper를 `modules/content/helpers/member-submissions.php`로 분리했다.
 - `modules/content/helpers.php`의 쿠폰 target, link-card 검색, banner/popup/member-group 참조 helper를 `modules/content/helpers/references.php`로 분리했다.
+- `modules/content/helpers.php`의 입력값 수집/검증, 저장, 복사, 숨김, 삭제 helper를 `modules/content/helpers/records.php`로 분리했다.
 
 ## 후속 후보
 

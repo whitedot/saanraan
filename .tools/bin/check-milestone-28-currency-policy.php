@@ -75,7 +75,7 @@ sr_milestone_28_check_contains('core/actions/install.php', [
     '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.06.027\'',
 ]);
 
-sr_milestone_28_check_contains('modules/content/helpers.php', [
+sr_milestone_28_check_contains('modules/content/helpers/records.php', [
     '$defaultSettlementCurrency = sr_site_default_currency($pdo);',
     'asset_access_settlement_currency',
     'asset_action_settlement_currency',

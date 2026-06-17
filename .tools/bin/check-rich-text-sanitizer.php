@@ -222,6 +222,8 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 'function sr_content_body_html(',
                 'sr_body_text_html($page, $linkPlainUrls)',
                 'sr_embed_manager_render_body_html($pdo, $html, \'content\', \'content\'',
+            ],
+            'modules/content/helpers/records.php' => [
                 'function sr_content_input_values(',
                 '? sr_sanitize_rich_text_html($bodyText)',
                 ': sr_content_clean_text($bodyText, 100000)',
