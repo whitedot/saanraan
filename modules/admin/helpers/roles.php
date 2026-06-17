@@ -691,7 +691,7 @@ function sr_admin_permission_reauth_errors(PDO $pdo, array $account, string $int
     $password = sr_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
-        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
+        return ['매니저 재인증 계정을 확인할 수 없습니다.'];
     }
 
     $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
@@ -726,7 +726,7 @@ function sr_admin_permission_reauth_errors(PDO $pdo, array $account, string $int
                 'intent' => $intent,
             ],
         ]);
-        return ['관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 입력하세요.'];
+        return ['관리 권한을 부여하거나 매니저 권한을 변경하려면 현재 비밀번호를 다시 입력하세요.'];
     }
 
     sr_member_log_auth($pdo, $accountId, 'admin_permission_reauth', 'success');

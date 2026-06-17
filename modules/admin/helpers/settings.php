@@ -212,7 +212,7 @@ function sr_admin_code_label_context_options(): array
             'system' => '시스템',
         ],
         'role' => [
-            'owner' => '소유자',
+            'owner' => '매니저',
         ],
         'admin_permission_action' => [
             'view' => '조회',
@@ -335,8 +335,8 @@ function sr_admin_event_type_label_options(): array
         'logo_manager.favicon.purged' => '파비콘/앱 아이콘 완전 삭제',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
-        'admin.role.changed' => '관리자 권한 변경',
-        'admin.permissions.changed' => '관리자 권한 변경',
+        'admin.role.changed' => '관리 권한 변경',
+        'admin.permissions.changed' => '관리 권한 변경',
         'member.group.manual_grant_skipped' => '회원 그룹 수동 배정 중복 건너뜀',
         'content.settings.updated' => '콘텐츠 환경설정 변경',
         'content.asset_settings.updated' => '콘텐츠 포인트/금액 설정 변경',

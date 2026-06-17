@@ -46,6 +46,10 @@ if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account
 $adminShellAccountEmail = isset($account) && is_array($account) ? trim((string) ($account['email'] ?? '')) : '';
 $adminShellAccountInitialSource = $adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : ($adminShellAccountEmail !== '' ? $adminShellAccountEmail : 'A');
 $adminShellAccountInitial = function_exists('mb_substr') ? mb_substr($adminShellAccountInitialSource, 0, 1) : substr($adminShellAccountInitialSource, 0, 1);
+$adminShellProfileBadgeLabel = '스탭';
+if (isset($pdo) && $pdo instanceof PDO && isset($account) && is_array($account) && function_exists('sr_admin_is_owner')) {
+    $adminShellProfileBadgeLabel = sr_admin_is_owner($pdo, (int) ($account['id'] ?? 0)) ? '매니저' : '스탭';
+}
 $adminNotificationSummary = isset($adminShell['admin_notification_summary']) && is_array($adminShell['admin_notification_summary'])
     ? $adminShell['admin_notification_summary']
     : ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
@@ -316,7 +320,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                                 <span><?php echo sr_e($adminShellAccountEmail); ?></span>
                                             <?php } ?>
                                         </span>
-                                        <span class="admin-profile-badge">관리자</span>
+                                        <span class="admin-profile-badge"><?php echo sr_e($adminShellProfileBadgeLabel); ?></span>
                                     </li>
                                     <li>
                                         <a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">

@@ -484,7 +484,7 @@ if (is_string($adminSettingsHelper) && (
     || strpos($adminModuleActionsHelper, 'disable_module_source_writes') === false
     || strpos($adminModuleActionsHelper, 'sr_admin_module_source_reauth_errors($pdo, $account, $intent)') === false
     || strpos($adminModuleActionsHelper, '!$moduleSourcesEnabled') === false
-    || strpos($adminModuleActionsHelper, '모듈 zip 업로드는 소유자 재인증 요청에서만 일시 허용됩니다.') === false
+    || strpos($adminModuleActionsHelper, '모듈 zip 업로드는 매니저 재인증 요청에서만 일시 허용됩니다.') === false
     || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '0', 'bool')") === false
     || strpos($adminModuleActionsHelper, "sr_save_site_setting(\$pdo, 'admin.module_sources_enabled', '1', 'bool')") === false
 )) {
@@ -550,7 +550,7 @@ if (is_string($adminModulesView) && (
     || strpos($adminModulesView, 'if ($moduleUploadAvailable)') === false
     || strpos($adminModulesView, '$moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled)') === false
     || strpos($adminModulesView, 'if (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled)') === false
-    || strpos($adminModulesView, '모듈 zip 업로드는 소유자 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.') === false
+    || strpos($adminModulesView, '모듈 zip 업로드는 매니저 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.') === false
 )) {
     $errors[] = 'Admin modules view must keep module zip upload hidden behind owner permission, ZipArchive availability, and temporary source-write allowance.';
 }

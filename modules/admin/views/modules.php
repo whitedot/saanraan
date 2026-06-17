@@ -104,9 +104,9 @@ $installedSections = [
             <p>모듈 파일 반영이 일시 허용되어 있습니다. ZipArchive 확장이 없어 zip 업로드는 사용할 수 없지만, 파일 업데이트 반영은 실행할 수 있습니다.</p>
         <?php } ?>
     <?php } elseif (!$moduleUploadAvailable) { ?>
-        <p>PHP ZipArchive 확장이 없어 zip 업로드를 처리할 수 없습니다. 파일 전용 업데이트 반영은 소유자 비밀번호 재확인 후 일시 허용해 사용할 수 있습니다.</p>
+        <p>PHP ZipArchive 확장이 없어 zip 업로드를 처리할 수 없습니다. 파일 전용 업데이트 반영은 매니저 비밀번호 재확인 후 일시 허용해 사용할 수 있습니다.</p>
     <?php } else { ?>
-        <p>모듈 zip 업로드와 파일 전용 업데이트 반영은 소유자 비밀번호 재확인 후 일시 허용됩니다. 기본 운영 경로는 FTP나 호스팅 파일 관리자로 파일을 배치한 뒤 설치와 업데이트를 진행하는 방식입니다.</p>
+        <p>모듈 zip 업로드와 파일 전용 업데이트 반영은 매니저 비밀번호 재확인 후 일시 허용됩니다. 기본 운영 경로는 FTP나 호스팅 파일 관리자로 파일을 배치한 뒤 설치와 업데이트를 진행하는 방식입니다.</p>
     <?php } ?>
 </section>
 
@@ -603,7 +603,7 @@ $installedSections = [
                     <?php } elseif (!$moduleUploadAvailable) { ?>
                         <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{모듈관리용키}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
                     <?php } elseif (!$moduleSourcesEnabled) { ?>
-                        <p>모듈 zip 업로드는 소유자 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.</p>
+                        <p>모듈 zip 업로드는 매니저 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.</p>
                     <?php } ?>
                 </div>
                 <div class="modal-footer">

@@ -39,7 +39,7 @@ function sr_admin_handle_modules_post(
 
     if ($intent === 'enable_module_source_writes') {
         if (!$canManageModuleSources) {
-            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+            $errors[] = '모듈 소스 반영은 매니저 권한이 필요합니다.';
         }
 
         if ($moduleSourcesEnabled) {
@@ -47,15 +47,15 @@ function sr_admin_handle_modules_post(
         }
     } elseif ($intent === 'disable_module_source_writes') {
         if (!$canManageModuleSources) {
-            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+            $errors[] = '모듈 소스 반영은 매니저 권한이 필요합니다.';
         }
     } elseif ($intent === 'upload_module_zip') {
         if (!$canManageModuleSources) {
-            $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
+            $errors[] = '모듈 소스 반영은 매니저 권한이 필요합니다.';
         }
 
         if (!$moduleSourcesEnabled) {
-            $errors[] = '모듈 zip 업로드는 소유자 재인증 요청에서만 일시 허용됩니다.';
+            $errors[] = '모듈 zip 업로드는 매니저 재인증 요청에서만 일시 허용됩니다.';
         }
 
         if (!$moduleUploadAvailable) {
@@ -63,7 +63,7 @@ function sr_admin_handle_modules_post(
         }
     } elseif ($intent === 'sync_module_version') {
         if (!$canManageModuleSources) {
-            $errors[] = '파일 전용 업데이트 반영은 소유자 권한이 필요합니다.';
+            $errors[] = '파일 전용 업데이트 반영은 매니저 권한이 필요합니다.';
         }
 
         if (!$moduleSourcesEnabled) {
@@ -453,7 +453,7 @@ function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $
     $password = sr_post_string('owner_password', 255);
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId < 1) {
-        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
+        return ['매니저 재인증 계정을 확인할 수 없습니다.'];
     }
 
     $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
@@ -482,7 +482,7 @@ function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $
             'result' => 'failure',
             'message' => 'Module source write reauthentication failed.',
         ]);
-        return ['모듈 소스 반영 전 소유자 비밀번호를 다시 입력하세요.'];
+        return ['모듈 소스 반영 전 매니저 비밀번호를 다시 입력하세요.'];
     }
 
     sr_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');

@@ -30,7 +30,7 @@
                         </div>
                         <div class="ui-kit-type-row">
                             <span class="ui-kit-type-label">Card title</span>
-                            <p class="type-card-title">관리자 권한 요약</p>
+                            <p class="type-card-title">관리 권한 요약</p>
                         </div>
                         <div class="ui-kit-type-row">
                             <span class="ui-kit-type-label">Body</span>

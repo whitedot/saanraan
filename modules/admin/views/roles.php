@@ -63,7 +63,7 @@ $permissionSelectedByPath = static function (array $permissionKeys): array {
 };
 $permissionSummaryHtml = static function (array $adminAccount) use ($permissionActions, $permissionActionLabels, $permissionOptionMap, $permissionSelectedByPath): string {
     if (!empty($adminAccount['is_owner'])) {
-        return '<div class="badge-list"><span class="badge-list-item"><span class="badge-list-label">' . sr_e(sr_admin_code_label('owner', 'role')) . '</span><span class="badge-list-summary">전체 관리자 권한</span></span></div>';
+        return '<div class="badge-list"><span class="badge-list-item"><span class="badge-list-label">' . sr_e(sr_admin_code_label('owner', 'role')) . '</span><span class="badge-list-summary">전체 관리 권한</span></span></div>';
     }
 
     $selectedByPath = $permissionSelectedByPath((array) ($adminAccount['permission_keys'] ?? []));
@@ -189,13 +189,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div class="admin-permission-section-header">
     <div>
         <h2 class="card-title">권한 보유 회원</h2>
-        <p class="admin-dashboard-meta">소유자이거나 메뉴별 권한이 추가된 회원만 표시됩니다.</p>
+        <p class="admin-dashboard-meta">매니저이거나 메뉴별 권한이 추가된 스탭만 표시됩니다.</p>
     </div>
     <button type="button" class="btn btn-outline-secondary" aria-label="권한 추가" title="권한 추가" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal" data-admin-permission-add-new>권한 추가</button>
 </div>
 <div class="admin-list-summary-row">
     <?php if (empty($accountSort['is_default'])) { ?>
-        <a href="<?php echo sr_e(sr_admin_sort_url($accountSortOptions, $accountDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="관리자 권한 회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <a href="<?php echo sr_e(sr_admin_sort_url($accountSortOptions, $accountDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="관리 권한 회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
     <?php } ?>
     <?php echo sr_admin_pagination_summary_html($accountPagination); ?>
 </div>
@@ -213,7 +213,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($accounts === []) { ?>
             <tr>
-                <td colspan="5" class="admin-empty-state">추가된 관리자 권한이 없습니다.</td>
+                <td colspan="5" class="admin-empty-state">추가된 관리 권한이 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($accounts as $adminAccount) { ?>
@@ -272,13 +272,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 권한 회수</span>
 </div>
 	</div>
-<?php echo sr_admin_pagination_html($accountPagination, '관리자 권한 회원 목록 페이지'); ?>
+<?php echo sr_admin_pagination_html($accountPagination, '관리 권한 회원 목록 페이지'); ?>
 
 <div id="admin-permission-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0 admin-permission-add-modal" role="dialog" tabindex="-1" aria-labelledby="admin-permission-add-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog admin-permission-add-dialog">
         <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-add-form>
             <div class="modal-header">
-                <h3 id="admin-permission-add-modal-label" class="modal-title">관리자 권한 추가</h3>
+                <h3 id="admin-permission-add-modal-label" class="modal-title">관리 권한 추가</h3>
                 <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-add-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                 </button>
@@ -304,7 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </span>
                     <div class="form-field">
                         <?php echo sr_admin_switch_html('admin-permission-add-owner', 'is_owner', '1', false, sr_t('admin::ui.text.7258c171')); ?>
-                        <p class="form-help">소유자 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
+                        <p class="form-help">매니저 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -360,7 +360,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="admin-permission-add-owner-password">현재 비밀번호 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                     <div class="form-field">
                         <input id="admin-permission-add-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password" required>
-                        <p class="form-help">관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 확인합니다.</p>
+                        <p class="form-help">관리 권한을 부여하거나 매니저 권한을 변경하려면 현재 비밀번호를 다시 확인합니다.</p>
                     </div>
                 </div>
             </div>
@@ -443,7 +443,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </span>
                             <div class="form-field">
                                 <?php echo sr_admin_checkbox_toggle_html($permissionModalId . '-owner', 'is_owner', '1', !empty($adminAccount['is_owner']), sr_t('admin::ui.text.7258c171'), ' data-overlay-focus'); ?>
-                                <p class="form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
+                                <p class="form-help">매니저 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
                             </div>
                         </div>
                         <div class="form-row" data-admin-permission-owner-transition>
@@ -470,7 +470,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                                     </div>
                                 </div>
-                                <p class="form-help">소유자 권한을 해제하려면 저장 전에 대체 메뉴 권한을 하나 이상 선택하세요.</p>
+                                <p class="form-help">매니저 권한을 해제하려면 저장 전에 대체 메뉴 권한을 하나 이상 선택하세요.</p>
                             </div>
                         </div>
                         <div class="form-row" data-admin-permission-owner-transition>
@@ -552,7 +552,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <label class="form-label" for="<?php echo sr_e($permissionModalId); ?>-owner-password">현재 비밀번호</label>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($permissionModalId); ?>-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password">
-                                <p class="form-help">새 권한을 추가하거나 소유자 권한을 변경하는 저장 요청에서 필요합니다.</p>
+                                <p class="form-help">새 권한을 추가하거나 매니저 권한을 변경하는 저장 요청에서 필요합니다.</p>
                             </div>
                         </div>
                     </div>
@@ -805,7 +805,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var target = form.querySelector('[data-admin-permission-group]')
             || form.querySelector('[data-admin-permission-selected] input[name="permission_keys[]"]');
         if (target && typeof target.setCustomValidity === 'function') {
-            target.setCustomValidity('소유자 권한을 해제하려면 대체 메뉴 권한을 하나 이상 선택하세요.');
+            target.setCustomValidity('매니저 권한을 해제하려면 대체 메뉴 권한을 하나 이상 선택하세요.');
             if (report && typeof target.reportValidity === 'function') {
                 target.reportValidity();
             }
@@ -1152,7 +1152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             button.setAttribute('data-account-status', item.status || '');
             if (item.status !== 'active') {
                 button.disabled = true;
-                button.title = '정상 상태 회원에게만 관리자 권한을 부여할 수 있습니다.';
+                button.title = '정상 상태 회원에게만 관리 권한을 부여할 수 있습니다.';
             }
 
             var title = document.createElement('strong');

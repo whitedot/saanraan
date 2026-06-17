@@ -298,7 +298,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                         <p class="sr-install-kicker">3단계</p>
                         <h2>관리자와 모듈</h2>
                     </div>
-                    <p>최초 소유자 계정과 설치할 기본 모듈 구성을 정합니다.</p>
+                    <p>최초 매니저 계정과 설치할 기본 모듈 구성을 정합니다.</p>
                 </div>
 
                 <?php if (!empty($installErrorSteps['account_modules'])) { ?>
@@ -533,7 +533,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                         <li>필수 모듈 설치: member → admin → policy_documents → privacy</li>
                         <li>선택 모듈과 필요한 기반 모듈 설치</li>
                         <li>사이트 설정 저장</li>
-                        <li>관리자 계정과 owner 권한 생성</li>
+                        <li>관리자 계정과 매니저 권한 생성</li>
                         <li>설치 lock 작성</li>
                         <li>완료 후 관리자 로그인 화면으로 이동</li>
                     </ol>

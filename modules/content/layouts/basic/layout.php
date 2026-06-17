@@ -142,6 +142,7 @@ $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
 $layoutMemberEmail = '';
 $layoutMemberInitial = 'M';
+$layoutMemberBadgeLabel = '회원';
 $layoutCommunityMemberMenuEnabled = false;
 $layoutUnreadCommunityMessageCount = 0;
 $layoutMemberAssetRows = [];
@@ -232,7 +233,11 @@ if (
     require_once SR_ROOT . '/modules/admin/helpers.php';
     $layoutAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
     $layoutAdminEnabled = sr_admin_has_admin_access($layoutPdo, $layoutAccountId);
-    if ($layoutAdminEnabled && !sr_admin_is_owner($layoutPdo, $layoutAccountId)) {
+    $layoutAdminIsOwner = $layoutAdminEnabled && sr_admin_is_owner($layoutPdo, $layoutAccountId);
+    if ($layoutAdminIsOwner) {
+        $layoutMemberBadgeLabel = '매니저';
+    } elseif ($layoutAdminEnabled) {
+        $layoutMemberBadgeLabel = '스탭';
         $layoutFirstAdminPath = sr_admin_first_permitted_menu_path($layoutPdo, $layoutAccountId);
         $layoutAdminUrl = sr_url($layoutFirstAdminPath !== '' ? $layoutFirstAdminPath : '/admin');
     }
@@ -354,7 +359,7 @@ if (
                                         <span><?php echo sr_e($layoutMemberEmail); ?></span>
                                     <?php } ?>
                                 </span>
-                                <span class="content-layout-member-badge"><?php echo sr_e('회원'); ?></span>
+                                <span class="content-layout-member-badge"><?php echo sr_e($layoutMemberBadgeLabel); ?></span>
                             </div>
                             <a class="content-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>manage_accounts</span>

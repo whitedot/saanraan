@@ -132,7 +132,7 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '권한을 부여할 회원을 찾을 수 없습니다.';
             }
             if ($permissionKeys === []) {
-                $errors[] = '부여할 게시판 관리권한을 선택해 주세요.';
+                $errors[] = '부여할 게시판 스탭 권한을 선택해 주세요.';
             }
             if ($errors === [] && is_array($board)) {
                 $granted = sr_community_grant_board_management_permissions($pdo, $boardId, $targetAccountId, $permissionKeys, (int) $account['id']);
@@ -150,14 +150,14 @@ if (sr_request_method() === 'POST') {
                         'permission_keys' => $granted,
                     ],
                 ]);
-                $notice = '게시판 관리권한을 부여했습니다.';
+                $notice = '게시판 스탭 권한을 부여했습니다.';
             }
         } else {
             $managerIdValue = sr_post_string('manager_id', 20);
             $managerId = preg_match('/\A[1-9][0-9]*\z/', $managerIdValue) === 1 ? (int) $managerIdValue : 0;
             $revoked = $errors === [] ? sr_community_revoke_board_management_permission($pdo, $managerId, $boardId, (int) $account['id']) : null;
             if (!is_array($revoked)) {
-                $errors[] = '회수할 게시판 관리권한을 찾을 수 없습니다.';
+                $errors[] = '회수할 게시판 스탭 권한을 찾을 수 없습니다.';
             }
             if ($errors === [] && is_array($board) && is_array($revoked)) {
                 sr_audit_log($pdo, [
@@ -174,7 +174,7 @@ if (sr_request_method() === 'POST') {
                         'permission_key' => (string) ($revoked['permission_key'] ?? ''),
                     ],
                 ]);
-                $notice = '게시판 관리권한을 회수했습니다.';
+                $notice = '게시판 스탭 권한을 회수했습니다.';
             }
         }
 

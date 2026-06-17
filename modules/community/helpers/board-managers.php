@@ -5,7 +5,7 @@ declare(strict_types=1);
 function sr_community_board_manager_permission_options(): array
 {
     return [
-        'view_manage' => '관리권한 목록 조회',
+        'view_manage' => '스탭 권한 목록 조회',
         'delete_post' => '게시글 삭제',
         'remove_post_og_image' => '게시글 OG 이미지 제거',
     ];
@@ -135,4 +135,3 @@ function sr_community_revoke_board_management_permission(PDO $pdo, int $managerI
 
     return $manager;
 }
-
