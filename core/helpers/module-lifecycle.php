@@ -489,7 +489,21 @@ function sr_update_module_status(PDO $pdo, string $moduleKey, string $status): a
     }
 
     $beforeStatus = (string) $module['status'];
-    if ($status !== 'enabled') {
+    if ($status === 'enabled') {
+        $metadata = sr_module_metadata($moduleKey);
+        $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+        $metadataErrors = $metadata === []
+            ? ['모듈 메타데이터를 찾을 수 없습니다.']
+            : array_merge(
+                sr_module_metadata_errors($metadata),
+                sr_module_contract_file_errors($moduleDir, $metadata),
+                sr_module_requirement_errors($pdo, $moduleKey, $metadata, 'enabled'),
+                sr_module_route_conflict_errors($pdo, $moduleKey)
+            );
+        if ($metadataErrors !== []) {
+            throw new RuntimeException(implode(' ', array_values(array_unique($metadataErrors))));
+        }
+    } else {
         $disableErrors = sr_module_disable_errors($pdo, $moduleKey);
         if ($disableErrors !== []) {
             throw new RuntimeException(implode(' ', $disableErrors));

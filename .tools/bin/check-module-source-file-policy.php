@@ -11,7 +11,9 @@ chdir($root);
 
 require_once SR_ROOT . '/core/version.php';
 require_once SR_ROOT . '/core/helpers/settings.php';
+require_once SR_ROOT . '/core/helpers/output.php';
 require_once SR_ROOT . '/core/helpers/module-source.php';
+require_once SR_ROOT . '/core/helpers/module-lifecycle.php';
 
 function sr_check_module_source_policy_remove_dir(string $directory): void
 {
@@ -631,10 +633,12 @@ try {
     $existingModuleKey = 'zip_policy_existing_' . strtolower(bin2hex(random_bytes(3)));
     $candidateModuleKey = 'zip_policy_candidate_' . strtolower(bin2hex(random_bytes(3)));
     $inactiveCandidateModuleKey = 'zip_policy_inactive_' . strtolower(bin2hex(random_bytes(3)));
-    $fixtureModuleKeys = [$existingModuleKey, $candidateModuleKey, $inactiveCandidateModuleKey];
+    $statusCandidateModuleKey = 'zip_policy_status_' . strtolower(bin2hex(random_bytes(3)));
+    $fixtureModuleKeys = [$existingModuleKey, $candidateModuleKey, $inactiveCandidateModuleKey, $statusCandidateModuleKey];
 
     try {
         sr_check_module_source_policy_write_module($existingModuleKey, 'GET /zip-policy/*');
+        sr_check_module_source_policy_write_module($statusCandidateModuleKey, 'GET /zip-policy/status');
         $candidateDir = $fixtureRoot . '/candidate-source';
         mkdir($candidateDir . '/actions', 0777, true);
         sr_check_module_source_policy_write_file($candidateDir, 'install.sql');
@@ -650,6 +654,7 @@ try {
             [$existingModuleKey, '2026.06.001', 'enabled'],
             [$candidateModuleKey, '2026.06.001', 'enabled'],
             [$inactiveCandidateModuleKey, '2026.06.001', 'disabled'],
+            [$statusCandidateModuleKey, '2026.06.001', 'disabled'],
         ] as $row) {
             $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, version, status) VALUES (:module_key, :version, :status)');
             $stmt->execute([
@@ -677,6 +682,17 @@ try {
         if ($inactiveConflictErrors !== []) {
             fwrite(STDERR, "Inactive module replacement route conflict should not be rejected before activation:\n" . implode("\n", $inactiveConflictErrors) . "\n");
             exit(1);
+        }
+
+        try {
+            sr_update_module_status($pdo, $statusCandidateModuleKey, 'enabled');
+            fwrite(STDERR, "Lifecycle status update accepted a conflicting enabled route.\n");
+            exit(1);
+        } catch (RuntimeException $exception) {
+            if (!str_contains($exception->getMessage(), $existingModuleKey) || !str_contains($exception->getMessage(), 'GET /zip-policy/status')) {
+                fwrite(STDERR, 'Lifecycle status update failed for the wrong reason: ' . $exception->getMessage() . "\n");
+                exit(1);
+            }
         }
     } finally {
         foreach ($fixtureModuleKeys as $fixtureModuleKey) {
