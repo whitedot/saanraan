@@ -527,6 +527,37 @@ try {
         }
     }
 
+    $symlinkZipPath = $fixtureRoot . '/symlink.zip';
+    $symlinkZip = new ZipArchive();
+    if ($symlinkZip->open($symlinkZipPath, ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('Cannot create symlink fixture zip.');
+    }
+    $symlinkZip->addFromString('bad/module.php', "<?php\nreturn [];\n");
+    if (!$symlinkZip->setExternalAttributesName('bad/module.php', ZipArchive::OPSYS_UNIX, 0120000 << 16)) {
+        throw new RuntimeException('Cannot mark symlink fixture zip entry.');
+    }
+    $symlinkZip->close();
+
+    try {
+        $symlinkUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($symlinkZipPath),
+            'size' => filesize($symlinkZipPath),
+            'tmp_name' => $symlinkZipPath,
+        ], '');
+        if (is_string($symlinkUploadResult['extract_dir'] ?? null) && is_dir($symlinkUploadResult['extract_dir'])) {
+            sr_remove_directory($symlinkUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a symlink entry was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '심볼릭 링크')) {
+            fwrite(STDERR, 'Symlink upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $conflictPathZip = $fixtureRoot . '/conflict-path.zip';
     $conflictZip = new ZipArchive();
     if ($conflictZip->open($conflictPathZip, ZipArchive::CREATE) !== true) {
