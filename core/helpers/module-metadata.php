@@ -223,6 +223,78 @@ function sr_php_string_list_array_literal(string $block): array
     return array_values(array_unique($values));
 }
 
+function sr_php_static_literal_value_is_safe(string $value): bool
+{
+    $value = trim($value);
+    if ($value === '') {
+        return false;
+    }
+
+    if (preg_match('/\A(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\z/s', $value) === 1) {
+        return true;
+    }
+
+    if (preg_match('/\A-?\d+\z/', $value) === 1) {
+        return true;
+    }
+
+    if (in_array(strtolower($value), ['true', 'false', 'null'], true)) {
+        return true;
+    }
+
+    return sr_php_array_literal_is_static($value);
+}
+
+function sr_php_array_literal_is_static(string $block): bool
+{
+    $block = trim($block);
+    if ($block === '') {
+        return false;
+    }
+
+    $openChar = substr($block, 0, 1);
+    $closeChar = $openChar === '[' ? ']' : ($openChar === '(' ? ')' : '');
+    if ($closeChar === '' || substr($block, -1) !== $closeChar) {
+        return false;
+    }
+
+    $inner = substr($block, 1, -1);
+    if (!is_string($inner)) {
+        return false;
+    }
+
+    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '') {
+            continue;
+        }
+
+        $value = $segment;
+        if (preg_match('/\A((?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"))\s*=>\s*(.+)\z/s', $segment, $matches) === 1) {
+            $key = sr_php_decode_quoted_string((string) $matches[1]);
+            if ($key === '') {
+                return false;
+            }
+
+            $value = trim((string) $matches[2]);
+        } elseif (str_contains($segment, '=>')) {
+            return false;
+        }
+
+        if (!sr_php_static_literal_value_is_safe($value)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function sr_php_return_array_is_static(string $content): bool
+{
+    $block = sr_php_return_array_block($content);
+    return $block !== '' && sr_php_array_literal_is_static($block);
+}
+
 function sr_php_return_array_block(string $content): string
 {
     if (!sr_php_starts_with_return_array($content)) {

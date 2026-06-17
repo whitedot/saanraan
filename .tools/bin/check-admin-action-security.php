@@ -847,6 +847,8 @@ if (
     strpos($moduleSourceSafetyContent, 'function sr_validate_module_source') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_metadata_errors($metadata)') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_contract_file_errors($sourceDir, $metadata)') === false
+    || strpos($moduleSourceSafetyContent, 'sr_php_return_array_is_static($moduleContent)') === false
+    || strpos($moduleSourceSafetyContent, 'module.php는 정적 리터럴 배열만 반환해야 합니다.') === false
 ) {
     $errors[] = 'Admin module source helper must expose shared module metadata and contract validation.';
 }

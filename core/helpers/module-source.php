@@ -769,6 +769,8 @@ function sr_validate_module_source(string $moduleKey, string $sourceDir, array $
         $moduleContent = file_get_contents($sourceDir . '/module.php');
         if (!is_string($moduleContent) || !sr_php_starts_with_return_array($moduleContent)) {
             $errors[] = 'module.php는 정적 return 배열로 시작해야 합니다.';
+        } elseif (!sr_php_return_array_is_static($moduleContent)) {
+            $errors[] = 'module.php는 정적 리터럴 배열만 반환해야 합니다.';
         }
     }
 
