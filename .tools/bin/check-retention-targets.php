@@ -52,6 +52,7 @@ $expectedKeys = [
     'content_asset_access_pending_logs',
     'content_asset_action_pending_logs',
     'community_asset_pending_logs',
+    'module_upload_work_dirs',
     'banner_clicks',
     'notifications',
     'notification_deliveries',
@@ -218,10 +219,13 @@ if (!is_string($retentionHelper)) {
     strpos($retentionHelper, 'sr_admin_post_int_in_range($key, 1, 3650, 5) ?? 0') === false
     || strpos($retentionHelper, "(int) sr_post_string('auth_logs_days', 5)") !== false
     || strpos($retentionHelper, 'function sr_admin_module_backup_dir_is_safe') === false
+    || strpos($retentionHelper, 'function sr_admin_module_upload_work_dir_is_safe') === false
+    || strpos($retentionHelper, "return SR_ROOT . '/storage/module-upload';") === false
+    || strpos($retentionHelper, "preg_match('/\\Aupload-\\d{14}-[a-f0-9]{12}\\z/'") === false
     || strpos($retentionHelper, 'is_link($directory)') === false
     || strpos($retentionHelper, 'strpos($realDirectory, $realRoot . DIRECTORY_SEPARATOR) === 0') === false
 ) {
-    sr_retention_check_error($errors, 'Retention post values and module backup directory filters must stay safe.');
+    sr_retention_check_error($errors, 'Retention post values and module work directory filters must stay safe.');
 }
 
 $backupRoot = sr_admin_module_backup_root();
@@ -263,6 +267,76 @@ try {
     sr_retention_check_remove_path($unsafeBackupLink);
     sr_retention_check_remove_path($safeBackupDir);
     sr_retention_check_remove_path($unsafeTargetDir);
+}
+
+$uploadRoot = sr_admin_module_upload_work_root();
+$uploadFixtureSuffix = bin2hex(random_bytes(6));
+$oldUploadDir = $uploadRoot . '/upload-20260101000000-' . $uploadFixtureSuffix;
+$newUploadDir = $uploadRoot . '/upload-20260617000000-' . $uploadFixtureSuffix;
+$wrongNameUploadDir = $uploadRoot . '/retention-upload-' . $uploadFixtureSuffix;
+$unsafeUploadTargetDir = sys_get_temp_dir() . '/sr-retention-upload-unsafe-' . $uploadFixtureSuffix;
+$unsafeUploadLink = $uploadRoot . '/upload-20260101000001-' . $uploadFixtureSuffix;
+try {
+    if (!is_dir($uploadRoot) && !mkdir($uploadRoot, 0777, true) && !is_dir($uploadRoot)) {
+        sr_retention_check_error($errors, 'Retention upload work fixture root cannot be created.');
+    } else {
+        mkdir($oldUploadDir, 0777, true);
+        file_put_contents($oldUploadDir . '/marker.txt', 'old');
+        touch($oldUploadDir, strtotime('2026-01-01 00:00:00'));
+
+        mkdir($newUploadDir, 0777, true);
+        file_put_contents($newUploadDir . '/marker.txt', 'new');
+        touch($newUploadDir, strtotime('2026-06-17 00:00:00'));
+
+        mkdir($wrongNameUploadDir, 0777, true);
+        file_put_contents($wrongNameUploadDir . '/marker.txt', 'wrong');
+        touch($wrongNameUploadDir, strtotime('2026-01-01 00:00:00'));
+
+        mkdir($unsafeUploadTargetDir, 0777, true);
+        file_put_contents($unsafeUploadTargetDir . '/marker.txt', 'unsafe');
+        $uploadSymlinkCreated = symlink($unsafeUploadTargetDir, $unsafeUploadLink);
+
+        $uploadDirs = sr_admin_module_upload_work_dirs();
+        if (!in_array($oldUploadDir, $uploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload fixture did not include a safe upload work directory.');
+        }
+
+        if (in_array($wrongNameUploadDir, $uploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload fixture included a wrong-name directory.');
+        }
+
+        if ($uploadSymlinkCreated && in_array($unsafeUploadLink, $uploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload fixture included an unsafe symlink directory.');
+        }
+
+        $oldUploadDirs = sr_admin_retention_module_upload_work_dirs('2026-01-02 00:00:00');
+        if (!in_array($oldUploadDir, $oldUploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload cutoff fixture did not include an old safe work directory.');
+        }
+
+        if (in_array($newUploadDir, $oldUploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload cutoff fixture included a newer work directory.');
+        }
+
+        if (in_array($wrongNameUploadDir, $oldUploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload cutoff fixture included a wrong-name directory.');
+        }
+
+        if ($uploadSymlinkCreated && in_array($unsafeUploadLink, $oldUploadDirs, true)) {
+            sr_retention_check_error($errors, 'Retention module upload cutoff fixture included an unsafe symlink directory.');
+        }
+
+        $deletedUploads = sr_admin_retention_delete_module_upload_work_dirs('2026-01-02 00:00:00', 1);
+        if ($deletedUploads !== 1 || is_dir($oldUploadDir) || !is_dir($newUploadDir) || !is_dir($wrongNameUploadDir)) {
+            sr_retention_check_error($errors, 'Retention module upload delete fixture did not respect cutoff, safety filter, and limit.');
+        }
+    }
+} finally {
+    sr_retention_check_remove_path($unsafeUploadLink);
+    sr_retention_check_remove_path($oldUploadDir);
+    sr_retention_check_remove_path($newUploadDir);
+    sr_retention_check_remove_path($wrongNameUploadDir);
+    sr_retention_check_remove_path($unsafeUploadTargetDir);
 }
 
 if ($errors !== []) {

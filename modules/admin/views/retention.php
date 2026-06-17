@@ -277,6 +277,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
                                 <td><?php echo sr_e((string) $previewCounts['community_asset_pending_logs']); ?></td>
                             </tr>
+                            <tr>
+                                <td><?php echo sr_e(sr_t('admin::retention.module_upload_work_dirs')); ?></td>
+                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
+                                <td><?php echo sr_e((string) $previewCounts['module_upload_work_dirs']); ?></td>
+                            </tr>
                             <?php if (array_key_exists('banner_clicks', $previewCounts)) { ?>
                                 <tr>
                                     <td><?php echo sr_e(sr_t('admin::ui.banner_clicks.retention_target')); ?></td>

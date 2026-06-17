@@ -428,6 +428,13 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
                 'cutoff' => 'sessions',
             ],
         ],
+        'module_upload_work_dirs' => [
+            'enabled' => true,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'sessions',
+            'count_callback' => 'sr_admin_retention_module_upload_work_dir_count',
+            'delete_callback' => 'sr_admin_retention_delete_module_upload_work_dirs',
+        ],
         'banner_clicks' => [
             'enabled' => $hasBannerClickTables,
             'auto_scope' => 'public',
@@ -590,6 +597,7 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
         'content_asset_access_pending_logs',
         'content_asset_action_pending_logs',
         'community_asset_pending_logs',
+        'module_upload_work_dirs',
         'banner_clicks',
         'notification_deliveries',
         'notification_reads',
@@ -629,14 +637,18 @@ function sr_admin_module_backup_root(): string
     return SR_ROOT . '/storage/module-backups';
 }
 
-function sr_admin_module_backup_dir_is_safe(string $directory): bool
+function sr_admin_module_upload_work_root(): string
+{
+    return SR_ROOT . '/storage/module-upload';
+}
+
+function sr_admin_module_work_dir_is_safe(string $directory, string $root): bool
 {
     if ($directory === '' || is_link($directory) || !is_dir($directory)) {
         return false;
     }
 
-    $backupRoot = sr_admin_module_backup_root();
-    $realRoot = realpath($backupRoot);
+    $realRoot = realpath($root);
     $realDirectory = realpath($directory);
     if ($realRoot === false || $realDirectory === false) {
         return false;
@@ -645,21 +657,31 @@ function sr_admin_module_backup_dir_is_safe(string $directory): bool
     return $realDirectory !== $realRoot && strpos($realDirectory, $realRoot . DIRECTORY_SEPARATOR) === 0;
 }
 
-function sr_admin_module_backup_dirs(): array
+function sr_admin_module_backup_dir_is_safe(string $directory): bool
 {
-    $backupRoot = sr_admin_module_backup_root();
-    if (!is_dir($backupRoot)) {
+    return sr_admin_module_work_dir_is_safe($directory, sr_admin_module_backup_root());
+}
+
+function sr_admin_module_upload_work_dir_is_safe(string $directory): bool
+{
+    return sr_admin_module_work_dir_is_safe($directory, sr_admin_module_upload_work_root())
+        && preg_match('/\Aupload-\d{14}-[a-f0-9]{12}\z/', basename($directory)) === 1;
+}
+
+function sr_admin_module_work_dirs(string $root, callable $isSafe): array
+{
+    if (!is_dir($root)) {
         return [];
     }
 
-    $directories = glob($backupRoot . '/*', GLOB_ONLYDIR);
+    $directories = glob($root . '/*', GLOB_ONLYDIR);
     if (!is_array($directories)) {
         return [];
     }
 
     $safeDirectories = [];
     foreach ($directories as $directory) {
-        if (sr_admin_module_backup_dir_is_safe($directory)) {
+        if ($isSafe($directory)) {
             $safeDirectories[] = $directory;
         }
     }
@@ -668,7 +690,17 @@ function sr_admin_module_backup_dirs(): array
     return $safeDirectories;
 }
 
-function sr_admin_retention_module_backup_dirs(string $cutoff): array
+function sr_admin_module_backup_dirs(): array
+{
+    return sr_admin_module_work_dirs(sr_admin_module_backup_root(), 'sr_admin_module_backup_dir_is_safe');
+}
+
+function sr_admin_module_upload_work_dirs(): array
+{
+    return sr_admin_module_work_dirs(sr_admin_module_upload_work_root(), 'sr_admin_module_upload_work_dir_is_safe');
+}
+
+function sr_admin_retention_old_module_dirs(array $directories, string $cutoff): array
 {
     $cutoffTime = strtotime($cutoff);
     if ($cutoffTime === false) {
@@ -676,7 +708,7 @@ function sr_admin_retention_module_backup_dirs(string $cutoff): array
     }
 
     $oldDirectories = [];
-    foreach (sr_admin_module_backup_dirs() as $directory) {
+    foreach ($directories as $directory) {
         $modifiedAt = filemtime($directory);
         if ($modifiedAt !== false && $modifiedAt < $cutoffTime) {
             $oldDirectories[] = $directory;
@@ -687,15 +719,29 @@ function sr_admin_retention_module_backup_dirs(string $cutoff): array
     return $oldDirectories;
 }
 
+function sr_admin_retention_module_backup_dirs(string $cutoff): array
+{
+    return sr_admin_retention_old_module_dirs(sr_admin_module_backup_dirs(), $cutoff);
+}
+
+function sr_admin_retention_module_upload_work_dirs(string $cutoff): array
+{
+    return sr_admin_retention_old_module_dirs(sr_admin_module_upload_work_dirs(), $cutoff);
+}
+
 function sr_admin_retention_module_backup_count(string $cutoff): int
 {
     return count(sr_admin_retention_module_backup_dirs($cutoff));
 }
 
-function sr_admin_retention_delete_module_backups(string $cutoff, ?int $limit = null): int
+function sr_admin_retention_module_upload_work_dir_count(string $cutoff): int
+{
+    return count(sr_admin_retention_module_upload_work_dirs($cutoff));
+}
+
+function sr_admin_retention_delete_module_directories(array $directories, ?int $limit = null): int
 {
     $deletedCount = 0;
-    $directories = sr_admin_retention_module_backup_dirs($cutoff);
     $deleteLimit = $limit !== null ? max(0, $limit) : null;
 
     foreach ($directories as $directory) {
@@ -703,11 +749,26 @@ function sr_admin_retention_delete_module_backups(string $cutoff, ?int $limit = 
             break;
         }
 
-        sr_admin_remove_directory($directory);
+        if (function_exists('sr_admin_remove_directory')) {
+            sr_admin_remove_directory($directory);
+        } else {
+            require_once SR_ROOT . '/core/helpers/module-source.php';
+            sr_remove_directory($directory);
+        }
         $deletedCount++;
     }
 
     return $deletedCount;
+}
+
+function sr_admin_retention_delete_module_backups(string $cutoff, ?int $limit = null): int
+{
+    return sr_admin_retention_delete_module_directories(sr_admin_retention_module_backup_dirs($cutoff), $limit);
+}
+
+function sr_admin_retention_delete_module_upload_work_dirs(string $cutoff, ?int $limit = null): int
+{
+    return sr_admin_retention_delete_module_directories(sr_admin_retention_module_upload_work_dirs($cutoff), $limit);
 }
 
 function sr_admin_retention_delete_count(PDO $pdo, string $sql, array $params): int

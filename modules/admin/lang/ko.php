@@ -75,6 +75,7 @@ return [
     'retention.help.module_backups.body.2' => '보관일보다 오래된 백업은 정리 실행 때 삭제 대상이 됩니다. 최근 변경을 되돌릴 가능성을 고려해 정하세요.',
     'retention.help.module_backups.body.3' => '백업 폴더가 마지막으로 바뀐 시간이 보관일보다 오래되면 정리 대상입니다. 정리 실행 버튼을 누르면 바로 정리되고, 자동 정리를 켜두면 관리자가 관리자 화면을 열 때 설정한 간격에 맞춰 정리됩니다.',
     'retention.help.module_backups.title' => '모듈 백업 보관일 도움말',
+    'retention.module_upload_work_dirs' => '모듈 zip 임시 작업 디렉터리',
     'retention.help.notifications.body.1' => '알림 보관일은 알림, 발송 기록, 읽음 기록을 얼마나 오래 남길지 정합니다.',
     'retention.help.notifications.body.2' => '알림 모듈 테이블이 있을 때만 표시되며, 보관일보다 오래된 알림 데이터는 정리 대상이 됩니다.',
     'retention.help.notifications.body.3' => '알림이 만들어진 시간이 보관일보다 오래되면 정리 대상입니다. 정리 실행 버튼을 누르면 바로 정리되고, 자동 정리를 켜두면 방문자가 사이트 화면을 열 때 설정한 간격에 맞춰 정리됩니다.',
