@@ -545,8 +545,9 @@ if (!is_string($adminModulesView)) {
     $errors[] = 'Admin modules view must collect owner reauthentication for module source writes.';
 }
 if (is_string($adminModulesView) && (
-    strpos($adminModulesView, 'if ($canManageModuleSources && $moduleUploadAvailable && !$moduleSourcesEnabled)') === false
-    || strpos($adminModulesView, 'elseif ($canManageModuleSources && $moduleUploadAvailable && $moduleSourcesEnabled)') === false
+    strpos($adminModulesView, 'if ($canManageModuleSources && !$moduleSourcesEnabled)') === false
+    || strpos($adminModulesView, 'elseif ($canManageModuleSources && $moduleSourcesEnabled)') === false
+    || strpos($adminModulesView, 'if ($moduleUploadAvailable)') === false
     || strpos($adminModulesView, '$moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled)') === false
     || strpos($adminModulesView, 'if (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled)') === false
     || strpos($adminModulesView, '모듈 zip 업로드는 소유자 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.') === false

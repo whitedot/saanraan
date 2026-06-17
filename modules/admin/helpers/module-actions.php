@@ -42,10 +42,6 @@ function sr_admin_handle_modules_post(
             $errors[] = '모듈 소스 반영은 소유자 권한이 필요합니다.';
         }
 
-        if (!$moduleUploadAvailable) {
-            $errors[] = 'PHP ZipArchive 확장이 없어 모듈 zip 업로드를 허용할 수 없습니다.';
-        }
-
         if ($moduleSourcesEnabled) {
             $errors[] = '모듈 파일 반영은 이미 일시 허용되어 있습니다.';
         }

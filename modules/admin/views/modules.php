@@ -74,16 +74,18 @@ $installedSections = [
 
 <div class="admin-section-heading">
     <h2>모듈 파일 반영</h2>
-    <?php if ($canManageModuleSources && $moduleUploadAvailable && !$moduleSourcesEnabled) { ?>
+    <?php if ($canManageModuleSources && !$moduleSourcesEnabled) { ?>
         <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-source-enable-modal" data-overlay="#module-source-enable-modal">
             <?php echo sr_material_icon_html('lock_open'); ?>
             <span>일시 허용</span>
         </button>
-    <?php } elseif ($canManageModuleSources && $moduleUploadAvailable && $moduleSourcesEnabled) { ?>
-        <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
-            <?php echo sr_material_icon_html('upload'); ?>
-            <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
-        </button>
+    <?php } elseif ($canManageModuleSources && $moduleSourcesEnabled) { ?>
+        <?php if ($moduleUploadAvailable) { ?>
+            <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
+                <?php echo sr_material_icon_html('upload'); ?>
+                <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
+            </button>
+        <?php } ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-inline-edit-form">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="disable_module_source_writes">
@@ -92,18 +94,17 @@ $installedSections = [
                 <span>허용 닫기</span>
             </button>
         </form>
-    <?php } elseif ($canManageModuleSources) { ?>
-        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal">
-            <?php echo sr_material_icon_html('upload'); ?>
-            <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
-        </button>
     <?php } ?>
 </div>
 <section class="card admin-list-card">
-    <?php if (!$moduleUploadAvailable) { ?>
-        <p>PHP ZipArchive 확장이 없어 zip 업로드를 처리할 수 없습니다. FTP나 호스팅 파일 관리자로 모듈 파일을 배치하세요.</p>
-    <?php } elseif ($moduleSourcesEnabled) { ?>
-        <p>모듈 파일 반영이 일시 허용되어 있습니다. zip 업로드 또는 파일 업데이트 반영을 마치면 자동으로 닫히며, 필요하면 즉시 허용을 닫을 수 있습니다.</p>
+    <?php if ($moduleSourcesEnabled) { ?>
+        <?php if ($moduleUploadAvailable) { ?>
+            <p>모듈 파일 반영이 일시 허용되어 있습니다. zip 업로드 또는 파일 업데이트 반영을 마치면 자동으로 닫히며, 필요하면 즉시 허용을 닫을 수 있습니다.</p>
+        <?php } else { ?>
+            <p>모듈 파일 반영이 일시 허용되어 있습니다. ZipArchive 확장이 없어 zip 업로드는 사용할 수 없지만, 파일 업데이트 반영은 실행할 수 있습니다.</p>
+        <?php } ?>
+    <?php } elseif (!$moduleUploadAvailable) { ?>
+        <p>PHP ZipArchive 확장이 없어 zip 업로드를 처리할 수 없습니다. 파일 전용 업데이트 반영은 소유자 비밀번호 재확인 후 일시 허용해 사용할 수 있습니다.</p>
     <?php } else { ?>
         <p>모듈 zip 업로드와 파일 전용 업데이트 반영은 소유자 비밀번호 재확인 후 일시 허용됩니다. 기본 운영 경로는 FTP나 호스팅 파일 관리자로 파일을 배치한 뒤 설치와 업데이트를 진행하는 방식입니다.</p>
     <?php } ?>
@@ -571,7 +572,11 @@ $installedSections = [
                         <input id="admin_modules_source_enable_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input" data-overlay-focus>
                     </div>
                 </div>
-                <p>허용 후 모듈 zip 업로드와 파일 전용 업데이트 반영을 실행할 수 있습니다. zip 업로드가 끝나면 허용 값은 자동으로 다시 꺼집니다.</p>
+                <?php if ($moduleUploadAvailable) { ?>
+                    <p>허용 후 모듈 zip 업로드와 파일 전용 업데이트 반영을 실행할 수 있습니다. zip 업로드가 끝나면 허용 값은 자동으로 다시 꺼집니다.</p>
+                <?php } else { ?>
+                    <p>허용 후 파일 전용 업데이트 반영을 실행할 수 있습니다. ZipArchive 확장이 없어 zip 업로드는 사용할 수 없습니다.</p>
+                <?php } ?>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-source-enable-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
