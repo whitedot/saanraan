@@ -424,6 +424,11 @@ function sr_module_source_file_errors(string $sourceDir): array
             continue;
         }
 
+        if ($item->isDir() && sr_module_source_is_server_config_name($basename)) {
+            $errors[] = '모듈 zip에는 서버 설정 또는 비밀 디렉터리를 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
         if ($item->isDir() && sr_module_source_is_credential_meta_name($basename)) {
             $errors[] = '모듈 zip에는 인증 정보 디렉터리를 포함할 수 없습니다: ' . $relative;
             continue;
@@ -435,6 +440,11 @@ function sr_module_source_file_errors(string $sourceDir): array
 
         if (sr_module_source_is_repository_meta_name($basename)) {
             $errors[] = '모듈 zip에는 저장소 메타 파일을 포함할 수 없습니다: ' . $relative;
+            continue;
+        }
+
+        if (sr_module_source_is_credential_meta_name($basename)) {
+            $errors[] = '모듈 zip에는 인증 정보 파일을 포함할 수 없습니다: ' . $relative;
             continue;
         }
 

@@ -236,6 +236,33 @@ try {
         }
     }
 
+    $blockedNameVariantDir = $fixtureRoot . '/blocked-name-variants';
+    mkdir($blockedNameVariantDir, 0777, true);
+    foreach ([
+        '.env/production',
+        '.aws',
+        '.ssh',
+    ] as $relative) {
+        sr_check_module_source_policy_write_file($blockedNameVariantDir, $relative);
+    }
+
+    $blockedNameVariantErrors = sr_module_source_file_errors($blockedNameVariantDir);
+    foreach (['.env', '.aws', '.ssh'] as $relative) {
+        $found = false;
+        foreach ($blockedNameVariantErrors as $error) {
+            if (str_contains($error, $relative)) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            fwrite(STDERR, 'Blocked sensitive name variant fixture was not rejected: ' . $relative . "\n");
+            fwrite(STDERR, implode("\n", $blockedNameVariantErrors) . "\n");
+            exit(1);
+        }
+    }
+
     $packageDir = $fixtureRoot . '/package';
     mkdir($packageDir . '/module/assets', 0777, true);
     foreach ([

@@ -89,7 +89,7 @@ git checkout origin/main -- modules/point
 
 zip 업로드는 DB 업데이트를 자동 실행하지 않는다.
 
-zip 업로드 단계는 업로드된 PHP 코드를 실행하지 않고 검사한다. 따라서 contract 파일의 반환 shape나 PHP 문법 전체를 완전히 검증하지 않는다. PHP 문법 검사는 배포 전 `php .tools/bin/check.php` 같은 정적 검사에서 수행하고, 업로드 단계는 파일명, 확장자, 경로, 필수 파일, 메타데이터, 계약 선언처럼 실행 없이 판정할 수 있는 항목을 거부 기준으로 삼는다. `module.php`는 문자열, 숫자, bool, null, 배열 리터럴만 포함한 정적 return 배열이어야 하며 함수 호출이나 동적 expression은 거부한다. zip 하나에는 유효한 모듈 구조가 하나만 있어야 하며, 여러 모듈 구조가 발견되면 자동 선택하지 않고 거부한다. 금지 파일 검사는 선택된 모듈 폴더뿐 아니라 압축 해제된 zip 전체에 적용한다. 예를 들어 `.env`, `.env.*`, `.htaccess`, `.user.ini`, `web.config`, 저장소 메타 파일/디렉터리, 패키지 레지스트리 인증 파일, SSH key/key store 파일, 클라우드·컨테이너·Kubernetes 인증 정보 파일/디렉터리, DB 파일, 백업 파일, `.phar`, `.phtml`, `.pht`, `.php7`, `.php8`, `.cgi`, `.shtml`, shell/binary 실행 파일은 거부한다. 공개 URL로 제공되는 `assets/` 아래에는 정적 자산만 둘 수 있으며 `.php`, `.phar`, `.phtml`, `.php7`, `.php8`, `.sql` 같은 실행 또는 내부 데이터 파일은 거부한다.
+zip 업로드 단계는 업로드된 PHP 코드를 실행하지 않고 검사한다. 따라서 contract 파일의 반환 shape나 PHP 문법 전체를 완전히 검증하지 않는다. PHP 문법 검사는 배포 전 `php .tools/bin/check.php` 같은 정적 검사에서 수행하고, 업로드 단계는 파일명, 확장자, 경로, 필수 파일, 메타데이터, 계약 선언처럼 실행 없이 판정할 수 있는 항목을 거부 기준으로 삼는다. `module.php`는 문자열, 숫자, bool, null, 배열 리터럴만 포함한 정적 return 배열이어야 하며 함수 호출이나 동적 expression은 거부한다. zip 하나에는 유효한 모듈 구조가 하나만 있어야 하며, 여러 모듈 구조가 발견되면 자동 선택하지 않고 거부한다. 금지 파일 검사는 선택된 모듈 폴더뿐 아니라 압축 해제된 zip 전체에 적용한다. 예를 들어 `.env`, `.env.*`, `.htaccess`, `.user.ini`, `web.config`, 저장소 메타 파일/디렉터리, 패키지 레지스트리 인증 파일, SSH key/key store 파일, 클라우드·컨테이너·Kubernetes 인증 정보 파일/디렉터리, DB 파일, 백업 파일, `.phar`, `.phtml`, `.pht`, `.php7`, `.php8`, `.cgi`, `.shtml`, shell/binary 실행 파일은 거부한다. 이때 서버 설정·비밀 이름과 인증 정보 메타 이름은 같은 이름의 파일뿐 아니라 디렉터리도 거부한다. 공개 URL로 제공되는 `assets/` 아래에는 정적 자산만 둘 수 있으며 `.php`, `.phar`, `.phtml`, `.php7`, `.php8`, `.sql` 같은 실행 또는 내부 데이터 파일은 거부한다.
 
 ## 설치
 
