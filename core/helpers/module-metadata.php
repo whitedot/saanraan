@@ -152,6 +152,77 @@ function sr_php_string_list_array_value(string $content, string $key): array
     return array_values(array_unique($values));
 }
 
+function sr_php_array_literal_entries(string $block): ?array
+{
+    $block = trim($block);
+    if ($block === '') {
+        return null;
+    }
+
+    $openChar = substr($block, 0, 1);
+    $closeChar = $openChar === '[' ? ']' : ($openChar === '(' ? ')' : '');
+    if ($closeChar === '' || substr($block, -1) !== $closeChar) {
+        return null;
+    }
+
+    $inner = substr($block, 1, -1);
+    if (!is_string($inner)) {
+        return null;
+    }
+
+    $entries = [];
+    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '') {
+            continue;
+        }
+
+        if (preg_match('/\A((?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"))\s*=>\s*(.+)\z/s', $segment, $matches) !== 1) {
+            return null;
+        }
+
+        $key = sr_php_decode_quoted_string((string) $matches[1]);
+        if ($key === '') {
+            return null;
+        }
+
+        $entries[$key] = trim((string) $matches[2]);
+    }
+
+    return $entries;
+}
+
+function sr_php_string_list_array_literal(string $block): array
+{
+    $block = trim($block);
+    $openChar = substr($block, 0, 1);
+    $closeChar = $openChar === '[' ? ']' : ($openChar === '(' ? ')' : '');
+    if ($closeChar === '' || substr($block, -1) !== $closeChar) {
+        return [];
+    }
+
+    $values = [];
+    $inner = substr($block, 1, -1);
+    if (!is_string($inner)) {
+        return [];
+    }
+
+    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '') {
+            continue;
+        }
+
+        if (preg_match('/\A(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\z/s', $segment) !== 1) {
+            return [];
+        }
+
+        $values[] = sr_php_decode_quoted_string($segment);
+    }
+
+    return array_values(array_unique($values));
+}
+
 function sr_php_return_array_block(string $content): string
 {
     if (!sr_php_starts_with_return_array($content)) {
@@ -205,31 +276,7 @@ function sr_php_top_level_array_entries(string $content): ?array
         return null;
     }
 
-    $inner = substr($block, 1, -1);
-    if (!is_string($inner)) {
-        return null;
-    }
-
-    $entries = [];
-    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
-        $segment = trim($segment);
-        if ($segment === '') {
-            continue;
-        }
-
-        if (preg_match('/\A((?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"))\s*=>\s*(.+)\z/s', $segment, $matches) !== 1) {
-            return null;
-        }
-
-        $key = sr_php_decode_quoted_string((string) $matches[1]);
-        if ($key === '') {
-            return null;
-        }
-
-        $entries[$key] = trim((string) $matches[2]);
-    }
-
-    return $entries;
+    return sr_php_array_literal_entries($block);
 }
 
 function sr_php_split_top_level_array_segments(string $content): array
@@ -530,14 +577,19 @@ function sr_php_saanraan_metadata(string $content): array
     }
 
     $saanraan = [];
+    $saanraanEntries = sr_php_array_literal_entries($block);
+    if (!is_array($saanraanEntries)) {
+        return [];
+    }
+
     foreach (['min_version', 'module_contract'] as $key) {
-        $value = sr_php_string_array_value($block, $key);
+        $value = sr_php_top_level_string_value($saanraanEntries, $key);
         if ($value !== '') {
             $saanraan[$key] = $value;
         }
     }
 
-    $testedWith = sr_php_string_list_array_value($block, 'tested_with');
+    $testedWith = sr_php_string_list_array_literal((string) ($saanraanEntries['tested_with'] ?? ''));
     if ($testedWith !== []) {
         $saanraan['tested_with'] = $testedWith;
     }
@@ -554,8 +606,13 @@ function sr_php_contracts_metadata(string $content): array
     }
 
     $contracts = [];
+    $contractEntries = sr_php_array_literal_entries($block);
+    if (!is_array($contractEntries)) {
+        return [];
+    }
+
     foreach (['provides', 'consumes'] as $key) {
-        $values = sr_php_string_list_array_value($block, $key);
+        $values = sr_php_string_list_array_literal((string) ($contractEntries[$key] ?? ''));
         if ($values !== []) {
             $contracts[$key] = $values;
         }

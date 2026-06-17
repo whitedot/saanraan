@@ -312,6 +312,31 @@ try {
         exit(1);
     }
 
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Nested Saanraan Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'compat' => [\n"
+        . "            'min_version' => '0.2.0',\n"
+        . "            'module_contract' => '2.0',\n"
+        . "        ],\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $nestedSaanraanMetadata = sr_load_module_metadata_from_file($moduleContentDir . '/module.php');
+    $nestedSaanraanErrors = sr_module_metadata_errors($nestedSaanraanMetadata);
+    if (
+        !in_array('module.php의 saanraan.module_contract가 필요합니다.', $nestedSaanraanErrors, true)
+        || !in_array('module.php의 saanraan.min_version이 필요합니다.', $nestedSaanraanErrors, true)
+    ) {
+        fwrite(STDERR, "Nested saanraan scalar values were read as top-level metadata:\n" . implode("\n", $nestedSaanraanErrors) . "\n");
+        exit(1);
+    }
+
     sr_check_module_source_policy_write_file($moduleContentDir, 'paths.php');
     file_put_contents(
         $moduleContentDir . '/module.php',
@@ -332,6 +357,30 @@ try {
     $nestedContractErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
     if (!in_array('paths.php 파일은 module.php의 contracts.provides에 선언해야 합니다.', $nestedContractErrors, true)) {
         fwrite(STDERR, "Nested contracts.provides list was read as a flat contract file list:\n" . implode("\n", $nestedContractErrors) . "\n");
+        exit(1);
+    }
+
+    file_put_contents(
+        $moduleContentDir . '/module.php',
+        "<?php\nreturn [\n"
+        . "    'name' => 'Nested Contract Key Module',\n"
+        . "    'version' => '2026.06.001',\n"
+        . "    'type' => 'module',\n"
+        . "    'saanraan' => [\n"
+        . "        'min_version' => '0.2.0',\n"
+        . "        'tested_with' => ['0.2.0'],\n"
+        . "        'module_contract' => '2.0',\n"
+        . "    ],\n"
+        . "    'contracts' => [\n"
+        . "        'wrapped' => [\n"
+        . "            'provides' => ['paths.php'],\n"
+        . "        ],\n"
+        . "    ],\n"
+        . "];\n"
+    );
+    $nestedContractKeyErrors = sr_validate_module_source('modulecontent', $moduleContentDir, sr_load_module_metadata_from_file($moduleContentDir . '/module.php'));
+    if (!in_array('paths.php 파일은 module.php의 contracts.provides에 선언해야 합니다.', $nestedContractKeyErrors, true)) {
+        fwrite(STDERR, "Nested contracts.provides key was read as a top-level contract file list:\n" . implode("\n", $nestedContractKeyErrors) . "\n");
         exit(1);
     }
 
