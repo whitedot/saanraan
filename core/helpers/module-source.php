@@ -230,6 +230,8 @@ function sr_module_zip_upload_stats(ZipArchive $zip): array
     $uncompressedBytes = 0;
     $maxEntries = 1000;
     $maxUncompressedBytes = sr_module_source_uncompressed_limit_bytes();
+    $entries = [];
+    $seenPaths = [];
 
     if ($entryCount < 1 || $entryCount > $maxEntries) {
         throw new RuntimeException('zip 파일 항목 수가 허용 범위를 벗어났습니다.');
@@ -240,6 +242,16 @@ function sr_module_zip_upload_stats(ZipArchive $zip): array
         if (!is_string($entry) || !sr_module_zip_entry_is_safe($entry)) {
             throw new RuntimeException('zip 안에 안전하지 않은 경로가 있습니다.');
         }
+
+        $normalizedPath = rtrim($entry, '/');
+        if (isset($seenPaths[$normalizedPath])) {
+            throw new RuntimeException('zip 안에 중복된 경로가 있습니다: ' . $normalizedPath);
+        }
+        $seenPaths[$normalizedPath] = true;
+        $entries[] = [
+            'path' => $normalizedPath,
+            'is_dir' => str_ends_with($entry, '/'),
+        ];
 
         if (sr_module_zip_entry_is_symlink($zip, $i)) {
             throw new RuntimeException('zip 안에 심볼릭 링크가 있습니다.');
@@ -261,10 +273,48 @@ function sr_module_zip_upload_stats(ZipArchive $zip): array
         }
     }
 
+    foreach (sr_module_zip_entry_path_conflicts($entries) as $conflict) {
+        throw new RuntimeException('zip 안에 파일과 디렉터리 경로가 충돌합니다: ' . $conflict);
+    }
+
     return [
         'entry_count' => $entryCount,
         'uncompressed_bytes' => $uncompressedBytes,
     ];
+}
+
+function sr_module_zip_entry_path_conflicts(array $entries): array
+{
+    $files = [];
+    foreach ($entries as $entry) {
+        $path = (string) ($entry['path'] ?? '');
+        if ($path === '' || !empty($entry['is_dir'])) {
+            continue;
+        }
+
+        $files[$path] = true;
+    }
+
+    $conflicts = [];
+    foreach (array_keys($files) as $filePath) {
+        $segments = explode('/', $filePath);
+        array_pop($segments);
+        $parent = '';
+        foreach ($segments as $segment) {
+            $parent = $parent === '' ? $segment : $parent . '/' . $segment;
+            if (isset($files[$parent])) {
+                $conflicts[] = $parent . ' / ' . $filePath;
+            }
+        }
+
+        foreach (array_keys($files) as $otherFilePath) {
+            if ($otherFilePath !== $filePath && str_starts_with($otherFilePath, $filePath . '/')) {
+                $conflicts[] = $filePath . ' / ' . $otherFilePath;
+            }
+        }
+    }
+
+    return array_values(array_unique($conflicts));
 }
 
 function sr_validate_extracted_module_tree(string $extractDir): void

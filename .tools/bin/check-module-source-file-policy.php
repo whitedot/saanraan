@@ -482,6 +482,35 @@ try {
         }
     }
 
+    $conflictPathZip = $fixtureRoot . '/conflict-path.zip';
+    $conflictZip = new ZipArchive();
+    if ($conflictZip->open($conflictPathZip, ZipArchive::CREATE) !== true) {
+        throw new RuntimeException('Cannot create conflict path fixture zip.');
+    }
+    $conflictZip->addFromString('bad/assets', 'file');
+    $conflictZip->addFromString('bad/assets/app.js', 'js');
+    $conflictZip->close();
+
+    try {
+        $conflictUploadResult = sr_extract_module_upload([
+            'error' => UPLOAD_ERR_OK,
+            'name' => basename($conflictPathZip),
+            'size' => filesize($conflictPathZip),
+            'tmp_name' => $conflictPathZip,
+        ], '');
+        if (is_string($conflictUploadResult['extract_dir'] ?? null) && is_dir($conflictUploadResult['extract_dir'])) {
+            sr_remove_directory($conflictUploadResult['extract_dir']);
+        }
+
+        fwrite(STDERR, "Upload fixture with a file/directory path conflict was accepted.\n");
+        exit(1);
+    } catch (Throwable $exception) {
+        if (!str_contains($exception->getMessage(), '파일과 디렉터리 경로가 충돌')) {
+            fwrite(STDERR, 'File/directory path conflict upload fixture failed for the wrong reason: ' . $exception->getMessage() . "\n");
+            exit(1);
+        }
+    }
+
     $uploadDir = $fixtureRoot . '/upload';
     mkdir($uploadDir . '/pkg/module', 0777, true);
     sr_check_module_source_policy_write_file($uploadDir, 'pkg/.env.local');

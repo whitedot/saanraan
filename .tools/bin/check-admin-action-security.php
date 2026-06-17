@@ -814,9 +814,11 @@ $moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecyc
 if (
     strpos($moduleSourceSafetyContent, 'function sr_module_zip_entry_is_symlink') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_zip_entry_is_symlink($zip, $i)') === false
+    || strpos($moduleSourceSafetyContent, 'function sr_module_zip_entry_path_conflicts') === false
     || strpos($moduleSourceSafetyContent, 'zip 안에 심볼릭 링크가 있습니다.') === false
+    || strpos($moduleSourceSafetyContent, '파일과 디렉터리 경로가 충돌합니다') === false
 ) {
-    $errors[] = 'Admin module source zip checks must reject symlink entries before extraction.';
+    $errors[] = 'Admin module source zip checks must reject symlink and file/directory conflict entries before extraction.';
 }
 if (
     strpos($moduleSourceSafetyContent, "preg_match('/[\\x00-\\x1F\\x7F]/', \$name)") === false
