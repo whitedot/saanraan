@@ -130,8 +130,12 @@ if (!is_string($communityAttachment)) {
     }
 }
 
-$communityAssets = file_get_contents($root . '/modules/community/helpers/assets.php');
-if (!is_string($communityAssets)) {
+$communityAssetsBase = file_get_contents($root . '/modules/community/helpers/assets.php');
+$communityAssetsEvents = file_get_contents($root . '/modules/community/helpers/asset-events.php');
+$communityAssets = (is_string($communityAssetsBase) ? $communityAssetsBase : '')
+    . "\n"
+    . (is_string($communityAssetsEvents) ? $communityAssetsEvents : '');
+if (!is_string($communityAssetsBase) || !is_string($communityAssetsEvents)) {
     $errors[] = 'Community asset helper cannot be read.';
 } else {
     if (strpos($communityAssets, "return in_array(\$chargePolicy, ['once', 'every_view', 'every_download', 'every_action'], true);") === false) {

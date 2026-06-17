@@ -455,6 +455,8 @@ sr_reward_check_file('modules/community/install.sql', [
 sr_reward_check_file('modules/community/helpers/assets.php', [
     'sr_community_asset_policy_requires_confirmation',
     'sr_community_asset_log_status_pending',
+]);
+sr_reward_check_file('modules/community/helpers/asset-events.php', [
     'sr_community_grant_access_entitlement',
     'sr_community_has_asset_event_history',
     'sr_community_has_coupon_access_history',

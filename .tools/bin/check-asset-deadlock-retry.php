@@ -27,9 +27,14 @@ if (
     $errors[] = 'Content asset operations must retry retryable top-level ledger transaction failures.';
 }
 
-$community = file_get_contents($root . '/modules/community/helpers/assets.php');
+$communityBase = file_get_contents($root . '/modules/community/helpers/assets.php');
+$communityEvents = file_get_contents($root . '/modules/community/helpers/asset-events.php');
+$community = (is_string($communityBase) ? $communityBase : '')
+    . "\n"
+    . (is_string($communityEvents) ? $communityEvents : '');
 if (
-    !is_string($community)
+    !is_string($communityBase)
+    || !is_string($communityEvents)
     || strpos($community, 'function sr_community_asset_retry_operation(PDO $pdo, callable $operation): array') === false
     || strpos($community, 'function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId') === false
     || substr_count($community, 'sr_community_asset_is_retryable_transaction_exception($exception)') < 2

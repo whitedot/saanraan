@@ -418,13 +418,17 @@ foreach ([
         'sr_content_delete_asset_action_placeholder',
     ],
     'modules/community/helpers/assets.php' => [
+        'sr_community_asset_log_status_pending()',
+        'sr_community_asset_log_status_completed()',
+        'sr_community_asset_confirmation_request_token_valid',
+    ],
+    'modules/community/helpers/asset-events.php' => [
         '$insertVerb = \'INSERT IGNORE\';',
         '$insertVerb = \'INSERT OR IGNORE\';',
         '$insertVerb . \' INTO sr_community_asset_logs',
         'sr_community_asset_log_status_pending()',
         'sr_community_asset_log_status_completed()',
         'sr_community_delete_asset_log_placeholder',
-        'sr_community_asset_confirmation_request_token_valid',
     ],
 ] as $file => $markers) {
     sr_asset_idempotency_contains($file, $markers);
@@ -528,7 +532,7 @@ foreach ([
     }
 }
 
-$communityHelpers = 'modules/community/helpers/assets.php';
+$communityHelpers = 'modules/community/helpers/asset-events.php';
 foreach ([
     'sr_community_insert_asset_log_placeholder' => [
         '$insertVerb = \'INSERT IGNORE\';',

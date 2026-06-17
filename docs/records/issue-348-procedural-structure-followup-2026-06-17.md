@@ -10,7 +10,6 @@
 
 | 파일 | 줄 수 | 성격 | 우선순위 |
 | --- | ---: | --- | --- |
-| `modules/community/helpers/assets.php` | 2,477 | 커뮤니티 자산 정책/실행 helper가 함께 있음. 게시자 보상 관리자 조회/필터 helper는 별도 파일로 분리함 | 중간 |
 | `modules/survey/helpers.php` | 2,364 | 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper가 함께 있음 | 높음 |
 | `modules/community/helpers/boards.php` | 1,990 | 게시판/그룹 설정, 목록 조회, 저장, 표시 row helper가 함께 있음 | 중간 |
 | `modules/survey/actions/admin-surveys.php` | 1,663 | 설문 저장 입력, 문항 교체, 보상 정책 저장, 감사 payload가 긴 action에 함께 있음 | 높음 |
@@ -25,6 +24,8 @@
 | `modules/quiz/helpers.php` | 1,350 | 퀴즈 공통 설정, 공개 조회, 스킨, 관리자 목록 helper만 남김. 관리자 저장/복사/삭제, 응시/채점, 댓글/멘션, 보상 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/quiz/helpers/admin.php` | 1,397 | 퀴즈 관리자 입력값, 검증, 복사, 저장, 삭제 helper를 맡음 | 낮음 |
 | `modules/community/helpers/posts.php` | 1,329 | 커뮤니티 게시글 조회, 공개 표시, 관리자 게시글 목록 helper만 남김. 댓글, 작성/수정, 추가 필드 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/community/helpers/assets.php` | 1,470 | 커뮤니티 자산 설정, 정책 세트, 입력 UI, 감사용 설정 helper만 남김. paid read/attachment/event 실행 helper는 별도 파일로 분리함 | 낮음 |
+| `modules/community/helpers/asset-events.php` | 1,010 | 커뮤니티 paid read 세션, 접근권, 자산 로그, 이벤트 실행, 게시자 보상/회수 helper를 맡음 | 낮음 |
 | `modules/content/helpers/assets.php` | 1,179 | 콘텐츠 자산 설정, 정책 세트, 입력 UI, 감사용 설정 helper만 남김. 유료 접근/권한과 완료 버튼 실행 helper는 별도 파일로 분리함 | 낮음 |
 | `modules/content/helpers/asset-access.php` | 997 | 콘텐츠 유료 열람/다운로드 접근권, 차감 로그, 쿠폰 접근권 helper를 맡음 | 낮음 |
 | `modules/notification/helpers.php` | 1,014 | 알림 설정, 템플릿, 계정 이벤트, 일반 알림 생성 helper만 남김. delivery runner와 관리자 알림 helper는 별도 파일로 분리함 | 낮음 |
@@ -64,10 +65,10 @@
 - `modules/notification/helpers.php`의 관리자 알림 생성/필터/목록/읽음 상태 helper를 `modules/notification/helpers/admin-notifications.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/content/helpers/assets.php`의 유료 열람/다운로드 접근권, 차감 로그, 쿠폰 접근권 helper를 `modules/content/helpers/asset-access.php`로 분리했다.
 - `modules/content/helpers/assets.php`의 콘텐츠 완료 버튼 자산 처리 helper를 `modules/content/helpers/asset-actions.php`로 분리해 1,500줄 미만으로 줄였다.
+- `modules/community/helpers/assets.php`의 paid read 세션, 접근권, 자산 로그, 이벤트 실행, 게시자 보상/회수 helper를 `modules/community/helpers/asset-events.php`로 분리해 1,500줄 미만으로 줄였다.
 
 ## 후속 후보
 
-1. `modules/community/helpers/assets.php`는 자산 정책 설정과 실행/정산 helper 경계를 나눌 후보를 표시한다.
-2. `modules/survey/helpers.php`는 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper 경계를 확인한다.
-3. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
-4. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.
+1. `modules/survey/helpers.php`는 설문 설정, 공개 조회, 문항/응답, 보상, 내보내기 helper 경계를 확인한다.
+2. `modules/survey/actions/admin-surveys.php`의 저장 입력 수집, 문항 정규화, 보상 정책 row 구성, audit payload 문단을 `sr_survey_admin_*` helper로 분리할 수 있는지 검토한다.
+3. `modules/community/actions/admin-boards.php`의 게시판 저장 입력 수집/검증/audit payload 문단을 추가로 `sr_community_admin_board_*` helper로 분리할 수 있는지 검토한다.
