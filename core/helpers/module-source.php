@@ -891,16 +891,16 @@ function sr_extract_module_upload(array $file, string $requestedModuleKey): arra
     }
 
     try {
-        $uploadStats = sr_module_zip_upload_stats($zip);
+        try {
+            $uploadStats = sr_module_zip_upload_stats($zip);
 
-        if (!$zip->extractTo($extractDir)) {
-            throw new RuntimeException('zip 파일을 압축 해제할 수 없습니다.');
+            if (!$zip->extractTo($extractDir)) {
+                throw new RuntimeException('zip 파일을 압축 해제할 수 없습니다.');
+            }
+        } finally {
+            $zip->close();
         }
-    } finally {
-        $zip->close();
-    }
 
-    try {
         sr_validate_extracted_module_tree($extractDir);
         $packageErrors = sr_module_source_file_errors($extractDir);
         if ($packageErrors !== []) {

@@ -36,6 +36,29 @@ function sr_check_module_source_policy_remove_dir(string $directory): void
     rmdir($directory);
 }
 
+function sr_check_module_source_policy_upload_work_dirs(): array
+{
+    $root = SR_ROOT . '/storage/module-upload';
+    if (!is_dir($root)) {
+        return [];
+    }
+
+    $paths = glob($root . '/upload-*');
+    if (!is_array($paths)) {
+        return [];
+    }
+
+    $directories = [];
+    foreach ($paths as $path) {
+        if (is_dir($path)) {
+            $directories[] = basename($path);
+        }
+    }
+
+    sort($directories, SORT_STRING);
+    return $directories;
+}
+
 function sr_check_module_source_policy_write_file(string $root, string $relative): void
 {
     $path = $root . '/' . $relative;
@@ -130,6 +153,7 @@ function sr_check_module_source_policy_metadata(string $name = 'Route Test'): ar
 
 $fixtureRoot = sys_get_temp_dir() . '/sr-module-source-policy-' . bin2hex(random_bytes(6));
 mkdir($fixtureRoot, 0777, true);
+$uploadWorkDirsBefore = sr_check_module_source_policy_upload_work_dirs();
 
 try {
     $allowedDir = $fixtureRoot . '/allowed';
@@ -1094,6 +1118,13 @@ try {
     }
 } finally {
     sr_check_module_source_policy_remove_dir($fixtureRoot);
+}
+
+$uploadWorkDirsAfter = sr_check_module_source_policy_upload_work_dirs();
+$newUploadWorkDirs = array_values(array_diff($uploadWorkDirsAfter, $uploadWorkDirsBefore));
+if ($newUploadWorkDirs !== []) {
+    fwrite(STDERR, "Module source policy check left upload work directories:\n" . implode("\n", $newUploadWorkDirs) . "\n");
+    exit(1);
 }
 
 echo "module source file policy checks completed.\n";
