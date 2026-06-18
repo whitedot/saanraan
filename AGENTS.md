@@ -27,11 +27,11 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 ## Scope Control
 
-- Treat the user's latest scope correction as a hard stop or boundary, even when an older broad goal says to keep reviewing, fixing, or committing.
-- Do not turn a review request into open-ended defect hunting. Review only the requested issue, feature, file set, or acceptance criteria unless the user explicitly expands the scope.
-- When the user says the work feels excessive, unrealistic, or off-goal, stop autonomous changes immediately, revert any uncommitted scope-creep edits, and ask for or wait for a narrower target.
-- Do not justify adjacent security, privacy, cleanup, refactor, or quality improvements merely because they are nearby. If they are not required for the current target, leave them as notes unless the user asks to implement them.
-- Prefer proving the requested end state over finding more work. Once the stated target is satisfied and verified, report completion instead of continuing the review loop.
+- Treat the user's latest stated scope as authoritative. If it narrows or corrects an older broad goal, stop at the newer boundary.
+- Review and change only the requested issue, feature, file set, or acceptance criteria unless the user explicitly expands the scope.
+- Leave adjacent security, privacy, cleanup, refactor, or quality improvements as notes when they are not required for the current target.
+- If the user says the work is excessive, unrealistic, or off-goal, stop autonomous changes immediately. Revert only uncommitted edits that are clearly scope creep, then ask for or wait for a narrower target.
+- Prefer proving the requested end state over finding more work. Once the target is satisfied and verified, report completion instead of continuing to hunt.
 
 ## Core Boundary Rules
 
@@ -69,14 +69,16 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Keep module layout shell CSS, markup, and JavaScript aligned by namespace. For example, a `quiz.*` layout should use `quiz-layout-*` selectors and `/modules/quiz/assets/layout.css`, while `common.*` should use the common `public-layout-*` shell.
 - Modules that provide public layouts must not use `public-*`, `public-ui-*`, or `sr-public-*` class/data namespaces in their public layout, UI kit, module, or skin assets. Use the module namespace such as `content-*`, `community-*`, `quiz-*`, or `survey-*` instead.
 - For modules that provide public layouts, keep layout JavaScript and module/page JavaScript in separate files. The layout template owns `/modules/{provider}/assets/layout.js`; public module screens add their own `/modules/{module_key}/assets/module.js` through the layout context.
+- When the UI kit already provides a semantic component such as `card`, `card-body`, `card-img-top`, button, badge, tab, dropdown, or form control classes, use that component directly. Module CSS should handle only screen layout, grid placement, module-specific text structure, and states that the UI kit does not own.
 
 ## Dark Mode and Background Handling
 
 - Treat dark mode as a first-class state, not a visual afterthought. Any public or admin UI color change must preserve readable foreground, border, focus, icon, and interactive states in both `data-color-scheme="light"` and `data-color-scheme="dark"`.
-- When removing unwanted page, card, section, header, dropdown, or hover backgrounds, separate "unrequested surface fill" from "theme semantics". Do not disable, override, or force `color-scheme`, `data-color-scheme`, dark mode storage, or theme variables merely to remove a visible background.
+- When removing unwanted backgrounds, separate "unrequested module surface fill" from "theme semantics". Do not disable, override, or force `color-scheme`, `data-color-scheme`, dark mode storage, or theme variables merely to remove a visible background.
 - Prefer semantic project tokens for theme-aware UI: `--sr-text`, `--sr-muted`, `--sr-muted-strong`, `--sr-border`, `--sr-border-soft`, `--sr-surface`, `--sr-surface-muted`, and state tokens such as danger, warning, success, and info. Module CSS should not prefer light-only UI kit tokens such as `--text-strong`, `--text-muted`, `--color-body-color`, or `--color-default-*` over `--sr-*` when the element appears on a public themed surface.
 - If a fallback is needed, place the theme-aware token first and the UI kit/static token second, for example `color: var(--sr-text, var(--text-strong, var(--color-default-900)));`.
-- Avatar fills, notification badges, validation/status messages, selected controls, modal backdrops, and sticky-header surfaces may keep semantic or functional background colors. Decorative card, dropdown, section, row hover, and full-document background colors must be removed only when they are not part of an explicit semantic state or requested design.
+- Keep UI kit semantic component surfaces when the component owns them, such as `card`, dropdown, modal, form control, badge, and selected-control surfaces. Remove module-specific decorative fills only when they are not part of an explicit component, semantic state, or requested design.
+- Avatar fills, notification badges, validation/status messages, modal backdrops, and sticky-header stuck states may keep semantic or functional background colors.
 - For sticky headers, keep the default unstuck state transparent unless the requested design says otherwise; apply a surface background only in the stuck state.
 - After dark-mode-sensitive CSS changes, verify computed styles rather than relying only on screenshots or static search. At minimum, inspect the relevant rendered screen or a focused browser fixture in both light and dark modes and confirm body/background, main text, muted text, links, borders, and active/hover or selected states have sufficient contrast.
 - If Playwright is unavailable, use an installed headless browser such as Chrome with a temporary HTML fixture that loads the actual CSS files and checks `getComputedStyle()` for representative selectors. Report when this fallback is used.
@@ -85,7 +87,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 - When changing behavior, features, database schema, admin screens, module contracts, request flow, security/privacy policy, deployment assumptions, or operational procedures, update the relevant GitHub Wiki pages in the same work item.
 - At minimum, check whether the change affects the DB specification, administrator screen field guide, developer guides, request flow, module development guide, security/privacy guide, testing guide, deployment guide, or troubleshooting guide.
-- If a code change intentionally does not require a Wiki update, mention that decision in the final response or commit body when useful.
+- Visual-only, CSS-only, or internal implementation changes do not require a Wiki update when they do not change operator behavior, public contracts, configuration, schema, request flow, or deployment assumptions. Mention the no-Wiki decision in the final response or commit body when useful.
 - Keep repository docs and Wiki docs aligned with the current implementation rather than the initial project plan.
 
 ## Verification and Smoke Tests
@@ -95,7 +97,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Treat HTTP smoke tests as the default follow-up when a local or staging base URL is available, or when a local PHP built-in server can be started safely without secrets or production data. Use `php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php` with an available port, then run `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php`.
 - If the target environment is expected to have the community module installed, run the HTTP smoke test with `SR_SMOKE_EXPECT_COMMUNITY=1`.
 - Run authenticated smoke tests such as `php .tools/bin/smoke-community-auth.php` only against a local or staging database and only when explicit smoke-test credentials are available. These tests create and modify data, so do not run them against production.
-- For local or staging authenticated smoke tests, the temporary test administrator credentials are `admin` / `12341234`. These credentials are for testing only and must be removed from this file and any related test notes before milestone release.
+- Do not store real, shared, or release-sensitive credentials in this file. Keep temporary authenticated smoke-test credentials in local or staging-only notes outside committed agent instructions.
 - When reward reclaim or other admin-only workflows need data to verify, create dummy local or staging data as needed. Do not use production data for destructive or mutating smoke tests.
 - Treat a smoke-test failure as a real finding unless the failure is clearly caused by missing local environment, unavailable credentials, or an already documented pre-existing issue. Record that distinction in the final response.
 
@@ -111,6 +113,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 ## Admin Form Validation
 
+- Apply these rules when creating or changing admin save/update forms.
 - Treat server-side validation as the source of truth for required admin fields. Do not rely on HTML `required`, disabled buttons, or JavaScript-only checks as the only protection.
 - When an admin field is required for save/update, keep all three layers aligned where applicable: visible `(필수)`, browser/front-end validation, and server-side POST validation.
 - Keep admin form labels to field names. Put explanatory text such as URL behavior, accepted formats, units, upload limits, or automatic behavior below the control as `.admin-form-help` instead of appending parenthetical explanations to the label.
@@ -123,6 +126,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 
 ## Admin High-Load Operations
 
+- Apply these rules when creating or changing admin operations that can touch many rows, files, external requests, or rewards/assets.
 - Treat bulk deletes, recursive file operations, large data copies, recalculations, exports, and external delivery retries as potentially high-load admin operations.
 - Before a high-load admin action runs, show the current target count or best available estimate, explain that the actual result can differ at execution time, and require explicit confirmation for destructive actions.
 - Prefer bounded batches over one unbounded web request. If a task may touch many rows or files, cap the number processed per request, report how many were processed, and tell the operator how to continue remaining work.
