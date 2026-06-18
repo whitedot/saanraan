@@ -49,18 +49,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php echo sr_e((string) $section['title']); ?>
                         <?php } ?>
                     </h2>
-                    <ul>
+                    <div class="community-board-grid">
                         <?php foreach ($section['boards'] as $board) { ?>
-                            <li>
-                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                                    <?php echo sr_e((string) $board['title']); ?>
-                                </a>
-                                <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                                    <br><?php echo sr_e((string) $board['description']); ?>
-                                <?php } ?>
-                            </li>
+                            <article class="card">
+                                <div class="card-body community-board-card-body">
+                                    <h3 class="community-board-card-title">
+                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                            <?php echo sr_e((string) $board['title']); ?>
+                                        </a>
+                                    </h3>
+                                    <?php if ((string) ($board['description'] ?? '') !== '') { ?>
+                                        <p class="community-board-card-description"><?php echo sr_e((string) $board['description']); ?></p>
+                                    <?php } ?>
+                                </div>
+                            </article>
                         <?php } ?>
-                    </ul>
+                    </div>
                 </section>
             <?php } ?>
 
@@ -69,18 +73,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php if ($boardSections !== []) { ?>
                         <h2>기타</h2>
                     <?php } ?>
-                    <ul>
+                    <div class="community-board-grid">
                         <?php foreach ($ungroupedBoards as $board) { ?>
-                            <li>
-                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                                    <?php echo sr_e((string) $board['title']); ?>
-                                </a>
-                                <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                                    <br><?php echo sr_e((string) $board['description']); ?>
-                                <?php } ?>
-                            </li>
+                            <article class="card">
+                                <div class="card-body community-board-card-body">
+                                    <h3 class="community-board-card-title">
+                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                                            <?php echo sr_e((string) $board['title']); ?>
+                                        </a>
+                                    </h3>
+                                    <?php if ((string) ($board['description'] ?? '') !== '') { ?>
+                                        <p class="community-board-card-description"><?php echo sr_e((string) $board['description']); ?></p>
+                                    <?php } ?>
+                                </div>
+                            </article>
                         <?php } ?>
-                    </ul>
+                    </div>
                 </section>
             <?php } ?>
         <?php } ?>

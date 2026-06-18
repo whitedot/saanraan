@@ -33,22 +33,26 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php if ($groupBoards === []) { ?>
             <p>현재 볼 수 있는 게시판이 없습니다.</p>
         <?php } else { ?>
-            <ul>
+            <div class="community-board-grid">
                 <?php foreach ($groupBoards as $board) { ?>
                     <?php $boardKey = (string) ($board['board_key'] ?? ''); ?>
                     <?php if (!sr_community_board_key_is_valid($boardKey)) { ?>
                         <?php continue; ?>
                     <?php } ?>
-                    <li>
-                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode($boardKey))); ?>">
-                            <?php echo sr_e((string) ($board['title'] ?? $boardKey)); ?>
-                        </a>
-                        <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                            <br><?php echo sr_e((string) $board['description']); ?>
-                        <?php } ?>
-                    </li>
+                    <article class="card">
+                        <div class="card-body community-board-card-body">
+                            <h2 class="community-board-card-title">
+                                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode($boardKey))); ?>">
+                                    <?php echo sr_e((string) ($board['title'] ?? $boardKey)); ?>
+                                </a>
+                            </h2>
+                            <?php if ((string) ($board['description'] ?? '') !== '') { ?>
+                                <p class="community-board-card-description"><?php echo sr_e((string) $board['description']); ?></p>
+                            <?php } ?>
+                        </div>
+                    </article>
                 <?php } ?>
-            </ul>
+            </div>
         <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>
