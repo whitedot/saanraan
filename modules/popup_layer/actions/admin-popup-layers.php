@@ -71,10 +71,7 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', $intent === 'delete' ? 'delete' : 'edit');
     $popupId = (int) sr_post_string('popup_id', 20);
-    $returnTo = sr_post_string('return_to', 500);
-    if (!sr_is_safe_relative_url($returnTo)) {
-        $returnTo = '/admin/popup-layers';
-    }
+    $returnTo = sr_admin_safe_get_url(sr_post_string('return_to', 500), '/admin/popup-layers');
 
     if ($intent === 'delete') {
         $stmt = $pdo->prepare('SELECT id FROM sr_popup_layers WHERE id = :id LIMIT 1');

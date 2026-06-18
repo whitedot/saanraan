@@ -65,10 +65,7 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', $intent === 'delete' ? 'delete' : 'edit');
     $bannerId = (int) sr_post_string('banner_id', 20);
-    $returnTo = sr_post_string('return_to', 500);
-    if (!sr_is_safe_relative_url($returnTo)) {
-        $returnTo = '/admin/banners';
-    }
+    $returnTo = sr_admin_safe_get_url(sr_post_string('return_to', 500), '/admin/banners');
 
     if ($intent === 'delete') {
         if ($bannerId <= 0) {
@@ -513,6 +510,9 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect($returnTo);
 }
 
 $editBanner = null;

@@ -69,8 +69,8 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    $settings['withdrawal_requests_enabled'] = $withdrawalRequestsEnabled;
-    $settings['withdrawal_allowed_group_keys'] = $allowedGroupKeys;
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($permissionPath);
 }
 
 $adminPageTitle = '적립금 환경설정';

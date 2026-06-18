@@ -53,6 +53,17 @@ if (sr_request_method() === 'POST') {
     if (isset($postResult['edit_values']) && is_array($postResult['edit_values'])) {
         $memberEditValues = $postResult['edit_values'];
     }
+
+    $redirectPath = '/admin/members';
+    if ($memberAdminPage === 'create_form') {
+        $redirectPath = '/admin/members/new';
+    } elseif ($memberAdminPage === 'edit_form') {
+        $postedAccountId = sr_post_string('account_id', 20);
+        $editAccountId = (int) ($memberEditValues['id'] ?? (preg_match('/\A[1-9][0-9]*\z/', $postedAccountId) === 1 ? $postedAccountId : 0));
+        $redirectPath = $editAccountId > 0 ? '/admin/members/edit?id=' . (string) $editAccountId : '/admin/members';
+    }
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect($redirectPath);
 }
 
 $statusFilter = sr_admin_member_status_filter($allowedStatuses);

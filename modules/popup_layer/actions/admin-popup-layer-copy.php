@@ -12,9 +12,7 @@ sr_require_csrf();
 
 $popupId = (int) sr_post_string('popup_id', 20);
 $returnTo = sr_post_string('return_to', 300);
-if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
-    $returnTo = '/admin/popup-layers';
-}
+$returnTo = sr_admin_safe_get_url($returnTo, '/admin/popup-layers');
 
 $stmt = $pdo->prepare(
     'SELECT p.id, p.title, p.body_text, p.body_format, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days

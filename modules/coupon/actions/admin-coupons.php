@@ -34,10 +34,7 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], $couponPermissionPath, 'edit');
 
     $intent = sr_post_string('intent', 40);
-    $returnTo = sr_post_string('return_to', 500);
-    if (!sr_is_safe_relative_url($returnTo)) {
-        $returnTo = $couponAdminPage === 'definitions' ? '/admin/coupons' : $requestPath;
-    }
+    $returnTo = sr_admin_safe_get_url(sr_post_string('return_to', 500), $couponAdminPage === 'definitions' ? '/admin/coupons' : $requestPath);
     try {
         if ($intent === 'create_definition' && $couponAdminPage === 'definitions') {
             $definitionId = sr_coupon_create_definition($pdo, [
@@ -332,6 +329,9 @@ if (sr_request_method() === 'POST') {
         $couponCreateModalOpen = $intent === 'create_definition';
         $couponIssueModalOpenDefinitionId = $intent === 'issue_coupon' ? sr_admin_post_positive_int('coupon_definition_id') : 0;
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($returnTo);
 }
 
 $definitionFilters = $couponAdminPage === 'definitions' ? sr_coupon_admin_definition_filters($pdo) : [];

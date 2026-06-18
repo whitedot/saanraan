@@ -64,6 +64,9 @@ if (sr_request_method() === 'POST') {
         }
         $errors[] = $message;
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect('/admin/asset-exchange/settings');
 }
 
 include SR_ROOT . '/modules/asset_exchange/views/admin-asset-exchange-settings.php';

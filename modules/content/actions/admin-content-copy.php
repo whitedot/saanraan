@@ -12,9 +12,7 @@ sr_require_csrf();
 
 $sourceContentId = (int) sr_post_string('content_id', 20);
 $returnTo = sr_post_string('return_to', 300);
-if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
-    $returnTo = '/admin/content';
-}
+$returnTo = sr_admin_safe_get_url($returnTo, '/admin/content');
 
 $sourceContent = sr_content_by_id($pdo, $sourceContentId);
 if (!is_array($sourceContent)) {

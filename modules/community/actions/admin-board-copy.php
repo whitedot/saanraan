@@ -104,6 +104,9 @@ if (sr_request_method() === 'POST') {
         }
         $errors = ['게시판 복사 중 오류가 발생했습니다.'];
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect('/admin/community/boards');
 }
 
 include SR_ROOT . '/modules/community/views/admin-board-copy.php';

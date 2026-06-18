@@ -69,8 +69,8 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    $settings['refund_requests_enabled'] = $refundRequestsEnabled;
-    $settings['refund_allowed_group_keys'] = $allowedGroupKeys;
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($permissionPath);
 }
 
 $adminPageTitle = '예치금 환경설정';

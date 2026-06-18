@@ -103,6 +103,9 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect('/admin/points/settings');
 }
 
 include SR_ROOT . '/modules/point/views/admin-settings.php';

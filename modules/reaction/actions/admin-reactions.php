@@ -19,6 +19,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], $reactionPermissionPath,
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -158,6 +161,9 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = '알 수 없는 요청입니다.';
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect($reactionPermissionPath);
 }
 
 $reactionDefinitions = sr_reaction_admin_definitions($pdo);

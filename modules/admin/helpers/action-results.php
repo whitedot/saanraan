@@ -51,17 +51,77 @@ function sr_admin_current_get_url(string $fallback = '/admin'): string
     return sr_is_safe_relative_url($target) ? $target : $fallback;
 }
 
+function sr_admin_get_route_exists(string $path): bool
+{
+    $path = (string) (parse_url($path, PHP_URL_PATH) ?: '');
+    if ($path === '' || $path[0] !== '/') {
+        return false;
+    }
+
+    foreach (glob(SR_ROOT . '/modules/*/paths.php') ?: [] as $pathsFile) {
+        $paths = require $pathsFile;
+        if (!is_array($paths)) {
+            continue;
+        }
+
+        foreach ($paths as $route => $_actionRelativePath) {
+            $route = (string) $route;
+            if (!str_starts_with($route, 'GET ')) {
+                continue;
+            }
+
+            $routePath = substr($route, 4);
+            if ($routePath === $path) {
+                return true;
+            }
+
+            if (str_ends_with($routePath, '/*')) {
+                $prefix = substr($routePath, 0, -1);
+                if ($prefix !== '' && str_starts_with($path, $prefix) && strlen($path) > strlen($prefix)) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+function sr_admin_safe_get_url(string $url, string $fallback = '/admin'): string
+{
+    if (sr_is_safe_relative_url($url)) {
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+        if (sr_admin_get_route_exists($path)) {
+            return $url;
+        }
+    }
+
+    if (sr_is_safe_relative_url($fallback)) {
+        $fallbackPath = (string) (parse_url($fallback, PHP_URL_PATH) ?: '');
+        if (sr_admin_get_route_exists($fallbackPath)) {
+            return $fallback;
+        }
+    }
+
+    return '/admin';
+}
+
 function sr_admin_post_return_url(string $fallback = '/admin'): string
 {
-    $returnTo = sr_post_string('return_to', 500);
-
-    return sr_is_safe_relative_url($returnTo) ? $returnTo : $fallback;
+    return sr_admin_safe_get_url(sr_post_string('return_to', 500), $fallback);
 }
 
 function sr_admin_redirect_with_result(array $result, string $fallback = '/admin'): void
 {
     sr_admin_flash_result($result);
-    sr_redirect(sr_admin_current_get_url($fallback));
+    $fallbackUrl = sr_admin_safe_get_url($fallback, '/admin');
+    $currentUrl = sr_admin_current_get_url($fallbackUrl);
+    $currentPath = (string) (parse_url($currentUrl, PHP_URL_PATH) ?: '');
+    if (!sr_admin_get_route_exists($currentPath)) {
+        $currentUrl = $fallbackUrl;
+    }
+
+    sr_redirect($currentUrl);
 }
 
 function sr_admin_feedback_toasts(string $notice = '', array $errors = []): string

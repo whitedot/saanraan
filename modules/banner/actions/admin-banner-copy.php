@@ -12,9 +12,7 @@ sr_require_csrf();
 
 $bannerId = (int) sr_post_string('banner_id', 20);
 $returnTo = sr_post_string('return_to', 300);
-if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
-    $returnTo = '/admin/banners';
-}
+$returnTo = sr_admin_safe_get_url($returnTo, '/admin/banners');
 
 $stmt = $pdo->prepare(
     'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count

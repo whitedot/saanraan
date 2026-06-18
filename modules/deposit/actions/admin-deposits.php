@@ -246,6 +246,11 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    $redirectPath = $depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : '/admin/deposits/balances';
+    $redirectQuery = $targetAccountIdentifier !== '' ? '?account_identifier=' . rawurlencode($targetAccountIdentifier) : '';
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($redirectPath . $redirectQuery);
 }
 
 $accountLookupFilter = sr_admin_member_account_lookup_filter($pdo, $runtimeConfig);

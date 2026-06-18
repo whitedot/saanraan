@@ -121,6 +121,14 @@ if (sr_request_method() === 'POST') {
         $errors[] = $message;
         $editPolicy = $policyInput;
     }
+
+    $redirectPath = '/admin/asset-exchange';
+    $policyId = (int) ($policyInput['id'] ?? 0);
+    if ($policyId > 0) {
+        $redirectPath .= '?edit=' . (string) $policyId;
+    }
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($redirectPath);
 }
 
 $editPolicyId = (int) ($_GET['edit'] ?? 0);

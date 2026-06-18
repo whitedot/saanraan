@@ -511,10 +511,17 @@ if (sr_request_method() === 'POST') {
             }
             throw $exception;
         }
-        sr_admin_redirect_with_result(sr_admin_action_result([], '설문을 저장했습니다.'), '/admin/surveys?mode=edit&id=' . (string) $surveyId);
+        sr_admin_flash_result(sr_admin_action_result([], '설문을 저장했습니다.'));
+        sr_redirect('/admin/surveys?mode=edit&id=' . (string) $surveyId);
     } elseif (is_array($uploadedCoverImage)) {
         sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
     }
+
+    $redirectPath = $surveyId > 0
+        ? '/admin/surveys?mode=edit&id=' . (string) $surveyId
+        : '/admin/surveys?mode=new';
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($redirectPath);
 }
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result($errors, $notice);
 $errors = array_merge($errors, (array) ($flashResult['errors'] ?? []));

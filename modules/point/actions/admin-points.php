@@ -185,6 +185,11 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    $redirectPath = $pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances';
+    $redirectQuery = $targetAccountIdentifier !== '' ? '?account_identifier=' . rawurlencode($targetAccountIdentifier) : '';
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($redirectPath . $redirectQuery);
 }
 
 $accountLookupFilter = sr_admin_member_account_lookup_filter($pdo, $runtimeConfig);

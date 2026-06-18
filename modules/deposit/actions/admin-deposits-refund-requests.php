@@ -164,6 +164,9 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($requestListRedirectPath);
 }
 
 $pagination = sr_admin_pagination_from_total($pdo, sr_deposit_admin_refund_request_count($pdo, $statusFilter, $searchField, $searchKeyword));

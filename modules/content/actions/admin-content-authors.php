@@ -68,10 +68,8 @@ if (sr_request_method() === 'POST') {
     } catch (Throwable $exception) {
         $errors[] = $exception->getMessage();
     }
-    if ($errors === []) {
-        sr_admin_flash_result(sr_admin_action_result([], $notice));
-        sr_redirect(sr_admin_post_return_url('/admin/content/authors'));
-    }
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect(sr_admin_post_return_url('/admin/content/authors'));
 }
 
 $authorStatusInput = $_GET['status'] ?? [];

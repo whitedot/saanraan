@@ -1223,6 +1223,17 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = sr_t('community::action.error.intent_invalid');
     }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    $redirectPath = '/admin/community/boards';
+    $postedBoardIdValue = sr_post_string('board_id', 20);
+    $postedBoardId = preg_match('/\A[1-9][0-9]*\z/', $postedBoardIdValue) === 1 ? (int) $postedBoardIdValue : 0;
+    if ($postedBoardId > 0) {
+        $redirectPath = '/admin/community/boards/edit?id=' . (string) $postedBoardId;
+    } elseif ($communityBoardsPage === 'new') {
+        $redirectPath = '/admin/community/boards/new';
+    }
+    sr_redirect($redirectPath);
 }
 
 $boardStatusCounts = sr_community_admin_board_status_counts($pdo, $allowedStatuses);
