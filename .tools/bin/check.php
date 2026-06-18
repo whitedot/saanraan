@@ -801,11 +801,6 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         sr_check_add_error('Public layout stylesheet is missing or invalid: assets/layout.css');
     }
 
-    $publicThemeCss = is_file('assets/theme.css') ? file_get_contents('assets/theme.css') : false;
-    if (!is_string($publicThemeCss) || !str_contains($publicThemeCss, '--sr-bg')) {
-        sr_check_add_error('Public theme stylesheet is missing or invalid: assets/theme.css');
-    }
-
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
         $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/assets/reset.css';
         $sourceReset = is_file('assets/reset.css') ? file_get_contents('assets/reset.css') : false;

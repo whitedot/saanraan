@@ -3,7 +3,8 @@
  * Owns the default public layout shell only.
  */
 .public-layout-body {
-    color: var(--sr-text, #20242a);
+    background: var(--color-body-bg, #f6f7f9);
+    color: var(--color-body-color, #20242a);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -27,7 +28,7 @@
 }
 
 .public-layout-header.is-public-layout-header-stuck {
-    background: color-mix(in oklab, var(--sr-surface, #fff) 94%, transparent);
+    background: color-mix(in oklab, var(--color-card, #fff) 94%, transparent);
     backdrop-filter: blur(12px);
 }
 
@@ -37,7 +38,7 @@
 
 .public-layout-brand-link {
     align-items: center;
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     display: inline-flex;
     gap: 8px;
     justify-self: start;
@@ -68,7 +69,7 @@
 }
 
 .public-layout-brand-text {
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     font-family: var(--font-body);
     font-size: 1.18rem;
     font-weight: 800;
@@ -128,7 +129,7 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     display: inline-flex;
     font-size: .88rem;
     font-weight: 500;
@@ -150,7 +151,7 @@
 
 .public-layout-nav a[aria-current="page"]::after,
 .public-layout-nav a:hover::after {
-    border-bottom: 2px solid var(--sr-text, #20242a);
+    border-bottom: 2px solid var(--color-body-color, #20242a);
     bottom: 0;
     content: "";
     height: 0;
@@ -170,7 +171,7 @@
     align-items: center;
     background: transparent;
     border: 0;
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     display: inline-flex;
     height: 32px;
     justify-content: center;
@@ -259,7 +260,7 @@
 .public-layout-notification-badge {
     align-items: center;
     background: var(--color-danger, #ff2d2d);
-    border: 2px solid var(--sr-surface, #fff);
+    border: 2px solid var(--color-card, #fff);
     border-radius: 999px;
     color: #fff;
     display: inline-flex;
@@ -276,7 +277,7 @@
 }
 
 .public-layout-notification-dropdown {
-    border: 1px solid var(--sr-border-soft, #e8edf3);
+    border: 1px solid var(--color-default-300, #e8edf3);
     border-radius: 8px;
     max-height: min(420px, calc(100vh - 90px));
     overflow-y: auto;
@@ -289,26 +290,26 @@
 
 .public-layout-notification-header {
     align-items: center;
-    border-bottom: 1px solid var(--sr-border-soft, #e8edf3);
+    border-bottom: 1px solid var(--color-default-300, #e8edf3);
     display: flex;
     justify-content: space-between;
     padding: 13px 14px;
 }
 
 .public-layout-notification-header strong {
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     font-size: .92rem;
 }
 
 .public-layout-notification-header a {
-    color: var(--sr-muted, #47505c);
+    color: var(--text-muted, var(--color-default-600, #47505c));
     font-size: .76rem;
     font-weight: 700;
     text-decoration: none;
 }
 
 .public-layout-notification-empty {
-    color: var(--sr-muted, #47505c);
+    color: var(--text-muted, var(--color-default-600, #47505c));
     font-size: .86rem;
     margin: 0;
     padding: 22px 14px;
@@ -320,7 +321,7 @@
 }
 
 .public-layout-notification-item {
-    color: var(--sr-text, #20242a);
+    color: var(--color-body-color, #20242a);
     display: grid;
     gap: 4px;
     padding: 12px 14px;
@@ -329,7 +330,7 @@
 }
 
 .public-layout-notification-item + .public-layout-notification-item {
-    border-top: 1px solid var(--sr-border-soft, #e8edf3);
+    border-top: 1px solid var(--color-default-300, #e8edf3);
 }
 
 .public-layout-notification-item.is-unread::before {
@@ -358,13 +359,13 @@
 }
 
 .public-layout-notification-text {
-    color: var(--sr-muted, #47505c);
+    color: var(--text-muted, var(--color-default-600, #47505c));
     font-size: .8rem;
     line-height: 1.4;
 }
 
 .public-layout-notification-date {
-    color: var(--sr-muted-soft, #5d6b7c);
+    color: var(--color-default-500, #5d6b7c);
     font-size: .72rem;
     font-weight: 600;
 }
@@ -382,7 +383,7 @@
 }
 
 .public-layout-footer {
-    color: var(--sr-muted-strong, var(--sr-text, var(--text-strong, #20242a)));
+    color: var(--color-default-700, var(--text-strong, var(--color-body-color, #20242a)));
     margin: 0 auto;
     padding: 28px 0 42px;
     width: calc(100% - clamp(32px, 5vw, 96px));
@@ -493,9 +494,9 @@
 
 .public-theme-toggle {
     align-items: center;
-    border: 1px solid var(--sr-border-soft, #e8edf3);
+    border: 1px solid var(--color-default-300, #e8edf3);
     border-radius: 999px;
-    color: var(--sr-muted, #47505c);
+    color: var(--text-muted, var(--color-default-600, #47505c));
     cursor: pointer;
     display: inline-flex;
     font-size: .6875rem;
@@ -511,7 +512,7 @@
 }
 
 .public-theme-menu {
-    border: 1px solid var(--sr-border-soft, #e8edf3);
+    border: 1px solid var(--color-default-300, #e8edf3);
     border-radius: 8px;
     box-sizing: border-box;
     display: none;
@@ -525,7 +526,7 @@
     background: transparent;
     border: 0;
     border-radius: 6px;
-    color: var(--sr-muted, #47505c);
+    color: var(--text-muted, var(--color-default-600, #47505c));
     cursor: pointer;
     display: flex;
     font-size: .6875rem;
@@ -539,7 +540,7 @@
 
 .public-theme-option:hover,
 .public-theme-option[aria-checked="true"] {
-    color: var(--sr-muted-strong, #303741);
+    color: var(--color-default-700, #303741);
 }
 
 .public-theme-option-check {

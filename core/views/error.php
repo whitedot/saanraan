@@ -7,15 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title><?php echo sr_e($pageTitle); ?></title>
-    <?php echo sr_stylesheet_tag(['/assets/theme.css']); ?>
+    <?php echo sr_stylesheet_tag(); ?>
     <style>
         body {
             min-height: 100vh;
             margin: 0;
             display: grid;
             place-items: center;
-            background: var(--sr-bg, #f6f7f9);
-            color: var(--sr-text, #20242a);
+            background: var(--color-body-bg, #f6f7f9);
+            color: var(--color-body-color, #20242a);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
@@ -33,7 +33,7 @@
 
         p {
             margin: 0;
-            color: var(--sr-muted, #47505c);
+            color: var(--text-muted, var(--color-default-600, #47505c));
             font-size: 1rem;
             line-height: 1.7;
         }
@@ -45,25 +45,25 @@
             margin-top: 28px;
             min-height: 44px;
             padding: 0 18px;
-            border: 1px solid var(--sr-border, #d8dde6);
-            color: var(--sr-text, #20242a);
+            border: 1px solid var(--color-default-300, #d8dde6);
+            color: var(--color-body-color, #20242a);
             text-decoration: none;
             font-weight: 600;
         }
 
         a:hover,
         a:focus {
-            border-color: var(--sr-control-border, #b9c2d0);
-            color: var(--sr-link, #2458a6);
+            border-color: var(--color-default-400, #b9c2d0);
+            color: var(--color-primary, #2458a6);
         }
 
         pre {
             overflow: auto;
             margin: 24px 0 0;
             padding: 16px;
-            border: 1px solid var(--sr-border, #d8dde6);
-            background: var(--sr-surface, #ffffff);
-            color: var(--sr-text, #20242a);
+            border: 1px solid var(--color-default-300, #d8dde6);
+            background: var(--color-card, #ffffff);
+            color: var(--color-body-color, #20242a);
             font-size: 0.875rem;
             line-height: 1.6;
             white-space: pre-wrap;

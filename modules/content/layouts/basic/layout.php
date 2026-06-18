@@ -7,7 +7,7 @@ $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
 $layoutContextScripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
-$layoutStylesheets = ['/assets/theme.css'];
+$layoutStylesheets = [];
 $layoutScripts = ['/assets/common-ui.js', '/assets/mention-input.js', '/modules/content/assets/layout.js'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {

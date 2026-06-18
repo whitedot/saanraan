@@ -138,7 +138,6 @@ foreach ([
 
 foreach ([
     '/assets/reset.css',
-    '/assets/theme.css',
     '/assets/layout.css',
     '/assets/module.css',
     '/assets/ui-kit.css',

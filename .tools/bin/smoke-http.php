@@ -333,14 +333,6 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'public theme stylesheet',
-        'path' => '/assets/theme.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '--sr-bg',
-        ],
-    ],
-    [
         'label' => 'public layout stylesheet',
         'path' => '/assets/layout.css',
         'allowed_statuses' => [200],

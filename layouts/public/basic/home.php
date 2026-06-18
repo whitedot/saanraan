@@ -49,7 +49,6 @@ sr_public_layout_begin($homePdo, $homeSite, $seo, [
     'body_class' => 'public-layout-home',
     'style_profile' => 'kit',
     'stylesheets' => [
-        '/assets/theme.css',
         '/assets/module.css',
         '/modules/banner/assets/module.css',
     ],
