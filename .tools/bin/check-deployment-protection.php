@@ -155,7 +155,6 @@ foreach ([
     '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
     '/modules/community/assets/module.js',
-    '/modules/community/skins/compact/skin.css',
     '/modules/member/skins/basic/skin.css',
     '/modules/quiz/assets/layout.css',
     '/modules/quiz/assets/layout.js',

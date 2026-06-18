@@ -508,14 +508,6 @@ $checks = [
         ],
     ],
     [
-        'label' => 'community compact skin stylesheet',
-        'path' => '/modules/community/skins/compact/skin.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.community-screen',
-        ],
-    ],
-    [
         'label' => 'member basic skin stylesheet',
         'path' => '/modules/member/skins/basic/skin.css',
         'allowed_statuses' => [200],

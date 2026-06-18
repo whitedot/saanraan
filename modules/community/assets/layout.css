@@ -3,7 +3,8 @@
  * Owns this module public layout shell only.
  */
 .community-layout-body {
-    --community-layout-page-gutter: max(calc((100vw - 1360px) / 2), clamp(16px, 2.5vw, 48px));
+    --community-layout-content-max-width: 1800px;
+    --community-layout-page-gutter: clamp(16px, 2.5vw, 40px);
     background: var(--color-body-bg, #f6f7f9);
     color: var(--color-body-color, #20242a);
     display: flex;
@@ -14,9 +15,11 @@
 
 .community-layout-header {
     background: transparent;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    margin: 0;
+    margin: 0 auto;
+    max-width: var(--community-layout-content-max-width);
     padding: 0 var(--community-layout-page-gutter);
     width: 100%;
 }
@@ -212,12 +215,15 @@
 .community-layout-nav {
     align-items: center;
     background: transparent;
+    box-sizing: border-box;
     display: flex;
     gap: 42px;
     justify-content: center;
     min-width: 0;
     min-height: 42px;
     overflow-x: auto;
+    margin: 0 auto;
+    max-width: var(--community-layout-content-max-width);
     padding: 0 var(--community-layout-page-gutter);
     position: sticky;
     scrollbar-width: none;
@@ -535,15 +541,17 @@
 }
 
 .community-layout-footer {
+    box-sizing: border-box;
     color: var(--color-default-700, var(--text-strong, var(--color-body-color, #20242a)));
     margin: 0 auto;
-    padding: 28px 0 42px;
-    width: calc(100% - clamp(32px, 5vw, 96px));
+    max-width: var(--community-layout-content-max-width);
+    padding: 28px var(--community-layout-page-gutter) 42px;
+    width: 100%;
 }
 
 .community-layout-footer-nav {
-    margin: 0 auto 16px;
-    width: min(1360px, 100%);
+    margin: 0 0 16px;
+    width: 100%;
 }
 
 .community-layout-footer-nav .sr-site-menu-list {
@@ -555,9 +563,9 @@
     font-size: .75rem;
     font-weight: 500;
     line-height: 1.4;
-    margin: 0 auto;
+    margin: 0;
     padding-top: 18px;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 .community-layout-footer-row {
@@ -565,9 +573,9 @@
     display: flex;
     gap: 12px;
     justify-content: space-between;
-    margin: 0 auto;
+    margin: 0;
     padding-top: 18px;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 .community-layout-footer-row p {
@@ -673,7 +681,7 @@
 
 @media (max-width: 767px) {
     .community-layout-body {
-        --community-layout-page-gutter: 20px;
+        --community-layout-page-gutter: 16px;
     }
 
     .community-layout-header {
@@ -726,8 +734,8 @@
     }
 
     .community-layout-footer {
-        padding: 24px 0 34px;
-        width: calc(100% - 40px);
+        padding: 24px var(--community-layout-page-gutter) 34px;
+        width: 100%;
     }
 
     .community-layout-footer-nav .sr-site-menu-list {

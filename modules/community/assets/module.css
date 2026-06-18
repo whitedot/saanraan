@@ -3,12 +3,13 @@
  * Owns this module public service screen styles.
  */
 .community-screen {
+    box-sizing: border-box;
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-body);
     margin: 0 auto;
-    max-width: 1360px;
-    padding: 40px 0;
-    width: calc(100% - clamp(32px, 5vw, 96px));
+    max-width: var(--community-layout-content-max-width, 1800px);
+    padding: 40px clamp(16px, 2.5vw, 40px);
+    width: 100%;
 }
 
 .community-screen > * + * {
@@ -344,7 +345,7 @@
 @media (max-width: 900px) {
     .community-screen {
         display: block;
-        max-width: 1360px;
+        max-width: var(--community-layout-content-max-width, 1800px);
         padding-block: 28px;
     }
 
@@ -367,7 +368,8 @@
 
 @media (max-width: 767px) {
     .community-screen {
-        width: calc(100% - 40px);
+        padding-inline: 16px;
+        width: 100%;
     }
 
     .community-search-page-form {

@@ -270,7 +270,6 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /modules/content/assets/module.js 정적 파일 응답과 콘텐츠 화면 전용 JavaScript 분리 기준 확인
 /modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
 /modules/community/assets/module.js 정적 파일 응답과 커뮤니티 화면 전용 JavaScript 분리 기준 확인
-/modules/community/skins/compact/skin.css 정적 파일 응답과 커뮤니티 skin CSS 공개 경로 확인
 /modules/member/skins/basic/skin.css 정적 파일 응답과 회원 basic skin CSS 공개 경로 확인
 /modules/quiz/assets/layout.css 정적 파일 응답과 퀴즈 공개 layout shell 확인
 /modules/quiz/assets/layout.js 정적 파일 응답과 퀴즈 layout 스크롤 header 동작 기준 확인

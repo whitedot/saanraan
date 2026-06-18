@@ -61,7 +61,6 @@ function sr_community_skin_files(): array
 {
     return [
         'basic' => SR_ROOT . '/modules/community/skins/basic/skin.php',
-        'compact' => SR_ROOT . '/modules/community/skins/compact/skin.php',
     ];
 }
 
