@@ -26,9 +26,9 @@
 
 .community-layout-topbar {
     align-items: center;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 520px) minmax(0, 1fr);
     gap: 24px;
-    justify-content: space-between;
     min-height: 60px;
     width: 100%;
 }
@@ -38,6 +38,7 @@
     color: var(--color-body-color, #20242a);
     display: inline-flex;
     gap: 8px;
+    justify-self: start;
     max-width: 100%;
     min-width: 0;
     text-decoration: none;
@@ -111,12 +112,13 @@
     border: 1px solid var(--color-default-300, #e8edf3);
     border-radius: 999px;
     display: flex;
-    flex: 1 1 360px;
     gap: 6px;
     height: 38px;
+    justify-self: center;
     max-width: 520px;
     min-width: 180px;
     padding: 0 6px 0 16px;
+    width: 100%;
 }
 
 .community-layout-search label {
@@ -322,6 +324,7 @@
     display: flex;
     gap: 18px;
     flex: 0 0 auto;
+    justify-self: end;
 }
 
 .community-layout-icon-button {
@@ -689,6 +692,7 @@
     }
 
     .community-layout-topbar {
+        display: flex;
         flex-wrap: wrap;
         gap: 14px;
         min-height: 58px;
