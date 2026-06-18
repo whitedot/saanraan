@@ -728,7 +728,6 @@
 .content-layout-member-action-row,
 .content-layout-member-logout-button {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);
@@ -906,7 +905,6 @@
 .content-layout-member-dropdown-link,
 .content-layout-member-logout-button {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);
@@ -979,7 +977,6 @@
 .content-layout-member-asset-row,
 .content-layout-member-action-row {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);

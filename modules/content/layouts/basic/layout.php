@@ -345,54 +345,54 @@ if (
                             <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
                             <span class="material-symbols-outlined content-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
                         </summary>
-                        <div class="content-layout-member-dropdown" role="menu" aria-orientation="vertical">
-                            <div class="content-layout-member-dropdown-header">
-                                <span class="content-layout-member-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
-                                <span class="content-layout-member-identity">
-                                    <strong><?php echo sr_e($layoutMemberDisplayName); ?></strong>
+                        <div class="content-layout-member-dropdown dropdown-menu-profile" role="menu" aria-orientation="vertical">
+                            <div class="content-layout-member-dropdown-header dropdown-profile-header">
+                                <span class="content-layout-member-avatar dropdown-profile-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
+                                <span class="content-layout-member-identity dropdown-profile-identity">
+                                    <strong class="dropdown-profile-name"><?php echo sr_e($layoutMemberDisplayName); ?></strong>
                                     <?php if ($layoutMemberEmail !== '') { ?>
-                                        <span><?php echo sr_e($layoutMemberEmail); ?></span>
+                                        <span class="dropdown-profile-email"><?php echo sr_e($layoutMemberEmail); ?></span>
                                     <?php } ?>
                                 </span>
                                 <span class="content-layout-member-badge"><?php echo sr_e($layoutMemberBadgeLabel); ?></span>
                             </div>
-                            <a class="content-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
+                            <a class="content-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>manage_accounts</span>
                                 <span><?php echo sr_e('정보수정'); ?></span>
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
                             <?php if ($layoutCommunityMemberMenuEnabled) { ?>
-                                <span class="content-layout-member-divider" aria-hidden="true"></span>
-                                <a class="content-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
+                                <span class="content-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
+                                <a class="content-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
                                     <span><?php echo sr_e('쪽지'); ?></span>
                                     <strong><?php echo sr_e(number_format($layoutUnreadCommunityMessageCount) . '개'); ?></strong>
                                 </a>
-                                <a class="content-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/community/scraps')); ?>" role="menuitem">
+                                <a class="content-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/scraps')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bookmark</span>
                                     <span><?php echo sr_e('스크랩'); ?></span>
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                                 </a>
-                                <span class="content-layout-member-divider" aria-hidden="true"></span>
+                                <span class="content-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
                             <?php } ?>
                             <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
-                                <a class="content-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>" role="menuitem">
+                                <a class="content-layout-member-asset-row dropdown-profile-item" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>account_balance_wallet</span>
                                     <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
                                 </a>
                             <?php } ?>
                             <?php foreach ($layoutMemberActionRows as $layoutMemberActionRow) { ?>
-                                <a class="content-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>" role="menuitem">
+                                <a class="content-layout-member-action-row dropdown-profile-item" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bolt</span>
                                     <span><?php echo sr_e((string) ($layoutMemberActionRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberActionRow['value'] ?? '')); ?></strong>
                                 </a>
                             <?php } ?>
-                            <span class="content-layout-member-divider" aria-hidden="true"></span>
+                            <span class="content-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
                             <form class="content-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
                                 <?php echo sr_csrf_field(); ?>
-                                <button class="content-layout-member-logout-button" type="submit" role="menuitem">
+                                <button class="content-layout-member-logout-button dropdown-profile-item" type="submit" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
                                     <span><?php echo sr_e('로그아웃'); ?></span>
                                     <span></span>

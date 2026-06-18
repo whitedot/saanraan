@@ -810,7 +810,6 @@
 .community-layout-member-action-row,
 .community-layout-member-logout-button {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);
@@ -988,7 +987,6 @@
 .community-layout-member-dropdown-link,
 .community-layout-member-logout-button {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);
@@ -1061,7 +1059,6 @@
 .community-layout-member-asset-row,
 .community-layout-member-action-row {
     align-items: center;
-    background: transparent;
     border: 0;
     border-radius: 12px;
     color: var(--sr-muted-strong, #303741);
