@@ -81,7 +81,7 @@
 
 ## 커뮤니티 화면
 
-- [ ] `/community` 커뮤니티 홈
+- [ ] `/community` 커뮤니티 홈에서 3열 보조 메뉴, 최신 글 이미지/본문 일부, 시리즈/인기글/최신댓글 영역이 표시됨
 - [ ] `/community/board?key=free` 게시판 목록
 - [ ] 게시글 없음 상태
 - [ ] `/community/write?key=free` 글쓰기

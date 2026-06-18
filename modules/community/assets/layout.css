@@ -221,7 +221,7 @@
     justify-content: center;
     min-width: 0;
     min-height: 42px;
-    overflow-x: auto;
+    overflow: visible;
     margin: 0 auto;
     max-width: var(--community-layout-content-max-width);
     padding: 0 var(--community-layout-page-gutter);
@@ -232,7 +232,7 @@
     transition: background-color .18s ease, transform .22s ease;
     white-space: nowrap;
     width: 100%;
-    z-index: 30;
+    z-index: 1000;
 }
 
 .community-layout-nav.is-community-layout-nav-stuck {
