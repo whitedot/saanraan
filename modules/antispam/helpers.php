@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_antispam_default_settings(): array
 {
     return [

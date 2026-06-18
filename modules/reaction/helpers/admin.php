@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 3) . '/core/helpers/upload.php';
+
 function sr_reaction_definition_statuses(): array
 {
     return ['active', 'disabled'];

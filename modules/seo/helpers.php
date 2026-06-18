@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 
 function sr_seo_sitemap_entries(PDO $pdo, ?array $site): array
 {

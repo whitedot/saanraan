@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 require_once SR_ROOT . '/modules/quiz/helpers/admin.php';
 require_once SR_ROOT . '/modules/quiz/helpers/attempts.php';
 require_once SR_ROOT . '/modules/quiz/helpers/comments.php';

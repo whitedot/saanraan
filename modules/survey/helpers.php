@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 require_once SR_ROOT . '/modules/survey/helpers/comments.php';
 require_once SR_ROOT . '/modules/survey/helpers/responses.php';
 
