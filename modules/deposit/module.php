@@ -10,7 +10,7 @@ return [
         'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 50,
-        'icon' => ['type' => 'symbol', 'name' => 'wallet'],
+        'icon' => ['type' => 'symbol', 'name' => 'payments'],
         'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [

@@ -10,7 +10,7 @@ return [
         'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 30,
-        'icon' => ['type' => 'symbol', 'name' => 'coins'],
+        'icon' => ['type' => 'symbol', 'name' => 'database'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

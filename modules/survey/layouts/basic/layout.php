@@ -138,9 +138,10 @@ if (
                     'label' => function_exists('sr_point_display_name') ? sr_point_display_name($layoutPdo) : '포인트',
                     'value' => number_format(function_exists('sr_point_balance') ? sr_point_balance($layoutPdo, $layoutCurrentAccountId) : 0) . (function_exists('sr_point_unit_label') ? sr_point_unit_label($layoutPdo) : 'P'),
                     'url' => sr_url('/account/points'),
+                    'icon' => 'database',
                 ];
             } catch (Throwable) {
-                $layoutMemberAssetRows[] = ['label' => '포인트', 'value' => '0P', 'url' => sr_url('/account/points')];
+                $layoutMemberAssetRows[] = ['label' => '포인트', 'value' => '0P', 'url' => sr_url('/account/points'), 'icon' => 'database'];
             }
         }
         if (sr_module_enabled($layoutPdo, 'reward') && is_file(SR_ROOT . '/modules/reward/helpers.php')) {
@@ -150,9 +151,10 @@ if (
                     'label' => '적립금',
                     'value' => number_format(function_exists('sr_reward_balance') ? sr_reward_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
                     'url' => sr_url('/account/rewards'),
+                    'icon' => 'savings',
                 ];
             } catch (Throwable) {
-                $layoutMemberAssetRows[] = ['label' => '적립금', 'value' => '0원', 'url' => sr_url('/account/rewards')];
+                $layoutMemberAssetRows[] = ['label' => '적립금', 'value' => '0원', 'url' => sr_url('/account/rewards'), 'icon' => 'savings'];
             }
         }
         if (sr_module_enabled($layoutPdo, 'deposit') && is_file(SR_ROOT . '/modules/deposit/helpers.php')) {
@@ -162,9 +164,10 @@ if (
                     'label' => '예치금',
                     'value' => number_format(function_exists('sr_deposit_balance') ? sr_deposit_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
                     'url' => sr_url('/account/deposits'),
+                    'icon' => 'payments',
                 ];
             } catch (Throwable) {
-                $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits')];
+                $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits'), 'icon' => 'payments'];
             }
         }
         if (sr_module_enabled($layoutPdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
@@ -174,9 +177,10 @@ if (
                     'label' => '쿠폰·이용권',
                     'value' => number_format(function_exists('sr_coupon_active_account_issue_count') ? sr_coupon_active_account_issue_count($layoutPdo, $layoutCurrentAccountId) : 0) . '개',
                     'url' => sr_url('/account/coupons'),
+                    'icon' => 'confirmation_number',
                 ];
             } catch (Throwable) {
-                $layoutMemberAssetRows[] = ['label' => '쿠폰·이용권', 'value' => '0개', 'url' => sr_url('/account/coupons')];
+                $layoutMemberAssetRows[] = ['label' => '쿠폰·이용권', 'value' => '0개', 'url' => sr_url('/account/coupons'), 'icon' => 'confirmation_number'];
             }
         }
         $layoutMemberActionRows = sr_public_layout_member_action_rows($layoutPdo, $layoutCurrentAccountId);
@@ -328,7 +332,7 @@ if (
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
                             <?php if ($layoutCommunityMemberMenuEnabled) { ?>
-                                <span class="survey-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
+                                <hr class="survey-layout-member-divider dropdown-profile-divider">
                                 <a class="survey-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
                                     <span><?php echo sr_e('쪽지'); ?></span>
@@ -339,11 +343,15 @@ if (
                                     <span><?php echo sr_e('스크랩'); ?></span>
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                                 </a>
-                                <span class="survey-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
+                                <hr class="survey-layout-member-divider dropdown-profile-divider">
                             <?php } ?>
                             <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
+                                <?php
+                                $layoutMemberAssetIcon = trim((string) ($layoutMemberAssetRow['icon'] ?? 'account_balance_wallet'));
+                                $layoutMemberAssetIcon = function_exists('sr_material_icon_name') ? sr_material_icon_name($layoutMemberAssetIcon) : $layoutMemberAssetIcon;
+                                ?>
                                 <a class="survey-layout-member-asset-row dropdown-profile-item" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>" role="menuitem">
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>account_balance_wallet</span>
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon><?php echo sr_e($layoutMemberAssetIcon); ?></span>
                                     <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
                                 </a>
@@ -355,7 +363,7 @@ if (
                                     <strong><?php echo sr_e((string) ($layoutMemberActionRow['value'] ?? '')); ?></strong>
                                 </a>
                             <?php } ?>
-                            <span class="survey-layout-member-divider dropdown-profile-divider" aria-hidden="true"></span>
+                            <hr class="survey-layout-member-divider dropdown-profile-divider">
                             <form class="survey-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <button class="survey-layout-member-logout-button dropdown-profile-item" type="submit" role="menuitem">

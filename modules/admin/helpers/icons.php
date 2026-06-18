@@ -127,6 +127,38 @@ function sr_admin_icon_symbols(): array
                 'M3 12v4c0 2.2 3.13 4 7 4c2.1 0 3.98 -.53 5.26 -1.36',
             ],
         ],
+        'point' => [
+            'module_menu' => true,
+            'paths' => [
+                'M12 3l2.47 5.01l5.53 .8l-4 3.9l.94 5.51l-4.94 -2.6l-4.94 2.6l.94 -5.51l-4 -3.9l5.53 -.8l2.47 -5.01',
+            ],
+        ],
+        'database' => [
+            'module_menu' => true,
+            'paths' => [
+                'M4 6c0 2.2 3.58 4 8 4s8 -1.8 8 -4s-3.58 -4 -8 -4s-8 1.8 -8 4',
+                'M4 6v6c0 2.2 3.58 4 8 4s8 -1.8 8 -4v-6',
+                'M4 12v6c0 2.2 3.58 4 8 4s8 -1.8 8 -4v-6',
+            ],
+        ],
+        'savings' => [
+            'module_menu' => true,
+            'paths' => [
+                'M5 11a7 7 0 0 1 7 -7h3a5 5 0 0 1 5 5v6a4 4 0 0 1 -4 4h-2l-2 3l-2 -3h-2a5 5 0 0 1 -5 -5v-3',
+                'M9 9h4',
+                'M11 7v4',
+                'M4 14h4',
+            ],
+        ],
+        'payments' => [
+            'module_menu' => true,
+            'paths' => [
+                'M4 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2',
+                'M6 11h4',
+                'M15 15h3',
+                'M18 11h.01',
+            ],
+        ],
         'wallet' => [
             'module_menu' => true,
             'paths' => [
@@ -143,6 +175,15 @@ function sr_admin_icon_symbols(): array
                 'M12 8v13',
                 'M12 8h-3.5a2.5 2.5 0 1 1 2.5 -2.5v2.5',
                 'M12 8h3.5a2.5 2.5 0 1 0 -2.5 -2.5v2.5',
+            ],
+        ],
+        'ticket' => [
+            'module_menu' => true,
+            'paths' => [
+                'M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2',
+                'M13 5v2',
+                'M13 11v2',
+                'M13 17v2',
             ],
         ],
         'message-circle' => [
@@ -361,9 +402,14 @@ function sr_admin_builtin_material_icon_names(): array
         'menu-list' => 'format_list_bulleted',
         'bell' => 'notifications',
         'shield' => 'shield',
+        'point' => 'paid',
+        'database' => 'database',
+        'savings' => 'savings',
+        'payments' => 'payments',
         'coins' => 'payments',
         'wallet' => 'account_balance_wallet',
         'gift' => 'redeem',
+        'ticket' => 'confirmation_number',
         'message-circle' => 'forum',
         'service' => 'apps',
         'quiz' => 'quiz',
@@ -404,6 +450,7 @@ function sr_admin_common_material_icon_names(): array
         'dark_mode',
         'dashboard',
         'dashboard_customize',
+        'database',
         'delete',
         'download',
         'drag_indicator',
@@ -434,6 +481,7 @@ function sr_admin_common_material_icon_names(): array
         'more_vert',
         'notifications',
         'open_in_new',
+        'paid',
         'payments',
         'person',
         'play_arrow',
@@ -444,6 +492,7 @@ function sr_admin_common_material_icon_names(): array
         'restart_alt',
         'rule',
         'save',
+        'savings',
         'search',
         'security',
         'send',
