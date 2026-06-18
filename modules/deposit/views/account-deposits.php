@@ -6,12 +6,10 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/account/deposits'),
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'style_profile' => 'kit',
-]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
-    <main>
-        <h1><?php echo sr_e($pageTitle); ?></h1>
+    <main class="ui-page">
+        <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a></p>
         <?php if ($notice !== '') { ?>
             <p><?php echo sr_e($notice); ?></p>
@@ -23,14 +21,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <?php } ?>
             </ul>
         <?php } ?>
-        <section>
-            <h2>현재 잔액</h2>
+        <section class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title">현재 잔액</h2>
             <p><?php echo sr_e(number_format((int) $balance)); ?>원</p>
             <p>대기 중 환불 신청액: <?php echo sr_e(number_format((int) $pendingRefundAmount)); ?>원</p>
             <p>환불 신청 가능액: <?php echo sr_e(number_format((int) $availableRefundAmount)); ?>원</p>
-        </section>
-        <section id="deposit-refund-request">
-            <h2>환불 신청</h2>
+        </div></section>
+        <section id="deposit-refund-request" class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title">환불 신청</h2>
             <?php if (empty($refundRequestsEnabled)) { ?>
                 <p>현재 예치금 환불 신청을 받지 않습니다.</p>
             <?php } elseif (empty($canRequestRefund)) { ?>
@@ -44,45 +42,46 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <p>
                         <label for="deposit_refund_amount">
                             <span>신청 금액 <span class="sr-required-label">(필수)</span></span>
-                            <input id="deposit_refund_amount" type="number" name="amount" min="<?php echo sr_e((string) sr_deposit_refund_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_deposit_refund_max_amount(), (int) $availableRefundAmount)); ?>" step="1" required>
+                            <input id="deposit_refund_amount" type="number" name="amount" min="<?php echo sr_e((string) sr_deposit_refund_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_deposit_refund_max_amount(), (int) $availableRefundAmount)); ?>" step="1" required class="form-input">
                         </label>
                         <small>최소 <?php echo sr_e(number_format(sr_deposit_refund_min_amount())); ?>원, 최대 <?php echo sr_e(number_format(sr_deposit_refund_max_amount())); ?>원까지 신청할 수 있습니다.</small>
                     </p>
                 <p>
                     <label for="deposit_refund_bank_name">
                         <span>은행명 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_name" type="text" name="bank_name" maxlength="80" required>
+                        <input id="deposit_refund_bank_name" type="text" name="bank_name" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_bank_account_number">
                         <span>계좌번호 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_account_number" type="text" name="bank_account_number" maxlength="80" required>
+                        <input id="deposit_refund_bank_account_number" type="text" name="bank_account_number" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_bank_account_holder">
                         <span>예금주 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_account_holder" type="text" name="bank_account_holder" maxlength="80" required>
+                        <input id="deposit_refund_bank_account_holder" type="text" name="bank_account_holder" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_requester_note">
                         <span>요청 메모</span>
-                        <input id="deposit_refund_requester_note" type="text" name="requester_note" maxlength="255">
+                        <input id="deposit_refund_requester_note" type="text" name="requester_note" maxlength="255" class="form-input">
                     </label>
                     <small>관리자가 환불 입금 확인에 참고할 내용을 적을 수 있습니다.</small>
                 </p>
-                    <button type="submit">환불 신청</button>
+                    <button type="submit" class="btn btn-solid-primary">환불 신청</button>
                 </form>
             <?php } ?>
-        </section>
-        <section>
-            <h2>환불 신청 내역</h2>
+        </div></section>
+        <section class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title">환불 신청 내역</h2>
             <?php if ($refundRequests === []) { ?>
                 <p>환불 신청 내역이 없습니다.</p>
             <?php } else { ?>
-                <table>
+                <div class="table-wrapper">
+                    <table class="table">
                     <thead>
                         <tr>
                             <th>신청일</th>
@@ -107,7 +106,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="cancel_refund_request">
                                             <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
-                                            <button type="submit">취소</button>
+                                            <button type="submit" class="btn btn-solid-primary">취소</button>
                                         </form>
                                     <?php } else { ?>
                                         -
@@ -117,14 +116,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php } ?>
                     </tbody>
                 </table>
+                    </div>
             <?php } ?>
-        </section>
-        <section>
-            <h2>거래 내역</h2>
+        </div></section>
+        <section class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title">거래 내역</h2>
             <?php if ($transactions === []) { ?>
                 <p>거래 내역이 없습니다.</p>
             <?php } else { ?>
-                <table>
+                <div class="table-wrapper">
+                    <table class="table">
                     <thead>
                         <tr>
                             <th>일시</th>
@@ -146,7 +147,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php } ?>
                     </tbody>
                 </table>
+                    </div>
             <?php } ?>
-        </section>
+        </div></section>
     </main>
 <?php sr_public_layout_end(); ?>

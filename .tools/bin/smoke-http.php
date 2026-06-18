@@ -524,6 +524,14 @@ $checks = [
         ],
     ],
     [
+        'label' => 'member basic skin stylesheet',
+        'path' => '/modules/member/skins/basic/skin.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.member-skin-basic-page',
+        ],
+    ],
+    [
         'label' => 'ckeditor plugin script',
         'path' => '/modules/ckeditor/assets/saanraan-ckeditor.js',
         'allowed_statuses' => [200],

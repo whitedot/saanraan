@@ -6,12 +6,10 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/account/notifications'),
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'style_profile' => 'kit',
-]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
-    <main>
-        <h1><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></h1>
+    <main class="ui-page">
+        <h1 class="type-page-title"><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></h1>
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('notification::ui.text.bf751bf5')); ?></a></p>
 
         <?php if ($notice !== '') { ?>
@@ -25,18 +23,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             </ul>
         <?php } ?>
 
-        <section>
-            <h2><?php echo sr_e(sr_t('notification::ui.text.50f30154')); ?></h2>
+        <section class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.50f30154')); ?></h2>
             <dl>
                 <dt><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></dt>
                 <dd><?php echo sr_e((string) $notificationSummary['total']); ?></dd>
                 <dt><?php echo sr_e(sr_t('notification::ui.text.62808119')); ?></dt>
                 <dd><?php echo sr_e((string) $notificationSummary['unread']); ?></dd>
             </dl>
-        </section>
+        </div></section>
 
-        <section>
-            <h2>외부 푸시</h2>
+        <section class="card"><div class="card-body ui-card-body-stack">
+            <h2 class="card-title">외부 푸시</h2>
             <p>Telegram 개인 chat으로 새 알림 도착 사실만 받습니다.</p>
 
             <?php if (!$pushProviderReady) { ?>
@@ -44,7 +42,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php } ?>
 
             <?php if ($pushEndpoints !== []) { ?>
-                <table>
+                <div class="table-wrapper">
+                    <table class="table">
                     <thead>
                         <tr>
                             <th>제공자</th>
@@ -74,9 +73,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                             <input type="hidden" name="endpoint_id" value="<?php echo sr_e((string) $pushEndpoint['id']); ?>">
                                             <label for="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>">
                                                 <span>현재 비밀번호</span>
-                                                <input id="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>" type="password" name="current_password" autocomplete="current-password" required>
+                                                <input id="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>" type="password" name="current_password" autocomplete="current-password" required class="form-input">
                                             </label>
-                                            <button type="submit">해제</button>
+                                            <button type="submit" class="btn btn-solid-primary">해제</button>
                                         </form>
                                     <?php } else { ?>
                                         해제됨
@@ -86,6 +85,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php } ?>
                     </tbody>
                 </table>
+                    </div>
             <?php } ?>
 
             <?php if ($pushProviderReady && !$pushLimitReached) { ?>
@@ -95,33 +95,33 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <p>
                         <label for="modules_notification_telegram_chat_id">
                             <span>Telegram chat ID</span>
-                            <input id="modules_notification_telegram_chat_id" type="text" name="telegram_chat_id" maxlength="120" required>
+                            <input id="modules_notification_telegram_chat_id" type="text" name="telegram_chat_id" maxlength="120" required class="form-input">
                         </label>
                     </p>
                     <p>
                         <label for="modules_notification_telegram_label">
                             <span>표시 이름</span>
-                            <input id="modules_notification_telegram_label" type="text" name="recipient_label" maxlength="120">
+                            <input id="modules_notification_telegram_label" type="text" name="recipient_label" maxlength="120" class="form-input">
                         </label>
                     </p>
                     <p>
                         <label for="modules_notification_connect_push_password">
                             <span>현재 비밀번호</span>
-                            <input id="modules_notification_connect_push_password" type="password" name="current_password" autocomplete="current-password" required>
+                            <input id="modules_notification_connect_push_password" type="password" name="current_password" autocomplete="current-password" required class="form-input">
                         </label>
                     </p>
-                    <button type="submit">Telegram 푸시 연결</button>
+                    <button type="submit" class="btn btn-solid-primary">Telegram 푸시 연결</button>
                 </form>
             <?php } elseif ($pushProviderReady) { ?>
                 <p>Telegram 푸시 수신처는 최대 5개까지 연결할 수 있습니다.</p>
             <?php } ?>
-        </section>
+        </div></section>
 
         <form method="get" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
             <p>
                 <label for="modules_notification_account_notifications_status">
                     <span><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></span>
-                    <select id="modules_notification_account_notifications_status" name="status">
+                    <select id="modules_notification_account_notifications_status" name="status" class="form-select">
                         <?php foreach (['' => sr_t('notification::ui.text.62808119'), 'read' => sr_t('notification::ui.text.3fe5701c')] as $value => $label) { ?>
                             <option value="<?php echo sr_e((string) $value); ?>"<?php echo $filters['status'] === (string) $value ? ' selected' : ''; ?>>
                                 <?php echo sr_e($label); ?>
@@ -130,7 +130,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     </select>
                 </label>
             </p>
-            <button type="submit"><?php echo sr_e(sr_t('notification::ui.text.f8d240bf')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.f8d240bf')); ?></button>
         </form>
 
         <?php if ($notifications === []) { ?>
@@ -139,9 +139,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="mark_all_read">
-                <button type="submit"><?php echo sr_e(sr_t('notification::ui.text.6577bbbb')); ?></button>
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.6577bbbb')); ?></button>
             </form>
-            <table>
+            <div class="table-wrapper">
+                    <table class="table">
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?></th>
@@ -171,7 +172,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="mark_read">
                                         <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">
-                                        <button type="submit"><?php echo sr_e(sr_t('notification::ui.text.3fe5701c')); ?></button>
+                                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.3fe5701c')); ?></button>
                                     </form>
                                 <?php } else { ?>
                                     <?php echo sr_e(sr_t('notification::ui.text.3fe5701c')); ?>
@@ -181,6 +182,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php } ?>
                 </tbody>
             </table>
+                    </div>
         <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>

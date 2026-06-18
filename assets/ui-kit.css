@@ -625,6 +625,86 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     --public-ui-shadow: 0 8px 24px var(--sr-shadow-soft, rgba(32, 36, 42, 0.08));
 }
 
+.ui-page {
+    color: var(--sr-text, var(--color-body-color));
+    display: grid;
+    gap: 18px;
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: clamp(24px, 5vw, 56px) clamp(16px, 5vw, 40px);
+    width: 100%;
+}
+
+.ui-page-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.ui-page-stack,
+.ui-card-body-stack {
+    display: grid;
+    gap: 14px;
+}
+
+.ui-stat-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.ui-stat-card {
+    background: var(--sr-surface-muted, var(--color-default-100));
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    color: var(--sr-text, var(--color-body-color));
+    display: grid;
+    gap: 4px;
+    min-height: 96px;
+    padding: 16px;
+}
+
+.ui-inline-form {
+    align-items: end;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.ui-field {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.ui-field > span {
+    color: var(--sr-text, var(--color-body-color));
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-small-line-height);
+}
+
+.ui-feedback {
+    background: var(--sr-surface-muted, var(--color-default-100));
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    color: var(--sr-muted, var(--color-default-600));
+    margin: 0;
+    padding: 10px 12px;
+}
+
+.ui-feedback-danger {
+    border-color: var(--sr-danger-border, var(--color-danger));
+    color: var(--sr-danger-text, var(--color-danger));
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+    .ui-feedback-danger {
+        background: var(--sr-danger-bg, color-mix(in oklab, var(--color-danger) 10%, transparent));
+    }
+}
+
 .public-ui-scope .public-ui-actions {
     align-items: center;
     display: flex;
@@ -675,6 +755,14 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     display: grid;
     gap: var(--public-ui-gap);
     padding: 20px;
+}
+
+.ui-stat-card > :first-child {
+    margin-top: 0;
+}
+
+.ui-stat-card > :last-child {
+    margin-bottom: 0;
 }
 
 .public-ui-scope .public-ui-title {
@@ -755,6 +843,17 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     color: var(--public-ui-muted);
     margin: 0;
     padding: 10px 12px;
+}
+
+@media (max-width: 760px) {
+    .ui-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ui-page-header .btn {
+        width: fit-content;
+    }
 }
 
 .public-ui-scope .public-ui-feedback-error {

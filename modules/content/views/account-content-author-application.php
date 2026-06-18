@@ -6,10 +6,10 @@ $applicationStatus = is_array($authorApplication ?? null) ? (string) ($authorApp
 $isApprovedAuthor = is_array($authorPermission ?? null) && (string) ($authorPermission['status'] ?? '') === 'allowed';
 $isBlockedAuthor = is_array($authorPermission ?? null) && (string) ($authorPermission['status'] ?? '') === 'blocked';
 $canApply = !empty($settings['member_submission_enabled']) && !$isApprovedAuthor && !$isBlockedAuthor;
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'kit']);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
-<main>
-    <h1><?php echo sr_e($pageTitle); ?></h1>
+<main class="ui-page">
+    <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
     <?php foreach ($errors as $error) { ?><p><?php echo sr_e((string) $error); ?></p><?php } ?>
     <?php if ($notice !== '') { ?><p><?php echo sr_e($notice); ?></p><?php } ?>
 
@@ -27,14 +27,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'k
                 <p>검토 메모: <?php echo sr_e((string) $authorApplication['review_note']); ?></p>
             <?php } ?>
         <?php } ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/account/content/author-application')); ?>">
-            <?php echo sr_csrf_field(); ?>
-            <p>
-                <label for="content_author_application_note">신청 사유</label><br>
-                <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
-            </p>
-            <p><button type="submit" class="btn btn-solid-primary">신청하기</button></p>
-        </form>
+        <section class="card">
+            <div class="card-body">
+                <form method="post" action="<?php echo sr_e(sr_url('/account/content/author-application')); ?>" class="ui-card-body-stack">
+                    <?php echo sr_csrf_field(); ?>
+                    <p>
+                        <label for="content_author_application_note">신청 사유</label><br>
+                        <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
+                    </p>
+                    <p><button type="submit" class="btn btn-solid-primary">신청하기</button></p>
+                </form>
+            </div>
+        </section>
     <?php } ?>
 </main>
 <?php sr_public_layout_end(); ?>

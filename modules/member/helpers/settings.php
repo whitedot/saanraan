@@ -92,6 +92,9 @@ function sr_member_skin_options(): array
     return sr_filter_view_options([
         'basic' => [
             'label' => sr_t('member::settings.skin.basic'),
+            'stylesheets' => [
+                '/modules/member/skins/basic/skin.css',
+            ],
             'views' => [
                 'login' => SR_ROOT . '/modules/member/skins/basic/login.php',
                 'register' => SR_ROOT . '/modules/member/skins/basic/register.php',
@@ -104,6 +107,28 @@ function sr_member_skin_options(): array
             ],
         ],
     ], sr_member_required_skin_view_keys(), 'member skin');
+}
+
+function sr_member_skin_stylesheets(string $skinKey): array
+{
+    $options = sr_member_skin_options();
+    $skinKey = isset($options[$skinKey]) ? $skinKey : 'basic';
+    $stylesheets = isset($options[$skinKey]['stylesheets']) && is_array($options[$skinKey]['stylesheets'])
+        ? $options[$skinKey]['stylesheets']
+        : [];
+    $validStylesheets = [];
+
+    foreach ($stylesheets as $stylesheet) {
+        if (!is_string($stylesheet) || !sr_is_safe_relative_url($stylesheet)) {
+            continue;
+        }
+        if (str_starts_with($stylesheet, '/') && !is_file(SR_ROOT . $stylesheet)) {
+            continue;
+        }
+        $validStylesheets[] = $stylesheet;
+    }
+
+    return $validStylesheets;
 }
 
 function sr_member_required_skin_view_keys(): array
