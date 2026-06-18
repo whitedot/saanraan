@@ -71,6 +71,7 @@
 ## 테마 토큰
 
 - 다크 모드는 시각적 사후 보정이 아니라 1급 상태로 취급합니다. public/admin UI 색상을 변경할 때는 `data-color-scheme="light"`와 `data-color-scheme="dark"` 모두에서 foreground, border, focus, icon, interactive 상태의 가독성을 유지해야 합니다.
+- public/admin UI의 색상, 표면, border, icon, focus, hover/active/selected 상태를 만들거나 변경할 때는 사용자가 별도로 요청하지 않아도 항상 라이트 모드와 다크 모드 대응을 함께 작업합니다.
 - 테마 인식 UI에는 `--sr-text`, `--sr-muted`, `--sr-muted-strong`, `--sr-border`, `--sr-border-soft`, `--sr-surface`, `--sr-surface-muted`와 danger, warning, success, info 같은 상태 토큰을 우선합니다. public themed surface에 나타나는 요소에서 모듈 CSS는 `--text-strong`, `--text-muted`, `--color-body-color`, `--color-default-*` 같은 light-only UI kit 토큰을 `--sr-*`보다 우선하지 않습니다.
 - fallback이 필요하면 theme-aware 토큰을 먼저, UI kit/static 토큰을 뒤에 둡니다. 예: `color: var(--sr-text, var(--text-strong, var(--color-default-900)));`.
 
