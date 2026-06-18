@@ -75,6 +75,12 @@ $siteSettingsHelp = [
         'body_html' => '<p>' . sr_e('켜면 비로그인 방문자가 공개 사이트 화면에 접근할 때 로그인 화면으로 이동합니다.') . '</p>'
             . '<p>' . sr_e('로그인 후에는 원래 요청한 내부 화면으로 돌아갑니다. 로그인, 가입, 비밀번호 재설정 같은 인증 화면은 계속 접근할 수 있습니다.') . '</p>',
     ],
+    'business_info' => [
+        'id' => 'admin-settings-business-info-help-modal',
+        'title' => '사업자 정보',
+        'body_html' => '<p>' . sr_e('상호, 대표자명, 사업자등록번호처럼 운영자가 공개 표시나 정책 문서에서 재사용할 수 있는 사업자 정보를 저장합니다.') . '</p>'
+            . '<p>' . sr_e('통신판매신고업번호처럼 서비스에 필요한 항목이 더 있으면 항목 추가 버튼으로 직접 이름과 값을 입력하세요.') . '</p>',
+    ],
     'admin_color_scheme' => [
         'id' => 'admin-settings-admin-color-scheme-help-modal',
         'title' => sr_t('admin::settings.help.ui_color_scheme.title'),
@@ -100,6 +106,7 @@ $siteSettingsHelp = [
         ]),
     ],
 ];
+$businessInfoRows = sr_admin_business_info_form_rows($values);
 $adminIconOverrideCount = 0;
 $adminIconRows = [];
 foreach ($adminIconDefaults as $adminIconSymbolName => $_adminIconDefaultMaterialName) {
@@ -249,6 +256,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_member_only_enabled', 'member_only_enabled', ['0' => '끄기', '1' => '켜기'], (string) ($values['member_only_enabled'] ?? '0'), true); ?>
                 <p class="form-help">비로그인 방문자는 로그인 화면으로 이동하며, 로그인 후 원래 경로로 돌아갑니다.</p>
+            </div>
+        </div>
+    </section>
+    <section class="card">
+        <h2>사업자 정보</h2>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_business_info_label_0', '입력 항목', $siteSettingsHelp['business_info']['id'], $siteSettingsHelpOpenLabel, false); ?>
+            <div class="form-field">
+                <div class="admin-business-info-list" data-admin-business-info-list>
+                    <?php foreach ($businessInfoRows as $businessInfoIndex => $businessInfoRow) { ?>
+                        <?php
+                        $businessInfoKey = (string) ($businessInfoRow['key'] ?? '');
+                        $businessInfoLabel = (string) ($businessInfoRow['label'] ?? '');
+                        $businessInfoValue = (string) ($businessInfoRow['value'] ?? '');
+                        $businessInfoIsDefault = !empty($businessInfoRow['is_default']);
+                        $businessInfoLabelId = 'admin_settings_business_info_label_' . (string) $businessInfoIndex;
+                        $businessInfoValueId = 'admin_settings_business_info_value_' . (string) $businessInfoIndex;
+                        ?>
+                        <div class="admin-business-info-row" data-admin-business-info-row>
+                            <input type="hidden" name="business_info_key[]" value="<?php echo sr_e($businessInfoKey); ?>">
+                            <label class="sr-only" for="<?php echo sr_e($businessInfoLabelId); ?>">사업자 정보 항목명</label>
+                            <?php if ($businessInfoIsDefault) { ?>
+                                <input id="<?php echo sr_e($businessInfoLabelId); ?>" type="text" name="business_info_label[]" value="<?php echo sr_e($businessInfoLabel); ?>" class="form-input form-input-sm" readonly aria-readonly="true">
+                            <?php } else { ?>
+                                <input id="<?php echo sr_e($businessInfoLabelId); ?>" type="text" name="business_info_label[]" value="<?php echo sr_e($businessInfoLabel); ?>" class="form-input form-input-sm" maxlength="80" placeholder="항목명">
+                            <?php } ?>
+                            <label class="sr-only" for="<?php echo sr_e($businessInfoValueId); ?>"><?php echo sr_e($businessInfoLabel !== '' ? $businessInfoLabel : '사업자 정보 값'); ?></label>
+                            <input id="<?php echo sr_e($businessInfoValueId); ?>" type="text" name="business_info_value[]" value="<?php echo sr_e($businessInfoValue); ?>" class="form-input form-input-sm" maxlength="255" placeholder="값">
+                            <?php if ($businessInfoIsDefault) { ?>
+                                <span class="admin-business-info-fixed">기본</span>
+                            <?php } else { ?>
+                                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-business-info-remove" aria-label="사업자 정보 항목 제거" title="제거" data-admin-business-info-remove>
+                                    <?php echo sr_material_icon_html('delete'); ?>
+                                </button>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+                <div class="admin-business-info-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-business-info-add><?php echo sr_material_icon_html('add'); ?>항목 추가</button>
+                </div>
+                <p class="form-help">빈 값은 저장되지만 표시 여부는 각 공개 화면이나 정책 문서 템플릿에서 결정합니다. 필요 없는 추가 항목은 제거할 수 있습니다.</p>
             </div>
         </div>
     </section>
@@ -781,6 +830,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 removeButton.addEventListener('click', function () {
                     row.remove();
                 });
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-admin-business-info-remove]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var row = button.closest('[data-admin-business-info-row]');
+            if (row) {
+                row.remove();
+            }
+        });
+    });
+
+    var businessInfoAddButton = document.querySelector('[data-admin-business-info-add]');
+    var businessInfoList = document.querySelector('[data-admin-business-info-list]');
+    var businessInfoAddIndex = 0;
+    if (businessInfoAddButton && businessInfoList) {
+        businessInfoAddButton.addEventListener('click', function () {
+            var index = businessInfoAddIndex++;
+            var row = document.createElement('div');
+            row.className = 'admin-business-info-row';
+            row.setAttribute('data-admin-business-info-row', '');
+            row.innerHTML = ''
+                + '<input type="hidden" name="business_info_key[]" value="">'
+                + '<label class="sr-only" for="admin_settings_business_info_custom_label_' + index + '">사업자 정보 항목명</label>'
+                + '<input id="admin_settings_business_info_custom_label_' + index + '" type="text" name="business_info_label[]" class="form-input form-input-sm" maxlength="80" placeholder="항목명">'
+                + '<label class="sr-only" for="admin_settings_business_info_custom_value_' + index + '">사업자 정보 값</label>'
+                + '<input id="admin_settings_business_info_custom_value_' + index + '" type="text" name="business_info_value[]" class="form-input form-input-sm" maxlength="255" placeholder="값">'
+                + '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-business-info-remove" aria-label="사업자 정보 항목 제거" title="제거" data-admin-business-info-remove><?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('delete')); ?></button>';
+            businessInfoList.appendChild(row);
+            var labelInput = row.querySelector('input[name="business_info_label[]"]');
+            var removeButton = row.querySelector('[data-admin-business-info-remove]');
+            if (removeButton) {
+                removeButton.addEventListener('click', function () {
+                    row.remove();
+                });
+            }
+            if (labelInput) {
+                labelInput.focus();
             }
         });
     }

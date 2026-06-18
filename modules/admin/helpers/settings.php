@@ -682,6 +682,8 @@ function sr_admin_normalize_setting_value(string $settingValue, string $valueTyp
 
 function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
 {
+    $siteSettings = $pdo instanceof PDO ? sr_site_settings($pdo) : [];
+
     return [
         'name' => (string) ($site['name'] ?? ''),
         'base_url' => (string) ($site['base_url'] ?? ''),
@@ -693,6 +695,7 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
         'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
+        'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
     ];
 }
 
@@ -796,6 +799,8 @@ function sr_admin_sidebar_module_order_map(PDO $pdo): array
 
 function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): array
 {
+    $siteSettings = $pdo instanceof PDO ? sr_site_settings($pdo) : [];
+
     return [
         'name' => (string) ($site['name'] ?? ''),
         'base_url' => (string) ($site['base_url'] ?? ''),
@@ -807,6 +812,7 @@ function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): 
         'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
+        'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
     ];
 }
 
@@ -823,7 +829,175 @@ function sr_admin_post_site_setting_values(?array $site): array
         'member_only_enabled' => sr_post_string('member_only_enabled', 1) === '1' ? '1' : '0',
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
+        'business_info_items' => sr_admin_post_business_info_items(),
     ];
+}
+
+function sr_admin_business_info_default_items(): array
+{
+    return [
+        'company_name' => '상호',
+        'representative_name' => '대표자명',
+        'business_registration_number' => '사업자등록번호',
+        'business_address' => '사업장 주소',
+        'customer_service_phone' => '고객센터 전화번호',
+        'privacy_officer_name' => '개인정보보호책임자',
+        'privacy_officer_email' => '개인정보보호책임자 이메일',
+    ];
+}
+
+function sr_admin_normalize_business_info_key(string $key): string
+{
+    $key = strtolower(trim($key));
+    $key = preg_replace('/[^a-z0-9_]+/', '_', $key);
+    $key = is_string($key) ? trim($key, '_') : '';
+
+    if ($key === '' || preg_match('/\A[a-z][a-z0-9_]{1,79}\z/', $key) !== 1) {
+        return '';
+    }
+
+    return $key;
+}
+
+function sr_admin_normalize_business_info_items(mixed $items): array
+{
+    if (!is_array($items)) {
+        return [];
+    }
+
+    $normalized = [];
+    $customIndex = 1;
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $label = sr_clean_single_line((string) ($item['label'] ?? ''), 80);
+        $value = sr_clean_single_line((string) ($item['value'] ?? ''), 255);
+        if ($label === '' && $value === '') {
+            continue;
+        }
+
+        $key = sr_admin_normalize_business_info_key((string) ($item['key'] ?? ''));
+        if ($key === '') {
+            $key = 'custom_' . (string) $customIndex;
+            $customIndex++;
+        }
+
+        $normalized[] = [
+            'key' => $key,
+            'label' => $label,
+            'value' => $value,
+        ];
+
+        if (count($normalized) >= 30) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_admin_post_business_info_items(): array
+{
+    $postedKeys = $_POST['business_info_key'] ?? [];
+    $postedLabels = $_POST['business_info_label'] ?? [];
+    $postedValues = $_POST['business_info_value'] ?? [];
+
+    if (!is_array($postedKeys) || !is_array($postedLabels) || !is_array($postedValues)) {
+        return [];
+    }
+
+    $defaultItems = sr_admin_business_info_default_items();
+    $items = [];
+    $rowCount = max(count($postedKeys), count($postedLabels), count($postedValues));
+    for ($index = 0; $index < $rowCount; $index++) {
+        $key = sr_admin_normalize_business_info_key((string) ($postedKeys[$index] ?? ''));
+        $label = sr_clean_single_line((string) ($postedLabels[$index] ?? ''), 80);
+        $value = sr_clean_single_line((string) ($postedValues[$index] ?? ''), 255);
+
+        if (isset($defaultItems[$key])) {
+            $label = $defaultItems[$key];
+        }
+
+        if ($label === '' && $value === '') {
+            continue;
+        }
+
+        $items[] = [
+            'key' => $key,
+            'label' => $label,
+            'value' => $value,
+        ];
+
+        if (count($items) >= 30) {
+            break;
+        }
+    }
+
+    return sr_admin_normalize_business_info_items($items);
+}
+
+function sr_admin_business_info_form_rows(array $values): array
+{
+    $savedItems = sr_admin_normalize_business_info_items($values['business_info_items'] ?? []);
+    $savedByKey = [];
+    $customItems = [];
+    $defaultItems = sr_admin_business_info_default_items();
+
+    foreach ($savedItems as $item) {
+        $key = (string) ($item['key'] ?? '');
+        if (isset($defaultItems[$key])) {
+            $savedByKey[$key] = $item;
+        } else {
+            $customItems[] = $item;
+        }
+    }
+
+    $rows = [];
+    foreach ($defaultItems as $key => $label) {
+        $saved = is_array($savedByKey[$key] ?? null) ? $savedByKey[$key] : [];
+        $rows[] = [
+            'key' => (string) $key,
+            'label' => (string) $label,
+            'value' => (string) ($saved['value'] ?? ''),
+            'is_default' => true,
+        ];
+    }
+
+    foreach ($customItems as $item) {
+        $rows[] = [
+            'key' => (string) ($item['key'] ?? ''),
+            'label' => (string) ($item['label'] ?? ''),
+            'value' => (string) ($item['value'] ?? ''),
+            'is_default' => false,
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_admin_validate_business_info_items(array &$values, array &$errors): void
+{
+    $items = sr_admin_normalize_business_info_items($values['business_info_items'] ?? []);
+    $labels = [];
+
+    foreach ($items as $item) {
+        $label = (string) ($item['label'] ?? '');
+        if ($label === '') {
+            $errors[] = '사업자 정보 항목명을 입력하세요.';
+            return;
+        }
+
+        $labelKey = function_exists('mb_strtolower') ? mb_strtolower($label, 'UTF-8') : strtolower($label);
+        if (isset($labels[$labelKey])) {
+            $errors[] = '사업자 정보 항목명이 중복되었습니다: ' . $label;
+            return;
+        }
+        $labels[$labelKey] = true;
+    }
+
+    $values['business_info_items'] = $items;
 }
 
 function sr_admin_currency_change_confirmation_phrase(string $currentCurrency, string $newCurrency): string
@@ -1241,6 +1415,10 @@ function sr_admin_handle_settings_post(
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
 
+        if ($errors === []) {
+            sr_admin_validate_business_info_items($values, $errors);
+        }
+
         if (!in_array($values['member_only_enabled'], ['0', '1'], true)) {
             $errors[] = '회원 전용 모드 값이 올바르지 않습니다.';
         }
@@ -1292,6 +1470,10 @@ function sr_admin_handle_settings_post(
                 'site.member_only_enabled' => ['value' => $values['member_only_enabled'], 'type' => 'bool'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
                 'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
+                'site.business_info_items' => [
+                    'value' => (string) json_encode($values['business_info_items'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    'type' => 'json',
+                ],
             ]);
 
             sr_audit_log($pdo, [
