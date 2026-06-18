@@ -26,12 +26,7 @@ $layoutCurrentRequestPath = '/' . trim(sr_request_path(), '/');
 $layoutCurrentRequestPath = $layoutCurrentRequestPath === '/' ? '/' : rtrim($layoutCurrentRequestPath, '/');
 $layoutUsesCommunityRoute = $layoutCurrentRequestPath === '/community' || str_starts_with($layoutCurrentRequestPath, '/community/');
 $layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : ($layoutUsesCommunityRoute ? '' : 'header');
-$layoutFooterMenuSlots = [
-    'secondary' => ['slot_key' => 'secondary_navigation', 'label' => '보조 메뉴'],
-    'tertiary' => ['slot_key' => 'tertiary_navigation', 'label' => '추가 메뉴 1'],
-    'quaternary' => ['slot_key' => 'quaternary_navigation', 'label' => '추가 메뉴 2'],
-    'quinary' => ['slot_key' => 'quinary_navigation', 'label' => '추가 메뉴 3'],
-];
+$layoutFooterMenuSlots = [];
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutColorScheme = sr_color_scheme($layoutSite);
 $layoutColorSchemeOptions = sr_color_scheme_options();

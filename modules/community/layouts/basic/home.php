@@ -55,7 +55,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                 </a>
                             <?php } ?>
                             <div class="community-home-post-body">
-                                <h2 class="community-home-post-title"><a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a></h2>
+                                <h2 class="community-post-title community-home-post-title"><a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a></h2>
                                 <?php if ($postExcerpt !== '') { ?>
                                     <p><?php echo sr_e($postExcerpt); ?></p>
                                 <?php } ?>
@@ -108,7 +108,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                                 <img class="community-home-summary-image" src="<?php echo sr_e($popularPostImageUrl); ?>" alt="" loading="lazy">
                                             </a>
                                         <?php } ?>
-                                        <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
+                                        <a class="community-post-title community-home-summary-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
                                     </li>
                                 <?php } ?>
                             </ul>
@@ -125,17 +125,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                             <ul>
                                 <?php foreach ($latestComments as $comment) { ?>
                                     <?php
-                                    $commentPostUrl = sr_url('/community/post?id=' . (string) (int) ($comment['post_id'] ?? 0) . '#comments');
+                                    $commentPostUrl = sr_url('/community/post?id=' . (string) (int) ($comment['post_id'] ?? 0) . '#community-comment-' . (string) (int) ($comment['id'] ?? 0));
                                     $commentExcerptAllowed = empty($comment['is_secret'])
                                         && empty($comment['post_is_secret'])
                                         && !empty($homeExcerptAllowedByBoardId[(int) ($comment['board_id'] ?? 0)]);
-                                    $commentExcerpt = $commentExcerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 80) : '';
+                                    $commentExcerpt = $commentExcerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 30) : '';
                                     ?>
                                     <li>
-                                        <a href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e((string) ($comment['post_title'] ?? '')); ?></a>
                                         <?php if ($commentExcerpt !== '') { ?>
-                                            <p><?php echo sr_e($commentExcerpt); ?></p>
+                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e($commentExcerpt); ?></a>
+                                        <?php } else { ?>
+                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e('댓글을 확인하세요.'); ?></a>
                                         <?php } ?>
+                                        <a class="community-post-title community-home-comment-post-title" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e((string) ($comment['post_title'] ?? '')); ?></a>
                                     </li>
                                 <?php } ?>
                             </ul>

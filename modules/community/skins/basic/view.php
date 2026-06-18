@@ -53,7 +53,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         </p>
 
         <article>
-            <h1><?php echo sr_e($pageTitle); ?></h1>
+            <h1 class="community-post-title community-post-view-title"><?php echo sr_e($pageTitle); ?></h1>
             <p>
                 <?php if ((int) ($post['is_secret'] ?? 0) === 1) { ?>
                     <?php echo sr_e('비밀글'); ?>
@@ -339,7 +339,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <?php
                         $communityCommentDepth = min(3, max(1, (int) ($comment['depth'] ?? 1)));
                         ?>
-                        <li class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
+                        <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
                             <?php
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);

@@ -278,6 +278,9 @@ function sr_community_public_layout_context(array $settings, array $context = []
     foreach (sr_community_layout_menu_slots() as $slotKey => $settingKey) {
         $siteMenus[$slotKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
     }
+    foreach (['secondary', 'tertiary', 'quaternary', 'quinary'] as $footerSlotKey) {
+        $siteMenus[$footerSlotKey] = '';
+    }
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
 

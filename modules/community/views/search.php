@@ -52,7 +52,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php } ?>
                             <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
                         </div>
-                        <h2>
+                        <h2 class="community-post-title community-post-search-title">
                             <a href="<?php echo sr_e(sr_url($postUrl)); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
                         </h2>
                         <?php if ($postExcerpt !== '') { ?>

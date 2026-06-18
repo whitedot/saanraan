@@ -62,8 +62,10 @@
     text-decoration: none;
 }
 
-.community-board-card-title a:hover {
-    text-decoration: underline;
+.community-board-card-title a:hover,
+.community-board-card-title a:focus {
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
 }
 
 .community-board-card-description {
@@ -275,7 +277,8 @@
 
 .community-home-post-body a:hover,
 .community-home-post-body a:focus {
-    text-decoration: underline;
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
 }
 
 .community-home-post-body p {
@@ -348,7 +351,30 @@
 
 .community-home-aside a:hover,
 .community-home-aside a:focus {
-    text-decoration: underline;
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
+}
+
+.community-home-comment-excerpt {
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--type-small-line-height);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.community-home-comment-excerpt:hover,
+.community-home-comment-excerpt:focus {
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
+}
+
+.community-home-comment-post-title {
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--type-meta-line-height);
 }
 
 .community-home-aside p {
@@ -435,6 +461,25 @@
 .community-screen nav,
 .community-screen form {
     min-width: 0;
+}
+
+.community-post-title {
+    font-weight: var(--font-weight-bold);
+    overflow-wrap: anywhere;
+}
+
+a.community-post-title,
+.community-post-title a {
+    color: var(--sr-text, var(--text-strong, #242424));
+    text-decoration: none;
+}
+
+a.community-post-title:hover,
+a.community-post-title:focus,
+.community-post-title a:hover,
+.community-post-title a:focus {
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
 }
 
 .community-post-body {
@@ -637,8 +682,10 @@
     text-decoration: none;
 }
 
-.community-search-result h2 a:hover {
-    text-decoration: underline;
+.community-search-result h2 a:hover,
+.community-search-result h2 a:focus {
+    color: var(--color-primary-hover, var(--color-primary, var(--sr-text, #20242a)));
+    text-decoration: none;
 }
 
 .community-search-result p {

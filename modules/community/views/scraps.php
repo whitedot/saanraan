@@ -56,7 +56,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             </td>
                             <td>
                                 <?php if (sr_community_scrap_row_can_view($scrap)) { ?>
-                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
+                                    <a class="community-post-title community-post-scrap-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
                                         <?php echo sr_e((string) $scrap['title']); ?>
                                     </a>
                                 <?php } else { ?>
