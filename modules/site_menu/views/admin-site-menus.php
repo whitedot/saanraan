@@ -1,6 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('site_menu::ui.menu.766fbd09');
+$adminPageSubtitle = sr_t('site_menu::ui.menu.3ddcbf35');
 $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
@@ -203,11 +204,11 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">이 모달의 저장 버튼은 메뉴 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
+                    <p class="form-help">이 모달의 저장 버튼은 메뉴 초안만 저장합니다. 공개 사이트에는 공개 반영 후 적용됩니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.menu.save.f55aafc2')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.menu.draft.save.97477650')); ?></button>
                 </div>
             </form>
         </div>
@@ -327,11 +328,11 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">이 모달의 저장 버튼은 메뉴 항목 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
+                    <p class="form-help">이 모달의 저장 버튼은 메뉴 항목 초안만 저장합니다. 공개 사이트에는 공개 반영 후 적용됩니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.save.964f6f83')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.item.draft.save.73d4c98b')); ?></button>
                 </div>
             </form>
         </div>
@@ -346,7 +347,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e(sr_t('site_menu::ui.menu.5b2bf65a')); ?></h2>
-            <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('site_menu::ui.menu.3ddcbf35')); ?></p>
+            <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('site_menu::ui.draft.notice.66a164cf')); ?></p>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal"><?php echo sr_e(sr_t('site_menu::ui.menu.ba050327')); ?></button>
     </div>
@@ -409,6 +410,10 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             $rowDepth = max(1, min(3, (int) ($row['depth'] ?? 1)));
                             $itemEditModalId = 'site_menu_edit_item_' . $itemId;
                             $childAddModalId = 'site_menu_add_child_' . $itemId;
+                            $itemDescendantCount = (int) ($itemDescendantCounts[$itemId] ?? 0);
+                            $itemDeleteConfirmMessage = $itemDescendantCount > 0
+                                ? sprintf(sr_t('site_menu::ui.delete.descendants.confirm.3fe6176d'), $itemDescendantCount)
+                                : '';
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="site_menu_<?php echo sr_e((string) $row['menu_id']); ?>" data-sort-parent="<?php echo sr_e((string) ((int) ($row['parent_id'] ?? 0))); ?>" data-sort-key="<?php echo sr_e((string) $itemId); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
                                 <td><span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
@@ -438,10 +443,11 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                             <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($childAddModalId); ?>" data-overlay="#<?php echo sr_e($childAddModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.8d136d31')); ?></button>
                                         <?php } ?>
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>"<?php echo $itemDescendantCount > 0 ? ' data-site-menu-delete-descendants="' . sr_e((string) $itemDescendantCount) . '" data-site-menu-delete-message="' . sr_e($itemDeleteConfirmMessage) . '"' : ''; ?>>
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_item">
                                             <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
+                                            <input type="hidden" name="confirm_descendant_delete" value="0" data-site-menu-delete-confirm-input>
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
@@ -458,13 +464,23 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></span>
     </div>
     <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
-	    <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="form-actions form-sticky-actions admin-site-menu-form-actions">
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="save_item_order">
-        <p class="form-help">순서 적용하기는 목록의 정렬 값만 저장합니다. 열려 있는 메뉴/항목 모달 입력값은 함께 저장되지 않습니다.</p>
-        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('site_menu::ui.save.cc86610d')); ?></button>
-    </form>
 </section>
+
+<div class="form-actions form-sticky-actions admin-site-menu-form-actions">
+    <p class="form-help">초안 저장 작업은 공개 사이트에 바로 반영되지 않습니다. 공개 반영을 누르면 현재 초안이 실제 메뉴로 적용됩니다.</p>
+    <button type="submit" form="site-menu-order-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('site_menu::ui.draft.order.save.17fa471c')); ?></button>
+    <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" onclick="return confirm(<?php echo sr_e(sr_js_json_encode(sr_t('site_menu::ui.publish.confirm.46c70ccb'))); ?>);"><?php echo sr_e(sr_t('site_menu::ui.publish.30a64fe2')); ?></button>
+</div>
+
+<form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="intent" value="save_item_order">
+</form>
+
+<form id="site-menu-publish-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="intent" value="publish_site_menus">
+</form>
 
 <?php $siteMenuRenderMenuModal('site_menu_add_menu_modal', sr_t('site_menu::ui.menu.ba050327')); ?>
 <?php foreach ($menus as $menu) { ?>

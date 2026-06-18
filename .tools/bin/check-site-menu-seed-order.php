@@ -159,9 +159,14 @@ sr_site_menu_check_assert(str_contains($commonUiJs, "event.key === 'Escape'"), '
 $siteMenuAction = (string) file_get_contents(SR_ROOT . '/modules/site_menu/actions/admin-site-menus.php');
 $siteMenuInstallSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/install.sql');
 $siteMenuDuplicatePathUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.002.sql');
+$siteMenuDraftUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.003.sql');
 sr_site_menu_check_assert(!str_contains($siteMenuAction, 'item_url_duplicate'), 'Site menu admin action must allow multiple items with the same URL.');
 sr_site_menu_check_assert(!str_contains($siteMenuInstallSql, 'uq_sr_site_menu_items_menu_url'), 'Site menu install schema must not enforce unique URLs within a menu.');
 sr_site_menu_check_assert(str_contains($siteMenuDuplicatePathUpdateSql, 'DROP INDEX uq_sr_site_menu_items_menu_url'), 'Site menu update must drop the legacy unique URL index.');
+sr_site_menu_check_assert(str_contains($siteMenuInstallSql, 'sr_site_menu_draft_menus'), 'Site menu install schema must create draft menu tables.');
+sr_site_menu_check_assert(str_contains($siteMenuDraftUpdateSql, 'site_menu_draft_menus'), 'Site menu update must create draft menu tables for existing installations.');
+sr_site_menu_check_assert(str_contains($siteMenuAction, 'publish_site_menus'), 'Site menu admin action must publish draft menus explicitly.');
+sr_site_menu_check_assert(str_contains($siteMenuAction, 'DELETE FROM sr_site_menus'), 'Site menu publish action must replace public menu rows from drafts.');
 
 if ($errors !== []) {
     fwrite(STDERR, "site menu checks failed:\n");

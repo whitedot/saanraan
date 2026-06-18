@@ -83,7 +83,7 @@
 | 퀴즈 | `sr_quiz_sets`, `sr_quiz_comments`, `sr_quiz_sources`, `sr_quiz_questions`, `sr_quiz_choices`, `sr_quiz_results`, `sr_quiz_result_rules`, `sr_quiz_reward_policies`, `sr_quiz_attempts`, `sr_quiz_attempt_answers`, `sr_quiz_attempt_result_scores`, `sr_quiz_reward_grants` |
 | 설문 | `sr_survey_forms`, `sr_survey_comments`, `sr_survey_questions`, `sr_survey_choices`, `sr_survey_responses`, `sr_survey_response_answers`, `sr_survey_reward_policies`, `sr_survey_reward_grants` |
 | 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_reward_withdrawal_requests`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_deposit_refund_requests`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
-| 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_logo_manager_icon_variants`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
+| 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_site_menu_draft_menus`, `sr_site_menu_draft_items`, `sr_logo_manager_logos`, `sr_logo_manager_icon_variants`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 임베드 | `sr_embed_manager_refs` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates`, `sr_admin_notifications`, `sr_admin_notification_reads` |
 | 리액션 | `sr_reaction_definitions`, `sr_reaction_presets`, `sr_reaction_preset_items`, `sr_reaction_records` |

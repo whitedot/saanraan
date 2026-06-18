@@ -135,5 +135,46 @@
                 urlInput.value = option.dataset.siteMenuAssetUrl;
             }
         });
+
+        document.addEventListener('submit', function (event) {
+            var publishForm = event.target && event.target.closest ? event.target.closest('#site-menu-publish-form') : null;
+            if (publishForm) {
+                Array.prototype.slice.call(publishForm.querySelectorAll('[data-site-menu-publish-sort-input]')).forEach(function (input) {
+                    input.parentNode.removeChild(input);
+                });
+                Array.prototype.slice.call(document.querySelectorAll('[data-admin-sort-order]')).forEach(function (input) {
+                    if (!input.name) {
+                        return;
+                    }
+                    var hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = input.name;
+                    hidden.value = input.value;
+                    hidden.setAttribute('data-site-menu-publish-sort-input', '1');
+                    publishForm.appendChild(hidden);
+                });
+                return;
+            }
+
+            var form = event.target && event.target.closest ? event.target.closest('form[data-site-menu-delete-descendants]') : null;
+            if (!form) {
+                return;
+            }
+
+            var confirmInput = form.querySelector('[data-site-menu-delete-confirm-input]');
+            if (confirmInput && confirmInput.value === '1') {
+                return;
+            }
+
+            var message = form.getAttribute('data-site-menu-delete-message') || '이 항목의 하위 항목도 함께 삭제됩니다. 계속 삭제할까요?';
+            if (!window.confirm(message)) {
+                event.preventDefault();
+                return;
+            }
+
+            if (confirmInput) {
+                confirmInput.value = '1';
+            }
+        });
     });
 })();

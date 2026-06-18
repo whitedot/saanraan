@@ -42,7 +42,7 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 
 `site_menu` 모듈은 공개 header/footer와 서비스 레이아웃에서 같은 메뉴가 한 요청 안에 반복 렌더링될 수 있으므로, enabled menu와 enabled item tree 데이터만 요청 단위 메모리 캐시한다. 현재 URL 활성 표시, `/login?next=...` 보정, 커뮤니티 게시판 context 판정, slot class, 최종 HTML은 렌더 단계에서 요청별로 계산하며 캐시하지 않는다.
 
-관리자 저장/삭제와 신규 설치 seed가 같은 요청 안에서 후속 렌더링을 수행하는 경우를 대비해 `sr_site_menu_clear_runtime_cache()`로 요청 cache를 비울 수 있다. 파일 캐시나 공유 캐시를 추가하려면 메뉴 저장, 항목 저장, 정렬, 삭제, menu key 변경, 설치 seed의 무효화 기준을 별도 구현 범위에서 검증해야 한다.
+관리자 화면의 메뉴 저장, 항목 저장, 정렬, 삭제는 초안 테이블만 변경하므로 공개 렌더링 cache를 무효화하지 않는다. `공개 반영`이 초안을 공개 메뉴 테이블로 교체하거나 신규 설치 seed가 같은 요청 안에서 후속 렌더링을 수행하는 경우를 대비해 `sr_site_menu_clear_runtime_cache()`로 요청 cache를 비울 수 있다. 파일 캐시나 공유 캐시를 추가하려면 초안 공개 반영, menu key 변경, 설치 seed의 무효화 기준을 별도 구현 범위에서 검증해야 한다.
 
 ## 반복 렌더링 계약 캐시
 

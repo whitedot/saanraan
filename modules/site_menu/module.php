@@ -2,7 +2,7 @@
 
 return [
     'name' => '사이트 메뉴',
-    'version' => '2026.06.002',
+    'version' => '2026.06.003',
     'type' => 'module',
     'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
     'admin' => [

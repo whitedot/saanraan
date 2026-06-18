@@ -244,6 +244,42 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
         $created += $insert->rowCount() > 0 ? 1 : 0;
     }
     if ($created > 0) {
+        try {
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_site_menu_draft_menus (id, menu_key, label, status, created_at, updated_at)
+                 SELECT id, menu_key, label, status, created_at, updated_at
+                 FROM sr_site_menus
+                 WHERE id = :menu_id
+                 ON DUPLICATE KEY UPDATE
+                    menu_key = VALUES(menu_key),
+                    label = VALUES(label),
+                    status = VALUES(status),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute(['menu_id' => $menuId]);
+
+            $iconColumnSql = sr_site_menu_items_icon_name_column_exists($pdo) ? 'icon_name, ' : "'' AS icon_name, ";
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_site_menu_draft_items (id, menu_id, parent_id, label, url, icon_name, target, status, sort_order, created_at, updated_at)
+                 SELECT id, menu_id, parent_id, label, url, ' . $iconColumnSql . 'target, status, sort_order, created_at, updated_at
+                 FROM sr_site_menu_items
+                 WHERE menu_id = :menu_id
+                 ON DUPLICATE KEY UPDATE
+                    menu_id = VALUES(menu_id),
+                    parent_id = VALUES(parent_id),
+                    label = VALUES(label),
+                    url = VALUES(url),
+                    icon_name = VALUES(icon_name),
+                    target = VALUES(target),
+                    status = VALUES(status),
+                    sort_order = VALUES(sort_order),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute(['menu_id' => $menuId]);
+        } catch (Throwable $exception) {
+            // Older installations without draft tables can continue; module updates create them.
+        }
+
         sr_site_menu_clear_runtime_cache('header');
     }
 

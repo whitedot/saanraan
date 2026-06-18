@@ -6,6 +6,15 @@
     justify-content: flex-end;
 }
 
+.admin-site-menu-form-actions .form-help {
+    margin-right: auto;
+}
+
+#site-menu-order-form,
+#site-menu-publish-form {
+    display: none;
+}
+
 .admin-page-site-menu .modal-body .form-row > .form-field .form-select,
 .admin-page-site-menu .modal-body .form-row > .form-field .form-input {
     max-width: 100%;
