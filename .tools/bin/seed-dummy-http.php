@@ -504,12 +504,24 @@ if (!$skipCommunity) {
 
 if (!$skipCommunity) {
     $beforePosts = seed_count($pdo, 'sr_community_posts');
+    $communityPostTitles = [
+        '봄봄 한 대목',
+        '메밀꽃 필 무렵 한 대목',
+        '운수 좋은 날 한 대목',
+    ];
+    $communityPostBodies = [
+        "김유정, 봄봄 (1935) 원문 일부\n\n\"아이구 배야!\"\n\n\"배가 좀 아파서유!\"\n\n논둑, 장인, 점순이를 둘러싼 해학적인 농촌 소설의 한 장면을 더미 게시글 본문으로 둡니다.",
+        "이효석, 메밀꽃 필 무렵 (1936) 원문 일부\n\n\"그만 거둘까?\"\n\n\"달이 뜨렷다?\"\n\n봉평 장과 밤길을 떠올리게 하는 짧은 대화 조각을 QA 목록과 상세 화면 검수에 씁니다.",
+        "현진건, 운수 좋은 날 (1924) 원문 일부\n\n\"설렁탕을 사다 놓았는데 왜 먹지를 못하니.\"\n\n근대 도시의 비극적인 정조가 남는 문장을 더미 게시글 본문으로 둡니다.",
+    ];
     for ($i = 1; $i <= $count; $i++) {
         $n = str_pad((string) $i, 2, '0', STR_PAD_LEFT);
+        $bodyText = $communityPostBodies[($i - 1) % count($communityPostBodies)]
+            . "\n\n더미 게시글 {$n}: 실제 공개 글쓰기 경로로 만든 게시글입니다.";
         seed_post('/community/write?key=' . $runKey . 'board' . $n, '/community/write?key=' . $runKey . 'board' . $n, [
-            'title' => 'QA 게시글 ' . $n,
+            'title' => $communityPostTitles[($i - 1) % count($communityPostTitles)] . ' ' . $n,
             'category_id' => '0',
-            'body_text' => "QA 게시글 본문 {$n}\n\n실제 공개 글쓰기 경로로 만든 게시글입니다.",
+            'body_text' => $bodyText,
             'body_format' => 'plain',
             'series_mode' => 'none',
             'series_id' => '0',
