@@ -32,6 +32,7 @@ $layoutFooterMenuSlots = [
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutColorScheme = sr_color_scheme($layoutSite);
 $layoutColorSchemeOptions = sr_color_scheme_options();
+$layoutColorSchemeIcons = ['light' => 'light_mode', 'dark' => 'dark_mode', 'system' => 'settings_suggest'];
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
@@ -396,7 +397,7 @@ if (
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
             <div class="public-theme-dropdown dropdown" data-dropdown-placement="top-end">
                 <button class="public-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>
-                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>dark_mode</span>
+                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon data-sr-color-scheme-current-icon><?php echo sr_e((string) ($layoutColorSchemeIcons[$layoutColorScheme] ?? 'light_mode')); ?></span>
                     <span data-sr-color-scheme-current><?php echo sr_e($layoutColorSchemeOptions[$layoutColorScheme] ?? '라이트'); ?></span>
                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>expand_less</span>
                 </button>
@@ -404,6 +405,7 @@ if (
                     <?php foreach ($layoutColorSchemeOptions as $layoutColorSchemeKey => $layoutColorSchemeLabel) { ?>
                         <button class="public-theme-option dropdown-item" type="button" role="menuitemradio" aria-checked="<?php echo $layoutColorSchemeKey === $layoutColorScheme ? 'true' : 'false'; ?>" data-sr-color-scheme-option="<?php echo sr_e($layoutColorSchemeKey); ?>">
                             <span class="material-symbols-outlined public-theme-option-check" aria-hidden="true" data-sr-material-icon>check</span>
+                            <span class="material-symbols-outlined public-theme-option-icon" aria-hidden="true" data-sr-material-icon><?php echo sr_e((string) ($layoutColorSchemeIcons[$layoutColorSchemeKey] ?? 'light_mode')); ?></span>
                             <span><?php echo sr_e($layoutColorSchemeLabel); ?></span>
                         </button>
                     <?php } ?>

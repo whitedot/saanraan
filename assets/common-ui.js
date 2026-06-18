@@ -493,10 +493,16 @@
   var STORAGE_KEY = 'sr_public_color_scheme';
   var OPTION_SELECTOR = '[data-sr-color-scheme-option]';
   var CURRENT_SELECTOR = '[data-sr-color-scheme-current]';
+  var CURRENT_ICON_SELECTOR = '[data-sr-color-scheme-current-icon]';
   var OPTIONS = {
     light: '라이트',
     dark: '다크',
     system: '시스템 설정'
+  };
+  var ICONS = {
+    light: 'light_mode',
+    dark: 'dark_mode',
+    system: 'settings_suggest'
   };
 
   function normalizeScheme(value) {
@@ -529,6 +535,9 @@
     document.documentElement.setAttribute('data-color-scheme', scheme);
     Array.prototype.slice.call(document.querySelectorAll(CURRENT_SELECTOR)).forEach(function (label) {
       label.textContent = OPTIONS[scheme];
+    });
+    Array.prototype.slice.call(document.querySelectorAll(CURRENT_ICON_SELECTOR)).forEach(function (icon) {
+      icon.textContent = ICONS[scheme];
     });
     Array.prototype.slice.call(document.querySelectorAll(OPTION_SELECTOR)).forEach(function (option) {
       option.setAttribute('aria-checked', option.getAttribute('data-sr-color-scheme-option') === scheme ? 'true' : 'false');
