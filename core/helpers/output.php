@@ -1255,10 +1255,21 @@ function sr_public_layout_end(): void
     }
     $includeInstalledLayoutOptions = !empty($layoutContext['include_installed_layout_options']);
     $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
+    $layoutModuleStylesheet = sr_public_layout_module_stylesheet($layoutKey);
     if (!isset($layoutContext['style_profile'])) {
         $layoutOptions = sr_public_layout_options($pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
         $layoutProfile = (string) ($layoutOptions[$layoutKey]['style_profile'] ?? 'kit');
+        if ($layoutProfile === 'minimal' && $layoutModuleStylesheet !== '') {
+            $layoutProfile = 'kit';
+        }
         $layoutContext['style_profile'] = sr_public_style_profile_key($layoutProfile);
+    }
+    if ($layoutModuleStylesheet !== '') {
+        $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+        if (!in_array($layoutModuleStylesheet, $layoutStylesheets, true)) {
+            array_unshift($layoutStylesheets, $layoutModuleStylesheet);
+        }
+        $layoutContext['stylesheets'] = $layoutStylesheets;
     }
 
     include $layoutFile;

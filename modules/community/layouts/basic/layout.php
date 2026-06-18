@@ -21,7 +21,10 @@ $layoutCleanMenuKey = static function (string $value): string {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 };
-$layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : '';
+$layoutCurrentRequestPath = '/' . trim(sr_request_path(), '/');
+$layoutCurrentRequestPath = $layoutCurrentRequestPath === '/' ? '/' : rtrim($layoutCurrentRequestPath, '/');
+$layoutUsesCommunityRoute = $layoutCurrentRequestPath === '/community' || str_starts_with($layoutCurrentRequestPath, '/community/');
+$layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : ($layoutUsesCommunityRoute ? '' : 'header');
 $layoutFooterMenuSlots = [
     'secondary' => ['slot_key' => 'secondary_navigation', 'label' => '보조 메뉴'],
     'tertiary' => ['slot_key' => 'tertiary_navigation', 'label' => '추가 메뉴 1'],
