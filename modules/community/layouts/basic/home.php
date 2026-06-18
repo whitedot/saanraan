@@ -101,7 +101,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                         <?php } else { ?>
                             <ul>
                                 <?php foreach ($popularPosts as $post) { ?>
-                                    <?php $popularPostImageUrl = (string) ($post['home_image_url'] ?? ''); ?>
+                                    <?php
+                                    $popularPostImageUrl = (string) ($post['home_image_url'] ?? '');
+                                    $popularPostAuthorLabel = sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo);
+                                    ?>
                                     <li>
                                         <?php if ($popularPostImageUrl !== '') { ?>
                                             <a class="community-home-summary-image-link" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>" aria-hidden="true" tabindex="-1">
@@ -109,6 +112,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                             </a>
                                         <?php } ?>
                                         <a class="community-post-title community-home-summary-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
+                                        <span class="community-home-summary-meta">
+                                            <?php echo sr_e($popularPostAuthorLabel); ?>
+                                            <?php if ($popularPostAuthorLabel !== '' && (string) ($post['created_at'] ?? '') !== '') { ?>
+                                                <span aria-hidden="true">&middot;</span>
+                                            <?php } ?>
+                                            <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
+                                        </span>
                                     </li>
                                 <?php } ?>
                             </ul>

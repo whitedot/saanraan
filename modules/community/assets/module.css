@@ -377,6 +377,16 @@
     line-height: var(--type-meta-line-height);
 }
 
+.community-home-summary-meta {
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+    display: inline-flex;
+    flex-wrap: wrap;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-medium);
+    gap: 4px;
+    line-height: var(--type-meta-line-height);
+}
+
 .community-home-aside p {
     color: var(--sr-muted, var(--text-muted, #6b6b6b));
     font-size: var(--type-small-size);
