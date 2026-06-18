@@ -601,6 +601,12 @@ window.AdminShell = {
 
             const pairByLink = new Map(pairs.map(pair => [pair.link, pair]));
             const scrollBehavior = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+            let lastDirectTabScrollAt = 0;
+            let activeLink = null;
+            const markDirectTabScroll = () => {
+                lastDirectTabScrollAt = Date.now();
+            };
+            const canAutoScrollTab = () => Date.now() - lastDirectTabScrollAt > 700;
             const activePairFromScroll = () => {
                 const probeY = adminStickyOffset() + Math.min(96, window.innerHeight * 0.25);
                 let activePair = pairs[0];
@@ -622,7 +628,12 @@ window.AdminShell = {
             const sync = () => {
                 ticking = false;
                 const activePair = activePairFromScroll();
-                setAnchorTabActive(tabs, activePair ? activePair.link : pairs[0].link);
+                const nextLink = activePair ? activePair.link : pairs[0].link;
+                const changed = nextLink !== activeLink;
+                activeLink = nextLink;
+                setAnchorTabActive(tabs, nextLink, {
+                    scrollTabIntoView: changed && canAutoScrollTab()
+                });
             };
             const requestSync = () => {
                 if (ticking) {
@@ -640,9 +651,24 @@ window.AdminShell = {
                     }
 
                     event.preventDefault();
+                    activeLink = link;
                     setAnchorTabActive(tabs, link, { scrollTabIntoView: true });
                     pair.section.scrollIntoView({ block: 'start', behavior: scrollBehavior });
                 });
+            });
+            tabs.addEventListener('wheel', markDirectTabScroll, { passive: true });
+            tabs.addEventListener('touchstart', markDirectTabScroll, { passive: true });
+            tabs.addEventListener('pointerdown', markDirectTabScroll);
+            tabs.addEventListener('keydown', event => {
+                if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Tab'].indexOf(event.key) !== -1) {
+                    markDirectTabScroll();
+                }
+            });
+            tabs.addEventListener('focusin', event => {
+                const link = event.target && event.target.closest ? event.target.closest('a[href^="#"]') : null;
+                if (link && tabs.contains(link)) {
+                    scrollAnchorTabIntoView(tabs, link);
+                }
             });
 
             sync();
