@@ -46,7 +46,7 @@ $seo = [
 ];
 
 sr_public_layout_begin($homePdo, $homeSite, $seo, [
-    'body_class' => 'public-layout-home',
+    'body_class' => 'public-layout-home sr-site-home',
     'style_profile' => 'kit',
     'stylesheets' => [
         '/assets/module.css',

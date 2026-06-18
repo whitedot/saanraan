@@ -14,6 +14,7 @@ $seo = [
 ];
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'body_class' => 'public-layout-home sr-site-home',
     'style_profile' => 'kit',
     'stylesheets' => [
         '/assets/module.css',

@@ -488,6 +488,12 @@
     min-width: 0;
 }
 
+.quiz-layout-body.sr-site-home .quiz-layout-main {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+}
+
 .quiz-layout-footer {
     color: var(--color-default-700, var(--text-strong, var(--color-body-color, #20242a)));
     margin: 0 auto;

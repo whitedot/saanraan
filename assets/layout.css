@@ -376,7 +376,8 @@
     min-width: 0;
 }
 
-.public-layout-body.public-layout-home .public-layout-main {
+.public-layout-body.public-layout-home .public-layout-main,
+.public-layout-body.sr-site-home .public-layout-main {
     display: grid;
     place-items: center;
     min-height: 0;

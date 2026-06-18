@@ -10,6 +10,7 @@ $layoutContextScripts = is_array($layoutContext['scripts'] ?? null) ? $layoutCon
 $layoutStylesheets = [];
 $layoutScripts = ['/assets/common-ui.js', '/assets/mention-input.js', '/modules/community/assets/layout.js'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
+$layoutBodyClass = sr_ui_icon_class_attr((string) ($layoutContext['body_class'] ?? ''));
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {
     $layoutStylesheets[] = $layoutContextStylesheet;
 }
@@ -329,7 +330,7 @@ if (
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
-<body class="community-layout-body">
+<body class="<?php echo sr_e(trim('community-layout-body ' . $layoutBodyClass)); ?>">
     <header class="community-layout-header">
         <div class="community-layout-topbar">
             <div class="community-layout-brand-link">
