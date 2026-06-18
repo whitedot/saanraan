@@ -1,20 +1,15 @@
 <?php
 
 $pageTitle = 'OAuth 가입 완료';
-sr_public_layout_begin($pdo ?? null, $site ?? null, ['title' => $pageTitle, 'robots' => 'noindex, nofollow'], []);
+$memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
+sr_public_layout_begin($pdo ?? null, $site ?? null, ['title' => $pageTitle, 'robots' => 'noindex, nofollow'], sr_member_skin_layout_context($memberSkinKey));
 ?>
 <main class="ui-page">
+    <?php echo sr_member_feedback_toasts('', $errors); ?>
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
     <section class="card">
         <div class="card-body ui-card-body-stack">
-            <?php if ($errors !== []) { ?>
-                <ul>
-                    <?php foreach ($errors as $error) { ?>
-                        <li><?php echo sr_e($error); ?></li>
-                    <?php } ?>
-                </ul>
-            <?php } ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/oauth/complete')); ?>" class="ui-card-body-stack">
+            <form method="post" action="<?php echo sr_e(sr_url('/oauth/complete')); ?>" class="ui-card-body-stack" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="state" value="<?php echo sr_e($stateToken); ?>">
                 <p>

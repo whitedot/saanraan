@@ -90,7 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($memberAdminPage === 'create_form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="create">
         <section class="card">
@@ -174,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 <?php } elseif ($memberAdminPage === 'edit_form') { ?>
     <?php if (is_array($editMember)) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="edit">
             <input type="hidden" name="account_id" value="<?php echo sr_e((string) ($memberEditValues['id'] ?? $editMember['id'])); ?>">
@@ -302,7 +302,7 @@ foreach ($allowedStatuses as $status) {
         <?php if (empty($memberSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_member_sort_options(), sr_admin_member_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
-        <form id="member-bulk-session-form" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-member-bulk-form" data-member-bulk-session-form>
+        <form id="member-bulk-session-form" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-member-bulk-form" data-member-bulk-session-form data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="batch_revoke_sessions">
             <input type="hidden" name="operation_key" value="member.revoke_sessions">
@@ -375,14 +375,14 @@ foreach ($allowedStatuses as $status) {
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                     <input type="hidden" name="intent" value="evaluate_groups">
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                                     <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?></button>
                                 </form>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                     <input type="hidden" name="intent" value="revoke_sessions">

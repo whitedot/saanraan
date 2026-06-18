@@ -93,7 +93,7 @@ $memberSettingsSectionNavItems = [
         <?php $memberSettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
     <?php echo sr_csrf_field(); ?>
 
     <section id="member-settings-section-registration" class="card" data-admin-section-anchor>

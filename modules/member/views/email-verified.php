@@ -6,9 +6,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'stylesheets' => sr_member_skin_stylesheets($memberSkinKey),
-]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
 ?>
     <main class="member-skin-basic-page member-skin-basic-page-narrow">
         <section class="card">

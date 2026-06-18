@@ -7,7 +7,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/member-oauth')); ?>" class="admin-form ui-form-theme member-oauth-admin-form">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/member-oauth')); ?>" class="admin-form ui-form-theme member-oauth-admin-form" data-sr-validate-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 

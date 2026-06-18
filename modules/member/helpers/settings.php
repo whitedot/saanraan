@@ -93,7 +93,11 @@ function sr_member_skin_options(): array
         'basic' => [
             'label' => sr_t('member::settings.skin.basic'),
             'stylesheets' => [
+                '/assets/ui-kit-layout.css',
                 '/modules/member/skins/basic/skin.css',
+            ],
+            'scripts' => [
+                '/modules/member/assets/public.js',
             ],
             'views' => [
                 'login' => SR_ROOT . '/modules/member/skins/basic/login.php',
@@ -129,6 +133,38 @@ function sr_member_skin_stylesheets(string $skinKey): array
     }
 
     return $validStylesheets;
+}
+
+function sr_member_skin_scripts(string $skinKey): array
+{
+    $options = sr_member_skin_options();
+    $skinKey = isset($options[$skinKey]) ? $skinKey : 'basic';
+    $scripts = isset($options[$skinKey]['scripts']) && is_array($options[$skinKey]['scripts'])
+        ? $options[$skinKey]['scripts']
+        : [];
+    $validScripts = [];
+
+    foreach ($scripts as $script) {
+        if (!is_string($script) || !sr_is_safe_relative_url($script)) {
+            continue;
+        }
+        if (str_starts_with($script, '/') && !is_file(SR_ROOT . $script)) {
+            continue;
+        }
+        $validScripts[] = $script;
+    }
+
+    return $validScripts;
+}
+
+function sr_member_skin_layout_context(string $skinKey, array $context = []): array
+{
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
+    $context['stylesheets'] = array_values(array_unique(array_merge(sr_member_skin_stylesheets($skinKey), $stylesheets)));
+    $context['scripts'] = array_values(array_unique(array_merge(sr_member_skin_scripts($skinKey), $scripts)));
+
+    return $context;
 }
 
 function sr_member_required_skin_view_keys(): array

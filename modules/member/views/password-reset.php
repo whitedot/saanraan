@@ -6,11 +6,10 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'stylesheets' => sr_member_skin_stylesheets($memberSkinKey),
-]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
 ?>
     <main class="member-skin-basic-page member-skin-basic-page-narrow">
+        <?php echo sr_member_feedback_toasts($notice, $errors); ?>
         <section class="card">
             <div class="card-header">
                 <h1 class="card-title"><?php echo sr_e($pageTitle); ?></h1>
@@ -18,20 +17,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <div class="card-body member-skin-basic-stack">
 
         <?php if ($notice !== '') { ?>
-            <p class="member-skin-basic-muted type-small"><?php echo sr_e($notice); ?></p>
             <p><a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
         <?php } else { ?>
-            <?php if ($errors !== []) { ?>
-                <div class="member-skin-basic-feedback badge-soft-danger type-small" role="alert">
-                    <ul class="member-skin-basic-feedback-list">
-                        <?php foreach ($errors as $error) { ?>
-                            <li><?php echo sr_e($error); ?></li>
-                        <?php } ?>
-                    </ul>
-                </div>
-            <?php } ?>
-
-            <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>" class="member-skin-basic-form">
+            <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_password_reset_password">

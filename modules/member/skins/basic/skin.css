@@ -98,6 +98,54 @@
     margin: 0;
 }
 
+.member-skin-basic-toast-stack {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    left: 50%;
+    position: fixed;
+    top: calc(var(--public-layout-header-height, 4.25rem) + 1rem);
+    transform: translateX(-50%);
+    width: min(24rem, calc(100vw - 2rem));
+    z-index: 2100;
+}
+
+.member-skin-basic-toast-stack:empty {
+    display: none;
+}
+
+.member-skin-basic-toast {
+    align-items: flex-start;
+    animation: member-skin-basic-toast-in .18s ease-out;
+    gap: calc(var(--spacing) * 3);
+}
+
+.member-skin-basic-toast.is-hiding {
+    opacity: 0;
+    transform: translateY(calc(var(--spacing) * -1));
+    transition: opacity .16s, transform .16s;
+}
+
+.member-skin-basic-toast-close {
+    color: currentColor;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.member-skin-basic-toast-copy {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+    min-width: 0;
+}
+
+.member-skin-basic-toast-close-icon {
+    font-size: var(--text-lg);
+    line-height: 1;
+}
+
+.member-skin-basic-validation-note {
+    margin-bottom: 0;
+}
+
 .member-skin-basic-feedback-list {
     display: grid;
     gap: calc(var(--spacing) * 1.5);
@@ -148,5 +196,17 @@
 
     .member-skin-basic-link-row .btn {
         width: 100%;
+    }
+}
+
+@keyframes member-skin-basic-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--spacing) * -1));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

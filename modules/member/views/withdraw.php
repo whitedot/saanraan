@@ -6,28 +6,17 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
-    'stylesheets' => sr_member_skin_stylesheets($memberSkinKey),
-]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
 ?>
     <main class="member-skin-basic-page member-skin-basic-page-narrow">
+        <?php echo sr_member_feedback_toasts('', $errors); ?>
         <section class="card">
             <div class="card-header">
                 <h1 class="card-title"><?php echo sr_e($pageTitle); ?></h1>
             </div>
             <div class="card-body member-skin-basic-stack">
 
-        <?php if ($errors !== []) { ?>
-            <div class="member-skin-basic-feedback badge-soft-danger type-small" role="alert">
-                <ul class="member-skin-basic-feedback-list">
-                    <?php foreach ($errors as $error) { ?>
-                        <li><?php echo sr_e($error); ?></li>
-                    <?php } ?>
-                </ul>
-            </div>
-        <?php } ?>
-
-        <form method="post" action="<?php echo sr_e(sr_url('/account/withdraw')); ?>" class="member-skin-basic-form">
+        <form method="post" action="<?php echo sr_e(sr_url('/account/withdraw')); ?>" class="member-skin-basic-form" data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
             <?php if (($withdrawalAssets ?? []) !== []) { ?>
                 <section>

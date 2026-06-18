@@ -298,7 +298,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($memberGroupsPage === 'group_form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <section class="card">
             <h2><?php echo sr_e(is_array($editGroup) ? sr_t('member::ui.edit.5784f889') : sr_t('member::ui.text.22129319')); ?></h2>
             <?php $memberGroupFormFields(is_array($editGroup) ? $editGroup : null, 'member_admin_groups'); ?>
@@ -439,7 +439,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <?php if ($canEditMemberGroups) { ?>
     <div id="member-group-create-modal" class="modal-overlay modal-overlay-fade overlay<?php echo $openCreateGroupModal ? ' overlay-open open' : ' hidden pointer-events-none opacity-0'; ?>" role="dialog" tabindex="-1" aria-labelledby="member_group_create_modal_title" aria-hidden="<?php echo $openCreateGroupModal ? 'false' : 'true'; ?>"<?php echo $openCreateGroupModal ? '' : ' inert'; ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_create_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.22129319')); ?></h3>
                     <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-create-modal">
@@ -476,7 +476,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         <?php if ($canEditMemberGroups) { ?>
         <div id="<?php echo sr_e($editGroupModalId); ?>" class="modal-overlay modal-overlay-fade overlay<?php echo $openEditGroupModal ? ' overlay-open open' : ' hidden pointer-events-none opacity-0'; ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($editGroupFieldPrefix); ?>_title" aria-hidden="<?php echo $openEditGroupModal ? 'false' : 'true'; ?>"<?php echo $openEditGroupModal ? '' : ' inert'; ?>>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($editGroupFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.edit.5784f889')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($editGroupModalId); ?>">
@@ -497,7 +497,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
         <div id="<?php echo sr_e($manualAssignModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($manualAssignFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($manualAssignFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>">
@@ -589,7 +589,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                                 <td class="admin-table-actions-cell">
                                                     <div class="admin-row-actions">
                                                         <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
-                                                            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/revoke')); ?>">
+                                                            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/revoke')); ?>" data-sr-validate-form>
                                                                 <?php echo sr_csrf_field(); ?>
                                                                 <input type="hidden" name="account_id" value="<?php echo sr_e((string) $membership['account_id']); ?>">
                                                                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $membership['group_id']); ?>">
@@ -806,7 +806,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <?php if ($canEvaluateGroupRules) { ?>
     <div id="member-group-rule-evaluate-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member_group_rule_evaluate_modal_title" aria-hidden="true" inert>
         <div class="modal-dialog modal-dialog-lg member-group-rule-evaluate-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/group')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/group')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_rule_evaluate_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.member.group_rule_evaluate.55daa57d')); ?></h3>
                     <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-evaluate-modal">
@@ -1016,7 +1016,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
     <div id="member-group-rule-create-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member_group_rule_create_modal_title" aria-hidden="true" inert>
         <div class="modal-dialog modal-dialog-lg">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_rule_create_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.eee300ae')); ?></h3>
                     <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-create-modal">
@@ -1034,7 +1034,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <section class="card">
             <h2><?php echo sr_e(is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae')); ?></h2>
             <?php $memberRuleFormFields(is_array($editRule) ? $editRule : null, 'member_admin_groups_rule_form'); ?>
