@@ -360,7 +360,7 @@ function sr_logo_manager_format_bytes(int $bytes): string
 
 function sr_logo_manager_upload_was_provided(mixed $file): bool
 {
-    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+    return sr_upload_was_provided($file);
 }
 
 function sr_logo_manager_image_format_for_mime(string $mimeType): string
@@ -370,7 +370,7 @@ function sr_logo_manager_image_format_for_mime(string $mimeType): string
 
 function sr_logo_manager_image_mime_is_allowed(string $mimeType): bool
 {
-    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'], true);
+    return sr_image_mime_is_allowed($mimeType, true);
 }
 
 function sr_logo_manager_svg_upload_mime_is_allowed(string $mimeType): bool

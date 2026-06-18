@@ -131,13 +131,12 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
 
 function sr_reward_truthy(mixed $value): bool
 {
-    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+    return sr_truthy($value);
 }
 
 function sr_reward_json_array(string $json): array
 {
-    $decoded = json_decode($json, true);
-    return is_array($decoded) ? $decoded : [];
+    return sr_json_array($json);
 }
 
 function sr_reward_normalize_group_keys(mixed $groupKeys): array

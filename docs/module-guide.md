@@ -15,6 +15,8 @@
 산란 안에서는 모듈을 항상 `modules/{module_key}` 폴더로 다룬다. 파일 교체, zip 업로드, DB 업데이트 흐름은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
 배포판 모듈을 사이트별 요구에 맞게 확장할 때 공식 테이블과 파일을 직접 수정할지, 별도 모듈/테이블/layout으로 분리할지 판단하는 기준은 [커스터마이징 가이드](customization-guide.md)를 따른다.
 
+모듈 helper는 도메인 정책을 소유하되, 반복되는 순수 파싱과 낮은 층의 안전 검증은 코어 primitive를 우선 사용한다. `sr_truthy()`, `sr_json_array()`, `sr_image_mime_is_allowed()`, `sr_upload_was_provided()`처럼 도메인 의미가 없는 helper는 모듈별 wrapper 이름을 유지하더라도 내부 구현에서 코어 helper를 호출한다. 허용 크기, 저장 경로, 삭제/보존, 공개 URL, 오류 문구처럼 화면과 업무 의미가 있는 판단은 모듈 helper에 둔다.
+
 ## 1. 모듈 판단 기준
 
 산란에서 설치/활성화 가능한 확장 단위는 같은 `sr_modules` 등록 흐름을 사용한다. 다만 개념은 구분한다.

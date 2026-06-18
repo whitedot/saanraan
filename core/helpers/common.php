@@ -103,6 +103,17 @@ function sr_format_bytes(int $bytes): string
     return number_format($bytes) . ' bytes';
 }
 
+function sr_truthy(mixed $value): bool
+{
+    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+}
+
+function sr_json_array(string $json): array
+{
+    $decoded = json_decode($json, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
 function sr_image_format_for_mime(string $mimeType, bool $allowSvg = false, bool $allowGif = false): string
 {
     return match (strtolower(trim($mimeType))) {
@@ -113,4 +124,9 @@ function sr_image_format_for_mime(string $mimeType, bool $allowSvg = false, bool
         'image/svg+xml' => $allowSvg ? 'svg' : '',
         default => '',
     };
+}
+
+function sr_image_mime_is_allowed(string $mimeType, bool $allowSvg = false, bool $allowGif = false): bool
+{
+    return sr_image_format_for_mime($mimeType, $allowSvg, $allowGif) !== '';
 }

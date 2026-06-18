@@ -18,6 +18,11 @@ function sr_upload_error_message(int $errorCode): string
     return $messages[$errorCode] ?? '알 수 없는 업로드 오류입니다.';
 }
 
+function sr_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
 function sr_upload_filename(string $filename): string
 {
     $filename = str_replace(['\\', '/'], '-', $filename);

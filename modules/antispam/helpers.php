@@ -66,7 +66,7 @@ function sr_antispam_normalize_settings(array $settings, ?array $providerOptions
 
 function sr_antispam_bool(mixed $value): bool
 {
-    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+    return sr_truthy($value);
 }
 
 function sr_antispam_mode(string $value): string

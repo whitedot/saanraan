@@ -55,7 +55,7 @@ function sr_content_format_bytes(int $bytes): string
 
 function sr_content_file_upload_was_provided(mixed $file): bool
 {
-    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+    return sr_upload_was_provided($file);
 }
 
 function sr_content_file_mime_is_allowed(string $mimeType): bool

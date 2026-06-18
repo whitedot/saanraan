@@ -230,7 +230,7 @@ function sr_seo_format_bytes(int $bytes): string
 
 function sr_seo_og_image_upload_was_provided(mixed $file): bool
 {
-    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+    return sr_upload_was_provided($file);
 }
 
 function sr_seo_image_format_for_mime(string $mimeType): string
@@ -240,7 +240,7 @@ function sr_seo_image_format_for_mime(string $mimeType): string
 
 function sr_seo_image_mime_is_allowed(string $mimeType): bool
 {
-    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+    return sr_image_mime_is_allowed($mimeType);
 }
 
 function sr_seo_upload_og_image(array $file): array

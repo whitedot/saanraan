@@ -80,7 +80,7 @@ function sr_quiz_cover_image_upload_max_bytes(): int
 
 function sr_quiz_cover_image_upload_was_provided(mixed $file): bool
 {
-    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+    return sr_upload_was_provided($file);
 }
 
 function sr_quiz_cover_image_format_for_mime(string $mimeType): string
@@ -90,7 +90,7 @@ function sr_quiz_cover_image_format_for_mime(string $mimeType): string
 
 function sr_quiz_cover_image_mime_is_allowed(string $mimeType): bool
 {
-    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+    return sr_image_mime_is_allowed($mimeType);
 }
 
 function sr_quiz_upload_cover_image(array $file): ?array
@@ -277,7 +277,7 @@ function sr_quiz_mode_label(string $mode): string
 
 function sr_quiz_truthy(mixed $value): bool
 {
-    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+    return sr_truthy($value);
 }
 
 function sr_quiz_default_settings(): array
