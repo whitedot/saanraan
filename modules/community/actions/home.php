@@ -83,13 +83,15 @@ if ($readableBoardIds !== []) {
     if ($boardPlaceholders !== []) {
         $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
         $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
+        $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
         $stmt = $pdo->prepare(
-            'SELECT c.id, c.post_id, c.author_account_id, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
+            'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
                     p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
                     b.id AS board_id, b.board_key, b.title AS board_title
              FROM sr_community_comments c
              INNER JOIN sr_community_posts p ON p.id = c.post_id
              INNER JOIN sr_community_boards b ON b.id = p.board_id
+             LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
              WHERE c.status = \'published\'
                AND p.status = \'published\'
                AND b.status = \'enabled\'
