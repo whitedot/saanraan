@@ -34,7 +34,8 @@ $layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
-$layoutBrandLinkUrl = sr_url('/community');
+$layoutBrandLinkUrl = sr_url('/');
+$layoutModuleHomeUrl = sr_url('/community');
 $layoutSearchKeywordValue = sr_get_string_without_truncation('q', 100);
 $layoutSearchKeyword = is_string($layoutSearchKeywordValue) ? trim(preg_replace('/\s+/', ' ', $layoutSearchKeywordValue) ?? '') : '';
 $layoutFaviconHtml = '';
@@ -50,26 +51,12 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
             ? 'community-layout-brand-logo community-layout-brand-logo-mobile'
             : 'community-layout-brand-logo',
     ]);
-    $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
             'class' => 'community-layout-brand-logo community-layout-brand-symbol',
         ]);
         if ($layoutBrandLogoHtml !== '') {
             $layoutBrandUsesPublicSymbol = true;
-            $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
-        }
-    }
-    $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
-    if (is_array($layoutBrandLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
-        }
-    } elseif (is_array($layoutPublicSymbolLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutPublicSymbolLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
         }
     }
     $layoutFaviconHtml = sr_logo_manager_favicon_link_tag($layoutPdo);
@@ -338,18 +325,20 @@ if (
 <body class="community-layout-body">
     <header class="community-layout-header">
         <div class="community-layout-topbar">
-            <a class="community-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
-                <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
-                    <?php echo $layoutMobileBrandLogoHtml; ?>
-                    <?php echo $layoutBrandLogoHtml; ?>
-                    <?php if ($layoutBrandUsesPublicSymbol) { ?>
+            <div class="community-layout-brand-link">
+                <a class="community-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                    <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
+                        <?php echo $layoutMobileBrandLogoHtml; ?>
+                        <?php echo $layoutBrandLogoHtml; ?>
+                        <?php if ($layoutBrandUsesPublicSymbol) { ?>
+                            <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                        <?php } ?>
+                    <?php } else { ?>
                         <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                     <?php } ?>
-                <?php } else { ?>
-                    <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
-                <?php } ?>
-                <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
-            </a>
+                </a>
+                <a class="community-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('커뮤니티'); ?></a>
+            </div>
             <form class="community-layout-search" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>" role="search" data-community-layout-search-form data-community-layout-search-min-length="2" data-community-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
                 <label for="community_layout_search_q"><?php echo sr_e('커뮤니티 검색'); ?></label>
                 <input id="community_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off" data-community-layout-search-input>

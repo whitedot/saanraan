@@ -46,6 +46,15 @@
     text-decoration: none;
 }
 
+.survey-layout-site-link {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    gap: 8px;
+    min-width: 0;
+    text-decoration: none;
+}
+
 .survey-layout-brand-logo {
     display: block;
     max-height: 1.65rem;
@@ -90,13 +99,12 @@
 }
 
 .survey-layout-module-name {
-    border-left: 1px solid var(--sr-border-soft, #e8edf3);
     color: var(--sr-muted, #47505c);
     flex: 0 0 auto;
     font-size: .82rem;
     font-weight: 800;
     line-height: 1;
-    padding-left: 8px;
+    text-decoration: none;
     white-space: nowrap;
 }
 

@@ -36,6 +36,7 @@ $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
+$layoutModuleHomeUrl = sr_url('/survey');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -49,26 +50,12 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
             ? 'survey-layout-brand-logo survey-layout-brand-logo-mobile'
             : 'survey-layout-brand-logo',
     ]);
-    $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
             'class' => 'survey-layout-brand-logo survey-layout-brand-symbol',
         ]);
         if ($layoutBrandLogoHtml !== '') {
             $layoutBrandUsesPublicSymbol = true;
-            $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
-        }
-    }
-    $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
-    if (is_array($layoutBrandLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
-        }
-    } elseif (is_array($layoutPublicSymbolLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutPublicSymbolLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
         }
     }
     $layoutFaviconHtml = sr_logo_manager_favicon_link_tag($layoutPdo);
@@ -241,18 +228,20 @@ if (
 </head>
 <body class="<?php echo sr_e(trim('survey-layout-body ' . $layoutBodyClass)); ?>">
     <header class="survey-layout-header" data-survey-scroll-header>
-        <a class="survey-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
-            <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
-                <?php echo $layoutMobileBrandLogoHtml; ?>
-                <?php echo $layoutBrandLogoHtml; ?>
-                <?php if ($layoutBrandUsesPublicSymbol) { ?>
+        <div class="survey-layout-brand-link">
+            <a class="survey-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
+                    <?php echo $layoutMobileBrandLogoHtml; ?>
+                    <?php echo $layoutBrandLogoHtml; ?>
+                    <?php if ($layoutBrandUsesPublicSymbol) { ?>
+                        <span class="survey-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                    <?php } ?>
+                <?php } else { ?>
                     <span class="survey-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
-            <?php } else { ?>
-                <span class="survey-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
-            <?php } ?>
-            <span class="survey-layout-module-name"><?php echo sr_e('설문'); ?></span>
-        </a>
+            </a>
+            <a class="survey-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('설문'); ?></a>
+        </div>
         <nav class="survey-layout-nav" aria-label="<?php echo sr_e('설문 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>

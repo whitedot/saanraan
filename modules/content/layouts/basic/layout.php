@@ -34,7 +34,8 @@ $layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
-$layoutBrandLinkUrl = sr_url('/content');
+$layoutBrandLinkUrl = sr_url('/');
+$layoutModuleHomeUrl = sr_url('/content');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -48,26 +49,12 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
             ? 'content-layout-brand-logo content-layout-brand-logo-mobile'
             : 'content-layout-brand-logo',
     ]);
-    $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
             'class' => 'content-layout-brand-logo content-layout-brand-symbol',
         ]);
         if ($layoutBrandLogoHtml !== '') {
             $layoutBrandUsesPublicSymbol = true;
-            $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
-        }
-    }
-    $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
-    if (is_array($layoutBrandLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
-        }
-    } elseif (is_array($layoutPublicSymbolLogo)) {
-        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutPublicSymbolLogo['link_url'] ?? ''));
-        if ($layoutBrandLink !== '') {
-            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
         }
     }
     $layoutFaviconHtml = sr_logo_manager_favicon_link_tag($layoutPdo);
@@ -275,18 +262,20 @@ if (
 </head>
 <body class="content-layout-body">
     <header class="content-layout-header" data-content-scroll-header>
-        <a class="content-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
-            <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
-                <?php echo $layoutMobileBrandLogoHtml; ?>
-                <?php echo $layoutBrandLogoHtml; ?>
-                <?php if ($layoutBrandUsesPublicSymbol) { ?>
+        <div class="content-layout-brand-link">
+            <a class="content-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
+                    <?php echo $layoutMobileBrandLogoHtml; ?>
+                    <?php echo $layoutBrandLogoHtml; ?>
+                    <?php if ($layoutBrandUsesPublicSymbol) { ?>
+                        <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                    <?php } ?>
+                <?php } else { ?>
                     <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
-            <?php } else { ?>
-                <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
-            <?php } ?>
-            <span class="content-layout-module-name"><?php echo sr_e('콘텐츠'); ?></span>
-        </a>
+            </a>
+            <a class="content-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('콘텐츠'); ?></a>
+        </div>
         <nav class="content-layout-nav" aria-label="<?php echo sr_e('콘텐츠 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
