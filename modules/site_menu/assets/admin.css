@@ -40,10 +40,19 @@
     font-size: 1.1rem;
 }
 
+.admin-page-site-menu .admin-menu-target-copy {
+    gap: .25rem;
+}
+
 .admin-page-site-menu .admin-menu-target-label {
     align-items: center;
     gap: .35rem;
     display: inline-flex;
+}
+
+.admin-page-site-menu .admin-menu-target-context::before {
+    content: none;
+    margin-right: 0;
 }
 
 .admin-page-site-menu .admin-site-menu-form .table :is(th, td):nth-child(6) {
