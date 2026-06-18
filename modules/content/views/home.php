@@ -83,11 +83,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php } ?>
                     <?php $contentHomeUrl = sr_url(sr_content_path($contentHomeSlug)); ?>
                     <?php $contentHomeExcerpt = $contentHomeExcerptText($contentHomeItem); ?>
-                    <article class="content-home-latest-item">
+                    <article class="content-home-latest-item card">
                         <a class="content-home-latest-media" href="<?php echo sr_e($contentHomeUrl); ?>" aria-label="<?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>">
-                            <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image', (string) ($contentHomeItem['title'] ?? '')); ?>
+                            <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image card-img-top', (string) ($contentHomeItem['title'] ?? '')); ?>
                         </a>
-                        <div class="content-home-latest-copy">
+                        <div class="content-home-latest-copy card-body">
                             <p class="content-home-latest-meta">
                                 <span><?php echo sr_e($contentPublisherName); ?></span>
                             </p>

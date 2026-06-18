@@ -29,17 +29,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     $surveyTitle = (string) ($survey['title'] ?? $surveyKey);
                     $surveyDescription = (string) ($survey['description'] ?? '');
                     $surveyUrl = sr_url('/survey/' . rawurlencode($surveyKey));
-                    $surveyCoverHtml = sr_survey_cover_image_html($survey, 'sr-survey-card-image', $surveyTitle);
+                    $surveyCoverHtml = sr_survey_cover_image_html($survey, 'sr-survey-card-image card-img-top', $surveyTitle);
                     ?>
-                    <article class="sr-survey-card">
+                    <article class="card">
                         <a class="sr-survey-card-media" href="<?php echo sr_e($surveyUrl); ?>" aria-label="<?php echo sr_e($surveyTitle); ?>">
                             <?php if ($surveyCoverHtml !== ''): ?>
                                 <?php echo $surveyCoverHtml; ?>
                             <?php else: ?>
-                                <span class="sr-survey-card-placeholder" aria-hidden="true"></span>
+                                <span class="sr-survey-card-placeholder card-img-top" aria-hidden="true"></span>
                             <?php endif; ?>
                         </a>
-                        <div class="sr-survey-card-copy">
+                        <div class="sr-survey-card-copy card-body">
                             <p class="sr-survey-card-meta">
                                 <span><?php echo sr_e($surveyPublisherName); ?></span>
                             </p>

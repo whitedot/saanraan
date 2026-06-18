@@ -34,17 +34,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                         $quizTitle = (string) ($quiz['title'] ?? $quizKey);
                         $quizDescription = (string) ($quiz['description'] ?? '');
                         $quizUrl = sr_url('/quiz/' . rawurlencode($quizKey));
-                        $quizCoverHtml = sr_quiz_cover_image_html($quiz, 'sr-quiz-card-image', $quizTitle);
+                        $quizCoverHtml = sr_quiz_cover_image_html($quiz, 'sr-quiz-card-image card-img-top', $quizTitle);
                         ?>
-                        <article class="sr-quiz-card">
+                        <article class="card">
                             <a class="sr-quiz-card-media" href="<?php echo sr_e($quizUrl); ?>" aria-label="<?php echo sr_e($quizTitle); ?>">
                                 <?php if ($quizCoverHtml !== ''): ?>
                                     <?php echo $quizCoverHtml; ?>
                                 <?php else: ?>
-                                    <span class="sr-quiz-card-placeholder" aria-hidden="true"></span>
+                                    <span class="sr-quiz-card-placeholder card-img-top" aria-hidden="true"></span>
                                 <?php endif; ?>
                             </a>
-                            <div class="sr-quiz-card-copy">
+                            <div class="sr-quiz-card-copy card-body">
                                 <p class="sr-quiz-card-meta">
                                     <span><?php echo sr_e($quizPublisherName); ?></span>
                                 </p>

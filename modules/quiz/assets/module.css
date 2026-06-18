@@ -111,15 +111,10 @@
     padding: 10px 0 72px;
 }
 
-.sr-quiz-card {
-    display: flex;
-    flex-direction: column;
+.sr-quiz-card-grid > .card {
+    height: 100%;
     min-width: 0;
     min-height: 100%;
-    border: 0;
-    border-color: var(--sr-border, var(--color-default-300));
-    border-radius: var(--radius);
-    overflow: hidden;
     padding: 0;
 }
 

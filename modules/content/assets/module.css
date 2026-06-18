@@ -1111,12 +1111,8 @@
 }
 
 .content-home-latest-item {
-    border: 0;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
+    height: 100%;
     min-height: 100%;
-    overflow: hidden;
     padding: 0;
 }
 
@@ -1416,11 +1412,6 @@
 .content-group-tabs span[aria-current="page"] {
     border-bottom-color: var(--color-primary);
     color: var(--content-text);
-}
-
-.content-home-latest-item {
-    border-color: var(--content-border);
-    border-radius: var(--content-radius);
 }
 
 .content-home-latest-footer span {
