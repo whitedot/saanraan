@@ -110,6 +110,7 @@ $layoutMemberEmail = '';
 $layoutMemberInitial = 'M';
 $layoutMemberAvatarColorClass = 'member-avatar-color-8';
 $layoutMemberBadgeLabel = '회원';
+$layoutMemberBadgeClass = 'badge-soft-secondary';
 $layoutCommunityMemberMenuEnabled = false;
 $layoutUnreadCommunityMessageCount = 0;
 $layoutMemberAssetRows = [];
@@ -207,8 +208,10 @@ if (
     $layoutAdminIsOwner = $layoutAdminEnabled && sr_admin_is_owner($layoutPdo, $layoutAccountId);
     if ($layoutAdminIsOwner) {
         $layoutMemberBadgeLabel = '매니저';
+        $layoutMemberBadgeClass = 'badge-soft-primary';
     } elseif ($layoutAdminEnabled) {
         $layoutMemberBadgeLabel = '스탭';
+        $layoutMemberBadgeClass = 'badge-soft-info';
         $layoutFirstAdminPath = sr_admin_first_permitted_menu_path($layoutPdo, $layoutAccountId);
         $layoutAdminUrl = sr_url($layoutFirstAdminPath !== '' ? $layoutFirstAdminPath : '/admin');
     }
@@ -330,7 +333,7 @@ if (
                                         <span class="dropdown-profile-email"><?php echo sr_e($layoutMemberEmail); ?></span>
                                     <?php } ?>
                                 </span>
-                                <span class="public-layout-member-badge"><?php echo sr_e($layoutMemberBadgeLabel); ?></span>
+                                <span class="public-layout-member-badge badge badge-pill <?php echo sr_e($layoutMemberBadgeClass); ?>"><?php echo sr_e($layoutMemberBadgeLabel); ?></span>
                             </div>
                             <a class="public-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>manage_accounts</span>
