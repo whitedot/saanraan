@@ -153,10 +153,12 @@ sr_site_menu_check_assert(sr_site_menu_clean_url('javascript:alert(1)') === '', 
 sr_site_menu_check_assert(sr_site_menu_clean_url('') === '', 'Site menu URL cleaner must allow empty optional URLs.');
 sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#', 'Site menu href helper must fail closed for unsafe URLs.');
 
-$publicCss = (string) file_get_contents(SR_ROOT . '/modules/site_menu/assets/module.css');
-sr_site_menu_check_assert(str_contains($publicCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Site menu public CSS must support header dropdown open state.');
-sr_site_menu_check_assert(str_contains($publicCss, '.community-layout-nav .sr-site-menu-list-depth-3'), 'Site menu public CSS must cover community header depth 3 menus.');
-sr_site_menu_check_assert(str_contains($publicCss, '@media (max-width: 767px)'), 'Site menu public CSS must include mobile accordion rules.');
+$publicLayoutCss = (string) file_get_contents(SR_ROOT . '/assets/layout.css');
+$communityLayoutCss = (string) file_get_contents(SR_ROOT . '/modules/community/assets/layout.css');
+sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/assets/module.css'), 'Site menu module must not own a public stylesheet.');
+sr_site_menu_check_assert(str_contains($publicLayoutCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Public layout CSS must support site menu dropdown open state.');
+sr_site_menu_check_assert(str_contains($communityLayoutCss, '.community-layout-nav .sr-site-menu-list-depth-3'), 'Community layout CSS must cover site menu depth 3 menus.');
+sr_site_menu_check_assert(str_contains($publicLayoutCss, '@media (max-width: 767px)'), 'Public layout CSS must include mobile site menu rules.');
 
 $commonUiJs = (string) file_get_contents(SR_ROOT . '/assets/common-ui.js');
 sr_site_menu_check_assert(str_contains($commonUiJs, 'is-site-menu-open'), 'Common UI script must manage site menu open state.');

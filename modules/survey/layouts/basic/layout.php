@@ -86,9 +86,6 @@ if ($layoutPdo instanceof PDO) {
         }
     }
 }
-if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== []) {
-    $layoutStylesheets[] = '/modules/site_menu/assets/module.css';
-}
 $layoutNotificationEnabled = false;
 $layoutNotificationHasAccount = false;
 $layoutNotificationSummary = ['unread' => 0, 'items' => []];
