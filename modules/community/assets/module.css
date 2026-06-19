@@ -370,11 +370,26 @@
     text-decoration: none;
 }
 
-.community-home-comment-post-title {
-    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+.community-home-aside a.community-home-comment-meta {
+    color: var(--sr-text, var(--text-strong, #242424));
     font-size: var(--type-meta-size);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-normal);
     line-height: var(--type-meta-line-height);
+}
+
+.community-home-comment-meta time {
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+}
+
+.community-home-aside a.community-home-comment-post-title {
+    color: var(--sr-text, var(--text-strong, #242424));
+    display: block;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--type-meta-line-height);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .community-home-summary-meta {

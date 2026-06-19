@@ -237,9 +237,23 @@
     z-index: 1000;
 }
 
-.community-layout-nav.is-community-layout-nav-stuck {
-    background: color-mix(in oklab, var(--color-card, #fff) 94%, transparent);
+.community-layout-nav::before {
+    background: transparent;
+    bottom: 0;
+    content: "";
+    left: 50%;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    transition: background-color .18s ease, backdrop-filter .18s ease;
+    width: 100vw;
+    z-index: 0;
+}
+
+.community-layout-nav.is-community-layout-nav-stuck::before {
     backdrop-filter: blur(12px);
+    background: color-mix(in oklab, var(--color-card, #fff) 94%, transparent);
 }
 
 .community-layout-nav.is-community-layout-nav-hidden {
@@ -259,6 +273,8 @@
     margin: 0;
     min-width: max-content;
     padding: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .community-layout-nav .sr-site-menu-list {

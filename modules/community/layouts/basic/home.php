@@ -135,26 +135,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                             <ul>
                                 <?php foreach ($latestComments as $comment) { ?>
                                     <?php
-                                    $commentPostUrl = sr_url('/community/post?id=' . (string) (int) ($comment['post_id'] ?? 0) . '#community-comment-' . (string) (int) ($comment['id'] ?? 0));
+                                    $commentPostBaseUrl = sr_url('/community/post?id=' . (string) (int) ($comment['post_id'] ?? 0));
+                                    $commentPostUrl = $commentPostBaseUrl . '#community-comment-' . (string) (int) ($comment['id'] ?? 0);
                                     $commentExcerptAllowed = empty($comment['is_secret'])
                                         && empty($comment['post_is_secret'])
                                         && !empty($homeExcerptAllowedByBoardId[(int) ($comment['board_id'] ?? 0)]);
                                     $commentExcerpt = $commentExcerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 50) : '';
                                     $commentAuthorLabel = sr_community_author_label_from_row($comment, $config, false, $memberSettings, $pdo);
-                                    $commentBoardTitle = (string) ($comment['board_title'] ?? '');
+                                    $commentPostTitle = trim((string) ($comment['post_title'] ?? ''));
                                     ?>
                                     <li>
                                         <?php if ($commentExcerpt !== '') { ?>
-                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?> <?php echo sr_e($commentExcerpt); ?></a>
+                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e($commentExcerpt); ?></a>
                                         <?php } else { ?>
-                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?> <?php echo sr_e('댓글을 확인하세요.'); ?></a>
+                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e('댓글을 확인하세요.'); ?></a>
                                         <?php } ?>
-                                        <a class="community-post-title community-home-comment-post-title" href="<?php echo sr_e($commentPostUrl); ?>">
+                                        <a class="community-home-comment-meta" href="<?php echo sr_e($commentPostUrl); ?>">
                                             <?php echo sr_e($commentAuthorLabel); ?>
-                                            <?php if ($commentAuthorLabel !== '' && $commentBoardTitle !== '') { ?>
+                                            <?php if ($commentAuthorLabel !== '') { ?>
                                                 <span aria-hidden="true">&middot;</span>
                                             <?php } ?>
-                                            <?php echo sr_e($commentBoardTitle); ?>
+                                            <?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?>
+                                        </a>
+                                        <a class="community-post-title community-home-comment-post-title" href="<?php echo sr_e($commentPostBaseUrl); ?>">
+                                            <?php echo sr_e($commentPostTitle !== '' ? $commentPostTitle : '게시글 보기'); ?>
                                         </a>
                                     </li>
                                 <?php } ?>
