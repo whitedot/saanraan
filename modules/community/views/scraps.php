@@ -59,6 +59,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <a class="community-post-title community-post-scrap-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $scrap['post_id'])); ?>">
                                         <?php echo sr_e((string) $scrap['title']); ?>
                                     </a>
+                                    <?php echo sr_community_post_comment_count_html($scrap); ?>
                                 <?php } else { ?>
                                     <?php echo sr_e(sr_t('community::ui.delete.029fd110')); ?>
                                 <?php } ?>

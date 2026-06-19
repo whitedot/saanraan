@@ -100,7 +100,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <?php } ?>
                         <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
-                        <th><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.353b76cf')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.f8d240bf')); ?></th>
                     </tr>
@@ -118,6 +117,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <a class="community-post-title community-post-list-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
                                     <?php echo sr_e((string) $post['title']); ?>
                                 </a>
+                                <?php echo sr_community_post_comment_count_html($post); ?>
                                 <?php if (!empty($listExcerptEnabled)) { ?>
                                     <?php $communityListExcerpt = sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), (int) ($listExcerptLength ?? 120)); ?>
                                     <?php if ($communityListExcerpt !== '') { ?>
@@ -138,7 +138,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php } ?>
                             <td><?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></td>
                             <td><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
-                            <td><?php echo sr_e((string) ($post['published_comment_count'] ?? 0)); ?></td>
                             <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                             <td><?php echo sr_e((string) $post['view_count']); ?></td>
                         </tr>

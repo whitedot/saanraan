@@ -51,6 +51,16 @@ function sr_community_layout_home_view(string $layoutKey, ?PDO $pdo = null): str
     throw new RuntimeException(sr_t('community::runtime.layout_home_view_missing'));
 }
 
+function sr_community_post_comment_count_html(array $post): string
+{
+    $count = (int) ($post['published_comment_count'] ?? 0);
+    if ($count < 1) {
+        return '';
+    }
+
+    return '<span class="community-post-comment-count" aria-label="' . sr_e('댓글 ' . number_format($count) . '개') . '">(' . sr_e(number_format($count)) . ')</span>';
+}
+
 function sr_community_skin_key(array $boardSettings = []): string
 {
     $skinKey = (string) ($boardSettings['skin_key'] ?? 'basic');

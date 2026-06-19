@@ -139,6 +139,7 @@ function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account =
     $stmt = $pdo->prepare(
         'SELECT s.id, s.account_id, s.post_id, s.created_at,
                 p.title, p.status AS post_status, p.created_at AS post_created_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 ' . $categorySelectSql . ',
                 b.id AS board_id,
                 b.board_group_id,

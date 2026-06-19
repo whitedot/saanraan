@@ -54,6 +54,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         </div>
                         <h2 class="community-post-title community-post-search-title">
                             <a href="<?php echo sr_e(sr_url($postUrl)); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
+                            <?php echo sr_community_post_comment_count_html($post); ?>
                         </h2>
                         <?php if ($postExcerpt !== '') { ?>
                             <p><?php echo sr_e($postExcerpt); ?></p>
@@ -63,7 +64,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <p><?php echo sr_e('열람 후 본문을 확인할 수 있습니다.'); ?></p>
                         <?php } ?>
                         <div class="community-search-result-stats">
-                            <span><?php echo sr_e('댓글 ' . number_format((int) ($post['published_comment_count'] ?? 0))); ?></span>
                             <span><?php echo sr_e('조회 ' . number_format((int) ($post['view_count'] ?? 0))); ?></span>
                         </div>
                     </li>

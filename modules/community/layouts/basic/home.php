@@ -62,7 +62,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                 </a>
                             <?php } ?>
                             <div class="community-home-post-body">
-                                <h2 class="community-post-title community-home-post-title"><a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a></h2>
+                                <h2 class="community-post-title community-home-post-title"><a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a><?php echo sr_community_post_comment_count_html($post); ?></h2>
                                 <?php if ($postExcerpt !== '') { ?>
                                     <p><?php echo sr_e($postExcerpt); ?></p>
                                 <?php } ?>
@@ -114,13 +114,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                     $popularPostImageUrl = (string) ($post['home_image_url'] ?? '');
                                     $popularPostAuthorLabel = sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo);
                                     ?>
-                                    <li>
+                                    <li class="community-home-summary-item">
                                         <?php if ($popularPostImageUrl !== '') { ?>
                                             <a class="community-home-summary-image-link" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>" aria-hidden="true" tabindex="-1">
                                                 <img class="community-home-summary-image" src="<?php echo sr_e($popularPostImageUrl); ?>" alt="" loading="lazy">
                                             </a>
                                         <?php } ?>
-                                        <a class="community-post-title community-home-summary-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a>
+                                        <span class="community-home-summary-title-line">
+                                            <a class="community-post-title community-home-summary-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0))); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                        </span>
                                         <span class="community-home-summary-meta">
                                             <?php echo sr_e($popularPostAuthorLabel); ?>
                                             <?php if ($popularPostAuthorLabel !== '' && (string) ($post['created_at'] ?? '') !== '') { ?>
@@ -153,22 +155,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                                     $commentAuthorLabel = sr_community_author_label_from_row($comment, $config, false, $memberSettings, $pdo);
                                     $commentPostTitle = trim((string) ($comment['post_title'] ?? ''));
                                     ?>
-                                    <li>
+                                    <li class="community-home-comment-item">
                                         <?php if ($commentExcerpt !== '') { ?>
-                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e($commentExcerpt); ?></a>
+                                            <a class="community-post-title community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e($commentExcerpt); ?></a>
                                         <?php } else { ?>
-                                            <a class="community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e('댓글을 확인하세요.'); ?></a>
+                                            <a class="community-post-title community-home-comment-excerpt" href="<?php echo sr_e($commentPostUrl); ?>"><?php echo sr_e('댓글을 확인하세요.'); ?></a>
                                         <?php } ?>
-                                        <a class="community-home-comment-meta" href="<?php echo sr_e($commentPostUrl); ?>">
+                                        <span class="community-home-comment-meta">
                                             <?php echo sr_e($commentAuthorLabel); ?>
                                             <?php if ($commentAuthorLabel !== '') { ?>
                                                 <span aria-hidden="true">&middot;</span>
                                             <?php } ?>
                                             <?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?>
-                                        </a>
-                                        <a class="community-post-title community-home-comment-post-title" href="<?php echo sr_e($commentPostBaseUrl); ?>">
-                                            <?php echo sr_e($commentPostTitle !== '' ? $commentPostTitle : '게시글 보기'); ?>
-                                        </a>
+                                            <span aria-hidden="true">&middot;</span>
+                                            <a class="community-home-comment-post-title" href="<?php echo sr_e($commentPostBaseUrl); ?>">
+                                                <?php echo sr_e($commentPostTitle !== '' ? $commentPostTitle : '게시글 보기'); ?>
+                                            </a>
+                                        </span>
                                     </li>
                                 <?php } ?>
                             </ul>
