@@ -16,19 +16,7 @@ function sr_community_admin_can_view_member_identifiers(PDO $pdo, ?array $accoun
 
 function sr_community_member_identifier_suffix(array $config, int $accountId, bool $showIdentifier): string
 {
-    if (!$showIdentifier || $accountId < 1) {
-        return '';
-    }
-
-    $publicHash = sr_member_public_account_hash($config, $accountId);
-    if ($publicHash === '') {
-        return sr_t('community::member.identifier.id_suffix', ['id' => (string) $accountId]);
-    }
-
-    return sr_t('community::member.identifier.id_hash_suffix', [
-        'id' => (string) $accountId,
-        'hash' => $publicHash,
-    ]);
+    return '';
 }
 
 function sr_community_member_label_with_identifier(string $label, array $config, int $accountId, bool $showIdentifier): string

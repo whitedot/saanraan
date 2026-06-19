@@ -40,14 +40,22 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
+$communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
         '/modules/banner/assets/module.css',
         '/modules/popup_layer/assets/module.css',
     ]),
-]));
+]);
+$communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutContext['site_menus'] ?? null) ? $communityLayoutContext['site_menus'] : [], [
+    'secondary' => '',
+    'tertiary' => '',
+    'quaternary' => '',
+    'quinary' => '',
+]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
+$communityMainLabel = $pageTitle;
 ?>
-    <main class="community-screen">
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
             <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($board['popup_layer_form_id'] ?? 0)); ?>
         <?php } ?>
@@ -242,5 +250,5 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php if ($ckeditorEnabled && function_exists('sr_ckeditor_public_assets_html')) { ?>
             <?php echo sr_ckeditor_public_assets_html($pdo, $communityEditorToolbarPreset); ?>
         <?php } ?>
-    </main>
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
 <?php sr_public_layout_end(); ?>

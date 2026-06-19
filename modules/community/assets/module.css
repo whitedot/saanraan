@@ -357,6 +357,12 @@
     width: 100%;
 }
 
+.community-board-post-list {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
 .community-home-post + .community-home-post {
     border-top: 1px solid var(--sr-border-soft, var(--sr-border, #d8dde6));
     padding-top: 18px;

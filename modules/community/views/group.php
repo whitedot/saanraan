@@ -16,14 +16,22 @@ $seo = [
     ],
 ];
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
+$communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => [
         '/modules/banner/assets/module.css',
         '/modules/popup_layer/assets/module.css',
     ],
-]));
+]);
+$communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutContext['site_menus'] ?? null) ? $communityLayoutContext['site_menus'] : [], [
+    'secondary' => '',
+    'tertiary' => '',
+    'quaternary' => '',
+    'quinary' => '',
+]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
+$communityMainLabel = $pageTitle;
 ?>
-    <main class="community-screen">
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <?php if ($groupDescription !== '') { ?>
@@ -54,5 +62,5 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php } ?>
             </div>
         <?php } ?>
-    </main>
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
 <?php sr_public_layout_end(); ?>

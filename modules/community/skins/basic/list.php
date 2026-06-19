@@ -18,14 +18,24 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $memberSettings = sr_member_settings($pdo);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
+$communityBoardPaidReadConfig = sr_community_asset_event_config($pdo, $board, $communityLayoutSettings, 'paid_read', 'once');
+$communityBoardHomeExcerptAllowed = !sr_community_asset_event_required($communityBoardPaidReadConfig);
+$communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
         '/modules/banner/assets/module.css',
         '/modules/popup_layer/assets/module.css',
     ]),
-]));
+]);
+$communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutContext['site_menus'] ?? null) ? $communityLayoutContext['site_menus'] : [], [
+    'secondary' => '',
+    'tertiary' => '',
+    'quaternary' => '',
+    'quinary' => '',
+]);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
+$communityMainLabel = (string) ($board['title'] ?? '게시판');
 ?>
-    <main class="community-screen">
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
             <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($board['popup_layer_list_id'] ?? 0)); ?>
         <?php } ?>
@@ -91,59 +101,63 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php } elseif ($posts === []) { ?>
             <p><?php echo sr_e($keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd')); ?></p>
         <?php } else { ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
-                        <?php if ($communityListCategoryEnabled) { ?>
-                            <th><?php echo sr_e('카테고리'); ?></th>
+            <div class="community-board-post-list">
+                <?php foreach ($posts as $post) { ?>
+                    <?php
+                    $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
+                    $thumbnailUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $communityLayoutSettings);
+                    $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed
+                        ? ''
+                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
+                    $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
+                    $postAuthorInitial = $postAuthorLabel !== ''
+                        ? (function_exists('mb_substr') ? mb_substr($postAuthorLabel, 0, 1) : substr($postAuthorLabel, 0, 1))
+                        : '?';
+                    $postAuthorAccountId = (int) ($post['author_account_id'] ?? 0);
+                    $postAuthorAvatarClass = $postAuthorAccountId > 0
+                        ? sr_member_default_avatar_color_class(sr_member_public_account_hash($config, $postAuthorAccountId))
+                        : sr_member_default_avatar_color_class($postAuthorLabel);
+                    ?>
+                    <article class="community-home-post community-board-post-list-item">
+                        <?php if ($thumbnailUrl !== '') { ?>
+                            <a class="community-home-post-image-link" href="<?php echo sr_e($postUrl); ?>" aria-hidden="true" tabindex="-1">
+                                <img class="community-home-post-image" src="<?php echo sr_e($thumbnailUrl); ?>" alt="" loading="lazy">
+                            </a>
                         <?php } ?>
-                        <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
-                        <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
-                        <th><?php echo sr_e(sr_t('community::ui.text.353b76cf')); ?></th>
-                        <th><?php echo sr_e(sr_t('community::ui.text.f8d240bf')); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($posts as $post) { ?>
-                        <tr>
-                            <td>
-                                <?php $thumbnailUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $communityLayoutSettings); ?>
-                                <?php if ($thumbnailUrl !== '') { ?>
-                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>" aria-hidden="true" tabindex="-1">
-                                        <img src="<?php echo sr_e($thumbnailUrl); ?>" alt="" width="160" height="90" loading="lazy">
-                                    </a>
-                                <?php } ?>
-                                <a class="community-post-title community-post-list-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
-                                    <?php echo sr_e((string) $post['title']); ?>
-                                </a>
-                                <?php echo sr_community_post_comment_count_html($post); ?>
-                                <?php if (!empty($listExcerptEnabled)) { ?>
-                                    <?php $communityListExcerpt = sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), (int) ($listExcerptLength ?? 120)); ?>
-                                    <?php if ($communityListExcerpt !== '') { ?>
-                                        <p><?php echo sr_e($communityListExcerpt); ?></p>
+                        <div class="community-home-post-body">
+                            <h2 class="community-post-title community-home-post-title">
+                                <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                            </h2>
+                            <?php if ($communityListCategoryEnabled && (string) ($post['category_title'] ?? '') !== '') { ?>
+                                <p class="community-board-post-category">
+                                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
+                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
+                                    <?php } else { ?>
+                                        <?php echo sr_e((string) $post['category_title']); ?>
                                     <?php } ?>
-                                <?php } ?>
-                            </td>
-                            <?php if ($communityListCategoryEnabled) { ?>
-                                <td>
-                                    <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
-                                        <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
-                                            <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
-                                        <?php } else { ?>
-                                            <?php echo sr_e((string) $post['category_title']); ?>
-                                        <?php } ?>
-                                    <?php } ?>
-                                </td>
+                                </p>
                             <?php } ?>
-                            <td><?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></td>
-                            <td><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
-                            <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
-                            <td><?php echo sr_e((string) $post['view_count']); ?></td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+                            <?php if ($postExcerpt !== '') { ?>
+                                <p><?php echo sr_e($postExcerpt); ?></p>
+                            <?php } ?>
+                            <p class="community-home-post-meta">
+                                <span class="member-default-avatar community-home-post-avatar <?php echo sr_e($postAuthorAvatarClass); ?>" aria-hidden="true"><?php echo sr_e($postAuthorInitial); ?></span>
+                                <span><?php echo sr_e($postAuthorLabel); ?></span>
+                                <span aria-hidden="true">&middot;</span>
+                                <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
+                                <?php if ((int) ($post['active_attachment_count'] ?? 0) > 0) { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span><?php echo sr_e('첨부 ' . number_format((int) ($post['active_attachment_count'] ?? 0))); ?></span>
+                                <?php } ?>
+                                <?php if ((int) ($post['view_count'] ?? 0) > 0) { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span><?php echo sr_e('조회 ' . number_format((int) ($post['view_count'] ?? 0))); ?></span>
+                                <?php } ?>
+                            </p>
+                        </div>
+                    </article>
+                <?php } ?>
+            </div>
         <?php } ?>
 
         <?php if ($totalPages > 1) { ?>
@@ -169,5 +183,5 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php if (function_exists('sr_banner_render_public_banner') && sr_module_enabled($pdo, 'banner')) { ?>
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_after_list_id'] ?? 0)); ?>
         <?php } ?>
-    </main>
+    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
 <?php sr_public_layout_end(); ?>

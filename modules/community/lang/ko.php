@@ -338,8 +338,6 @@ return [
     'notification.report.title' => '새 커뮤니티 신고가 접수되었습니다.',
     'notification.comment_mention.body' => '댓글에서 회원님을 언급했습니다.',
     'notification.comment_mention.title' => '댓글 멘션 알림',
-    'member.identifier.id_hash_suffix' => ' (회원 ID #{id} / 해시 {hash})',
-    'member.identifier.id_suffix' => ' (회원 ID #{id})',
     'member_group.summary.comments' => '댓글 {count}개',
     'member_group.summary.level' => '레벨 {level}',
     'member_group.summary.posts' => '게시글 {count}개',
