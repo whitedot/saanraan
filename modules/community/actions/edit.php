@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
     if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
-        $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+        $errors[] = sr_community_series_unavailable_message($pdo);
     }
     if (!is_array($account) && (string) $seriesValues['series_mode'] !== 'none') {
         $errors[] = '비회원 글은 시리즈를 연결할 수 없습니다.';

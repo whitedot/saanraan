@@ -51,13 +51,15 @@ if ($pageId > 0 && !is_array($existingContent)) {
 if (is_array($existingContent) && (string) ($existingContent['status'] ?? '') === 'deleted') {
     $errors[] = sr_t('content::redaction.deleted_content_restore_forbidden');
 }
-if ((int) $seriesValues['series_id'] > 0) {
+if ((int) $seriesValues['series_id'] > 0 && !sr_content_series_supported($pdo)) {
+    $errors[] = sr_content_series_unavailable_message($pdo);
+} elseif ((int) $seriesValues['series_id'] > 0) {
     $selectedSeries = sr_content_series_by_id($pdo, (int) $seriesValues['series_id']);
     if (!is_array($selectedSeries) || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)) {
         $errors[] = '연결할 콘텐츠 시리즈를 확인해 주세요.';
     }
 }
-if ($seriesSortOrder === null) {
+if ((int) $seriesValues['series_id'] > 0 && $seriesSortOrder === null) {
     $errors[] = '콘텐츠 시리즈 정렬 순서를 확인해 주세요.';
 }
 $errors = array_merge($errors, sr_content_validate_file_request($pdo, $pageId, $values));
@@ -106,7 +108,9 @@ $coverImageCleanupResult = ['attempted' => false, 'deleted' => false, 'failed' =
 $afterCoverImageUrl = (string) ($values['cover_image_url'] ?? '');
 try {
     $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
-    sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
+    if (sr_content_series_supported($pdo)) {
+        sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
+    }
     sr_content_save_files_from_request($pdo, $savedPageId, (int) $account['id'], $values);
     if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
         $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced', $savedPageId);

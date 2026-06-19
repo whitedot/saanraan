@@ -33,7 +33,7 @@ if (sr_request_method() === 'POST') {
     $seriesId = (int) sr_post_string('series_id', 20);
     if ($intent === 'delete') {
         if (!$seriesSupported) {
-            $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+            $errors[] = sr_content_series_unavailable_message($pdo);
         } else {
             $deleteResult = sr_content_delete_series($pdo, $seriesId);
             $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
@@ -75,7 +75,7 @@ if (sr_request_method() === 'POST') {
         $seriesCreateModalOpen = true;
     }
     if (!$seriesSupported) {
-        $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+        $errors[] = sr_content_series_unavailable_message($pdo);
     }
     if ($intent === 'create' && !sr_content_series_key_is_valid((string) $values['series_key'])) {
         $errors[] = '시리즈 관리용 키가 올바르지 않습니다.';
@@ -125,10 +125,12 @@ $seriesFilters = sr_content_admin_series_filters();
 $seriesSortOptions = sr_content_admin_series_sort_options();
 $seriesDefaultSort = sr_content_admin_series_default_sort();
 $seriesSort = sr_admin_sort_from_request($seriesSortOptions, $seriesDefaultSort);
-$seriesStatusCounts = sr_content_admin_series_status_counts($pdo);
-$seriesPagination = sr_admin_pagination_from_total($pdo, sr_content_admin_series_count($pdo, $seriesFilters));
-$seriesList = sr_content_admin_series_list($pdo, $seriesFilters, (int) $seriesPagination['per_page'], sr_admin_pagination_offset($seriesPagination), $seriesSort);
+$seriesStatusCounts = $seriesSupported ? sr_content_admin_series_status_counts($pdo) : [];
+$seriesPagination = sr_admin_pagination_from_total($pdo, $seriesSupported ? sr_content_admin_series_count($pdo, $seriesFilters) : 0);
+$seriesList = $seriesSupported
+    ? sr_content_admin_series_list($pdo, $seriesFilters, (int) $seriesPagination['per_page'], sr_admin_pagination_offset($seriesPagination), $seriesSort)
+    : [];
 if (!$seriesSupported && sr_request_method() !== 'POST') {
-    $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    $errors[] = sr_content_series_unavailable_message($pdo);
 }
 include SR_ROOT . '/modules/content/views/admin-series.php';

@@ -432,30 +432,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
                 </div>
             </div>
-            <div class="form-row">
-                <label class="form-label" for="content_admin_contents_series_id"><?php echo sr_e('시리즈'); ?></label>
-                <div class="form-field">
-                    <select id="content_admin_contents_series_id" name="series_id" class="form-select">
-                        <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
-                        <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
-                            <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) $contentSeriesValues['series_id'] === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e(sr_content_series_visibility_label((string) $seriesOption['visibility'])); ?> / <?php echo sr_e(sr_content_series_status_label((string) $seriesOption['status'])); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    <p class="form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
-                    <div class="admin-form-inline">
-                        <label for="content_admin_contents_series_episode_label">
-                            <span><?php echo sr_e('회차 표시'); ?></span>
-                            <input id="content_admin_contents_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) $contentSeriesValues['series_episode_label']); ?>" class="form-input">
-                        </label>
-                        <label for="content_admin_contents_series_sort_order">
-                            <span><?php echo sr_e('정렬 순서'); ?></span>
-                            <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
-                        </label>
+            <?php if (sr_content_series_supported($pdo)) { ?>
+                <div class="form-row">
+                    <label class="form-label" for="content_admin_contents_series_id"><?php echo sr_e('시리즈'); ?></label>
+                    <div class="form-field">
+                        <select id="content_admin_contents_series_id" name="series_id" class="form-select">
+                            <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
+                            <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
+                                <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) $contentSeriesValues['series_id'] === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e(sr_content_series_visibility_label((string) $seriesOption['visibility'])); ?> / <?php echo sr_e(sr_content_series_status_label((string) $seriesOption['status'])); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <p class="form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
+                        <div class="admin-form-inline">
+                            <label for="content_admin_contents_series_episode_label">
+                                <span><?php echo sr_e('회차 표시'); ?></span>
+                                <input id="content_admin_contents_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) $contentSeriesValues['series_episode_label']); ?>" class="form-input">
+                            </label>
+                            <label for="content_admin_contents_series_sort_order">
+                                <span><?php echo sr_e('정렬 순서'); ?></span>
+                                <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php } ?>
         </section>
         <section id="content-section-body" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('본문과 대표 이미지'); ?></h2>

@@ -81,9 +81,32 @@ function sr_content_series_items_table_exists(PDO $pdo): bool
     return $existsByConnection[$cacheKey];
 }
 
-function sr_content_series_supported(PDO $pdo): bool
+function sr_content_series_feature_enabled(PDO $pdo): bool
+{
+    try {
+        $value = function_exists('sr_module_setting') ? sr_module_setting($pdo, 'content', 'series_enabled', '1') : '1';
+    } catch (Throwable $exception) {
+        $value = '1';
+    }
+
+    return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_content_series_schema_supported(PDO $pdo): bool
 {
     return sr_content_series_table_exists($pdo) && sr_content_series_items_table_exists($pdo);
+}
+
+function sr_content_series_supported(PDO $pdo): bool
+{
+    return sr_content_series_feature_enabled($pdo) && sr_content_series_schema_supported($pdo);
+}
+
+function sr_content_series_unavailable_message(PDO $pdo): string
+{
+    return sr_content_series_feature_enabled($pdo)
+        ? '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.'
+        : '콘텐츠 시리즈 기능이 꺼져 있습니다.';
 }
 
 function sr_content_series_by_id(PDO $pdo, int $seriesId): ?array

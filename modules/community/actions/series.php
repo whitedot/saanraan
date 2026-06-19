@@ -30,7 +30,7 @@ if (sr_request_method() === 'POST') {
         $visibility = 'public';
     }
     if (!$seriesSupported) {
-        $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+        $errors[] = sr_community_series_unavailable_message($pdo);
     }
     if ($title === '') {
         $errors[] = '시리즈 제목을 입력해 주세요.';
@@ -90,7 +90,7 @@ foreach ($pdo->query("SELECT id, board_key, title, board_group_id, status, write
 }
 $seriesList = sr_community_account_series($pdo, (int) $account['id']);
 if (!$seriesSupported && sr_request_method() !== 'POST') {
-    $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    $errors[] = sr_community_series_unavailable_message($pdo);
 }
 
 include SR_ROOT . '/modules/community/views/series.php';

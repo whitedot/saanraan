@@ -24,7 +24,7 @@ if (sr_request_method() === 'POST') {
     $visibility = sr_post_string('visibility', 30);
     $adminNote = sr_post_string_without_truncation('admin_note', 2000);
     if (!$seriesSupported) {
-        $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+        $errors[] = sr_community_series_unavailable_message($pdo);
     } elseif (!is_array($series)) {
         $errors[] = '시리즈를 찾을 수 없습니다.';
     } elseif (!in_array($status, sr_community_series_statuses(), true) || !in_array($visibility, sr_community_series_visibility_values(), true)) {
@@ -60,13 +60,13 @@ $seriesFilters = sr_community_admin_series_filters();
 $seriesSortOptions = sr_community_admin_series_sort_options();
 $seriesDefaultSort = sr_community_admin_series_default_sort();
 $seriesSort = sr_admin_sort_from_request($seriesSortOptions, $seriesDefaultSort);
-$seriesStatusCounts = sr_community_admin_series_status_counts($pdo);
+$seriesStatusCounts = $seriesSupported ? sr_community_admin_series_status_counts($pdo) : [];
 $seriesPagination = sr_admin_pagination_from_total($pdo, $seriesSupported ? sr_community_admin_series_count($pdo, $seriesFilters) : 0);
 $seriesList = [];
 if ($seriesSupported) {
     $seriesList = sr_community_admin_series_list($pdo, $seriesFilters, (int) $seriesPagination['per_page'], sr_admin_pagination_offset($seriesPagination), $seriesSort);
 } elseif (sr_request_method() !== 'POST') {
-    $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    $errors[] = sr_community_series_unavailable_message($pdo);
 }
 
 include SR_ROOT . '/modules/community/views/admin-series.php';

@@ -19,6 +19,7 @@ $latestPosts = [];
 $popularPosts = [];
 $latestComments = [];
 $recentSeries = [];
+$communitySeriesSupported = sr_community_series_supported($pdo);
 $homeSidebarMenuHtml = '';
 $homeExcerptAllowedByBoardId = [];
 $homePostImageUrl = static function (array $post, array $board, bool $homeExcerptAllowed) use ($pdo, $settings): string {
@@ -106,8 +107,7 @@ if ($readableBoardIds !== []) {
         $latestComments = $stmt->fetchAll();
     }
 }
-$seriesEnabled = !empty($settings['series_enabled']);
-if ($seriesEnabled && sr_community_series_supported($pdo) && $readableBoardIds !== []) {
+if ($communitySeriesSupported && $readableBoardIds !== []) {
     $seriesPlaceholders = [];
     $seriesParams = [];
     foreach ($readableBoardIds as $index => $boardId) {

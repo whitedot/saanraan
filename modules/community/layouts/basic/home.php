@@ -79,7 +79,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
             </section>
 
             <aside class="community-home-aside" aria-label="커뮤니티 요약">
-                <?php if (!empty($communityLayoutSettings['series_enabled'])) { ?>
+                <?php if (!empty($communitySeriesSupported)) { ?>
                     <section class="card" aria-labelledby="community_home_series_title">
                         <div class="card-body">
                             <h2 id="community_home_series_title" class="card-title community-home-aside-title">시리즈</h2>
