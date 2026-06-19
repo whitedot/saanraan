@@ -78,6 +78,34 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
         return [];
     }
 
+    $disabledIds = [];
+    if (function_exists('sr_community_post_reaction_preset_columns_exist') && sr_community_post_reaction_preset_columns_exist($pdo) && function_exists('sr_reaction_disabled_preset_key')) {
+        $disabledPlaceholders = [];
+        $disabledParams = ['disabled_key' => sr_reaction_disabled_preset_key()];
+        foreach (array_values($ids) as $index => $id) {
+            $paramKey = 'disabled_post_id_' . (string) $index;
+            $disabledPlaceholders[] = ':' . $paramKey;
+            $disabledParams[$paramKey] = $id;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_community_posts
+             WHERE id IN (' . implode(', ', $disabledPlaceholders) . ')
+               AND reaction_preset_key = :disabled_key'
+        );
+        $stmt->execute($disabledParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $disabledId = (int) ($row['id'] ?? 0);
+            if ($disabledId > 0) {
+                $disabledIds[$disabledId] = true;
+                unset($ids[(string) $disabledId]);
+            }
+        }
+        if ($ids === []) {
+            return [];
+        }
+    }
+
     $placeholders = [];
     $params = [
         'target_module' => 'community',
@@ -102,7 +130,7 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
     $counts = [];
     foreach ($stmt->fetchAll() as $row) {
         $id = (int) ($row['target_id'] ?? 0);
-        if ($id > 0) {
+        if ($id > 0 && empty($disabledIds[$id])) {
             $counts[$id] = (int) ($row['count_value'] ?? 0);
         }
     }

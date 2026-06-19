@@ -11,6 +11,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'edit');

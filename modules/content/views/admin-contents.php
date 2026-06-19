@@ -560,7 +560,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">비어 있으면 콘텐츠 환경설정의 기본 프리셋을 사용합니다.</p>
+                    <p class="form-help">기본값 사용은 콘텐츠 환경설정의 기본 프리셋을 따르고, 사용안함은 이 콘텐츠에만 적용됩니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -573,6 +573,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
+                    <p class="form-help">기본값 사용은 콘텐츠 환경설정의 댓글 기본 프리셋을 따르고, 사용안함은 이 콘텐츠 댓글에만 적용됩니다.</p>
                 </div>
             </div>
         </section>

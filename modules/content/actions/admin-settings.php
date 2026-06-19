@@ -58,6 +58,7 @@ if (sr_request_method() === 'POST') {
         'member_submission_author_reward_enabled' => $postedAuthorRewardEnabled,
         'member_submission_author_reward_asset_module' => $postedAuthorRewardAssetModule,
         'member_submission_author_reward_amount' => $postedAuthorRewardAssetModule !== '' ? ($postedAuthorRewardAmount ?? 0) : 0,
+        'reaction_enabled' => sr_post_string('reaction_enabled', 1) === '1',
         'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '',
         'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
     ];

@@ -26,6 +26,7 @@ return [
         'editor_toolbar_preset' => 'content_basic',
         'plain_text_auto_link_urls' => false,
         'secret_comments_enabled' => false,
+        'reaction_enabled' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'once_history_policy' => 'all_access',

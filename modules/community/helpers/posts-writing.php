@@ -196,6 +196,30 @@ function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachme
     ]);
 }
 
+function sr_community_post_reaction_preset_columns_exist(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT reaction_preset_key, reaction_comment_preset_key FROM sr_community_posts LIMIT 0');
+        $exists = true;
+    } catch (Throwable) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_post_reaction_preset_value(PDO $pdo, mixed $value): string
+{
+    return function_exists('sr_reaction_setting_preset_key_or_disabled')
+        ? sr_reaction_setting_preset_key_or_disabled($pdo, $value)
+        : '';
+}
+
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     if ($pdo->inTransaction()) {
@@ -221,6 +245,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         $categorySupported = sr_community_categories_supported($pdo);
         $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
         $extraValuesSetSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json = :extra_values_json,' : '';
+        $reactionSetSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key = :reaction_preset_key, reaction_comment_preset_key = :reaction_comment_preset_key,' : '';
         $secretSetSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_posts
@@ -233,6 +258,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  seo_description = :seo_description,
                  og_title = :og_title,
                  og_description = :og_description,
+                 ' . $reactionSetSql . '
                  ' . $secretSetSql . '
                  updated_at = :updated_at
              WHERE id = :id'
@@ -253,6 +279,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         if ($extraValuesSetSql !== '') {
             $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
+        }
+        if ($reactionSetSql !== '') {
+            $params['reaction_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_preset_key'] ?? '');
+            $params['reaction_comment_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_comment_preset_key'] ?? '');
         }
         if ($secretSetSql !== '') {
             $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
@@ -388,6 +418,8 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'seo_description' => '',
         'og_title' => '',
         'og_description' => '',
+        'reaction_preset_key' => $pdo instanceof PDO ? sr_community_post_reaction_preset_value($pdo, sr_post_string('reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => $pdo instanceof PDO ? sr_community_post_reaction_preset_value($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
         'is_secret' => sr_post_string('is_secret', 10) === '1'
             && $pdo instanceof PDO
             && is_array($board)
@@ -443,13 +475,15 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $guestAuthorValueSql = $guestAuthorColumnSql !== '' ? ':guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, ' : '';
     $extraValuesColumnSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json, ' : '';
     $extraValuesValueSql = $extraValuesColumnSql !== '' ? ':extra_values_json, ' : '';
+    $reactionColumnSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key, reaction_comment_preset_key, ' : '';
+    $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
     $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
     $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . 'seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . ':seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -482,6 +516,10 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     }
     if ($extraValuesColumnSql !== '') {
         $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
+    }
+    if ($reactionColumnSql !== '') {
+        $params['reaction_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_preset_key'] ?? '');
+        $params['reaction_comment_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_comment_preset_key'] ?? '');
     }
     if ($secretColumnSql !== '') {
         $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;

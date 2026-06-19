@@ -141,6 +141,39 @@ $communityMainLabel = $pageTitle;
                     <span><?php echo sr_e('비밀글'); ?></span>
                 </label>
             <?php } ?>
+            <?php if (!empty($canManagePostReactionPreset) && isset($reactionPresetOptions) && is_array($reactionPresetOptions) && $reactionPresetOptions !== []) { ?>
+                <fieldset>
+                    <legend><?php echo sr_e('리액션'); ?></legend>
+                    <p>
+                        <label for="modules_community_form_reaction_preset_key">
+                            <span><?php echo sr_e('게시글 리액션 프리셋'); ?></span>
+                            <select id="modules_community_form_reaction_preset_key" name="reaction_preset_key">
+                                <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                                    <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $presetLabel); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                        <br>
+                        <small><?php echo sr_e('기본값 사용은 게시판 설정을 따르고, 사용안함은 이 게시글에만 적용됩니다.'); ?></small>
+                    </p>
+                    <p>
+                        <label for="modules_community_form_reaction_comment_preset_key">
+                            <span><?php echo sr_e('댓글 리액션 프리셋'); ?></span>
+                            <select id="modules_community_form_reaction_comment_preset_key" name="reaction_comment_preset_key">
+                                <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                                    <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $presetLabel); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                        <br>
+                        <small><?php echo sr_e('기본값 사용은 게시판 댓글 설정을 따르고, 사용안함은 이 게시글 댓글에만 적용됩니다.'); ?></small>
+                    </p>
+                </fieldset>
+            <?php } ?>
             <?php if (sr_module_enabled($pdo, 'content') || sr_module_enabled($pdo, 'quiz') || sr_module_enabled($pdo, 'survey')) { ?>
                 <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/community/link-card-targets')); ?>" data-target="content,quiz_set,survey_form" data-textarea="modules_community_form_body_text">
                     <div class="sr-link-card-picker-controls">

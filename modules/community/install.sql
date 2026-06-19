@@ -171,6 +171,8 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     title VARCHAR(160) NOT NULL,
     body_text MEDIUMTEXT NOT NULL,
     body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
+    reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     seo_title VARCHAR(160) NOT NULL DEFAULT '',
     seo_description VARCHAR(255) NOT NULL DEFAULT '',
     og_title VARCHAR(160) NOT NULL DEFAULT '',

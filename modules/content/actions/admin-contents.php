@@ -196,7 +196,7 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $assetPolicySets = sr_content_asset_policy_sets($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $pageGroups = sr_content_groups($pdo);
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
 $contentSeriesOptions = sr_content_series_list($pdo);

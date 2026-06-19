@@ -533,8 +533,9 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_preset_key, p.reaction_comment_preset_key,' : "'' AS reaction_preset_key, '' AS reaction_comment_preset_key,";
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, " . $reactionPresetSelectSql . " p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -580,8 +581,9 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_preset_key, p.reaction_comment_preset_key,' : "'' AS reaction_preset_key, '' AS reaction_comment_preset_key,";
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, " . $reactionPresetSelectSql . " p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id

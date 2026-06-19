@@ -37,7 +37,14 @@ if (!function_exists('sr_content_reaction_content_result')) {
         $account = sr_content_reaction_account($viewerAccountId);
         $canView = $status === 'active' && sr_content_can_access_body_file($pdo, $row, $account);
         $settings = sr_content_settings($pdo);
-        $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_preset_key'] ?? '') : '';
+        if (empty($settings['reaction_enabled'])) {
+            $canView = false;
+        }
+        $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_preset_key'] ?? '') : '';
+        if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
+            $canView = false;
+            $presetKey = '';
+        }
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
         }
@@ -99,7 +106,14 @@ if (!function_exists('sr_content_reaction_comment_result')) {
             && sr_content_can_access_body_file($pdo, $page, $account)
             && sr_content_account_can_view_comment_body($comment, $page, $account, $pdo);
         $settings = sr_content_settings($pdo);
-        $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
+        if (empty($settings['reaction_enabled'])) {
+            $canView = false;
+        }
+        $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
+        if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
+            $canView = false;
+            $presetKey = '';
+        }
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
         }

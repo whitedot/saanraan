@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,6 +47,10 @@ if (sr_community_post_locked_by_comments($pdo, $board, $postId, 'edit')) {
     sr_render_error(409, '댓글 수 기준에 따라 이 게시글은 더 이상 수정할 수 없습니다.');
 }
 $settings = sr_community_settings($pdo);
+$canManagePostReactionPreset = is_array($account) && function_exists('sr_admin_has_permission') && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+$reactionPresetOptions = $canManagePostReactionPreset && function_exists('sr_reaction_preset_options_with_disabled')
+    ? sr_reaction_preset_options_with_disabled($pdo, true)
+    : [];
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
 $secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
@@ -98,6 +106,8 @@ $values = [
     'seo_description' => (string) ($post['seo_description'] ?? ''),
     'og_title' => (string) ($post['og_title'] ?? ''),
     'og_description' => (string) ($post['og_description'] ?? ''),
+    'reaction_preset_key' => (string) ($post['reaction_preset_key'] ?? ''),
+    'reaction_comment_preset_key' => (string) ($post['reaction_comment_preset_key'] ?? ''),
     'is_secret' => (int) ($post['is_secret'] ?? 0),
 ];
 
@@ -114,6 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    if (!$canManagePostReactionPreset) {
+        $values['reaction_preset_key'] = (string) ($post['reaction_preset_key'] ?? '');
+        $values['reaction_comment_preset_key'] = (string) ($post['reaction_comment_preset_key'] ?? '');
+    }
     if (!$categoryEnabled) {
         $values['category_id'] = 0;
     }

@@ -8,6 +8,9 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
     require_once SR_ROOT . '/modules/antispam/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 $boardKey = sr_get_string('key', 60);
@@ -17,6 +20,10 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
 }
 
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+$canManagePostReactionPreset = $isAdminWriter;
+$reactionPresetOptions = $canManagePostReactionPreset && function_exists('sr_reaction_preset_options_with_disabled')
+    ? sr_reaction_preset_options_with_disabled($pdo, true)
+    : [];
 if (!sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)) {
     if (!is_array($account) && sr_community_effective_board_policy($pdo, $board, 'write_policy') !== 'guest') {
         $account = sr_member_require_login($pdo);
@@ -80,6 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($isGuestAuthor) {
         $values['body_format'] = 'plain';
         $values = array_merge($values, sr_community_guest_author_input_values());
+    }
+    if (!$canManagePostReactionPreset) {
+        $values['reaction_preset_key'] = '';
+        $values['reaction_comment_preset_key'] = '';
     }
     if (function_exists('sr_antispam_verify')) {
         $antispamResult = sr_antispam_verify($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $_POST, $antispamPostContext);

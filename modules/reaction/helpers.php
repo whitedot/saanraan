@@ -308,6 +308,33 @@ function sr_reaction_setting_preset_key(PDO $pdo, mixed $value): string
     return sr_reaction_preset_is_available($pdo, $presetKey) ? $presetKey : '';
 }
 
+function sr_reaction_disabled_preset_key(): string
+{
+    return '__disabled';
+}
+
+function sr_reaction_setting_preset_key_or_disabled(PDO $pdo, mixed $value): string
+{
+    $rawValue = trim((string) $value);
+    if ($rawValue === sr_reaction_disabled_preset_key()) {
+        return sr_reaction_disabled_preset_key();
+    }
+
+    return sr_reaction_setting_preset_key($pdo, $rawValue);
+}
+
+function sr_reaction_preset_options_with_disabled(PDO $pdo, bool $includeDefault = true): array
+{
+    $options = sr_reaction_preset_options($pdo, $includeDefault);
+    $disabledKey = sr_reaction_disabled_preset_key();
+
+    return array_merge(
+        array_slice($options, 0, $includeDefault ? 1 : 0, true),
+        [$disabledKey => '사용안함'],
+        array_slice($options, $includeDefault ? 1 : 0, null, true)
+    );
+}
+
 function sr_reaction_preset_is_available(PDO $pdo, string $presetKey): bool
 {
     $presetKey = sr_reaction_clean_key($presetKey);

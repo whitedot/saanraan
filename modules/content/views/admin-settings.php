@@ -143,6 +143,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>리액션</h2>
         <div class="form-row">
+            <span class="form-label">리액션 사용 여부</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '콘텐츠 리액션 사용'); ?>
+                <p class="form-help">꺼져 있으면 콘텐츠와 댓글의 리액션 위젯을 표시하지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <label class="form-label" for="content_admin_settings_reaction_preset_key">콘텐츠 리액션 프리셋</label>
             <div class="form-field">
                 <select id="content_admin_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
