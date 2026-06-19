@@ -45,6 +45,11 @@
     gap: .5rem;
 }
 
+.admin-page-banner-form .admin-banner-code-textarea {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    min-height: 12rem;
+}
+
 @media (max-width: 1023px) {
     .admin-page-banner-list .admin-banner-search-grid {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

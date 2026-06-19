@@ -257,8 +257,12 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'save') {
         $isCreate = $bannerId <= 0;
         $title = sr_banner_clean_single_line(sr_post_string('title', 120), 120);
+        $contentType = sr_banner_content_type(sr_post_string('content_type', 20));
         $bodyText = sr_banner_clean_text(sr_post_string('body_text', 3000), 3000);
-        $useImage = sr_post_string('use_image', 10) === '1';
+        if (sr_post_string('content_type', 20) === '' && sr_post_string('use_image', 10) === '1') {
+            $contentType = 'image';
+        }
+        $htmlCode = sr_banner_clean_html_code(sr_post_string('html_code', 10000), 10000);
         $rawLinkUrl = sr_post_string('link_url', 255);
         $linkUrl = sr_banner_clean_url($rawLinkUrl);
         $rawImageUrl = sr_post_string('image_url', 255);
@@ -288,22 +292,34 @@ if (sr_request_method() === 'POST') {
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
         }
-        if ($bodyText === '') {
-            $errors[] = $useImage ? '이미지 대체텍스트를 입력하세요.' : '표시할 텍스트를 입력하세요.';
+        if ($contentType !== 'html' && $bodyText === '') {
+            $errors[] = $contentType === 'image' ? '이미지 대체텍스트를 입력하세요.' : '표시할 텍스트를 입력하세요.';
+        }
+        if ($contentType === 'html' && $htmlCode === '') {
+            $errors[] = 'HTML 코드를 입력하세요.';
+        }
+        if ($contentType === 'html' && !sr_banner_html_code_is_safe_to_store($htmlCode)) {
+            $errors[] = 'HTML 코드에는 PHP 태그를 넣을 수 없습니다.';
         }
         if ($rawLinkUrl !== '' && $linkUrl === '') {
             $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
         }
-        if (!$useImage) {
+        if ($contentType !== 'image') {
             $rawImageUrl = '';
             $imageUrl = '';
             $imageUploadProvided = false;
             $imageUploadFile = null;
         }
-        if ($useImage && !$imageUploadProvided && $rawImageUrl === '') {
+        if ($contentType === 'html') {
+            $bodyText = '';
+            $linkUrl = '';
+        } else {
+            $htmlCode = '';
+        }
+        if ($contentType === 'image' && !$imageUploadProvided && $rawImageUrl === '') {
             $errors[] = '이미지 URL을 입력하거나 이미지 파일을 업로드하세요.';
         }
-        if ($useImage && !$imageUploadProvided && $rawImageUrl !== '' && $imageUrl === '') {
+        if ($contentType === 'image' && !$imageUploadProvided && $rawImageUrl !== '' && $imageUrl === '') {
             $errors[] = '이미지 URL은 /로 시작하는 내부 경로 또는 http/https URL이어야 합니다.';
         }
         if (!in_array($status, $allowedStatuses, true)) {
@@ -412,13 +428,15 @@ if (sr_request_method() === 'POST') {
                 if ($bannerId > 0) {
                     $stmt = $pdo->prepare(
                         'UPDATE sr_banners
-                         SET title = :title, body_text = :body_text, link_url = :link_url, image_url = :image_url,
+                         SET title = :title, content_type = :content_type, body_text = :body_text, html_code = :html_code, link_url = :link_url, image_url = :image_url,
                              status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, sort_order = :sort_order, updated_at = :updated_at
                          WHERE id = :id'
                     );
                     $stmt->execute([
                         'title' => $title,
+                        'content_type' => $contentType,
                         'body_text' => $bodyText,
+                        'html_code' => $htmlCode,
                         'link_url' => $linkUrl,
                         'image_url' => $imageUrl,
                         'status' => $status,
@@ -432,13 +450,15 @@ if (sr_request_method() === 'POST') {
                 } else {
                     $stmt = $pdo->prepare(
                         'INSERT INTO sr_banners
-                            (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, created_at, updated_at)
+                            (title, content_type, body_text, html_code, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, created_at, updated_at)
                          VALUES
-                            (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
+                            (:title, :content_type, :body_text, :html_code, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
                     );
                     $stmt->execute([
                         'title' => $title,
+                        'content_type' => $contentType,
                         'body_text' => $bodyText,
+                        'html_code' => $htmlCode,
                         'link_url' => $linkUrl,
                         'image_url' => $imageUrl,
                         'status' => $status,
@@ -489,6 +509,7 @@ if (sr_request_method() === 'POST') {
                         'point_key' => $target !== null ? (string) $target['point_key'] : '',
                         'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
                         'skin_key' => $skinKey,
+                        'content_type' => $contentType,
                     ],
                 ]);
 
@@ -519,7 +540,7 @@ $editBanner = null;
 $editId = (int) sr_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
-        'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order,
+        'SELECT b.id, b.title, ' . sr_banner_content_select_sql($pdo, 'b') . ', b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
          FROM sr_banners b
          LEFT JOIN sr_banner_targets t ON t.banner_id = b.id
@@ -557,7 +578,7 @@ foreach ($stmt->fetchAll() as $row) {
 
 $banners = [];
 $bannerReadReferencesById = [];
-$bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
+$bannerSql = 'SELECT b.id, b.title, ' . sr_banner_content_select_sql($pdo, 'b') . ', b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM sr_banners b
               LEFT JOIN sr_banner_targets t ON t.banner_id = b.id';

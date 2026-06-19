@@ -35,7 +35,6 @@ $bannerSubjectTargetTypeMap = sr_banner_subject_target_type_map($pdo, $available
 $bannerSubjectSearchTypes = sr_banner_subject_search_types($pdo, $availableTargets);
 $currentSubjectTargetType = (string) ($bannerSubjectTargetTypeMap[$selectedTargetOption] ?? '');
 $bannerSubjectSearchEnabled = $currentSubjectTargetType !== '';
-$bannerUseImage = $editing && sr_banner_clean_image_url((string) ($editBanner['image_url'] ?? '')) !== '';
 if (sr_banner_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
     $currentMatchType = 'all';
 }
@@ -46,6 +45,10 @@ if ($selectedTargetServiceKey === '') {
 }
 $subjectScopeVisible = $currentSubjectTargetType !== '' && !sr_banner_is_public_target_option($selectedTargetOption);
 $subjectRequired = $subjectScopeVisible && $currentMatchType === 'exact';
+$bannerContentType = $editing ? sr_banner_content_type((string) ($editBanner['content_type'] ?? '')) : 'text';
+if ($editing && (string) ($editBanner['content_type'] ?? '') === '' && sr_banner_clean_image_url((string) ($editBanner['image_url'] ?? '')) !== '') {
+    $bannerContentType = 'image';
+}
 $bannerSubjectLookupModalId = 'banner-subject-lookup-modal';
 $bannerSubjectLookupResultsId = 'banner-subject-lookup-results';
 $bannerHelpOpenLabel = sr_t('banner::help.open');
@@ -128,6 +131,11 @@ $bannerHelp = [
         'title' => sr_t('banner::help.image_upload.title'),
         'body' => $bannerHelpBodyHtml(['banner::help.image_upload.body.1', 'banner::help.image_upload.body.2']),
     ],
+    'html_code' => [
+        'id' => 'banner_admin_help_html_code',
+        'title' => sr_t('banner::help.html_code.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.html_code.body.1', 'banner::help.html_code.body.2', 'banner::help.html_code.body.3']),
+    ],
     'target_option' => [
         'id' => 'banner_admin_help_target_option',
         'title' => sr_t('banner::help.target_option.title'),
@@ -193,34 +201,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2><?php echo sr_e(sr_t('banner::ui.section.image_text')); ?></h2>
             <div class="form-row">
-                <label class="form-label" for="banner_admin_banners_use_image"><?php echo sr_e(sr_t('banner::ui.use_image')); ?></label>
+                <label class="form-label" for="banner_admin_banners_content_type"><?php echo sr_e(sr_t('banner::ui.content_type')); ?></label>
                 <div class="form-field">
-                    <label class="form-check form-label">
-                        <input id="banner_admin_banners_use_image" type="checkbox" name="use_image" value="1" class="form-switch form-choice-dark" data-admin-banner-use-image<?php echo $bannerUseImage ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('banner::ui.use_image.choice')); ?>
-                    </label>
-                    <p class="form-help"><?php echo sr_e(sr_t('banner::ui.use_image.help')); ?></p>
+                    <select id="banner_admin_banners_content_type" name="content_type" class="form-select" data-admin-banner-content-type>
+                        <?php foreach (sr_banner_content_type_values() as $contentTypeOption) { ?>
+                            <option value="<?php echo sr_e($contentTypeOption); ?>"<?php echo $bannerContentType === $contentTypeOption ? ' selected' : ''; ?>><?php echo sr_e(sr_banner_content_type_label($contentTypeOption)); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="form-help"><?php echo sr_e(sr_t('banner::ui.content_type.help')); ?></p>
                 </div>
             </div>
-            <div class="form-row" data-admin-banner-image-row<?php echo $bannerUseImage ? '' : ' hidden'; ?>>
+            <div class="form-row" data-admin-banner-image-row<?php echo $bannerContentType === 'image' ? '' : ' hidden'; ?>>
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_url', sr_t('banner::ui.url.http.https.url.264bd3d3'), $bannerHelp['image_url']['id'], $bannerHelpOpenLabel); ?>
                 <div class="form-field">
-                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255" data-admin-banner-image-input<?php echo $bannerUseImage ? '' : ' disabled'; ?>>
+                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255" data-admin-banner-image-input<?php echo $bannerContentType === 'image' ? '' : ' disabled'; ?>>
                     <p class="form-help"><?php echo sr_e(sr_t('banner::ui.url.help.e0a0162e')); ?></p>
                 </div>
             </div>
-            <div class="form-row" data-admin-banner-image-row<?php echo $bannerUseImage ? '' : ' hidden'; ?>>
+            <div class="form-row" data-admin-banner-image-row<?php echo $bannerContentType === 'image' ? '' : ' hidden'; ?>>
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_upload', sr_t('banner::ui.text.cead00a8'), $bannerHelp['image_upload']['id'], $bannerHelpOpenLabel); ?>
                 <div class="form-field">
-                    <input id="banner_admin_banners_image_upload" type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input" data-admin-banner-image-input<?php echo $bannerUseImage ? '' : ' disabled'; ?>>
+                    <input id="banner_admin_banners_image_upload" type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input" data-admin-banner-image-input<?php echo $bannerContentType === 'image' ? '' : ' disabled'; ?>>
                     <p class="form-help"><?php echo sr_e(sr_t('banner::ui.image_upload.help.inline')); ?> <?php echo sr_e(sr_banner_format_bytes(sr_banner_image_upload_max_bytes())); ?></p>
                 </div>
             </div>
-            <div class="form-row">
-                <label class="form-label" for="banner_admin_banners_body_text"><span data-admin-banner-text-label><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text') : sr_t('banner::ui.display_text')); ?></span> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+            <div class="form-row" data-admin-banner-text-row<?php echo $bannerContentType === 'html' ? ' hidden' : ''; ?>>
+                <label class="form-label" for="banner_admin_banners_body_text"><span data-admin-banner-text-label><?php echo sr_e($bannerContentType === 'image' ? sr_t('banner::ui.alt_text') : sr_t('banner::ui.display_text')); ?></span> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea" required data-validation-message="배너 문구를 입력해 주세요." data-admin-banner-text-input><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
-                    <p class="form-help" data-admin-banner-text-help><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text.help') : sr_t('banner::ui.display_text.help')); ?></p>
+                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea" data-validation-message="배너 문구를 입력해 주세요." data-admin-banner-text-input<?php echo $bannerContentType === 'html' ? ' disabled' : ' required'; ?>><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
+                    <p class="form-help" data-admin-banner-text-help><?php echo sr_e($bannerContentType === 'image' ? sr_t('banner::ui.alt_text.help') : sr_t('banner::ui.display_text.help')); ?></p>
+                </div>
+            </div>
+            <div class="form-row" data-admin-banner-html-row<?php echo $bannerContentType === 'html' ? '' : ' hidden'; ?>>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_html_code', sr_t('banner::ui.html_code'), $bannerHelp['html_code']['id'], $bannerHelpOpenLabel, true); ?>
+                <div class="form-field">
+                    <textarea id="banner_admin_banners_html_code" name="html_code" maxlength="10000" class="form-textarea admin-banner-code-textarea" spellcheck="false" data-validation-message="HTML 코드를 입력해 주세요." data-admin-banner-html-input<?php echo $bannerContentType === 'html' ? ' required' : ' disabled'; ?>><?php echo $editing ? sr_e((string) ($editBanner['html_code'] ?? '')) : ''; ?></textarea>
+                    <p class="form-help"><?php echo sr_e(sr_t('banner::ui.html_code.help')); ?></p>
                 </div>
             </div>
         </section>
@@ -489,7 +505,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
                             </td>
                             <?php $bannerRowSkinKey = sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]); ?>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($bannerSkinOptions[$bannerRowSkinKey]['label'] ?? $bannerRowSkinKey)); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($bannerSkinOptions[$bannerRowSkinKey]['label'] ?? $bannerRowSkinKey)); ?> / <?php echo sr_e(sr_banner_content_type_label((string) ($banner['content_type'] ?? 'text'))); ?></td>
                             <td class="admin-table-nowrap admin-banner-link-cell">
                                 <?php if ((string) ($banner['link_url'] ?? '') !== '') { ?>
                                     <a href="<?php echo sr_e((string) $banner['link_url']); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('링크 새 탭에서 열기'); ?>" title="<?php echo sr_e('링크 새 탭에서 열기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
@@ -677,11 +693,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var publicHelp = form.querySelector('[data-admin-subject-public-help]');
         var publicTarget = form.getAttribute('data-public-target-value') || '';
         var searchableTargetTypes = <?php echo sr_js_json_encode($bannerSubjectTargetTypeMap); ?>;
-        var useImage = form.querySelector('[data-admin-banner-use-image]');
+        var contentType = form.querySelector('[data-admin-banner-content-type]');
         var imageRows = form.querySelectorAll('[data-admin-banner-image-row]');
         var imageInputs = form.querySelectorAll('[data-admin-banner-image-input]');
+        var textRow = form.querySelector('[data-admin-banner-text-row]');
+        var htmlRow = form.querySelector('[data-admin-banner-html-row]');
         var bannerTextLabel = form.querySelector('[data-admin-banner-text-label]');
         var bannerTextHelp = form.querySelector('[data-admin-banner-text-help]');
+        var bannerTextInput = form.querySelector('[data-admin-banner-text-input]');
+        var bannerHtmlInput = form.querySelector('[data-admin-banner-html-input]');
         var imageTextLabels = <?php echo sr_js_json_encode([
             'alt' => sr_t('banner::ui.alt_text'),
             'display' => sr_t('banner::ui.display_text'),
@@ -773,25 +793,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         });
         syncSubjectRequired();
 
-        function syncImageMode() {
-            var enabled = !!(useImage && useImage.checked);
+        function syncContentType() {
+            var type = contentType ? contentType.value : 'text';
+            var imageEnabled = type === 'image';
+            var htmlEnabled = type === 'html';
             imageRows.forEach(function (row) {
-                row.hidden = !enabled;
+                row.hidden = !imageEnabled;
             });
             imageInputs.forEach(function (input) {
-                input.disabled = !enabled;
+                input.disabled = !imageEnabled;
             });
+            if (textRow) {
+                textRow.hidden = htmlEnabled;
+            }
+            if (htmlRow) {
+                htmlRow.hidden = !htmlEnabled;
+            }
+            if (bannerTextInput) {
+                bannerTextInput.disabled = htmlEnabled;
+                bannerTextInput.required = !htmlEnabled;
+            }
+            if (bannerHtmlInput) {
+                bannerHtmlInput.disabled = !htmlEnabled;
+                bannerHtmlInput.required = htmlEnabled;
+            }
             if (bannerTextLabel) {
-                bannerTextLabel.textContent = enabled ? imageTextLabels.alt : imageTextLabels.display;
+                bannerTextLabel.textContent = imageEnabled ? imageTextLabels.alt : imageTextLabels.display;
             }
             if (bannerTextHelp) {
-                bannerTextHelp.textContent = enabled ? imageTextHelp.alt : imageTextHelp.display;
+                bannerTextHelp.textContent = imageEnabled ? imageTextHelp.alt : imageTextHelp.display;
             }
         }
 
-        if (useImage) {
-            useImage.addEventListener('change', syncImageMode);
-            syncImageMode();
+        if (contentType) {
+            contentType.addEventListener('change', syncContentType);
+            syncContentType();
         }
     })();
     </script>

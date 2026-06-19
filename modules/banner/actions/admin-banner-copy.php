@@ -15,7 +15,7 @@ $returnTo = sr_post_string('return_to', 300);
 $returnTo = sr_admin_safe_get_url($returnTo, '/admin/banners');
 
 $stmt = $pdo->prepare(
-    'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count
+    'SELECT b.id, b.title, ' . sr_banner_content_select_sql($pdo, 'b') . ', b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count
      FROM sr_banners b
      WHERE b.id = :id
      LIMIT 1'
@@ -43,13 +43,15 @@ if ($errors === []) {
         $pdo->beginTransaction();
         $stmt = $pdo->prepare(
             'INSERT INTO sr_banners
-                (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
+                (title, content_type, body_text, html_code, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
              VALUES
-                (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :click_count, :created_at, :updated_at)'
+                (:title, :content_type, :body_text, :html_code, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :click_count, :created_at, :updated_at)'
         );
         $stmt->execute([
             'title' => $title,
+            'content_type' => sr_banner_content_type((string) ($sourceBanner['content_type'] ?? 'text')),
             'body_text' => (string) ($sourceBanner['body_text'] ?? ''),
+            'html_code' => (string) ($sourceBanner['html_code'] ?? ''),
             'link_url' => (string) ($sourceBanner['link_url'] ?? ''),
             'image_url' => (string) ($sourceBanner['image_url'] ?? ''),
             'status' => 'draft',

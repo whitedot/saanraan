@@ -15,6 +15,96 @@ function sr_banner_clean_text(string $value, int $maxLength): string
     return sr_clean_text($value, $maxLength);
 }
 
+function sr_banner_content_type_values(): array
+{
+    return ['text', 'image', 'html'];
+}
+
+function sr_banner_content_type(string $value): string
+{
+    $value = strtolower(trim($value));
+    return in_array($value, sr_banner_content_type_values(), true) ? $value : 'text';
+}
+
+function sr_banner_content_type_label(string $value): string
+{
+    return match (sr_banner_content_type($value)) {
+        'image' => '이미지',
+        'html' => 'HTML 코드',
+        default => '텍스트',
+    };
+}
+
+function sr_banner_clean_html_code(string $value, int $maxLength = 10000): string
+{
+    $value = sr_clean_text($value, $maxLength);
+    return str_replace("\0", '', $value);
+}
+
+function sr_banner_html_code_is_safe_to_store(string $value): bool
+{
+    return $value === '' || preg_match('/<\?(?:php|=)?/i', $value) !== 1;
+}
+
+function sr_banner_table_column_exists(PDO $pdo, string $columnName): bool
+{
+    if (preg_match('/\A[a-z0-9_]{1,64}\z/', $columnName) !== 1) {
+        return false;
+    }
+
+    static $cache = [];
+    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $cacheKey = $driver . '|sr_banners|' . $columnName;
+    if (array_key_exists($cacheKey, $cache)) {
+        return (bool) $cache[$cacheKey];
+    }
+
+    try {
+        if ($driver === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_banners)');
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                if ((string) ($row['name'] ?? '') === $columnName) {
+                    $cache[$cacheKey] = true;
+                    return true;
+                }
+            }
+            $cache[$cacheKey] = false;
+            return false;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS count_value
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => 'sr_banners',
+            'column_name' => $columnName,
+        ]);
+        $row = $stmt->fetch();
+        $cache[$cacheKey] = is_array($row) && (int) ($row['count_value'] ?? 0) > 0;
+        return (bool) $cache[$cacheKey];
+    } catch (Throwable $exception) {
+        $cache[$cacheKey] = false;
+        return false;
+    }
+}
+
+function sr_banner_content_select_sql(PDO $pdo, string $alias = 'b'): string
+{
+    $alias = preg_match('/\A[a-z][a-z0-9_]*\z/i', $alias) === 1 ? $alias : 'b';
+    $contentTypeSql = sr_banner_table_column_exists($pdo, 'content_type')
+        ? $alias . '.content_type'
+        : "CASE WHEN " . $alias . ".image_url <> '' THEN 'image' ELSE 'text' END";
+    $htmlCodeSql = sr_banner_table_column_exists($pdo, 'html_code')
+        ? $alias . '.html_code'
+        : "''";
+
+    return $contentTypeSql . ' AS content_type, ' . $alias . '.body_text, ' . $htmlCodeSql . ' AS html_code';
+}
+
 function sr_banner_clean_url(string $value): string
 {
     $value = trim($value);
@@ -1029,8 +1119,14 @@ function sr_banner_render_item(array $banner, ?string $skinKey = null): string
 function sr_banner_render_basic_item(array $banner): string
 {
     $content = '';
-    $imageUrl = sr_banner_clean_image_url((string) ($banner['image_url'] ?? ''));
-    if ($imageUrl !== '') {
+    $contentType = sr_banner_content_type((string) ($banner['content_type'] ?? ''));
+    $htmlCode = (string) ($banner['html_code'] ?? '');
+    if ($contentType === 'html' && $htmlCode !== '') {
+        return '<aside class="sr-banner sr-banner-code" data-banner-id="' . sr_e((string) $banner['id']) . '">' . $htmlCode . '</aside>';
+    }
+
+    $imageUrl = $contentType === 'image' ? sr_banner_clean_image_url((string) ($banner['image_url'] ?? '')) : '';
+    if ($contentType === 'image' && $imageUrl !== '') {
         $imageSrc = sr_is_http_url($imageUrl) ? $imageUrl : sr_url($imageUrl);
         $content .= '<img src="' . sr_e($imageSrc) . '" alt="' . sr_e((string) ($banner['body_text'] ?? '')) . '">';
     } else {
@@ -1055,7 +1151,7 @@ function sr_banner_render_public_banner(PDO $pdo, int $bannerId): string
     }
 
     $stmt = $pdo->prepare(
-        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.skin_key
+        "SELECT b.id, b.title, " . sr_banner_content_select_sql($pdo, 'b') . ", b.link_url, b.image_url, b.skin_key
          FROM sr_banners b
          WHERE b.id = :id
            AND b.status = 'enabled'
@@ -1088,7 +1184,7 @@ function sr_banner_render_slot(PDO $pdo, array $context): string
     $subjectId = (string) ($context['subject_id'] ?? '');
 
     $stmt = $pdo->prepare(
-        "SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.skin_key
+        "SELECT b.id, b.title, " . sr_banner_content_select_sql($pdo, 'b') . ", b.link_url, b.image_url, b.skin_key
          FROM sr_banners b
          INNER JOIN sr_banner_targets t ON t.banner_id = b.id
          WHERE b.status = 'enabled'

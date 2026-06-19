@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS sr_banners (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     title VARCHAR(120) NOT NULL,
+    content_type VARCHAR(20) NOT NULL DEFAULT 'text',
     body_text TEXT NULL,
+    html_code MEDIUMTEXT NULL,
     link_url VARCHAR(255) NOT NULL DEFAULT '',
     image_url VARCHAR(255) NOT NULL DEFAULT '',
     status VARCHAR(30) NOT NULL DEFAULT 'draft',

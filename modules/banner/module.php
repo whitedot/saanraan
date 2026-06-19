@@ -2,7 +2,7 @@
 
 return [
     'name' => '배너',
-    'version' => '2026.05.004',
+    'version' => '2026.06.001',
     'type' => 'module',
     'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
     'admin' => [
