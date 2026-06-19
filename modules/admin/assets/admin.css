@@ -244,7 +244,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .modal-body .form-row{align-items:start;column-gap:calc(var(--spacing) * 5);display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);margin-top:0;padding-block:calc(var(--spacing) * 3)}
 .modal-body .form-row:not([hidden]):not(.hidden):has(~ .form-row:not([hidden]):not(.hidden)){border-bottom:1px solid var(--color-default-200)}
 .modal-body .form-row>.form-label,
-.modal-body .form-row>.form-row-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
+.modal-body .form-row>.form-row-label{align-items:center;align-self:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;margin:0;min-height:0;padding:0}
 .modal-body .form-row>.form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
 .modal-body .form-row>.form-field label{font-weight:var(--font-weight-normal)}
 .modal-body .form-row>.form-field .form-switch{--form-choice-color:var(--color-choice-light-active,#718cb0)}
@@ -273,7 +273,6 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
     min-height:calc(var(--spacing) * 9.25);
 }
 .admin-form .form-row>.form-field:has(>.form-check.form-label)>.form-help{flex-basis:100%;margin-top:0}
-.admin-form .form-row>.form-field>.form-check.form-label:first-child:last-of-type{min-height:calc(var(--spacing) * 9.25)}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options){
     align-items:center;
     display:flex;
@@ -429,7 +428,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-remove-button{justify-self:center}
 .admin-permission-empty{margin:0}
 .admin-form .form-row-label,
-.admin-form .form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
+.admin-form .form-row>.form-label{align-items:center;align-self:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;margin:0;min-height:0;padding:0}
 .admin-form .form-field{grid-column:auto;min-width:0}
 .admin-form .form-field label{font-weight:var(--font-weight-normal);margin:0}
 .admin-form-static{margin:0}
@@ -802,6 +801,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
     .admin-form .form-row-label,
     .admin-form .form-row>.form-label{
+        align-self:start;
         min-height:0;
         padding-top:0;
     }
@@ -862,6 +862,12 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .modal-body .form-row{
         gap:calc(var(--spacing) * 2);
         grid-template-columns:1fr;
+    }
+
+    .modal-body .form-row>.form-label,
+    .modal-body .form-row>.form-row-label{
+        align-self:start;
+        min-height:0;
     }
 
     .admin-lookup-control,
