@@ -121,6 +121,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
 
     $latestPosts = [];
     $popularPosts = [];
+    $popularPostReactionCounts = [];
     $latestComments = [];
     $recentSeries = [];
     $homeSidebarMenuHtml = '';
@@ -173,6 +174,10 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         return $viewCompare !== 0 ? $viewCompare : ((int) ($b['id'] ?? 0) <=> (int) ($a['id'] ?? 0));
     });
     $popularPosts = array_slice($popularPosts, 0, 5);
+    if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+        require_once SR_ROOT . '/modules/reaction/helpers.php';
+        $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
+    }
     $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $boards)));
     if ($readableBoardIds !== []) {
         $boardPlaceholders = [];
@@ -273,6 +278,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         'boards' => $boards,
         'latestPosts' => $latestPosts,
         'popularPosts' => $popularPosts,
+        'popularPostReactionCounts' => $popularPostReactionCounts,
         'latestComments' => $latestComments,
         'recentSeries' => $recentSeries,
         'communitySeriesSupported' => $communitySeriesSupported,

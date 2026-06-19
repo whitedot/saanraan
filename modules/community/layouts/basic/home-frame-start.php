@@ -1,11 +1,12 @@
 <?php
 $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communityLayoutSettings) ? $communityLayoutSettings : (isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo));
 $communityFrameAccount = isset($account) && is_array($account) ? $account : null;
-$communityFrameChromeReady = isset($homeSidebarMenuHtml, $popularPosts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
+$communityFrameChromeReady = isset($homeSidebarMenuHtml, $popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
 if (!$communityFrameChromeReady) {
     $communityFrameChromeData = sr_community_home_chrome_data($pdo, $communityFrameAccount, $communityLayoutSettings, $site ?? null);
     $homeSidebarMenuHtml = (string) ($communityFrameChromeData['homeSidebarMenuHtml'] ?? '');
     $popularPosts = is_array($communityFrameChromeData['popularPosts'] ?? null) ? $communityFrameChromeData['popularPosts'] : [];
+    $popularPostReactionCounts = is_array($communityFrameChromeData['popularPostReactionCounts'] ?? null) ? $communityFrameChromeData['popularPostReactionCounts'] : [];
     $latestComments = is_array($communityFrameChromeData['latestComments'] ?? null) ? $communityFrameChromeData['latestComments'] : [];
     $recentSeries = is_array($communityFrameChromeData['recentSeries'] ?? null) ? $communityFrameChromeData['recentSeries'] : [];
     $communitySeriesSupported = !empty($communityFrameChromeData['communitySeriesSupported']);
@@ -14,6 +15,7 @@ if (!$communityFrameChromeReady) {
         $latestPosts = is_array($communityFrameChromeData['latestPosts'] ?? null) ? $communityFrameChromeData['latestPosts'] : [];
     }
 }
+$popularPostReactionCounts = isset($popularPostReactionCounts) && is_array($popularPostReactionCounts) ? $popularPostReactionCounts : [];
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
 $communityMainLabel = isset($communityMainLabel) && is_string($communityMainLabel) && $communityMainLabel !== '' ? $communityMainLabel : '커뮤니티 본문';

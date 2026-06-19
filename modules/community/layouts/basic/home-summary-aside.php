@@ -10,6 +10,7 @@
                         <?php
                         $popularPostImageUrl = (string) ($post['home_image_url'] ?? '');
                         $popularPostAuthorLabel = sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo);
+                        $popularPostReactionCount = (int) ($popularPostReactionCounts[(int) ($post['id'] ?? 0)] ?? 0);
                         ?>
                         <li class="community-home-summary-item">
                             <?php if ($popularPostImageUrl !== '') { ?>
@@ -26,6 +27,10 @@
                                     <span aria-hidden="true">&middot;</span>
                                 <?php } ?>
                                 <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
+                                <?php if ($popularPostReactionCount > 0) { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span><?php echo sr_e('반응 ' . number_format($popularPostReactionCount)); ?></span>
+                                <?php } ?>
                             </span>
                         </li>
                     <?php } ?>
