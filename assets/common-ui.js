@@ -611,7 +611,7 @@
   }
 
   function itemLink(item) {
-    return item ? item.querySelector(':scope > a') : null;
+    return item ? item.querySelector(':scope > a, :scope > button.sr-site-menu-link') : null;
   }
 
   function childMenu(item) {
@@ -724,6 +724,16 @@
     });
 
     link.addEventListener('click', function (event) {
+      if (link.tagName === 'BUTTON') {
+        event.preventDefault();
+        if (item.classList.contains(OPEN_CLASS)) {
+          closeItem(item);
+        } else {
+          openItem(nav, item);
+        }
+        return;
+      }
+
       if ((isMobileMenu() || isCoarsePointer()) && !item.classList.contains(OPEN_CLASS)) {
         event.preventDefault();
         openItem(nav, item);

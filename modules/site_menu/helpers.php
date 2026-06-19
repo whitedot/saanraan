@@ -654,7 +654,14 @@ function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $pare
                 1
             ) ?? $childrenHtml;
         }
-        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . $currentAttribute . $submenuAttributes . '>' . $labelHtml . '</a>';
+        $itemUrl = trim((string) ($item['url'] ?? ''));
+        if ($itemUrl !== '') {
+            $html .= '<a href="' . sr_e(sr_site_menu_item_href($itemUrl)) . '"' . $targetAttribute . $currentAttribute . $submenuAttributes . '>' . $labelHtml . '</a>';
+        } elseif ($childrenHtml !== '') {
+            $html .= '<button type="button" class="sr-site-menu-link"' . $submenuAttributes . '>' . $labelHtml . '</button>';
+        } else {
+            $html .= '<span class="sr-site-menu-link">' . $labelHtml . '</span>';
+        }
         $html .= $childrenHtml;
         $html .= '</li>';
     }

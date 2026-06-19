@@ -222,7 +222,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     $itemMenuId = $editingItem ? (int) ($item['menu_id'] ?? $menuId) : $menuId;
     $itemParentId = $editingItem ? (int) ($item['parent_id'] ?? 0) : $parentId;
     $label = $editingItem ? (string) ($item['label'] ?? '') : '';
-    $url = $editingItem ? (string) ($item['url'] ?? '/') : '/';
+    $url = $editingItem ? (string) ($item['url'] ?? '') : '';
     $iconName = $editingItem ? (string) ($item['icon_name'] ?? '') : '';
     $targetValue = $editingItem ? (string) ($item['target'] ?? 'self') : 'self';
     $statusValue = $editingItem ? (string) ($item['status'] ?? 'enabled') : 'enabled';
@@ -280,9 +280,10 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL</label>
                         <div class="form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-validation-message="URL을 입력해 주세요." data-site-menu-url-input>
+                            <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" data-validation-message="URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다." data-site-menu-url-input>
+                            <p class="form-help">비워 두면 공개 메뉴에서 링크를 만들지 않고 텍스트 항목으로 표시합니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
@@ -432,7 +433,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                         </span>
                                     </div>
                                 </td>
-                                <td class="admin-table-break"><?php echo sr_e((string) $row['url']); ?></td>
+                                <td class="admin-table-break"><?php echo sr_e(trim((string) ($row['url'] ?? '')) !== '' ? (string) $row['url'] : '링크 없음'); ?></td>
                                 <td><span class="admin-status <?php echo (string) $row['status'] === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
                                 <td class="admin-menu-sort-order-cell">
                                     <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-order-form" data-admin-sort-order class="form-input admin-menu-sort-order-input">

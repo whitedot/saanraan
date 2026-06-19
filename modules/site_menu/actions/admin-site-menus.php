@@ -286,7 +286,8 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'save_item') {
         $label = sr_site_menu_clean_label(sr_post_string('label', 120));
-        $url = sr_site_menu_clean_url(sr_post_string('url', 255));
+        $postedUrl = trim(sr_post_string('url', 255));
+        $url = sr_site_menu_clean_url($postedUrl);
         $iconName = $siteMenuIconNameColumnExists ? sr_site_menu_clean_icon_name($pdo, sr_post_string('icon_name', 80)) : '';
         $target = sr_post_string('target', 20);
         $status = sr_post_string('status', 30);
@@ -299,7 +300,7 @@ if (sr_request_method() === 'POST') {
         if ($label === '') {
             $errors[] = sr_t('site_menu::action.admin.item_name_required');
         }
-        if ($url === '') {
+        if ($postedUrl !== '' && $url === '') {
             $errors[] = sr_t('site_menu::action.admin.item_url_invalid');
         }
         if (!in_array($target, $allowedTargets, true)) {

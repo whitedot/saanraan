@@ -100,7 +100,10 @@ $pdo->exec(
         (6, 1, NULL, '비활성', '/disabled', 'self', 'disabled', 30, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (7, 2, NULL, '숨김 메뉴', '/hidden', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (8, 1, NULL, '퀴즈', '/quiz', 'self', 'enabled', 40, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-        (9, 1, NULL, '퀴즈 확장', '/quiz-extra', 'self', 'enabled', 50, '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
+        (9, 1, NULL, '퀴즈 확장', '/quiz-extra', 'self', 'enabled', 50, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (10, 1, NULL, '링크 없는 묶음', '', 'self', 'enabled', 60, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (11, 1, 10, '묶음 하위', '/group-child', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (12, 1, NULL, '링크 없는 항목', '', 'self', 'enabled', 70, '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
 );
 $pdo->exec("CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, board_key TEXT NOT NULL)");
 $pdo->exec("CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL)");
@@ -121,6 +124,9 @@ sr_site_menu_check_assert(str_contains($html, 'aria-haspopup="true"'), 'Site men
 sr_site_menu_check_assert(str_contains($html, 'aria-expanded="false"'), 'Site menu render runtime fixture must expose collapsed child menu state.');
 sr_site_menu_check_assert(str_contains($html, 'aria-controls="sr-site-menu-submenu-2"'), 'Site menu render runtime fixture must connect child menu controls.');
 sr_site_menu_check_assert(str_contains($html, 'id="sr-site-menu-submenu-2"'), 'Site menu render runtime fixture must render stable child menu id.');
+sr_site_menu_check_assert(str_contains($html, '<button type="button" class="sr-site-menu-link"'), 'Site menu render runtime fixture must render URL-less parents without anchor links.');
+sr_site_menu_check_assert(str_contains($html, '<span class="sr-site-menu-link"><span class="sr-site-menu-link-label">링크 없는 항목</span></span>'), 'Site menu render runtime fixture must render URL-less leaves without anchor links.');
+sr_site_menu_check_assert(!str_contains($html, '<a href="#">'), 'Site menu render runtime fixture must not create placeholder hrefs for URL-less items.');
 sr_site_menu_check_assert(substr_count($html, 'aria-current="page"') >= 2, 'Site menu render runtime fixture must mark current post and matching community board.');
 sr_site_menu_check_assert(str_contains($html, 'target="_blank" rel="noopener noreferrer"'), 'Site menu render runtime fixture must protect blank external links.');
 sr_site_menu_check_assert(!str_contains($html, '너무 깊은 항목'), 'Site menu render runtime fixture must stop at depth 3.');
@@ -144,6 +150,7 @@ sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login?next=%2Fc
 $_SERVER['REQUEST_URI'] = '/login';
 sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login', 'Site menu login link must not include next on login page.');
 sr_site_menu_check_assert(sr_site_menu_clean_url('javascript:alert(1)') === '', 'Site menu URL cleaner must reject unsafe pseudo URLs.');
+sr_site_menu_check_assert(sr_site_menu_clean_url('') === '', 'Site menu URL cleaner must allow empty optional URLs.');
 sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#', 'Site menu href helper must fail closed for unsafe URLs.');
 
 $publicCss = (string) file_get_contents(SR_ROOT . '/modules/site_menu/assets/module.css');
