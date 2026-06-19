@@ -259,7 +259,7 @@ if (
                             <span class="quiz-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
                         <?php } ?>
                     </summary>
-                    <div class="quiz-layout-notification-dropdown">
+                    <div class="quiz-layout-notification-dropdown quiz-layout-notification-box">
                         <div class="quiz-layout-notification-header">
                             <strong><?php echo sr_e('알림'); ?></strong>
                             <?php if ($layoutNotificationHasAccount) { ?>

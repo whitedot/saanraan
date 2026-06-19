@@ -545,8 +545,9 @@
 
 .community-layout-notification-badge {
     align-items: center;
+    animation: community-layout-notification-heartbeat 1.8s ease-in-out infinite;
     background: var(--color-danger, #ff2d2d);
-    border: 2px solid var(--color-card, #fff);
+    border: 0;
     border-radius: 999px;
     color: #fff;
     display: inline-flex;
@@ -562,11 +563,37 @@
     top: -4px;
 }
 
-.community-layout-notification-dropdown {
-    border: 1px solid var(--color-default-300, #e8edf3);
-    border-radius: 8px;
+@keyframes community-layout-notification-heartbeat {
+    0%,
+    42%,
+    70%,
+    100% {
+        transform: scale(1);
+    }
+
+    14%,
+    56% {
+        transform: scale(1.18);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .community-layout-notification-badge {
+        animation: none;
+    }
+}
+
+.community-layout-notification-box {
+    border: 1px solid color-mix(in oklab, var(--color-default-300, #e8edf3) 72%, transparent);
+    border-radius: 1.125rem;
+    background: var(--sr-surface, var(--color-card, #fff));
+    box-shadow: 0 .75rem 1.25rem rgba(15, 23, 42, .08), 0 .125rem .375rem rgba(15, 23, 42, .06);
+    box-sizing: border-box;
+    color: var(--sr-text, var(--color-body-color, #20242a));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     max-height: min(420px, calc(100vh - 90px));
-    overflow-y: auto;
+    overflow: hidden;
     position: absolute;
     right: 0;
     top: calc(100% + 12px);
@@ -576,26 +603,26 @@
 
 .community-layout-notification-header {
     align-items: center;
-    border-bottom: 1px solid var(--color-default-300, #e8edf3);
+    border-bottom: 1px solid var(--sr-border-soft, var(--color-default-200, #e8edf3));
     display: flex;
     justify-content: space-between;
     padding: 13px 14px;
 }
 
 .community-layout-notification-header strong {
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     font-size: .92rem;
 }
 
 .community-layout-notification-header a {
-    color: var(--text-muted, var(--color-default-600, #47505c));
+    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600, #47505c)));
     font-size: .76rem;
     font-weight: 700;
     text-decoration: none;
 }
 
 .community-layout-notification-empty {
-    color: var(--text-muted, var(--color-default-600, #47505c));
+    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600, #47505c)));
     font-size: .86rem;
     margin: 0;
     padding: 22px 14px;
@@ -604,10 +631,12 @@
 
 .community-layout-notification-list {
     display: grid;
+    max-height: min(348px, calc(100vh - 150px));
+    overflow-y: auto;
 }
 
 .community-layout-notification-item {
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     display: grid;
     gap: 4px;
     padding: 12px 14px;
@@ -616,7 +645,7 @@
 }
 
 .community-layout-notification-item + .community-layout-notification-item {
-    border-top: 1px solid var(--color-default-300, #e8edf3);
+    border-top: 1px solid var(--sr-border-soft, var(--color-default-200, #e8edf3));
 }
 
 .community-layout-notification-item.is-unread::before {
@@ -645,13 +674,13 @@
 }
 
 .community-layout-notification-text {
-    color: var(--text-muted, var(--color-default-600, #47505c));
+    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600, #47505c)));
     font-size: .8rem;
     line-height: 1.4;
 }
 
 .community-layout-notification-date {
-    color: var(--color-default-500, #5d6b7c);
+    color: var(--sr-muted, var(--color-default-500, #5d6b7c));
     font-size: .72rem;
     font-weight: 600;
 }
@@ -872,6 +901,7 @@
     }
 }
 
+.community-layout-notification-menu[open],
 .community-layout-member-menu[open] {
     z-index: 3000;
 }
@@ -883,6 +913,8 @@
     z-index: 30;
 }
 
+.community-layout-notification-menu[open],
+.community-layout-notification-menu[open] .community-layout-notification-dropdown,
 .community-layout-member-menu[open],
 .community-layout-member-menu[open] .community-layout-member-dropdown {
     z-index: 3000;

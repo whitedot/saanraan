@@ -264,7 +264,7 @@ if (
                             <span class="public-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
                         <?php } ?>
                     </summary>
-                    <div class="public-layout-notification-dropdown">
+                    <div class="public-layout-notification-dropdown public-layout-notification-box">
                         <div class="public-layout-notification-header">
                             <strong><?php echo sr_e('알림'); ?></strong>
                             <?php if ($layoutNotificationHasAccount) { ?>

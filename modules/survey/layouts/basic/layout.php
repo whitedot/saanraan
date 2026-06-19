@@ -256,7 +256,7 @@ if (
                             <span class="survey-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
                         <?php } ?>
                     </summary>
-                    <div class="survey-layout-notification-dropdown">
+                    <div class="survey-layout-notification-dropdown survey-layout-notification-box">
                         <div class="survey-layout-notification-header">
                             <strong><?php echo sr_e('알림'); ?></strong>
                             <?php if ($layoutNotificationHasAccount) { ?>
