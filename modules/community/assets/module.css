@@ -85,7 +85,7 @@
 }
 
 .community-home-sidebar,
-.community-home-aside > .card {
+.community-home-aside-section {
     min-width: 0;
     width: 100%;
 }
@@ -437,12 +437,26 @@
 }
 
 .community-home-aside {
+    --community-home-aside-divider: color-mix(in oklab, var(--sr-border, var(--color-default-300, #e5e7eb)) 72%, var(--sr-text, var(--text-strong, #242424)));
     display: grid;
-    gap: var(--community-home-section-gap);
     min-width: 0;
 }
 
-.community-home-aside .card-body {
+.community-home-aside-section {
+    border-top: 1px solid var(--community-home-aside-divider);
+    padding-top: var(--community-home-section-gap);
+}
+
+.community-home-aside-section:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.community-home-aside-section + .community-home-aside-section {
+    margin-top: var(--community-home-section-gap);
+}
+
+.community-home-aside-body {
     display: grid;
     gap: 12px;
 }
@@ -454,6 +468,7 @@
 }
 
 .community-home-aside-title {
+    color: var(--sr-text, var(--text-strong, #242424));
     font-weight: 800;
 }
 
@@ -577,8 +592,20 @@
     }
 
     .community-home-aside {
+        column-gap: var(--community-home-section-gap);
         grid-column: 1 / -1;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .community-home-aside-section {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .community-home-aside-section + .community-home-aside-section {
+        border-left: 1px solid var(--community-home-aside-divider);
+        margin-top: 0;
+        padding-left: var(--community-home-section-gap);
     }
 }
 
@@ -594,6 +621,22 @@
 
     .community-home-aside {
         grid-column: auto;
+    }
+
+    .community-home-aside-section {
+        border-top: 1px solid var(--community-home-aside-divider);
+        padding-top: var(--community-home-section-gap);
+    }
+
+    .community-home-aside-section:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .community-home-aside-section + .community-home-aside-section {
+        border-left: 0;
+        margin-top: var(--community-home-section-gap);
+        padding-left: 0;
     }
 }
 

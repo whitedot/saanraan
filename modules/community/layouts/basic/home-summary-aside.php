@@ -1,7 +1,7 @@
 <aside class="community-home-aside" aria-label="커뮤니티 요약">
-    <section class="card" aria-labelledby="community_home_popular_posts_title">
-        <div class="card-body">
-            <h2 id="community_home_popular_posts_title" class="card-title community-home-aside-title">인기글</h2>
+    <section class="community-home-aside-section" aria-labelledby="community_home_popular_posts_title">
+        <div class="community-home-aside-body">
+            <h2 id="community_home_popular_posts_title" class="community-home-aside-title">인기글</h2>
             <?php if (empty($popularPosts)) { ?>
                 <p>인기글이 없습니다.</p>
             <?php } else { ?>
@@ -34,9 +34,9 @@
         </div>
     </section>
 
-    <section class="card" aria-labelledby="community_home_latest_comments_title">
-        <div class="card-body">
-            <h2 id="community_home_latest_comments_title" class="card-title community-home-aside-title">최신댓글</h2>
+    <section class="community-home-aside-section" aria-labelledby="community_home_latest_comments_title">
+        <div class="community-home-aside-body">
+            <h2 id="community_home_latest_comments_title" class="community-home-aside-title">최신댓글</h2>
             <?php if (empty($latestComments)) { ?>
                 <p>최신댓글이 없습니다.</p>
             <?php } else { ?>
@@ -77,9 +77,9 @@
     </section>
 
     <?php if (!empty($communitySeriesSupported)) { ?>
-        <section class="card" aria-labelledby="community_home_series_title">
-            <div class="card-body">
-                <h2 id="community_home_series_title" class="card-title community-home-aside-title">시리즈</h2>
+        <section class="community-home-aside-section" aria-labelledby="community_home_series_title">
+            <div class="community-home-aside-body">
+                <h2 id="community_home_series_title" class="community-home-aside-title">시리즈</h2>
                 <?php if (empty($recentSeries)) { ?>
                     <p>시리즈가 없습니다.</p>
                 <?php } else { ?>
