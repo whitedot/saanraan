@@ -397,10 +397,10 @@
 
 .survey-theme-toggle {
     align-items: center;
-    background: #ffffff;
-    border: 1px solid var(--color-default-300, #e8edf3);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 999px;
-    color: #47505c;
+    color: var(--sr-muted, var(--color-default-600, #47505c));
     cursor: pointer;
     display: inline-flex;
     font-size: .6875rem;
@@ -413,17 +413,28 @@
 .survey-theme-toggle:hover,
 .survey-theme-toggle:focus,
 .survey-theme-toggle:active {
-    background: #ffffff;
-    color: #47505c;
+    background: var(--sr-surface-muted, var(--color-default-100, #f6f7fb));
+    border-color: transparent;
+    color: var(--sr-text, var(--color-default-900, #242424));
 }
 
 [data-color-scheme="dark"] .survey-theme-toggle,
 [data-color-scheme="dark"] .survey-theme-toggle:hover,
 [data-color-scheme="dark"] .survey-theme-toggle:focus,
 [data-color-scheme="dark"] .survey-theme-toggle:active {
-    background: var(--color-card, #1e1f27);
-    border-color: var(--color-default-300, #293036);
-    color: var(--color-default-900, #f4f4f5);
+    border-color: transparent;
+    color: var(--sr-text, var(--color-default-900, #f4f4f5));
+}
+
+[data-color-scheme="dark"] .survey-theme-toggle {
+    background: transparent;
+    color: var(--sr-muted, var(--color-default-600, #a1a9b1));
+}
+
+[data-color-scheme="dark"] .survey-theme-toggle:hover,
+[data-color-scheme="dark"] .survey-theme-toggle:focus,
+[data-color-scheme="dark"] .survey-theme-toggle:active {
+    background: var(--sr-surface-muted, var(--color-default-100, #272832));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -431,9 +442,19 @@
     [data-color-scheme="system"] .survey-theme-toggle:hover,
     [data-color-scheme="system"] .survey-theme-toggle:focus,
     [data-color-scheme="system"] .survey-theme-toggle:active {
-        background: var(--color-card, #1e1f27);
-        border-color: var(--color-default-300, #293036);
-        color: var(--color-default-900, #f4f4f5);
+        border-color: transparent;
+        color: var(--sr-text, var(--color-default-900, #f4f4f5));
+    }
+
+    [data-color-scheme="system"] .survey-theme-toggle {
+        background: transparent;
+        color: var(--sr-muted, var(--color-default-600, #a1a9b1));
+    }
+
+    [data-color-scheme="system"] .survey-theme-toggle:hover,
+    [data-color-scheme="system"] .survey-theme-toggle:focus,
+    [data-color-scheme="system"] .survey-theme-toggle:active {
+        background: var(--sr-surface-muted, var(--color-default-100, #272832));
     }
 }
 
