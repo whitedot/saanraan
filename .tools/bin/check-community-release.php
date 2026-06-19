@@ -494,6 +494,8 @@ sr_community_release_require_list_values($pointKeys, [
     'community.post.form',
 ], 'Community extension-points.php');
 sr_community_release_file_contains('modules/community/extension-points.php', [
+    "'point_key' => 'community.home'",
+    "'slot_key' => 'after_secondary_navigation'",
     "'point_key' => 'community.post.view'",
     "'slot_key' => 'before_content'",
     "'slot_key' => 'after_content'",

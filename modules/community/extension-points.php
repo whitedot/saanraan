@@ -8,13 +8,8 @@ return [
         'output' => true,
         'slots' => [
             [
-                'slot_key' => 'before_content',
-                'label' => sr_t('community::contract.slot.before_content'),
-                'kind' => 'content',
-            ],
-            [
-                'slot_key' => 'after_content',
-                'label' => sr_t('community::contract.slot.after_content'),
+                'slot_key' => 'after_secondary_navigation',
+                'label' => sr_t('community::contract.slot.after_secondary_navigation'),
                 'kind' => 'content',
             ],
         ],

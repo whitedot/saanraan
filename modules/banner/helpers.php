@@ -296,6 +296,7 @@ function sr_banner_target_admin_label(array $target): string
         'after_comments' => '댓글 아래',
         'before_form' => '폼 위',
         'after_form' => '폼 아래',
+        'after_secondary_navigation' => '보조 메뉴 아래',
     ];
 
     $pointLabel = (string) ($pointLabels[$pointKey] ?? sr_banner_clean_single_line((string) ($target['point_label'] ?? $pointKey), 80));

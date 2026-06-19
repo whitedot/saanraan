@@ -94,6 +94,10 @@
     padding: 0;
 }
 
+.community-home-secondary-banner-slot .sr-banner {
+    padding-inline: 0;
+}
+
 [data-community-home-accordion] .community-home-accordion-menu {
     margin: 0;
     min-width: 0;

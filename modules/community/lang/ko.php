@@ -246,6 +246,7 @@ return [
     'contract.slot.after_content' => '본문 아래',
     'contract.slot.after_form' => '폼 아래',
     'contract.slot.after_list' => '목록 아래',
+    'contract.slot.after_secondary_navigation' => '보조 메뉴 아래',
     'contract.slot.before_comments' => '댓글 위',
     'contract.slot.before_content' => '본문 위',
     'contract.slot.before_form' => '폼 위',

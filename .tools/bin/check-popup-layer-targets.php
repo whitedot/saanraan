@@ -75,7 +75,7 @@ $expectedTargets = [
     'content|content.view|before_content',
     'member|member.login|before_form',
     'member|member.register|after_form',
-    'community|community.home|before_content',
+    'community|community.home|after_secondary_navigation',
     'community|community.post.view|after_comments',
     'community|community.post.form|before_form',
     'community|community.post.form|after_form',
@@ -84,6 +84,7 @@ $expectedTargets = [
 $expectedBannerTargets = [
     'core|site.home|before_content',
     'content|content.view|before_content',
+    'community|community.home|after_secondary_navigation',
     'community|community.post.view|after_comments',
 ];
 

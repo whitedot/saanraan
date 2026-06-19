@@ -25,6 +25,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                 <?php } else { ?>
                     <p>보조 메뉴가 없습니다.</p>
                 <?php } ?>
+                <div class="community-home-secondary-banner-slot">
+                    <?php echo sr_render_output_slot($pdo, [
+                        'module_key' => 'community',
+                        'point_key' => 'community.home',
+                        'slot_key' => 'after_secondary_navigation',
+                    ]); ?>
+                </div>
             </aside>
 
             <section class="community-home-main" aria-label="새 글">
