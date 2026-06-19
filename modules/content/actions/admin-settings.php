@@ -52,6 +52,7 @@ if (sr_request_method() === 'POST') {
         'layout_tertiary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
         'layout_quaternary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60)),
         'layout_quinary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60)),
+        'series_enabled' => sr_post_string('series_enabled', 1) === '1',
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
         'member_submission_default_review_required' => sr_post_string('member_submission_default_review_required', 1) === '1',
         'member_submission_author_reward_enabled' => $postedAuthorRewardEnabled,

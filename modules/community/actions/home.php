@@ -106,7 +106,8 @@ if ($readableBoardIds !== []) {
         $latestComments = $stmt->fetchAll();
     }
 }
-if (sr_community_series_supported($pdo) && $readableBoardIds !== []) {
+$seriesEnabled = !empty($settings['series_enabled']);
+if ($seriesEnabled && sr_community_series_supported($pdo) && $readableBoardIds !== []) {
     $seriesPlaceholders = [];
     $seriesParams = [];
     foreach ($readableBoardIds as $index => $boardId) {

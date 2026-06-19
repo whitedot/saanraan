@@ -122,6 +122,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         <?php } ?>
+        <div class="form-row">
+            <span class="form-label">시리즈</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '콘텐츠 시리즈 사용'); ?>
+                <p class="form-help">콘텐츠 시리즈 운영 여부를 저장합니다. 공개 화면별 노출은 각 화면 구현에서 이 값을 참고할 수 있습니다.</p>
+            </div>
+        </div>
     </section>
 
     <section class="card">

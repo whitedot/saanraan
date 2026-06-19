@@ -42,6 +42,7 @@ function sr_community_default_settings(): array
         'layout_tertiary_menu_key' => is_string($settings['layout_tertiary_menu_key'] ?? null) ? (string) $settings['layout_tertiary_menu_key'] : '',
         'layout_quaternary_menu_key' => is_string($settings['layout_quaternary_menu_key'] ?? null) ? (string) $settings['layout_quaternary_menu_key'] : '',
         'layout_quinary_menu_key' => is_string($settings['layout_quinary_menu_key'] ?? null) ? (string) $settings['layout_quinary_menu_key'] : '',
+        'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
@@ -178,6 +179,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     foreach (sr_community_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
+    $settings['series_enabled'] = sr_community_bool_setting($settings['series_enabled'] ?? true);
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);

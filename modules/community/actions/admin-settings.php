@@ -98,6 +98,7 @@ if (sr_request_method() === 'POST') {
         $layoutTertiaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60));
         $layoutQuaternaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60));
         $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
+        $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
             $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST[$assetPrefix . '_policy_set_ids'] ?? []);
@@ -277,6 +278,7 @@ if (sr_request_method() === 'POST') {
                 ['layout_tertiary_menu_key', $layoutTertiaryMenuKey, 'string'],
                 ['layout_quaternary_menu_key', $layoutQuaternaryMenuKey, 'string'],
                 ['layout_quinary_menu_key', $layoutQuinaryMenuKey, 'string'],
+                ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
@@ -396,6 +398,7 @@ if (sr_request_method() === 'POST') {
                         'layout_tertiary_menu_key' => $layoutTertiaryMenuKey,
                         'layout_quaternary_menu_key' => $layoutQuaternaryMenuKey,
                         'layout_quinary_menu_key' => $layoutQuinaryMenuKey,
+                        'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,
                         'post_toolbar_preset' => $postToolbarPreset,
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,

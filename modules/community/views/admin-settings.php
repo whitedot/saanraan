@@ -472,6 +472,13 @@ $communitySettingsSectionNavItems = [
             </div>
         <?php } ?>
         <div class="form-row">
+            <span class="form-label">시리즈</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '커뮤니티 홈에 시리즈 섹션 표시'); ?>
+                <p class="form-help">꺼져 있으면 커뮤니티 메인 화면에서 시리즈 섹션과 홈용 시리즈 조회를 생략합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
