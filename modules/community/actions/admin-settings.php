@@ -161,7 +161,7 @@ if (sr_request_method() === 'POST') {
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
         }
         foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey, $layoutQuaternaryMenuKey, $layoutQuinaryMenuKey] as $layoutMenuKey) {
-            if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey])) {
+            if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey]) && !sr_community_layout_menu_key_is_builtin($layoutMenuKey)) {
                 $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
                 break;
             }

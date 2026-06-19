@@ -6,7 +6,7 @@
 
 관리자 폼 행의 라벨과 첫 컨트롤은 기본적으로 같은 높이 중심선에 맞춘다. 스위치, 셀렉트, 정적 값, 회원 그룹 배지 목록, 자산/과금 설정처럼 컨트롤 높이가 다른 항목도 첫 줄 기준이 흔들리지 않아야 하며, 긴 설명이나 다중 행 보조 정보는 첫 컨트롤 아래 보조 영역으로 흐르게 둔다.
 
-공개 레이아웃의 사이트 메뉴 연결은 고정 위치명이 아니라 슬롯명으로 표시한다. 예를 들어 `layout_primary_menu_key`와 `site_menus.primary`는 호환을 위해 유지하되 label은 `주 메뉴 슬롯`으로 두고, `layout_secondary_menu_key`, `layout_tertiary_menu_key`, `layout_quaternary_menu_key`, `layout_quinary_menu_key`는 `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`, `추가 메뉴 슬롯 2`, `추가 메뉴 슬롯 3`처럼 표시한다. 실제 출력 위치가 레이아웃마다 달라질 수 있음을 도움말에 적고, 사용 안 함 선택 시 모듈 fallback이 표시되는 화면은 fallback 기준도 같은 도움말에 적는다.
+공개 레이아웃의 메뉴 연결은 고정 위치명이 아니라 슬롯명으로 표시한다. 예를 들어 `layout_primary_menu_key`와 `site_menus.primary`는 호환을 위해 유지하되 label은 `주 메뉴 슬롯`으로 두고, `layout_secondary_menu_key`, `layout_tertiary_menu_key`, `layout_quaternary_menu_key`, `layout_quinary_menu_key`는 `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`, `추가 메뉴 슬롯 2`, `추가 메뉴 슬롯 3`처럼 표시한다. 선택지는 `사용 안 함`, 모듈이 제공하는 내장 메뉴, 사이트 메뉴 순서로 둔다. 콘텐츠는 내장 `콘텐츠 그룹`, 커뮤니티는 내장 `게시판 그룹`을 제공한다. 실제 출력 위치가 레이아웃마다 달라질 수 있음을 도움말에 적고, 사용 안 함 선택 시 모듈 fallback이 표시되는 화면은 fallback 기준도 같은 도움말에 적는다.
 
 긴 관리자 폼에서 섹션 이동 탭이 필요하면 전역 class `sticky-tabs anchor-tabs tab-nav-justified`를 사용한다. 탭 관련 호환 alias는 두지 않고 접두 없는 탭 class를 기준으로 붙인다.
 

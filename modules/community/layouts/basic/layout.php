@@ -61,7 +61,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     }
     $layoutFaviconHtml = sr_logo_manager_favicon_link_tag($layoutPdo);
 }
-if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
+if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === 'sr_community_board_groups' && function_exists('sr_community_layout_menu_html')) {
+    $layoutPrimaryNavigationHtml = sr_community_layout_menu_html($layoutPdo, $layoutPrimaryMenuKey, 'primary');
+} elseif ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
 $layoutPrivacyCookieConsentHtml = '';
@@ -70,100 +72,8 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_
     $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
 }
-if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_community_primary_menu_fallback_links')) {
-    $layoutFallbackLinks = sr_community_primary_menu_fallback_links($layoutPdo);
-    if ($layoutFallbackLinks !== []) {
-        $layoutCurrentPath = '/' . trim(sr_request_path(), '/');
-        $layoutCurrentPath = $layoutCurrentPath === '/' ? '/' : rtrim($layoutCurrentPath, '/');
-        $layoutCurrentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
-        parse_str(is_string($layoutCurrentQuery) ? $layoutCurrentQuery : '', $layoutCurrentQueryParams);
-        $layoutCurrentCommunityBoardKey = '';
-        $layoutCurrentCommunityBoardGroupKey = '';
-        if (in_array($layoutCurrentPath, ['/community/board', '/community/write'], true)) {
-            $layoutCurrentCommunityBoardKey = (string) ($layoutCurrentQueryParams['key'] ?? '');
-        } elseif (in_array($layoutCurrentPath, ['/community/post', '/community/edit'], true)) {
-            $layoutCurrentPostId = (int) ($layoutCurrentQueryParams['id'] ?? 0);
-            if ($layoutCurrentPostId > 0) {
-                try {
-                    $layoutCurrentPostBoardStmt = $layoutPdo->prepare(
-                        'SELECT b.board_key, g.group_key AS board_group_key
-                         FROM sr_community_posts p
-                         INNER JOIN sr_community_boards b ON b.id = p.board_id
-                         LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
-                         WHERE p.id = :id
-                         LIMIT 1'
-                    );
-                    $layoutCurrentPostBoardStmt->execute(['id' => $layoutCurrentPostId]);
-                    $layoutCurrentPostBoard = $layoutCurrentPostBoardStmt->fetch();
-                    $layoutCurrentCommunityBoardKey = is_array($layoutCurrentPostBoard) ? (string) ($layoutCurrentPostBoard['board_key'] ?? '') : '';
-                    $layoutCurrentCommunityBoardGroupKey = is_array($layoutCurrentPostBoard) ? (string) ($layoutCurrentPostBoard['board_group_key'] ?? '') : '';
-                } catch (Throwable) {
-                    $layoutCurrentCommunityBoardKey = '';
-                    $layoutCurrentCommunityBoardGroupKey = '';
-                }
-            }
-        }
-        if ($layoutCurrentCommunityBoardKey !== '' && $layoutCurrentCommunityBoardGroupKey === '') {
-            try {
-                $layoutCurrentBoardGroupStmt = $layoutPdo->prepare(
-                    'SELECT g.group_key
-                     FROM sr_community_boards b
-                     LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
-                     WHERE b.board_key = :board_key
-                       AND b.status = \'enabled\'
-                       AND g.status = \'enabled\'
-                     LIMIT 1'
-                );
-                $layoutCurrentBoardGroupStmt->execute(['board_key' => $layoutCurrentCommunityBoardKey]);
-                $layoutCurrentBoardGroup = $layoutCurrentBoardGroupStmt->fetch();
-                $layoutCurrentCommunityBoardGroupKey = is_array($layoutCurrentBoardGroup) ? (string) ($layoutCurrentBoardGroup['group_key'] ?? '') : '';
-            } catch (Throwable) {
-                $layoutCurrentCommunityBoardGroupKey = '';
-            }
-        }
-        $layoutPrimaryNavigationHtml = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="primary"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
-        foreach ($layoutFallbackLinks as $layoutFallbackLink) {
-            $layoutFallbackLabel = (string) ($layoutFallbackLink['label'] ?? '');
-            $layoutFallbackUrl = (string) ($layoutFallbackLink['url'] ?? '');
-            if ($layoutFallbackLabel === '' || $layoutFallbackUrl === '') {
-                continue;
-            }
-            $layoutFallbackPath = parse_url($layoutFallbackUrl, PHP_URL_PATH);
-            $layoutFallbackPath = is_string($layoutFallbackPath) && $layoutFallbackPath !== '' ? '/' . trim($layoutFallbackPath, '/') : '/';
-            $layoutFallbackPath = $layoutFallbackPath === '/' ? '/' : rtrim($layoutFallbackPath, '/');
-            $layoutFallbackQuery = parse_url($layoutFallbackUrl, PHP_URL_QUERY);
-            parse_str(is_string($layoutFallbackQuery) ? $layoutFallbackQuery : '', $layoutFallbackQueryParams);
-            $layoutFallbackBoardKey = (string) ($layoutFallbackQueryParams['key'] ?? '');
-            $layoutFallbackGroupKey = (string) ($layoutFallbackLink['group_key'] ?? '');
-            $layoutFallbackFragment = parse_url($layoutFallbackUrl, PHP_URL_FRAGMENT);
-            $layoutFallbackFragment = is_string($layoutFallbackFragment) ? $layoutFallbackFragment : '';
-            if ($layoutFallbackGroupKey === '') {
-                if (str_starts_with($layoutFallbackFragment, 'group-')) {
-                    $layoutFallbackGroupKey = rawurldecode(substr($layoutFallbackFragment, 6));
-                }
-            }
-            $layoutFallbackQueryMatches = $layoutFallbackQueryParams === [];
-            if (!$layoutFallbackQueryMatches && is_array($layoutCurrentQueryParams)) {
-                $layoutFallbackQueryMatches = true;
-                foreach ($layoutFallbackQueryParams as $layoutFallbackQueryKey => $layoutFallbackQueryValue) {
-                    if (!array_key_exists((string) $layoutFallbackQueryKey, $layoutCurrentQueryParams) || $layoutCurrentQueryParams[(string) $layoutFallbackQueryKey] != $layoutFallbackQueryValue) {
-                        $layoutFallbackQueryMatches = false;
-                        break;
-                    }
-                }
-            }
-            $layoutCurrentAttribute = ($layoutFallbackFragment === '' && $layoutFallbackPath === $layoutCurrentPath && $layoutFallbackQueryMatches) || (
-                $layoutFallbackPath === '/community/board'
-                && $layoutFallbackBoardKey !== ''
-                && $layoutFallbackBoardKey === $layoutCurrentCommunityBoardKey
-            ) || (
-                $layoutFallbackGroupKey !== ''
-                && $layoutFallbackGroupKey === $layoutCurrentCommunityBoardGroupKey
-            ) ? ' aria-current="page"' : '';
-            $layoutPrimaryNavigationHtml .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($layoutFallbackUrl)) . '"' . $layoutCurrentAttribute . '>' . sr_e($layoutFallbackLabel) . '</a></li>';
-        }
-        $layoutPrimaryNavigationHtml .= '</ul></div>';
-    }
+if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_community_layout_menu_html')) {
+    $layoutPrimaryNavigationHtml = sr_community_layout_menu_html($layoutPdo, 'sr_community_board_groups', 'primary');
 }
 if ($layoutPdo instanceof PDO) {
     foreach ($layoutFooterMenuSlots as $layoutFooterMenuContextKey => $layoutFooterMenuSlot) {

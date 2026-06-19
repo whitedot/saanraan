@@ -256,6 +256,124 @@ function sr_community_clean_layout_menu_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_community_layout_menu_builtin_options(): array
+{
+    return [
+        'sr_community_board_groups' => '게시판 그룹',
+    ];
+}
+
+function sr_community_layout_menu_key_is_builtin(string $value): bool
+{
+    return array_key_exists($value, sr_community_layout_menu_builtin_options());
+}
+
+function sr_community_layout_menu_links(PDO $pdo, string $menuKey): array
+{
+    return $menuKey === 'sr_community_board_groups' ? sr_community_primary_menu_fallback_links($pdo) : [];
+}
+
+function sr_community_layout_menu_html(PDO $pdo, string $menuKey, string $slotKey): string
+{
+    $links = sr_community_layout_menu_links($pdo, $menuKey);
+    if ($links === []) {
+        return '';
+    }
+
+    $currentPath = '/' . trim(sr_request_path(), '/');
+    $currentPath = $currentPath === '/' ? '/' : rtrim($currentPath, '/');
+    $currentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    parse_str(is_string($currentQuery) ? $currentQuery : '', $currentQueryParams);
+    $currentBoardKey = '';
+    $currentGroupKey = '';
+    if (in_array($currentPath, ['/community/board', '/community/write'], true)) {
+        $currentBoardKey = (string) ($currentQueryParams['key'] ?? '');
+    } elseif (in_array($currentPath, ['/community/post', '/community/edit'], true)) {
+        $currentPostId = (int) ($currentQueryParams['id'] ?? 0);
+        if ($currentPostId > 0) {
+            try {
+                $stmt = $pdo->prepare(
+                    'SELECT b.board_key, g.group_key AS board_group_key
+                     FROM sr_community_posts p
+                     INNER JOIN sr_community_boards b ON b.id = p.board_id
+                     LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
+                     WHERE p.id = :id
+                     LIMIT 1'
+                );
+                $stmt->execute(['id' => $currentPostId]);
+                $postBoard = $stmt->fetch();
+                $currentBoardKey = is_array($postBoard) ? (string) ($postBoard['board_key'] ?? '') : '';
+                $currentGroupKey = is_array($postBoard) ? (string) ($postBoard['board_group_key'] ?? '') : '';
+            } catch (Throwable) {
+                $currentBoardKey = '';
+                $currentGroupKey = '';
+            }
+        }
+    }
+    if ($currentBoardKey !== '' && $currentGroupKey === '') {
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT g.group_key
+                 FROM sr_community_boards b
+                 LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
+                 WHERE b.board_key = :board_key
+                   AND b.status = \'enabled\'
+                   AND g.status = \'enabled\'
+                 LIMIT 1'
+            );
+            $stmt->execute(['board_key' => $currentBoardKey]);
+            $group = $stmt->fetch();
+            $currentGroupKey = is_array($group) ? (string) ($group['group_key'] ?? '') : '';
+        } catch (Throwable) {
+            $currentGroupKey = '';
+        }
+    }
+
+    $html = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="' . sr_e($slotKey) . '"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
+    foreach ($links as $link) {
+        $label = (string) ($link['label'] ?? '');
+        $url = (string) ($link['url'] ?? '');
+        if ($label === '' || $url === '') {
+            continue;
+        }
+
+        $linkPath = parse_url($url, PHP_URL_PATH);
+        $linkPath = is_string($linkPath) && $linkPath !== '' ? '/' . trim($linkPath, '/') : '/';
+        $linkPath = $linkPath === '/' ? '/' : rtrim($linkPath, '/');
+        $linkQuery = parse_url($url, PHP_URL_QUERY);
+        parse_str(is_string($linkQuery) ? $linkQuery : '', $linkQueryParams);
+        $linkBoardKey = (string) ($linkQueryParams['key'] ?? '');
+        $linkGroupKey = (string) ($link['group_key'] ?? '');
+        $linkFragment = parse_url($url, PHP_URL_FRAGMENT);
+        $linkFragment = is_string($linkFragment) ? $linkFragment : '';
+        if ($linkGroupKey === '' && str_starts_with($linkFragment, 'group-')) {
+            $linkGroupKey = rawurldecode(substr($linkFragment, 6));
+        }
+        $queryMatches = $linkQueryParams === [];
+        if (!$queryMatches && is_array($currentQueryParams)) {
+            $queryMatches = true;
+            foreach ($linkQueryParams as $linkQueryKey => $linkQueryValue) {
+                if (!array_key_exists((string) $linkQueryKey, $currentQueryParams) || $currentQueryParams[(string) $linkQueryKey] != $linkQueryValue) {
+                    $queryMatches = false;
+                    break;
+                }
+            }
+        }
+        $currentAttribute = ($linkFragment === '' && $linkPath === $currentPath && $queryMatches) || (
+            $linkPath === '/community/board'
+            && $linkBoardKey !== ''
+            && $linkBoardKey === $currentBoardKey
+        ) || (
+            $linkGroupKey !== ''
+            && $linkGroupKey === $currentGroupKey
+        ) ? ' aria-current="page"' : '';
+        $html .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($url)) . '"' . $currentAttribute . '>' . sr_e($label) . '</a></li>';
+    }
+    $html .= '</ul></div>';
+
+    return $html;
+}
+
 function sr_community_public_layout_context(array $settings, array $context = []): array
 {
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));

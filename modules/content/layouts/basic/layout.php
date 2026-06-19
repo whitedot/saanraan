@@ -64,7 +64,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     }
     $layoutFaviconHtml = sr_logo_manager_favicon_link_tag($layoutPdo);
 }
-if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
+if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === 'sr_content_groups' && function_exists('sr_content_layout_menu_html')) {
+    $layoutPrimaryNavigationHtml = sr_content_layout_menu_html($layoutPdo, $layoutPrimaryMenuKey, 'primary');
+} elseif ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
 $layoutPrivacyCookieConsentHtml = '';
@@ -73,40 +75,8 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_
     $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
 }
-if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_content_primary_menu_fallback_links')) {
-    $layoutFallbackLinks = sr_content_primary_menu_fallback_links($layoutPdo);
-    if ($layoutFallbackLinks !== []) {
-        $layoutCurrentPath = '/' . trim(sr_request_path(), '/');
-        $layoutCurrentPath = $layoutCurrentPath === '/' ? '/' : rtrim($layoutCurrentPath, '/');
-        $layoutCurrentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
-        parse_str(is_string($layoutCurrentQuery) ? $layoutCurrentQuery : '', $layoutCurrentQueryParams);
-        $layoutPrimaryNavigationHtml = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="primary"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
-        foreach ($layoutFallbackLinks as $layoutFallbackLink) {
-            $layoutFallbackLabel = (string) ($layoutFallbackLink['label'] ?? '');
-            $layoutFallbackUrl = (string) ($layoutFallbackLink['url'] ?? '');
-            if ($layoutFallbackLabel === '' || $layoutFallbackUrl === '') {
-                continue;
-            }
-            $layoutFallbackPath = parse_url($layoutFallbackUrl, PHP_URL_PATH);
-            $layoutFallbackPath = is_string($layoutFallbackPath) && $layoutFallbackPath !== '' ? '/' . trim($layoutFallbackPath, '/') : '/';
-            $layoutFallbackPath = $layoutFallbackPath === '/' ? '/' : rtrim($layoutFallbackPath, '/');
-            $layoutFallbackQuery = parse_url($layoutFallbackUrl, PHP_URL_QUERY);
-            parse_str(is_string($layoutFallbackQuery) ? $layoutFallbackQuery : '', $layoutFallbackQueryParams);
-            $layoutFallbackQueryMatches = $layoutFallbackQueryParams === [];
-            if (!$layoutFallbackQueryMatches && is_array($layoutCurrentQueryParams)) {
-                $layoutFallbackQueryMatches = true;
-                foreach ($layoutFallbackQueryParams as $layoutFallbackQueryKey => $layoutFallbackQueryValue) {
-                    if (!array_key_exists((string) $layoutFallbackQueryKey, $layoutCurrentQueryParams) || $layoutCurrentQueryParams[(string) $layoutFallbackQueryKey] != $layoutFallbackQueryValue) {
-                        $layoutFallbackQueryMatches = false;
-                        break;
-                    }
-                }
-            }
-            $layoutCurrentAttribute = $layoutFallbackPath === $layoutCurrentPath && $layoutFallbackQueryMatches ? ' aria-current="page"' : '';
-            $layoutPrimaryNavigationHtml .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($layoutFallbackUrl)) . '"' . $layoutCurrentAttribute . '>' . sr_e($layoutFallbackLabel) . '</a></li>';
-        }
-        $layoutPrimaryNavigationHtml .= '</ul></div>';
-    }
+if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_content_layout_menu_html')) {
+    $layoutPrimaryNavigationHtml = sr_content_layout_menu_html($layoutPdo, 'sr_content_groups', 'primary');
 }
 if ($layoutPdo instanceof PDO) {
     foreach ($layoutFooterMenuSlots as $layoutFooterMenuContextKey => $layoutFooterMenuSlot) {
@@ -115,7 +85,9 @@ if ($layoutPdo instanceof PDO) {
             continue;
         }
         $layoutFooterMenuSlotKey = (string) ($layoutFooterMenuSlot['slot_key'] ?? '');
-        $layoutFooterMenuHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
+        $layoutFooterMenuHtml = $layoutFooterMenuKey === 'sr_content_groups' && function_exists('sr_content_layout_menu_html')
+            ? sr_content_layout_menu_html($layoutPdo, $layoutFooterMenuKey, $layoutFooterMenuSlotKey)
+            : sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
         if ($layoutFooterMenuHtml !== '') {
             $layoutFooterNavigationHtml[$layoutFooterMenuSlotKey] = [
                 'html' => $layoutFooterMenuHtml,

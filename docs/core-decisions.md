@@ -665,13 +665,13 @@ popup_layer -> /admin/popup-layers
 
 ## 16. 공개 레이아웃은 전역 껍데기만 담당한다
 
-공개 화면의 기본 레이아웃 파일은 `layouts/public/{layout_key}/` 아래에 둡니다. 레이아웃 파일은 `<html>`, `<head>`, 공통 header/footer, 공통 메뉴, 전역 output slot처럼 사이트 전체 껍데기만 담당합니다. 사이트 메뉴 output slot은 메뉴 계층이 아니라 레이아웃 슬롯 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation`, `quaternary_navigation`, `quinary_navigation`을 사용하고, 콘텐츠·커뮤니티·퀴즈처럼 레이아웃 메뉴 슬롯을 설정하는 모듈은 환경설정의 메뉴 key를 layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`, `site_menus.quaternary`, `site_menus.quinary`로 전달합니다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`, `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`처럼 슬롯명으로 표시하고, 실제 위치는 레이아웃 구현이 결정합니다. 번들 공통/콘텐츠/커뮤니티/퀴즈/설문 레이아웃은 primary 메뉴를 header에, 나머지 메뉴 슬롯을 footer 영역에 렌더링합니다.
+공개 화면의 기본 레이아웃 파일은 `layouts/public/{layout_key}/` 아래에 둡니다. 레이아웃 파일은 `<html>`, `<head>`, 공통 header/footer, 공통 메뉴, 전역 output slot처럼 사이트 전체 껍데기만 담당합니다. 사이트 메뉴 output slot은 메뉴 계층이 아니라 레이아웃 슬롯 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation`, `quaternary_navigation`, `quinary_navigation`을 사용하고, 콘텐츠·커뮤니티·퀴즈처럼 레이아웃 메뉴 슬롯을 설정하는 모듈은 환경설정의 메뉴 key를 layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`, `site_menus.quaternary`, `site_menus.quinary`로 전달합니다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`, `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`처럼 슬롯명으로 표시하고, 선택지는 `사용 안 함`, 모듈 내장 메뉴, 사이트 메뉴 순서로 표시합니다. 콘텐츠 내장 메뉴 key `sr_content_groups`는 콘텐츠 그룹을, 커뮤니티 내장 메뉴 key `sr_community_board_groups`는 게시판 그룹을 렌더링합니다. 실제 위치는 레이아웃 구현이 결정합니다. 번들 공통/콘텐츠/커뮤니티/퀴즈/설문 레이아웃은 primary 메뉴를 header에, 나머지 메뉴 슬롯을 footer 영역에 렌더링합니다.
 
 번들 사용자 레이아웃의 header 액션은 회원 계정 링크와, 알림 모듈이 활성화되어 있을 때 회원 사이트 알림 요약 드롭다운을 표시합니다. 알림 시간은 상대 한국어 시간으로 노출하되 정확한 원본 시각은 `<time>`의 `datetime`, `data-sr-time-tooltip-label`, 접근성 label에 남깁니다.
 
 상단 사이트 메뉴는 현재 요청과 메뉴 항목 URL이 일치할 때 해당 링크에 `aria-current="page"`를 붙여 활성 상태를 표시합니다. 메뉴 항목 URL에 쿼리가 있으면 해당 쿼리 값이 현재 요청에 포함되는지 비교하고, 쿼리가 없으면 같은 경로의 요청을 활성으로 봅니다. 커뮤니티 게시판 메뉴(`/community/board?key=...`)는 해당 게시판의 목록, 글쓰기, 글읽기, 글수정 화면에서도 같은 게시판 컨텍스트로 보고 활성화합니다.
 
-번들 콘텐츠/커뮤니티 레이아웃에서 주 메뉴 슬롯을 사용 안 함으로 설정하면 사이트 메뉴 output slot은 호출하지 않습니다. 이때 콘텐츠는 공개 가능한 콘텐츠 그룹, 커뮤니티는 사용 상태인 게시판 그룹을 주 메뉴 후보로 fallback 렌더링합니다. 커뮤니티 게시판 그룹 링크는 `/community/group?key=...` 전용 페이지를 사용하고, 사용 상태인 게시판 그룹이 하나도 없을 때만 공개 게시판을 후보로 사용합니다. 명시적인 사이트 메뉴 key가 있으면 사이트 메뉴 출력이 fallback보다 우선합니다.
+번들 콘텐츠/커뮤니티 레이아웃에서 주 메뉴 슬롯을 사용 안 함으로 설정하면 사이트 메뉴 output slot은 호출하지 않습니다. 이때 콘텐츠는 공개 가능한 콘텐츠 그룹, 커뮤니티는 사용 상태인 게시판 그룹을 주 메뉴 후보로 fallback 렌더링합니다. 운영자가 메뉴 슬롯에서 `콘텐츠 그룹` 또는 `게시판 그룹` 내장 메뉴를 명시 선택해도 같은 그룹 링크를 렌더링합니다. 커뮤니티 게시판 그룹 링크는 `/community/group?key=...` 전용 페이지를 사용하고, 사용 상태인 게시판 그룹이 하나도 없을 때만 공개 게시판을 후보로 사용합니다. 명시적인 사이트 메뉴 key가 있으면 사이트 메뉴 출력이 fallback보다 우선합니다.
 
 모듈별 화면 구조와 도메인 표시 방식은 각 모듈 안에 둡니다.
 

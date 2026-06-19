@@ -13,6 +13,11 @@ $contentSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) 
 $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($contentSiteMenuOptions): void {
     ?>
     <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
+    <?php foreach (sr_content_layout_menu_builtin_options() as $menuKey => $menuLabel) { ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e((string) $menuLabel); ?>
+        </option>
+    <?php } ?>
     <?php foreach ($contentSiteMenuOptions as $menuKey => $menu) { ?>
         <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
         <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
@@ -27,7 +32,7 @@ $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPres
 $contentLayoutMenuFields = [
     'layout_primary_menu_key' => [
         'label' => '주 메뉴 슬롯',
-        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 공개 가능한 콘텐츠 그룹이 주 메뉴 후보로 표시됩니다.',
+        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 메뉴입니다. 콘텐츠 그룹을 선택하면 공개 가능한 콘텐츠 그룹을 표시합니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 공개 가능한 콘텐츠 그룹이 주 메뉴 후보로 표시됩니다.',
         'default' => 'header',
     ],
     'layout_secondary_menu_key' => [

@@ -82,7 +82,7 @@ if (sr_request_method() === 'POST') {
     }
     foreach (sr_content_layout_menu_slots() as $menuSettingKey) {
         $menuKey = (string) $postedSettings[$menuSettingKey];
-        if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
+        if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey]) && !sr_content_layout_menu_key_is_builtin($menuKey)) {
             $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;
         }

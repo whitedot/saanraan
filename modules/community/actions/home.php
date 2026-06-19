@@ -154,7 +154,9 @@ if ($communitySeriesSupported && $readableBoardIds !== []) {
 }
 $communityLayoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
 $homeSidebarMenuKey = sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
-if ($homeSidebarMenuKey !== '') {
+if ($homeSidebarMenuKey === 'sr_community_board_groups' && function_exists('sr_community_layout_menu_html')) {
+    $homeSidebarMenuHtml = sr_community_layout_menu_html($pdo, $homeSidebarMenuKey, 'secondary_navigation');
+} elseif ($homeSidebarMenuKey !== '') {
     $homeSidebarMenuHtml = sr_render_output_slot($pdo, [
         'module_key' => 'core',
         'point_key' => 'site.community_home',

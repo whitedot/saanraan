@@ -139,6 +139,18 @@ function sr_content_clean_layout_menu_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_content_layout_menu_builtin_options(): array
+{
+    return [
+        'sr_content_groups' => '콘텐츠 그룹',
+    ];
+}
+
+function sr_content_layout_menu_key_is_builtin(string $value): bool
+{
+    return array_key_exists($value, sr_content_layout_menu_builtin_options());
+}
+
 function sr_content_bool_setting(mixed $value): bool
 {
     if (is_bool($value)) {
@@ -276,6 +288,54 @@ function sr_content_primary_menu_fallback_links(PDO $pdo): array
     }
 
     return $links;
+}
+
+function sr_content_layout_menu_links(PDO $pdo, string $menuKey): array
+{
+    return $menuKey === 'sr_content_groups' ? sr_content_primary_menu_fallback_links($pdo) : [];
+}
+
+function sr_content_layout_menu_html(PDO $pdo, string $menuKey, string $slotKey): string
+{
+    $links = sr_content_layout_menu_links($pdo, $menuKey);
+    if ($links === []) {
+        return '';
+    }
+
+    $currentPath = '/' . trim(sr_request_path(), '/');
+    $currentPath = $currentPath === '/' ? '/' : rtrim($currentPath, '/');
+    $currentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    parse_str(is_string($currentQuery) ? $currentQuery : '', $currentQueryParams);
+    $html = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="' . sr_e($slotKey) . '"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
+    foreach ($links as $link) {
+        $label = (string) ($link['label'] ?? '');
+        $url = (string) ($link['url'] ?? '');
+        if ($label === '' || $url === '') {
+            continue;
+        }
+
+        $linkPath = parse_url($url, PHP_URL_PATH);
+        $linkPath = is_string($linkPath) && $linkPath !== '' ? '/' . trim($linkPath, '/') : '/';
+        $linkPath = $linkPath === '/' ? '/' : rtrim($linkPath, '/');
+        $linkQuery = parse_url($url, PHP_URL_QUERY);
+        parse_str(is_string($linkQuery) ? $linkQuery : '', $linkQueryParams);
+        $queryMatches = $linkQueryParams === [];
+        if (!$queryMatches && is_array($currentQueryParams)) {
+            $queryMatches = true;
+            foreach ($linkQueryParams as $linkQueryKey => $linkQueryValue) {
+                if (!array_key_exists((string) $linkQueryKey, $currentQueryParams) || $currentQueryParams[(string) $linkQueryKey] != $linkQueryValue) {
+                    $queryMatches = false;
+                    break;
+                }
+            }
+        }
+        $currentAttribute = $linkPath === $currentPath && $queryMatches ? ' aria-current="page"' : '';
+        $html .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($url)) . '"' . $currentAttribute . '>' . sr_e($label) . '</a></li>';
+    }
+
+    $html .= '</ul></div>';
+
+    return $html;
 }
 
 function sr_content_save_settings(PDO $pdo, array $settings): void
