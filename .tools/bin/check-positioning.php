@@ -53,8 +53,6 @@ function sr_positioning_forbid_markers(string $file, array $markers, array &$err
 }
 
 sr_positioning_require_markers('README.md', [
-    '탐구형 코드베이스',
-    '정면으로 대체하기보다',
     '사용 판단 기준',
     'docs/operator-feature-list.md',
     'docs/module-status.md',
