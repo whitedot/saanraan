@@ -79,29 +79,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
             </section>
 
             <aside class="community-home-aside" aria-label="커뮤니티 요약">
-                <?php if (!empty($communitySeriesSupported)) { ?>
-                    <section class="card" aria-labelledby="community_home_series_title">
-                        <div class="card-body">
-                            <h2 id="community_home_series_title" class="card-title community-home-aside-title">시리즈</h2>
-                            <?php if (empty($recentSeries)) { ?>
-                                <p>시리즈가 없습니다.</p>
-                            <?php } else { ?>
-                                <ul>
-                                    <?php foreach ($recentSeries as $series) { ?>
-                                        <li>
-                                            <?php if ((int) ($series['first_post_id'] ?? 0) > 0) { ?>
-                                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) $series['first_post_id'])); ?>"><?php echo sr_e((string) ($series['title'] ?? '')); ?></a>
-                                            <?php } else { ?>
-                                                <?php echo sr_e((string) ($series['title'] ?? '')); ?>
-                                            <?php } ?>
-                                        </li>
-                                    <?php } ?>
-                                </ul>
-                            <?php } ?>
-                        </div>
-                    </section>
-                <?php } ?>
-
                 <section class="card" aria-labelledby="community_home_popular_posts_title">
                     <div class="card-body">
                         <h2 id="community_home_popular_posts_title" class="card-title community-home-aside-title">인기글</h2>
@@ -178,6 +155,29 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
                         <?php } ?>
                     </div>
                 </section>
+
+                <?php if (!empty($communitySeriesSupported)) { ?>
+                    <section class="card" aria-labelledby="community_home_series_title">
+                        <div class="card-body">
+                            <h2 id="community_home_series_title" class="card-title community-home-aside-title">시리즈</h2>
+                            <?php if (empty($recentSeries)) { ?>
+                                <p>시리즈가 없습니다.</p>
+                            <?php } else { ?>
+                                <ul>
+                                    <?php foreach ($recentSeries as $series) { ?>
+                                        <li>
+                                            <?php if ((int) ($series['first_post_id'] ?? 0) > 0) { ?>
+                                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) $series['first_post_id'])); ?>"><?php echo sr_e((string) ($series['title'] ?? '')); ?></a>
+                                            <?php } else { ?>
+                                                <?php echo sr_e((string) ($series['title'] ?? '')); ?>
+                                            <?php } ?>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            <?php } ?>
+                        </div>
+                    </section>
+                <?php } ?>
             </aside>
         </div>
     </main>

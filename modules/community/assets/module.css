@@ -78,6 +78,7 @@
 
 .community-home-layout {
     align-items: start;
+    --community-home-section-gap: 18px;
     display: grid;
     gap: 24px;
     grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) minmax(220px, 320px);
@@ -94,7 +95,15 @@
     padding: 0;
 }
 
+.community-home-secondary-banner-slot {
+    display: grid;
+    gap: 5px;
+    margin-top: var(--community-home-section-gap);
+}
+
 .community-home-secondary-banner-slot .sr-banner {
+    margin: 0;
+    padding-block: 0;
     padding-inline: 0;
 }
 
@@ -423,7 +432,7 @@
 
 .community-home-aside {
     display: grid;
-    gap: 18px;
+    gap: var(--community-home-section-gap);
     min-width: 0;
 }
 
