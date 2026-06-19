@@ -817,6 +817,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section id="community-board-section-reaction" class="card" data-admin-section-anchor>
             <h2>리액션</h2>
+            <?php if (empty($settings['reaction_enabled'])) { ?>
+                <div class="alert alert-warning alert-block" role="alert">
+                    커뮤니티 환경설정에서 리액션 사용이 꺼져 있습니다. 이 게시판의 리액션 프리셋을 저장해도 사용자 화면에는 리액션이 표시되지 않습니다.
+                </div>
+            <?php } ?>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_reaction_post_preset_key">게시글 리액션 프리셋</label>
                 <div class="form-field">
