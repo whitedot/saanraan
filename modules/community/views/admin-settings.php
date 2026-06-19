@@ -167,6 +167,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-message' => '쪽지 정책',
     'community-settings-section-privacy-consent' => '개인정보 동의',
     'community-settings-section-assets' => '자산/과금',
+    'community-settings-section-series' => '시리즈',
     'community-settings-section-reaction' => '리액션',
     'community-settings-section-display' => '공개 화면',
 ];
@@ -420,6 +421,17 @@ $communitySettingsSectionNavItems = [
         </div>
     </section>
 
+    <section id="community-settings-section-series" class="card" data-admin-section-anchor>
+        <h2>시리즈</h2>
+        <div class="form-row">
+            <span class="form-label">시리즈 기능</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '커뮤니티 시리즈 기능 사용'); ?>
+                <p class="form-help">꺼져 있으면 시리즈 생성, 연결, 관리, 스크랩, 공개 내비게이션과 커뮤니티 메인 시리즈 섹션을 사용하지 않습니다.</p>
+            </div>
+        </div>
+    </section>
+
     <section id="community-settings-section-reaction" class="card" data-admin-section-anchor>
         <h2>리액션</h2>
         <div class="form-row">
@@ -471,13 +483,6 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
         <?php } ?>
-        <div class="form-row">
-            <span class="form-label">시리즈</span>
-            <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '커뮤니티 시리즈 기능 사용'); ?>
-                <p class="form-help">꺼져 있으면 시리즈 생성, 연결, 관리, 스크랩, 공개 내비게이션과 커뮤니티 메인 시리즈 섹션을 사용하지 않습니다.</p>
-            </div>
-        </div>
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">

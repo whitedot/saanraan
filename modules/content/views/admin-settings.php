@@ -122,8 +122,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         <?php } ?>
+    </section>
+
+    <section class="card">
+        <h2>시리즈</h2>
         <div class="form-row">
-            <span class="form-label">시리즈</span>
+            <span class="form-label">시리즈 기능</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '콘텐츠 시리즈 사용'); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠 시리즈 생성, 연결, 관리와 공개 콘텐츠의 시리즈 내비게이션을 사용하지 않습니다.</p>
