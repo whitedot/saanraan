@@ -60,6 +60,7 @@ function sr_community_default_settings(): array
         'privacy_consent_require_post' => (bool) ($settings['privacy_consent_require_post'] ?? false),
         'privacy_consent_require_comment' => (bool) ($settings['privacy_consent_require_comment'] ?? false),
         'privacy_consent_require_attachment_upload' => (bool) ($settings['privacy_consent_require_attachment_upload'] ?? false),
+        'reaction_enabled' => (bool) ($settings['reaction_enabled'] ?? true),
         'reaction_post_preset_key' => is_string($settings['reaction_post_preset_key'] ?? null) ? (string) $settings['reaction_post_preset_key'] : '',
         'reaction_comment_preset_key' => is_string($settings['reaction_comment_preset_key'] ?? null) ? (string) $settings['reaction_comment_preset_key'] : '',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
@@ -208,6 +209,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['privacy_consent_require_post'] = sr_community_bool_setting($settings['privacy_consent_require_post'] ?? false);
     $settings['privacy_consent_require_comment'] = sr_community_bool_setting($settings['privacy_consent_require_comment'] ?? false);
     $settings['privacy_consent_require_attachment_upload'] = sr_community_bool_setting($settings['privacy_consent_require_attachment_upload'] ?? false);
+    $settings['reaction_enabled'] = sr_community_bool_setting($settings['reaction_enabled'] ?? true);
     $settings['reaction_post_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
     $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {

@@ -61,6 +61,55 @@ function sr_community_post_comment_count_html(array $post): string
     return '<span class="community-post-comment-count" aria-label="' . sr_e('댓글 ' . number_format($count) . '개') . '">(' . sr_e(number_format($count)) . ')</span>';
 }
 
+function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
+{
+    if (!function_exists('sr_reaction_tables_available') || !sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($postIds as $postId) {
+        $id = (int) $postId;
+        if ($id > 0) {
+            $ids[(string) $id] = $id;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [
+        'target_module' => 'community',
+        'target_type' => 'post',
+    ];
+    foreach (array_values($ids) as $index => $id) {
+        $paramKey = 'target_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = (string) $id;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT target_id, COUNT(*) AS count_value
+         FROM sr_reaction_records
+         WHERE target_module = :target_module
+           AND target_type = :target_type
+           AND target_id IN (' . implode(', ', $placeholders) . ')
+         GROUP BY target_id'
+    );
+    $stmt->execute($params);
+
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $id = (int) ($row['target_id'] ?? 0);
+        if ($id > 0) {
+            $counts[$id] = (int) ($row['count_value'] ?? 0);
+        }
+    }
+
+    return $counts;
+}
+
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null): array
 {
     $boards = [];

@@ -2,6 +2,8 @@
 
 $pageTitle = (string) $post['title'];
 $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && !empty($canViewPostBody));
+$communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+$communityReactionsEnabled = !empty($communityLayoutSettings['reaction_enabled']);
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
@@ -12,7 +14,7 @@ if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $communityReactionCommentTargets = [];
-if (function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
+if ($communityReactionsEnabled && function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
     $communityReactionCommentIds = [];
     foreach ($comments as $communityReactionComment) {
         $communityReactionCommentId = (int) ($communityReactionComment['id'] ?? 0);
@@ -28,7 +30,6 @@ if (function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null
         is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
     );
 }
-$communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $memberSettings = sr_member_settings($pdo);
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
@@ -53,8 +54,6 @@ $communityMainLabel = $pageTitle;
         <?php } ?>
 
         <p>
-            <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
-            /
             <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']))); ?>">
                 <?php echo sr_e((string) $post['board_title']); ?>
             </a>
@@ -202,7 +201,7 @@ $communityMainLabel = $pageTitle;
             <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>
-            <?php if (function_exists('sr_reaction_render_widget')) { ?>
+            <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
                 <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
             <?php } ?>
 
@@ -374,7 +373,7 @@ $communityMainLabel = $pageTitle;
                             </p>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
-                                <?php if (function_exists('sr_reaction_render_widget')) { ?>
+                                <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
                                     <?php
                                     $communityCommentReactionId = (string) (int) ($comment['id'] ?? 0);
                                     $communityCommentReactionOptions = ['label' => '댓글 리액션'];
@@ -590,7 +589,7 @@ $communityMainLabel = $pageTitle;
         </section>
         <?php } ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if ($communityReactionsEnabled && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

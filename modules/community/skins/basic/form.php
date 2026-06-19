@@ -61,8 +61,6 @@ $communityMainLabel = $pageTitle;
         <?php } ?>
 
         <p>
-            <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
-            /
             <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
                 <?php echo sr_e((string) $board['title']); ?>
             </a>

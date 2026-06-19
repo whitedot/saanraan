@@ -11,8 +11,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 ?>
     <main class="community-screen">
         <p>
-            <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
-            /
             <a href="<?php echo sr_e(sr_url('/community/messages')); ?>"><?php echo sr_e(sr_t('community::ui.text.b546791f')); ?></a>
         </p>
         <h1><?php echo sr_e($pageTitle); ?></h1>

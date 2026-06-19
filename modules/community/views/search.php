@@ -16,7 +16,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 ]));
 ?>
     <main class="community-screen community-search-screen">
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e('커뮤니티'); ?></a></p>
         <h1><?php echo sr_e('커뮤니티 검색'); ?></h1>
 
         <form class="community-search-page-form" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>">

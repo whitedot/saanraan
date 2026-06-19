@@ -86,6 +86,7 @@ if (sr_request_method() === 'POST') {
         $privacyConsentRequirePost = !empty($privacyConsentRequires['post']);
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);
+        $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
@@ -296,6 +297,7 @@ if (sr_request_method() === 'POST') {
                 ['privacy_consent_require_post', $privacyConsentRequirePost ? '1' : '0', 'bool'],
                 ['privacy_consent_require_comment', $privacyConsentRequireComment ? '1' : '0', 'bool'],
                 ['privacy_consent_require_attachment_upload', $privacyConsentRequireAttachmentUpload ? '1' : '0', 'bool'],
+                ['reaction_enabled', $reactionEnabled ? '1' : '0', 'bool'],
                 ['reaction_post_preset_key', $reactionPostPresetKey, 'string'],
                 ['reaction_comment_preset_key', $reactionCommentPresetKey, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
@@ -412,6 +414,7 @@ if (sr_request_method() === 'POST') {
                         ])),
                         'reaction_post_preset_key' => $reactionPostPresetKey,
                         'reaction_comment_preset_key' => $reactionCommentPresetKey,
+                        'reaction_enabled' => $reactionEnabled,
                         'once_history_policy' => $onceHistoryPolicy,
                         'asset_settings' => $assetSettings,
                     ],

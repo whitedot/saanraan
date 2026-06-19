@@ -17,9 +17,15 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+if (!empty($communityLayoutSettings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 $memberSettings = sr_member_settings($pdo);
 $communityBoardPaidReadConfig = sr_community_asset_event_config($pdo, $board, $communityLayoutSettings, 'paid_read', 'once');
 $communityBoardHomeExcerptAllowed = !sr_community_asset_event_required($communityBoardPaidReadConfig);
+$communityListReactionCounts = !empty($communityLayoutSettings['reaction_enabled']) && is_array($posts ?? null)
+    ? sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $posts))
+    : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
         '/modules/banner/assets/module.css',
@@ -50,7 +56,6 @@ $communityMainLabel = (string) ($board['title'] ?? '게시판');
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_before_list_id'] ?? 0)); ?>
         <?php } ?>
 
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
             <p><?php echo sr_e((string) $board['description']); ?></p>
@@ -152,6 +157,11 @@ $communityMainLabel = (string) ($board['title'] ?? '게시판');
                                 <?php if ((int) ($post['view_count'] ?? 0) > 0) { ?>
                                     <span aria-hidden="true">&middot;</span>
                                     <span><?php echo sr_e('조회 ' . number_format((int) ($post['view_count'] ?? 0))); ?></span>
+                                <?php } ?>
+                                <?php $postReactionCount = (int) ($communityListReactionCounts[(int) ($post['id'] ?? 0)] ?? 0); ?>
+                                <?php if ($postReactionCount > 0) { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span><?php echo sr_e('반응 ' . number_format($postReactionCount)); ?></span>
                                 <?php } ?>
                             </p>
                         </div>

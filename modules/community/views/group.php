@@ -32,7 +32,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
 $communityMainLabel = $pageTitle;
 ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
-        <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <?php if ($groupDescription !== '') { ?>
             <p><?php echo nl2br(sr_e($groupDescription)); ?></p>

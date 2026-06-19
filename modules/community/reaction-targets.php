@@ -65,7 +65,15 @@ if (!function_exists('sr_community_reaction_post_result')) {
         $status = sr_community_reaction_status((string) ($post['status'] ?? ''), $board);
         $canView = $status === 'active' && is_array($board) && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId);
         $settings = sr_community_settings($pdo);
-        $presetKey = is_array($board) ? sr_community_effective_board_setting($pdo, $board, 'reaction_post_preset_key', (string) ($settings['reaction_post_preset_key'] ?? '')) : (string) ($settings['reaction_post_preset_key'] ?? '');
+        if (empty($settings['reaction_enabled'])) {
+            $canView = false;
+        }
+        $presetKey = '';
+        if (!empty($settings['reaction_enabled'])) {
+            $presetKey = is_array($board)
+                ? sr_community_effective_board_setting($pdo, $board, 'reaction_post_preset_key', (string) ($settings['reaction_post_preset_key'] ?? ''))
+                : (string) ($settings['reaction_post_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) $postId,
@@ -115,7 +123,15 @@ if (!function_exists('sr_community_reaction_comment_result')) {
             && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId)
             && sr_community_account_can_view_comment_body($comment, $post, $account, $pdo);
         $settings = sr_community_settings($pdo);
-        $presetKey = is_array($board) ? sr_community_effective_board_setting($pdo, $board, 'reaction_comment_preset_key', (string) ($settings['reaction_comment_preset_key'] ?? '')) : (string) ($settings['reaction_comment_preset_key'] ?? '');
+        if (empty($settings['reaction_enabled'])) {
+            $canView = false;
+        }
+        $presetKey = '';
+        if (!empty($settings['reaction_enabled'])) {
+            $presetKey = is_array($board)
+                ? sr_community_effective_board_setting($pdo, $board, 'reaction_comment_preset_key', (string) ($settings['reaction_comment_preset_key'] ?? ''))
+                : (string) ($settings['reaction_comment_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),

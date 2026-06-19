@@ -5,7 +5,6 @@ $seo = ['title' => $pageTitle, 'canonical' => '/community/series', 'robots' => '
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($settings ?? []));
 ?>
 <main class="community-screen">
-    <p><a href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티</a></p>
     <h1><?php echo sr_e($pageTitle); ?></h1>
     <?php foreach ($errors as $error) { ?><p><?php echo sr_e($error); ?></p><?php } ?>
     <?php if ($notice !== '') { ?><p><?php echo sr_e($notice); ?></p><?php } ?>

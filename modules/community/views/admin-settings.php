@@ -440,6 +440,13 @@ $communitySettingsSectionNavItems = [
     <section id="community-settings-section-reaction" class="card" data-admin-section-anchor>
         <h2>리액션</h2>
         <div class="form-row">
+            <span class="form-label">리액션 사용</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '커뮤니티 리액션 사용'); ?>
+                <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_reaction_post_preset_key">게시글 리액션 프리셋</label>
             <div class="form-field">
                 <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">

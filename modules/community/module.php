@@ -103,6 +103,7 @@ return [
         'privacy_consent_require_post' => false,
         'privacy_consent_require_comment' => false,
         'privacy_consent_require_attachment_upload' => false,
+        'reaction_enabled' => true,
         'reaction_post_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'post_reward_enabled' => false,
