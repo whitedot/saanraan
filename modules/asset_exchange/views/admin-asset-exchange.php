@@ -328,7 +328,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $feeTriggerValue = (string) ($policyForm['fee_trigger'] ?? 'none'); ?>
                         <?php $feeTriggerModeValue = $feeTriggerValue === 'reexchange' ? 'reexchange' : 'always'; ?>
                         <label class="form-check form-label" for="asset_exchange_fee_enabled">
-                            <input id="asset_exchange_fee_enabled" type="checkbox" value="1" class="form-switch form-choice-dark"<?php echo $feeTriggerValue !== 'none' ? ' checked' : ''; ?> data-asset-exchange-fee-enabled>
+                            <input id="asset_exchange_fee_enabled" type="checkbox" value="1" class="form-switch form-switch-light"<?php echo $feeTriggerValue !== 'none' ? ' checked' : ''; ?> data-asset-exchange-fee-enabled>
                             <span class="sr-only">수수료 사용</span>
                         </label>
                         <input id="asset_exchange_fee_trigger" type="hidden" name="fee_trigger" value="<?php echo sr_e($feeTriggerValue); ?>" data-asset-exchange-fee-trigger-value>

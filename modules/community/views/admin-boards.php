@@ -669,7 +669,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_category_enabled">카테고리 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_category_enabled">
-                        <input id="community_admin_boards_category_enabled" type="checkbox" name="category_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'category_enabled', '1') === '1' ? ' checked' : ''; ?> data-community-category-enabled>
+                        <input id="community_admin_boards_category_enabled" type="checkbox" name="category_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'category_enabled', '1') === '1' ? ' checked' : ''; ?> data-community-category-enabled>
                         <?php echo sr_admin_choice_label_html('게시글 작성/목록에서 카테고리 선택과 필터 사용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_category_enabled', $boardSettingSource($formBoard, 'category_enabled')); ?>
@@ -690,7 +690,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_category_required">카테고리 필수</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_category_required">
-                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-choice-dark"<?php echo $communityBoardCategoryRequiredChecked ? ' checked' : ''; ?><?php echo $communityBoardCategoryRequiredSelectable ? '' : ' disabled'; ?> data-community-category-required>
+                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-switch-light"<?php echo $communityBoardCategoryRequiredChecked ? ' checked' : ''; ?><?php echo $communityBoardCategoryRequiredSelectable ? '' : ' disabled'; ?> data-community-category-required>
                         <?php echo sr_admin_choice_label_html('게시글 작성/수정 시 카테고리를 반드시 선택'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_category_required', $boardSettingSource($formBoard, 'category_required')); ?>
@@ -701,7 +701,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_secret_posts_enabled">비밀글</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_secret_posts_enabled">
-                        <input id="community_admin_boards_secret_posts_enabled" type="checkbox" name="secret_posts_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'secret_posts_enabled', !empty($settings['secret_posts_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_secret_posts_enabled" type="checkbox" name="secret_posts_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'secret_posts_enabled', !empty($settings['secret_posts_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('게시글 작성/수정 시 비밀글 선택 허용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_secret_posts_enabled', $boardSettingSource($formBoard, 'secret_posts_enabled')); ?>
@@ -711,7 +711,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_secret_comments_enabled">비밀 댓글</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_secret_comments_enabled">
-                        <input id="community_admin_boards_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('댓글 작성/수정 시 비밀 댓글 선택 허용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_secret_comments_enabled', $boardSettingSource($formBoard, 'secret_comments_enabled')); ?>
@@ -769,7 +769,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_list_excerpt_enabled">목록 본문 요약</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_list_excerpt_enabled">
-                        <input id="community_admin_boards_list_excerpt_enabled" type="checkbox" name="list_excerpt_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'list_excerpt_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_list_excerpt_enabled" type="checkbox" name="list_excerpt_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'list_excerpt_enabled', '0') === '1' ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('게시글 목록에 본문 요약 표시'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_list_excerpt_enabled', $boardSettingSource($formBoard, 'list_excerpt_enabled')); ?>
@@ -854,7 +854,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_privacy_consent_enabled">동의 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_privacy_consent_enabled">
-                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
+                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('이 게시판 제출 흐름에 개인정보 수집 및 이용동의를 표시하고 서버에서 검증'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
@@ -889,7 +889,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label form-label-help"><?php echo $communityBoardHelpButtonHtml(sr_t('community::ui.text.c3bd14cb'), $communityBoardHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_boards_image_uploads_enabled">
-                                            <input id="modules_community_admin_boards_image_uploads_enabled" type="checkbox" name="image_uploads_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
+                                            <input id="modules_community_admin_boards_image_uploads_enabled" type="checkbox" name="image_uploads_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) $boardField($formBoard, 'image_uploads_enabled', '1') === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.c3bd14cb')); ?>
                                         </label>
                                     <?php echo $settingSourceRadioHtml('source_image_uploads_enabled', $boardSettingSource($formBoard, 'image_uploads_enabled')); ?>
@@ -916,7 +916,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label">썸네일 생성</span>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_thumbnail_enabled">
-                        <input id="community_admin_boards_thumbnail_enabled" type="checkbox" name="thumbnail_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'thumbnail_enabled', !empty($settings['thumbnail_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_thumbnail_enabled" type="checkbox" name="thumbnail_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'thumbnail_enabled', !empty($settings['thumbnail_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('게시글 목록 이미지에 캐시 썸네일 생성 사용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_thumbnail_enabled', $boardSettingSource($formBoard, 'thumbnail_enabled')); ?>
@@ -956,7 +956,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label form-label-help"><?php echo $communityBoardHelpButtonHtml(sr_t('community::ui.text.fe95ead0'), $communityBoardHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.fe95ead0')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_boards_file_uploads_enabled">
-                                            <input id="modules_community_admin_boards_file_uploads_enabled" type="checkbox" name="file_uploads_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                            <input id="modules_community_admin_boards_file_uploads_enabled" type="checkbox" name="file_uploads_enabled" value="1" class="form-switch form-switch-light"<?php echo in_array($boardField($formBoard, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.fe95ead0')); ?>
                                         </label>
                                     <?php echo $settingSourceRadioHtml('source_file_uploads_enabled', $boardSettingSource($formBoard, 'file_uploads_enabled')); ?>
@@ -1071,7 +1071,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-asset-setting-control">
                                     <div class="admin-asset-setting-primary">
                                         <label class="form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                            <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                            <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e($assetPrefix); ?>_enabled" value="1" class="form-switch form-switch-light"<?php echo in_array($boardField($formBoard, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                         </label>
                                         <?php if ($usesGroupedAssetAmounts) { ?>
@@ -1149,7 +1149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="form-label">게시자 리워드</span>
                             <div class="form-field">
                                 <label class="form-check form-label" for="community_board_paid_attachment_download_publisher_reward_enabled">
-                                    <input id="community_board_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                                    <input id="community_board_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
                                     <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
                                 </label>
                                 <?php echo $settingSourceRadioHtml('source_paid_attachment_download_publisher_reward_enabled', $boardSettingSource($formBoard, 'paid_attachment_download_publisher_reward_enabled')); ?>
@@ -1236,7 +1236,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label">필수 여부</span>
                         <div class="form-field">
                             <label class="form-check form-label" for="community_extra_field_required">
-                                <input id="community_extra_field_required" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="required">
+                                <input id="community_extra_field_required" type="checkbox" value="1" class="form-switch form-switch-light" data-community-extra-field-input="required">
                                 <?php echo sr_admin_choice_label_html('필수 입력'); ?>
                             </label>
                         </div>
@@ -1254,11 +1254,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label">표시 위치</span>
                         <div class="form-field">
                             <label class="form-check form-label" for="community_extra_field_show_on_view">
-                                <input id="community_extra_field_show_on_view" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="show_on_view">
+                                <input id="community_extra_field_show_on_view" type="checkbox" value="1" class="form-switch form-switch-light" data-community-extra-field-input="show_on_view">
                                 <?php echo sr_admin_choice_label_html('본문 화면 표시'); ?>
                             </label>
                             <label class="form-check form-label" for="community_extra_field_show_in_admin">
-                                <input id="community_extra_field_show_in_admin" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="show_in_admin">
+                                <input id="community_extra_field_show_in_admin" type="checkbox" value="1" class="form-switch form-switch-light" data-community-extra-field-input="show_in_admin">
                                 <?php echo sr_admin_choice_label_html('관리자 목록 표시'); ?>
                             </label>
                         </div>

@@ -17,7 +17,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="antispam_admin_enabled">사용</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_enabled">
-                    <input id="antispam_admin_enabled" type="checkbox" name="enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['enabled']) ? ' checked' : ''; ?>>
+                    <input id="antispam_admin_enabled" type="checkbox" name="enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('자동등록방지 검증 사용'); ?>
                 </label>
             </div>
@@ -98,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="antispam_admin_verify_remote_ip_enabled">remote IP 전달</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_verify_remote_ip_enabled">
-                    <input id="antispam_admin_verify_remote_ip_enabled" type="checkbox" name="verify_remote_ip_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['verify_remote_ip_enabled']) ? ' checked' : ''; ?>>
+                    <input id="antispam_admin_verify_remote_ip_enabled" type="checkbox" name="verify_remote_ip_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['verify_remote_ip_enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('provider 검증 요청에 접속 IP 포함'); ?>
                 </label>
             </div>
@@ -107,7 +107,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="antispam_admin_provider_action_check_enabled">provider action 확인</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_action_check_enabled">
-                    <input id="antispam_admin_provider_action_check_enabled" type="checkbox" name="provider_action_check_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['provider_action_check_enabled']) ? ' checked' : ''; ?>>
+                    <input id="antispam_admin_provider_action_check_enabled" type="checkbox" name="provider_action_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_action_check_enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('provider 응답 action과 제출 form key 비교'); ?>
                 </label>
             </div>
@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="antispam_admin_provider_hostname_check_enabled">provider hostname 확인</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_hostname_check_enabled">
-                    <input id="antispam_admin_provider_hostname_check_enabled" type="checkbox" name="provider_hostname_check_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['provider_hostname_check_enabled']) ? ' checked' : ''; ?>>
+                    <input id="antispam_admin_provider_hostname_check_enabled" type="checkbox" name="provider_hostname_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_hostname_check_enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('provider 응답 hostname과 현재 host 비교'); ?>
                 </label>
             </div>

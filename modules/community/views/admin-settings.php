@@ -200,7 +200,7 @@ $communitySettingsSectionNavItems = [
                 <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_enabled">
-                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?> data-community-level-enabled>
+                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?> data-community-level-enabled>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
@@ -223,7 +223,7 @@ $communitySettingsSectionNavItems = [
                 <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
-                        <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
+                        <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
@@ -256,7 +256,7 @@ $communitySettingsSectionNavItems = [
             <label class="form-label" for="community_admin_settings_message_enabled">쪽지 사용</label>
             <div class="form-field">
                 <label class="form-check form-label" for="community_admin_settings_message_enabled">
-                    <input id="community_admin_settings_message_enabled" type="checkbox" name="message_enabled" value="1" class="form-switch form-choice-dark"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? ' checked' : ''; ?> data-community-message-enabled>
+                    <input id="community_admin_settings_message_enabled" type="checkbox" name="message_enabled" value="1" class="form-switch form-switch-light"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? ' checked' : ''; ?> data-community-message-enabled>
                     <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                 </label>
                 <p class="form-help">끄면 회원이 쪽지함을 열거나 새 쪽지를 보낼 수 없습니다. 기존 쪽지 내역은 데이터로 유지됩니다.</p>
@@ -321,7 +321,7 @@ $communitySettingsSectionNavItems = [
                 <label class="form-label" for="community_admin_settings_privacy_consent_enabled">동의 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_settings_privacy_consent_enabled">
-                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
+                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('새 게시판 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
                     </label>
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
@@ -377,7 +377,7 @@ $communitySettingsSectionNavItems = [
                             <div class="admin-asset-setting-control">
                                 <div class="admin-asset-setting-primary">
                                     <label class="form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                        <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
+                                        <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
                                 </div>
@@ -390,7 +390,7 @@ $communitySettingsSectionNavItems = [
                         <span class="form-label"><?php echo sr_e($assetLabel . ' 회수'); ?></span>
                         <div class="form-field">
                             <label class="form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
-                                <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
+                                <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
                             </label>
                         </div>
@@ -414,7 +414,7 @@ $communitySettingsSectionNavItems = [
                         <span class="form-label">게시자 리워드</span>
                         <div class="form-field">
                             <label class="form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
-                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
+                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
                             </label>
                         </div>

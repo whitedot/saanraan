@@ -88,7 +88,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_use_as_public_symbol">
-                            <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch>
+                            <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-switch-light" data-logo-manager-public-symbol-switch>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
                         </label>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
@@ -104,7 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></span>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_status_enabled">
-                            <input id="logo_manager_status_enabled" type="checkbox" name="status_enabled" value="1" class="form-switch form-choice-dark" checked>
+                            <input id="logo_manager_status_enabled" type="checkbox" name="status_enabled" value="1" class="form-switch form-switch-light" checked>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.active.93c558d7')); ?>
                         </label>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
@@ -343,7 +343,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
                         <div class="form-field">
                             <label class="form-check form-label" for="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>">
-                                <input id="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch<?php echo !empty($logo['use_as_public_symbol']) ? ' checked' : ''; ?>>
+                                <input id="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-switch-light" data-logo-manager-public-symbol-switch<?php echo !empty($logo['use_as_public_symbol']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
                             </label>
                             <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
@@ -478,7 +478,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="form-label">적용</span>
                             <div class="form-field">
                                 <label class="form-check form-label" for="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>">
-                                    <input id="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="activate_icon_set" value="1" class="form-switch form-choice-dark" checked>
+                                    <input id="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="activate_icon_set" value="1" class="form-switch form-switch-light" checked>
                                     <?php echo sr_admin_choice_label_html('생성 후 바로 사용'); ?>
                                 </label>
                             </div>

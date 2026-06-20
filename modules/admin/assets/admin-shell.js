@@ -2637,7 +2637,7 @@ window.AdminShell = {
                     title.textContent = label;
                     toggleLabel.className = 'admin-dashboard-manager-toggle';
                     input.type = 'checkbox';
-                    input.className = 'form-switch form-choice-dark';
+                    input.className = 'form-switch form-switch-light';
                     input.checked = sectionIsVisible(section);
                     input.setAttribute('aria-label', `${label} 표시`);
 

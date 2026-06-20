@@ -30,7 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <label class="form-label" for="member_oauth_mock_enabled"><?php echo sr_e('Mock 제공자'); ?></label>
             <div class="form-field">
                 <label class="form-check form-label" for="member_oauth_mock_enabled">
-                    <input id="member_oauth_mock_enabled" type="checkbox" name="mock_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['mock_enabled']) ? ' checked' : ''; ?>>
+                    <input id="member_oauth_mock_enabled" type="checkbox" name="mock_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['mock_enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('개발/검증용 Mock 제공자 사용'); ?>
                 </label>
             </div>
@@ -84,7 +84,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e($providerLabel); ?></h2>
                 <label class="form-check" for="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>">
-                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-switch form-choice-dark"<?php echo $providerEnabled ? ' checked' : ''; ?> data-oauth-provider-toggle="<?php echo sr_e($providerKey); ?>">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-switch form-switch-light"<?php echo $providerEnabled ? ' checked' : ''; ?> data-oauth-provider-toggle="<?php echo sr_e($providerKey); ?>">
                     <span class="sr-only"><?php echo sr_e($providerLabel . ' 사용'); ?></span>
                 </label>
             </div>

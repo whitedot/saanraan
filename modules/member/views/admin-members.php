@@ -162,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.2f905abd'), $memberAdminHelp['email_verified']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span></span>
                 <div class="form-field form-check">
-                    <input id="member_admin_create_email_verified" type="checkbox" name="email_verified" value="1" class="form-switch form-choice-dark"<?php echo (string) ($memberCreateValues['email_verified'] ?? '1') === '1' ? ' checked' : ''; ?>>
+                    <input id="member_admin_create_email_verified" type="checkbox" name="email_verified" value="1" class="form-switch form-switch-light"<?php echo (string) ($memberCreateValues['email_verified'] ?? '1') === '1' ? ' checked' : ''; ?>>
                     <label for="member_admin_create_email_verified"><?php echo sr_admin_choice_label_html(sr_t('member::ui.text.386deb8d')); ?></label>
                 </div>
             </div>
