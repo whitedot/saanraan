@@ -589,9 +589,9 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 }
 
 .sr-time-floating-tooltip {
-    background: rgba(17, 17, 17, .94);
+    background: rgba(255, 255, 255, .94);
     border-radius: 6px;
-    color: #fff;
+    color: #111;
     font-size: .72rem;
     font-weight: 700;
     left: 0;
