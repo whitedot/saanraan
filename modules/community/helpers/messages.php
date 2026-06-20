@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+function sr_community_messages_enabled(PDO $pdo, ?array $settings = null): bool
+{
+    if (!is_array($settings)) {
+        if (!function_exists('sr_community_settings')) {
+            require_once SR_ROOT . '/modules/community/helpers/levels.php';
+        }
+        $settings = sr_community_settings($pdo);
+    }
+
+    return (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled';
+}
+
 function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50): array
 {
     if ($accountId < 1) {
@@ -211,6 +223,23 @@ function sr_community_create_message(PDO $pdo, int $senderAccountId, int $recipi
     return (int) $pdo->lastInsertId();
 }
 
+function sr_community_account_can_bypass_message_write_conditions(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    if ((!function_exists('sr_admin_is_owner') || !function_exists('sr_admin_has_permission')) && is_file(SR_ROOT . '/modules/admin/helpers.php')) {
+        require_once SR_ROOT . '/modules/admin/helpers.php';
+    }
+    if (!function_exists('sr_admin_is_owner') || !function_exists('sr_admin_has_permission')) {
+        return false;
+    }
+
+    return sr_admin_is_owner($pdo, $accountId)
+        || sr_admin_has_permission($pdo, $accountId, '/admin/members', 'view');
+}
+
 function sr_community_account_can_write_message(PDO $pdo, array $account, ?array $settings = null): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
@@ -222,6 +251,9 @@ function sr_community_account_can_write_message(PDO $pdo, array $account, ?array
     $policy = (string) $settings['message_write_policy'];
     if ($policy === 'disabled') {
         return false;
+    }
+    if (sr_community_account_can_bypass_message_write_conditions($pdo, $accountId)) {
+        return true;
     }
 
     $groupKeys = $policy === 'group' ? (array) $settings['message_write_group_keys'] : [];

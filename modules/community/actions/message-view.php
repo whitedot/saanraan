@@ -8,6 +8,9 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $communitySettings = sr_community_settings($pdo);
+if (!sr_community_messages_enabled($pdo, $communitySettings)) {
+    sr_render_error(403, sr_t('community::action.error.message_disabled'));
+}
 $memberSettings = sr_member_settings($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $messageIdValue = sr_get_string('id', 20);

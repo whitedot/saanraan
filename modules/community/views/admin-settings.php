@@ -78,7 +78,6 @@ $privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocu
 $messageWritePolicyLabels = [
     'member' => sr_t('community::ui.message_policy.member'),
     'group' => sr_t('community::ui.message_policy.group'),
-    'disabled' => sr_t('community::ui.message_policy.disabled'),
 ];
 $levelScoreHelpModalId = 'community-level-score-help-modal';
 $levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_global_default')) . '</p>'
@@ -252,31 +251,60 @@ $communitySettingsSectionNavItems = [
     <section id="community-settings-section-message" class="card" data-admin-section-anchor>
         <h2>쪽지 정책</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
+            <label class="form-label" for="community_admin_settings_message_enabled">쪽지 사용</label>
+            <div class="form-field">
+                <label class="form-check form-label" for="community_admin_settings_message_enabled">
+                    <input id="community_admin_settings_message_enabled" type="checkbox" name="message_enabled" value="1" class="form-switch form-choice-dark"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? ' checked' : ''; ?> data-community-message-enabled>
+                    <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                </label>
+                <p class="form-help">끄면 회원이 쪽지함을 열거나 새 쪽지를 보낼 수 없습니다. 기존 쪽지 내역은 데이터로 유지됩니다.</p>
+            </div>
+        </div>
+        <div class="form-row"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? '' : ' hidden'; ?> data-community-message-dependent-field>
+            <div class="form-label form-label-help">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('community::ui.text.31edcf4a') . ' ' . $communitySettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySettingsHelp['message_policy']['id']); ?>" data-overlay="#<?php echo sr_e($communitySettingsHelp['message_policy']['id']); ?>">
+                    <?php echo sr_material_icon_html('help'); ?>
+                </button>
+                <label for="community_admin_settings_message_write_policy_member"><?php echo sr_e(sr_t('community::ui.text.31edcf4a')); ?> <span class="sr-required-label" data-community-message-required-label<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? '' : ' hidden'; ?>>(필수)</span></label>
+            </div>
             <div class="form-field">
                 <?php
                 $messagePolicyToggleOptions = [];
-                foreach (sr_community_message_write_policy_values() as $policy) {
+                foreach (['member', 'group'] as $policy) {
                     $messagePolicyToggleOptions[$policy] = (string) ($messageWritePolicyLabels[$policy] ?? sr_admin_code_label($policy, 'policy'));
                 }
-                echo sr_admin_radio_toggle_group_html('community_admin_settings_message_write_policy', 'message_write_policy', $messagePolicyToggleOptions, (string) $settings['message_write_policy'], false, ' data-community-message-policy');
+                $messagePolicyValue = (string) ($settings['message_write_policy'] ?? 'member');
+                if (!isset($messagePolicyToggleOptions[$messagePolicyValue])) {
+                    $messagePolicyValue = 'member';
+                }
+                echo sr_admin_radio_toggle_group_html('community_admin_settings_message_write_policy', 'message_write_policy', $messagePolicyToggleOptions, $messagePolicyValue, false, ' data-community-message-policy data-community-message-required-field');
                 ?>
                 <p class="form-help"><?php echo sr_e(sr_t('community::ui.message_policy.help')); ?></p>
             </div>
         </div>
-        <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_group_keys', sr_t('community::ui.member.69b1363d'), $communitySettingsHelp['message_group']['id'], $communitySettingsHelpOpenLabel); ?>
-            <div class="form-field">
+        <div class="form-row"<?php echo (string) ($settings['message_write_policy'] ?? 'member') === 'group' ? '' : ' hidden'; ?> data-community-message-dependent-field data-community-message-group-field>
+            <div class="form-label form-label-help">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('community::ui.member.69b1363d') . ' ' . $communitySettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySettingsHelp['message_group']['id']); ?>" data-overlay="#<?php echo sr_e($communitySettingsHelp['message_group']['id']); ?>">
+                    <?php echo sr_material_icon_html('help'); ?>
+                </button>
+                <label for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?> <span class="sr-required-label" data-community-message-group-required-label<?php echo (string) ($settings['message_write_policy'] ?? 'member') === 'group' ? '' : ' hidden'; ?>>(필수)</span></label>
+            </div>
+            <div class="form-field" data-community-message-group-controls>
                 <?php echo sr_admin_member_group_key_badge_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
             </div>
         </div>
-        <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_min_level', sr_t('community::ui.text.c96c86df'), $communitySettingsHelp['message_min_level']['id'], $communitySettingsHelpOpenLabel, true); ?>
+        <div class="form-row"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? '' : ' hidden'; ?> data-community-message-dependent-field>
+            <div class="form-label form-label-help">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('community::ui.text.c96c86df') . ' ' . $communitySettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySettingsHelp['message_min_level']['id']); ?>" data-overlay="#<?php echo sr_e($communitySettingsHelp['message_min_level']['id']); ?>">
+                    <?php echo sr_material_icon_html('help'); ?>
+                </button>
+                <label for="community_admin_settings_message_write_min_level"><?php echo sr_e(sr_t('community::ui.text.c96c86df')); ?> <span class="sr-required-label" data-community-message-required-label<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? '' : ' hidden'; ?>>(필수)</span></label>
+            </div>
             <div class="form-field">
-                <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select">
+                <select id="community_admin_settings_message_write_min_level" name="message_write_min_level" class="form-select"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? ' required' : ''; ?> data-community-message-required-field>
                                     <?php for ($levelValue = 0; $levelValue <= sr_community_max_level_value($settings); $levelValue++) { ?>
                                         <option value="<?php echo sr_e((string) $levelValue); ?>"<?php echo (int) $settings['message_write_min_level'] === $levelValue ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) $levelValue); ?>
+                                            <?php echo sr_e(sr_community_level_label_for_value($pdo, $levelValue, $settings)); ?>
                                         </option>
                                     <?php } ?>
                                 </select>
@@ -660,6 +688,66 @@ $communitySettingsSectionNavItems = [
     levelEnabled.addEventListener('change', syncAutoFields);
     toggle.addEventListener('change', syncAutoFields);
     syncAutoFields();
+})();
+
+(function () {
+    var enabled = document.querySelector('[data-community-message-enabled]');
+    var dependentFields = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-dependent-field]'));
+    var policyInputs = Array.prototype.slice.call(document.querySelectorAll('input[name="message_write_policy"]'));
+    var requiredFields = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-required-field]'));
+    var requiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-required-label]'));
+    var groupField = document.querySelector('[data-community-message-group-field]');
+    var groupControls = document.querySelector('[data-community-message-group-controls]');
+    var groupRequiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-group-required-label]'));
+    if (!enabled || dependentFields.length < 1) {
+        return;
+    }
+
+    function selectedPolicy() {
+        var checked = policyInputs.find(function (input) {
+            return input.checked;
+        });
+        return checked ? checked.value : 'member';
+    }
+
+    function setControlsDisabled(container, disabled) {
+        Array.prototype.slice.call(container.querySelectorAll('input, select, textarea, button')).forEach(function (control) {
+            if (control === enabled) {
+                return;
+            }
+            control.disabled = disabled;
+        });
+    }
+
+    function syncMessageFields() {
+        var messageEnabled = enabled.checked;
+        var groupRequired = messageEnabled && selectedPolicy() === 'group';
+        dependentFields.forEach(function (field) {
+            field.hidden = !messageEnabled;
+            setControlsDisabled(field, !messageEnabled);
+        });
+        requiredFields.forEach(function (control) {
+            control.required = messageEnabled;
+        });
+        requiredLabels.forEach(function (label) {
+            label.hidden = !messageEnabled;
+        });
+        if (groupField) {
+            groupField.hidden = !groupRequired;
+        }
+        if (groupControls) {
+            setControlsDisabled(groupControls, !groupRequired);
+        }
+        groupRequiredLabels.forEach(function (label) {
+            label.hidden = !groupRequired;
+        });
+    }
+
+    enabled.addEventListener('change', syncMessageFields);
+    policyInputs.forEach(function (input) {
+        input.addEventListener('change', syncMessageFields);
+    });
+    syncMessageFields();
 })();
 
 (function () {

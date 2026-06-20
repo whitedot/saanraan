@@ -10,6 +10,9 @@ $account = sr_member_require_login($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $settings = sr_community_settings($pdo);
 $memberSettings = sr_member_settings($pdo);
+if (!sr_community_messages_enabled($pdo, $settings)) {
+    sr_render_error(403, sr_t('community::action.error.message_disabled'));
+}
 if (!sr_community_account_can_write_message($pdo, $account, $settings)) {
     sr_render_error(403, sr_t('community::action.error.message_send_forbidden'));
 }

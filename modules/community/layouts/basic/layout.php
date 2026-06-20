@@ -105,6 +105,7 @@ $layoutMemberBadgeLabel = '회원';
 $layoutMemberBadgeClass = 'badge-soft-secondary';
 $layoutMemberLevelLabel = '';
 $layoutCommunityMemberMenuEnabled = false;
+$layoutCommunityMessagesEnabled = false;
 $layoutUnreadCommunityMessageCount = 0;
 $layoutMemberAssetRows = [];
 $layoutMemberActionRows = [];
@@ -131,8 +132,10 @@ if (
             require_once SR_ROOT . '/modules/community/helpers/messages.php';
             $layoutCommunityMemberMenuEnabled = true;
             try {
-                $layoutUnreadCommunityMessageCount = function_exists('sr_community_unread_message_count') ? sr_community_unread_message_count($layoutPdo, $layoutCurrentAccountId) : 0;
+                $layoutCommunityMessagesEnabled = function_exists('sr_community_messages_enabled') ? sr_community_messages_enabled($layoutPdo) : true;
+                $layoutUnreadCommunityMessageCount = $layoutCommunityMessagesEnabled && function_exists('sr_community_unread_message_count') ? sr_community_unread_message_count($layoutPdo, $layoutCurrentAccountId) : 0;
             } catch (Throwable) {
+                $layoutCommunityMessagesEnabled = false;
                 $layoutUnreadCommunityMessageCount = 0;
             }
         }
@@ -364,11 +367,13 @@ if (
                             </a>
                             <?php if ($layoutCommunityMemberMenuEnabled) { ?>
                                 <hr class="community-layout-member-divider dropdown-profile-divider">
-                                <a class="community-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
-                                    <span><?php echo sr_e('쪽지'); ?></span>
-                                    <strong><?php echo sr_e(number_format($layoutUnreadCommunityMessageCount) . '개'); ?></strong>
-                                </a>
+                                <?php if ($layoutCommunityMessagesEnabled) { ?>
+                                    <a class="community-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
+                                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
+                                        <span><?php echo sr_e('쪽지'); ?></span>
+                                        <strong><?php echo sr_e(number_format($layoutUnreadCommunityMessageCount) . '개'); ?></strong>
+                                    </a>
+                                <?php } ?>
                                 <a class="community-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/scraps')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bookmark</span>
                                     <span><?php echo sr_e('스크랩'); ?></span>

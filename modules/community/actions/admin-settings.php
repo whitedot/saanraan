@@ -63,7 +63,9 @@ if (sr_request_method() === 'POST') {
         $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
-        $messageWritePolicy = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
+        $messageEnabled = ($_POST['message_enabled'] ?? '') === '1';
+        $messageWritePolicyInput = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
+        $messageWritePolicy = $messageEnabled && in_array($messageWritePolicyInput, ['member', 'group'], true) ? $messageWritePolicyInput : 'disabled';
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $postEditorInput = sr_post_string('post_editor', 30);
@@ -92,7 +94,9 @@ if (sr_request_method() === 'POST') {
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
-        $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
+        $messageWriteGroupKeys = $messageEnabled
+            ? sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput)
+            : (is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : []);
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
@@ -171,7 +175,9 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.level_max_change_confirmation_required');
         }
 
-        if ($messageWriteMinLevel === null) {
+        if (!$messageEnabled) {
+            $messageWriteMinLevel = (int) $settings['message_write_min_level'];
+        } elseif ($messageWriteMinLevel === null) {
             $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $levelMaxForValidation]);
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
         }
@@ -258,18 +264,21 @@ if (sr_request_method() === 'POST') {
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
 
-        if (sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
+        if ($messageEnabled && sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
             $errors[] = sr_t('community::action.admin.message_group_list_too_long');
         } else {
-            $invalidGroupKeys = sr_community_invalid_board_group_keys_from_input_value($messageWriteGroupKeysInput);
+            $invalidGroupKeys = $messageEnabled ? sr_community_invalid_board_group_keys_from_input_value($messageWriteGroupKeysInput) : [];
             if ($invalidGroupKeys !== []) {
                 $errors[] = sr_t('community::action.admin.message_group_keys_invalid', ['keys' => implode(', ', $invalidGroupKeys)]);
             }
         }
 
-        $unknownGroupKeys = array_values(array_diff($messageWriteGroupKeys, $enabledMemberGroupKeys));
+        $unknownGroupKeys = $messageEnabled ? array_values(array_diff($messageWriteGroupKeys, $enabledMemberGroupKeys)) : [];
         if ($unknownGroupKeys !== []) {
             $errors[] = sr_t('community::action.admin.message_group_keys_inactive', ['keys' => implode(', ', $unknownGroupKeys)]);
+        }
+        if ($messageEnabled && $messageWritePolicy === 'group' && $messageWriteGroupKeys === []) {
+            $errors[] = '쪽지 권한을 회원 그룹으로 제한하려면 보낼 수 있는 회원 그룹을 하나 이상 선택해 주세요.';
         }
 
         if ($errors === []) {

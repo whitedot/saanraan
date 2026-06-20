@@ -7,6 +7,10 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_require_csrf();
+$communitySettings = sr_community_settings($pdo);
+if (!sr_community_messages_enabled($pdo, $communitySettings)) {
+    sr_render_error(403, sr_t('community::action.error.message_disabled'));
+}
 
 $messageIdValue = sr_post_string('message_id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;
