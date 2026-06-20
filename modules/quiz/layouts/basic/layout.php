@@ -315,9 +315,7 @@ if (
                     <?php } ?>
                     <details class="quiz-layout-member-menu">
                         <summary class="quiz-layout-icon-button quiz-layout-member-link quiz-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-                            <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                            <span class="material-symbols-outlined quiz-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                            <span class="quiz-layout-member-avatar dropdown-profile-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
                         </summary>
                         <div class="quiz-layout-member-dropdown dropdown-menu-profile" role="menu" aria-orientation="vertical">
                             <div class="quiz-layout-member-dropdown-header dropdown-profile-header">

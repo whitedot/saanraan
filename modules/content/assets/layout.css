@@ -337,6 +337,18 @@
     text-overflow: ellipsis;
 }
 
+.content-layout-member-link-account {
+    flex: 0 0 32px;
+    gap: 0;
+    width: 32px;
+}
+
+.content-layout-member-link.content-layout-member-link-account span.content-layout-member-avatar {
+    color: var(--color-white);
+    font-size: .78rem;
+    width: 32px;
+}
+
 .content-layout-member-menu {
     align-items: center;
     display: inline-flex;

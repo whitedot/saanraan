@@ -485,6 +485,18 @@
     text-overflow: ellipsis;
 }
 
+.community-layout-member-link-account {
+    flex: 0 0 32px;
+    gap: 0;
+    width: 32px;
+}
+
+.community-layout-member-link.community-layout-member-link-account span.community-layout-member-avatar {
+    color: var(--color-white);
+    font-size: .78rem;
+    width: 32px;
+}
+
 .community-layout-member-menu {
     align-items: center;
     display: inline-flex;

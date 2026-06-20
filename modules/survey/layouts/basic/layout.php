@@ -312,9 +312,7 @@ if (
                     <?php } ?>
                     <details class="survey-layout-member-menu">
                         <summary class="survey-layout-icon-button survey-layout-member-link survey-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-                            <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                            <span class="material-symbols-outlined survey-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                            <span class="survey-layout-member-avatar dropdown-profile-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
                         </summary>
                         <div class="survey-layout-member-dropdown dropdown-menu-profile" role="menu" aria-orientation="vertical">
                             <div class="survey-layout-member-dropdown-header dropdown-profile-header">

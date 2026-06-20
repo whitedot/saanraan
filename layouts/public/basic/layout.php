@@ -320,9 +320,7 @@ if (
                     <?php } ?>
                     <details class="public-layout-member-menu">
                         <summary class="public-layout-icon-button public-layout-member-link public-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-                            <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                            <span class="material-symbols-outlined public-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                            <span class="public-layout-member-avatar dropdown-profile-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
                         </summary>
                         <div class="public-layout-member-dropdown dropdown-menu-profile" role="menu" aria-orientation="vertical">
                             <div class="public-layout-member-dropdown-header dropdown-profile-header">

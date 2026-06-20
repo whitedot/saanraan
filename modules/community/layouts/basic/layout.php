@@ -322,9 +322,7 @@ if (
                     <?php } ?>
                     <details class="community-layout-member-menu">
                         <summary class="community-layout-icon-button community-layout-member-link community-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-                            <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                            <span class="material-symbols-outlined community-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                            <span class="community-layout-member-avatar dropdown-profile-avatar <?php echo sr_e($layoutMemberAvatarColorClass); ?>" aria-hidden="true"><?php echo sr_e($layoutMemberInitial); ?></span>
                         </summary>
                         <div class="community-layout-member-dropdown dropdown-menu-profile" role="menu" aria-orientation="vertical">
                             <div class="community-layout-member-dropdown-header dropdown-profile-header">

@@ -337,6 +337,18 @@
     text-overflow: ellipsis;
 }
 
+.survey-layout-member-link-account {
+    flex: 0 0 32px;
+    gap: 0;
+    width: 32px;
+}
+
+.survey-layout-member-link.survey-layout-member-link-account span.survey-layout-member-avatar {
+    color: var(--color-white);
+    font-size: .78rem;
+    width: 32px;
+}
+
 .survey-layout-member-menu {
     align-items: center;
     display: inline-flex;
