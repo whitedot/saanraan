@@ -98,7 +98,7 @@
 .community-home-member-card {
     align-items: center;
     background: var(--sr-surface, #fff);
-    border: 1px solid var(--community-divider, var(--sr-border, #d8dee8));
+    border: 1px solid var(--community-border, var(--sr-border, #d9e0ea));
     border-radius: 8px;
     display: grid;
     gap: 8px;
@@ -112,7 +112,7 @@
 
 [data-color-scheme="dark"] .community-home-member-card {
     background: var(--sr-surface, var(--color-card, #1e1f27));
-    border-color: var(--community-divider, var(--sr-border, #343a46));
+    border-color: var(--community-border, var(--sr-border, #343a46));
 }
 
 .community-home-member-avatar-wrap {
