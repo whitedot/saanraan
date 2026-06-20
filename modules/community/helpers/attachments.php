@@ -123,26 +123,21 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
     }
 
     $publicUrl = sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id']));
-    $boardId = (int) ($board['id'] ?? 0);
-    $thumbnailEnabled = array_key_exists('effective_thumbnail_enabled', $board)
-        ? (string) $board['effective_thumbnail_enabled'] === '1'
-        : ($boardId > 0 ? sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_enabled', $settings) === '1' : !empty($settings['thumbnail_enabled']));
+    $thumbnailEnabled = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_enabled', $settings) === '1';
     if (!$thumbnailEnabled) {
         return $publicUrl;
     }
 
-    $criterion = array_key_exists('effective_thumbnail_criterion', $board)
-        ? sr_community_thumbnail_criterion((string) $board['effective_thumbnail_criterion'])
-        : ($boardId > 0 ? sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_criterion', $settings) : sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width')));
+    $criterion = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_criterion', $settings);
     if ($criterion === 'bytes') {
         $sourceBytes = (int) ($post['list_image_size_bytes'] ?? 0);
-        $minBytes = array_key_exists('effective_thumbnail_min_bytes', $board) ? (int) $board['effective_thumbnail_min_bytes'] : ($boardId > 0 ? (int) sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_min_bytes', $settings) : (int) ($settings['thumbnail_min_bytes'] ?? 102400));
+        $minBytes = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_bytes', $settings);
         if ($minBytes > 0 && $sourceBytes < $minBytes) {
             return $publicUrl;
         }
     } else {
         $sourceWidth = (int) ($post['list_image_width'] ?? 0);
-        $minWidth = array_key_exists('effective_thumbnail_min_width', $board) ? (int) $board['effective_thumbnail_min_width'] : ($boardId > 0 ? (int) sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_min_width', $settings) : (int) ($settings['thumbnail_min_width'] ?? 320));
+        $minWidth = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_width', $settings);
         if ($sourceWidth > 0 && $sourceWidth < $minWidth) {
             return $publicUrl;
         }
@@ -159,13 +154,26 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
         'width' => (int) ($post['list_image_width'] ?? 0),
         'height' => (int) ($post['list_image_height'] ?? 0),
         'public_url' => $publicUrl,
-    ], [
-        'width' => 320,
-        'height' => 180,
-        'mode' => 'cover',
+    ], sr_community_post_list_thumbnail_options($post));
+}
+
+function sr_community_post_list_thumbnail_options(array $post): array
+{
+    $sourceWidth = (int) ($post['list_image_width'] ?? 0);
+    $sourceHeight = (int) ($post['list_image_height'] ?? 0);
+    $targetWidth = $sourceWidth > 0 ? min(320, $sourceWidth) : 320;
+    $targetHeight = 180;
+    if ($sourceWidth > 0 && $sourceHeight > 0) {
+        $targetHeight = max(1, min(2000, (int) round($sourceHeight * ($targetWidth / $sourceWidth))));
+    }
+
+    return [
+        'width' => $targetWidth,
+        'height' => $targetHeight,
+        'mode' => 'contain',
         'quality' => 82,
         'format' => 'source',
-    ]);
+    ];
 }
 
 function sr_community_post_allows_public_list_thumbnail(PDO $pdo, array $post, array $board, array $settings): bool

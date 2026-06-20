@@ -466,6 +466,23 @@ function sr_community_board_own_thumbnail_setting(PDO $pdo, int $boardId, string
         : ($settingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($value) : (string) sr_community_thumbnail_int_setting($settingKey, $value));
 }
 
+function sr_community_effective_thumbnail_setting(PDO $pdo, array $board, string $settingKey, array $settings = []): string
+{
+    if (!in_array($settingKey, sr_community_thumbnail_setting_keys(), true)) {
+        return '';
+    }
+
+    $default = sr_community_thumbnail_default_setting($settingKey, $settings);
+    $value = sr_community_effective_board_setting($pdo, $board, $settingKey, $default);
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return $settingKey === 'thumbnail_enabled'
+        ? (in_array($value, ['1', 'true', 'yes', 'on'], true) ? '1' : '0')
+        : ($settingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($value) : (string) sr_community_thumbnail_int_setting($settingKey, $value));
+}
+
 function sr_community_post_editor_key(string $value, bool $allowInherit = false): string
 {
     return sr_editor_normalize_key($value, $allowInherit);
@@ -758,11 +775,7 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     }
     $defaultThumbnailSettings = sr_community_default_settings();
     foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
-        $defaultThumbnailValue = sr_community_thumbnail_default_setting($thumbnailSettingKey, $defaultThumbnailSettings);
-        $thumbnailValue = sr_community_effective_board_setting($pdo, $board, $thumbnailSettingKey, $defaultThumbnailValue);
-        $board['effective_' . $thumbnailSettingKey] = $thumbnailSettingKey === 'thumbnail_enabled'
-            ? (in_array($thumbnailValue, ['1', 'true', 'yes', 'on'], true) ? '1' : '0')
-            : ($thumbnailSettingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($thumbnailValue) : (string) sr_community_thumbnail_int_setting($thumbnailSettingKey, $thumbnailValue));
+        $board['effective_' . $thumbnailSettingKey] = sr_community_effective_thumbnail_setting($pdo, $board, $thumbnailSettingKey, $defaultThumbnailSettings);
     }
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
