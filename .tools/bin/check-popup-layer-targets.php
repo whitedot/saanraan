@@ -82,7 +82,8 @@ $expectedTargets = [
 ];
 
 $expectedBannerTargets = [
-    'core|site.home|before_content',
+    'core|site.layout|before_layout',
+    'core|site.layout|after_layout',
     'content|content.view|before_content',
     'community|community.home|after_secondary_navigation',
     'community|community.post.view|after_comments',

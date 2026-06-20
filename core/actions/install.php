@@ -82,7 +82,7 @@ $optionalModules = [
     ],
     'banner' => [
         'name' => '배너',
-        'version' => '2026.05.003',
+        'version' => '2026.06.002',
         'label' => sr_t('install.module.banner.label'),
         'description' => '공통 노출 위치에 표시할 배너와 노출 규칙을 관리합니다.',
     ],

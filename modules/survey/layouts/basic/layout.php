@@ -41,6 +41,8 @@ $layoutModuleHomeUrl = sr_url('/survey');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
+$layoutBeforeLayoutHtml = '';
+$layoutAfterLayoutHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
@@ -85,6 +87,13 @@ if ($layoutPdo instanceof PDO) {
             ];
         }
     }
+}
+if ($layoutPdo instanceof PDO) {
+    if (sr_module_enabled($layoutPdo, 'banner')) {
+        $layoutStylesheets[] = '/modules/banner/assets/module.css';
+    }
+    $layoutBeforeLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.layout', 'slot_key' => 'before_layout']);
+    $layoutAfterLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.layout', 'slot_key' => 'after_layout']);
 }
 $layoutNotificationEnabled = false;
 $layoutNotificationHasAccount = false;
@@ -232,6 +241,7 @@ if (
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="<?php echo sr_e(trim('survey-layout-body ' . $layoutBodyClass)); ?>">
+    <?php echo $layoutBeforeLayoutHtml; ?>
     <header class="survey-layout-header" data-survey-scroll-header>
         <div class="survey-layout-brand-link">
             <a class="survey-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
@@ -409,6 +419,7 @@ if (
             </div>
         </div>
     </footer>
+    <?php echo $layoutAfterLayoutHtml; ?>
     <?php echo sr_script_tags($layoutScripts); ?>
     <?php echo $layoutPrivacyCookieConsentHtml; ?>
     <?php echo sr_pwa_registration_script(); ?>

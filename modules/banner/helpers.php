@@ -292,18 +292,18 @@ function sr_banner_builtin_targets(): array
     return [
         [
             'module_key' => 'core',
-            'point_key' => 'site.home',
-            'slot_key' => 'before_content',
+            'point_key' => 'site.layout',
+            'slot_key' => 'before_layout',
             'placement_kind' => 'inline',
-            'label' => 'core / 홈 / 본문 위',
+            'label' => 'core / 전체 / 상단',
             'source' => 'core',
         ],
         [
             'module_key' => 'core',
-            'point_key' => 'site.home',
-            'slot_key' => 'after_content',
+            'point_key' => 'site.layout',
+            'slot_key' => 'after_layout',
             'placement_kind' => 'inline',
-            'label' => 'core / 홈 / 본문 아래',
+            'label' => 'core / 전체 / 하단',
             'source' => 'core',
         ],
     ];
@@ -369,6 +369,7 @@ function sr_banner_target_admin_label(array $target): string
 
     $pointLabels = [
         'site.home' => '홈',
+        'site.layout' => '전체',
         'content.view' => '콘텐츠 상세',
         'community.home' => '커뮤니티 홈',
         'community.board.list' => '게시판 목록',
@@ -378,6 +379,8 @@ function sr_banner_target_admin_label(array $target): string
         'member.register' => '회원가입',
     ];
     $slotLabels = [
+        'before_layout' => '상단',
+        'after_layout' => '하단',
         'before_content' => '본문 위',
         'after_content' => '본문 아래',
         'before_list' => '목록 위',
@@ -409,7 +412,7 @@ function sr_banner_target_service_label(string $serviceKey): string
     }
 
     $labels = [
-        'core' => '홈',
+        'core' => '전체',
         'content' => '콘텐츠',
         'community' => '커뮤니티',
         'member' => '회원',
@@ -939,7 +942,7 @@ function sr_banner_default_settings(): array
     return [
         'banner_skin_key' => 'basic',
         'banner_default_status' => 'draft',
-        'banner_default_target_option' => sr_banner_public_target_option_value(),
+        'banner_default_target_option' => 'core|site.layout|before_layout',
         'banner_default_match_type' => 'all',
         'banner_default_sort_order' => 100,
     ];
