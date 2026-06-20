@@ -75,6 +75,11 @@ if (sr_request_method() === 'POST') {
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $thumbnailEnabled = ($_POST['thumbnail_enabled'] ?? '') === '1';
+        $thumbnailCriterionInput = sr_post_string('thumbnail_criterion', 20);
+        $thumbnailCriterion = sr_community_thumbnail_criterion($thumbnailCriterionInput);
+        $thumbnailMinWidth = sr_admin_post_int_in_range('thumbnail_min_width', 1, 4000);
+        $thumbnailMinBytes = sr_admin_post_int_in_range('thumbnail_min_bytes', 0, 20971520);
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
         $privacyConsentDocumentKeys = [];
         $privacyConsentRequires = [];
@@ -200,6 +205,23 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
             $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
         }
+        if ($thumbnailCriterionInput !== $thumbnailCriterion) {
+            $errors[] = '썸네일 생성 기준 선택이 올바르지 않습니다.';
+        }
+        if ($thumbnailCriterion === 'width' && $thumbnailMinWidth === null) {
+            $errors[] = '썸네일 생성 기준 너비가 올바르지 않습니다.';
+            $thumbnailMinWidth = 320;
+        }
+        if ($thumbnailCriterion === 'bytes' && $thumbnailMinBytes === null) {
+            $errors[] = '썸네일 생성 기준 용량이 올바르지 않습니다.';
+            $thumbnailMinBytes = 102400;
+        }
+        if ($thumbnailMinWidth === null) {
+            $thumbnailMinWidth = 320;
+        }
+        if ($thumbnailMinBytes === null) {
+            $thumbnailMinBytes = 102400;
+        }
         if ($privacyConsentEnabled) {
             if (!sr_community_submission_consents_table_exists($pdo)) {
                 $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
@@ -315,6 +337,10 @@ if (sr_request_method() === 'POST') {
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
+                ['thumbnail_enabled', $thumbnailEnabled ? '1' : '0', 'bool'],
+                ['thumbnail_criterion', $thumbnailCriterion, 'string'],
+                ['thumbnail_min_width', (string) $thumbnailMinWidth, 'int'],
+                ['thumbnail_min_bytes', (string) $thumbnailMinBytes, 'int'],
                 ['privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool'],
                 ['privacy_consent_document_key', $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default', 'string'],
                 ['privacy_consent_post_document_key', (string) ($privacyConsentDocumentKeys['post'] ?? ''), 'string'],
@@ -436,6 +462,10 @@ if (sr_request_method() === 'POST') {
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'secret_posts_enabled' => $secretPostsEnabled,
                         'secret_comments_enabled' => $secretCommentsEnabled,
+                        'thumbnail_enabled' => $thumbnailEnabled,
+                        'thumbnail_criterion' => $thumbnailCriterion,
+                        'thumbnail_min_width' => $thumbnailMinWidth,
+                        'thumbnail_min_bytes' => $thumbnailMinBytes,
                         'privacy_consent_enabled' => $privacyConsentEnabled,
                         'privacy_consent_targets' => array_values(array_filter([
                             $privacyConsentRequirePost ? 'post' : '',

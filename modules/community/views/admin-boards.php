@@ -75,6 +75,7 @@ $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_op
 if (isset($formBoard) && is_array($formBoard)) {
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard['privacy_consent_document_key'] ?? ''));
 }
+$thumbnailCriterionValue = sr_community_thumbnail_criterion($boardField($formBoard ?? [], 'thumbnail_criterion', (string) ($settings['thumbnail_criterion'] ?? 'width')));
 foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
     $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[$privacyConsentDocumentSettingKey] ?? ''));
@@ -909,6 +910,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <input id="community_admin_boards_attachment_max_count" type="number" name="attachment_max_count" min="0" max="10" value="<?php echo sr_e($boardField($formBoard, 'attachment_max_count', '1')); ?>" required class="form-input">
                     <?php echo $settingSourceRadioHtml('source_attachment_max_count', $boardSettingSource($formBoard, 'attachment_max_count')); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">썸네일 생성</span>
+                <div class="form-field">
+                    <label class="form-check form-label" for="community_admin_boards_thumbnail_enabled">
+                        <input id="community_admin_boards_thumbnail_enabled" type="checkbox" name="thumbnail_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'thumbnail_enabled', !empty($settings['thumbnail_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('게시글 목록 이미지에 캐시 썸네일 생성 사용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_thumbnail_enabled', $boardSettingSource($formBoard, 'thumbnail_enabled')); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">썸네일 생성 기준 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_thumbnail_criterion', 'thumbnail_criterion', ['width' => '너비 기준', 'bytes' => '용량 기준'], $thumbnailCriterionValue, true, ' data-community-thumbnail-criterion'); ?>
+                    <?php echo $settingSourceRadioHtml('source_thumbnail_criterion', $boardSettingSource($formBoard, 'thumbnail_criterion')); ?>
+                    <p class="form-help">선택한 기준 하나만 적용합니다. 목록 표시 크기는 화면과 스킨 CSS가 결정합니다.</p>
+                </div>
+            </div>
+            <div class="form-row" data-community-thumbnail-rule="width"<?php echo $thumbnailCriterionValue === 'width' ? '' : ' hidden'; ?>>
+                <label class="form-label" for="community_admin_boards_thumbnail_min_width">썸네일 생성 기준 너비 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_boards_thumbnail_min_width" type="number" name="thumbnail_min_width" min="1" max="4000" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_width', (string) ($settings['thumbnail_min_width'] ?? 320))); ?>"<?php echo $thumbnailCriterionValue === 'width' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
+                        <span class="input-group-text">px</span>
+                    </div>
+                    <?php echo $settingSourceRadioHtml('source_thumbnail_min_width', $boardSettingSource($formBoard, 'thumbnail_min_width')); ?>
+                    <p class="form-help">너비 기준을 선택했을 때 원본 이미지 너비가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row" data-community-thumbnail-rule="bytes"<?php echo $thumbnailCriterionValue === 'bytes' ? '' : ' hidden'; ?>>
+                <label class="form-label" for="community_admin_boards_thumbnail_min_bytes">썸네일 생성 기준 용량 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_boards_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_bytes', (string) ($settings['thumbnail_min_bytes'] ?? 102400))); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
+                        <span class="input-group-text">bytes</span>
+                    </div>
+                    <?php echo $settingSourceRadioHtml('source_thumbnail_min_bytes', $boardSettingSource($formBoard, 'thumbnail_min_bytes')); ?>
+                    <p class="form-help">용량 기준을 선택했을 때 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -2474,5 +2515,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 })();
 </script>
 <?php } ?>
+
+<script>
+(function () {
+    function syncCommunityThumbnailCriterion(form) {
+        var root = form || document;
+        var checked = root.querySelector('input[name="thumbnail_criterion"]:checked');
+        var selected = checked ? checked.value : 'width';
+        Array.prototype.slice.call(root.querySelectorAll('[data-community-thumbnail-rule]')).forEach(function (row) {
+            var visible = row.getAttribute('data-community-thumbnail-rule') === selected;
+            row.hidden = !visible;
+            Array.prototype.slice.call(row.querySelectorAll('[data-admin-required-when-visible]')).forEach(function (input) {
+                input.required = visible;
+                if (!visible && typeof input.setCustomValidity === 'function') {
+                    input.setCustomValidity('');
+                }
+            });
+        });
+    }
+
+    document.addEventListener('change', function (event) {
+        if (!event.target || event.target.name !== 'thumbnail_criterion') {
+            return;
+        }
+        syncCommunityThumbnailCriterion(event.target.closest('form'));
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            syncCommunityThumbnailCriterion(document);
+        });
+    } else {
+        syncCommunityThumbnailCriterion(document);
+    }
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

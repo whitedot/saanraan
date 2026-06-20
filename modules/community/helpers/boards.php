@@ -81,6 +81,10 @@ function sr_community_board_group_setting_keys(): array
         'level_post_score',
         'level_comment_score',
         'image_uploads_enabled',
+        'thumbnail_enabled',
+        'thumbnail_criterion',
+        'thumbnail_min_width',
+        'thumbnail_min_bytes',
         'attachment_max_bytes',
         'attachment_max_count',
         'file_uploads_enabled',
@@ -189,6 +193,10 @@ function sr_community_board_group_default_settings(array $settings): array
         'level_post_score' => (string) min(10000, max(0, (int) ($settings['level_post_score'] ?? 10))),
         'level_comment_score' => (string) min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2))),
         'image_uploads_enabled' => !empty($settings['image_uploads_enabled']) ? '1' : '0',
+        'thumbnail_enabled' => !empty($settings['thumbnail_enabled']) ? '1' : '0',
+        'thumbnail_criterion' => sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width')),
+        'thumbnail_min_width' => (string) min(4000, max(1, (int) ($settings['thumbnail_min_width'] ?? 320))),
+        'thumbnail_min_bytes' => (string) min(20971520, max(0, (int) ($settings['thumbnail_min_bytes'] ?? 102400))),
         'attachment_max_bytes' => (string) min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152))),
         'attachment_max_count' => (string) min(10, max(0, (int) ($settings['attachment_max_count'] ?? 1))),
         'file_uploads_enabled' => !empty($settings['file_uploads_enabled']) ? '1' : '0',
@@ -344,6 +352,8 @@ function sr_community_board_setting_value_type(string $settingKey): string
     if (in_array($settingKey, [
         'attachment_max_bytes',
         'attachment_max_count',
+        'thumbnail_min_width',
+        'thumbnail_min_bytes',
         'file_attachment_max_bytes',
         'file_attachment_max_count',
         'read_min_level',
@@ -381,6 +391,79 @@ function sr_community_board_setting_value_type(string $settingKey): string
     }
 
     return 'string';
+}
+
+function sr_community_thumbnail_setting_keys(): array
+{
+    return [
+        'thumbnail_enabled',
+        'thumbnail_criterion',
+        'thumbnail_min_width',
+        'thumbnail_min_bytes',
+    ];
+}
+
+function sr_community_thumbnail_criterion(string $value): string
+{
+    return in_array($value, ['width', 'bytes'], true) ? $value : 'width';
+}
+
+function sr_community_thumbnail_int_setting(string $settingKey, mixed $value): int
+{
+    if ($settingKey === 'thumbnail_min_bytes') {
+        return min(20971520, max(0, (int) $value));
+    }
+
+    return min(4000, max(1, (int) $value));
+}
+
+function sr_community_thumbnail_default_setting(string $settingKey, array $settings = []): string
+{
+    $settings = $settings !== [] ? sr_community_normalize_settings($settings) : sr_community_default_settings();
+    if ($settingKey === 'thumbnail_enabled') {
+        return !empty($settings['thumbnail_enabled']) ? '1' : '0';
+    }
+    if ($settingKey === 'thumbnail_criterion') {
+        return sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width'));
+    }
+
+    return (string) sr_community_thumbnail_int_setting($settingKey, $settings[$settingKey] ?? 0);
+}
+
+function sr_community_board_thumbnail_setting(PDO $pdo, int $boardId, string $settingKey, array $settings = []): string
+{
+    if (!in_array($settingKey, sr_community_thumbnail_setting_keys(), true)) {
+        return '';
+    }
+
+    $default = sr_community_thumbnail_default_setting($settingKey, $settings);
+    $board = sr_community_board_by_id($pdo, $boardId);
+    $value = is_array($board)
+        ? sr_community_effective_board_setting($pdo, $board, $settingKey, $default)
+        : sr_community_board_setting_value($pdo, $boardId, $settingKey);
+    if (!is_string($value) || $value === '') {
+        return $default;
+    }
+
+    return $settingKey === 'thumbnail_enabled'
+        ? (in_array($value, ['1', 'true', 'yes', 'on'], true) ? '1' : '0')
+        : ($settingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($value) : (string) sr_community_thumbnail_int_setting($settingKey, $value));
+}
+
+function sr_community_board_own_thumbnail_setting(PDO $pdo, int $boardId, string $settingKey, array $settings = []): string
+{
+    if (!in_array($settingKey, sr_community_thumbnail_setting_keys(), true)) {
+        return '';
+    }
+
+    $value = sr_community_board_setting_value($pdo, $boardId, $settingKey);
+    if (!is_string($value) || $value === '') {
+        return sr_community_thumbnail_default_setting($settingKey, $settings);
+    }
+
+    return $settingKey === 'thumbnail_enabled'
+        ? (in_array($value, ['1', 'true', 'yes', 'on'], true) ? '1' : '0')
+        : ($settingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($value) : (string) sr_community_thumbnail_int_setting($settingKey, $value));
 }
 
 function sr_community_post_editor_key(string $value, bool $allowInherit = false): string
@@ -673,6 +756,14 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     foreach (sr_community_seo_setting_keys() as $settingKey) {
         $board[$settingKey] = sr_community_effective_board_setting($pdo, $board, (string) $settingKey, '');
     }
+    $defaultThumbnailSettings = sr_community_default_settings();
+    foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
+        $defaultThumbnailValue = sr_community_thumbnail_default_setting($thumbnailSettingKey, $defaultThumbnailSettings);
+        $thumbnailValue = sr_community_effective_board_setting($pdo, $board, $thumbnailSettingKey, $defaultThumbnailValue);
+        $board['effective_' . $thumbnailSettingKey] = $thumbnailSettingKey === 'thumbnail_enabled'
+            ? (in_array($thumbnailValue, ['1', 'true', 'yes', 'on'], true) ? '1' : '0')
+            : ($thumbnailSettingKey === 'thumbnail_criterion' ? sr_community_thumbnail_criterion($thumbnailValue) : (string) sr_community_thumbnail_int_setting($thumbnailSettingKey, $thumbnailValue));
+    }
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
     return $board;
@@ -688,6 +779,10 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     }
     $board['effective_attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
     $board['effective_attachment_max_count'] = sr_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
+    foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
+        $board[$thumbnailSettingKey] = sr_community_board_own_thumbnail_setting($pdo, (int) $board['id'], $thumbnailSettingKey, $settings);
+        $board['effective_' . $thumbnailSettingKey] = sr_community_board_thumbnail_setting($pdo, (int) $board['id'], $thumbnailSettingKey, $settings);
+    }
     $board['file_uploads_enabled'] = sr_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0');
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
     $board['file_attachment_max_bytes'] = sr_community_board_own_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);

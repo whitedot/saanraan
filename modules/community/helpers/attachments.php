@@ -122,6 +122,32 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
         return '';
     }
 
+    $publicUrl = sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id']));
+    $boardId = (int) ($board['id'] ?? 0);
+    $thumbnailEnabled = array_key_exists('effective_thumbnail_enabled', $board)
+        ? (string) $board['effective_thumbnail_enabled'] === '1'
+        : ($boardId > 0 ? sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_enabled', $settings) === '1' : !empty($settings['thumbnail_enabled']));
+    if (!$thumbnailEnabled) {
+        return $publicUrl;
+    }
+
+    $criterion = array_key_exists('effective_thumbnail_criterion', $board)
+        ? sr_community_thumbnail_criterion((string) $board['effective_thumbnail_criterion'])
+        : ($boardId > 0 ? sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_criterion', $settings) : sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width')));
+    if ($criterion === 'bytes') {
+        $sourceBytes = (int) ($post['list_image_size_bytes'] ?? 0);
+        $minBytes = array_key_exists('effective_thumbnail_min_bytes', $board) ? (int) $board['effective_thumbnail_min_bytes'] : ($boardId > 0 ? (int) sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_min_bytes', $settings) : (int) ($settings['thumbnail_min_bytes'] ?? 102400));
+        if ($minBytes > 0 && $sourceBytes < $minBytes) {
+            return $publicUrl;
+        }
+    } else {
+        $sourceWidth = (int) ($post['list_image_width'] ?? 0);
+        $minWidth = array_key_exists('effective_thumbnail_min_width', $board) ? (int) $board['effective_thumbnail_min_width'] : ($boardId > 0 ? (int) sr_community_board_thumbnail_setting($pdo, $boardId, 'thumbnail_min_width', $settings) : (int) ($settings['thumbnail_min_width'] ?? 320));
+        if ($sourceWidth > 0 && $sourceWidth < $minWidth) {
+            return $publicUrl;
+        }
+    }
+
     return sr_thumbnail_public_url($pdo, [
         'public' => true,
         'module_key' => 'community',
@@ -132,10 +158,10 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
         'checksum_sha256' => (string) ($post['list_image_checksum_sha256'] ?? ''),
         'width' => (int) ($post['list_image_width'] ?? 0),
         'height' => (int) ($post['list_image_height'] ?? 0),
-        'public_url' => sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id'])),
+        'public_url' => $publicUrl,
     ], [
-        'width' => 160,
-        'height' => 90,
+        'width' => 320,
+        'height' => 180,
         'mode' => 'cover',
         'quality' => 82,
         'format' => 'source',

@@ -444,6 +444,11 @@ if (sr_request_method() === 'POST') {
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
         $attachmentMaxBytes = sr_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('attachment_max_count', 0, 10);
+        $thumbnailEnabled = ($_POST['thumbnail_enabled'] ?? '') === '1';
+        $thumbnailCriterionInput = sr_post_string('thumbnail_criterion', 20);
+        $thumbnailCriterion = sr_community_thumbnail_criterion($thumbnailCriterionInput);
+        $thumbnailMinWidth = sr_admin_post_int_in_range('thumbnail_min_width', 1, 4000);
+        $thumbnailMinBytes = sr_admin_post_int_in_range('thumbnail_min_bytes', 0, 20971520);
         $publicDisplaySettingValues = [];
         foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
             $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range($displaySettingKey, 0, 999999999);
@@ -727,6 +732,23 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '활성 카테고리가 1개 이상 있어야 카테고리 필수를 켤 수 있습니다.';
             }
         }
+        if ($thumbnailCriterionInput !== $thumbnailCriterion) {
+            $errors[] = '썸네일 생성 기준 선택이 올바르지 않습니다.';
+        }
+        if ($thumbnailCriterion === 'width' && $thumbnailMinWidth === null) {
+            $errors[] = '썸네일 생성 기준 너비가 올바르지 않습니다.';
+            $thumbnailMinWidth = 320;
+        }
+        if ($thumbnailCriterion === 'bytes' && $thumbnailMinBytes === null) {
+            $errors[] = '썸네일 생성 기준 용량이 올바르지 않습니다.';
+            $thumbnailMinBytes = 102400;
+        }
+        if ($thumbnailMinWidth === null) {
+            $thumbnailMinWidth = 320;
+        }
+        if ($thumbnailMinBytes === null) {
+            $thumbnailMinBytes = 102400;
+        }
 
         foreach ([
             'postEditLockCommentCount' => ['value' => $postEditLockCommentCount, 'message' => '게시글 수정 잠금 댓글 수가 올바르지 않습니다.', 'fallback' => 0],
@@ -924,6 +946,10 @@ if (sr_request_method() === 'POST') {
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
+                'thumbnail_enabled' => $thumbnailEnabled ? '1' : '0',
+                'thumbnail_criterion' => $thumbnailCriterion,
+                'thumbnail_min_width' => (string) $thumbnailMinWidth,
+                'thumbnail_min_bytes' => (string) $thumbnailMinBytes,
                 'attachment_max_bytes' => (string) $attachmentMaxBytes,
                 'attachment_max_count' => (string) $attachmentMaxCount,
                 'file_uploads_enabled' => $fileUploadsEnabled ? '1' : '0',
@@ -994,6 +1020,9 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
             sr_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
+            foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
+                sr_community_set_board_setting($pdo, $boardId, $thumbnailSettingKey, (string) ($boardSettingValues[$thumbnailSettingKey] ?? ''), sr_community_board_setting_value_type($thumbnailSettingKey));
+            }
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 sr_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, 'int');
             }
@@ -1040,6 +1069,10 @@ if (sr_request_method() === 'POST') {
             if ($errors === [] && is_array($board)) {
                 $beforeAttachmentMaxBytes = sr_community_board_attachment_max_bytes($pdo, $boardId);
                 $beforeAttachmentMaxCount = sr_community_board_attachment_max_count($pdo, $boardId);
+                $beforeThumbnailSettings = [];
+                foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
+                    $beforeThumbnailSettings[$thumbnailSettingKey] = sr_community_board_thumbnail_setting($pdo, $boardId, $thumbnailSettingKey, $settings);
+                }
                 $beforePublicDisplaySettingValues = [];
                 foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
                     $beforePublicDisplaySettingValues[$displaySettingKey] = (int) (sr_community_board_setting_value($pdo, $boardId, $displaySettingKey) ?? 0);
@@ -1081,6 +1114,9 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
                 sr_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
+                foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
+                    sr_community_set_board_setting($pdo, $boardId, $thumbnailSettingKey, (string) ($boardSettingValues[$thumbnailSettingKey] ?? ''), sr_community_board_setting_value_type($thumbnailSettingKey));
+                }
                 foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                     sr_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, 'int');
                 }
@@ -1159,6 +1195,13 @@ if (sr_request_method() === 'POST') {
                         'after_attachment_max_bytes' => $attachmentMaxBytes,
                         'before_attachment_max_count' => $beforeAttachmentMaxCount,
                         'after_attachment_max_count' => $attachmentMaxCount,
+                        'before_thumbnail_settings' => $beforeThumbnailSettings,
+                        'after_thumbnail_settings' => [
+                            'thumbnail_enabled' => $thumbnailEnabled ? '1' : '0',
+                            'thumbnail_criterion' => $thumbnailCriterion,
+                            'thumbnail_min_width' => (string) $thumbnailMinWidth,
+                            'thumbnail_min_bytes' => (string) $thumbnailMinBytes,
+                        ],
                         'before_file_attachment_max_bytes' => $beforeFileAttachmentMaxBytes,
                         'after_file_attachment_max_bytes' => $fileAttachmentMaxBytes,
                         'before_file_attachment_max_count' => $beforeFileAttachmentMaxCount,

@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.029',
+    'version' => '2026.06.030',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -66,6 +66,10 @@ return [
         'message_create_limit' => 20,
         'attachment_max_bytes' => 2097152,
         'image_uploads_enabled' => true,
+        'thumbnail_enabled' => true,
+        'thumbnail_criterion' => 'width',
+        'thumbnail_min_width' => 320,
+        'thumbnail_min_bytes' => 102400,
         'file_uploads_enabled' => false,
         'file_attachment_max_bytes' => 5242880,
         'file_attachment_max_count' => 3,

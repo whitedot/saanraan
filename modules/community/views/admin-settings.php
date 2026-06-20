@@ -79,6 +79,7 @@ $messageWritePolicyLabels = [
     'member' => sr_t('community::ui.message_policy.member'),
     'group' => sr_t('community::ui.message_policy.group'),
 ];
+$thumbnailCriterionValue = sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width'));
 $levelScoreHelpModalId = 'community-level-score-help-modal';
 $levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_global_default')) . '</p>'
     . '<p>' . sr_e(sr_t('community::ui.level_score_help_formula')) . '</p>'
@@ -173,6 +174,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-assets' => '자산/과금',
     'community-settings-section-series' => '시리즈',
     'community-settings-section-reaction' => '리액션',
+    'community-settings-section-thumbnail' => '썸네일',
     'community-settings-section-display' => '공개 화면',
 ];
 ?>
@@ -507,6 +509,44 @@ $communitySettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">게시판 그룹과 게시판에서 따로 선택하지 않은 대상에 적용합니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-thumbnail" class="card" data-admin-section-anchor>
+        <h2>썸네일</h2>
+        <div class="form-row">
+            <span class="form-label">썸네일 생성</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '게시글 목록 이미지에 캐시 썸네일 생성 사용'); ?>
+                <p class="form-help">끄면 목록은 원본 첨부 이미지를 그대로 사용합니다. 게시판 개별 설정에서 재정의할 수 있습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label">생성 기준 <span class="sr-required-label">(필수)</span></span>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_thumbnail_criterion', 'thumbnail_criterion', ['width' => '너비 기준', 'bytes' => '용량 기준'], $thumbnailCriterionValue, true, ' data-community-thumbnail-criterion'); ?>
+                <p class="form-help">선택한 기준 하나만 적용합니다. 화면 표시 크기는 목록 화면과 스킨 CSS가 결정합니다.</p>
+            </div>
+        </div>
+        <div class="form-row" data-community-thumbnail-rule="width"<?php echo $thumbnailCriterionValue === 'width' ? '' : ' hidden'; ?>>
+            <label class="form-label" for="community_admin_settings_thumbnail_min_width">생성 기준 너비 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <div class="input-group admin-input-unit">
+                    <input id="community_admin_settings_thumbnail_min_width" type="number" name="thumbnail_min_width" min="1" max="4000" value="<?php echo sr_e((string) ($settings['thumbnail_min_width'] ?? 320)); ?>"<?php echo $thumbnailCriterionValue === 'width' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
+                    <span class="input-group-text">px</span>
+                </div>
+                <p class="form-help">너비 기준을 선택했을 때 원본 이미지 너비가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row" data-community-thumbnail-rule="bytes"<?php echo $thumbnailCriterionValue === 'bytes' ? '' : ' hidden'; ?>>
+            <label class="form-label" for="community_admin_settings_thumbnail_min_bytes">생성 기준 용량 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <div class="input-group admin-input-unit">
+                    <input id="community_admin_settings_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e((string) ($settings['thumbnail_min_bytes'] ?? 102400)); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
+                    <span class="input-group-text">bytes</span>
+                </div>
+                <p class="form-help">용량 기준을 선택했을 때 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
             </div>
         </div>
     </section>
@@ -1266,5 +1306,40 @@ $communitySettingsSectionNavItems = [
 })();
 </script>
 <?php } ?>
+
+<script>
+(function () {
+    function syncCommunityThumbnailCriterion(form) {
+        var root = form || document;
+        var checked = root.querySelector('input[name="thumbnail_criterion"]:checked');
+        var selected = checked ? checked.value : 'width';
+        Array.prototype.slice.call(root.querySelectorAll('[data-community-thumbnail-rule]')).forEach(function (row) {
+            var visible = row.getAttribute('data-community-thumbnail-rule') === selected;
+            row.hidden = !visible;
+            Array.prototype.slice.call(row.querySelectorAll('[data-admin-required-when-visible]')).forEach(function (input) {
+                input.required = visible;
+                if (!visible && typeof input.setCustomValidity === 'function') {
+                    input.setCustomValidity('');
+                }
+            });
+        });
+    }
+
+    document.addEventListener('change', function (event) {
+        if (!event.target || event.target.name !== 'thumbnail_criterion') {
+            return;
+        }
+        syncCommunityThumbnailCriterion(event.target.closest('form'));
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            syncCommunityThumbnailCriterion(document);
+        });
+    } else {
+        syncCommunityThumbnailCriterion(document);
+    }
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
