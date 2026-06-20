@@ -1183,7 +1183,7 @@ input:focus-visible + [class*=btn-choice-],
     :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):hover { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
     :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):hover { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
     .btn-solid-danger:hover { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
-    .btn-solid-warning:hover { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
+    .btn-solid-warning:hover { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-white); }
     :is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):hover { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
     .btn-solid-dark:hover { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
     .btn-solid-light:hover { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }
@@ -1214,7 +1214,7 @@ input:focus-visible + [class*=btn-choice-],
 :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):active { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
 :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):active { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
 .btn-solid-danger:active { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
-.btn-solid-warning:active { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
+.btn-solid-warning:active { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-white); }
 :is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):active { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
 .btn-solid-dark:active { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
 .btn-solid-light:active { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }

@@ -1411,8 +1411,12 @@ a.community-post-title:focus,
     color: var(--community-text);
 }
 
-.community-screen :is(input, select, textarea):focus-visible {
+.community-screen :is(input, select, textarea):not(.form-input):not(.form-select):not(.form-textarea):focus-visible {
     outline-color: var(--color-primary);
+}
+
+.community-screen :is(.form-input, .form-select, .form-textarea):focus-visible {
+    outline: none;
 }
 
 .community-screen th,

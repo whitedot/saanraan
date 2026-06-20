@@ -316,7 +316,7 @@ input[type=file].form-input:disabled::file-selector-button{cursor:not-allowed}
 .btn-solid-secondary{border-color:var(--color-secondary);--btn-focus-color:var(--color-secondary)}
 .btn-solid-success,.btn-solid-success-strong{border-color:var(--color-success);background-color:var(--color-success);color:var(--color-slate-950);--btn-focus-color:var(--color-success)}
 .btn-solid-danger{border-color:var(--color-danger);--btn-focus-color:var(--color-danger)}
-.btn-solid-warning{border-color:var(--color-warning);color:var(--color-slate-950);--btn-focus-color:var(--color-warning)}
+.btn-solid-warning{border-color:var(--color-warning);--btn-focus-color:var(--color-warning)}
 .btn-solid-info,.btn-solid-info-strong{border-color:var(--color-info);background-color:var(--color-info);color:var(--color-white);--btn-focus-color:var(--color-info)}
 .btn-solid-dark{border-color:var(--color-dark);--btn-focus-color:var(--color-dark)}
 .btn-solid-light{border-color:var(--color-light);background-color:var(--color-light);color:var(--color-default-900);--btn-focus-color:var(--color-default-500)}
@@ -351,7 +351,7 @@ input[type=file].form-input:disabled::file-selector-button{cursor:not-allowed}
 :is(.btn-solid-secondary,.btn-solid-secondary-muted,.btn-solid-secondary-contrast):active{background-color:var(--color-secondary-hover);border-color:var(--color-secondary-hover);color:var(--color-white)}
 :is(.btn-solid-success,.btn-solid-success-strong,.btn-solid-success-contrast):active{background-color:var(--color-success-hover);border-color:var(--color-success-hover);color:var(--color-slate-950)}
 .btn-solid-danger:active{background-color:var(--color-danger-hover);border-color:var(--color-danger-hover);color:var(--color-white)}
-.btn-solid-warning:active{background-color:var(--color-warning-hover);border-color:var(--color-warning-hover);color:var(--color-slate-950)}
+.btn-solid-warning:active{background-color:var(--color-warning-hover);border-color:var(--color-warning-hover);color:var(--color-white)}
 :is(.btn-solid-info,.btn-solid-info-strong,.btn-solid-info-muted):active{background-color:var(--color-info-hover);border-color:var(--color-info-hover);color:var(--color-white)}
 .btn-solid-dark:active{background-color:color-mix(in oklab,var(--color-dark) 72%,#000);border-color:color-mix(in oklab,var(--color-dark) 72%,#000);color:var(--color-white)}
 .btn-solid-light:active{background-color:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));border-color:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));color:var(--color-default-950)}
@@ -458,7 +458,7 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-secondary,.btn-solid-secondary){--btn-group-state-bg:var(--color-secondary);--btn-group-state-color:var(--color-white)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-success,.btn-solid-success){--btn-group-state-bg:var(--color-success);--btn-group-state-color:var(--color-slate-950)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-danger,.btn-solid-danger){--btn-group-state-bg:var(--color-danger-hover);--btn-group-state-color:var(--color-white)}
-:is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-warning,.btn-solid-warning){--btn-group-state-bg:var(--color-warning);--btn-group-state-color:var(--color-slate-950)}
+:is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-warning,.btn-solid-warning){--btn-group-state-bg:var(--color-warning);--btn-group-state-color:var(--color-white)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-info,.btn-solid-info){--btn-group-state-bg:var(--color-info-hover);--btn-group-state-color:var(--color-white)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-outline-dark,.btn-solid-dark){--btn-group-state-bg:var(--color-dark);--btn-group-state-color:var(--color-white)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(:hover,:focus,:focus-visible,:active,.active,[aria-pressed=true],[aria-current=true]){z-index:3}
