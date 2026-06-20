@@ -155,7 +155,7 @@ $siteMenuAssetOptions = static function (string $selectedModuleKey = '', string 
 
 $siteMenuModalCloseButton = static function (string $modalId): void {
     ?>
-    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>">
+    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>">
         <?php echo sr_material_icon_html('close', '', sr_t('site_menu::ui.close.1e8c1020')); ?>
     </button>
     <?php

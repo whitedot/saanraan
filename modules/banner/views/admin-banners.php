@@ -82,7 +82,7 @@ $bannerCopyModalHtml = static function (array $banner, string $returnTo): string
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/copy')); ?>" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('배너 복사'); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
@@ -641,7 +641,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($bannerSubjectLookupModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('banner::ui.subject_target.search_title')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

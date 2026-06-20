@@ -273,7 +273,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($policyDocumentVersionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <section class="card admin-list-card admin-list-form">

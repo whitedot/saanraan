@@ -192,7 +192,7 @@ $installedSections = [
                     <div class="modal-content">
                         <div class="modal-header">
                             <h3 id="<?php echo sr_e($moduleModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?> <?php echo sr_e(sr_t('admin::ui.text.d6a8c525')); ?></h3>
-                            <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
                                 <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                             </button>
                         </div>
@@ -243,7 +243,7 @@ $installedSections = [
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
                                 <div class="modal-header">
                                     <h3 id="<?php echo sr_e($moduleInstallModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?> <?php echo sr_e(sr_t('admin::ui.text.6a28baa5')); ?></h3>
-                                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleInstallModalId); ?>">
+                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleInstallModalId); ?>">
                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                     </button>
                                 </div>
@@ -412,7 +412,7 @@ $installedSections = [
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($moduleModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?> <?php echo sr_e(sr_t('admin::ui.text.d6a8c525')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleModalId); ?>">
                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                         </button>
                     </div>
@@ -495,7 +495,7 @@ $installedSections = [
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-form ui-form-theme">
                             <div class="modal-header">
                                 <h3 id="<?php echo sr_e($moduleStatusModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.status.7fb05f5d')); ?></h3>
-                                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
+                                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
                                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                                 </button>
                             </div>
@@ -559,7 +559,7 @@ $installedSections = [
         <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="modal-content admin-form ui-form-theme">
             <div class="modal-header">
                 <h3 id="module-source-enable-modal-label" class="modal-title">모듈 파일 반영 일시 허용</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-source-enable-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-source-enable-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                 </button>
             </div>
@@ -593,7 +593,7 @@ $installedSections = [
             <?php if (!$canManageModuleSources || !$moduleUploadAvailable || !$moduleSourcesEnabled) { ?>
                 <div class="modal-header">
                     <h3 id="module-upload-modal-label-unavailable" class="modal-title"><?php echo sr_e(sr_t('admin::ui.zip.270ef751')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                     </button>
                 </div>
@@ -613,7 +613,7 @@ $installedSections = [
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
                     <div class="modal-header">
                         <h3 id="module-upload-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.zip.270ef751')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                         </button>
                     </div>

@@ -200,7 +200,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/file-downloads')); ?>" class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($refundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($refundTitle); ?></h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($refundModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($refundModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

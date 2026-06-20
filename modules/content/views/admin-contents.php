@@ -184,7 +184,7 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/content/copy')); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('콘텐츠 복사'); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>

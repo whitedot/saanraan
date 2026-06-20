@@ -459,7 +459,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="modal-content ui-form-theme" autocomplete="off" data-admin-currency-change-form data-current-currency="<?php echo sr_e((string) $currencyChangeCurrentCurrency); ?>">
             <div class="modal-header">
                 <h3 id="admin-currency-change-modal-title" class="modal-title">위험! 기본 통화 변경</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-currency-change-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-currency-change-modal">
                     <?php echo sr_material_icon_html('close'); ?>
                 </button>
             </div>
@@ -514,7 +514,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="modal-content ui-form-theme" enctype="multipart/form-data">
             <div class="modal-header">
                 <h3 id="admin-icon-key-settings-modal-title" class="modal-title">공용 아이콘 설정</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-icon-key-settings-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-icon-key-settings-modal">
                     <?php echo sr_material_icon_html('close'); ?>
                 </button>
             </div>

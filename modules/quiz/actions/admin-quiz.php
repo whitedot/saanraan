@@ -355,7 +355,7 @@ if ($mode === 'list') {
                     <input type="hidden" name="source_quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($copyModalId); ?>-label" class="modal-title">퀴즈 복사</h3>
-                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <div class="admin-summary-list">
@@ -806,7 +806,7 @@ $quizSectionNavItems = [
                 <div class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($ruleModalId); ?>-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 <?php echo sr_e((string) ($ruleIndex + 1)); ?> 수정</span></h3>
-                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($ruleModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($ruleModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <div class="form-row">
@@ -865,7 +865,7 @@ $quizSectionNavItems = [
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="quiz-result-rule-add-modal-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('결과 규칙', $quizHelp['result_rules']['id']); ?><span>결과 규칙 추가</span></h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#quiz-result-rule-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#quiz-result-rule-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-row">
@@ -1066,7 +1066,7 @@ $quizSectionNavItems = [
                 <div class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($questionModalId); ?>-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 <?php echo sr_e((string) ($questionIndex + 1)); ?> 수정</span></h3>
-                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
@@ -1152,7 +1152,7 @@ $quizSectionNavItems = [
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="quiz-question-add-modal-label" class="modal-title form-label-help"><?php echo $quizHelpButtonHtml('문제 관리', $quizHelp['questions']['id']); ?><span>문제 추가</span></h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#quiz-question-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#quiz-question-add-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="question_uid[]" value="<?php echo sr_e($newQuestionUid); ?>">

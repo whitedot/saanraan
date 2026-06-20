@@ -442,7 +442,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_create_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.22129319')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-create-modal">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-create-modal">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>
@@ -479,7 +479,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($editGroupFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.edit.5784f889')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($editGroupModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($editGroupModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>
@@ -500,7 +500,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-assignments/grant')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($manualAssignFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>
@@ -547,7 +547,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <div class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($manualAssignFieldPrefix); ?>_history_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.2680da81')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>
@@ -809,7 +809,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/group')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_rule_evaluate_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.member.group_rule_evaluate.55daa57d')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-evaluate-modal">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-evaluate-modal">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>
@@ -1019,7 +1019,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="member_group_rule_create_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.text.eee300ae')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-create-modal">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#member-group-rule-create-modal">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($adminDashboardSettingsModalTitleId); ?>" class="modal-title"><?php echo sr_e(sr_t('admin::ui.dashboard.settings.title.2df7f452')); ?></h3>
-                <button type="button" class="modal-close" data-admin-dashboard-manager-close aria-label="<?php echo sr_e(sr_t('admin::ui.close.dashboard.settings.6d0816de')); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" data-admin-dashboard-manager-close aria-label="<?php echo sr_e(sr_t('admin::ui.close.dashboard.settings.6d0816de')); ?>"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body admin-dashboard-manager-body">
                 <p class="admin-dashboard-manager-help"><?php echo sr_e(sr_t('admin::ui.dashboard.settings.help.4c1b2f80')); ?></p>

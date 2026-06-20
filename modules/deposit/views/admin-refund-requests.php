@@ -123,7 +123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme">
                                                 <div class="modal-header">
                                                     <h3 id="deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>-label" class="modal-title">환불 신청 거부</h3>
-                                                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>">
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>">
                                                         <?php echo sr_material_icon_html('close', '', '닫기'); ?>
                                                     </button>
                                                 </div>
@@ -165,7 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme">
             <div class="modal-header">
                 <h3 id="deposit-refund-batch-modal-label" class="modal-title">일괄처리</h3>
-                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#deposit-refund-batch-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#deposit-refund-batch-modal">
                     <?php echo sr_material_icon_html('close', '', '닫기'); ?>
                 </button>
             </div>

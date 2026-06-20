@@ -28,7 +28,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($assetAdjustMemberModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('admin::ui.member.search.f7a330b0')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assetAdjustMemberModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assetAdjustMemberModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>
@@ -65,7 +65,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($assetAdjustReferenceModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('admin::ui.search.3acacadd')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assetAdjustReferenceModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($assetAdjustReferenceModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

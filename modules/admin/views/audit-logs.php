@@ -176,7 +176,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($auditActorMemberModalId); ?>_title" class="modal-title">처리자 회원 정보</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>">
                     <?php echo sr_material_icon_html('close'); ?>
                 </button>
             </div>
@@ -212,7 +212,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e((string) $auditMetadataModal['id']); ?>_title" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.a72ac849')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e((string) $auditMetadataModal['id']); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e((string) $auditMetadataModal['id']); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

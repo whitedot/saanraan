@@ -263,7 +263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="id" value="<?php echo sr_e((string) $policyForm['id']); ?>">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($policyModalId); ?>_title" class="modal-title"><?php echo (int) ($policyForm['id'] ?? 0) > 0 ? '환전 정책 수정' : '환전 정책 등록'; ?></h3>
-                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($policyModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($policyModalId); ?>">
                     <?php echo sr_material_icon_html('close'); ?>
                 </button>
             </div>

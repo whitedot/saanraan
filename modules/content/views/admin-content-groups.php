@@ -311,7 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="modal-content admin-form ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($contentGroupDeleteModalId); ?>-label" class="modal-title">콘텐츠 그룹 삭제</h3>
-                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>

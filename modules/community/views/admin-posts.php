@@ -395,7 +395,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e(sr_url($communityPostsPage === 'comments' ? '/admin/community/comments' . $communityPostsActionSuffix : '/admin/community/posts' . $communityPostsActionSuffix)); ?>" class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="community-hide-status-modal-label" class="modal-title">숨김 처리</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-hide-status-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-hide-status-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                 </button>
             </div>

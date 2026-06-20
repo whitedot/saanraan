@@ -332,7 +332,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($pointDisplayName . ' 조정'); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>
@@ -416,7 +416,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $pointRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($pointRefundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($pointDisplayName . ' 환불 처리'); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointRefundModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointRefundModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>

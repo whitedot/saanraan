@@ -279,7 +279,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-add-form>
             <div class="modal-header">
                 <h3 id="admin-permission-add-modal-label" class="modal-title">관리 권한 추가</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-add-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-add-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                 </button>
             </div>
@@ -377,7 +377,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="admin-permission-member-lookup-modal-label" class="modal-title">회원 검색</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-member-lookup-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-member-lookup-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                 </button>
             </div>
@@ -415,7 +415,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>" data-admin-permission-was-owner="<?php echo !empty($adminAccount['is_owner']) ? '1' : '0'; ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($permissionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.admin.bedced78')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
                         </button>
                     </div>

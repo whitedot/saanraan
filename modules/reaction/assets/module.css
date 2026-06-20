@@ -43,6 +43,8 @@
     flex-direction: column;
     justify-content: center;
     min-width: 5.5rem;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
     text-align: center;
 }
 

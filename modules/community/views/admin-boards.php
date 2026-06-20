@@ -1204,7 +1204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="community-extra-field-modal-label" class="modal-title" data-community-extra-field-modal-title>추가 입력 항목</h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-extra-field-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-extra-field-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" value="" data-community-extra-field-index>
@@ -1323,7 +1323,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="modal-content admin-form ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($boardDeleteModalId); ?>-label" class="modal-title">게시판 삭제</h3>
-                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
@@ -1424,7 +1424,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme" data-community-board-manager-grant-form>
                         <div class="modal-header">
                             <h3 id="community-board-manager-grant-modal-label" class="modal-title">스탭 권한 부여</h3>
-                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
                             <?php echo sr_csrf_field(); ?>
@@ -1474,7 +1474,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-content ui-form-theme">
                         <div class="modal-header">
                             <h3 id="community-board-manager-member-lookup-modal-label" class="modal-title">회원 검색</h3>
-                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-board-manager-member-lookup-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-board-manager-member-lookup-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
                             <form class="admin-lookup-search-form" data-community-board-manager-member-search data-search-url="<?php echo sr_e($memberSearchUrl); ?>">
@@ -1562,7 +1562,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
                         <div class="modal-header">
                             <h3 id="community-category-create-modal-label" class="modal-title">카테고리 추가</h3>
-                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-category-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-category-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
                             <?php echo sr_csrf_field(); ?>
@@ -1619,7 +1619,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
                             <div class="modal-header">
                                 <h3 id="<?php echo sr_e($categoryModalId); ?>-label" class="modal-title">카테고리 수정</h3>
-                                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                             </div>
                             <div class="modal-body">
                                 <?php echo sr_csrf_field(); ?>

@@ -65,7 +65,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" enctype="multipart/form-data" class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="logo-manager-logo-modal-label" class="modal-title"><?php echo sr_e(sr_t('logo_manager::ui.logo.add')); ?></h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#logo-manager-logo-modal">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#logo-manager-logo-modal">
                     <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
                 </button>
             </div>
@@ -319,7 +319,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" enctype="multipart/form-data" class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($logoManagerEditModalId); ?>-label" class="modal-title">로고 수정</h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">
                         <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
                     </button>
                 </div>
@@ -427,7 +427,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($logoManagerIconModalId); ?>-label" class="modal-title">파비콘/앱아이콘 세트</h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">
                             <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
                         </button>
                     </div>

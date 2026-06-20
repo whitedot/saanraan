@@ -416,7 +416,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/create')); ?>" class="modal-content ui-form-theme" data-notification-create-form>
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($notificationCreateModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('notification::ui.notification.create.079d0758')); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('notification::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('notification::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($notificationCreateModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

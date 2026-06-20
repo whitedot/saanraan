@@ -218,7 +218,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
             <input type="hidden" name="intent" value="create">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($seriesCreateModalId); ?>_title" class="modal-title">콘텐츠 시리즈 등록</h3>
-                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body">
                 <div class="form-row">

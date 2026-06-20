@@ -166,7 +166,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme" data-admin-storage-cache-cleanup-form>
                 <div class="modal-header">
                     <h3 id="admin-storage-cache-cleanup-modal-label" class="modal-title">썸네일 캐시 정리</h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#admin-storage-cache-cleanup-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#admin-storage-cache-cleanup-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>

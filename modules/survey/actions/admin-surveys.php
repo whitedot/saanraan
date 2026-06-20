@@ -1371,7 +1371,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-content ui-form-theme">
                         <div class="modal-header">
                             <h3 id="<?php echo sr_e($questionModalId); ?>-label" class="modal-title form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span><?php echo $questionRegistered ? '문항 ' . sr_e((string) ($index + 1)) . ' 수정' : '문항 등록'; ?></span></h3>
-                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
                             <div class="form-row">

@@ -314,7 +314,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/balances' . ((string) $depositAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $depositAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('deposit::ui.deposit.87b00814')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>
@@ -398,7 +398,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $depositRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($depositRefundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('deposit::ui.deposit.6398981e')); ?></h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($depositRefundModalId); ?>">
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($depositRefundModalId); ?>">
                             <?php echo sr_material_icon_html('close'); ?>
                         </button>
                     </div>

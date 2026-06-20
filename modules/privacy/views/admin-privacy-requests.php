@@ -204,7 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="create_request">
             <div class="modal-header">
                 <h2 id="<?php echo sr_e($privacyRequestCreateModalId); ?>_title" class="modal-title">대응 기록 추가</h2>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>">
                     <?php echo sr_material_icon_html('close'); ?>
                 </button>
             </div>

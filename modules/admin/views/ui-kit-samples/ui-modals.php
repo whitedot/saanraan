@@ -27,7 +27,7 @@
                                                         class="modal-header">
                                                         <h3 id="standard-modal-label" class="modal-title">
                                                             <?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
-                                                        <button type="button" class="modal-close" aria-label="Close"
+                                                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                             data-overlay="#standard-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -78,7 +78,7 @@
                                                         class="modal-header">
                                                         <h3 id="bs-example-modal-lg-label"
                                                             class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.efbc0d6c')); ?></h3>
-                                                        <button type="button" class="modal-close" aria-label="Close"
+                                                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-lg">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -108,7 +108,7 @@
                                                         class="modal-header">
                                                         <h3 id="bs-example-modal-sm-label"
                                                             class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.87b9e8c6')); ?></h3>
-                                                        <button type="button" class="modal-close" aria-label="Close"
+                                                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                             data-overlay="#bs-example-modal-sm">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -139,7 +139,7 @@
                                                         class="modal-header">
                                                         <h3 id="full-width-modal-label" class="modal-title">
                                                             <?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
-                                                        <button type="button" class="modal-close" aria-label="Close"
+                                                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                             data-overlay="#full-width-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -188,7 +188,7 @@
                                                         class="modal-header">
                                                         <h3 id="scrollable-modal-label" class="modal-title">
                                                             <?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
-                                                        <button type="button" class="modal-close" aria-label="Close"
+                                                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                             data-overlay="#scrollable-modal">
                                                             <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                             <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -262,7 +262,7 @@
                                                     class="modal-header">
                                                     <h3 id="top-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#top-modal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -306,7 +306,7 @@
                                                     <h3 id="bottom-modal-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#bottom-modal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -350,7 +350,7 @@
                                                     <h3 id="centermodal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?>
                                                     </h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#centermodal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -406,7 +406,7 @@
                                                     <h3 id="multiple-one-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.text.e7087ac6')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#multiple-one">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -440,7 +440,7 @@
                                                     <h3 id="multiple-two-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.text.53ae0906')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#multiple-two">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -494,7 +494,7 @@
                                                     <h3 id="exampleModalToggle1-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.1.a04ecf87')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle1">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -531,7 +531,7 @@
                                                     <h3 id="exampleModalToggle2-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.2.e7ab7d3d')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalToggle2">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -586,7 +586,7 @@
                                                     <h3 id="fullscreeexampleModal-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.all.a511f914')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#fullscreeexampleModal">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -630,7 +630,7 @@
                                                     <h3 id="exampleModalFullscreenSm-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.sm.all.46c07fe1')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenSm">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -674,7 +674,7 @@
                                                     <h3 id="exampleModalFullscreenMd-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.md.all.72277b49')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenMd">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -718,7 +718,7 @@
                                                     <h3 id="exampleModalFullscreenLg-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.lg.all.e1be95a5')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenLg">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -762,7 +762,7 @@
                                                     <h3 id="exampleModalFullscreenXl-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.xl.all.73cd73a0')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXl">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -806,7 +806,7 @@
                                                     <h3 id="exampleModalFullscreenXxl-label"
                                                         class="modal-title"><?php echo sr_e(sr_t('admin::ui.xxl.all.9f6190c6')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#exampleModalFullscreenXxl">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
@@ -857,7 +857,7 @@
                                                     <h3 id="staticBackdrop-label" class="modal-title">
                                                         <?php echo sr_e(sr_t('admin::ui.text.70c1de4a')); ?></h3>
 
-                                                    <button type="button" class="modal-close" aria-label="Close"
+                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
                                                         data-overlay="#staticBackdrop">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>

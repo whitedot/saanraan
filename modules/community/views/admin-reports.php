@@ -108,7 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-content ui-form-theme">
                         <div class="modal-header">
                             <h3 id="community-report-bulk-status-modal-title" class="modal-title">신고 일괄 처리</h3>
-                            <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
                             <p class="form-help">대상 조치는 처리 완료 상태, 허위신고자 조치는 기각 상태로 저장할 때만 실행합니다.</p>
@@ -290,7 +290,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="report_id" value="<?php echo sr_e((string) $reportId); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($reportProcessModalId); ?>-title" class="modal-title">신고 처리</h3>
-                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
                         <p class="admin-summary-meta"><?php echo sr_e($targetSummary); ?> · <?php echo sr_e(sr_community_report_reason_label((string) ($report['reason_key'] ?? ''))); ?></p>

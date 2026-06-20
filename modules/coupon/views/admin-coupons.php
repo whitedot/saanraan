@@ -324,7 +324,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="coupon_definition_id" value="<?php echo sr_e((string) $definitionId); ?>">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($issueModalId); ?>_title" class="modal-title">지급하기</h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($issueModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($issueModalId); ?>">
                         <span class="sr-icon" aria-hidden="true" data-sr-material-icon>close</span>
                     </button>
                 </div>
@@ -381,7 +381,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($couponMemberLookupModalId); ?>_title" class="modal-title">회원 검색</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponMemberLookupModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponMemberLookupModalId); ?>">
                     <span class="sr-icon" aria-hidden="true" data-sr-material-icon>close</span>
                 </button>
             </div>
@@ -415,7 +415,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="create_definition">
             <div class="modal-header">
                 <h3 id="coupon_create_modal_title" class="modal-title">쿠폰 추가</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">
                     <span class="sr-icon" aria-hidden="true" data-sr-material-icon>close</span>
                 </button>
             </div>
@@ -492,7 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="<?php echo sr_e($couponTargetLookupModalId); ?>_title" class="modal-title">대상 검색</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponTargetLookupModalId); ?>">
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($couponTargetLookupModalId); ?>">
                     <span class="sr-icon" aria-hidden="true" data-sr-material-icon>close</span>
                 </button>
             </div>
@@ -842,7 +842,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="redemption_id" value="<?php echo sr_e((string) $redemptionId); ?>">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($refundModalId); ?>_title" class="modal-title">쿠폰 사용 수동 환불</h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

@@ -278,7 +278,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/attempts')); ?>" class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($reclaimFieldPrefix); ?>_title" class="modal-title">퀴즈 보상 회수</h3>
-                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($reclaimModalId); ?>">
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($reclaimModalId); ?>">
                         <?php echo sr_material_icon_html('close'); ?>
                     </button>
                 </div>

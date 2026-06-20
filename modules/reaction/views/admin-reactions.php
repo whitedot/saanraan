@@ -380,7 +380,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="status" value="active">
             <div class="modal-header">
                 <h3 id="reaction-definition-create-modal-title" class="modal-title">리액션 정의 추가</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#reaction-definition-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#reaction-definition-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body">
                 <div class="form-grid">
@@ -449,7 +449,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="color_swatch" value="<?php echo sr_e((string) ($definition['color_swatch'] ?? '')); ?>">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($definitionModalTitleId); ?>" class="modal-title">리액션 정의 수정 <code><?php echo sr_e((string) ($definition['reaction_key'] ?? '')); ?></code></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($definitionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($definitionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-grid">
@@ -524,7 +524,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="reaction_key" value="<?php echo sr_e($reactionKey); ?>">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($cleanupModalTitleId); ?>" class="modal-title">기존 레코드 처리 <code><?php echo sr_e($reactionKey); ?></code></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($cleanupModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($cleanupModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <p class="admin-summary-meta">기존 레코드 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
@@ -573,7 +573,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="status" value="active">
             <div class="modal-header">
                 <h3 id="reaction-preset-create-modal-title" class="modal-title">Preset 추가</h3>
-                <button type="button" class="modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body">
                 <div class="form-grid">
@@ -640,7 +640,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="id" value="<?php echo sr_e((string) $presetId); ?>">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($presetModalTitleId); ?>" class="modal-title">Preset 수정 <code><?php echo sr_e($presetKey); ?></code></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-grid">

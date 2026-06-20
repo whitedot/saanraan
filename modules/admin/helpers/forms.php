@@ -28,7 +28,7 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
         . '<div class="modal-content">'
         . '<div class="modal-header">'
         . '<h3 id="' . sr_e($modalId) . '_title" class="modal-title">' . sr_e($title) . '</h3>'
-        . '<button type="button" class="modal-close" aria-label="닫기" data-overlay="#' . sr_e($modalId) . '">'
+        . '<button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#' . sr_e($modalId) . '">'
         . sr_material_icon_html('close')
         . '</button>'
         . '</div>'
@@ -105,7 +105,7 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
                     <?php if ($errors !== []) { ?>
