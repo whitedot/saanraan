@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.028',
+    'version' => '2026.06.029',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -71,6 +71,8 @@ return [
         'file_attachment_max_count' => 3,
         'file_allowed_extensions' => ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
         'level_enabled' => false,
+        'level_display_name' => '레벨',
+        'level_short_label' => 'Lv.',
         'level_max_value' => 10,
         'level_auto_recalculate' => false,
         'level_post_score' => 10,

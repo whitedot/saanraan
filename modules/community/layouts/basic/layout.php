@@ -103,6 +103,7 @@ $layoutMemberInitial = 'M';
 $layoutMemberAvatarColorClass = 'member-avatar-color-8';
 $layoutMemberBadgeLabel = '회원';
 $layoutMemberBadgeClass = 'badge-soft-secondary';
+$layoutMemberLevelLabel = '';
 $layoutCommunityMemberMenuEnabled = false;
 $layoutUnreadCommunityMessageCount = 0;
 $layoutMemberAssetRows = [];
@@ -208,6 +209,28 @@ if (
         $layoutMemberBadgeClass = 'badge-soft-info';
         $layoutFirstAdminPath = sr_admin_first_permitted_menu_path($layoutPdo, $layoutAccountId);
         $layoutAdminUrl = sr_url($layoutFirstAdminPath !== '' ? $layoutFirstAdminPath : '/admin');
+    }
+}
+if (
+    $layoutPdo instanceof PDO
+    && is_array($layoutCurrentAccount)
+    && !$layoutAdminEnabled
+    && function_exists('sr_community_settings')
+    && function_exists('sr_community_level_label')
+) {
+    try {
+        $layoutCommunitySettings = sr_community_settings($layoutPdo);
+        if (!empty($layoutCommunitySettings['level_enabled'])) {
+            $layoutCommunityLevelSnapshot = function_exists('sr_community_maybe_recalculate_account_level')
+                ? sr_community_maybe_recalculate_account_level($layoutPdo, (int) ($layoutCurrentAccount['id'] ?? 0), $layoutCommunitySettings, 'layout_member_dropdown')
+                : sr_community_account_level_snapshot($layoutPdo, (int) ($layoutCurrentAccount['id'] ?? 0));
+            $layoutMemberLevelLabel = sr_community_level_label_for_value($layoutPdo, (int) ($layoutCommunityLevelSnapshot['level_value'] ?? 0), $layoutCommunitySettings, true);
+            if ($layoutMemberLevelLabel !== '') {
+                $layoutMemberBadgeLabel = $layoutMemberLevelLabel;
+            }
+        }
+    } catch (Throwable) {
+        $layoutMemberLevelLabel = '';
     }
 }
 if (

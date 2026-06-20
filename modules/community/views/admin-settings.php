@@ -199,12 +199,26 @@ $communitySettingsSectionNavItems = [
                 <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_enabled">
-                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
+                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?> data-community-level-enabled>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
             </div>
-            <div class="form-row">
+            <div class="form-row" data-community-level-dependent-field>
+                <label class="form-label" for="community_admin_settings_level_display_name">레벨 표시명 <span class="sr-required-label" data-community-level-required-label<?php echo !empty($settings['level_enabled']) ? '' : ' hidden'; ?>>(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_level_display_name" type="text" name="level_display_name" maxlength="40" value="<?php echo sr_e((string) ($settings['level_display_name'] ?? '레벨')); ?>"<?php echo !empty($settings['level_enabled']) ? ' required' : ''; ?> class="form-input" data-community-level-required-field>
+                    <p class="form-help">회원 화면과 관리자 선택지에서 레벨을 부를 이름입니다.</p>
+                </div>
+            </div>
+            <div class="form-row" data-community-level-dependent-field>
+                <label class="form-label" for="community_admin_settings_level_short_label">레벨 약칭</label>
+                <div class="form-field">
+                    <input id="community_admin_settings_level_short_label" type="text" name="level_short_label" maxlength="20" value="<?php echo sr_e((string) ($settings['level_short_label'] ?? 'Lv.')); ?>" class="form-input">
+                    <p class="form-help">아바타 아래나 회원 드롭다운처럼 좁은 곳에서 쓰는 짧은 이름입니다. 비워 두면 표시명을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="form-row" data-community-level-dependent-field>
                 <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
@@ -213,23 +227,23 @@ $communitySettingsSectionNavItems = [
                     </label>
                 </div>
             </div>
-            <div class="form-row">
-                <label class="form-label" for="community_admin_settings_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label">(필수)</span></label>
+            <div class="form-row" data-community-level-dependent-field>
+                <label class="form-label" for="community_admin_settings_level_max_value"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?> <span class="sr-required-label" data-community-level-required-label<?php echo !empty($settings['level_enabled']) ? '' : ' hidden'; ?>>(필수)</span></label>
                 <div class="form-field">
-                    <input id="community_admin_settings_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>" required class="form-input" data-community-settings-level-max-value data-community-settings-level-max-initial="<?php echo sr_e((string) $settings['level_max_value']); ?>">
+                    <input id="community_admin_settings_level_max_value" type="number" name="level_max_value" min="1" max="100" value="<?php echo sr_e((string) $settings['level_max_value']); ?>"<?php echo !empty($settings['level_enabled']) ? ' required' : ''; ?> class="form-input" data-community-settings-level-max-value data-community-settings-level-max-initial="<?php echo sr_e((string) $settings['level_max_value']); ?>" data-community-level-required-field>
                     <p class="form-help"><?php echo sr_e(sr_t('community::ui.level_max_value_help')); ?></p>
                 </div>
             </div>
-            <div class="form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
-                <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?></label>
+            <div class="form-row"<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+                <label class="form-label" for="community_admin_settings_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label" data-community-level-auto-required-label<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?>>(필수)</span></label>
                 <div class="form-field">
-                    <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>" class="form-input">
+                    <input id="community_admin_settings_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_post_score']); ?>"<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? ' required' : ''; ?> class="form-input" data-community-level-auto-required-field>
                 </div>
             </div>
-            <div class="form-row"<?php echo !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
-                <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?></span></div>
+            <div class="form-row"<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?> data-community-level-auto-field>
+                <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.96af1f5c'), $levelScoreHelpModalId); ?><span><?php echo sr_e(sr_t('community::ui.text.96af1f5c')); ?> <span class="sr-required-label" data-community-level-auto-required-label<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? '' : ' hidden'; ?>>(필수)</span></span></div>
                 <div class="form-field">
-                    <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>" class="form-input">
+                    <input id="community_admin_settings_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e((string) $settings['level_comment_score']); ?>"<?php echo !empty($settings['level_enabled']) && !empty($settings['level_auto_recalculate']) ? ' required' : ''; ?> class="form-input" data-community-level-auto-required-field>
                 </div>
             </div>
         </div>
@@ -602,18 +616,48 @@ $communitySettingsSectionNavItems = [
 })();
 
 (function () {
+    var levelEnabled = document.querySelector('[data-community-level-enabled]');
     var toggle = document.querySelector('[data-community-level-auto-toggle]');
     var fields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-auto-field]'));
-    if (!toggle || fields.length < 1) {
+    var dependentFields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-dependent-field]'));
+    var requiredFields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-required-field]'));
+    var requiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-required-label]'));
+    var autoRequiredFields = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-auto-required-field]'));
+    var autoRequiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-auto-required-label]'));
+    if (!levelEnabled || !toggle || fields.length < 1) {
         return;
     }
 
     function syncAutoFields() {
+        var enabled = levelEnabled.checked;
+        var autoEnabled = enabled && toggle.checked;
+        dependentFields.forEach(function (field) {
+            Array.prototype.slice.call(field.querySelectorAll('input, select, textarea')).forEach(function (control) {
+                if (control === levelEnabled) {
+                    return;
+                }
+                control.disabled = !enabled;
+            });
+        });
+        requiredFields.forEach(function (control) {
+            control.required = enabled;
+        });
+        requiredLabels.forEach(function (label) {
+            label.hidden = !enabled;
+        });
         fields.forEach(function (field) {
-            field.hidden = !toggle.checked;
+            field.hidden = !autoEnabled;
+        });
+        autoRequiredFields.forEach(function (control) {
+            control.disabled = !autoEnabled;
+            control.required = autoEnabled;
+        });
+        autoRequiredLabels.forEach(function (label) {
+            label.hidden = !autoEnabled;
         });
     }
 
+    levelEnabled.addEventListener('change', syncAutoFields);
     toggle.addEventListener('change', syncAutoFields);
     syncAutoFields();
 })();
@@ -798,7 +842,7 @@ $communitySettingsSectionNavItems = [
                     <?php } else { ?>
                         <?php foreach ($levels as $level) { ?>
                             <tr>
-                                <td><?php echo sr_e((string) $level['level_value']); ?></td>
+                                <td><?php echo sr_e(sr_community_level_label((int) $level['level_value'], $settings)); ?></td>
                                 <td><?php echo sr_e((string) $level['title']); ?></td>
                                 <td>
                                     <input

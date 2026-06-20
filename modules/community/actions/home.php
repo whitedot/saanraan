@@ -22,6 +22,7 @@ $latestComments = [];
 $recentSeries = [];
 $communitySeriesSupported = sr_community_series_supported($pdo);
 $homeSidebarMenuHtml = '';
+$homeMemberSummary = sr_community_home_member_summary($pdo, is_array($account) ? $account : null, $settings, $memberSettings);
 $homeExcerptAllowedByBoardId = [];
 $homePostImageUrl = static function (array $post, array $board, bool $homeExcerptAllowed) use ($pdo, $settings): string {
     if (!$homeExcerptAllowed || (int) ($post['is_secret'] ?? 0) === 1) {

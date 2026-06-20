@@ -57,6 +57,8 @@ if (sr_request_method() === 'POST') {
 
     if ($intent === 'save_settings') {
         $levelEnabled = ($_POST['level_enabled'] ?? '') === '1';
+        $levelDisplayName = sr_community_level_text_setting(sr_post_string('level_display_name', 80), '', 40);
+        $levelShortLabel = sr_community_level_text_setting(sr_post_string('level_short_label', 40), '', 20);
         $levelMaxValue = sr_admin_post_int_in_range('level_max_value', 1, 100);
         $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
@@ -129,23 +131,40 @@ if (sr_request_method() === 'POST') {
         $assetSettings['paid_attachment_download_publisher_reward_rate'] = sr_admin_post_int_in_range('paid_attachment_download_publisher_reward_rate', 0, 100);
         $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
-        if ($levelPostScore === null) {
+        if (!$levelEnabled) {
+            $levelDisplayName = (string) $settings['level_display_name'];
+            $levelShortLabel = (string) $settings['level_short_label'];
+            $levelMaxValue = (int) $settings['level_max_value'];
+            $levelAutoRecalculate = false;
+            $levelPostScore = (int) $settings['level_post_score'];
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        } elseif (!$levelAutoRecalculate) {
+            $levelPostScore = (int) $settings['level_post_score'];
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+
+        if ($levelEnabled && $levelDisplayName === '') {
+            $errors[] = '레벨 표시명을 입력하세요.';
+            $levelDisplayName = (string) $settings['level_display_name'];
+        }
+
+        if ($levelEnabled && $levelAutoRecalculate && $levelPostScore === null) {
             $errors[] = sr_t('community::action.admin.post_score_invalid');
             $levelPostScore = (int) $settings['level_post_score'];
         }
 
-        if ($levelMaxValue === null) {
+        if ($levelEnabled && $levelMaxValue === null) {
             $errors[] = sr_t('community::action.admin.level_max_value_invalid');
             $levelMaxValue = (int) $settings['level_max_value'];
         }
 
-        if ($levelCommentScore === null) {
+        if ($levelEnabled && $levelAutoRecalculate && $levelCommentScore === null) {
             $errors[] = sr_t('community::action.admin.comment_score_invalid');
             $levelCommentScore = (int) $settings['level_comment_score'];
         }
 
         $levelMaxChanged = $levelMaxValue !== (int) $settings['level_max_value'];
-        if ($levelMaxChanged && (
+        if ($levelEnabled && $levelMaxChanged && (
             sr_post_string('level_max_change_confirmed', 1) !== '1'
             || sr_post_string('level_max_change_confirm_text', 40) !== sr_t('community::ui.level_max_change_confirmation_text')
         )) {
@@ -266,6 +285,8 @@ if (sr_request_method() === 'POST') {
             $defaultSettlementCurrency = sr_site_default_currency($pdo);
             $rows = [
                 ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
+                ['level_display_name', $levelDisplayName, 'string'],
+                ['level_short_label', $levelShortLabel, 'string'],
                 ['level_max_value', (string) $levelMaxValue, 'int'],
                 ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
                 ['level_post_score', (string) $levelPostScore, 'int'],
@@ -448,11 +469,20 @@ if (sr_request_method() === 'POST') {
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
 
-        if ($levelPostScore === null) {
+        if (!$levelEnabled) {
+            $levelAutoRecalculate = false;
+            $levelPostScore = (int) $settings['level_post_score'];
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        } elseif (!$levelAutoRecalculate) {
+            $levelPostScore = (int) $settings['level_post_score'];
+            $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+
+        if ($levelEnabled && $levelAutoRecalculate && $levelPostScore === null) {
             $errors[] = sr_t('community::action.admin.post_score_invalid');
             $levelPostScore = (int) $settings['level_post_score'];
         }
-        if ($levelCommentScore === null) {
+        if ($levelEnabled && $levelAutoRecalculate && $levelCommentScore === null) {
             $errors[] = sr_t('community::action.admin.comment_score_invalid');
             $levelCommentScore = (int) $settings['level_comment_score'];
         }
@@ -511,7 +541,8 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('community::action.admin.level_settings_saved');
         }
     } elseif ($intent === 'save_level_definitions') {
-        $levelSettingsSubmitted = array_key_exists('level_post_score', $_POST) || array_key_exists('level_comment_score', $_POST);
+        $levelSettingsSubmitted = array_key_exists('level_post_score', $_POST)
+            || array_key_exists('level_comment_score', $_POST);
         $levelEnabled = !empty($settings['level_enabled']);
         $levelAutoRecalculate = !empty($settings['level_auto_recalculate']);
         $levelPostScore = (int) $settings['level_post_score'];

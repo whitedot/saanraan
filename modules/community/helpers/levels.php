@@ -27,6 +27,8 @@ function sr_community_default_settings(): array
             ? $settings['file_allowed_extensions']
             : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
         'level_enabled' => (bool) ($settings['level_enabled'] ?? false),
+        'level_display_name' => is_string($settings['level_display_name'] ?? null) ? (string) $settings['level_display_name'] : '레벨',
+        'level_short_label' => is_string($settings['level_short_label'] ?? null) ? (string) $settings['level_short_label'] : 'Lv.',
         'level_max_value' => (int) ($settings['level_max_value'] ?? 10),
         'level_auto_recalculate' => (bool) ($settings['level_auto_recalculate'] ?? false),
         'level_post_score' => (int) ($settings['level_post_score'] ?? 10),
@@ -139,6 +141,39 @@ function sr_community_normalize_level_value(mixed $value, ?array $settings = nul
     return min(sr_community_max_level_value($settings), max(0, (int) $value));
 }
 
+function sr_community_level_text_setting(mixed $value, string $default, int $maxLength): string
+{
+    $value = trim(preg_replace('/\s+/', ' ', (string) $value) ?? '');
+    if (function_exists('mb_substr')) {
+        $value = mb_substr($value, 0, $maxLength);
+    } else {
+        $value = substr($value, 0, $maxLength);
+    }
+
+    return $value !== '' ? $value : $default;
+}
+
+function sr_community_level_label(int $levelValue, ?array $settings = null, bool $preferShort = false): string
+{
+    $levelValue = sr_community_normalize_level_value($levelValue, $settings);
+    $settings = is_array($settings) ? $settings : sr_community_default_settings();
+    $displayName = sr_community_level_text_setting($settings['level_display_name'] ?? '레벨', '레벨', 40);
+    $shortLabel = trim((string) ($settings['level_short_label'] ?? ''));
+    if (function_exists('mb_substr')) {
+        $shortLabel = mb_substr($shortLabel, 0, 20);
+    } else {
+        $shortLabel = substr($shortLabel, 0, 20);
+    }
+    $label = $preferShort && $shortLabel !== '' ? $shortLabel : $displayName;
+
+    return trim($label . ' ' . number_format($levelValue));
+}
+
+function sr_community_level_label_for_value(PDO $pdo, int $levelValue, ?array $settings = null, bool $preferShort = false): string
+{
+    return sr_community_level_label($levelValue, $settings, $preferShort);
+}
+
 function sr_community_settings(PDO $pdo): array
 {
     return sr_community_normalize_settings(sr_module_settings($pdo, 'community'), null, $pdo);
@@ -166,6 +201,8 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
         is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : (string) ($settings['file_allowed_extensions'] ?? '')
     );
     $settings['level_enabled'] = sr_community_bool_setting($settings['level_enabled'] ?? false);
+    $settings['level_display_name'] = sr_community_level_text_setting($settings['level_display_name'] ?? '레벨', '레벨', 40);
+    $settings['level_short_label'] = sr_community_level_text_setting($settings['level_short_label'] ?? 'Lv.', '', 20);
     $settings['level_max_value'] = sr_community_level_max_setting($settings['level_max_value'] ?? 10);
     $settings['level_auto_recalculate'] = sr_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
@@ -835,10 +872,9 @@ function sr_community_update_level_min_scores(PDO $pdo, array $minScoresById, ?a
         return 0;
     }
 
-    $levels = sr_community_levels($pdo, $settings);
     $updates = [];
     $lastMinScore = 0;
-    foreach ($levels as $level) {
+    foreach (sr_community_levels($pdo, $settings) as $level) {
         $levelId = (int) ($level['id'] ?? 0);
         if ($levelId < 1 || !array_key_exists($levelId, $minScoresById)) {
             continue;

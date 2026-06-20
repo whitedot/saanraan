@@ -138,6 +138,85 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
     return $counts;
 }
 
+function sr_community_home_member_summary(PDO $pdo, ?array $account, array $settings, ?array $memberSettings = null): ?array
+{
+    if (!is_array($account) || (int) ($account['id'] ?? 0) < 1) {
+        return null;
+    }
+
+    $accountId = (int) $account['id'];
+    $memberSettings = is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
+    $profile = sr_member_profile($pdo, $accountId);
+    $displayName = sr_community_public_display_name(array_merge($account, [
+        'community_nickname' => sr_community_member_nickname($pdo, $accountId),
+    ]), $memberSettings);
+    if ($displayName === '') {
+        $displayName = (string) ($account['display_name'] ?? '내 계정');
+    }
+    $initial = $displayName !== ''
+        ? (function_exists('mb_substr') ? mb_substr($displayName, 0, 1) : substr($displayName, 0, 1))
+        : 'M';
+
+    $levelSnapshot = !empty($settings['level_enabled'])
+        ? sr_community_maybe_recalculate_account_level($pdo, $accountId, $settings, 'home_profile_view')
+        : sr_community_account_level_snapshot($pdo, $accountId);
+    $levelValue = sr_community_normalize_level_value((int) ($levelSnapshot['level_value'] ?? 0), $settings);
+    $scoreValue = max(0, (int) ($levelSnapshot['score_value'] ?? 0));
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS count_value
+         FROM sr_community_posts
+         WHERE author_account_id = :account_id
+           AND status = 'published'"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $postCountRow = $stmt->fetch();
+    $postCount = is_array($postCountRow) ? max(0, (int) ($postCountRow['count_value'] ?? 0)) : 0;
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS count_value
+         FROM sr_community_comments
+         WHERE author_account_id = :account_id
+           AND status = 'published'"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $commentCountRow = $stmt->fetch();
+    $commentCount = is_array($commentCountRow) ? max(0, (int) ($commentCountRow['count_value'] ?? 0)) : 0;
+    $nextLevelValue = $levelValue < sr_community_max_level_value($settings) ? $levelValue + 1 : 0;
+    $currentLevelMinScore = 0;
+    $nextLevelMinScore = 0;
+    foreach (sr_community_enabled_levels($pdo, $settings) as $level) {
+        $definitionLevelValue = (int) ($level['level_value'] ?? 0);
+        if ($definitionLevelValue === $levelValue) {
+            $currentLevelMinScore = max(0, (int) ($level['min_score'] ?? 0));
+        }
+        if ($nextLevelValue > 0 && $definitionLevelValue === $nextLevelValue) {
+            $nextLevelMinScore = max(0, (int) ($level['min_score'] ?? 0));
+        }
+    }
+    $nextLevelRemaining = $nextLevelMinScore > $scoreValue ? $nextLevelMinScore - $scoreValue : 0;
+    $levelScoreRange = max(1, $nextLevelMinScore - $currentLevelMinScore);
+    $progressPercent = $nextLevelMinScore > 0 ? min(100, max(0, (int) floor((($scoreValue - $currentLevelMinScore) / $levelScoreRange) * 100))) : 100;
+    $avatarSrc = sr_member_avatar_src((string) ($profile['avatar_path'] ?? ''));
+    $config = sr_runtime_config();
+
+    return [
+        'display_name' => $displayName,
+        'initial' => $initial,
+        'avatar_src' => $avatarSrc,
+        'avatar_color_class' => sr_member_default_avatar_color_class(sr_member_public_account_hash($config, $accountId)),
+        'level_value' => $levelValue,
+        'level_label' => sr_community_level_label_for_value($pdo, $levelValue, $settings, true),
+        'score_value' => $scoreValue,
+        'post_count' => $postCount,
+        'comment_count' => $commentCount,
+        'next_level_value' => $nextLevelValue,
+        'next_level_min_score' => $nextLevelMinScore,
+        'next_level_remaining' => $nextLevelRemaining,
+        'progress_percent' => $progressPercent,
+        'level_enabled' => !empty($settings['level_enabled']),
+    ];
+}
+
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null): array
 {
     $boards = [];
@@ -153,6 +232,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $latestComments = [];
     $recentSeries = [];
     $homeSidebarMenuHtml = '';
+    $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings);
     $homeExcerptAllowedByBoardId = [];
     $communitySeriesSupported = sr_community_series_supported($pdo);
     $homePostImageUrl = static function (array $post, array $board, bool $homeExcerptAllowed) use ($pdo, $settings): string {
@@ -311,6 +391,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         'recentSeries' => $recentSeries,
         'communitySeriesSupported' => $communitySeriesSupported,
         'homeSidebarMenuHtml' => $homeSidebarMenuHtml,
+        'homeMemberSummary' => $homeMemberSummary,
         'homeExcerptAllowedByBoardId' => $homeExcerptAllowedByBoardId,
         'communityLayoutKey' => $communityLayoutKey,
     ];
