@@ -515,6 +515,7 @@
 .public-layout-notification-text {
     color: var(--sr-text, var(--color-body-color, #20242a));
     font-size: .875rem;
+    font-weight: 500;
     line-height: 1.4;
 }
 
