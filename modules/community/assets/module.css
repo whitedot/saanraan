@@ -873,7 +873,7 @@ img.community-home-member-avatar {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin: 48px 0 0;
+    margin: 0;
     padding: 18px;
     width: 100%;
 }
@@ -1321,7 +1321,6 @@ a.community-post-title:focus,
 
     .community-comments-panel {
         height: auto;
-        margin-top: 28px;
         overflow: visible;
         position: static;
     }
