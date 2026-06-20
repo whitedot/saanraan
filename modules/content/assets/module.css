@@ -97,11 +97,14 @@
 }
 
 .content-body {
+    background: #fff;
+    border-radius: 8px;
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-body);
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
+    padding: 18px;
     word-break: normal;
 }
 
@@ -1376,6 +1379,15 @@
     border: 0;
     border-radius: var(--content-radius);
     padding: 18px;
+}
+
+.content-comments {
+    background: #fff;
+}
+
+[data-color-scheme="dark"] .content-body,
+[data-color-scheme="dark"] .content-comments {
+    background: var(--content-surface);
 }
 
 .content-quiz-link {

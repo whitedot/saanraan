@@ -259,6 +259,7 @@
 }
 
 .sr-quiz-result {
+    background: #fff;
     display: grid;
     gap: 10px;
     padding: 20px;
@@ -267,6 +268,7 @@
 }
 
 .sr-quiz-comments {
+    background: #fff;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -274,6 +276,11 @@
     padding: 18px;
     border: 0;
     border-radius: var(--radius);
+}
+
+[data-color-scheme="dark"] .sr-quiz-result,
+[data-color-scheme="dark"] .sr-quiz-comments {
+    background: var(--sr-surface, var(--color-card, #111827));
 }
 
 .sr-quiz-comments-panel-header {

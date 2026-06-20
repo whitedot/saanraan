@@ -223,10 +223,12 @@
 }
 
 .sr-survey-result {
+    background: #fff;
     border: 0;
 }
 
 .sr-survey-comments {
+    background: #fff;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -234,6 +236,11 @@
     padding: 18px;
     border: 0;
     border-radius: var(--radius);
+}
+
+[data-color-scheme="dark"] .sr-survey-result,
+[data-color-scheme="dark"] .sr-survey-comments {
+    background: var(--sr-surface, var(--color-card, #111827));
 }
 
 .sr-survey-comments-panel-header {

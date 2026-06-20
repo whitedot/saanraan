@@ -1,5 +1,12 @@
 .sr-reaction-widget {
+    background: #fff;
+    border-radius: 8px;
     margin: 1rem 0;
+    padding: 0.5rem;
+}
+
+[data-color-scheme="dark"] .sr-reaction-widget {
+    background: var(--sr-surface, #111827);
 }
 
 .sr-reaction-widget:not(.sr-reaction-widget--target-comment) {

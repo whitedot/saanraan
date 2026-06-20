@@ -935,10 +935,13 @@ a.community-post-title:focus,
 }
 
 .community-post-body {
+    background: #fff;
+    border-radius: 8px;
     color: var(--sr-text, var(--text-strong, #242424));
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
+    padding: 18px;
     word-break: normal;
 }
 
@@ -1380,6 +1383,16 @@ a.community-post-title:focus,
 .community-screen .sr-link-card-picker {
     border-color: var(--community-border);
     border-radius: var(--community-radius);
+}
+
+.community-comments-panel,
+.community-post-body {
+    background: #fff;
+}
+
+[data-color-scheme="dark"] .community-comments-panel,
+[data-color-scheme="dark"] .community-post-body {
+    background: var(--community-surface);
 }
 
 .community-comments-panel-header,
