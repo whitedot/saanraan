@@ -53,15 +53,16 @@ $communityMainLabel = $pageTitle;
             <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($post['popup_layer_view_id'] ?? 0)); ?>
         <?php } ?>
 
-        <p>
+        <p class="community-post-view-board">
             <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']))); ?>">
                 <?php echo sr_e((string) $post['board_title']); ?>
             </a>
         </p>
 
-        <article>
+        <article class="community-post-view">
+            <header class="community-post-view-header">
             <h1 class="community-post-title community-post-view-title"><?php echo sr_e($pageTitle); ?></h1>
-            <p>
+            <p class="community-post-view-meta">
                 <?php if ((int) ($post['is_secret'] ?? 0) === 1) { ?>
                     <?php echo sr_e('비밀글'); ?>
                     /
@@ -78,23 +79,16 @@ $communityMainLabel = $pageTitle;
                     <?php } ?>
                 <?php } ?>
             </p>
+            <div class="community-post-view-actions">
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
-                    <p><a href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a></p>
+                    <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a>
                 <?php } ?>
-                <?php if (sr_community_account_can_delete_post($post, $account, $pdo)) { ?>
+                <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                         <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
-                    </form>
-                <?php } ?>
-                <?php if (sr_community_account_can_remove_post_og_image($pdo, $post, $account)) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <input type="hidden" name="intent" value="remove_og_image">
-                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e('OG 이미지 제거'); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
@@ -175,6 +169,8 @@ $communityMainLabel = $pageTitle;
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
                 <p><?php echo sr_e($postActionUnavailableMessage); ?></p>
             <?php } ?>
+            </div>
+            </header>
 
             <?php foreach ($postNotices as $postNotice) { ?>
                 <?php if (is_string($postNotice) && $postNotice !== '') { ?>
@@ -216,34 +212,34 @@ $communityMainLabel = $pageTitle;
                 </form>
             </article>
             <?php } else { ?>
-            <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
-            <?php if ($imageAttachments !== []) { ?>
-                <section class="community-post-image-thumbnails" aria-label="<?php echo sr_e('첨부 이미지'); ?>">
-                    <?php foreach ($imageAttachments as $attachment) { ?>
-                        <?php
-                        $communityAttachmentOriginalUrl = (string) ($attachment['original_url'] ?? sr_community_attachment_public_url($attachment));
-                        $communityAttachmentThumbnailUrl = (string) ($attachment['thumbnail_url'] ?? $communityAttachmentOriginalUrl);
-                        if ($communityAttachmentOriginalUrl === '' || $communityAttachmentThumbnailUrl === '') {
-                            continue;
-                        }
-                        $communityAttachmentName = (string) ($attachment['original_name'] ?? '');
-                        $communityAttachmentSize = (int) ($attachment['size_bytes'] ?? 0);
-                        ?>
-                        <figure class="community-post-image-thumbnail">
-                            <a class="community-post-image-thumbnail-link" href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>" data-community-image-layer-trigger>
-                                <img src="<?php echo sr_e($communityAttachmentThumbnailUrl); ?>" alt="<?php echo sr_e($communityAttachmentName); ?>" loading="lazy">
-                            </a>
-                            <figcaption class="community-post-image-thumbnail-caption">
-                                <a href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>"><?php echo sr_e($communityAttachmentName !== '' ? $communityAttachmentName : '첨부 이미지'); ?></a>
-                                <?php if ($communityAttachmentSize > 0) { ?>
-                                    <span><?php echo sr_e(sr_community_format_bytes($communityAttachmentSize)); ?></span>
-                                <?php } ?>
-                            </figcaption>
-                        </figure>
-                    <?php } ?>
-                </section>
-            <?php } ?>
             <div class="community-post-body">
+                <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
+                <?php if ($imageAttachments !== []) { ?>
+                    <section class="community-post-image-thumbnails" aria-label="<?php echo sr_e('첨부 이미지'); ?>">
+                        <?php foreach ($imageAttachments as $attachment) { ?>
+                            <?php
+                            $communityAttachmentOriginalUrl = (string) ($attachment['original_url'] ?? sr_community_attachment_public_url($attachment));
+                            $communityAttachmentThumbnailUrl = (string) ($attachment['thumbnail_url'] ?? $communityAttachmentOriginalUrl);
+                            if ($communityAttachmentOriginalUrl === '' || $communityAttachmentThumbnailUrl === '') {
+                                continue;
+                            }
+                            $communityAttachmentName = (string) ($attachment['original_name'] ?? '');
+                            $communityAttachmentSize = (int) ($attachment['size_bytes'] ?? 0);
+                            ?>
+                            <figure class="community-post-image-thumbnail">
+                                <a class="community-post-image-thumbnail-link" href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>" data-community-image-layer-trigger>
+                                    <img src="<?php echo sr_e($communityAttachmentThumbnailUrl); ?>" alt="<?php echo sr_e($communityAttachmentName); ?>" loading="lazy">
+                                </a>
+                                <figcaption class="community-post-image-thumbnail-caption">
+                                    <a href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>"><?php echo sr_e($communityAttachmentName !== '' ? $communityAttachmentName : '첨부 이미지'); ?></a>
+                                    <?php if ($communityAttachmentSize > 0) { ?>
+                                        <span><?php echo sr_e(sr_community_format_bytes($communityAttachmentSize)); ?></span>
+                                    <?php } ?>
+                                </figcaption>
+                            </figure>
+                        <?php } ?>
+                    </section>
+                <?php } ?>
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>
             <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
@@ -371,15 +367,14 @@ $communityMainLabel = $pageTitle;
                 <ul>
                     <?php foreach ($comments as $comment) { ?>
                         <?php
-                        $communityCommentDepth = min(3, max(1, (int) ($comment['depth'] ?? 1)));
-                        ?>
-                        <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
+                            $communityCommentDepth = min(3, max(1, (int) ($comment['depth'] ?? 1)));
+                            ?>
+                            <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
                             <?php
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
-                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
+                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account);
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
-                            $communityCommentCanHide = sr_community_account_can_hide_comment($pdo, $comment, $post, is_array($account ?? null) ? $account : null);
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
                             $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
@@ -414,7 +409,7 @@ $communityMainLabel = $pageTitle;
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
                             <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
+                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                     <div class="community-comment-actions">
                                         <?php if ($communityCommentCanReply) { ?>
                                             <details<?php echo $commentParentId === (int) $comment['id'] ? ' open' : ''; ?>>
@@ -518,13 +513,6 @@ $communityMainLabel = $pageTitle;
                                                     <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                                 </form>
                                             </details>
-                                        <?php } ?>
-                                        <?php if ($communityCommentCanHide) { ?>
-                                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
-                                                <?php echo sr_csrf_field(); ?>
-                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <button type="submit" class="btn btn-outline-warning"><?php echo sr_e('숨기기'); ?></button>
-                                            </form>
                                         <?php } ?>
                                     </div>
                                 <?php } ?>

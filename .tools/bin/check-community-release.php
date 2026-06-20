@@ -737,8 +737,8 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
 ], 'Community board delete high-load confirmation policy');
 sr_community_release_file_contains('modules/community/actions/view.php', [
     '$isBoardManagerOgRemove',
-    "'actor_type' => \$isAuthorOgRemove ? 'member' : (\$isAdminOgRemove ? 'admin' : 'community_board_manager')",
-    "'permission_source' => \$isAuthorOgRemove ? 'author' : (\$isAdminOgRemove ? 'admin' : 'board_manager')",
+    "'actor_type' => \$isAdminOgRemove ? 'admin' : 'community_board_manager'",
+    "'permission_source' => \$isAdminOgRemove ? 'admin' : 'board_manager'",
 ], 'Community delegated OG removal audit policy');
 sr_community_release_file_contains('modules/community/helpers/posts-writing.php', [
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",

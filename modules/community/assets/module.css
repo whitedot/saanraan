@@ -920,6 +920,39 @@ img.community-home-member-avatar {
     white-space: nowrap;
 }
 
+.community-post-view-board {
+    margin: 0 0 6px;
+}
+
+.community-post-view-header {
+    background: #fff;
+    border-radius: 8px;
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 18px;
+}
+
+.community-post-view-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.community-post-view-actions:empty {
+    display: none;
+}
+
+.community-post-view-actions form,
+.community-post-view-actions p {
+    margin: 0;
+}
+
+.community-post-view-actions details {
+    min-width: 0;
+}
+
 a.community-post-title,
 .community-post-title a {
     color: var(--sr-text, var(--text-strong, #242424));
@@ -950,12 +983,24 @@ a.community-post-title:focus,
     gap: 14px;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
     margin: 24px 0;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.community-post-body > .community-post-image-thumbnails:first-child {
+    margin-top: 0;
+}
+
+.community-post-body > .community-post-image-thumbnails:last-child {
+    margin-bottom: 0;
 }
 
 .community-post-image-thumbnail {
     display: grid;
     gap: 8px;
     margin: 0;
+    max-width: 100%;
     min-width: 0;
 }
 
@@ -966,9 +1011,10 @@ a.community-post-title:focus,
     border-radius: 0;
     display: inline-flex;
     justify-content: center;
+    max-width: 100%;
     min-width: 0;
-    overflow: visible;
-    width: fit-content;
+    overflow: hidden;
+    width: 100%;
 }
 
 .community-post-image-thumbnail-link:hover,
@@ -1385,11 +1431,13 @@ a.community-post-title:focus,
 }
 
 .community-comments-panel,
+.community-post-view-header,
 .community-post-body {
     background: #fff;
 }
 
 [data-color-scheme="dark"] .community-comments-panel,
+[data-color-scheme="dark"] .community-post-view-header,
 [data-color-scheme="dark"] .community-post-body {
     background: var(--community-surface);
 }
