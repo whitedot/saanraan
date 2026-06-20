@@ -139,10 +139,10 @@ $pdo->exec(
         ('reaction_write_window_seconds', '60', 'integer'),
         ('reaction_write_account_limit', '2', 'integer');
      INSERT INTO sr_modules (module_key, version, status) VALUES ('reaction', '2026.06.001', 'enabled'), ('notification', '2026.06.006', 'enabled');
-     INSERT INTO sr_reaction_definitions (reaction_key, label, status, created_at, updated_at) VALUES
-        ('like', '좋아요', 'active', '$now', '$now'),
-        ('sad', '슬퍼요', 'active', '$now', '$now'),
-        ('disabled', '중지됨', 'disabled', '$now', '$now');
+     INSERT INTO sr_reaction_definitions (reaction_key, label, icon_value, status, created_at, updated_at) VALUES
+        ('like', '좋아요', '좋아', 'active', '$now', '$now'),
+        ('sad', '슬퍼요', '슬퍼', 'active', '$now', '$now'),
+        ('disabled', '중지됨', '중지', 'disabled', '$now', '$now');
      INSERT INTO sr_notification_event_templates (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
         VALUES ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.', '{link_url}', '[\"site\"]', 'active', '$now', '$now');
      INSERT INTO sr_reaction_presets (preset_key, label, status, selection_policy, visible_key_limit, created_at, updated_at)
@@ -216,11 +216,63 @@ $widgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' =>
 $assert(
     str_contains($widgetHtml, 'data-sr-reaction-widget')
         && str_contains($widgetHtml, 'data-reaction-key="like"')
-        && str_contains($widgetHtml, 'data-reaction-count="sad"'),
+        && str_contains($widgetHtml, 'data-reaction-count="sad"')
+        && str_contains($widgetHtml, 'btn sr-reaction-button btn-ghost-default')
+        && str_contains($widgetHtml, 'sr-reaction-body-label'),
     'public widget should render active reaction buttons and counts.'
 );
+$bodyOrderIcon = strpos($widgetHtml, 'sr-reaction-emoji');
+$bodyOrderLabel = strpos($widgetHtml, 'sr-reaction-button-label');
+$bodyOrderCount = strpos($widgetHtml, 'data-reaction-count="like"');
+$assert(
+    is_int($bodyOrderIcon)
+        && is_int($bodyOrderLabel)
+        && is_int($bodyOrderCount)
+        && $bodyOrderIcon < $bodyOrderLabel
+        && $bodyOrderLabel < $bodyOrderCount,
+    'public body widget should render icon, label, count in that order.'
+);
+$commentTarget = array_merge($target, ['owner_account_id' => 8, 'recipient_account_id' => 8]);
+$commentWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'comment', '1', ['id' => 3], ['resolved_target' => $commentTarget]);
+$commentOrderIcon = strpos($commentWidgetHtml, 'sr-reaction-emoji');
+$commentOrderLabel = strpos($commentWidgetHtml, 'sr-reaction-button-label');
+$commentOrderCount = strpos($commentWidgetHtml, 'data-reaction-count="like"');
+$assert(
+    is_int($commentOrderIcon)
+        && is_int($commentOrderLabel)
+        && is_int($commentOrderCount)
+        && $commentOrderIcon < $commentOrderLabel
+        && $commentOrderLabel < $commentOrderCount,
+    'public comment widget should render icon, label, count in that order.'
+);
+$ownerEmptyWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' => 7], ['resolved_target' => $target]);
+$assert($ownerEmptyWidgetHtml === '', 'public owner widget should hide when every reaction count is zero.');
+
+$ownerReaction = sr_reaction_write($pdo, 4, 'community', 'post', '1', 'like', 'apply', ['resolved_target' => $target]);
+$assert($ownerReaction['ok'] === true && (int) ($ownerReaction['counts']['like'] ?? 0) === 1, 'non-owner reaction should create a visible owner summary count.');
 $selfWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' => 7], ['resolved_target' => $target]);
-$assert(str_contains($selfWidgetHtml, '내가 작성한 대상에는 반응할 수 없습니다.'), 'public widget should show self-reaction block note.');
+$assert(
+    str_contains($selfWidgetHtml, 'data-sr-reaction-widget')
+        && str_contains($selfWidgetHtml, 'btn sr-reaction-button sr-reaction-summary btn-ghost-default')
+        && str_contains($selfWidgetHtml, 'sr-reaction-summary')
+        && str_contains($selfWidgetHtml, 'data-reaction-count="like"')
+        && !str_contains($selfWidgetHtml, 'data-reaction-key=')
+        && !str_contains($selfWidgetHtml, 'data-reaction-count="sad"')
+        && !str_contains($selfWidgetHtml, 'sr-reaction-label')
+        && !str_contains($selfWidgetHtml, 'sr-reaction-note')
+        && !str_contains($selfWidgetHtml, 'sr-reaction-login')
+        && !str_contains($selfWidgetHtml, 'sr-reaction-message'),
+    'public owner widget should render only counted ghost-style text summaries.'
+);
+$ownerCommentReaction = sr_reaction_write($pdo, 4, 'community', 'comment', '1', 'like', 'apply', ['resolved_target' => $commentTarget]);
+$ownerCommentWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'comment', '1', ['id' => 8], ['resolved_target' => $commentTarget]);
+$assert(
+    $ownerCommentReaction['ok'] === true
+        && str_contains($ownerCommentWidgetHtml, 'sr-reaction-summary')
+        && str_contains($ownerCommentWidgetHtml, 'data-reaction-count="like"')
+        && !str_contains($ownerCommentWidgetHtml, 'data-reaction-key='),
+    'public owner comment widget should render counted ghost-style text summaries without buttons.'
+);
 $privateWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '2', ['id' => 3], ['resolved_target' => $privateTarget]);
 $assert($privateWidgetHtml === '', 'public widget should hide non-viewable targets.');
 
