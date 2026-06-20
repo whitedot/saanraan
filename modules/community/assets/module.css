@@ -482,8 +482,20 @@ img.community-home-member-avatar {
 
 .community-home-main {
     display: grid;
-    gap: 18px;
+    gap: 12px;
     min-width: 0;
+}
+
+.community-frame-home {
+    gap: 18px;
+}
+
+.community-frame-list,
+.community-frame-view,
+.community-frame-form,
+.community-frame-account,
+.community-frame-group {
+    gap: 10px;
 }
 
 .community-home-post {
@@ -926,7 +938,7 @@ img.community-home-member-avatar {
 
 .community-post-view-header {
     background: #fff;
-    border-radius: 8px;
+    border-radius: var(--community-radius, 8px);
     display: grid;
     gap: 12px;
     margin-bottom: 16px;
@@ -969,7 +981,7 @@ a.community-post-title:focus,
 
 .community-post-body {
     background: #fff;
-    border-radius: 8px;
+    border-radius: var(--community-radius, 8px);
     color: var(--sr-text, var(--text-strong, #242424));
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
@@ -1014,7 +1026,7 @@ a.community-post-title:focus,
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
-    width: 100%;
+    width: fit-content;
 }
 
 .community-post-image-thumbnail-link:hover,

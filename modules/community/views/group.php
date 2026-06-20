@@ -30,6 +30,7 @@ $communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutCon
 ]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
+$communityFrameModifier = 'group';
 ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <h1><?php echo sr_e($pageTitle); ?></h1>

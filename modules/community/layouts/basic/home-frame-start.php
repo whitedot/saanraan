@@ -21,8 +21,10 @@ $popularPostReactionCounts = isset($popularPostReactionCounts) && is_array($popu
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
 $communityMainLabel = isset($communityMainLabel) && is_string($communityMainLabel) && $communityMainLabel !== '' ? $communityMainLabel : '커뮤니티 본문';
+$communityFrameModifier = isset($communityFrameModifier) && is_string($communityFrameModifier) && preg_match('/\A[a-z0-9_-]+\z/', $communityFrameModifier) === 1 ? $communityFrameModifier : 'home';
+$communityMainClass = 'community-home-main community-frame-main community-frame-' . $communityFrameModifier;
 ?>
 <main class="community-screen">
     <div class="community-home-layout">
         <?php include SR_ROOT . '/modules/community/layouts/basic/home-sidebar.php'; ?>
-        <section class="community-home-main" aria-label="<?php echo sr_e($communityMainLabel); ?>">
+        <section class="<?php echo sr_e($communityMainClass); ?>" aria-label="<?php echo sr_e($communityMainLabel); ?>">
