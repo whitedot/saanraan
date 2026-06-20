@@ -370,7 +370,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
     }
     $html .= '<p><small>' . sr_e('적용 대상: ' . implode(', ', $labels) . ' / 버전: ' . implode(', ', $versionLabels)) . '</small></p>';
     $html .= '<label for="' . sr_e($id) . '">';
-    $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="community_privacy_consent_accepted" value="1"' . ($browserRequired ? ' required' : '') . '>';
+    $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="community_privacy_consent_accepted" value="1" class="form-checkbox"' . ($browserRequired ? ' required' : '') . '>';
     $html .= ' ' . sr_e('위 개인정보 수집 및 이용에 동의합니다.');
     $html .= '</label>';
     $html .= '</fieldset>';

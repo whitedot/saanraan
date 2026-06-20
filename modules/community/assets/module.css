@@ -1195,20 +1195,6 @@ a.community-post-title:focus,
     gap: 6px;
 }
 
-.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
-    border: 1px solid var(--community-border, var(--sr-border, #d8dde6));
-    border-radius: 8px;
-    color: var(--sr-text, var(--text-strong, #242424));
-    line-height: var(--type-body-line-height);
-    padding: 10px 12px;
-    width: 100%;
-}
-
-.community-screen :is(input, select, textarea):focus-visible {
-    outline: 2px solid var(--community-text, var(--sr-text, #20242a));
-    outline-offset: 2px;
-}
-
 .community-comment-secret {
     color: var(--sr-muted, var(--text-muted, #6b6b6b));
 }
@@ -1462,20 +1448,6 @@ a.community-post-title:focus,
 .community-post-body blockquote {
     border-left-color: var(--color-primary);
     color: var(--community-muted);
-}
-
-.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
-    border-color: var(--community-border);
-    border-radius: var(--community-radius);
-    color: var(--community-text);
-}
-
-.community-screen :is(input, select, textarea):not(.form-input):not(.form-select):not(.form-textarea):focus-visible {
-    outline-color: var(--color-primary);
-}
-
-.community-screen :is(.form-input, .form-select, .form-textarea):focus-visible {
-    outline: none;
 }
 
 .community-screen th,

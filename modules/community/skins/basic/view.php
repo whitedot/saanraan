@@ -150,7 +150,7 @@ $communityFrameModifier = 'view';
                         <p>
                             <label for="modules_community_view_guest_post_password">
                                 <span><?php echo sr_e('수정 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
                         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></button>
@@ -161,7 +161,7 @@ $communityFrameModifier = 'view';
                         <p>
                             <label for="modules_community_view_guest_post_delete_password">
                                 <span><?php echo sr_e('삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
                         <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
@@ -422,26 +422,26 @@ $communityFrameModifier = 'view';
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentReplyId); ?>">
                                                             <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                        <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
+                                                        <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
                                                     </label>
                                                 </p>
                                                 <?php if (!is_array($account)) { ?>
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
                                                             <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentGuestAuthorName) : ''; ?>" required>
+                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentGuestAuthorName) : ''; ?>" required class="form-input">
                                                         </label>
                                                     </p>
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>">
                                                             <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required>
+                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
                                                         </label>
                                                     </p>
                                                 <?php } ?>
                                                     <?php if (!empty($secretCommentsEnabled)) { ?>
                                                         <label class="community-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                                                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
                                                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                                                         </label>
                                                     <?php } ?>
@@ -462,12 +462,12 @@ $communityFrameModifier = 'view';
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId); ?>">
                     <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                                         </label>
                                                     </p>
                                                     <?php if (!empty($secretCommentsEnabled) || (int) ($comment['is_secret'] ?? 0) === 1) { ?>
                                                         <label class="community-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                                                         </label>
                                                     <?php } ?>
@@ -491,13 +491,13 @@ $communityFrameModifier = 'view';
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId); ?>">
                                                             <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                                         </label>
                                                     </p>
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>">
                                                             <span><?php echo sr_e('수정 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
                                                     <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
@@ -508,7 +508,7 @@ $communityFrameModifier = 'view';
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>">
                                                             <span><?php echo sr_e('삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
                                                     <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
@@ -582,26 +582,26 @@ $communityFrameModifier = 'view';
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
+                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required class="form-textarea"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
                         </label>
                     </p>
                     <?php if (!is_array($account)) { ?>
                         <p>
                             <label for="modules_community_view_guest_comment_name">
                                 <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <input id="modules_community_view_guest_comment_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId < 1 ? sr_e($commentGuestAuthorName) : ''; ?>" required>
+                                <input id="modules_community_view_guest_comment_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId < 1 ? sr_e($commentGuestAuthorName) : ''; ?>" required class="form-input">
                             </label>
                         </p>
                         <p>
                             <label for="modules_community_view_guest_comment_password">
                                 <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <input id="modules_community_view_guest_comment_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required>
+                                <input id="modules_community_view_guest_comment_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
                             </label>
                         </p>
                     <?php } ?>
                     <?php if (!empty($secretCommentsEnabled)) { ?>
                         <label class="community-comment-secret-toggle">
-                            <input type="checkbox" name="is_secret" value="1"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>
                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                         </label>
                     <?php } ?>

@@ -685,9 +685,9 @@ function sr_community_extra_fields_form_html(array $definitions, array $values =
         $value = is_array($rawValue) ? '' : (string) $rawValue;
         $html .= '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : '') . '</span>';
         if ($type === 'textarea') {
-            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
+            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000" class="form-textarea"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
         } elseif ($type === 'select') {
-            $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '"' . ($required ? ' required' : '') . '>';
+            $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select"' . ($required ? ' required' : '') . '>';
             $html .= '<option value="">' . sr_e('선택') . '</option>';
             foreach ((array) ($definition['options'] ?? []) as $option) {
                 $option = (string) $option;
@@ -695,9 +695,9 @@ function sr_community_extra_fields_form_html(array $definitions, array $values =
             }
             $html .= '</select>';
         } elseif ($type === 'checkbox') {
-            $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
+            $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
         } else {
-            $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '"' . ($required ? ' required' : '') . '>';
+            $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input"' . ($required ? ' required' : '') . '>';
         }
         $html .= '</label></p>';
     }
