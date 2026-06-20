@@ -204,6 +204,10 @@ $imageAttachments = [];
 $fileAttachments = [];
 foreach ($attachments as $attachment) {
     if (sr_community_attachment_is_image($attachment)) {
+        $attachment['original_url'] = sr_community_attachment_public_url($attachment);
+        $attachment['thumbnail_url'] = is_array($postBoard)
+            ? sr_community_post_view_image_thumbnail_url($pdo, $attachment, $postBoard, $settings)
+            : $attachment['original_url'];
         $imageAttachments[] = $attachment;
     } else {
         $fileAttachments[] = $attachment;

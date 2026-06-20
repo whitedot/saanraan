@@ -198,6 +198,32 @@ $communityMainLabel = $pageTitle;
             </article>
             <?php } else { ?>
             <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
+            <?php if ($imageAttachments !== []) { ?>
+                <section class="community-post-image-thumbnails" aria-label="<?php echo sr_e('첨부 이미지'); ?>">
+                    <?php foreach ($imageAttachments as $attachment) { ?>
+                        <?php
+                        $communityAttachmentOriginalUrl = (string) ($attachment['original_url'] ?? sr_community_attachment_public_url($attachment));
+                        $communityAttachmentThumbnailUrl = (string) ($attachment['thumbnail_url'] ?? $communityAttachmentOriginalUrl);
+                        if ($communityAttachmentOriginalUrl === '' || $communityAttachmentThumbnailUrl === '') {
+                            continue;
+                        }
+                        $communityAttachmentName = (string) ($attachment['original_name'] ?? '');
+                        $communityAttachmentSize = (int) ($attachment['size_bytes'] ?? 0);
+                        ?>
+                        <figure class="community-post-image-thumbnail">
+                            <a class="community-post-image-thumbnail-link" href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>" data-community-image-layer-trigger>
+                                <img src="<?php echo sr_e($communityAttachmentThumbnailUrl); ?>" alt="<?php echo sr_e($communityAttachmentName); ?>" loading="lazy">
+                            </a>
+                            <figcaption class="community-post-image-thumbnail-caption">
+                                <a href="<?php echo sr_e($communityAttachmentOriginalUrl); ?>"><?php echo sr_e($communityAttachmentName !== '' ? $communityAttachmentName : '첨부 이미지'); ?></a>
+                                <?php if ($communityAttachmentSize > 0) { ?>
+                                    <span><?php echo sr_e(sr_community_format_bytes($communityAttachmentSize)); ?></span>
+                                <?php } ?>
+                            </figcaption>
+                        </figure>
+                    <?php } ?>
+                </section>
+            <?php } ?>
             <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>
@@ -214,24 +240,6 @@ $communityMainLabel = $pageTitle;
                 $returnTo = '/community/post?id=' . rawurlencode((string) (int) $post['id']);
                 include SR_ROOT . '/modules/quiz/views/source-quizzes.php';
                 ?>
-            <?php } ?>
-
-            <?php if ($imageAttachments !== []) { ?>
-                <section>
-                    <h2><?php echo sr_e(sr_t('community::ui.text.01dd6a36')); ?></h2>
-                    <ul>
-                        <?php foreach ($imageAttachments as $attachment) { ?>
-                            <li>
-                                <a href="<?php echo sr_e(sr_url('/community/attachment?id=' . (string) $attachment['id'])); ?>">
-                                    <?php echo sr_e((string) $attachment['original_name']); ?>
-                                </a>
-                                <?php if ((int) ($attachment['size_bytes'] ?? 0) > 0) { ?>
-                                    (<?php echo sr_e(sr_community_format_bytes((int) $attachment['size_bytes'])); ?>)
-                                <?php } ?>
-                            </li>
-                        <?php } ?>
-                    </ul>
-                </section>
             <?php } ?>
 
             <?php if ($fileAttachments !== []) { ?>

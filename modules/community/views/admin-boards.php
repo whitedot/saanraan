@@ -933,22 +933,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row" data-community-thumbnail-rule="width"<?php echo $thumbnailCriterionValue === 'width' ? '' : ' hidden'; ?>>
                 <label class="form-label" for="community_admin_boards_thumbnail_min_width">썸네일 생성 기준 너비 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <div class="input-group admin-input-unit">
-                        <input id="community_admin_boards_thumbnail_min_width" type="number" name="thumbnail_min_width" min="1" max="4000" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_width', (string) ($settings['thumbnail_min_width'] ?? 320))); ?>"<?php echo $thumbnailCriterionValue === 'width' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
-                        <span class="input-group-text">px</span>
+                    <div class="admin-setting-source-line">
+                        <div class="input-group admin-input-unit">
+                            <input id="community_admin_boards_thumbnail_min_width" type="number" name="thumbnail_min_width" min="1" max="4000" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_width', (string) ($settings['thumbnail_min_width'] ?? 320))); ?>"<?php echo $thumbnailCriterionValue === 'width' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
+                            <span class="input-group-text">px</span>
+                        </div>
+                        <?php echo $settingSourceRadioHtml('source_thumbnail_min_width', $boardSettingSource($formBoard, 'thumbnail_min_width')); ?>
                     </div>
-                    <?php echo $settingSourceRadioHtml('source_thumbnail_min_width', $boardSettingSource($formBoard, 'thumbnail_min_width')); ?>
                     <p class="form-help">너비 기준을 선택했을 때 원본 이미지 너비가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-community-thumbnail-rule="bytes"<?php echo $thumbnailCriterionValue === 'bytes' ? '' : ' hidden'; ?>>
                 <label class="form-label" for="community_admin_boards_thumbnail_min_bytes">썸네일 생성 기준 용량 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <div class="input-group admin-input-unit">
-                        <input id="community_admin_boards_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_bytes', (string) ($settings['thumbnail_min_bytes'] ?? 102400))); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
-                        <span class="input-group-text">bytes</span>
+                    <div class="admin-setting-source-line">
+                        <div>
+                            <div class="input-group admin-input-unit">
+                                <input id="community_admin_boards_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_bytes', (string) ($settings['thumbnail_min_bytes'] ?? 102400))); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible data-community-thumbnail-bytes-input class="form-input">
+                                <span class="input-group-text">bytes</span>
+                            </div>
+                            <span class="form-help" data-community-thumbnail-bytes-label></span>
+                        </div>
+                        <?php echo $settingSourceRadioHtml('source_thumbnail_min_bytes', $boardSettingSource($formBoard, 'thumbnail_min_bytes')); ?>
                     </div>
-                    <?php echo $settingSourceRadioHtml('source_thumbnail_min_bytes', $boardSettingSource($formBoard, 'thumbnail_min_bytes')); ?>
                     <p class="form-help">용량 기준을 선택했을 때 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
                 </div>
             </div>
@@ -2518,6 +2525,43 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <script>
 (function () {
+    function formatThumbnailBytes(value) {
+        var bytes = Number(value || 0);
+        if (!Number.isFinite(bytes) || bytes < 0) {
+            bytes = 0;
+        }
+        if (bytes === 0) {
+            return '0 bytes';
+        }
+        if (bytes < 1024) {
+            return bytes.toLocaleString('ko-KR', {
+                maximumFractionDigits: 0
+            }) + ' bytes';
+        }
+        if (bytes < 1048576) {
+            var kb = bytes / 1024;
+            return kb.toLocaleString('ko-KR', {
+                minimumFractionDigits: kb >= 10 ? 0 : 1,
+                maximumFractionDigits: kb >= 10 ? 1 : 1
+            }) + ' KB';
+        }
+        var mb = bytes / 1048576;
+        return mb.toLocaleString('ko-KR', {
+            minimumFractionDigits: mb >= 10 ? 0 : 2,
+            maximumFractionDigits: mb >= 10 ? 1 : 2
+        }) + ' MB';
+    }
+
+    function syncCommunityThumbnailBytesLabel(root) {
+        Array.prototype.slice.call((root || document).querySelectorAll('[data-community-thumbnail-bytes-input]')).forEach(function (input) {
+            var field = input.closest ? input.closest('.form-field') : null;
+            var label = field ? field.querySelector('[data-community-thumbnail-bytes-label]') : null;
+            if (label) {
+                label.textContent = formatThumbnailBytes(input.value);
+            }
+        });
+    }
+
     function syncCommunityThumbnailCriterion(form) {
         var root = form || document;
         var checked = root.querySelector('input[name="thumbnail_criterion"]:checked');
@@ -2532,6 +2576,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 }
             });
         });
+        syncCommunityThumbnailBytesLabel(root);
     }
 
     document.addEventListener('change', function (event) {
@@ -2539,6 +2584,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
         syncCommunityThumbnailCriterion(event.target.closest('form'));
+    });
+    document.addEventListener('input', function (event) {
+        if (!event.target || !event.target.matches('[data-community-thumbnail-bytes-input]')) {
+            return;
+        }
+        syncCommunityThumbnailBytesLabel(event.target.closest('form'));
     });
 
     if (document.readyState === 'loading') {

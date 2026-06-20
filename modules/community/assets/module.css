@@ -942,6 +942,139 @@ a.community-post-title:focus,
     word-break: normal;
 }
 
+.community-post-image-thumbnails {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    margin: 24px 0;
+}
+
+.community-post-image-thumbnail {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    min-width: 0;
+}
+
+.community-post-image-thumbnail-link {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    display: inline-flex;
+    justify-content: center;
+    min-width: 0;
+    overflow: visible;
+    width: fit-content;
+}
+
+.community-post-image-thumbnail-link:hover,
+.community-post-image-thumbnail-link:focus-visible {
+    outline: 0;
+}
+
+.community-post-image-thumbnail-link:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-primary-ring, rgba(59, 130, 246, .18));
+}
+
+.community-post-image-thumbnail-link img {
+    display: block;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    width: auto;
+}
+
+.community-post-image-thumbnail-caption {
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--type-meta-size);
+    gap: 4px 8px;
+    line-height: var(--type-meta-line-height);
+    min-width: 0;
+}
+
+.community-post-image-thumbnail-caption a {
+    color: var(--sr-text, var(--text-strong, #242424));
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.community-image-layer-open {
+    overflow: hidden;
+}
+
+.community-image-layer {
+    align-items: stretch;
+    background: color-mix(in oklab, var(--sr-text, #111827) 78%, transparent);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    inset: 0;
+    padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    position: fixed;
+    z-index: 1000;
+}
+
+.community-image-layer[hidden] {
+    display: none;
+}
+
+.community-image-layer-toolbar {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    min-width: 0;
+    padding-right: 48px;
+}
+
+.community-image-layer-button.btn-ghost-light {
+    color: var(--color-white, #fff);
+}
+
+.community-image-layer-button.btn-ghost-light:hover,
+.community-image-layer-button.btn-ghost-light:focus-visible {
+    background: color-mix(in oklab, var(--color-white, #fff) 16%, transparent);
+    color: var(--color-white, #fff);
+}
+
+.community-image-layer-button.btn-ghost-light:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-white, #fff) 24%, transparent);
+    outline: 0;
+}
+
+.community-image-layer-button .material-symbols-outlined {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.community-image-layer-close {
+    position: absolute;
+    right: max(14px, env(safe-area-inset-right));
+    top: max(14px, env(safe-area-inset-top));
+}
+
+.community-image-layer-viewport {
+    align-items: flex-start;
+    display: grid;
+    justify-items: center;
+    margin-top: 12px;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 16px;
+}
+
+.community-image-layer-image {
+    display: block;
+    flex: 0 0 auto;
+    height: auto;
+    max-width: none;
+    object-fit: contain;
+}
+
 .community-post-body blockquote {
     border-left: 3px solid var(--sr-text, var(--text-strong, #242424));
     color: var(--sr-muted, var(--text-muted, #3d3d3d));

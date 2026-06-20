@@ -65,7 +65,7 @@ function sr_community_post_attachments(PDO $pdo, int $postId): array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, width, height, status, created_at
+        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
          FROM sr_community_attachments
          WHERE post_id = :post_id
            AND status = 'active'
@@ -84,7 +84,7 @@ function sr_community_attachment_by_id(PDO $pdo, int $attachmentId): ?array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, width, height, status, created_at
+        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
          FROM sr_community_attachments
          WHERE id = :id
          LIMIT 1"
@@ -157,12 +157,86 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
     ], sr_community_post_list_thumbnail_options($post));
 }
 
+function sr_community_post_view_image_thumbnail_url(PDO $pdo, array $attachment, array $board, array $settings): string
+{
+    if ((int) ($attachment['id'] ?? 0) < 1 || !sr_community_attachment_is_image($attachment)) {
+        return '';
+    }
+
+    $publicUrl = sr_community_attachment_public_url($attachment);
+    if ($publicUrl === '') {
+        return '';
+    }
+
+    $thumbnailEnabled = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_enabled', $settings) === '1';
+    if (!$thumbnailEnabled) {
+        return $publicUrl;
+    }
+
+    $criterion = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_criterion', $settings);
+    if ($criterion === 'bytes') {
+        $sourceBytes = (int) ($attachment['size_bytes'] ?? 0);
+        $minBytes = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_bytes', $settings);
+        if ($minBytes > 0 && $sourceBytes < $minBytes) {
+            return $publicUrl;
+        }
+    } else {
+        $sourceWidth = (int) ($attachment['width'] ?? 0);
+        $minWidth = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_width', $settings);
+        if ($sourceWidth > 0 && $sourceWidth < $minWidth) {
+            return $publicUrl;
+        }
+    }
+
+    return sr_thumbnail_public_url($pdo, [
+        'public' => true,
+        'module_key' => 'community',
+        'storage_driver' => (string) ($attachment['storage_driver'] ?? 'local'),
+        'storage_key' => (string) ($attachment['storage_key'] ?? ''),
+        'mime_type' => (string) ($attachment['mime_type'] ?? ''),
+        'size_bytes' => (int) ($attachment['size_bytes'] ?? 0),
+        'checksum_sha256' => (string) ($attachment['checksum_sha256'] ?? ''),
+        'width' => (int) ($attachment['width'] ?? 0),
+        'height' => (int) ($attachment['height'] ?? 0),
+        'public_url' => $publicUrl,
+    ], sr_community_post_view_image_thumbnail_options($attachment));
+}
+
+function sr_community_attachment_public_url(array $attachment): string
+{
+    $attachmentId = (int) ($attachment['id'] ?? 0);
+    if ($attachmentId < 1) {
+        return '';
+    }
+
+    return sr_url('/community/attachment?id=' . rawurlencode((string) $attachmentId));
+}
+
 function sr_community_post_list_thumbnail_options(array $post): array
 {
     $sourceWidth = (int) ($post['list_image_width'] ?? 0);
     $sourceHeight = (int) ($post['list_image_height'] ?? 0);
     $targetWidth = $sourceWidth > 0 ? min(320, $sourceWidth) : 320;
     $targetHeight = 180;
+    if ($sourceWidth > 0 && $sourceHeight > 0) {
+        $targetHeight = max(1, min(2000, (int) round($sourceHeight * ($targetWidth / $sourceWidth))));
+    }
+
+    return [
+        'width' => $targetWidth,
+        'height' => $targetHeight,
+        'mode' => 'contain',
+        'quality' => 82,
+        'format' => 'source',
+    ];
+}
+
+function sr_community_post_view_image_thumbnail_options(array $attachment): array
+{
+    $sourceWidth = (int) ($attachment['width'] ?? 0);
+    $sourceHeight = (int) ($attachment['height'] ?? 0);
+    $targetWidth = $sourceWidth > 0 ? min(640, $sourceWidth) : 640;
+    $targetHeight = 360;
     if ($sourceWidth > 0 && $sourceHeight > 0) {
         $targetHeight = max(1, min(2000, (int) round($sourceHeight * ($targetWidth / $sourceWidth))));
     }
