@@ -145,7 +145,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <table class="table">
                 <thead>
                     <tr>
-                        <th><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?></th>
                         <th><?php echo sr_e(sr_t('notification::ui.text.cb0f2404')); ?></th>
                         <th><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></th>
                         <th><?php echo sr_e(sr_t('notification::ui.text.5efd3ddd')); ?></th>
@@ -158,12 +157,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                         <tr>
                             <td>
                                 <?php if ($notificationLinkAttributes !== '') { ?>
-                                    <a<?php echo $notificationLinkAttributes; ?>><?php echo sr_e((string) $notification['title']); ?></a>
+                                    <a<?php echo $notificationLinkAttributes; ?>><?php echo sr_notification_body_html($notification) !== '' ? sr_notification_body_html($notification) : sr_e('알림 확인'); ?></a>
                                 <?php } else { ?>
-                                    <?php echo sr_e((string) $notification['title']); ?>
+                                    <?php echo sr_notification_body_html($notification) !== '' ? sr_notification_body_html($notification) : sr_e('알림'); ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_notification_body_html($notification); ?></td>
                             <td><?php echo sr_e((string) $notification['status'] === 'read' ? sr_t('notification::ui.text.3fe5701c') : sr_t('notification::ui.text.62808119')); ?></td>
                             <td><?php echo sr_notification_time_html((string) $notification['created_at']); ?></td>
                             <td>

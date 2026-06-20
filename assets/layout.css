@@ -494,6 +494,10 @@
     width: 7px;
 }
 
+.public-layout-notification-item.is-unread {
+    padding-inline-end: 32px;
+}
+
 .public-layout-notification-title,
 .public-layout-notification-text,
 .public-layout-notification-date {
@@ -509,8 +513,8 @@
 }
 
 .public-layout-notification-text {
-    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600, #47505c)));
-    font-size: .8rem;
+    color: var(--sr-text, var(--color-body-color, #20242a));
+    font-size: .875rem;
     line-height: 1.4;
 }
 

@@ -95,13 +95,10 @@ if (sr_request_method() === 'POST') {
                         'provider_key' => 'telegram_bot',
                     ],
                 ]);
-                sr_notification_create($pdo, [
+                sr_notification_create_account_event($pdo, [
                     'account_id' => (int) $account['id'],
-                    'audience' => 'account',
-                    'title' => '외부 푸시 수신처가 연결되었습니다.',
-                    'body_text' => 'Telegram 개인 수신처가 알림 푸시에 연결되었습니다.',
-                    'link_url' => '/account/notifications',
-                    'channels' => ['site'],
+                    'module_key' => 'notification',
+                    'event_key' => 'member_push_endpoint.connected',
                 ]);
                 $notice = 'Telegram 푸시 수신처를 연결했습니다.';
             } catch (InvalidArgumentException) {
@@ -127,13 +124,10 @@ if (sr_request_method() === 'POST') {
                         'provider_key' => 'telegram_bot',
                     ],
                 ]);
-                sr_notification_create($pdo, [
+                sr_notification_create_account_event($pdo, [
                     'account_id' => (int) $account['id'],
-                    'audience' => 'account',
-                    'title' => '외부 푸시 수신처가 해제되었습니다.',
-                    'body_text' => 'Telegram 개인 수신처가 알림 푸시에서 해제되었습니다.',
-                    'link_url' => '/account/notifications',
-                    'channels' => ['site'],
+                    'module_key' => 'notification',
+                    'event_key' => 'member_push_endpoint.disabled',
                 ]);
                 $notice = 'Telegram 푸시 수신처를 해제했습니다.';
             } else {
@@ -151,7 +145,8 @@ if (sr_request_method() === 'POST') {
 }
 
 $notifications = [];
-$notificationSql = "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url,
+$notificationEventSelect = sr_notification_event_select_sql($pdo, 'n');
+$notificationSql = "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url" . $notificationEventSelect . ",
                            CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
                            COALESCE(n.read_at, r.read_at) AS read_at,
                            n.created_at
@@ -175,6 +170,7 @@ $stmt->execute($notificationParams);
 foreach ($stmt->fetchAll() as $row) {
     $notifications[] = $row;
 }
+$notifications = sr_notification_apply_rendered_titles($pdo, $notifications);
 
 $stmt = $pdo->prepare(
     "SELECT

@@ -685,9 +685,10 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
     }
 
     $adminExternalCondition = sr_notification_admin_external_delivery_sql_condition('d');
+    $eventSelect = sr_notification_event_select_sql($pdo, 'n');
     $stmt = $pdo->prepare(
         "SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
-                CASE WHEN " . $adminExternalCondition . " THEN an.title ELSE n.title END AS title,
+                CASE WHEN " . $adminExternalCondition . " THEN an.title ELSE n.title END AS title" . $eventSelect . ",
                 CASE WHEN " . $adminExternalCondition . " THEN an.body_text ELSE n.body_text END AS body_text,
                 CASE WHEN " . $adminExternalCondition . " THEN 'plain' ELSE n.body_format END AS body_format,
                 CASE WHEN " . $adminExternalCondition . " THEN an.action_url ELSE n.link_url END AS link_url
@@ -699,6 +700,9 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
     );
     $stmt->execute(['id' => $deliveryId]);
     $delivery = $stmt->fetch();
+    if (is_array($delivery)) {
+        $delivery['title'] = sr_notification_title_from_row($pdo, $delivery);
+    }
 
     return is_array($delivery) ? $delivery : null;
 }
@@ -862,9 +866,10 @@ function sr_notification_member_push_delivery_context(PDO $pdo, array $delivery)
         return null;
     }
 
+    $eventSelect = sr_notification_event_select_sql($pdo, 'n');
     $stmt = $pdo->prepare(
         "SELECT d.id AS delivery_id, d.notification_id, d.channel, d.attempt_count,
-                n.account_id, n.audience, n.status AS notification_status, n.title, n.body_text, n.body_format, n.link_url,
+                n.account_id, n.audience, n.status AS notification_status, n.title, n.body_text, n.body_format, n.link_url" . $eventSelect . ",
                 e.id AS endpoint_id, e.account_id AS endpoint_account_id, e.provider_key, e.recipient_type,
                 e.endpoint_ciphertext, e.recipient_masked, e.status AS endpoint_status
          FROM sr_notification_deliveries d
@@ -878,6 +883,9 @@ function sr_notification_member_push_delivery_context(PDO $pdo, array $delivery)
         'delivery_id' => $deliveryId,
     ]);
     $row = $stmt->fetch();
+    if (is_array($row)) {
+        $row['title'] = sr_notification_title_from_row($pdo, $row);
+    }
 
     return is_array($row) ? $row : null;
 }

@@ -540,9 +540,10 @@ $deliverySortOptions = [
 ];
 $deliveryDefaultSort = sr_admin_sort_default('updated_at', 'desc');
 $deliverySort = sr_admin_sort_from_request($deliverySortOptions, $deliveryDefaultSort);
+$deliveryEventSelect = sr_notification_event_select_sql($pdo, 'n');
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
                        d.attempt_count, d.next_attempt_at, d.locked_at,
-                       CASE WHEN d.channel IN (' . $adminExternalChannelSqlList . ') THEN an.title ELSE n.title END AS notification_title
+                       CASE WHEN d.channel IN (' . $adminExternalChannelSqlList . ') THEN an.title ELSE n.title END AS notification_title' . $deliveryEventSelect . '
                 FROM sr_notification_deliveries d
                 LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel NOT IN (' . $adminExternalChannelSqlList . ')
                 LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel IN (' . $adminExternalChannelSqlList . ')';
@@ -609,6 +610,11 @@ if ($notificationAdminPage === 'deliveries') {
     }
     $stmt->execute();
     foreach ($stmt->fetchAll() as $row) {
+        if (is_array($row)) {
+            $row['notification_title'] = sr_notification_title_from_row($pdo, array_merge($row, [
+                'title' => (string) ($row['notification_title'] ?? ''),
+            ]));
+        }
         $deliveries[] = $row;
     }
 }

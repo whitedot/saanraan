@@ -12,8 +12,9 @@ return static function (PDO $pdo, int $accountId): array {
         $accountEmail = filter_var($candidateEmail, FILTER_VALIDATE_EMAIL) ? $candidateEmail : '';
     }
 
+    $eventSelect = function_exists('sr_notification_event_select_sql') ? sr_notification_event_select_sql($pdo, '') : ", '' AS source_module_key, '' AS event_key, NULL AS metadata_json";
     $stmt = $pdo->prepare(
-        'SELECT id, account_id, audience, title, body_text, body_format, link_url, status, read_at, created_by_account_id, created_at, updated_at
+        'SELECT id, account_id, audience, title, body_text, body_format, link_url' . $eventSelect . ', status, read_at, created_by_account_id, created_at, updated_at
          FROM sr_notifications
          WHERE account_id = :account_id OR audience = :audience
          ORDER BY id DESC
@@ -33,6 +34,9 @@ return static function (PDO $pdo, int $accountId): array {
             continue;
         }
 
+        if (function_exists('sr_notification_title_from_row')) {
+            $row['title'] = sr_notification_title_from_row($pdo, $row);
+        }
         $notifications[] = $row;
         $notificationIds[] = $notificationId;
         if ((int) ($row['account_id'] ?? 0) === $accountId) {

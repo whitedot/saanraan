@@ -297,7 +297,6 @@ if (
                                     <?php } else { ?>
                                         <div class="<?php echo sr_e($layoutNotificationClass); ?>">
                                     <?php } ?>
-                                        <span class="content-layout-notification-title"><?php echo sr_e((string) ($layoutNotification['title'] ?? '알림')); ?></span>
                                         <?php if ($layoutNotificationBody !== '') { ?>
                                             <span class="content-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
                                         <?php } ?>

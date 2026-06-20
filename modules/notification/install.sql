@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS sr_notifications (
     body_text TEXT NULL,
     body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
     link_url VARCHAR(255) NOT NULL DEFAULT '',
+    source_module_key VARCHAR(60) NOT NULL DEFAULT '',
+    event_key VARCHAR(120) NOT NULL DEFAULT '',
+    metadata_json TEXT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     read_at DATETIME NULL,
     created_by_account_id BIGINT UNSIGNED NULL,
@@ -13,7 +16,8 @@ CREATE TABLE IF NOT EXISTS sr_notifications (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_notifications_account (account_id, status, read_at, id),
-    KEY idx_sr_notifications_audience (audience, status, id)
+    KEY idx_sr_notifications_audience (audience, status, id),
+    KEY idx_sr_notifications_event (source_module_key, event_key)
 );
 
 CREATE TABLE IF NOT EXISTS sr_notification_deliveries (
@@ -160,7 +164,9 @@ VALUES
     ('quiz', 'comment.mention', '퀴즈 댓글에서 회원님을 언급했습니다.', '{member_name}님이 퀴즈 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('survey', 'comment.mention', '설문 댓글에서 회원님을 언급했습니다.', '{member_name}님이 설문 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
-    ('community', 'attachment.publisher_reward.granted', '첨부 다운로드 리워드가 지급되었습니다.', '지급 금액: {amount}{asset}', '{link_url}', '["site"]', 'active', NOW(), NOW())
+    ('community', 'attachment.publisher_reward.granted', '첨부 다운로드 리워드가 지급되었습니다.', '지급 금액: {amount}{asset}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
+    ('notification', 'member_push_endpoint.connected', '외부 푸시 수신처가 연결되었습니다.', 'Telegram 개인 수신처가 알림 푸시에 연결되었습니다.', '/account/notifications', '["site"]', 'active', NOW(), NOW()),
+    ('notification', 'member_push_endpoint.disabled', '외부 푸시 수신처가 해제되었습니다.', 'Telegram 개인 수신처가 알림 푸시에서 해제되었습니다.', '/account/notifications', '["site"]', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     title_template = VALUES(title_template),
     body_template = VALUES(body_template),

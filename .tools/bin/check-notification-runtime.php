@@ -172,6 +172,9 @@ function sr_notification_runtime_pdo(): PDO
             body_text TEXT NULL,
             body_format TEXT NOT NULL DEFAULT \'plain\',
             link_url TEXT NOT NULL DEFAULT \'\',
+            source_module_key TEXT NOT NULL DEFAULT \'\',
+            event_key TEXT NOT NULL DEFAULT \'\',
+            metadata_json TEXT NULL,
             status TEXT NOT NULL DEFAULT \'active\',
             read_at TEXT NULL,
             created_by_account_id INTEGER NULL,
@@ -330,9 +333,17 @@ $notificationId = sr_notification_create_account_event($pdo, [
 ]);
 sr_notification_runtime_assert(is_int($notificationId) && $notificationId > 0, 'notification runtime fixture must create account event notification.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT title FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === '댓글에서 홍길동님이 언급했습니다.', 'notification runtime fixture must render title template metadata.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT source_module_key FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === 'community', 'notification runtime fixture must store account event module key.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT event_key FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === 'comment.mention', 'notification runtime fixture must store account event key.');
+sr_notification_runtime_assert(str_contains((string) sr_notification_runtime_scalar($pdo, 'SELECT metadata_json FROM sr_notifications WHERE id = :id', ['id' => $notificationId]), '홍길동'), 'notification runtime fixture must store account event metadata for generated titles.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT body_text FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === '본문: 테스트 댓글', 'notification runtime fixture must render body template metadata.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT link_url FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === '/community/post?id=42', 'notification runtime fixture must render link template metadata.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'email\' AND recipient = \'member7@example.test\' AND status = \'queued\'', ['id' => $notificationId]) === 1, 'notification runtime fixture must queue email delivery for account event.');
+
+$pdo->exec("UPDATE sr_notification_event_templates SET title_template = '수정된 제목: {member_name}' WHERE module_key = 'community' AND event_key = 'comment.mention'");
+$storedEventNotification = $pdo->query('SELECT * FROM sr_notifications WHERE id = ' . (string) $notificationId)->fetch();
+sr_notification_runtime_assert(is_array($storedEventNotification) && sr_notification_title_from_row($pdo, $storedEventNotification) === '수정된 제목: 홍길동', 'notification runtime fixture must generate account event title from current event template and stored metadata.');
+$pdo->exec("UPDATE sr_notification_event_templates SET title_template = '댓글에서 {member_name}님이 언급했습니다.' WHERE module_key = 'community' AND event_key = 'comment.mention'");
 
 $summary = sr_notification_public_header_summary($pdo, 7, 5);
 sr_notification_runtime_assert((int) ($summary['unread'] ?? 0) === 1, 'notification runtime fixture must count unread account notifications.');
@@ -759,7 +770,9 @@ sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'sr_mem
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'password_verify($currentPassword'), 'member notification push changes must verify current password.');
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'notification.member_push_endpoint.connected'), 'member notification push connect must write audit logs.');
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'notification.member_push_endpoint.disabled'), 'member notification push disable must write audit logs.');
-sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'channels' => ['site']"), 'member notification push security notices must stay in site notifications.');
+sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'event_key' => 'member_push_endpoint.connected'"), 'member notification push connect notice must use the notification event template.');
+sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'event_key' => 'member_push_endpoint.disabled'"), 'member notification push disable notice must use the notification event template.');
+sr_notification_runtime_assert(str_contains(sr_notification_runtime_file('modules/notification/install.sql'), "'notification', 'member_push_endpoint.connected'") && str_contains(sr_notification_runtime_file('modules/notification/install.sql'), '\'["site"]\''), 'member notification push security notice templates must stay in site notifications.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'name="telegram_chat_id"'), 'member notification account view must render Telegram chat ID input.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'value="disable_push_endpoint"'), 'member notification account view must render endpoint disable form.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'autocomplete="current-password"'), 'member notification account view must require current password fields.');

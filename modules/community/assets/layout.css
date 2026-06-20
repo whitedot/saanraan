@@ -671,6 +671,10 @@
     width: 7px;
 }
 
+.community-layout-notification-item.is-unread {
+    padding-inline-end: 32px;
+}
+
 .community-layout-notification-title,
 .community-layout-notification-text,
 .community-layout-notification-date {
@@ -686,8 +690,8 @@
 }
 
 .community-layout-notification-text {
-    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600, #47505c)));
-    font-size: .8rem;
+    color: var(--sr-text, var(--color-body-color, #20242a));
+    font-size: .875rem;
     line-height: 1.4;
 }
 

@@ -26,6 +26,114 @@ function sr_notification_body_html(array $notification): string
     return sr_body_text_html($notification);
 }
 
+function sr_notification_table_has_column(PDO $pdo, string $table, string $column): bool
+{
+    static $cache = [];
+
+    $cacheKey = spl_object_id($pdo) . '.' . $table . '.' . $column;
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT ' . $column . ' FROM ' . $table . ' LIMIT 0');
+        $cache[$cacheKey] = $stmt !== false;
+    } catch (Throwable) {
+        $cache[$cacheKey] = false;
+    }
+
+    return $cache[$cacheKey];
+}
+
+function sr_notification_event_columns_available(PDO $pdo): bool
+{
+    return sr_notification_table_has_column($pdo, 'sr_notifications', 'source_module_key')
+        && sr_notification_table_has_column($pdo, 'sr_notifications', 'event_key')
+        && sr_notification_table_has_column($pdo, 'sr_notifications', 'metadata_json');
+}
+
+function sr_notification_event_select_sql(PDO $pdo, string $alias = 'n'): string
+{
+    if (!sr_notification_event_columns_available($pdo)) {
+        return ", '' AS source_module_key, '' AS event_key, NULL AS metadata_json";
+    }
+
+    $aliasPrefix = $alias !== '' ? $alias . '.' : '';
+    return ', ' . $aliasPrefix . 'source_module_key, ' . $aliasPrefix . 'event_key, ' . $aliasPrefix . 'metadata_json';
+}
+
+function sr_notification_metadata_json(array $metadata): string
+{
+    $cleanMetadata = [];
+    foreach ($metadata as $key => $value) {
+        if (!is_string($key) || preg_match('/\A[a-zA-Z0-9_.-]{1,80}\z/', $key) !== 1) {
+            continue;
+        }
+        if (is_scalar($value) || $value === null) {
+            $cleanMetadata[$key] = $value === null ? '' : (string) $value;
+        }
+    }
+
+    if ($cleanMetadata === []) {
+        return '';
+    }
+
+    $json = json_encode($cleanMetadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '';
+}
+
+function sr_notification_metadata_from_row(array $notification): array
+{
+    $metadataJson = (string) ($notification['metadata_json'] ?? '');
+    if (trim($metadataJson) === '') {
+        return [];
+    }
+
+    $decoded = json_decode($metadataJson, true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+
+    $metadata = [];
+    foreach ($decoded as $key => $value) {
+        if (is_string($key) && (is_scalar($value) || $value === null)) {
+            $metadata[$key] = $value === null ? '' : (string) $value;
+        }
+    }
+
+    return $metadata;
+}
+
+function sr_notification_title_from_row(PDO $pdo, array $notification): string
+{
+    $moduleKey = (string) ($notification['source_module_key'] ?? '');
+    $eventKey = (string) ($notification['event_key'] ?? '');
+    if ($moduleKey !== '' && $eventKey !== '') {
+        $template = sr_notification_event_template($pdo, $moduleKey, $eventKey);
+        $titleTemplate = is_array($template) ? (string) ($template['title_template'] ?? '') : '';
+        if ($titleTemplate !== '') {
+            $title = sr_notification_clean_single_line(sr_notification_render_template($titleTemplate, sr_notification_metadata_from_row($notification)), 160);
+            if ($title !== '') {
+                return $title;
+            }
+        }
+    }
+
+    $title = sr_notification_clean_single_line((string) ($notification['title'] ?? ''), 160);
+    return $title !== '' ? $title : '알림';
+}
+
+function sr_notification_apply_rendered_titles(PDO $pdo, array $notifications): array
+{
+    foreach ($notifications as $index => $notification) {
+        if (is_array($notification)) {
+            $notifications[$index]['title'] = sr_notification_title_from_row($pdo, $notification);
+        }
+    }
+
+    return $notifications;
+}
+
 function sr_notification_time_html(string $value): string
 {
     return sr_relative_time_html($value);
@@ -210,8 +318,9 @@ function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $li
     $limit = max(1, min(10, $limit));
 
     try {
+        $eventSelect = sr_notification_event_select_sql($pdo, 'n');
         $stmt = $pdo->prepare(
-            "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url,
+            "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url" . $eventSelect . ",
                     CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
                     COALESCE(n.read_at, r.read_at) AS read_at,
                     n.created_at
@@ -232,6 +341,7 @@ function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $li
                 $items[] = $row;
             }
         }
+        $items = sr_notification_apply_rendered_titles($pdo, $items);
 
         $stmt = $pdo->prepare(
             "SELECT SUM(CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 1 ELSE 0 END) AS unread_count
@@ -656,6 +766,9 @@ function sr_notification_create_account_event(PDO $pdo, array $data): ?int
         'body_text' => $bodyText,
         'link_url' => $linkUrl,
         'channels' => $channels,
+        'source_module_key' => $moduleKey,
+        'event_key' => $eventKey,
+        'metadata' => $metadata,
         'created_by_account_id' => isset($data['created_by_account_id']) ? (int) $data['created_by_account_id'] : null,
     ]);
 }
@@ -908,13 +1021,9 @@ function sr_notification_create(PDO $pdo, array $data): int
 
     try {
         $now = sr_now();
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_notifications
-                (account_id, audience, title, body_text, body_format, link_url, status, read_at, created_by_account_id, created_at, updated_at)
-             VALUES
-                (:account_id, :audience, :title, :body_text, :body_format, :link_url, :status, NULL, :created_by_account_id, :created_at, :updated_at)'
-        );
-        $stmt->execute([
+        $columns = ['account_id', 'audience', 'title', 'body_text', 'body_format', 'link_url', 'status', 'read_at', 'created_by_account_id', 'created_at', 'updated_at'];
+        $placeholders = [':account_id', ':audience', ':title', ':body_text', ':body_format', ':link_url', ':status', 'NULL', ':created_by_account_id', ':created_at', ':updated_at'];
+        $params = [
             'account_id' => $accountId,
             'audience' => $audience,
             'title' => $title,
@@ -925,7 +1034,28 @@ function sr_notification_create(PDO $pdo, array $data): int
             'created_by_account_id' => $createdByAccountId,
             'created_at' => $now,
             'updated_at' => $now,
-        ]);
+        ];
+        if (sr_notification_event_columns_available($pdo)) {
+            $columns[] = 'source_module_key';
+            $columns[] = 'event_key';
+            $columns[] = 'metadata_json';
+            $placeholders[] = ':source_module_key';
+            $placeholders[] = ':event_key';
+            $placeholders[] = ':metadata_json';
+            $params['source_module_key'] = (string) ($data['source_module_key'] ?? '');
+            $params['event_key'] = (string) ($data['event_key'] ?? '');
+            $params['metadata_json'] = is_string($data['metadata_json'] ?? null)
+                ? (string) $data['metadata_json']
+                : (isset($data['metadata']) && is_array($data['metadata']) ? sr_notification_metadata_json($data['metadata']) : '');
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_notifications
+                (' . implode(', ', $columns) . ')
+             VALUES
+                (' . implode(', ', $placeholders) . ')'
+        );
+        $stmt->execute($params);
 
         $notificationId = (int) $pdo->lastInsertId();
         sr_notification_queue_deliveries($pdo, $notificationId, $channels, $audience, $accountId, $recipient);
