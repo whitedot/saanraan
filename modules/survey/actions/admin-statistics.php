@@ -109,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td class="admin-table-break">
                                 <strong><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></strong><br>
-                                <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) ($question['question_key'] ?? '')); ?></span>
+                                <span class="admin-summary-meta">(<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>)</span>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_survey_question_type_label((string) ($question['question_type'] ?? ''))); ?></td>
                             <td class="admin-table-break">

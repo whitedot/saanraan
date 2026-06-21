@@ -140,7 +140,7 @@ $installedSections = [
                         <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
                         <div class="admin-module-card-title-text">
                             <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                            <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
+                            <p>(<?php echo sr_e($moduleKey); ?>) · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
                         </div>
                     </div>
                     <span class="admin-status <?php echo $canInstall ? 'is-normal' : 'is-blocked'; ?>">
@@ -199,7 +199,7 @@ $installedSections = [
                         <div class="modal-body">
                             <dl class="admin-module-detail-list">
                                 <dt><?php echo sr_e(sr_t('admin::ui.text.e37db65f')); ?></dt>
-                                <dd>관리용 키: <?php echo sr_e($moduleKey); ?></dd>
+                                <dd>(<?php echo sr_e($moduleKey); ?>)</dd>
                                 <dt><?php echo sr_e(sr_t('admin::ui.name.253d1510')); ?></dt>
                                 <dd><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></dd>
                                 <dt><?php echo sr_e(sr_t('admin::ui.text.5cf2792b')); ?></dt>
@@ -255,7 +255,7 @@ $installedSections = [
                                         <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
                                         <div class="form-field">
                                             <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                            <span class="form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
+                                            <span class="form-help">(<?php echo sr_e($moduleKey); ?>)</span>
                                         </div>
                                     </div>
                                     <div class="form-row">
@@ -317,7 +317,7 @@ $installedSections = [
                     <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
                     <div class="admin-module-card-title-text">
                         <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                        <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
+                        <p>(<?php echo sr_e($moduleKey); ?>) · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
                     </div>
                 </div>
                 <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
@@ -514,7 +514,7 @@ $installedSections = [
                                     <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
                                     <div class="form-field">
                                         <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                        <span class="form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
+                                        <span class="form-help">(<?php echo sr_e($moduleKey); ?>)</span>
                                     </div>
                                 </div>
                                 <div class="form-row">

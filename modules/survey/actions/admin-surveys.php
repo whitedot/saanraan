@@ -1093,7 +1093,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
                         <label class="form-check form-label">
                             <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
-                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> - 관리용 키: <?php echo sr_e($groupKey); ?>
+                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
                         </label>
                     <?php endforeach; ?>
                 </div>

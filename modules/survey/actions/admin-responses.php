@@ -183,7 +183,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($response['submitted_at'] ?? '')); ?></td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($response['title'] ?? '')); ?></strong><br>
-                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) ($response['survey_key'] ?? '')); ?> · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
+                            <span class="admin-summary-meta">(<?php echo sr_e((string) ($response['survey_key'] ?? '')); ?>) · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo (int) ($response['account_id'] ?? 0) > 0 ? sr_e((string) (int) $response['account_id']) : '익명'; ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>

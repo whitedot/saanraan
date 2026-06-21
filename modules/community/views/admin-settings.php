@@ -14,7 +14,7 @@ $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use 
     <?php foreach ($communitySiteMenuOptions as $menuKey => $menu) { ?>
         <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
         <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
-            <?php echo sr_e($menuLabel . ' - 관리용 키: ' . (string) $menuKey); ?>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
         </option>
     <?php } ?>
     <?php

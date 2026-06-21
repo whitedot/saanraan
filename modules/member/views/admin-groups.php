@@ -205,7 +205,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <select id="<?php echo sr_e($groupFieldId); ?>" name="group_id" required class="form-select"<?php echo $focusAttr; ?>>
                 <?php foreach ($groups as $group) { ?>
                     <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($formRule) && (int) $formRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) $group['title']); ?> - 관리용 키: <?php echo sr_e((string) $group['group_key']); ?>
+                        <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
                     </option>
                 <?php } ?>
             </select>
@@ -509,7 +509,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) $groupId); ?>">
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
-                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
+                            <span class="admin-summary-meta">(<?php echo sr_e((string) $group['group_key']); ?>)</span>
                         </div>
                         <div class="form-row">
                             <?php echo sr_admin_form_label_help_html($manualAssignAccountInputId, sr_t('member::ui.member.hash.5a5dbe2b'), $memberGroupHelp['member_hash']['id'], $memberGroupHelpOpenLabel, true); ?>
@@ -554,7 +554,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <div class="modal-body">
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
-                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
+                            <span class="admin-summary-meta">(<?php echo sr_e((string) $group['group_key']); ?>)</span>
                         </div>
                         <section class="card admin-list-card admin-list-form">
                             <div class="card-header">
@@ -823,7 +823,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <select id="member_group_rule_evaluate_group_id" name="group_id" class="form-select" required data-overlay-focus>
                                 <option value=""><?php echo sr_e(sr_t('member::ui.text.72ea3d64')); ?></option>
                                 <?php foreach ($enabledRuleTargetGroups as $group) { ?>
-                                    <option value="<?php echo sr_e((string) $group['id']); ?>"><?php echo sr_e((string) $group['title']); ?> - 관리용 키: <?php echo sr_e((string) $group['group_key']); ?></option>
+                                    <option value="<?php echo sr_e((string) $group['id']); ?>"><?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)</option>
                                 <?php } ?>
                             </select>
                         </div>

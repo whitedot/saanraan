@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label"><?php echo sr_e('원본 게시판'); ?></span>
             <div class="form-field">
-                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> / 관리용 키: <?php echo sr_e((string) $sourceBoard['board_key']); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> (<?php echo sr_e((string) $sourceBoard['board_key']); ?>)</p>
             </div>
         </div>
         <div class="form-row">
