@@ -24,6 +24,10 @@
             var key = button.getAttribute('data-reaction-key') || '';
             var active = key === activeKey;
             button.classList.toggle('is-active', active);
+            button.classList.remove('btn-solid-primary');
+            button.classList.toggle('btn-solid-success', active);
+            button.classList.remove('btn-ghost-primary');
+            button.classList.toggle('btn-ghost-default', !active);
             button.setAttribute('aria-pressed', active ? 'true' : 'false');
             var countNode = widget.querySelector('[data-reaction-count="' + key + '"]');
             if (countNode) {

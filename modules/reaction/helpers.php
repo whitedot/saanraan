@@ -679,7 +679,7 @@ function sr_reaction_render_widget(PDO $pdo, string $targetModule, string $targe
                 $isActive = $myKey === $key;
                 $count = (int) ($counts[$key] ?? 0);
                 $buttonLabel = (string) ($definition['label'] ?? $key);
-                $buttonClass = 'btn sr-reaction-button ' . ($isActive ? 'btn-ghost-primary is-active' : 'btn-ghost-default');
+                $buttonClass = 'btn sr-reaction-button ' . ($isActive ? 'btn-solid-success is-active' : 'btn-ghost-default');
                 ?>
                 <?php if ($isOwner) { ?>
                     <span class="btn sr-reaction-button sr-reaction-summary btn-ghost-default" aria-label="<?php echo sr_e($buttonLabel . ' ' . number_format($count)); ?>">

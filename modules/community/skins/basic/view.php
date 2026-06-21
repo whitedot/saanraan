@@ -107,7 +107,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                     <?php
                     $communityPostReportModalId = 'community_report_post_modal_' . (string) (int) $post['id'];
                     ?>
-                    <button type="button" class="btn btn-outline-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityPostReportModalId); ?>" data-overlay="#<?php echo sr_e($communityPostReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
+                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityPostReportModalId); ?>" data-overlay="#<?php echo sr_e($communityPostReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
                     <div id="<?php echo sr_e($communityPostReportModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityPostReportModalId . '_title'); ?>" aria-hidden="true" inert>
                         <div class="modal-dialog">
                             <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="modal-content">
@@ -532,7 +532,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                     <?php
                                     $communityCommentReportModalId = 'community_report_comment_modal_' . (string) (int) $comment['id'];
                                     ?>
-                                    <button type="button" class="btn btn-outline-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReportModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
+                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReportModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
                                     <div id="<?php echo sr_e($communityCommentReportModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReportModalId . '_title'); ?>" aria-hidden="true" inert>
                                         <div class="modal-dialog">
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="modal-content">
