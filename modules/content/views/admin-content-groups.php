@@ -244,7 +244,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
 <?php } else { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <section id="content-group-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240')); ?></h2>
             <p class="form-help"><?php echo sr_e('콘텐츠 그룹은 여러 콘텐츠를 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다. 독자가 순서대로 읽는 연재 흐름은 콘텐츠 시리즈를 사용하세요.'); ?></p>

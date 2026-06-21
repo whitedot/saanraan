@@ -354,7 +354,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
     <?php echo sr_admin_pagination_html($boardGroupPagination, '게시판 그룹 목록 페이지'); ?>
 <?php } else { ?>
-    <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
         <section id="community-board-group-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.669f4ac3') : sr_t('community::ui.text.08aafae8')); ?></h2>
             <p class="form-help">게시판 그룹은 여러 게시판을 묶어 공개 목록과 사이트 메뉴 후보로 관리하는 운영 단위입니다.</p>

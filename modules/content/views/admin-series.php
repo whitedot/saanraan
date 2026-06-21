@@ -213,7 +213,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
 
 <div id="<?php echo sr_e($seriesCreateModalId); ?>" class="<?php echo sr_e($seriesCreateModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($seriesCreateModalId); ?>_title" aria-hidden="<?php echo sr_e($seriesCreateModalAriaHidden); ?>"<?php echo $seriesCreateModalInert; ?>>
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="modal-content ui-form-theme">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="create">
             <div class="modal-header">
