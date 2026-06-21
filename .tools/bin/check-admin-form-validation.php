@@ -87,6 +87,65 @@ function sr_check_admin_form_validation_scan_csrf(string $root): void
     }
 }
 
+function sr_check_admin_form_validation_attr_value(string $tag, string $name): string
+{
+    if (preg_match('/\b' . preg_quote($name, '/') . '\s*=\s*([\'"])(.*?)\1/is', $tag, $matches) !== 1) {
+        return '';
+    }
+
+    return (string) $matches[2];
+}
+
+function sr_check_admin_form_validation_has_attr(string $tag, string $name): bool
+{
+    return preg_match('/\b' . preg_quote($name, '/') . '(?:\s*=|\s|>|\/>)/i', $tag) === 1;
+}
+
+function sr_check_admin_form_validation_is_admin_key_input(string $name): bool
+{
+    if (!str_ends_with($name, '_key') && !in_array($name, ['module_key', 'menu_key'], true)) {
+        return false;
+    }
+
+    return !in_array($name, ['confirmation_key', 'license_key', 'version_key'], true);
+}
+
+function sr_check_admin_form_validation_scan_key_inputs(string $root): void
+{
+    global $errors;
+
+    foreach (sr_check_admin_form_validation_php_files($root) as $file) {
+        $content = file_get_contents($file);
+        if (!is_string($content)) {
+            continue;
+        }
+
+        if (preg_match_all('/<input\b[^\n]*/i', $content, $matches, PREG_OFFSET_CAPTURE) === false) {
+            continue;
+        }
+
+        foreach ($matches[0] as [$input, $offset]) {
+            $input = (string) $input;
+            $type = strtolower(sr_check_admin_form_validation_attr_value($input, 'type'));
+            if ($type !== '' && $type !== 'text') {
+                continue;
+            }
+
+            $name = sr_check_admin_form_validation_attr_value($input, 'name');
+            if (!sr_check_admin_form_validation_is_admin_key_input($name)) {
+                continue;
+            }
+
+            if (sr_check_admin_form_validation_has_attr($input, 'data-admin-key-input')) {
+                continue;
+            }
+
+            $line = substr_count(substr($content, 0, (int) $offset), "\n") + 1;
+            $errors[] = 'Admin key text input must use data-admin-key-input: ' . substr((string) $file, strlen($root) + 1) . ':' . (string) $line . ' name=' . $name;
+        }
+    }
+}
+
 $files = [
     'modules/admin/assets/admin-shell.js' => [
         'data-sr-validate-form' => 'Admin shell must bind opt-in validation forms.',
@@ -148,6 +207,7 @@ foreach ($files as $relativePath => $markers) {
 }
 
 sr_check_admin_form_validation_scan_csrf($root);
+sr_check_admin_form_validation_scan_key_inputs($root);
 
 if ($errors !== []) {
     fwrite(STDERR, "admin form validation checks failed:\n");
