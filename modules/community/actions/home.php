@@ -127,6 +127,9 @@ if ($communitySeriesSupported && $readableBoardIds !== []) {
     if ($seriesPlaceholders !== []) {
         $stmt = $pdo->prepare(
             'SELECT s.*, b.title AS board_title,
+                    owner.display_name AS owner_display_name,
+                    owner.status AS owner_account_status,
+                    owner_nickname.nickname AS owner_nickname,
                     (SELECT COUNT(*) FROM sr_community_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count,
                     (SELECT si.post_id
                      FROM sr_community_series_items si
@@ -138,6 +141,8 @@ if ($communitySeriesSupported && $readableBoardIds !== []) {
                      LIMIT 1) AS first_post_id
              FROM sr_community_series s
              INNER JOIN sr_community_boards b ON b.id = s.board_id
+             LEFT JOIN sr_member_accounts owner ON owner.id = s.owner_account_id
+             LEFT JOIN sr_member_nicknames owner_nickname ON owner_nickname.account_id = owner.id
              WHERE s.status = \'active\'
                AND b.status = \'enabled\'
                AND s.board_id IN (' . implode(', ', $seriesPlaceholders) . ')

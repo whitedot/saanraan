@@ -650,7 +650,8 @@ img.community-home-member-avatar {
 }
 
 .community-home-aside .community-home-summary-item,
-.community-home-aside .community-home-comment-item {
+.community-home-aside .community-home-comment-item,
+.community-home-aside .community-home-series-item {
     gap: 3px;
 }
 
@@ -709,6 +710,26 @@ img.community-home-member-avatar {
 .community-home-comment-meta time {
     flex: 0 0 auto;
     color: var(--sr-muted, var(--text-muted, #6b6b6b));
+}
+
+.community-home-series-title {
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--type-small-line-height);
+    overflow-wrap: anywhere;
+}
+
+.community-home-series-meta {
+    align-items: center;
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+    display: inline-flex;
+    flex-wrap: wrap;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-normal);
+    gap: 4px;
+    line-height: var(--type-meta-line-height);
+    min-width: 0;
 }
 
 .community-home-summary-title-line {

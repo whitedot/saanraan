@@ -90,12 +90,27 @@
                 <?php } else { ?>
                     <ul>
                         <?php foreach ($recentSeries as $series) { ?>
-                            <li>
+                            <?php
+                            $seriesOwnerLabel = sr_community_author_label_from_row([
+                                'author_account_id' => (int) ($series['owner_account_id'] ?? 0),
+                                'author_display_name' => (string) ($series['owner_display_name'] ?? ''),
+                                'author_nickname' => (string) ($series['owner_nickname'] ?? ''),
+                                'author_account_status' => (string) ($series['owner_account_status'] ?? ''),
+                            ], $config, false, $memberSettings, $pdo);
+                            ?>
+                            <li class="community-home-series-item">
                                 <?php if ((int) ($series['first_post_id'] ?? 0) > 0) { ?>
-                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) $series['first_post_id'])); ?>"><?php echo sr_e((string) ($series['title'] ?? '')); ?></a>
+                                    <a class="community-home-series-title" href="<?php echo sr_e(sr_url('/community/post?id=' . (string) (int) $series['first_post_id'])); ?>"><?php echo sr_e((string) ($series['title'] ?? '')); ?></a>
                                 <?php } else { ?>
-                                    <?php echo sr_e((string) ($series['title'] ?? '')); ?>
+                                    <strong class="community-home-series-title"><?php echo sr_e((string) ($series['title'] ?? '')); ?></strong>
                                 <?php } ?>
+                                <span class="community-home-series-meta">
+                                    <?php echo sr_e($seriesOwnerLabel); ?>
+                                    <?php if ($seriesOwnerLabel !== '' && (string) ($series['updated_at'] ?? '') !== '') { ?>
+                                        <span aria-hidden="true">&middot;</span>
+                                    <?php } ?>
+                                    <?php echo sr_community_time_html((string) ($series['updated_at'] ?? '')); ?>
+                                </span>
                             </li>
                         <?php } ?>
                     </ul>
