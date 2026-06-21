@@ -62,6 +62,8 @@
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-subject-cell{min-width:18rem}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-subject-cell strong,.admin-page-community-publisher-rewards .admin-community-publisher-reward-account-cell strong,.admin-page-community-publisher-rewards .admin-community-publisher-reward-transaction-cell span,.admin-page-community-publisher-rewards .admin-community-publisher-reward-transaction-cell small{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-date-cell{white-space:nowrap}
+.admin-community-publisher-reward-rate-group{max-width:100%;width:fit-content}
+.admin-community-publisher-reward-rate-group>.admin-community-publisher-reward-rate-input{flex:0 0 4.25rem;min-width:0;width:4.25rem}
 .admin-page-community-series-list .admin-community-series-search-grid{grid-template-columns:fit-content(9rem) fit-content(10rem) fit-content(10rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
 .admin-community-asset-policy-sets .admin-community-asset-policy-set-search-grid{grid-template-columns:max-content max-content minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
 .admin-community-asset-policy-sets .admin-community-asset-policy-set-filter-keyword{width:100%}

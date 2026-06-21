@@ -1180,8 +1180,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-row">
                             <label class="form-label" for="community_board_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
                             <div class="form-field">
-                                <div class="input-group admin-asset-single-amount-group">
-                                    <input id="community_board_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e($boardField($formBoard, 'paid_attachment_download_publisher_reward_rate', '0')); ?>" class="form-input">
+                                <div class="input-group admin-asset-single-amount-group admin-community-publisher-reward-rate-group">
+                                    <input id="community_board_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e($boardField($formBoard, 'paid_attachment_download_publisher_reward_rate', '0')); ?>" class="form-input admin-community-publisher-reward-rate-input">
                                     <span class="input-group-text">%</span>
                                 </div>
                                 <?php echo $settingSourceRadioHtml('source_paid_attachment_download_publisher_reward_rate', $boardSettingSource($formBoard, 'paid_attachment_download_publisher_reward_rate')); ?>

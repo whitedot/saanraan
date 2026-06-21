@@ -423,8 +423,8 @@ $communitySettingsSectionNavItems = [
                     <div class="form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
                         <div class="form-field">
-                            <div class="input-group admin-asset-single-amount-group">
-                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e((string) (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)); ?>" class="form-input">
+                            <div class="input-group admin-asset-single-amount-group admin-community-publisher-reward-rate-group">
+                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e((string) (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)); ?>" class="form-input admin-community-publisher-reward-rate-input">
                                 <span class="input-group-text">%</span>
                             </div>
                             <p class="form-help">실제 차감된 자산과 같은 자산으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 통과, 이미 차감된 once 다운로드는 지급하지 않습니다.</p>
