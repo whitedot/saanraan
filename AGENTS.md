@@ -67,6 +67,8 @@
 - public layout을 제공하는 모듈은 public layout, UI kit, module, skin asset에서 `public-*`, `public-ui-*`, `sr-public-*` class/data 네임스페이스를 사용하지 않습니다. `content-*`, `community-*`, `quiz-*`, `survey-*` 같은 모듈 네임스페이스를 사용합니다.
 - public layout을 제공하는 모듈은 layout JavaScript와 module/page JavaScript를 별도 파일로 유지합니다. layout template은 `/modules/{provider}/assets/layout.js`를 소유하고, public 모듈 화면은 layout context를 통해 `/modules/{module_key}/assets/module.js`를 추가합니다.
 - UI kit이 `card`, `card-body`, `card-img-top`, button, badge, tab, dropdown, form control class 같은 시맨틱 컴포넌트를 이미 제공한다면 그 컴포넌트를 직접 사용합니다. 모듈 CSS는 화면 레이아웃, grid 배치, 모듈 고유 텍스트 구조, UI kit이 소유하지 않는 상태만 담당합니다.
+- public/admin UI에서 저장, 수정, 삭제, 발송, 신고, 차감 실패 같은 action 결과 메시지는 화면 본문에 일반 `<p>`나 `<ul>`로 고정 표시하지 말고 토스트 메시지로 표시합니다. 토스트 표면은 별도 장식 컴포넌트를 새로 만들기보다 UI kit의 `alert`, `alert-success`, `alert-danger`, `alert-warning`, `alert-info`, `alert-removable` 같은 alert 컴포넌트를 사용하고, 위치와 모듈 네임스페이스만 모듈 CSS에서 담당합니다.
+- action 결과 메시지를 보여주는 POST form은 성공과 validation failure 모두에서 Post/Redirect/Get을 우선합니다. 실패 시 입력값을 유지해야 한다면 짧은 세션 flash로 오류와 필요한 입력값을 넘기고 GET 화면에서 토스트로 표시해, 새로고침이 form 재전송을 일으키지 않게 합니다.
 
 ## 테마 토큰
 
