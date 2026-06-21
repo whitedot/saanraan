@@ -350,8 +350,14 @@
     display: none;
 }
 
-.content-comment-actions form {
+.content-comment-actions details form {
     margin-top: 10px;
+}
+
+.content-comment-actions .btn {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    padding-inline: 0.625rem;
 }
 
 .content-comment-secret-toggle {

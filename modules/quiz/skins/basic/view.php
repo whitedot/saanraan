@@ -357,7 +357,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                         <div class="sr-quiz-comment-actions">
                                             <?php if ($quizCommentCanReply): ?>
                                                 <details<?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId ? ' open' : ''; ?>>
-                                                    <summary class="btn btn-solid-light">답글</summary>
+                                                    <summary class="btn btn-ghost-default">답글</summary>
                                                     <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment')); ?>">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
@@ -376,7 +376,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                             <?php endif; ?>
                                             <?php if ($quizCommentCanEdit): ?>
                                                 <details>
-                                                    <summary class="btn btn-solid-light">수정</summary>
+                                                    <summary class="btn btn-ghost-default">수정</summary>
                                                     <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment/edit')); ?>">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $quizCommentId); ?>">
@@ -396,7 +396,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                                 <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $quizCommentId); ?>">
-                                                    <button type="submit" class="btn btn-solid-light">삭제</button>
+                                                    <button type="submit" class="btn btn-ghost-danger">삭제</button>
                                                 </form>
                                             <?php endif; ?>
                                         </div>

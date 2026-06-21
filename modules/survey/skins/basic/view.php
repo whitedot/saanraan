@@ -407,7 +407,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                         <div class="sr-survey-comment-actions">
                                             <?php if ($surveyCommentCanReply): ?>
                                                 <details<?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? ' open' : ''; ?>>
-                                                    <summary class="btn btn-solid-light">답글</summary>
+                                                    <summary class="btn btn-ghost-default">답글</summary>
                                                     <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
@@ -426,7 +426,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                             <?php endif; ?>
                                             <?php if ($surveyCommentCanEdit): ?>
                                                 <details>
-                                                    <summary class="btn btn-solid-light">수정</summary>
+                                                    <summary class="btn btn-ghost-default">수정</summary>
                                                     <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/edit')); ?>">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
@@ -446,7 +446,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                                 <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
-                                                    <button type="submit" class="btn btn-solid-light">삭제</button>
+                                                    <button type="submit" class="btn btn-ghost-danger">삭제</button>
                                                 </form>
                                             <?php endif; ?>
                                         </div>

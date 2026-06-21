@@ -333,7 +333,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <div class="content-comment-actions">
                                         <?php if ($contentCommentCanReply) { ?>
                                             <details<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? ' open' : ''; ?>>
-                                                <summary class="btn btn-solid-light">답글</summary>
+                                                <summary class="btn btn-ghost-default">답글</summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
@@ -352,7 +352,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <?php } ?>
                                         <?php if ($contentCommentCanEdit) { ?>
                                             <details>
-                                                <summary class="btn btn-solid-light">수정</summary>
+                                                <summary class="btn btn-ghost-default">수정</summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
@@ -372,14 +372,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                             <form method="post" action="<?php echo sr_e(sr_url('/content/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                <button type="submit" class="btn btn-solid-light">삭제</button>
+                                                <button type="submit" class="btn btn-ghost-danger">삭제</button>
                                             </form>
                                         <?php } ?>
                                         <?php if ($contentCommentCanHide) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/content/comment/hide')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                <button type="submit" class="btn btn-solid-light">숨기기</button>
+                                                <button type="submit" class="btn btn-ghost-default">숨기기</button>
                                             </form>
                                         <?php } ?>
                                     </div>

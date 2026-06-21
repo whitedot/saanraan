@@ -83,13 +83,13 @@ $communityFrameModifier = 'view';
             <div class="community-post-view-actions">
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
-                    <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a>
+                    <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a>
                 <?php } ?>
                 <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
@@ -143,7 +143,7 @@ $communityFrameModifier = 'view';
                 <?php } ?>
             <?php } elseif ((int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '') { ?>
                 <details>
-                    <summary class="btn btn-solid-light"><?php echo sr_e('비회원 글 관리'); ?></summary>
+                    <summary class="btn btn-ghost-default"><?php echo sr_e('비회원 글 관리'); ?></summary>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
@@ -164,7 +164,7 @@ $communityFrameModifier = 'view';
                                 <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
-                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
                     </form>
                 </details>
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
@@ -396,7 +396,7 @@ $communityFrameModifier = 'view';
                                     <div class="community-comment-actions">
                                         <?php if ($communityCommentCanReply) { ?>
                                             <details<?php echo $commentParentId === (int) $comment['id'] ? ' open' : ''; ?>>
-                                                <summary class="btn btn-solid-light">답글</summary>
+                                                <summary class="btn btn-ghost-default">답글</summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
@@ -437,7 +437,7 @@ $communityFrameModifier = 'view';
                                         <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
                                             <details>
-                                                <summary class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></summary>
+                                                <summary class="btn btn-ghost-default"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
@@ -461,12 +461,12 @@ $communityFrameModifier = 'view';
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                             </form>
                                         <?php } ?>
                                         <?php if (!is_array($account) && $communityCommentIsGuestAuthor) { ?>
                                             <details>
-                                                <summary class="btn btn-solid-light"><?php echo sr_e('비회원 댓글 관리'); ?></summary>
+                                                <summary class="btn btn-ghost-default"><?php echo sr_e('비회원 댓글 관리'); ?></summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
@@ -493,7 +493,7 @@ $communityFrameModifier = 'view';
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
-                                                    <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                    <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>

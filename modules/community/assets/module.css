@@ -965,6 +965,13 @@ img.community-home-member-avatar {
     min-width: 0;
 }
 
+.community-post-view-actions .btn,
+.community-comment-actions .btn {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    padding-inline: 0.625rem;
+}
+
 a.community-post-title,
 .community-post-title a {
     color: var(--sr-text, var(--text-strong, #242424));
@@ -1205,7 +1212,7 @@ a.community-post-title:focus,
     display: none;
 }
 
-.community-comment-actions form {
+.community-comment-actions details form {
     margin-top: 10px;
 }
 

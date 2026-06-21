@@ -312,6 +312,12 @@
     display: none;
 }
 
+.sr-survey-comment-actions .btn {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    padding-inline: 0.625rem;
+}
+
 .sr-survey-comments textarea {
     width: 100%;
     border: 1px solid var(--sr-border, var(--color-default-300));
