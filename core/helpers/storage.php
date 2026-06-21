@@ -375,13 +375,19 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     $publicSource = !empty($source['public']) || $publicUrl !== '';
     $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
     $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
-    if (!$publicSource || !in_array($driver, ['local', 's3'], true) || !sr_storage_key_is_safe($key)) {
+    $sourcePath = '';
+    if ($driver === 'local' && is_string($source['source_path'] ?? null)) {
+        $sourcePath = (string) $source['source_path'];
+    }
+    if (!$publicSource || !in_array($driver, ['local', 's3'], true) || (!sr_storage_key_is_safe($key) && $sourcePath === '')) {
         return $publicUrl;
     }
 
-    $sourceFile = sr_storage_copy_to_temp_file($driver, $key, [
-        'max_bytes' => (int) ($options['max_source_bytes'] ?? 20971520),
-    ]);
+    $sourceFile = $sourcePath !== ''
+        ? sr_thumbnail_local_source_file($sourcePath, (int) ($options['max_source_bytes'] ?? 20971520))
+        : sr_storage_copy_to_temp_file($driver, $key, [
+            'max_bytes' => (int) ($options['max_source_bytes'] ?? 20971520),
+        ]);
     if (!is_array($sourceFile) || !is_string($sourceFile['path'] ?? null)) {
         return $publicUrl;
     }
@@ -421,7 +427,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     }
 
     $moduleKey = sr_thumbnail_module_key($source);
-    $sourceHash = hash('sha256', $driver . ':' . $key);
+    $sourceHash = hash('sha256', $driver . ':' . ($key !== '' ? $key : (string) ($sourceFile['source_id'] ?? $sourcePath)));
     $sourceVersion = sr_thumbnail_source_version($source, $sourceFile, $sourcePath);
     $variantKey = sr_thumbnail_variant_key($normalized);
     $cacheRelative = 'cache/thumbnails/' . $moduleKey . '/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceVersion . '.' . $format;
@@ -435,6 +441,15 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
 
     $cacheDir = dirname($cachePath);
     if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0755, true) && !is_dir($cacheDir)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return $publicUrl;
+    }
+    if (!is_writable($cacheDir)) {
+        @chmod($cacheDir, 0775);
+    }
+    if (!is_writable($cacheDir)) {
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
@@ -456,7 +471,40 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     if (!empty($sourceFile['cleanup'])) {
         @unlink($sourcePath);
     }
+    @chmod($cachePath, 0664);
     return sr_thumbnail_public_cache_url($cacheRelative);
+}
+
+function sr_thumbnail_local_source_file(string $sourcePath, int $maxBytes): ?array
+{
+    if ($sourcePath === '' || str_contains($sourcePath, "\0")) {
+        return null;
+    }
+
+    $storageRoot = realpath(SR_ROOT . '/storage');
+    $realPath = realpath($sourcePath);
+    if (!is_string($storageRoot) || !is_dir($storageRoot) || !is_string($realPath) || !is_file($realPath)) {
+        return null;
+    }
+
+    $storagePrefix = rtrim($storageRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (!str_starts_with($realPath, $storagePrefix)) {
+        return null;
+    }
+
+    $contentLength = (int) filesize($realPath);
+    if ($contentLength < 1 || $contentLength > max(1, $maxBytes)) {
+        return null;
+    }
+
+    return [
+        'path' => $realPath,
+        'content_type' => sr_upload_detect_mime($realPath),
+        'content_length' => $contentLength,
+        'version_marker' => 'local:' . (string) (@filemtime($realPath) ?: '0') . ':' . (string) (@filesize($realPath) ?: '0'),
+        'source_id' => substr($realPath, strlen($storagePrefix)),
+        'cleanup' => false,
+    ];
 }
 
 function sr_thumbnail_public_cache_url(string $cacheRelative): string
@@ -476,11 +524,22 @@ function sr_thumbnail_delete_variants(array $source): void
 {
     $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
     $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
+    $sourceId = $key;
     if (!sr_storage_key_is_safe($key)) {
+        if ($driver !== 'local' || !is_string($source['source_path'] ?? null)) {
+            return;
+        }
+        $sourceFile = sr_thumbnail_local_source_file((string) $source['source_path'], PHP_INT_MAX);
+        if (!is_array($sourceFile) || !is_string($sourceFile['source_id'] ?? null)) {
+            return;
+        }
+        $sourceId = (string) $sourceFile['source_id'];
+    }
+    if ($sourceId === '') {
         return;
     }
 
-    $sourceHash = hash('sha256', $driver . ':' . $key);
+    $sourceHash = hash('sha256', $driver . ':' . $sourceId);
     $prefix = substr($sourceHash, 0, 2);
     $legacyDir = SR_ROOT . '/storage/cache/thumbnails/' . $prefix;
     foreach (glob($legacyDir . '/' . $sourceHash . '_*') ?: [] as $file) {

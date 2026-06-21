@@ -19,6 +19,7 @@ if (!function_exists('sr_url')) {
 
 require_once $root . '/core/helpers/storage.php';
 require_once $root . '/modules/admin/helpers/storage-cache.php';
+require_once $root . '/modules/community/helpers/attachments.php';
 
 $errors = [];
 
@@ -102,6 +103,8 @@ if (is_string($storageHelperSource)) {
         '$detectedImageMime',
         'max_source_pixels',
         "storage/cache/thumbnails",
+        'is_writable($cacheDir)',
+        '@chmod($cachePath, 0664)',
     ] as $marker) {
         sr_storage_helper_assert(
             strpos($storageHelperSource, $marker) !== false,
@@ -157,6 +160,15 @@ sr_storage_helper_assert(
         && strpos($communityAttachments, 'sr_community_asset_event_required($paidReadConfig)') !== false
         && strpos($communityAttachments, 'sr_thumbnail_delete_variants') !== false,
     'Community attachment helpers must expose public-list thumbnail URL and cache cleanup guards.'
+);
+sr_storage_helper_assert(
+    is_string($communityAttachments)
+        && preg_match('/function sr_community_post_list_thumbnail_url\(.*?sr_thumbnail_public_url\(.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_post_list_thumbnail_url\(.*?sr_community_attachment_file_path\(.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_attachment_file_path\(.*?\$keyPath = sr_storage_local_path\(\$key\).*?storage_path/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_post_list_thumbnail_url\(.*?thumbnail_enabled.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) !== 1
+        && preg_match('/function sr_community_post_list_thumbnail_url\(.*?thumbnail_min_(?:width|bytes).*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) !== 1,
+    'Community board list thumbnails must use the thumbnail cache with local source fallback and without setting or minimum-size original URL fallback.'
 );
 sr_storage_helper_assert(
     is_string($communityPosts)
@@ -268,6 +280,7 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
         imagedestroy($fixtureImage);
     }
     $storageKey = 'cache/check-storage-helpers/thumbnail-source.png';
+    sr_storage_helper_assert(is_file($fixturePath), 'Thumbnail source fixture image must be created in storage.');
     $source = [
         'public' => true,
         'module_key' => 'community',
@@ -299,6 +312,63 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     );
     sr_thumbnail_delete_variants($source);
     sr_storage_helper_assert(!is_file($thumbnailPath), 'Thumbnail helper must delete cached variants for the source.');
+    $sourcePathThumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), [
+        'public' => true,
+        'module_key' => 'community',
+        'storage_driver' => 'local',
+        'storage_key' => '',
+        'source_path' => $root . '/storage/' . $storageKey,
+        'public_url' => '/fallback.png',
+    ], [
+        'width' => 120,
+        'height' => 80,
+        'mode' => 'cover',
+        'quality' => 82,
+    ]);
+    sr_storage_helper_assert(
+        preg_match('#\A/storage/cache/thumbnails/community/[a-f0-9]{2}/[a-f0-9]{64}_w120_h80_cover_q82_source_[a-f0-9]{16}\.png\z#', $sourcePathThumbnailUrl) === 1,
+        'Thumbnail helper must generate local public thumbnails from a verified storage source_path fallback.'
+    );
+    sr_thumbnail_delete_variants([
+        'module_key' => 'community',
+        'storage_driver' => 'local',
+        'storage_key' => '',
+        'source_path' => $root . '/storage/' . $storageKey,
+    ]);
+    $legacyAttachmentPath = $fixtureDir . '/legacy-path-source.png';
+    copy($root . '/storage/' . $storageKey, $legacyAttachmentPath);
+    $legacyAttachmentSourcePath = sr_community_attachment_file_path([
+        'storage_driver' => 'local',
+        'storage_key' => 'community/attachments/check-storage-helpers/missing-key.png',
+        'storage_path' => 'storage/cache/check-storage-helpers/legacy-path-source.png',
+    ]);
+    sr_storage_helper_assert(
+        $legacyAttachmentSourcePath === $legacyAttachmentPath,
+        'Community attachment file path must fall back to storage_path when a legacy storage_key points to a missing local file.'
+    );
+    $legacyAttachmentThumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), [
+        'public' => true,
+        'module_key' => 'community',
+        'storage_driver' => 'local',
+        'storage_key' => 'community/attachments/check-storage-helpers/missing-key.png',
+        'source_path' => (string) $legacyAttachmentSourcePath,
+        'public_url' => '/fallback.png',
+    ], [
+        'width' => 120,
+        'height' => 80,
+        'mode' => 'cover',
+        'quality' => 82,
+    ]);
+    sr_storage_helper_assert(
+        preg_match('#\A/storage/cache/thumbnails/community/[a-f0-9]{2}/[a-f0-9]{64}_w120_h80_cover_q82_source_[a-f0-9]{16}\.png\z#', $legacyAttachmentThumbnailUrl) === 1,
+        'Community list thumbnail source_path fallback must generate a cache URL even when storage_key is stale.'
+    );
+    sr_thumbnail_delete_variants([
+        'module_key' => 'community',
+        'storage_driver' => 'local',
+        'storage_key' => 'community/attachments/check-storage-helpers/missing-key.png',
+    ]);
+    @unlink($legacyAttachmentPath);
     @unlink($root . '/storage/' . $storageKey);
     @unlink($fixturePath);
 }

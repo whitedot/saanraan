@@ -518,15 +518,15 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">썸네일 생성</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '게시글 목록 이미지에 캐시 썸네일 생성 사용'); ?>
-                <p class="form-help">끄면 목록은 원본 첨부 이미지를 그대로 사용합니다. 게시판 개별 설정에서 재정의할 수 있습니다.</p>
+                <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '읽기 화면 첨부 이미지에 캐시 썸네일 생성 사용'); ?>
+                <p class="form-help">게시글 목록 이미지는 공개 첨부 이미지가 있으면 항상 캐시 썸네일을 우선 사용합니다. 이 설정은 읽기 화면의 첨부 이미지 미리보기에 적용되며, 게시판 개별 설정에서 재정의할 수 있습니다.</p>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">생성 기준 <span class="sr-required-label">(필수)</span></span>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_thumbnail_criterion', 'thumbnail_criterion', ['width' => '너비 기준', 'bytes' => '용량 기준'], $thumbnailCriterionValue, true, ' data-community-thumbnail-criterion'); ?>
-                <p class="form-help">선택한 기준 하나만 적용합니다. 화면 표시 크기는 목록 화면과 스킨 CSS가 결정합니다.</p>
+                <p class="form-help">선택한 기준 하나만 읽기 화면의 첨부 이미지 미리보기에 적용합니다. 목록 표시 크기는 목록 화면과 스킨 CSS가 결정합니다.</p>
             </div>
         </div>
         <div class="form-row" data-community-thumbnail-rule="width"<?php echo $thumbnailCriterionValue === 'width' ? '' : ' hidden'; ?>>
@@ -536,7 +536,7 @@ $communitySettingsSectionNavItems = [
                     <input id="community_admin_settings_thumbnail_min_width" type="number" name="thumbnail_min_width" min="1" max="4000" value="<?php echo sr_e((string) ($settings['thumbnail_min_width'] ?? 320)); ?>"<?php echo $thumbnailCriterionValue === 'width' ? ' required' : ''; ?> data-admin-required-when-visible class="form-input">
                     <span class="input-group-text">px</span>
                 </div>
-                <p class="form-help">너비 기준을 선택했을 때 원본 이미지 너비가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다.</p>
+                <p class="form-help">너비 기준을 선택했을 때 읽기 화면 첨부 이미지의 원본 너비가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다.</p>
             </div>
         </div>
         <div class="form-row" data-community-thumbnail-rule="bytes"<?php echo $thumbnailCriterionValue === 'bytes' ? '' : ' hidden'; ?>>
@@ -547,7 +547,7 @@ $communitySettingsSectionNavItems = [
                     <span class="input-group-text">bytes</span>
                 </div>
                 <p class="form-help" data-community-thumbnail-bytes-label></p>
-                <p class="form-help">용량 기준을 선택했을 때 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
+                <p class="form-help">용량 기준을 선택했을 때 읽기 화면 첨부 이미지의 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
             </div>
         </div>
     </section>

@@ -84,7 +84,7 @@ function sr_community_attachment_by_id(PDO $pdo, int $attachmentId): ?array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
+        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at
          FROM sr_community_attachments
          WHERE id = :id
          LIMIT 1"
@@ -122,25 +122,22 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
         return '';
     }
 
-    $publicUrl = sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id']));
-    $thumbnailEnabled = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_enabled', $settings) === '1';
-    if (!$thumbnailEnabled) {
-        return $publicUrl;
-    }
-
-    $criterion = sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_criterion', $settings);
-    if ($criterion === 'bytes') {
-        $sourceBytes = (int) ($post['list_image_size_bytes'] ?? 0);
-        $minBytes = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_bytes', $settings);
-        if ($minBytes > 0 && $sourceBytes < $minBytes) {
-            return $publicUrl;
-        }
-    } else {
-        $sourceWidth = (int) ($post['list_image_width'] ?? 0);
-        $minWidth = (int) sr_community_effective_thumbnail_setting($pdo, $board, 'thumbnail_min_width', $settings);
-        if ($sourceWidth > 0 && $sourceWidth < $minWidth) {
-            return $publicUrl;
-        }
+    $attachmentId = (int) $post['list_image_attachment_id'];
+    $publicUrl = sr_url('/community/attachment?id=' . rawurlencode((string) $attachmentId));
+    $attachment = sr_community_attachment_by_id($pdo, $attachmentId);
+    if (is_array($attachment)
+        && (int) ($attachment['post_id'] ?? 0) === (int) ($post['id'] ?? 0)
+        && (string) ($attachment['status'] ?? '') === 'active'
+        && sr_community_attachment_is_image($attachment)
+    ) {
+        $post['list_image_storage_driver'] = sr_community_attachment_storage_driver($attachment);
+        $post['list_image_storage_key'] = sr_community_attachment_storage_key($attachment);
+        $post['list_image_mime_type'] = (string) ($attachment['mime_type'] ?? '');
+        $post['list_image_size_bytes'] = (int) ($attachment['size_bytes'] ?? 0);
+        $post['list_image_checksum_sha256'] = (string) ($attachment['checksum_sha256'] ?? '');
+        $post['list_image_width'] = (int) ($attachment['width'] ?? 0);
+        $post['list_image_height'] = (int) ($attachment['height'] ?? 0);
+        $post['list_image_source_path'] = sr_community_attachment_file_path($attachment) ?? '';
     }
 
     return sr_thumbnail_public_url($pdo, [
@@ -153,6 +150,7 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
         'checksum_sha256' => (string) ($post['list_image_checksum_sha256'] ?? ''),
         'width' => (int) ($post['list_image_width'] ?? 0),
         'height' => (int) ($post['list_image_height'] ?? 0),
+        'source_path' => (string) ($post['list_image_source_path'] ?? ''),
         'public_url' => $publicUrl,
     ], sr_community_post_list_thumbnail_options($post));
 }
@@ -631,7 +629,10 @@ function sr_community_attachment_file_path(array $attachment): ?string
     $driver = (string) ($attachment['storage_driver'] ?? 'local');
     $key = (string) ($attachment['storage_key'] ?? '');
     if ($driver === 'local' && $key !== '') {
-        return sr_storage_local_path($key);
+        $keyPath = sr_storage_local_path($key);
+        if (is_string($keyPath)) {
+            return $keyPath;
+        }
     }
 
     $storageRoot = realpath(SR_ROOT . '/storage');
