@@ -6,6 +6,87 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $errors = [];
 
+function sr_check_admin_form_validation_php_files(string $root): array
+{
+    $files = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($root . '/modules', FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+            continue;
+        }
+
+        $path = str_replace(DIRECTORY_SEPARATOR, '/', $file->getPathname());
+        if (
+            str_contains($path, '/views/admin')
+            || str_contains($path, '/actions/admin')
+            || str_contains($path, '/modules/admin/views/')
+        ) {
+            $files[] = $path;
+        }
+    }
+
+    sort($files, SORT_STRING);
+    return $files;
+}
+
+function sr_check_admin_form_validation_csrf_closures(string $content): array
+{
+    $closures = [];
+    if (preg_match_all('/\$([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*static\s+function\b.*?\};/s', $content, $matches, PREG_SET_ORDER) !== false) {
+        foreach ($matches as $match) {
+            if (str_contains((string) $match[0], 'sr_csrf_field(')) {
+                $closures[] = (string) $match[1];
+            }
+        }
+    }
+
+    return $closures;
+}
+
+function sr_check_admin_form_validation_form_has_csrf(string $form, array $csrfClosures): bool
+{
+    if (str_contains($form, 'sr_csrf_field(')) {
+        return true;
+    }
+
+    foreach ($csrfClosures as $closure) {
+        if (str_contains($form, '$' . $closure . '(')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sr_check_admin_form_validation_scan_csrf(string $root): void
+{
+    global $errors;
+
+    foreach (sr_check_admin_form_validation_php_files($root) as $file) {
+        $content = file_get_contents($file);
+        if (!is_string($content)) {
+            $errors[] = 'Cannot read ' . $file . '.';
+            continue;
+        }
+
+        $csrfClosures = sr_check_admin_form_validation_csrf_closures($content);
+        if (preg_match_all('/<form\b(?=[^>]*\bmethod\s*=\s*([\'"]?)post\1)[^>]*>.*?<\/form>/is', $content, $matches, PREG_OFFSET_CAPTURE) === false) {
+            continue;
+        }
+
+        foreach ($matches[0] as [$form, $offset]) {
+            if (sr_check_admin_form_validation_form_has_csrf((string) $form, $csrfClosures)) {
+                continue;
+            }
+
+            $line = substr_count(substr($content, 0, (int) $offset), "\n") + 1;
+            $errors[] = 'Admin POST form must render sr_csrf_field(): ' . substr((string) $file, strlen($root) + 1) . ':' . (string) $line;
+        }
+    }
+}
+
 $files = [
     'modules/admin/assets/admin-shell.js' => [
         'data-sr-validate-form' => 'Admin shell must bind opt-in validation forms.',
@@ -65,6 +146,8 @@ foreach ($files as $relativePath => $markers) {
         }
     }
 }
+
+sr_check_admin_form_validation_scan_csrf($root);
 
 if ($errors !== []) {
     fwrite(STDERR, "admin form validation checks failed:\n");
