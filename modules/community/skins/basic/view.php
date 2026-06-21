@@ -88,13 +88,13 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                 </button>
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
-                    <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a>
+                    <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></a>
                 <?php } ?>
                 <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
@@ -158,7 +158,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                 <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
-                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                     </form>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
@@ -169,7 +169,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                 <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
-                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                     </form>
                 </details>
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
@@ -452,7 +452,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                             </div>
                                         <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                             <div id="<?php echo sr_e($communityCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
                                                 <div class="modal-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">
@@ -480,7 +480,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
-                                                            <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                            <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -490,7 +490,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                             </form>
                                         <?php } ?>
                                         <?php if (!is_array($account) && $communityCommentIsGuestAuthor) { ?>
@@ -511,7 +511,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
-                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                                 </form>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
@@ -522,7 +522,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
-                                                    <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                    <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>
