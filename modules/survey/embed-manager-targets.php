@@ -10,7 +10,7 @@ return [
         [
             'target_module' => 'survey',
             'target_type' => 'survey_form',
-            'label' => '설문',
+            'label' => '설문·여론조사',
             'allowed_variants' => ['card', 'button', 'compact'],
             'default_variant' => 'card',
             'search' => static function (PDO $pdo, array $context): array {

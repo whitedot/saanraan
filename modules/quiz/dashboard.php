@@ -3,7 +3,7 @@
 return [
     [
         'key' => 'quiz',
-        'title' => '퀴즈',
+        'title' => '퀴즈·테스트',
         'order' => 60,
         'view' => 'views/dashboard-summary.php',
         'items' => [

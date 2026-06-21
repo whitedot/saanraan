@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => '설문',
+    'label' => '설문·여론조사',
     'order' => 32,
     'items' => [
         [

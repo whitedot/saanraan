@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'name' => '퀴즈',
-    'version' => '2026.06.016',
+    'name' => '퀴즈·테스트',
+    'version' => '2026.06.017',
     'type' => 'module',
     'description' => '퀴즈 응시, 채점, 콘텐츠 연계 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -70,7 +70,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '퀴즈',
+            'label' => '퀴즈·테스트',
             'path' => '/quiz',
         ],
     ],

@@ -6,10 +6,10 @@ $quizSettings = sr_quiz_settings($pdo);
 $quizzes = sr_quiz_public_quizzes($pdo);
 $quizPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
-    'title' => '퀴즈',
+    'title' => '퀴즈·테스트',
     'canonical' => '/quiz',
     'og' => [
-        'title' => '퀴즈',
+        'title' => '퀴즈·테스트',
         'type' => 'website',
     ],
 ];
@@ -22,7 +22,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     <section class="quiz-page-section sr-quiz-home">
         <div class="quiz-page-container">
             <header class="sr-quiz-home-header">
-                <h1>퀴즈</h1>
+                <h1>퀴즈·테스트</h1>
             </header>
             <?php if ($quizzes === []): ?>
                 <p class="sr-quiz-home-empty">현재 공개된 퀴즈가 없습니다.</p>

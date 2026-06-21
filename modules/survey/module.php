@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'name' => '설문',
-    'version' => '2026.06.013',
+    'name' => '설문·여론조사',
+    'version' => '2026.06.014',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -57,7 +57,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '설문',
+            'label' => '설문·여론조사',
             'path' => '/survey',
         ],
     ],

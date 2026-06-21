@@ -17,7 +17,7 @@ $uiKitSamples = [
 ];
 
 $seo = [
-    'title' => '설문 UI Kit',
+    'title' => '설문·여론조사 UI Kit',
     'robots' => 'noindex, nofollow',
 ];
 
@@ -33,11 +33,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_ui_kit_layou
     <main class="survey-ui-kit">
         <section class="card survey-ui-kit-summary">
             <div class="card-header">
-                <h1 class="card-title">설문 UI Kit</h1>
+                <h1 class="card-title">설문·여론조사 UI Kit</h1>
             </div>
             <div class="card-body">
-                <p class="survey-ui-kit-subtitle">설문 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
-                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="설문 UI Kit 샘플">
+                <p class="survey-ui-kit-subtitle">설문·여론조사 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
+                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="설문·여론조사 UI Kit 샘플">
                     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                         <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
                     <?php } ?>

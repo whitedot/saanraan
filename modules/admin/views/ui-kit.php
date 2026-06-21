@@ -40,13 +40,13 @@ if (sr_module_record_entry($pdo, 'community') !== null && is_file(SR_ROOT . '/mo
 }
 if (sr_module_record_entry($pdo, 'quiz') !== null && is_file(SR_ROOT . '/modules/quiz/actions/ui-kit.php')) {
     $publicUiKitLinks[] = [
-        'label' => '퀴즈 UI Kit',
+        'label' => '퀴즈·테스트 UI Kit',
         'path' => '/quiz/ui-kit',
     ];
 }
 if (sr_module_record_entry($pdo, 'survey') !== null && is_file(SR_ROOT . '/modules/survey/actions/ui-kit.php')) {
     $publicUiKitLinks[] = [
-        'label' => '설문 UI Kit',
+        'label' => '설문·여론조사 UI Kit',
         'path' => '/survey/ui-kit',
     ];
 }

@@ -6,7 +6,7 @@ $settings = sr_survey_settings($pdo);
 $surveys = sr_survey_public_forms($pdo, (int) ($settings['public_list_limit'] ?? 50));
 $surveyPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
-    'title' => '설문',
+    'title' => '설문·여론조사',
     'canonical' => '/survey',
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
@@ -17,7 +17,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     <section class="survey-page-section sr-survey-home">
         <div class="survey-page-container">
             <header class="sr-survey-home-header">
-                <h1>설문</h1>
+                <h1>설문·여론조사</h1>
             </header>
             <?php if ($surveys === []): ?>
                 <p class="sr-survey-home-empty">참여할 수 있는 설문이 없습니다.</p>

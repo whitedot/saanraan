@@ -105,7 +105,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.06.016'",
+        "'version' => '2026.06.017'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',
@@ -128,6 +128,10 @@ function sr_quiz_check_schema(): void
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.016.sql', [
         'ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0',
         'ADD KEY idx_sr_quiz_sets_view_count (view_count, id)',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.017.sql', [
+        "name = '퀴즈·테스트'",
+        "version = '2026.06.017'",
     ]);
 }
 

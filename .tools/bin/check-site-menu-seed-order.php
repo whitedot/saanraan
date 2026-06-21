@@ -51,7 +51,7 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
 
 $items = sr_site_menu_seed_default_header_menu_items($options, ['survey', 'quiz', 'community', 'content']);
 $labels = array_map('strval', array_column($items, 'label'));
-$expected = ['홈', '콘텐츠', '커뮤니티', '퀴즈', '설문'];
+$expected = ['홈', '콘텐츠', '커뮤니티', '퀴즈·테스트', '설문·여론조사'];
 if ($labels !== $expected) {
     sr_site_menu_check_error('Site menu seed order must follow service main order: ' . implode(' > ', $labels));
 }

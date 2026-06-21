@@ -17,7 +17,7 @@ $uiKitSamples = [
 ];
 
 $seo = [
-    'title' => '퀴즈 UI Kit',
+    'title' => '퀴즈·테스트 UI Kit',
     'robots' => 'noindex, nofollow',
 ];
 
@@ -33,11 +33,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_ui_kit_layout_
     <main class="quiz-ui-kit">
         <section class="card quiz-ui-kit-summary">
             <div class="card-header">
-                <h1 class="card-title">퀴즈 UI Kit</h1>
+                <h1 class="card-title">퀴즈·테스트 UI Kit</h1>
             </div>
             <div class="card-body">
-                <p class="quiz-ui-kit-subtitle">퀴즈 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
-                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="퀴즈 UI Kit 샘플">
+                <p class="quiz-ui-kit-subtitle">퀴즈·테스트 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
+                <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="퀴즈·테스트 UI Kit 샘플">
                     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                         <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
                     <?php } ?>

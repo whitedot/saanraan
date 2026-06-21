@@ -65,8 +65,8 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.06.013'",
-    'Survey module version must include view count update'
+    "'version' => '2026.06.014'",
+    'Survey module version must include display name update'
 );
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
@@ -101,6 +101,13 @@ foreach (['ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0', 'ADD KEY i
         'modules/survey/updates/2026.06.013.sql',
         $needle,
         'Survey view count update must add view count column and index'
+    );
+}
+foreach (["name = '설문·여론조사'", "version = '2026.06.014'"] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.014.sql',
+        $needle,
+        'Survey display name update must sync installed module record'
     );
 }
 sr_survey_check_contains(

@@ -3,7 +3,7 @@
 return [
     [
         'key' => 'survey',
-        'title' => '설문',
+        'title' => '설문·여론조사',
         'order' => 70,
         'view' => 'views/dashboard-summary.php',
         'items' => [

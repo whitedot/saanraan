@@ -129,7 +129,7 @@ return [
         [
             'target_module' => 'quiz',
             'target_type' => 'quiz_set',
-            'label' => '퀴즈',
+            'label' => '퀴즈·테스트',
             'resolve' => static function (PDO $pdo, array $context): ?array {
                 $quizId = (int) ($context['target_id'] ?? 0);
                 if ($quizId < 1) {

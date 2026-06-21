@@ -133,7 +133,7 @@ return [
         [
             'target_module' => 'survey',
             'target_type' => 'survey_form',
-            'label' => '설문',
+            'label' => '설문·여론조사',
             'resolve' => static function (PDO $pdo, array $context): ?array {
                 $surveyId = (int) ($context['target_id'] ?? 0);
                 if ($surveyId < 1) {

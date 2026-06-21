@@ -777,7 +777,7 @@ function sr_survey_homepage_candidates(PDO $pdo): array
     return [
         [
             'module_key' => 'survey',
-            'label' => '설문',
+            'label' => '설문·여론조사',
             'path' => '/survey',
             'detail' => '/survey',
             'available' => true,

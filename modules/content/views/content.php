@@ -124,7 +124,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } ?>
             <?php if (is_array($contentQuizLinks ?? null) && $contentQuizLinks !== []) { ?>
                 <section class="content-quiz-links">
-                    <h2>퀴즈</h2>
+                    <h2>퀴즈·테스트</h2>
                     <?php foreach ($contentQuizLinks as $contentQuizIndex => $contentQuiz) { ?>
                         <?php
                         $contentQuizReturnTo = sr_content_path((string) $page['slug']);

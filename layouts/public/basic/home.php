@@ -17,12 +17,12 @@ $homeModuleLinkCandidates = [
     ],
     [
         'module_key' => 'quiz',
-        'label' => '퀴즈',
+        'label' => '퀴즈·테스트',
         'path' => '/quiz',
     ],
     [
         'module_key' => 'survey',
-        'label' => '설문',
+        'label' => '설문·여론조사',
         'path' => '/survey',
     ],
 ];

@@ -10,7 +10,7 @@ return [
         [
             'target_module' => 'quiz',
             'target_type' => 'quiz_set',
-            'label' => '퀴즈',
+            'label' => '퀴즈·테스트',
             'allowed_variants' => ['card', 'button', 'compact'],
             'default_variant' => 'card',
             'search' => static function (PDO $pdo, array $context): array {
