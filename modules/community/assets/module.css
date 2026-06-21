@@ -936,13 +936,18 @@ img.community-home-member-avatar {
     margin: 0 0 6px;
 }
 
-.community-post-view-header {
+.community-post-view {
     background: #fff;
     border-radius: var(--community-radius, 8px);
+    color: var(--community-text, var(--sr-text, var(--text-strong, #242424)));
+    display: grid;
+    gap: 18px;
+    padding: 18px;
+}
+
+.community-post-view-header {
     display: grid;
     gap: 12px;
-    margin-bottom: 16px;
-    padding: 18px;
 }
 
 .community-post-view-actions,
@@ -990,13 +995,11 @@ img.community-home-member-avatar {
 }
 
 .community-post-series-section {
-    background: var(--sr-surface, var(--color-card, #fff));
-    border-radius: var(--community-radius, 8px);
-    color: var(--sr-text, var(--text-strong, #242424));
+    border-top: 1px solid var(--community-border, var(--sr-border, #d8dde6));
+    color: var(--community-text, var(--sr-text, var(--text-strong, #242424)));
     display: grid;
     gap: 10px;
-    margin-bottom: 16px;
-    padding: 18px;
+    padding-top: 18px;
 }
 
 .community-post-series-header {
@@ -1196,13 +1199,10 @@ a.community-post-title:focus,
 }
 
 .community-post-body {
-    background: #fff;
-    border-radius: var(--community-radius, 8px);
     color: var(--sr-text, var(--text-strong, #242424));
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
-    padding: 18px;
     word-break: normal;
 }
 
@@ -1610,19 +1610,24 @@ a.community-post-title:focus,
  */
 
 .community-screen {
-    --community-surface: var(--sr-surface, var(--color-card));
-    --community-surface-soft: var(--sr-surface-soft, var(--color-default-100));
-    --community-border: var(--sr-border, var(--color-default-300));
+    --community-surface: var(--sr-surface, var(--color-card, #fff));
+    --community-surface-soft: var(--sr-surface-soft, var(--color-default-100, #f5f7fb));
+    --community-border: var(--sr-border, var(--color-default-300, #d8dde6));
     --community-divider: color-mix(in oklab, var(--sr-border-soft, var(--color-default-300)) 84%, var(--sr-border, var(--color-default-400, #c9d1dd)));
     --community-divider-border: 1px solid var(--community-divider);
-    --community-text: var(--sr-text, var(--text-strong, var(--color-default-900)));
-    --community-muted: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    --community-text: var(--sr-text, var(--text-strong, var(--color-default-900, #242424)));
+    --community-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280)));
     --community-radius: var(--radius);
     color: var(--community-text);
 }
 
 [data-color-scheme="dark"] .community-screen {
+    --community-surface: var(--sr-surface, var(--color-card, #171a21));
+    --community-surface-soft: var(--sr-surface-soft, var(--color-default-100, #20242c));
+    --community-border: var(--sr-border, var(--color-default-300, #343b47));
     --community-divider: color-mix(in oklab, var(--sr-border, var(--color-default-300)) 82%, var(--color-body-bg, #111318));
+    --community-text: var(--sr-text, var(--text-strong, var(--color-default-900, #f4f4f5)));
+    --community-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #b7beca)));
 }
 
 .community-screen h1,
@@ -1652,14 +1657,12 @@ a.community-post-title:focus,
 }
 
 .community-comments-panel,
-.community-post-view-header,
-.community-post-body {
+.community-post-view {
     background: #fff;
 }
 
 [data-color-scheme="dark"] .community-comments-panel,
-[data-color-scheme="dark"] .community-post-view-header,
-[data-color-scheme="dark"] .community-post-body {
+[data-color-scheme="dark"] .community-post-view {
     background: var(--community-surface);
 }
 
