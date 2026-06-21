@@ -126,7 +126,7 @@ $communityFrameModifier = 'form';
             <p>
                 <label for="modules_community_form_body_text">
                     <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required class="form-textarea"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80"<?php echo $ckeditorEnabled ? '' : ' required'; ?> class="form-textarea"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php echo sr_community_extra_fields_form_html(is_array($extraFieldDefinitions ?? null) ? $extraFieldDefinitions : [], is_array($extraFieldValues ?? null) ? $extraFieldValues : []); ?>
