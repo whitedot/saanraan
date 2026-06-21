@@ -11,6 +11,6 @@ return [
     ],
     [
         'label' => sr_t('member::ui.text.13b28045'),
-        'url' => '/account',
+        'url' => '/mypage',
     ],
 ];

@@ -13,46 +13,12 @@ $emailVerificationUrl = '';
 $submittedProfile = null;
 $submittedBasics = null;
 $memberSettings = sr_member_settings($pdo);
+$memberAccountPath = sr_request_path() === '/mypage' ? '/mypage' : '/account';
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
 $memberLocaleOptions = sr_supported_locales($site ?? null);
-$accountId = (int) $account['id'];
-$accountReauthRequired = false;
-$accountReauthNonce = '';
-$accountReauthState = isset($_SESSION['sr_member_account_reauth']) && is_array($_SESSION['sr_member_account_reauth'])
-    ? $_SESSION['sr_member_account_reauth']
-    : [];
-
-$clearAccountReauth = static function (): void {
-    unset($_SESSION['sr_member_account_reauth']);
-};
-
-$accountReauthMatches = static function (array $state, int $expectedAccountId): bool {
-    return (int) ($state['account_id'] ?? 0) === $expectedAccountId
-        && isset($state['nonce'])
-        && is_string($state['nonce'])
-        && $state['nonce'] !== '';
-};
-
-$createAccountReauth = static function (int $reauthAccountId): string {
-    $nonce = bin2hex(random_bytes(16));
-    $_SESSION['sr_member_account_reauth'] = [
-        'account_id' => $reauthAccountId,
-        'nonce' => $nonce,
-        'entry_ready' => true,
-        'verified_at' => time(),
-    ];
-
-    return $nonce;
-};
-
-if (!$accountReauthMatches($accountReauthState, $accountId)) {
-    $clearAccountReauth();
-    $accountReauthState = [];
-} else {
-    $accountReauthNonce = (string) $accountReauthState['nonce'];
-}
+unset($_SESSION['sr_member_account_reauth']);
 
 if (
     $emailVerificationEnabled
@@ -75,14 +41,6 @@ if (sr_request_method() === 'GET') {
         $errors = is_array($flashErrors) ? array_values(array_filter(array_map('strval', $flashErrors))) : [];
     }
 
-    if ($accountReauthMatches($accountReauthState, $accountId) && !empty($accountReauthState['entry_ready'])) {
-        $_SESSION['sr_member_account_reauth']['entry_ready'] = false;
-        $accountReauthNonce = (string) $accountReauthState['nonce'];
-    } else {
-        $clearAccountReauth();
-        $accountReauthNonce = '';
-        $accountReauthRequired = true;
-    }
 }
 
 $intent = '';
@@ -91,45 +49,11 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if ($intent === 'reauth') {
-        $currentPassword = sr_post_string('current_password', 255);
-        $reauthThrottle = sr_member_reauth_throttle_status($pdo, $accountId);
-        if (!empty($reauthThrottle['limited'])) {
-            $errors[] = sr_t('member::action.reauth.throttled');
-            sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
-        } elseif ($currentPassword === '' || !password_verify($currentPassword, (string) $account['password_hash'])) {
-            $errors[] = sr_t('member::action.reauth.password_invalid');
-            sr_member_log_auth($pdo, $accountId, 'account_page_reauth', 'failure');
-        }
-
-        if ($errors === []) {
-            $createAccountReauth($accountId);
-            sr_member_log_auth($pdo, $accountId, 'account_page_reauth', 'success');
-            sr_redirect('/account');
-        }
-
-        $_SESSION['sr_member_account_flash'] = [
-            'notice' => '',
-            'errors' => $errors,
-        ];
-        sr_redirect('/account');
-    } elseif (!in_array($intent, ['basics', 'profile', 'password'], true)) {
+    if (!in_array($intent, ['basics', 'profile', 'password'], true)) {
         $errors[] = sr_t('member::action.account.intent_invalid');
-        $accountReauthRequired = true;
-    } else {
-        $submittedAccountReauthNonce = sr_post_string('account_reauth_nonce', 80);
-        if (
-            !$accountReauthMatches($accountReauthState, $accountId)
-            || !hash_equals((string) $accountReauthState['nonce'], $submittedAccountReauthNonce)
-        ) {
-            $errors[] = sr_t('member::action.account.reauth_required');
-            $clearAccountReauth();
-            $accountReauthNonce = '';
-            $accountReauthRequired = true;
-        }
     }
 
-    if (!$accountReauthRequired && $errors === [] && $intent === 'basics') {
+    if ($errors === [] && $intent === 'basics') {
         $basics = [
             'display_name' => sr_member_normalize_display_name(sr_post_string('display_name', 120)),
             'nickname' => sr_member_normalize_nickname(sr_post_string('nickname', 80)),
@@ -185,7 +109,7 @@ if (sr_request_method() === 'POST') {
             }
             $notice = sr_t('member::action.account.basics_saved');
         }
-    } elseif (!$accountReauthRequired && $errors === [] && $intent === 'profile') {
+    } elseif ($errors === [] && $intent === 'profile') {
         if (!$profileFieldsEnabled) {
             $errors[] = sr_t('member::action.account.profile_unavailable');
         }
@@ -261,7 +185,7 @@ if (sr_request_method() === 'POST') {
             ]);
             $notice = sr_t('member::action.account.profile_saved');
         }
-    } elseif (!$accountReauthRequired && $errors === [] && $intent === 'password') {
+    } elseif ($errors === [] && $intent === 'password') {
         $currentPassword = sr_post_string('current_password', 255);
         $newPassword = sr_post_string_without_truncation('new_password', 255);
         $newPasswordConfirm = sr_post_string_without_truncation('new_password_confirm', 255);
@@ -350,12 +274,6 @@ if (sr_request_method() === 'POST') {
             sr_member_log_auth($pdo, (int) $account['id'], 'password_change', 'failure');
         }
     }
-}
-
-if ($accountReauthRequired) {
-    $memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'account');
-    include $memberSkinView;
-    return;
 }
 
 if (is_array($submittedBasics) && $errors !== []) {

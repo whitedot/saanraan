@@ -4,7 +4,7 @@ return [
     'name' => '회원',
     'version' => '2026.06.002',
     'type' => 'module',
-    'description' => '회원 계정과 인증 모듈입니다.',
+    'description' => '회원 계정, 인증, 마이페이지 모듈입니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',

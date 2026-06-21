@@ -1,6 +1,7 @@
 <?php
 
 $pageTitle = sr_t('member::ui.text.13b28045');
+$memberAccountPath = isset($memberAccountPath) && is_string($memberAccountPath) && $memberAccountPath === '/mypage' ? '/mypage' : '/account';
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
@@ -10,27 +11,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
 ?>
     <main class="member-skin-basic-page member-skin-basic-page-wide">
         <?php echo sr_member_feedback_toasts($notice, $errors); ?>
-        <?php if (!empty($accountReauthRequired)) { ?>
-            <section class="card member-skin-basic-stack member-skin-basic-padded-card">
-                <h1 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.account.reauth_title')); ?></h1>
-                <p class="member-skin-basic-muted"><?php echo sr_e(sr_t('member::ui.account.reauth_help')); ?></p>
-
-                <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
-                    <?php echo sr_csrf_field(); ?>
-                    <input type="hidden" name="intent" value="reauth">
-                    <p>
-                        <label for="modules_member_account_reauth_password">
-                            <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                            <input class="form-input" id="modules_member_account_reauth_password" type="password" name="current_password" autocomplete="current-password" required>
-                        </label>
-                    </p>
-                    <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.password.61081c91')); ?></button>
-                </form>
-            </section>
-    </main>
-<?php sr_public_layout_end(); return; ?>
-        <?php } ?>
-
         <section class="card">
             <div class="card-header">
                 <h1 class="card-title"><?php echo sr_e($pageTitle); ?></h1>
@@ -55,10 +35,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
 
         <section class="card member-skin-basic-stack member-skin-basic-padded-card">
             <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.text.25914f73')); ?></h2>
-            <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url($memberAccountPath)); ?>" class="member-skin-basic-form" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="basics">
-                <input type="hidden" name="account_reauth_nonce" value="<?php echo sr_e($accountReauthNonce); ?>">
                 <p>
                     <label for="modules_member_account_display_name">
                     <span><?php echo sr_e(sr_t('member::ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
@@ -109,10 +88,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
 
         <section class="card member-skin-basic-stack member-skin-basic-padded-card">
             <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.password.bf1d4719')); ?></h2>
-            <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url($memberAccountPath)); ?>" class="member-skin-basic-form" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="password">
-                <input type="hidden" name="account_reauth_nonce" value="<?php echo sr_e($accountReauthNonce); ?>">
                 <p>
                     <label for="modules_member_account_current_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
@@ -158,7 +136,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <?php } ?>
                 <p>
                     <?php foreach ($oauthProviders as $oauthProvider) { ?>
-                        <a href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode('/account'))); ?>">
+                        <a href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode($memberAccountPath))); ?>">
                             <?php echo sr_e((string) $oauthProvider['label']); ?> 연결
                         </a>
                     <?php } ?>
@@ -169,10 +147,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         <?php if ($profileFieldsEnabled) { ?>
             <section class="card member-skin-basic-stack member-skin-basic-padded-card">
                 <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.select.2ea79f04')); ?></h2>
-                <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
+                <form method="post" action="<?php echo sr_e(sr_url($memberAccountPath)); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="profile">
-                    <input type="hidden" name="account_reauth_nonce" value="<?php echo sr_e($accountReauthNonce); ?>">
                     <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_phone">

@@ -9,6 +9,8 @@ return [
     'GET /member/mention-search' => 'actions/mention-search.php',
     'GET /account' => 'actions/account.php',
     'POST /account' => 'actions/account.php',
+    'GET /mypage' => 'actions/account.php',
+    'POST /mypage' => 'actions/account.php',
     'GET /admin/members' => 'actions/admin-members.php',
     'POST /admin/members' => 'actions/admin-members.php',
     'GET /admin/members/search' => 'actions/admin-member-search.php',

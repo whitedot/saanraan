@@ -370,9 +370,9 @@ if (
                                 </span>
                                 <span class="community-layout-member-badge badge badge-pill <?php echo sr_e($layoutMemberBadgeClass); ?>"><?php echo sr_e($layoutMemberBadgeLabel); ?></span>
                             </div>
-                            <a class="community-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/account')); ?>" role="menuitem">
+                            <a class="community-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/mypage')); ?>" role="menuitem">
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>manage_accounts</span>
-                                <span><?php echo sr_e('정보수정'); ?></span>
+                                <span><?php echo sr_e('마이페이지'); ?></span>
                                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
                             </a>
                             <?php if ($layoutCommunityMemberMenuEnabled) { ?>

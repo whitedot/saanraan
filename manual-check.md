@@ -64,8 +64,9 @@
 
 ## 회원 화면
 
-- [ ] `/account` 계정 정보
-- [ ] `/account` 프로필 / 비밀번호 변경 폼
+- [ ] `/mypage` 마이페이지
+- [ ] `/account` 계정 정보 호환 경로
+- [ ] `/mypage` 프로필 / 비밀번호 변경 폼
 - [ ] `/member/avatar` 아바타 이미지 응답
 - [ ] `/account/withdraw` 회원 탈퇴
 - [ ] `/account/notifications` 알림 목록
