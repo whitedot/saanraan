@@ -207,7 +207,28 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
     );
     $stmt->execute($params);
 
-    return $stmt->fetchAll();
+    $seriesList = $stmt->fetchAll();
+    if ($boardId > 0) {
+        return $seriesList;
+    }
+
+    $boards = [];
+    $filtered = [];
+    foreach ($seriesList as $series) {
+        $seriesBoardId = (int) ($series['board_id'] ?? 0);
+        if ($seriesBoardId < 1) {
+            continue;
+        }
+        if (!array_key_exists($seriesBoardId, $boards)) {
+            $boards[$seriesBoardId] = sr_community_board_by_id($pdo, $seriesBoardId);
+        }
+        $board = $boards[$seriesBoardId];
+        if (is_array($board) && sr_community_series_available_for_board($pdo, $board)) {
+            $filtered[] = $series;
+        }
+    }
+
+    return $filtered;
 }
 
 function sr_community_admin_series_filters(): array
