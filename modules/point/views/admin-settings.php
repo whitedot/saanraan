@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-point-expire-form data-confirm-message="<?php echo sr_e(sr_t('point::ui.settings.expire_due_confirm')); ?>">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-point-expire-form data-confirm-message="<?php echo sr_e(sr_t('point::ui.settings.expire_due_confirm')); ?>" data-sr-validate-form>
     <section class="card">
         <h2><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></h2>
         <p><?php echo sr_e(sr_t('point::ui.settings.expire_due_help')); ?></p>
