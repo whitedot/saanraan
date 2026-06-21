@@ -1201,8 +1201,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <?php if ($communityBoardsPage === 'edit') { ?>
-                <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
-                <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>">삭제</button>
+                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $formBoard['board_key']))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
+                <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>" aria-label="<?php echo sr_e('삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27')); ?></button>
         </div>
