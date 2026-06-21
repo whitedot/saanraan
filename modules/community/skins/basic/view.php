@@ -48,6 +48,7 @@ $communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutCon
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
+$communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_array($comments ?? null) ? count($comments) : 0));
 ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
@@ -81,6 +82,10 @@ $communityFrameModifier = 'view';
                 <?php } ?>
             </p>
             <div class="community-post-view-actions">
+                <button type="button" class="btn btn-ghost-default community-post-comments-jump" data-community-scroll-target="#comments" aria-label="<?php echo sr_e('댓글 ' . number_format($communityPostCommentCount) . '개로 바로가기'); ?>">
+                    <?php echo sr_material_icon_html('comment', '', ''); ?>
+                    <span><?php echo sr_e(number_format($communityPostCommentCount)); ?></span>
+                </button>
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
                     <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a>
@@ -333,9 +338,6 @@ $communityFrameModifier = 'view';
 
             <div class="community-comments-panel-header">
                 <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
-                <?php if ($canComment) { ?>
-                    <a href="#community-comment-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></a>
-                <?php } ?>
             </div>
             <?php echo sr_public_feedback_toasts('community', $commentNotice, []); ?>
 
@@ -359,6 +361,7 @@ $communityFrameModifier = 'view';
                             $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
                             $communityCommentReplyModalId = 'community_comment_reply_modal_' . (string) (int) $comment['id'];
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
+                            $communityCommentUrl = sr_url('/community/post?id=' . rawurlencode((string) (int) $post['id']) . '#community-comment-' . rawurlencode((string) (int) ($comment['id'] ?? 0)));
                             ?>
                             <p>
                                 <?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
@@ -388,9 +391,10 @@ $communityFrameModifier = 'view';
                             <?php } else { ?>
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
-                            <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                    <div class="community-comment-actions">
+                            <div class="community-comment-actions">
+                                <button type="button" class="btn btn-ghost-default" data-community-copy-url="<?php echo sr_e($communityCommentUrl); ?>" data-community-copy-default-label="<?php echo sr_e('URL 복사'); ?>" data-community-copy-success-label="<?php echo sr_e('복사됨'); ?>" data-community-copy-error-label="<?php echo sr_e('복사 실패'); ?>"><?php echo sr_e('URL 복사'); ?></button>
+                                <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
+                                    <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                         <?php if ($communityCommentCanReply) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($communityCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
@@ -522,7 +526,7 @@ $communityFrameModifier = 'view';
                                                 </form>
                                             </details>
                                         <?php } ?>
-                                    </div>
+                                    <?php } ?>
                                 <?php } ?>
                                 <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
                                     <?php
@@ -567,7 +571,7 @@ $communityFrameModifier = 'view';
                                         </div>
                                     </div>
                                 <?php } ?>
-                            <?php } ?>
+                            </div>
                         </li>
                     <?php } ?>
                 </ul>

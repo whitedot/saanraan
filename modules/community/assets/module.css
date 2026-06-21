@@ -945,6 +945,11 @@ img.community-home-member-avatar {
     padding: 18px;
 }
 
+.community-post-view-actions,
+.community-comment-actions {
+    --community-action-button-padding-inline: 0.45rem;
+}
+
 .community-post-view-actions {
     align-items: center;
     display: flex;
@@ -969,7 +974,19 @@ img.community-home-member-avatar {
 .community-comment-actions .btn {
     font-size: var(--type-meta-size);
     line-height: var(--type-meta-line-height);
-    padding-inline: 0.625rem;
+    padding-inline: var(--community-action-button-padding-inline, 0.45rem);
+}
+
+.community-post-comments-jump {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.25rem;
+    min-width: 3.25rem;
+}
+
+.community-post-comments-jump .material-symbols-outlined {
+    font-size: 1rem;
+    line-height: 1;
 }
 
 .community-post-series-section {
