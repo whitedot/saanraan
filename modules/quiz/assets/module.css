@@ -142,7 +142,7 @@
 
 .sr-quiz-card-meta {
     color: var(--sr-muted, #47505c);
-    font-size: .72rem;
+    font-size: var(--type-meta-size);
     line-height: 1.3;
     margin: 0 0 10px;
 }
@@ -150,7 +150,7 @@
 .sr-quiz-page .sr-quiz-card-copy h2 {
     margin: 0;
     color: var(--sr-text, var(--text-strong, var(--color-default-900)));
-    font-size: 1rem;
+    font-size: var(--type-body-size);
     font-weight: 750;
     letter-spacing: 0;
     line-height: 1.28;
@@ -164,7 +164,7 @@
 
 .sr-quiz-card-summary {
     color: var(--sr-muted, #47505c);
-    font-size: .86rem;
+    font-size: var(--type-small-size);
     line-height: 1.5;
     margin: 14px 0 0;
     overflow-wrap: anywhere;
@@ -183,7 +183,7 @@
     border-radius: var(--radius);
     color: var(--sr-text, var(--text-strong, var(--color-default-900)));
     display: inline-flex;
-    font-size: .72rem;
+    font-size: var(--type-meta-size);
     line-height: 1;
     max-width: 65%;
     overflow: hidden;
@@ -195,7 +195,7 @@
 .sr-quiz-card-footer time {
     color: var(--sr-muted, #47505c);
     flex: 0 0 auto;
-    font-size: .72rem;
+    font-size: var(--type-meta-size);
     line-height: 1;
 }
 
@@ -353,8 +353,8 @@
 }
 
 .sr-quiz-comment-actions .btn {
-    font-size: 0.75rem;
-    line-height: 1.125rem;
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
     padding-inline: 0.625rem;
 }
 
@@ -402,7 +402,7 @@
     }
 
     .sr-quiz-page .quiz-page-main h1 {
-        font-size: 2rem;
+        font-size: var(--type-display-size);
     }
 }
 
@@ -457,10 +457,10 @@
 .sr-mention-option{align-items:center;background:transparent;border-radius:6px;color:inherit;display:flex;gap:8px;justify-content:space-between;min-height:36px;padding:7px 9px;text-align:left;width:100%}
 .sr-mention-option span{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sr-mention-option code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold);white-space:nowrap}
-.sr-mention-dropdown:not([hidden]){display:grid;gap:2px;opacity:1;visibility:visible;z-index:3000}.sr-mention-dropdown .sr-mention-option{border:0;text-align:left;white-space:normal}.sr-mention-dropdown .sr-mention-option.active code{color:currentColor}.community-recipient-option-avatar{font-size:.8125rem;width:2rem}.community-recipient-option-text{display:grid;gap:1px;min-width:0}.community-recipient-option-text strong{font-weight:var(--font-weight-semibold,600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.community-recipient-option-text code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold,600)}.community-recipient-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
+.sr-mention-dropdown:not([hidden]){display:grid;gap:2px;opacity:1;visibility:visible;z-index:3000}.sr-mention-dropdown .sr-mention-option{border:0;text-align:left;white-space:normal}.sr-mention-dropdown .sr-mention-option.active code{color:currentColor}.community-recipient-option-avatar{font-size: var(--type-meta-size);width:2rem}.community-recipient-option-text{display:grid;gap:1px;min-width:0}.community-recipient-option-text strong{font-weight:var(--font-weight-semibold,600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.community-recipient-option-text code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold,600)}.community-recipient-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
 .sr-mention-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
 .sr-mention{border-radius:4px;color:var(--sr-text,var(--text-strong,#242424));font-weight:var(--font-weight-semibold)}
-.sr-mention-prefix{color:var(--sr-muted,var(--text-muted,#666));font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size:.92em;font-weight:var(--font-weight-medium);margin-left:1px}
+.sr-mention-prefix{color:var(--sr-muted,var(--text-muted,#666));font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size: var(--type-meta-size);font-weight:var(--font-weight-medium);margin-left:1px}
 
 .quiz-toast-stack {
     position: fixed;

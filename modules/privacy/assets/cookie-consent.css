@@ -1,17 +1,17 @@
 .sr-cookie-consent{position:fixed;right:1rem;bottom:1rem;z-index:60;display:flex;max-width:min(44rem,calc(100vw - 2rem));gap:1rem;align-items:center;justify-content:space-between;padding:1rem;border:1px solid rgba(15,23,42,.14);border-radius:.5rem;background:#fff;color:#111827;box-shadow:0 16px 40px rgba(15,23,42,.18)}
 .sr-cookie-consent-text{display:grid;gap:.25rem;min-width:0}
-.sr-cookie-consent-text strong{font-size:.95rem;line-height:1.3}
-.sr-cookie-consent-text p{margin:0;color:#4b5563;font-size:.875rem;line-height:1.5}
+.sr-cookie-consent-text strong{font-size: var(--type-small-size);line-height:1.3}
+.sr-cookie-consent-text p{margin:0;color:#4b5563;font-size: var(--type-small-size);line-height:1.5}
 .sr-cookie-consent-actions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:flex-end}
 .sr-cookie-consent-actions form{display:grid;gap:.5rem;margin:0}
 .sr-cookie-consent-items{display:grid;gap:.375rem;min-width:min(20rem,100%)}
-.sr-cookie-consent-item{display:flex;gap:.5rem;align-items:flex-start;font-size:.875rem;line-height:1.4}
+.sr-cookie-consent-item{display:flex;gap:.5rem;align-items:flex-start;font-size: var(--type-small-size);line-height:1.4}
 .sr-cookie-consent-item input{margin-top:.2rem}
 .sr-cookie-consent-item-required{color:#374151}
 .sr-cookie-consent-item-required input{cursor:not-allowed}
 .sr-cookie-consent-item span{display:grid;gap:.125rem}
-.sr-cookie-consent-item small{color:#4b5563;font-size:.8rem}
-.sr-cookie-consent-button{min-height:2.25rem;padding:.5rem .75rem;border:1px solid transparent;border-radius:.375rem;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer}
+.sr-cookie-consent-item small{color:#4b5563;font-size:var(--type-meta-size)}
+.sr-cookie-consent-button{min-height:2.25rem;padding:.5rem .75rem;border:1px solid transparent;border-radius:.375rem;font:inherit;font-size: var(--type-small-size);font-weight:700;cursor:pointer}
 a.sr-cookie-consent-button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .sr-cookie-consent-button-primary{border-color:#111827;background:#111827;color:#fff}
 .sr-cookie-consent-button-secondary{border-color:#d1d5db;background:#fff;color:#111827}

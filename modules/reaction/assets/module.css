@@ -33,7 +33,7 @@
 
 .sr-reaction-widget--target-comment .sr-reaction-button {
     gap: 0.25rem;
-    font-size: 0.75rem;
+    font-size: var(--type-meta-size);
     line-height: 1.2;
     padding-left: 0.4rem;
     padding-right: 0.4rem;
