@@ -213,13 +213,6 @@ function sr_community_post_reaction_preset_columns_exist(PDO $pdo): bool
     return $exists;
 }
 
-function sr_community_post_reaction_preset_value(PDO $pdo, mixed $value): string
-{
-    return function_exists('sr_reaction_setting_preset_key_or_disabled')
-        ? sr_reaction_setting_preset_key_or_disabled($pdo, $value)
-        : '';
-}
-
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     if ($pdo->inTransaction()) {
@@ -281,8 +274,8 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
         }
         if ($reactionSetSql !== '') {
-            $params['reaction_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_preset_key'] ?? '');
-            $params['reaction_comment_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_comment_preset_key'] ?? '');
+            $params['reaction_preset_key'] = '';
+            $params['reaction_comment_preset_key'] = '';
         }
         if ($secretSetSql !== '') {
             $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
@@ -418,8 +411,8 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'seo_description' => '',
         'og_title' => '',
         'og_description' => '',
-        'reaction_preset_key' => $pdo instanceof PDO ? sr_community_post_reaction_preset_value($pdo, sr_post_string('reaction_preset_key', 80)) : '',
-        'reaction_comment_preset_key' => $pdo instanceof PDO ? sr_community_post_reaction_preset_value($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'is_secret' => sr_post_string('is_secret', 10) === '1'
             && $pdo instanceof PDO
             && is_array($board)
@@ -518,8 +511,8 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
     }
     if ($reactionColumnSql !== '') {
-        $params['reaction_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_preset_key'] ?? '');
-        $params['reaction_comment_preset_key'] = sr_community_post_reaction_preset_value($pdo, $values['reaction_comment_preset_key'] ?? '');
+        $params['reaction_preset_key'] = '';
+        $params['reaction_comment_preset_key'] = '';
     }
     if ($secretColumnSql !== '') {
         $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
