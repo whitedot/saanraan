@@ -299,7 +299,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 $contentCommentCanHide = sr_content_account_can_hide_comment($pdo, $contentComment, is_array($account ?? null) ? $account : null);
                                 $contentCommentCanReply = is_array($account ?? null) && !$contentAdminPreview && $contentCommentCanViewBody && $contentCommentDepth < 3;
                                 $contentCommentEditId = 'content_comment_edit_' . (string) $contentComment['id'];
+                                $contentCommentEditModalId = 'content_comment_edit_modal_' . (string) (int) $contentComment['id'];
                                 $contentCommentReplyId = 'content_comment_reply_' . (string) $contentComment['id'];
+                                $contentCommentReplyModalId = 'content_comment_reply_modal_' . (string) (int) $contentComment['id'];
                                 $contentCommentCreatedAt = (string) ($contentComment['created_at'] ?? '');
                                 ?>
                                 <div class="content-comment-meta">
@@ -332,41 +334,69 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <?php if ($contentCommentCanEdit || $contentCommentCanDelete || $contentCommentCanHide || $contentCommentCanReply) { ?>
                                     <div class="content-comment-actions">
                                         <?php if ($contentCommentCanReply) { ?>
-                                            <details<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? ' open' : ''; ?>>
-                                                <summary class="btn btn-ghost-default">답글</summary>
-                                                <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
-                                                    <?php echo sr_csrf_field(); ?>
-                                                    <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
-                                                    <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                    <label for="<?php echo sr_e($contentCommentReplyId); ?>">답글</label>
-                                                    <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
-                                                    <?php if (!empty($contentSecretCommentsEnabled)) { ?>
-                                                        <label class="content-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
-                                                            <span>비밀 댓글</span>
-                                                        </label>
-                                                    <?php } ?>
-                                                    <button type="submit" class="btn btn-solid-light">답글 등록</button>
-                                                </form>
-                                            </details>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">답글</button>
+                                            <div id="<?php echo sr_e($contentCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                <div class="modal-dialog">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>" class="modal-content">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
+                                                        <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                        <div class="modal-header">
+                                                            <h3 id="<?php echo sr_e($contentCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
+                                                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">
+                                                                <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <strong class="content-comment-reply-source-label">댓글</strong>
+                                                            <p class="content-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
+                                                            <label for="<?php echo sr_e($contentCommentReplyId); ?>">답글</label>
+                                                            <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                                                            <?php if (!empty($contentSecretCommentsEnabled)) { ?>
+                                                                <label class="content-comment-secret-toggle">
+                                                                    <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
+                                                                    <span>비밀 댓글</span>
+                                                                </label>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">닫기</button>
+                                                            <button type="submit" class="btn btn-solid-primary modal-action">답글 등록</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         <?php } ?>
                                         <?php if ($contentCommentCanEdit) { ?>
-                                            <details>
-                                                <summary class="btn btn-ghost-default">수정</summary>
-                                                <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>">
-                                                    <?php echo sr_csrf_field(); ?>
-                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                    <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
-                                                    <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
-                                                    <?php if (!empty($contentSecretCommentsEnabled) || (int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
-                                                        <label class="content-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                            <span>비밀 댓글</span>
-                                                        </label>
-                                                    <?php } ?>
-                                                    <button type="submit" class="btn btn-solid-light">저장</button>
-                                                </form>
-                                            </details>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">수정</button>
+                                            <div id="<?php echo sr_e($contentCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                <div class="modal-dialog">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>" class="modal-content">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                        <div class="modal-header">
+                                                            <h3 id="<?php echo sr_e($contentCommentEditModalId . '_title'); ?>" class="modal-title">댓글 수정</h3>
+                                                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">
+                                                                <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
+                                                            <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
+                                                            <?php if (!empty($contentSecretCommentsEnabled) || (int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
+                                                                <label class="content-comment-secret-toggle">
+                                                                    <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                    <span>비밀 댓글</span>
+                                                                </label>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">닫기</button>
+                                                            <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         <?php } ?>
                                         <?php if ($contentCommentCanDelete) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/content/comment/delete')); ?>">

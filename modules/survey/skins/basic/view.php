@@ -371,12 +371,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                 <?php
                                 $surveyCommentId = (int) ($surveyComment['id'] ?? 0);
                                 $surveyCommentEditId = 'survey_comment_edit_' . (string) $surveyCommentId;
+                                $surveyCommentEditModalId = 'survey_comment_edit_modal_' . (string) $surveyCommentId;
                                 $surveyCommentCanViewBody = sr_survey_account_can_view_comment_body($surveyComment, is_array($currentAccount) ? $currentAccount : null, $pdo);
                                 $surveyCommentCanEdit = is_array($currentAccount) && sr_survey_account_can_edit_comment($surveyComment, $currentAccount);
                                 $surveyCommentCanDelete = is_array($currentAccount) && sr_survey_account_can_delete_comment($surveyComment, $currentAccount, $pdo);
                                 $surveyCommentDepth = min(3, max(1, (int) ($surveyComment['depth'] ?? 1)));
                                 $surveyCommentCanReply = $surveyCanWriteComment && !$canPreviewAsAdmin && $surveyCommentCanViewBody && $surveyCommentDepth < 3;
                                 $surveyCommentReplyId = 'survey_comment_reply_' . (string) $surveyCommentId;
+                                $surveyCommentReplyModalId = 'survey_comment_reply_modal_' . (string) $surveyCommentId;
                                 ?>
                                 <li class="sr-survey-comment-depth-<?php echo sr_e((string) $surveyCommentDepth); ?>">
                                     <div class="sr-survey-comment-meta">
@@ -406,41 +408,69 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     <?php if ($surveyCommentCanEdit || $surveyCommentCanDelete || $surveyCommentCanReply): ?>
                                         <div class="sr-survey-comment-actions">
                                             <?php if ($surveyCommentCanReply): ?>
-                                                <details<?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? ' open' : ''; ?>>
-                                                    <summary class="btn btn-ghost-default">답글</summary>
-                                                    <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>">
-                                                        <?php echo sr_csrf_field(); ?>
-                                                        <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
-                                                        <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
-                                                        <label class="sr-only" for="<?php echo sr_e($surveyCommentReplyId); ?>">답글 본문</label>
-                                                        <textarea id="<?php echo sr_e($surveyCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? sr_e($surveyCommentBody) : ''; ?></textarea>
-                                                        <?php if (!empty($surveySecretCommentsEnabled)): ?>
-                                                            <label class="sr-survey-comment-secret-toggle">
-                                                                <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId && $surveyCommentIsSecret ? ' checked' : ''; ?>>
-                                                                비밀 댓글
-                                                            </label>
-                                                        <?php endif; ?>
-                                                        <button type="submit" class="btn btn-solid-primary">답글 작성</button>
-                                                    </form>
-                                                </details>
+                                                <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($surveyCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($surveyCommentReplyModalId); ?>">답글</button>
+                                                <div id="<?php echo sr_e($surveyCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($surveyCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                    <div class="modal-dialog">
+                                                        <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>" class="modal-content">
+                                                            <?php echo sr_csrf_field(); ?>
+                                                            <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
+                                                            <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
+                                                            <div class="modal-header">
+                                                                <h3 id="<?php echo sr_e($surveyCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
+                                                                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($surveyCommentReplyModalId); ?>">
+                                                                    <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <strong class="sr-survey-comment-reply-source-label">댓글</strong>
+                                                                <p class="sr-survey-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                                                                <label class="sr-only" for="<?php echo sr_e($surveyCommentReplyId); ?>">답글 본문</label>
+                                                                <textarea id="<?php echo sr_e($surveyCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? sr_e($surveyCommentBody) : ''; ?></textarea>
+                                                                <?php if (!empty($surveySecretCommentsEnabled)): ?>
+                                                                    <label class="sr-survey-comment-secret-toggle">
+                                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId && $surveyCommentIsSecret ? ' checked' : ''; ?>>
+                                                                        비밀 댓글
+                                                                    </label>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($surveyCommentReplyModalId); ?>">닫기</button>
+                                                                <button type="submit" class="btn btn-solid-primary modal-action">답글 작성</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             <?php endif; ?>
                                             <?php if ($surveyCommentCanEdit): ?>
-                                                <details>
-                                                    <summary class="btn btn-ghost-default">수정</summary>
-                                                    <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/edit')); ?>">
-                                                        <?php echo sr_csrf_field(); ?>
-                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
-                                                        <label class="sr-only" for="<?php echo sr_e($surveyCommentEditId); ?>">댓글 본문</label>
-                                                        <textarea id="<?php echo sr_e($surveyCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($surveyComment['body_text'] ?? '')); ?></textarea>
-                                                        <?php if (!empty($surveySecretCommentsEnabled) || (int) ($surveyComment['is_secret'] ?? 0) === 1): ?>
-                                                            <label class="sr-survey-comment-secret-toggle">
-                                                                <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                                비밀 댓글
-                                                            </label>
-                                                        <?php endif; ?>
-                                                        <button type="submit" class="btn btn-solid-primary">저장</button>
-                                                    </form>
-                                                </details>
+                                                <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($surveyCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($surveyCommentEditModalId); ?>">수정</button>
+                                                <div id="<?php echo sr_e($surveyCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($surveyCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                    <div class="modal-dialog">
+                                                        <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/edit')); ?>" class="modal-content">
+                                                            <?php echo sr_csrf_field(); ?>
+                                                            <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
+                                                            <div class="modal-header">
+                                                                <h3 id="<?php echo sr_e($surveyCommentEditModalId . '_title'); ?>" class="modal-title">댓글 수정</h3>
+                                                                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($surveyCommentEditModalId); ?>">
+                                                                    <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <label class="sr-only" for="<?php echo sr_e($surveyCommentEditId); ?>">댓글 본문</label>
+                                                                <textarea id="<?php echo sr_e($surveyCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($surveyComment['body_text'] ?? '')); ?></textarea>
+                                                                <?php if (!empty($surveySecretCommentsEnabled) || (int) ($surveyComment['is_secret'] ?? 0) === 1): ?>
+                                                                    <label class="sr-survey-comment-secret-toggle">
+                                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                        비밀 댓글
+                                                                    </label>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($surveyCommentEditModalId); ?>">닫기</button>
+                                                                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             <?php endif; ?>
                                             <?php if ($surveyCommentCanDelete): ?>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/delete')); ?>">

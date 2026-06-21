@@ -6,8 +6,23 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = sr_member_require_login($pdo);
 $settings = sr_community_settings($pdo);
+$seriesDetailId = (int) sr_get_string('id', 20);
+
+if (sr_request_method() === 'GET' && $seriesDetailId > 0) {
+    $account = sr_member_current_account($pdo);
+    $series = sr_community_series_for_read($pdo, $seriesDetailId, is_array($account) ? $account : null);
+    if (!is_array($series)) {
+        sr_render_error(404, sr_t('community::action.error.series_not_found'));
+    }
+
+    $seriesItems = sr_community_series_items($pdo, (int) $series['id'], true, is_array($account) ? $account : null);
+    $seriesBoard = sr_community_board_by_id($pdo, (int) ($series['board_id'] ?? 0));
+    include SR_ROOT . '/modules/community/views/series-detail.php';
+    return;
+}
+
+$account = sr_member_require_login($pdo);
 $errors = [];
 $notice = '';
 $flash = isset($_SESSION['sr_community_series_flash']) && is_array($_SESSION['sr_community_series_flash'])

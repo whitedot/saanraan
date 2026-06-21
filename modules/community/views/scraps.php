@@ -104,7 +104,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             </td>
                             <td>
                                 <?php if (sr_community_scrap_row_can_view($seriesScrap)) { ?>
-                                    <?php echo sr_e((string) ($seriesScrap['title'] ?? '')); ?>
+                                    <a class="community-post-title community-post-scrap-title" href="<?php echo sr_e(sr_url('/community/series?id=' . rawurlencode((string) (int) $seriesScrap['series_id']))); ?>">
+                                        <?php echo sr_e((string) ($seriesScrap['title'] ?? '')); ?>
+                                    </a>
                                 <?php } else { ?>
                                     <?php echo sr_e('열람할 수 없는 시리즈'); ?>
                                 <?php } ?>

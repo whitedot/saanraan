@@ -197,6 +197,58 @@ $communityFrameModifier = 'view';
                 </form>
             </article>
             <?php } else { ?>
+            <?php
+            $communitySeriesItems = is_array($communitySeriesContext['items'] ?? null) ? $communitySeriesContext['items'] : [];
+            $communitySeriesHasCurrentPost = false;
+            foreach ($communitySeriesItems as $communitySeriesItemForCheck) {
+                if ((int) ($communitySeriesItemForCheck['post_id'] ?? 0) === (int) $post['id']) {
+                    $communitySeriesHasCurrentPost = true;
+                    break;
+                }
+            }
+            $communityPostHasSeries = is_array($communitySeriesContext ?? null)
+                && (int) ($communitySeriesContext['id'] ?? 0) > 0
+                && (string) ($communitySeriesContext['title'] ?? '') !== ''
+                && $communitySeriesItems !== []
+                && $communitySeriesHasCurrentPost;
+            ?>
+            <?php if ($communityPostHasSeries) { ?>
+                <section class="community-post-series-section" aria-labelledby="community-post-series-title">
+                    <div class="community-post-series-header">
+                        <h2 id="community-post-series-title"><?php echo sr_e((string) $communitySeriesContext['title']); ?></h2>
+                        <?php if (is_array($account)) { ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="target_type" value="series">
+                                <input type="hidden" name="series_id" value="<?php echo sr_e((string) (int) $communitySeriesContext['id']); ?>">
+                                <input type="hidden" name="intent" value="<?php echo !empty($isSeriesScrapped) ? 'remove' : 'add'; ?>">
+                                <button type="submit" class="btn btn-ghost-default"><?php echo sr_e(!empty($isSeriesScrapped) ? '스크랩 해제' : '스크랩'); ?></button>
+                            </form>
+                        <?php } ?>
+                    </div>
+                    <?php if ((string) ($communitySeriesContext['description'] ?? '') !== '') { ?>
+                        <p class="community-post-series-description"><?php echo sr_e((string) $communitySeriesContext['description']); ?></p>
+                    <?php } ?>
+                    <ol class="community-post-series-list">
+                        <?php foreach ($communitySeriesItems as $seriesItem) { ?>
+                            <?php
+                            $communitySeriesItemTitle = (string) ($seriesItem['post_title'] ?? '');
+                            $communitySeriesItemEpisode = (string) ($seriesItem['episode_label'] ?? '');
+                            $communitySeriesItemLabel = ($communitySeriesItemEpisode !== '' ? $communitySeriesItemEpisode . ' - ' : '') . $communitySeriesItemTitle;
+                            $communitySeriesItemIsCurrent = (int) ($seriesItem['post_id'] ?? 0) === (int) $post['id'];
+                            ?>
+                            <li<?php echo $communitySeriesItemIsCurrent ? ' class="is-current"' : ''; ?>>
+                                <?php if ($communitySeriesItemIsCurrent) { ?>
+                                    <strong><?php echo sr_e($communitySeriesItemLabel); ?></strong>
+                                    <span class="community-post-series-current"><?php echo sr_e('현재글'); ?></span>
+                                <?php } else { ?>
+                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $seriesItem['post_id']))); ?>"><?php echo sr_e($communitySeriesItemLabel); ?></a>
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ol>
+                </section>
+            <?php } ?>
             <div class="community-post-body">
                 <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
                 <?php if ($imageAttachments !== []) { ?>
@@ -260,63 +312,6 @@ $communityFrameModifier = 'view';
                 </section>
             <?php } ?>
 
-            <?php if (is_array($communitySeriesContext ?? null) && is_array($communitySeriesContext['items'] ?? null) && $communitySeriesContext['items'] !== []) { ?>
-                <nav aria-label="<?php echo sr_e('시리즈 글'); ?>">
-                    <h2><?php echo sr_e((string) $communitySeriesContext['title']); ?></h2>
-                    <?php if ((string) ($communitySeriesContext['description'] ?? '') !== '') { ?>
-                        <p><?php echo sr_e((string) $communitySeriesContext['description']); ?></p>
-                    <?php } ?>
-                    <?php if (is_array($account)) { ?>
-                        <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="target_type" value="series">
-                            <input type="hidden" name="series_id" value="<?php echo sr_e((string) (int) $communitySeriesContext['id']); ?>">
-                            <input type="hidden" name="intent" value="<?php echo !empty($isSeriesScrapped) ? 'remove' : 'add'; ?>">
-                            <button type="submit" class="btn btn-solid-light"><?php echo sr_e(!empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'); ?></button>
-                        </form>
-                    <?php } ?>
-                    <?php
-                    $communitySeriesPreviousItem = null;
-                    $communitySeriesNextItem = null;
-                    foreach ($communitySeriesContext['items'] as $seriesNavigationItem) {
-                        if (!empty($seriesNavigationItem['series_is_previous'])) {
-                            $communitySeriesPreviousItem = $seriesNavigationItem;
-                        } elseif (!empty($seriesNavigationItem['series_is_next'])) {
-                            $communitySeriesNextItem = $seriesNavigationItem;
-                        }
-                    }
-                    ?>
-                    <?php if (is_array($communitySeriesPreviousItem) || is_array($communitySeriesNextItem)) { ?>
-                        <p>
-                            <?php if (is_array($communitySeriesPreviousItem)) { ?>
-                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $communitySeriesPreviousItem['post_id']))); ?>"><?php echo sr_e('이전 글'); ?>: <?php echo sr_e((string) $communitySeriesPreviousItem['post_title']); ?></a>
-                            <?php } ?>
-                            <?php if (is_array($communitySeriesPreviousItem) && is_array($communitySeriesNextItem)) { ?>
-                                /
-                            <?php } ?>
-                            <?php if (is_array($communitySeriesNextItem)) { ?>
-                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $communitySeriesNextItem['post_id']))); ?>"><?php echo sr_e('다음 글'); ?>: <?php echo sr_e((string) $communitySeriesNextItem['post_title']); ?></a>
-                            <?php } ?>
-                        </p>
-                    <?php } ?>
-                    <ol>
-                        <?php foreach ($communitySeriesContext['items'] as $seriesItem) { ?>
-                            <li>
-                                <?php if ((int) ($seriesItem['post_id'] ?? 0) === (int) $post['id']) { ?>
-                                    <strong>
-                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['post_title']); ?>
-                                    </strong>
-                                <?php } else { ?>
-                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $seriesItem['post_id']))); ?>">
-                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['post_title']); ?>
-                                    </a>
-                                <?php } ?>
-                            </li>
-                        <?php } ?>
-                    </ol>
-                </nav>
-            <?php } ?>
-
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
                 'point_key' => 'community.post.view',
@@ -360,7 +355,9 @@ $communityFrameModifier = 'view';
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
+                            $communityCommentEditModalId = 'community_comment_edit_modal_' . (string) (int) $comment['id'];
                             $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
+                            $communityCommentReplyModalId = 'community_comment_reply_modal_' . (string) (int) $comment['id'];
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
                             ?>
                             <p>
@@ -395,67 +392,95 @@ $communityFrameModifier = 'view';
                                 <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                     <div class="community-comment-actions">
                                         <?php if ($communityCommentCanReply) { ?>
-                                            <details<?php echo $commentParentId === (int) $comment['id'] ? ' open' : ''; ?>>
-                                                <summary class="btn btn-ghost-default">답글</summary>
-                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
-                                                    <?php echo sr_csrf_field(); ?>
-                                                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                                    <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                    <p>
-                                                        <label for="<?php echo sr_e($communityCommentReplyId); ?>">
-                                                            <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                        <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
-                                                    </label>
-                                                </p>
-                                                <?php if (!is_array($account)) { ?>
-                                                    <p>
-                                                        <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
-                                                            <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentGuestAuthorName) : ''; ?>" required class="form-input">
-                                                        </label>
-                                                    </p>
-                                                    <p>
-                                                        <label for="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>">
-                                                            <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
-                                                        </label>
-                                                    </p>
-                                                <?php } ?>
-                                                    <?php if (!empty($secretCommentsEnabled)) { ?>
-                                                        <label class="community-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
-                                                            <span><?php echo sr_e('비밀 댓글'); ?></span>
-                                                        </label>
-                                                    <?php } ?>
-                                                    <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_' . (string) $comment['id']); ?>
-                                                    <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                                                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_' . (string) (int) $comment['id'], ['account' => is_array($account ?? null) ? $account : null]); ?>
-                                                    <?php } ?>
-                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('답글 작성'); ?></button>
-                                                </form>
-                                            </details>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
+                                            <div id="<?php echo sr_e($communityCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                <div class="modal-dialog">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>" class="modal-content">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                                                        <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                        <div class="modal-header">
+                                                            <h3 id="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
+                                                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">
+                                                                <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <strong class="community-comment-reply-source-label"><?php echo sr_e('댓글'); ?></strong>
+                                                            <p class="community-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
+                                                            <p>
+                                                                <label for="<?php echo sr_e($communityCommentReplyId); ?>">
+                                                                    <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                                    <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
+                                                                </label>
+                                                            </p>
+                                                            <?php if (!is_array($account)) { ?>
+                                                                <p>
+                                                                    <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
+                                                                        <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                                        <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentGuestAuthorName) : ''; ?>" required class="form-input">
+                                                                    </label>
+                                                                </p>
+                                                                <p>
+                                                                    <label for="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>">
+                                                                        <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                                        <input id="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
+                                                                    </label>
+                                                                </p>
+                                                            <?php } ?>
+                                                            <?php if (!empty($secretCommentsEnabled)) { ?>
+                                                                <label class="community-comment-secret-toggle">
+                                                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                                                                    <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                                                </label>
+                                                            <?php } ?>
+                                                            <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_' . (string) $comment['id']); ?>
+                                                            <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                                                                <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_' . (string) (int) $comment['id'], ['account' => is_array($account ?? null) ? $account : null]); ?>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
+                                                            <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e('답글 작성'); ?></button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
-                                            <details>
-                                                <summary class="btn btn-ghost-default"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></summary>
-                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
-                                                    <?php echo sr_csrf_field(); ?>
-                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                    <p>
-                                                        <label for="<?php echo sr_e($communityCommentEditId); ?>">
-                    <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
-                                                        </label>
-                                                    </p>
-                                                    <?php if (!empty($secretCommentsEnabled) || (int) ($comment['is_secret'] ?? 0) === 1) { ?>
-                                                        <label class="community-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                            <span><?php echo sr_e('비밀 댓글'); ?></span>
-                                                        </label>
-                                                    <?php } ?>
-                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
-                                                </form>
-                                            </details>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                            <div id="<?php echo sr_e($communityCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
+                                                <div class="modal-dialog">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                        <div class="modal-header">
+                                                            <h3 id="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" class="modal-title"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></h3>
+                                                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>">
+                                                                <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>
+                                                                <label for="<?php echo sr_e($communityCommentEditId); ?>">
+                                                                    <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                                    <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                                </label>
+                                                            </p>
+                                                            <?php if (!empty($secretCommentsEnabled) || (int) ($comment['is_secret'] ?? 0) === 1) { ?>
+                                                                <label class="community-comment-secret-toggle">
+                                                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                    <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                                                </label>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
+                                                            <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         <?php } ?>
                                         <?php if ($communityCommentCanDelete) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
