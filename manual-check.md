@@ -65,8 +65,12 @@
 ## 회원 화면
 
 - [ ] `/mypage` 마이페이지
+- [ ] `/mypage/account` 계정 정보
+- [ ] `/mypage/profile` 프로필
+- [ ] `/mypage/security` 비밀번호 변경
+- [ ] `/mypage/privacy` 동의 / 개인정보 내보내기
 - [ ] `/account` 계정 정보 호환 경로
-- [ ] `/mypage` 프로필 / 비밀번호 변경 폼
+- [ ] 마이페이지 사이드 메뉴 현재 페이지 표시와 모바일 가로 스크롤
 - [ ] `/member/avatar` 아바타 이미지 응답
 - [ ] `/account/withdraw` 회원 탈퇴
 - [ ] `/account/notifications` 알림 목록

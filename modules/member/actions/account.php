@@ -13,7 +13,20 @@ $emailVerificationUrl = '';
 $submittedProfile = null;
 $submittedBasics = null;
 $memberSettings = sr_member_settings($pdo);
-$memberAccountPath = sr_request_path() === '/mypage' ? '/mypage' : '/account';
+$memberAccountBasePath = '/mypage';
+$memberAccountPage = 'overview';
+$memberAccountRoutePages = [
+    '/mypage' => 'overview',
+    '/account' => 'overview',
+    '/mypage/account' => 'account',
+    '/mypage/profile' => 'profile',
+    '/mypage/security' => 'security',
+    '/mypage/privacy' => 'privacy',
+];
+$memberAccountCurrentPath = sr_request_path();
+if (isset($memberAccountRoutePages[$memberAccountCurrentPath])) {
+    $memberAccountPage = $memberAccountRoutePages[$memberAccountCurrentPath];
+}
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
@@ -54,6 +67,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && $intent === 'basics') {
+        $memberAccountPage = 'account';
         $basics = [
             'display_name' => sr_member_normalize_display_name(sr_post_string('display_name', 120)),
             'nickname' => sr_member_normalize_nickname(sr_post_string('nickname', 80)),
@@ -110,6 +124,7 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('member::action.account.basics_saved');
         }
     } elseif ($errors === [] && $intent === 'profile') {
+        $memberAccountPage = 'profile';
         if (!$profileFieldsEnabled) {
             $errors[] = sr_t('member::action.account.profile_unavailable');
         }
@@ -186,6 +201,7 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('member::action.account.profile_saved');
         }
     } elseif ($errors === [] && $intent === 'password') {
+        $memberAccountPage = 'security';
         $currentPassword = sr_post_string('current_password', 255);
         $newPassword = sr_post_string_without_truncation('new_password', 255);
         $newPasswordConfirm = sr_post_string_without_truncation('new_password_confirm', 255);

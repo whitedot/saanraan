@@ -52,7 +52,7 @@
 | --- | --- |
 | 설치 | 미설치 상태의 모든 요청은 설치 흐름으로 진입 |
 | 공개 홈 | `/`, `/ui-kit` |
-| 회원 | `/login`, `/register`, `/mypage`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout`, `/oauth/start`, `/oauth/callback`, `/oauth/complete`, `/account/oauth/unlink` |
+| 회원 | `/login`, `/register`, `/mypage`, `/mypage/account`, `/mypage/profile`, `/mypage/security`, `/mypage/privacy`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout`, `/oauth/start`, `/oauth/callback`, `/oauth/complete`, `/account/oauth/unlink` |
 | 관리자 공통 | `/admin`, `/admin/settings`, `/admin/homepage`, `/admin/menu`, `/admin/modules`, `/admin/updates`, `/admin/roles`, `/admin/audit-logs`, `/admin/retention` |
 | 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
