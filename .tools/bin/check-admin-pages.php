@@ -137,6 +137,7 @@ function sr_check_admin_pages_mentions_path(string $content, string $path): bool
 $moduleDirs = sr_check_admin_pages_module_dirs($root);
 $routesByModule = [];
 $allAdminGetRoutes = [];
+$allAdminPostRoutes = [];
 
 foreach ($moduleDirs as $moduleKey => $moduleDir) {
     $pathsFile = $moduleDir . '/paths.php';
@@ -170,6 +171,9 @@ foreach ($moduleDirs as $moduleKey => $moduleDir) {
                 'module_dir' => $moduleDir,
                 'action' => $actionRelativePath,
             ];
+        }
+        if ($method === 'POST' && ($path === '/admin' || str_starts_with($path, '/admin/'))) {
+            $allAdminPostRoutes[$path] = true;
         }
     }
 }
@@ -240,6 +244,54 @@ foreach ($builtinMenuPaths as $path) {
 
 if ($menuPageCount < 1) {
     sr_check_admin_pages_error('Admin page inventory must include at least one module menu page.');
+}
+
+foreach ($moduleDirs as $moduleDir) {
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($moduleDir, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if (!$file instanceof SplFileInfo || !$file->isFile() || strtolower($file->getExtension()) !== 'php') {
+            continue;
+        }
+
+        $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
+        if (
+            !str_contains($relativePath, '/views/admin')
+            && !str_contains($relativePath, '/actions/admin')
+            && !str_starts_with($relativePath, 'modules/admin/views/')
+        ) {
+            continue;
+        }
+
+        $content = file_get_contents($file->getPathname());
+        if (!is_string($content)) {
+            sr_check_admin_pages_error('Admin page source cannot be read: ' . $relativePath);
+            continue;
+        }
+
+        if (preg_match_all(
+            '/<form\b(?=[^>]*\bmethod\s*=\s*([\'"]?)post\1)[^>]*\baction\s*=\s*"<\?php\s+echo\s+sr_e\(sr_url\(\'([^\']+)\'\)\);\s*\?>"[^>]*>/is',
+            $content,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        ) === false) {
+            continue;
+        }
+
+        foreach ($matches[2] as [$formAction, $offset]) {
+            $formAction = (string) $formAction;
+            if (!str_starts_with($formAction, '/admin')) {
+                continue;
+            }
+            if (isset($allAdminPostRoutes[$formAction])) {
+                continue;
+            }
+
+            $line = substr_count(substr($content, 0, (int) $offset), "\n") + 1;
+            sr_check_admin_pages_error('Admin POST form action must have a matching POST route: ' . $relativePath . ':' . (string) $line . ' ' . $formAction);
+        }
+    }
 }
 
 if ($errors !== []) {
