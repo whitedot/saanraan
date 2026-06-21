@@ -88,6 +88,13 @@ function sr_community_default_settings(): array
         'write_charge_amounts_json' => is_string($settings['write_charge_amounts_json'] ?? null) ? (string) $settings['write_charge_amounts_json'] : '',
         'write_charge_group_policies_json' => is_string($settings['write_charge_group_policies_json'] ?? null) ? (string) $settings['write_charge_group_policies_json'] : '',
         'write_charge_policy_set_id' => (int) ($settings['write_charge_policy_set_id'] ?? 0),
+        'message_charge_enabled' => (bool) ($settings['message_charge_enabled'] ?? false),
+        'message_charge_asset_module' => is_string($settings['message_charge_asset_module'] ?? null) ? (string) $settings['message_charge_asset_module'] : '',
+        'message_charge_amount' => (int) ($settings['message_charge_amount'] ?? 0),
+        'message_charge_settlement_currency' => is_string($settings['message_charge_settlement_currency'] ?? null) ? (string) $settings['message_charge_settlement_currency'] : 'KRW',
+        'message_charge_amounts_json' => is_string($settings['message_charge_amounts_json'] ?? null) ? (string) $settings['message_charge_amounts_json'] : '',
+        'message_charge_group_policies_json' => is_string($settings['message_charge_group_policies_json'] ?? null) ? (string) $settings['message_charge_group_policies_json'] : '',
+        'message_charge_policy_set_id' => (int) ($settings['message_charge_policy_set_id'] ?? 0),
         'comment_charge_enabled' => (bool) ($settings['comment_charge_enabled'] ?? false),
         'comment_charge_asset_module' => is_string($settings['comment_charge_asset_module'] ?? null) ? (string) $settings['comment_charge_asset_module'] : '',
         'comment_charge_amount' => (int) ($settings['comment_charge_amount'] ?? 0),
@@ -258,13 +265,13 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['reaction_enabled'] = sr_community_bool_setting($settings['reaction_enabled'] ?? true);
     $settings['reaction_post_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
     $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
-    foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+    foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? '', true), true)
             : sr_community_asset_module_key_or_empty((string) ($settings[$assetPrefix . '_asset_module'] ?? ''));
         $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
-        if (in_array($assetPrefix, ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'], true)) {
+        if (in_array($assetPrefix, sr_community_asset_composite_prefixes(), true)) {
             $settlementCurrency = (string) ($settings[$assetPrefix . '_settlement_currency'] ?? '');
             $settings[$assetPrefix . '_settlement_currency'] = $pdo instanceof PDO
                 ? sr_community_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency])

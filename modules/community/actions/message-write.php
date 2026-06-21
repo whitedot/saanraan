@@ -24,6 +24,7 @@ $presetRecipient = sr_member_public_account_hash_is_valid($recipientAccountHash)
     : null;
 $values = [
     'recipient_account_hash' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? (string) $presetRecipient['public_hash'] : '',
+    'recipient_account_hashes' => is_array($presetRecipient) && (string) $presetRecipient['status'] === 'active' ? [(string) $presetRecipient['public_hash']] : [],
     'recipient_identifier' => '',
     'body_text' => '',
 ];
@@ -31,43 +32,99 @@ $recipientPresetNotice = $values['recipient_account_hash'] !== '' ? sr_t('commun
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
     ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config, (string) $presetRecipient['status'], (string) ($presetRecipient['community_nickname'] ?? ''), $memberSettings)
     : '';
+$recipientPickerItems = $values['recipient_account_hash'] !== '' && $recipientLabel !== ''
+    ? [[
+        'hash' => $values['recipient_account_hash'],
+        'label' => $recipientLabel,
+    ]]
+    : [];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $values = sr_community_message_input_values();
     $errors = sr_community_validate_message_input($values);
-    $recipient = null;
-    $submittedRecipient = is_string($values['recipient_account_hash'] ?? null) && (string) $values['recipient_account_hash'] !== ''
-        ? sr_community_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
-        : null;
-    if (is_array($submittedRecipient)) {
-        $recipientLabel = sr_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config, (string) $submittedRecipient['status'], (string) ($submittedRecipient['community_nickname'] ?? ''), $memberSettings);
-    }
+    $recipients = [];
+    $messageIds = [];
+    $createdMessages = [];
+    $recipientPickerItems = [];
     if ($errors === []) {
-        if (is_array($submittedRecipient)) {
-            $recipient = $submittedRecipient;
-        } else {
-            $recipient = sr_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
-        }
-        if (!is_array($recipient) || (string) $recipient['status'] !== 'active') {
+        $recipients = sr_community_message_recipients_from_values($pdo, $config, $values, (int) $account['id']);
+        if ($recipients === []) {
             $errors[] = sr_t('community::action.error.recipient_not_found');
-        } elseif ((int) $recipient['id'] === (int) $account['id']) {
-            $errors[] = sr_t('community::action.error.message_self_forbidden');
+        }
+        foreach ($recipients as $recipient) {
+            if ((int) ($recipient['id'] ?? 0) === (int) $account['id']) {
+                $errors[] = sr_t('community::action.error.message_self_forbidden');
+                break;
+            }
         }
     }
-    if (is_array($recipient)) {
+    $recipientLabels = [];
+    foreach ($recipients as $recipient) {
         $recipientSummary = sr_community_public_account_summary($pdo, (int) $recipient['id']);
         $recipientLabelAccount = is_array($recipientSummary) ? $recipientSummary : $recipient;
-        $recipientLabel = sr_community_message_account_label((string) ($recipientLabelAccount['display_name'] ?? ''), (int) $recipient['id'], $canViewMemberIdentifiers, $config, (string) ($recipientLabelAccount['status'] ?? $recipient['status'] ?? ''), (string) ($recipientLabelAccount['community_nickname'] ?? ''), $memberSettings);
+        $label = sr_community_message_account_label((string) ($recipientLabelAccount['display_name'] ?? ''), (int) $recipient['id'], $canViewMemberIdentifiers, $config, (string) ($recipientLabelAccount['status'] ?? $recipient['status'] ?? ''), (string) ($recipientLabelAccount['community_nickname'] ?? ''), $memberSettings);
+        $recipientLabels[] = $label;
+        $recipientPickerItems[] = [
+            'hash' => sr_member_public_account_hash($config, (int) $recipient['id']),
+            'label' => $label,
+        ];
     }
+    $recipientLabel = implode(', ', $recipientLabels);
 
     if ($errors === [] && sr_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
         $errors[] = sr_t('community::action.rate_limit.message');
     }
 
-    if ($errors === [] && is_array($recipient)) {
-        $messageId = sr_community_create_message($pdo, (int) $account['id'], (int) $recipient['id'], (string) $values['body_text']);
+    $messageChargeConfig = sr_community_asset_event_config($pdo, [], $settings, 'message_charge', 'every_action');
+    if ($errors === [] && sr_community_asset_event_required($messageChargeConfig)) {
+        $assetModules = sr_community_asset_module_keys_from_value($messageChargeConfig['asset_module'] ?? '', true);
+        if (!sr_community_asset_modules_available($pdo, $assetModules)) {
+            $errors[] = sr_t('community::action.error.message_asset_modules_unavailable');
+        } else {
+            $precheckChargeConfig = $messageChargeConfig;
+            $recipientCount = count($recipients);
+            $precheckChargeConfig['amount'] = (int) ($messageChargeConfig['amount'] ?? 0) * $recipientCount;
+            if (is_array($messageChargeConfig['amounts'] ?? null) && $messageChargeConfig['amounts'] !== []) {
+                $precheckChargeConfig['amounts'] = array_map(static fn (mixed $amount): int => (int) $amount * $recipientCount, (array) $messageChargeConfig['amounts']);
+            }
+            if (!sr_community_asset_use_balance_available($pdo, $precheckChargeConfig, (int) $account['id'])) {
+                $errors[] = sr_t('community::action.error.message_asset_balance_low');
+            }
+        }
+    }
+
+    if ($errors === [] && $recipients !== []) {
+        $messageIds = [];
+        $createdMessages = [];
+        try {
+            $pdo->beginTransaction();
+            foreach ($recipients as $recipient) {
+                $messageId = sr_community_create_message($pdo, (int) $account['id'], (int) $recipient['id'], (string) $values['body_text']);
+                $messageChargeResult = sr_community_asset_event_required($messageChargeConfig)
+                    ? sr_community_run_asset_event($pdo, $messageChargeConfig, (int) $account['id'], 'message_send_charge', 'community.message', $messageId, 'use', 'community.message.send')
+                    : ['allowed' => true, 'processed' => false];
+                if (empty($messageChargeResult['allowed'])) {
+                    throw new RuntimeException((string) ($messageChargeResult['message'] ?? sr_t('community::action.error.message_charge_failed')));
+                }
+                $messageIds[] = $messageId;
+                $createdMessages[] = [
+                    'id' => $messageId,
+                    'recipient_account_id' => (int) $recipient['id'],
+                    'recipient_account_hash' => sr_member_public_account_hash($config, (int) $recipient['id']),
+                ];
+            }
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errors[] = $exception->getMessage() !== '' ? $exception->getMessage() : sr_t('community::action.error.message_charge_failed');
+        }
+    }
+
+    if ($errors === [] && $createdMessages !== []) {
         sr_community_record_message_rate_limit($pdo, (int) $account['id'], $settings);
         $senderLabel = sr_community_message_account_label(
             (string) ($account['display_name'] ?? ''),
@@ -82,24 +139,27 @@ if (sr_request_method() === 'POST') {
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',
             'event_type' => 'community.message.sent',
-            'target_type' => 'community_message',
-            'target_id' => (string) $messageId,
+            'target_type' => count($messageIds) === 1 ? 'community_message' : 'community_messages',
+            'target_id' => count($messageIds) === 1 ? (string) $messageIds[0] : implode(',', array_map('strval', $messageIds)),
             'result' => 'success',
             'message' => 'Community message sent.',
             'metadata' => [
-                'recipient_account_id' => (int) $recipient['id'],
+                'recipient_account_hashes' => array_map(static fn (array $row): string => (string) $row['recipient_account_hash'], $createdMessages),
+                'message_ids' => $messageIds,
             ],
         ]);
-        sr_community_create_account_notification(
-            $pdo,
-            (int) $recipient['id'],
-            sr_t('community::notification.message.title'),
-            sr_t('community::notification.message.body', [
-                'account' => $senderLabel,
-            ]),
-            '/community/message?id=' . (string) $messageId,
-            (int) $account['id']
-        );
+        foreach ($createdMessages as $createdMessage) {
+            sr_community_create_account_notification(
+                $pdo,
+                (int) $createdMessage['recipient_account_id'],
+                sr_t('community::notification.message.title'),
+                sr_t('community::notification.message.body', [
+                    'account' => $senderLabel,
+                ]),
+                '/community/message?id=' . (string) $createdMessage['id'],
+                (int) $account['id']
+            );
+        }
         $_SESSION['sr_community_message_notice'] = sr_t('community::action.notice.message_sent');
         sr_redirect('/community/messages?box=sent');
     }

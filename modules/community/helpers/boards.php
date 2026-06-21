@@ -127,6 +127,11 @@ function sr_community_asset_setting_prefixes(): array
     return ['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
 }
 
+function sr_community_module_asset_setting_prefixes(): array
+{
+    return ['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'message_charge', 'paid_read', 'paid_attachment_download'];
+}
+
 function sr_community_board_group_asset_setting_keys(): array
 {
     $keys = [];
@@ -136,7 +141,7 @@ function sr_community_board_group_asset_setting_keys(): array
         $keys[] = $prefix . '_amount';
         $keys[] = $prefix . '_group_policies_json';
         $keys[] = $prefix . '_policy_set_id';
-        if (in_array($prefix, ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'], true)) {
+        if (in_array($prefix, sr_community_asset_composite_prefixes(), true)) {
             $keys[] = $prefix . '_amounts_json';
         }
     }
@@ -299,6 +304,7 @@ function sr_community_asset_setting_label(string $assetPrefix): string
         'comment_reward' => sr_t('community::asset_setting.comment_reward'),
         'write_charge' => sr_t('community::asset_setting.write_charge'),
         'comment_charge' => sr_t('community::asset_setting.comment_charge'),
+        'message_charge' => sr_t('community::asset_setting.message_charge'),
         'paid_read' => sr_t('community::asset_setting.paid_read'),
         'paid_attachment_download' => sr_t('community::asset_setting.paid_attachment_download'),
     ];

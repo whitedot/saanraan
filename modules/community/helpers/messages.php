@@ -177,9 +177,23 @@ function sr_community_mark_message_read(PDO $pdo, array $message, int $accountId
 function sr_community_message_input_values(): array
 {
     $recipientAccountHash = strtolower(trim(sr_post_string('recipient_account_hash', 40)));
+    $recipientAccountHashesInput = $_POST['recipient_account_hashes'] ?? [];
+    $recipientAccountHashes = [];
+    if (is_array($recipientAccountHashesInput)) {
+        foreach ($recipientAccountHashesInput as $hash) {
+            $hash = strtolower(trim((string) $hash));
+            if (sr_member_public_account_hash_is_valid($hash)) {
+                $recipientAccountHashes[$hash] = true;
+            }
+        }
+    }
+    if (sr_member_public_account_hash_is_valid($recipientAccountHash)) {
+        $recipientAccountHashes[$recipientAccountHash] = true;
+    }
 
     return [
         'recipient_account_hash' => sr_member_public_account_hash_is_valid($recipientAccountHash) ? $recipientAccountHash : '',
+        'recipient_account_hashes' => array_slice(array_keys($recipientAccountHashes), 0, 20),
         'recipient_identifier' => sr_post_string_without_truncation('recipient_identifier', 255),
         'body_text' => sr_post_string_without_truncation('body_text', 5000),
     ];
@@ -189,7 +203,8 @@ function sr_community_validate_message_input(array $values): array
 {
     $errors = [];
     $recipientAccountHash = is_string($values['recipient_account_hash'] ?? null) ? (string) $values['recipient_account_hash'] : '';
-    if ($recipientAccountHash === '' && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
+    $recipientAccountHashes = is_array($values['recipient_account_hashes'] ?? null) ? (array) $values['recipient_account_hashes'] : [];
+    if ($recipientAccountHash === '' && $recipientAccountHashes === [] && (!is_string($values['recipient_identifier']) || trim($values['recipient_identifier']) === '')) {
         $errors[] = sr_t('community::action.error.recipient_required');
     }
 
@@ -200,6 +215,42 @@ function sr_community_validate_message_input(array $values): array
     }
 
     return $errors;
+}
+
+function sr_community_message_recipients_from_values(PDO $pdo, array $config, array $values, int $senderAccountId): array
+{
+    $recipientsById = [];
+    $hashes = is_array($values['recipient_account_hashes'] ?? null) ? (array) $values['recipient_account_hashes'] : [];
+    $legacyHash = is_string($values['recipient_account_hash'] ?? null) ? (string) $values['recipient_account_hash'] : '';
+    if ($legacyHash !== '') {
+        $hashes[] = $legacyHash;
+    }
+
+    foreach ($hashes as $hash) {
+        $hash = strtolower(trim((string) $hash));
+        if (!sr_member_public_account_hash_is_valid($hash)) {
+            continue;
+        }
+        $recipient = sr_community_public_account_summary_by_hash($pdo, $config, $hash);
+        if (is_array($recipient)) {
+            $recipientsById[(int) $recipient['id']] = $recipient;
+        }
+    }
+
+    if ($recipientsById === [] && is_string($values['recipient_identifier'] ?? null) && trim((string) $values['recipient_identifier']) !== '') {
+        $recipient = sr_member_find_by_identifier($pdo, $config, (string) $values['recipient_identifier']);
+        if (is_array($recipient)) {
+            $recipientsById[(int) $recipient['id']] = $recipient;
+        }
+    }
+
+    foreach ($recipientsById as $accountId => $recipient) {
+        if ($accountId < 1 || (string) ($recipient['status'] ?? '') !== 'active') {
+            unset($recipientsById[$accountId]);
+        }
+    }
+
+    return array_values($recipientsById);
 }
 
 function sr_community_create_message(PDO $pdo, int $senderAccountId, int $recipientAccountId, string $bodyText): int

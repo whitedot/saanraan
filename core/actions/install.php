@@ -160,7 +160,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.06.030',
+        'version' => '2026.06.031',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

@@ -363,6 +363,7 @@ $communitySettingsSectionNavItems = [
                 'comment_reward' => sr_t('community::ui.text.bb39df0e'),
                 'write_charge' => sr_t('community::ui.text.ce1392a2'),
                 'comment_charge' => sr_t('community::ui.text.629c5136'),
+                'message_charge' => sr_t('community::asset_setting.message_charge'),
                 'paid_read' => sr_t('community::ui.text.c9b3e6f0'),
                 'paid_attachment_download' => sr_t('community::ui.text.5b864b9e'),
             ] as $assetPrefix => $assetLabel) { ?>

@@ -61,7 +61,7 @@
         }
         list = document.createElement('div');
         list.id = textarea.id + '-mention-list';
-        list.className = 'sr-mention-list';
+        list.className = 'dropdown-menu sr-mention-list sr-mention-dropdown';
         list.setAttribute('role', 'listbox');
         list.hidden = true;
         document.body.appendChild(list);
@@ -145,6 +145,19 @@
         list.style.width = width + 'px';
     }
 
+    function avatarClass(hash) {
+        var value = 0;
+        String(hash || '').split('').forEach(function (character) {
+            value = (value + character.charCodeAt(0)) % 12;
+        });
+        return 'member-avatar-color-' + value;
+    }
+
+    function avatarInitial(name) {
+        var value = String(name || '').trim();
+        return value === '' ? 'M' : value.charAt(0).toUpperCase();
+    }
+
     function selectItem(textarea, item) {
         var token = active && active.textarea === textarea ? active.token : tokenAtCaret(textarea);
         if (!token) {
@@ -170,7 +183,7 @@
 
         if (!items.length) {
             var empty = document.createElement('div');
-            empty.className = 'sr-mention-empty';
+            empty.className = 'sr-mention-empty community-recipient-empty';
             empty.textContent = '일치하는 회원이 없습니다';
             list.appendChild(empty);
             list.hidden = false;
@@ -183,14 +196,18 @@
 
         items.forEach(function (row, index) {
             var button = document.createElement('button');
+            var publicHash = String(row.public_hash || '');
+            var publicName = String(row.public_name || '');
             button.type = 'button';
             button.id = textarea.id + '-mention-option-' + index;
-            button.className = 'sr-mention-option' + (index === 0 ? ' is-active' : '');
+            button.className = 'dropdown-item sr-mention-option community-recipient-option' + (index === 0 ? ' active' : '');
             button.setAttribute('role', 'option');
             button.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
             button.setAttribute('data-insert-text', String(row.insert_text || ''));
-            button.innerHTML = '<span></span><code></code>';
-            button.querySelector('span').textContent = String(row.public_name || '');
+            button.innerHTML = '<span class="dropdown-profile-avatar community-recipient-option-avatar" aria-hidden="true"></span><span class="community-recipient-option-text"><strong></strong><code></code></span>';
+            button.querySelector('.community-recipient-option-avatar').classList.add(avatarClass(publicHash));
+            button.querySelector('.community-recipient-option-avatar').textContent = avatarInitial(publicName);
+            button.querySelector('strong').textContent = publicName;
             button.querySelector('code').textContent = '#' + String(row.hash_prefix || '');
             button.addEventListener('mousedown', function (event) {
                 event.preventDefault();
@@ -213,7 +230,7 @@
         active.index = (nextIndex + active.items.length) % active.items.length;
         active.items.forEach(function (item, index) {
             var selected = index === active.index;
-            item.classList.toggle('is-active', selected);
+            item.classList.toggle('active', selected);
             item.setAttribute('aria-selected', selected ? 'true' : 'false');
             if (selected) {
                 active.textarea.setAttribute('aria-activedescendant', item.id);

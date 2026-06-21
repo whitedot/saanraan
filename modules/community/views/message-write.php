@@ -29,17 +29,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 
         <form method="post" action="<?php echo sr_e(sr_url('/community/message/write')); ?>">
             <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="recipient_account_hash" value="">
             <p>
-                <?php if (is_string($values['recipient_account_hash'] ?? null) && $values['recipient_account_hash'] !== '') { ?>
-                    <input type="hidden" name="recipient_account_hash" value="<?php echo sr_e((string) $values['recipient_account_hash']); ?>">
-                    <?php echo sr_e(sr_t('community::ui.member.a8116cfc')); ?><br>
-                    <?php echo sr_e($recipientLabel); ?>
-                <?php } else { ?>
-                    <label for="modules_community_message_write_recipient_identifier">
-                    <span><?php echo sr_e(sr_t('community::ui.member.email.bca68450')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                        <input id="modules_community_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required>
-                    </label>
-                <?php } ?>
+                <label for="modules_community_message_write_recipient_identifier">
+                    <span><?php echo sr_e(sr_t('community::ui.member.a8116cfc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                    <span class="community-recipient-picker" data-sr-recipient-picker>
+                        <span class="community-recipient-selected" data-sr-recipient-picker-selected>
+                            <?php foreach (is_array($recipientPickerItems ?? null) ? $recipientPickerItems : [] as $recipientPickerItem) { ?>
+                                <?php $recipientPickerHash = (string) ($recipientPickerItem['hash'] ?? ''); ?>
+                                <?php $recipientPickerLabel = (string) ($recipientPickerItem['label'] ?? ''); ?>
+                                <?php if ($recipientPickerHash !== '' && $recipientPickerLabel !== '') { ?>
+                                    <span class="community-recipient-chip" data-recipient-hash="<?php echo sr_e($recipientPickerHash); ?>">
+                                        <span><?php echo sr_e($recipientPickerLabel); ?></span>
+                                        <button type="button" class="community-recipient-chip-remove" aria-label="<?php echo sr_e($recipientPickerLabel . ' 제거'); ?>">×</button>
+                                        <input type="hidden" name="recipient_account_hashes[]" value="<?php echo sr_e($recipientPickerHash); ?>">
+                                    </span>
+                                <?php } ?>
+                            <?php } ?>
+                        </span>
+                        <input id="modules_community_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required data-sr-recipient-picker-input data-sr-recipient-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" autocomplete="off">
+                    </span>
+                </label>
             </p>
             <p>
                 <label for="modules_community_message_write_body_text">

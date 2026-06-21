@@ -112,7 +112,7 @@ if (sr_request_method() === 'POST') {
         $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $assetSettings = [];
-        foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
+        foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
             $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST[$assetPrefix . '_policy_set_ids'] ?? []);
             $assetSettings[$assetPrefix . '_enabled'] = ($_POST[$assetPrefix . '_enabled'] ?? '') === '1';
             $assetSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)
@@ -250,7 +250,7 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
+        foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
             $assetLabel = sr_community_asset_setting_label($assetPrefix);
             if ($assetSettings[$assetPrefix . '_amount'] === null) {
                 $errors[] = sr_t('community::action.admin.asset_amount_invalid', ['label' => $assetLabel]);
@@ -375,6 +375,13 @@ if (sr_request_method() === 'POST') {
                 ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
                 ['write_charge_group_policies_json', (string) $assetSettings['write_charge_group_policies_json'], 'json'],
                 ['write_charge_policy_set_id', (string) $assetSettings['write_charge_policy_set_id'], 'int'],
+                ['message_charge_enabled', $assetSettings['message_charge_enabled'] ? '1' : '0', 'bool'],
+                ['message_charge_asset_module', (string) $assetSettings['message_charge_asset_module'], 'string'],
+                ['message_charge_amount', (string) $assetSettings['message_charge_amount'], 'int'],
+                ['message_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['message_charge_amounts_json', (string) $assetSettings['message_charge_amounts_json'], 'json'],
+                ['message_charge_group_policies_json', (string) $assetSettings['message_charge_group_policies_json'], 'json'],
+                ['message_charge_policy_set_id', (string) $assetSettings['message_charge_policy_set_id'], 'int'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],

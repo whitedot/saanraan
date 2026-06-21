@@ -540,6 +540,7 @@ function sr_member_mention_search_rows(PDO $pdo, array $config, string $query, i
         $hashPrefix = substr($publicHash, 0, $prefixLength);
         $items[] = [
             'public_name' => $publicName,
+            'public_hash' => $publicHash,
             'hash_prefix' => $hashPrefix,
             'insert_text' => '@' . $publicName . '#' . $hashPrefix . ' ',
         ];
