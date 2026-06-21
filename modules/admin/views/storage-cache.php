@@ -163,7 +163,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
 <?php if ($canDeleteStorageCache) { ?>
     <div id="admin-storage-cache-cleanup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-storage-cache-cleanup-modal-label" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme" data-admin-storage-cache-cleanup-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme" data-admin-storage-cache-cleanup-form data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="admin-storage-cache-cleanup-modal-label" class="modal-title">썸네일 캐시 정리</h3>
                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#admin-storage-cache-cleanup-modal"><?php echo sr_material_icon_html('close'); ?></button>

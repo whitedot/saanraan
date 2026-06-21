@@ -276,7 +276,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div id="admin-permission-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0 admin-permission-add-modal" role="dialog" tabindex="-1" aria-labelledby="admin-permission-add-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog admin-permission-add-dialog">
-        <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-add-form>
+        <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-add-form data-sr-validate-form>
             <div class="modal-header">
                 <h3 id="admin-permission-add-modal-label" class="modal-title">관리 권한 추가</h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-add-modal">

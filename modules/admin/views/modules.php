@@ -348,7 +348,7 @@ $installedSections = [
                                 <a href="<?php echo sr_e(sr_url('/admin/updates')); ?>"><?php echo sr_e((string) $module['pending_update_count']); ?><?php echo sr_e(sr_t('admin::ui.sql.ff779501')); ?></a>
                             <?php } elseif (($module['version_state'] ?? '') === 'code_newer') { ?>
                                 <?php if ($canManageModuleSources && $moduleSourcesEnabled) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-module-sync-form">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="admin-module-sync-form" data-sr-validate-form>
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="sync_module_version">
                                         <input type="hidden" name="module_key" value="<?php echo sr_e($moduleKey); ?>">
@@ -556,7 +556,7 @@ $installedSections = [
 
 <div id="module-source-enable-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="module-source-enable-modal-label">
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="modal-content admin-form ui-form-theme">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form>
             <div class="modal-header">
                 <h3 id="module-source-enable-modal-label" class="modal-title">모듈 파일 반영 일시 허용</h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-source-enable-modal">
@@ -610,7 +610,7 @@ $installedSections = [
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-upload-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
                 </div>
             <?php } else { ?>
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/modules')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="module-upload-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.zip.270ef751')); ?></h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#module-upload-modal">
