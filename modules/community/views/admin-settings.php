@@ -543,11 +543,13 @@ $communitySettingsSectionNavItems = [
         <div class="form-row" data-community-thumbnail-rule="bytes"<?php echo $thumbnailCriterionValue === 'bytes' ? '' : ' hidden'; ?>>
             <label class="form-label" for="community_admin_settings_thumbnail_min_bytes">생성 기준 용량 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
-                <div class="input-group admin-input-unit">
-                    <input id="community_admin_settings_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e((string) ($settings['thumbnail_min_bytes'] ?? 102400)); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible data-community-thumbnail-bytes-input class="form-input">
-                    <span class="input-group-text">bytes</span>
+                <div class="admin-community-thumbnail-bytes-line">
+                    <div class="input-group admin-input-unit admin-community-thumbnail-bytes-group">
+                        <input id="community_admin_settings_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e((string) ($settings['thumbnail_min_bytes'] ?? 102400)); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible data-community-thumbnail-bytes-input class="form-input">
+                        <span class="input-group-text">bytes</span>
+                    </div>
+                    <span class="form-help admin-community-thumbnail-bytes-label" data-community-thumbnail-bytes-label></span>
                 </div>
-                <p class="form-help" data-community-thumbnail-bytes-label></p>
                 <p class="form-help">용량 기준을 선택했을 때 읽기 화면 첨부 이미지의 원본 파일 크기가 이 값보다 작으면 캐시 썸네일을 만들지 않습니다. 0이면 모든 용량에서 생성합니다.</p>
             </div>
         </div>

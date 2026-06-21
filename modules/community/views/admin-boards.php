@@ -962,12 +962,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_thumbnail_min_bytes">썸네일 생성 기준 용량 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <div class="admin-setting-source-line">
-                        <div>
-                            <div class="input-group admin-input-unit">
+                        <div class="admin-community-thumbnail-bytes-line">
+                            <div class="input-group admin-input-unit admin-community-thumbnail-bytes-group">
                                 <input id="community_admin_boards_thumbnail_min_bytes" type="number" name="thumbnail_min_bytes" min="0" max="20971520" value="<?php echo sr_e($boardField($formBoard, 'thumbnail_min_bytes', (string) ($settings['thumbnail_min_bytes'] ?? 102400))); ?>"<?php echo $thumbnailCriterionValue === 'bytes' ? ' required' : ''; ?> data-admin-required-when-visible data-community-thumbnail-bytes-input class="form-input">
                                 <span class="input-group-text">bytes</span>
                             </div>
-                            <span class="form-help" data-community-thumbnail-bytes-label></span>
+                            <span class="form-help admin-community-thumbnail-bytes-label" data-community-thumbnail-bytes-label></span>
                         </div>
                         <?php echo $settingSourceRadioHtml('source_thumbnail_min_bytes', $boardSettingSource($formBoard, 'thumbnail_min_bytes')); ?>
                     </div>
