@@ -502,13 +502,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_post_editor">게시글 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <select id="community_admin_boards_post_editor" name="post_editor" class="form-select" required>
-                        <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
-                            <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo $boardField($formBoard, 'post_editor', 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $editorLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_post_editor', 'post_editor', $editorOptions, $boardField($formBoard, 'post_editor', 'textarea'), true); ?>
                     <?php echo $settingSourceRadioHtml('source_post_editor', $boardSettingSource($formBoard, 'post_editor')); ?>
                     <p class="form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 변경의 영향을 받지 않습니다.</p>
                 </div>
