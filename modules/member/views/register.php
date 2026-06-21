@@ -110,8 +110,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     </label>
                 </p>
                 <p>
-                    <label for="modules_member_register_terms_consent">
-                        <input id="modules_member_register_terms_consent" type="checkbox" name="terms_consent" value="1" class="form-checkbox" required>
+                    <label class="member-skin-basic-choice-label" for="modules_member_register_terms_consent">
+                        <input id="modules_member_register_terms_consent" type="checkbox" name="terms_consent" value="1" class="form-checkbox member-skin-basic-choice-input" required>
                         <?php echo sr_e((string) ($registrationPolicyDocuments['terms']['title'] ?? sr_t('member::ui.required.057abc7f'))); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span>
                     </label>
                     <?php if (!empty($registrationPolicyDocuments['terms']['body_html'])) { ?>
@@ -122,8 +122,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <?php } ?>
                 </p>
                 <p>
-                    <label for="modules_member_register_privacy_consent">
-                        <input id="modules_member_register_privacy_consent" type="checkbox" name="privacy_consent" value="1" class="form-checkbox" required>
+                    <label class="member-skin-basic-choice-label" for="modules_member_register_privacy_consent">
+                        <input id="modules_member_register_privacy_consent" type="checkbox" name="privacy_consent" value="1" class="form-checkbox member-skin-basic-choice-input" required>
                         <?php echo sr_e((string) ($registrationPolicyDocuments['privacy']['title'] ?? sr_t('member::ui.privacy.ae1af6ad'))); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span>
                     </label>
                     <?php if (!empty($registrationPolicyDocuments['privacy']['body_html'])) { ?>
@@ -134,8 +134,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <?php } ?>
                 </p>
                 <p>
-                    <label for="modules_member_register_marketing_consent">
-                        <input id="modules_member_register_marketing_consent" type="checkbox" name="marketing_consent" value="1" class="form-checkbox"<?php echo $marketingConsent ? ' checked' : ''; ?>>
+                    <label class="member-skin-basic-choice-label" for="modules_member_register_marketing_consent">
+                        <input id="modules_member_register_marketing_consent" type="checkbox" name="marketing_consent" value="1" class="form-checkbox member-skin-basic-choice-input"<?php echo $marketingConsent ? ' checked' : ''; ?>>
                         <?php echo sr_e((string) ($registrationPolicyDocuments['marketing']['title'] ?? sr_t('member::ui.text.be6df05e'))); ?>
                     </label>
                     <?php if (!empty($registrationPolicyDocuments['marketing']['body_html'])) { ?>

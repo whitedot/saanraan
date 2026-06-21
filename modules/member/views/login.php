@@ -53,8 +53,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'after_form']); ?>
 
                 <div class="member-skin-basic-link-row type-small">
-                    <a href="<?php echo sr_e(sr_url('/register')); ?>"><?php echo sr_e(sr_t('member::ui.member.e668cc2b')); ?></a>
-                    <a href="<?php echo sr_e(sr_url('/password/reset')); ?>"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></a>
+                    <a class="member-skin-basic-link-action" href="<?php echo sr_e(sr_url('/register')); ?>"><?php echo sr_e(sr_t('member::ui.member.e668cc2b')); ?></a>
+                    <a class="member-skin-basic-link-action" href="<?php echo sr_e(sr_url('/password/reset')); ?>"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></a>
                 </div>
             </div>
         </section>

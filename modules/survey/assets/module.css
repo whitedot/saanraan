@@ -58,11 +58,10 @@
     padding: 10px 0 72px;
 }
 
-.sr-survey-card-grid > .card {
+.sr-survey-card {
     height: 100%;
     min-width: 0;
     min-height: 100%;
-    padding: 0;
 }
 
 .sr-survey-card-media {

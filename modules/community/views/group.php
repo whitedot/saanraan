@@ -47,7 +47,7 @@ $communityFrameModifier = 'group';
                     <?php if (!sr_community_board_key_is_valid($boardKey)) { ?>
                         <?php continue; ?>
                     <?php } ?>
-                    <article class="card">
+                    <article class="card community-board-card">
                         <div class="card-body community-board-card-body">
                             <h2 class="community-board-card-title">
                                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode($boardKey))); ?>">

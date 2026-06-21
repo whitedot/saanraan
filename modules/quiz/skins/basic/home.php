@@ -36,7 +36,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                         $quizUrl = sr_url('/quiz/' . rawurlencode($quizKey));
                         $quizCoverHtml = sr_quiz_cover_image_html($quiz, 'sr-quiz-card-image card-img-top', $quizTitle);
                         ?>
-                        <article class="card">
+                        <article class="card sr-quiz-card">
                             <a class="sr-quiz-card-media" href="<?php echo sr_e($quizUrl); ?>" aria-label="<?php echo sr_e($quizTitle); ?>">
                                 <?php if ($quizCoverHtml !== ''): ?>
                                     <?php echo $quizCoverHtml; ?>

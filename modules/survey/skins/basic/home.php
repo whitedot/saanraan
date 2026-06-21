@@ -31,7 +31,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     $surveyUrl = sr_url('/survey/' . rawurlencode($surveyKey));
                     $surveyCoverHtml = sr_survey_cover_image_html($survey, 'sr-survey-card-image card-img-top', $surveyTitle);
                     ?>
-                    <article class="card">
+                    <article class="card sr-survey-card">
                         <a class="sr-survey-card-media" href="<?php echo sr_e($surveyUrl); ?>" aria-label="<?php echo sr_e($surveyTitle); ?>">
                             <?php if ($surveyCoverHtml !== ''): ?>
                                 <?php echo $surveyCoverHtml; ?>

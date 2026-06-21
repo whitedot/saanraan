@@ -37,7 +37,7 @@
     margin: 16px 0 0;
 }
 
-.community-board-grid > .card {
+.community-board-card {
     height: 100%;
     min-width: 0;
 }
@@ -1088,21 +1088,6 @@ a.community-post-title:focus,
     justify-content: center;
     min-width: 0;
     padding-right: 48px;
-}
-
-.community-image-layer-button.btn-ghost-light {
-    color: var(--color-white, #fff);
-}
-
-.community-image-layer-button.btn-ghost-light:hover,
-.community-image-layer-button.btn-ghost-light:focus-visible {
-    background: color-mix(in oklab, var(--color-white, #fff) 16%, transparent);
-    color: var(--color-white, #fff);
-}
-
-.community-image-layer-button.btn-ghost-light:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-white, #fff) 24%, transparent);
-    outline: 0;
 }
 
 .community-image-layer-button .material-symbols-outlined {

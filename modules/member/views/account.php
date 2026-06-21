@@ -11,8 +11,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
     <main class="member-skin-basic-page member-skin-basic-page-wide">
         <?php echo sr_member_feedback_toasts($notice, $errors); ?>
         <?php if (!empty($accountReauthRequired)) { ?>
-            <section class="card member-skin-basic-stack">
-                <h1 class="card-title"><?php echo sr_e(sr_t('member::ui.account.reauth_title')); ?></h1>
+            <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                <h1 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.account.reauth_title')); ?></h1>
                 <p class="member-skin-basic-muted"><?php echo sr_e(sr_t('member::ui.account.reauth_help')); ?></p>
 
                 <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
@@ -53,8 +53,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </div>
         </section>
 
-        <section class="card member-skin-basic-stack">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.25914f73')); ?></h2>
+        <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+            <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.text.25914f73')); ?></h2>
             <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="basics">
@@ -91,8 +91,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         </section>
 
         <?php if ($emailVerificationEnabled) { ?>
-            <section class="card member-skin-basic-stack">
-                <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></h2>
+            <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></h2>
                 <?php if ($account['email_verified_at'] === null) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/account/email-verification')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                         <?php echo sr_csrf_field(); ?>
@@ -107,8 +107,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </section>
         <?php } ?>
 
-        <section class="card member-skin-basic-stack">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.password.bf1d4719')); ?></h2>
+        <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+            <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.password.bf1d4719')); ?></h2>
             <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="password">
@@ -136,8 +136,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         </section>
 
         <?php if (!empty($oauthProviders)) { ?>
-            <section class="card member-skin-basic-stack">
-                <h2 class="card-title">소셜 로그인</h2>
+            <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                <h2 class="card-title member-skin-basic-card-title">소셜 로그인</h2>
                 <?php if (!empty($oauthAccounts)) { ?>
                     <dl>
                         <?php foreach ($oauthAccounts as $oauthAccount) { ?>
@@ -167,8 +167,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         <?php } ?>
 
         <?php if ($profileFieldsEnabled) { ?>
-            <section class="card member-skin-basic-stack">
-                <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.select.2ea79f04')); ?></h2>
+            <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.select.2ea79f04')); ?></h2>
                 <form method="post" action="<?php echo sr_e(sr_url('/account')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="profile">
@@ -204,8 +204,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             </p>
                             <?php if (empty($profilePolicies['avatar_path']['required'])) { ?>
                                 <p>
-                                    <label for="modules_member_account_avatar_delete">
-                                        <input id="modules_member_account_avatar_delete" type="checkbox" name="avatar_delete" value="1" class="form-checkbox">
+                                    <label class="member-skin-basic-choice-label" for="modules_member_account_avatar_delete">
+                                        <input id="modules_member_account_avatar_delete" type="checkbox" name="avatar_delete" value="1" class="form-checkbox member-skin-basic-choice-input">
                                         <?php echo sr_e(sr_t('member::ui.delete.c94ee577')); ?>
                                     </label>
                                 </p>
@@ -225,8 +225,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </section>
         <?php } ?>
 
-        <section class="card member-skin-basic-stack">
-            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.b6238465')); ?></h2>
+        <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+            <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.text.b6238465')); ?></h2>
             <?php if ($consents === []) { ?>
                 <p><?php echo sr_e(sr_t('member::ui.text.91a1276f')); ?></p>
             <?php } else { ?>
