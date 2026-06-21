@@ -46,17 +46,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php echo sr_community_plain_text_html((string) $message['body_text']); ?>
         </div>
 
-        <?php if ($reportNotice !== '') { ?>
-            <p><?php echo sr_e($reportNotice); ?></p>
-        <?php } ?>
-
-        <?php if ($reportErrors !== []) { ?>
-            <ul>
-                <?php foreach ($reportErrors as $error) { ?>
-                    <li><?php echo sr_e($error); ?></li>
-                <?php } ?>
-            </ul>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', $reportNotice, $reportErrors); ?>
 
         <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
             <?php echo sr_csrf_field(); ?>

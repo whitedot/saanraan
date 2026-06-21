@@ -19,9 +19,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <a href="<?php echo sr_e(sr_url('/community/message/write')); ?>"><?php echo sr_e(sr_t('community::ui.text.288b8b7e')); ?></a>
         </p>
 
-        <?php if ($notice !== '') { ?>
-            <p><?php echo sr_e($notice); ?></p>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', $notice, []); ?>
 
         <?php if ($messages === []) { ?>
             <p><?php echo sr_e(sr_t('community::ui.text.f3e1cf06')); ?></p>

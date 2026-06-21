@@ -6,8 +6,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 ?>
 <main class="community-screen">
     <h1><?php echo sr_e($pageTitle); ?></h1>
-    <?php foreach ($errors as $error) { ?><p><?php echo sr_e($error); ?></p><?php } ?>
-    <?php if ($notice !== '') { ?><p><?php echo sr_e($notice); ?></p><?php } ?>
+    <?php echo sr_public_feedback_toasts('community', $notice, $errors); ?>
     <section>
         <h2>시리즈 만들기</h2>
         <?php if ($boards === []) { ?>

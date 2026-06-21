@@ -12,9 +12,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
     <main class="community-screen">
         <h1><?php echo sr_e($pageTitle); ?></h1>
 
-        <?php if ($notice !== '') { ?>
-            <p><?php echo sr_e($notice); ?></p>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', $notice, []); ?>
 
         <?php if ($scraps === [] && $seriesScraps === []) { ?>
             <p><?php echo sr_e(sr_t('community::ui.text.78d4e2f7')); ?></p>

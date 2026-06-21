@@ -39,6 +39,38 @@ $recipientPickerItems = $values['recipient_account_hash'] !== '' && $recipientLa
     ]]
     : [];
 
+$messageWriteFlash = isset($_SESSION['sr_community_message_write_flash']) && is_array($_SESSION['sr_community_message_write_flash'])
+    ? $_SESSION['sr_community_message_write_flash']
+    : [];
+unset($_SESSION['sr_community_message_write_flash']);
+if ($messageWriteFlash !== []) {
+    $flashValues = is_array($messageWriteFlash['values'] ?? null) ? $messageWriteFlash['values'] : [];
+    $values = array_merge($values, array_intersect_key($flashValues, $values));
+    $errors = isset($messageWriteFlash['errors']) && is_array($messageWriteFlash['errors'])
+        ? array_values(array_filter(array_map('strval', $messageWriteFlash['errors']), static fn (string $error): bool => $error !== ''))
+        : [];
+    $recipientPresetNotice = '';
+    $recipientPickerItems = [];
+    $recipientLabels = [];
+    foreach (is_array($values['recipient_account_hashes'] ?? null) ? $values['recipient_account_hashes'] : [] as $recipientHash) {
+        $recipientHash = strtolower(trim((string) $recipientHash));
+        if (!sr_member_public_account_hash_is_valid($recipientHash)) {
+            continue;
+        }
+        $recipientSummary = sr_community_public_account_summary_by_hash($pdo, $config, $recipientHash);
+        if (!is_array($recipientSummary) || (string) ($recipientSummary['status'] ?? '') !== 'active') {
+            continue;
+        }
+        $label = sr_community_message_account_label((string) ($recipientSummary['display_name'] ?? ''), (int) $recipientSummary['id'], $canViewMemberIdentifiers, $config, (string) ($recipientSummary['status'] ?? ''), (string) ($recipientSummary['community_nickname'] ?? ''), $memberSettings);
+        $recipientLabels[] = $label;
+        $recipientPickerItems[] = [
+            'hash' => $recipientHash,
+            'label' => $label,
+        ];
+    }
+    $recipientLabel = implode(', ', $recipientLabels);
+}
+
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
@@ -163,6 +195,12 @@ if (sr_request_method() === 'POST') {
         $_SESSION['sr_community_message_notice'] = sr_t('community::action.notice.message_sent');
         sr_redirect('/community/messages?box=sent');
     }
+
+    $_SESSION['sr_community_message_write_flash'] = [
+        'errors' => $errors,
+        'values' => $values,
+    ];
+    sr_redirect('/community/message/write');
 }
 
 include SR_ROOT . '/modules/community/views/message-write.php';

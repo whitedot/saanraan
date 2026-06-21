@@ -15,17 +15,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         </p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
 
-        <?php if ($errors !== []) { ?>
-            <ul>
-                <?php foreach ($errors as $error) { ?>
-                    <li><?php echo sr_e($error); ?></li>
-                <?php } ?>
-            </ul>
-        <?php } ?>
-
-        <?php if ($recipientPresetNotice !== '') { ?>
-            <p><?php echo sr_e($recipientPresetNotice); ?></p>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', $recipientPresetNotice, $errors); ?>
 
         <form method="post" action="<?php echo sr_e(sr_url('/community/message/write')); ?>">
             <?php echo sr_csrf_field(); ?>

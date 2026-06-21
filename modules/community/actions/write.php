@@ -74,6 +74,27 @@ $values = [
     'is_secret' => 0,
 ];
 
+$postFormFlash = isset($_SESSION['sr_community_post_form_flash']) && is_array($_SESSION['sr_community_post_form_flash'])
+    ? $_SESSION['sr_community_post_form_flash']
+    : [];
+if ($postFormFlash !== []
+    && (string) ($postFormFlash['action'] ?? '') === 'write'
+    && (int) ($postFormFlash['board_id'] ?? 0) === (int) $board['id']
+) {
+    unset($_SESSION['sr_community_post_form_flash']);
+    $flashValues = is_array($postFormFlash['values'] ?? null) ? $postFormFlash['values'] : [];
+    $values = array_merge($values, array_intersect_key($flashValues, $values));
+    $extraFieldValues = is_array($postFormFlash['extra_field_values'] ?? null) ? $postFormFlash['extra_field_values'] : $extraFieldValues;
+    $seriesValues = is_array($postFormFlash['series_values'] ?? null)
+        ? array_merge($seriesValues, array_intersect_key($postFormFlash['series_values'], $seriesValues))
+        : $seriesValues;
+    $errors = isset($postFormFlash['errors']) && is_array($postFormFlash['errors'])
+        ? array_values(array_filter(array_map('strval', $postFormFlash['errors']), static fn (string $error): bool => $error !== ''))
+        : [];
+} elseif ($postFormFlash !== [] && (string) ($postFormFlash['action'] ?? '') === 'write') {
+    unset($_SESSION['sr_community_post_form_flash']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
 
@@ -295,6 +316,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         sr_redirect('/community/post?id=' . (string) $postId);
     }
+
+    $_SESSION['sr_community_post_form_flash'] = [
+        'action' => 'write',
+        'board_id' => (int) $board['id'],
+        'errors' => $errors,
+        'values' => $values,
+        'extra_field_values' => $extraFieldValues,
+        'series_values' => $seriesValues,
+    ];
+    sr_redirect('/community/write?key=' . rawurlencode((string) $board['board_key']));
 }
 
 $skinKey = sr_community_board_skin_key($pdo, $board);

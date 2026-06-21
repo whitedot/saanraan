@@ -79,13 +79,7 @@ $communityFrameModifier = 'form';
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_before_form_id'] ?? 0)); ?>
         <?php } ?>
 
-        <?php if ($errors !== []) { ?>
-            <ul>
-                <?php foreach ($errors as $error) { ?>
-                    <li><?php echo sr_e($error); ?></li>
-                <?php } ?>
-            </ul>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', '', $errors); ?>
 
         <form method="post" action="<?php echo sr_e(sr_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?>>
             <?php echo sr_csrf_field(); ?>

@@ -62,9 +62,7 @@ $communityFrameModifier = 'list';
             <p><?php echo sr_e((string) $board['description']); ?></p>
         <?php } ?>
 
-        <?php if ($boardNotice !== '') { ?>
-            <p><?php echo sr_e($boardNotice); ?></p>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('community', $boardNotice, []); ?>
 
         <?php if ($canWriteBoard) { ?>
             <p>

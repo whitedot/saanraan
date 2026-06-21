@@ -113,6 +113,27 @@ $values = [
     'is_secret' => (int) ($post['is_secret'] ?? 0),
 ];
 
+$postFormFlash = isset($_SESSION['sr_community_post_form_flash']) && is_array($_SESSION['sr_community_post_form_flash'])
+    ? $_SESSION['sr_community_post_form_flash']
+    : [];
+if ($postFormFlash !== []
+    && (string) ($postFormFlash['action'] ?? '') === 'edit'
+    && (int) ($postFormFlash['post_id'] ?? 0) === $postId
+) {
+    unset($_SESSION['sr_community_post_form_flash']);
+    $flashValues = is_array($postFormFlash['values'] ?? null) ? $postFormFlash['values'] : [];
+    $values = array_merge($values, array_intersect_key($flashValues, $values));
+    $extraFieldValues = is_array($postFormFlash['extra_field_values'] ?? null) ? $postFormFlash['extra_field_values'] : $extraFieldValues;
+    $seriesValues = is_array($postFormFlash['series_values'] ?? null)
+        ? array_merge($seriesValues, array_intersect_key($postFormFlash['series_values'], $seriesValues))
+        : $seriesValues;
+    $errors = isset($postFormFlash['errors']) && is_array($postFormFlash['errors'])
+        ? array_values(array_filter(array_map('strval', $postFormFlash['errors']), static fn (string $error): bool => $error !== ''))
+        : [];
+} elseif ($postFormFlash !== [] && (string) ($postFormFlash['action'] ?? '') === 'edit') {
+    unset($_SESSION['sr_community_post_form_flash']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['title']) && $guestEditVerified) {
         $_SESSION['sr_community_post_notice'] = '비회원 글 수정 비밀번호를 확인했습니다.';
@@ -224,6 +245,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.post_updated');
         sr_redirect('/community/post?id=' . (string) $postId);
     }
+
+    $_SESSION['sr_community_post_form_flash'] = [
+        'action' => 'edit',
+        'post_id' => $postId,
+        'errors' => $errors,
+        'values' => $values,
+        'extra_field_values' => $extraFieldValues,
+        'series_values' => $seriesValues,
+    ];
+    sr_redirect('/community/edit?id=' . (string) $postId);
 }
 
 $pageTitle = sr_t('community::action.title.post_edit');
