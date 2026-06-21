@@ -826,7 +826,7 @@ function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 
 
 function sr_material_icon_stylesheet_url(): string
 {
-    return 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0';
+    return '';
 }
 
 function sr_material_icon_font_url(): string
@@ -836,11 +836,7 @@ function sr_material_icon_font_url(): string
 
 function sr_icon_stylesheet_tags(): string
 {
-    return implode(PHP_EOL, [
-        '<link rel="preconnect" href="https://fonts.googleapis.com">',
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
-        '<link rel="stylesheet" href="' . sr_e(sr_material_icon_stylesheet_url()) . '">',
-    ]);
+    return '';
 }
 
 function sr_material_icon_name(string $name): string
@@ -974,7 +970,7 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $opt
         $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_asset_url($stylesheet)) . '">';
     }
 
-    return implode(PHP_EOL, $tags);
+    return implode(PHP_EOL, array_values(array_filter($tags, 'strlen')));
 }
 
 function sr_script_tags(array $scripts = []): string

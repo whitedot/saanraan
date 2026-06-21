@@ -1,6 +1,6 @@
 # 배포 보호 기준
 
-산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다. 기본 아이콘셋인 Google Material Symbols는 Google Fonts CDN에서 호출하고, CDN이 막히는 환경을 위해 번들 폰트를 fallback으로 둔다.
+산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다. 기본 아이콘셋인 Google Material Symbols는 CSP 친화적인 공유호스팅 배포를 위해 번들 폰트로 직접 제공한다.
 
 다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다. nginx에서는 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 기준으로 운영 환경에 맞는 `server/location` 규칙을 구성한다.
 

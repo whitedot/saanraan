@@ -345,7 +345,7 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null, ?string $currentPath = null, 
         }
     }
 
-    return implode(PHP_EOL, $tags);
+    return implode(PHP_EOL, array_values(array_filter($tags, 'strlen')));
 }
 
 function sr_admin_module_stylesheet_paths(PDO $pdo, ?string $currentPath = null, array $extraModuleKeys = []): array
