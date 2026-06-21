@@ -229,6 +229,54 @@ $builtinMenuPaths = [
     '/admin/roles',
     '/admin/audit-logs',
 ];
+$knownNonMenuAdminGetPaths = [
+    '/admin/banners/edit',
+    '/admin/banners/new',
+    '/admin/banners/subject-search',
+    '/admin/community/board-copy-jobs',
+    '/admin/community/board-groups/edit',
+    '/admin/community/board-groups/new',
+    '/admin/community/boards/copy',
+    '/admin/community/boards/edit',
+    '/admin/community/boards/member-search',
+    '/admin/community/boards/new',
+    '/admin/content-groups/edit',
+    '/admin/content-groups/new',
+    '/admin/content/authors/member-search',
+    '/admin/content/edit',
+    '/admin/content/link-card-targets',
+    '/admin/content/new',
+    '/admin/coupons/member-search',
+    '/admin/coupons/target-search',
+    '/admin/deposits',
+    '/admin/deposits/adjust',
+    '/admin/deposits/reference-search',
+    '/admin/homepage',
+    '/admin/icon-image',
+    '/admin/member-group-assignments',
+    '/admin/member-group-rules/edit',
+    '/admin/member-group-rules/new',
+    '/admin/member-groups/edit',
+    '/admin/member-groups/new',
+    '/admin/members/edit',
+    '/admin/members/new',
+    '/admin/members/search',
+    '/admin/members/summary',
+    '/admin/notifications/new',
+    '/admin/points',
+    '/admin/points/adjust',
+    '/admin/points/reference-search',
+    '/admin/policy-documents/document-new',
+    '/admin/policy-documents/edit',
+    '/admin/policy-documents/new',
+    '/admin/popup-layers/edit',
+    '/admin/popup-layers/new',
+    '/admin/rewards',
+    '/admin/rewards/adjust',
+    '/admin/rewards/reference-search',
+    '/admin/surveys/export',
+    '/admin/ui-kit',
+];
 foreach ($builtinMenuPaths as $path) {
     if (!isset($allAdminGetRoutes[$path])) {
         sr_check_admin_pages_error('Built-in admin page route is missing: ' . $path);
@@ -239,6 +287,32 @@ foreach ($builtinMenuPaths as $path) {
     $content = sr_check_admin_pages_action_content((string) $route['module_dir'], (string) $route['action']);
     if (!sr_check_admin_pages_has_layout($content)) {
         sr_check_admin_pages_error('Built-in admin page must render the shared admin layout: ' . $path);
+    }
+}
+
+$menuPaths = [];
+foreach ($moduleDirs as $moduleKey => $moduleDir) {
+    $menuFile = $moduleDir . '/admin-menu.php';
+    if (!is_file($menuFile)) {
+        continue;
+    }
+
+    $menu = sr_check_admin_pages_load_array($menuFile, 'admin-menu');
+    foreach (sr_check_admin_pages_menu_items($menu) as $item) {
+        $menuPaths[(string) $item['path']] = true;
+    }
+}
+$knownNonMenuAdminGetPathMap = array_fill_keys($knownNonMenuAdminGetPaths, true);
+foreach ($allAdminGetRoutes as $path => $route) {
+    if (isset($menuPaths[$path]) || in_array($path, $builtinMenuPaths, true) || isset($knownNonMenuAdminGetPathMap[$path])) {
+        continue;
+    }
+
+    sr_check_admin_pages_error('Admin GET route must be a menu page, built-in page, or documented non-menu endpoint: ' . (string) ($route['module_key'] ?? '') . ' ' . $path);
+}
+foreach ($knownNonMenuAdminGetPaths as $path) {
+    if (!isset($allAdminGetRoutes[$path])) {
+        sr_check_admin_pages_error('Documented non-menu admin GET route is missing: ' . $path);
     }
 }
 
