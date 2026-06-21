@@ -121,6 +121,10 @@ function sr_community_series_unavailable_message(PDO $pdo): string
 
 function sr_community_series_available_for_board(PDO $pdo, array $board, ?array $settings = null): bool
 {
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
     return function_exists('sr_community_effective_board_series_enabled')
         && sr_community_effective_board_series_enabled($pdo, $board, $settings);
 }
