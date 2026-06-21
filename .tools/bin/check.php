@@ -992,6 +992,64 @@ function sr_check_module_public_ui_kit_stylesheets(): void
     }
 }
 
+function sr_check_banner_public_layout_slots(): void
+{
+    $bannerHelper = 'modules/banner/helpers.php';
+    $bannerSource = is_file($bannerHelper) ? file_get_contents($bannerHelper) : false;
+    if (!is_string($bannerSource)) {
+        sr_check_add_error('Banner helper cannot be read: ' . $bannerHelper);
+        return;
+    }
+
+    foreach ([
+        'sr_banner_layout_targets',
+        'sr_public_layout_options($pdo)',
+        "'point_key' => \$providerModuleKey . '.layout'",
+        "'slot_key' => 'before_layout'",
+        "'slot_key' => 'before_footer'",
+    ] as $marker) {
+        if (!str_contains($bannerSource, $marker)) {
+            sr_check_add_error('Banner layout target marker is missing: ' . $marker);
+        }
+    }
+
+    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+        $layoutFile = 'modules/' . $moduleKey . '/layouts/basic/layout.php';
+        $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
+        if (!is_string($layoutSource)) {
+            sr_check_add_error('Module public layout template cannot be read for banner slots: ' . $layoutFile);
+            continue;
+        }
+
+        foreach ([
+            "'module_key' => '" . $moduleKey . "'",
+            "'point_key' => '" . $moduleKey . ".layout'",
+            "'slot_key' => 'before_layout'",
+            "'slot_key' => 'before_footer'",
+            '$layoutModuleBeforeLayoutHtml',
+            '$layoutModuleBeforeFooterHtml',
+        ] as $marker) {
+            if (!str_contains($layoutSource, $marker)) {
+                sr_check_add_error('Module public layout banner slot marker is missing: ' . $layoutFile . ' ' . $marker);
+            }
+        }
+
+        $bodyIndex = strpos($layoutSource, '<body class=');
+        $topSlotIndex = strpos($layoutSource, '<?php echo $layoutModuleBeforeLayoutHtml; ?>');
+        $headerIndex = strpos($layoutSource, '<header class="' . $moduleKey . '-layout-header');
+        if ($bodyIndex === false || $topSlotIndex === false || $headerIndex === false || !($bodyIndex < $topSlotIndex && $topSlotIndex < $headerIndex)) {
+            sr_check_add_error('Module public layout banner top slot must render before layout header: ' . $layoutFile);
+        }
+
+        $mainIndex = strpos($layoutSource, '<div class="' . $moduleKey . '-layout-main');
+        $bottomSlotIndex = strpos($layoutSource, '<?php echo $layoutModuleBeforeFooterHtml; ?>');
+        $footerIndex = strpos($layoutSource, '<footer class="' . $moduleKey . '-layout-footer');
+        if ($mainIndex === false || $bottomSlotIndex === false || $footerIndex === false || !($mainIndex < $bottomSlotIndex && $bottomSlotIndex < $footerIndex)) {
+            sr_check_add_error('Module public layout banner bottom slot must render before layout footer: ' . $layoutFile);
+        }
+    }
+}
+
 function sr_check_module_ui_kit_samples_match_public(): void
 {
     $publicSampleDir = 'layouts/public/basic/ui-kit-samples';
@@ -1249,6 +1307,7 @@ sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
 sr_check_module_ui_kit_routes();
 sr_check_module_public_ui_kit_stylesheets();
+sr_check_banner_public_layout_slots();
 sr_check_module_ui_kit_samples_match_public();
 sr_check_admin_anchor_tabs_scroll_spy();
 sr_check_quiz_survey_skin_files();

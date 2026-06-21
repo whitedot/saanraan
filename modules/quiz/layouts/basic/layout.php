@@ -45,6 +45,8 @@ $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
 $layoutBeforeLayoutHtml = '';
+$layoutModuleBeforeLayoutHtml = '';
+$layoutModuleBeforeFooterHtml = '';
 $layoutAfterLayoutHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
@@ -96,6 +98,8 @@ if ($layoutPdo instanceof PDO) {
         $layoutStylesheets[] = '/modules/banner/assets/module.css';
     }
     $layoutBeforeLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.layout', 'slot_key' => 'before_layout']);
+    $layoutModuleBeforeLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'quiz', 'point_key' => 'quiz.layout', 'slot_key' => 'before_layout']);
+    $layoutModuleBeforeFooterHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'quiz', 'point_key' => 'quiz.layout', 'slot_key' => 'before_footer']);
     $layoutAfterLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.layout', 'slot_key' => 'after_layout']);
 }
 $layoutNotificationEnabled = false;
@@ -245,6 +249,7 @@ if (
 </head>
 <body class="<?php echo sr_e(trim('quiz-layout-body ' . $layoutBodyClass)); ?>">
     <?php echo $layoutBeforeLayoutHtml; ?>
+    <?php echo $layoutModuleBeforeLayoutHtml; ?>
     <header class="quiz-layout-header" data-quiz-scroll-header>
         <div class="quiz-layout-brand-link">
             <a class="quiz-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
@@ -396,6 +401,7 @@ if (
     <div class="quiz-layout-main">
         <?php echo $layoutContent; ?>
     </div>
+    <?php echo $layoutModuleBeforeFooterHtml; ?>
     <footer class="quiz-layout-footer">
         <?php foreach ($layoutFooterNavigationHtml as $layoutFooterNavigationSlotKey => $layoutFooterNavigation) { ?>
             <nav class="quiz-layout-footer-nav quiz-layout-footer-nav-<?php echo sr_e($layoutFooterNavigationSlotKey); ?>" aria-label="<?php echo sr_e((string) ($layoutFooterNavigation['label'] ?? '하단 메뉴')); ?>">

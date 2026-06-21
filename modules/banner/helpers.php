@@ -309,9 +309,49 @@ function sr_banner_builtin_targets(): array
     ];
 }
 
+function sr_banner_layout_targets(PDO $pdo): array
+{
+    $targets = [];
+    $seen = [];
+    foreach (sr_public_layout_options($pdo) as $layoutOption) {
+        if (!is_array($layoutOption)) {
+            continue;
+        }
+
+        $providerModuleKey = (string) ($layoutOption['provider_module_key'] ?? '');
+        if ($providerModuleKey === 'core' || !sr_is_safe_module_key($providerModuleKey) || isset($seen[$providerModuleKey])) {
+            continue;
+        }
+
+        $seen[$providerModuleKey] = true;
+        $providerLabel = sr_banner_target_service_label($providerModuleKey);
+        $targets[] = [
+            'module_key' => $providerModuleKey,
+            'point_key' => $providerModuleKey . '.layout',
+            'slot_key' => 'before_layout',
+            'placement_kind' => 'inline',
+            'label' => $providerLabel . ' / 레이아웃 / 상단',
+            'source' => 'layout-options.php',
+        ];
+        $targets[] = [
+            'module_key' => $providerModuleKey,
+            'point_key' => $providerModuleKey . '.layout',
+            'slot_key' => 'before_footer',
+            'placement_kind' => 'inline',
+            'label' => $providerLabel . ' / 레이아웃 / 하단',
+            'source' => 'layout-options.php',
+        ];
+    }
+
+    return $targets;
+}
+
 function sr_banner_available_targets(PDO $pdo): array
 {
     $targets = sr_banner_builtin_targets();
+    foreach (sr_banner_layout_targets($pdo) as $target) {
+        $targets[] = $target;
+    }
 
     foreach (sr_enabled_module_contract_files($pdo, 'extension-points.php', []) as $moduleKey => $file) {
         $points = sr_load_module_contract_file($moduleKey, $file);
@@ -370,6 +410,10 @@ function sr_banner_target_admin_label(array $target): string
     $pointLabels = [
         'site.home' => '홈',
         'site.layout' => '전체',
+        'content.layout' => '콘텐츠 레이아웃',
+        'community.layout' => '커뮤니티 레이아웃',
+        'quiz.layout' => '퀴즈·테스트 레이아웃',
+        'survey.layout' => '설문·여론조사 레이아웃',
         'content.view' => '콘텐츠 상세',
         'community.home' => '커뮤니티 홈',
         'community.board.list' => '게시판 목록',
@@ -381,6 +425,7 @@ function sr_banner_target_admin_label(array $target): string
     $slotLabels = [
         'before_layout' => '상단',
         'after_layout' => '하단',
+        'before_footer' => '하단',
         'before_content' => '본문 위',
         'after_content' => '본문 아래',
         'before_list' => '목록 위',
@@ -415,6 +460,8 @@ function sr_banner_target_service_label(string $serviceKey): string
         'core' => '전체',
         'content' => '콘텐츠',
         'community' => '커뮤니티',
+        'quiz' => '퀴즈·테스트',
+        'survey' => '설문·여론조사',
         'member' => '회원',
     ];
     if (isset($labels[$serviceKey])) {
