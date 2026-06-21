@@ -122,6 +122,18 @@ function sr_check_admin_pages_has_layout(string $content): bool
         && str_contains($content, "modules/admin/views/layout-footer.php");
 }
 
+function sr_check_admin_pages_has_admin_guard(string $content): bool
+{
+    return str_contains($content, 'sr_admin_require_permission(')
+        || str_contains($content, 'sr_admin_require_owner(')
+        || str_contains($content, 'sr_admin_require_role(');
+}
+
+function sr_check_admin_pages_mentions_path(string $content, string $path): bool
+{
+    return str_contains($content, "'" . $path . "'") || str_contains($content, '"' . $path . '"');
+}
+
 $moduleDirs = sr_check_admin_pages_module_dirs($root);
 $routesByModule = [];
 $allAdminGetRoutes = [];
@@ -191,6 +203,12 @@ foreach ($moduleDirs as $moduleKey => $moduleDir) {
         $content = sr_check_admin_pages_action_content($moduleDir, (string) $routesByModule[$moduleKey][$routeKey]);
         if (!sr_check_admin_pages_has_layout($content)) {
             sr_check_admin_pages_error('Admin menu page must render the shared admin layout: ' . $moduleKey . ' ' . $path);
+        }
+        if (!sr_check_admin_pages_has_admin_guard($content)) {
+            sr_check_admin_pages_error('Admin menu page must require an admin guard: ' . $moduleKey . ' ' . $path);
+        }
+        if (!sr_check_admin_pages_mentions_path($content, $path)) {
+            sr_check_admin_pages_error('Admin menu page guard must mention its menu path: ' . $moduleKey . ' ' . $path);
         }
     }
 }
