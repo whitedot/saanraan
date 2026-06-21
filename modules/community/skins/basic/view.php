@@ -96,7 +96,7 @@ $communityFrameModifier = 'view';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
-                    <button type="submit" class="btn btn-solid-light"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
+                    <button type="submit" class="btn btn-ghost-default"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
                 </form>
                 <?php if ($canReportPost) { ?>
                     <?php
