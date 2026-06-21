@@ -185,7 +185,7 @@ $communityFrameModifier = 'form';
                     <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('콘텐츠, 퀴즈, 설문을 검색해 본문에 임베드 참조로 삽입합니다.'); ?></div>
                 </div>
             <?php } ?>
-            <?php if (!$isGuestAuthorForm && sr_community_series_supported($pdo)) { ?>
+            <?php if (!$isGuestAuthorForm && !empty($seriesEnabled)) { ?>
             <fieldset>
                 <legend><?php echo sr_e('시리즈'); ?></legend>
                 <p>

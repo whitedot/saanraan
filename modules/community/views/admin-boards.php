@@ -709,6 +709,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="community_admin_boards_series_enabled">시리즈 사용</label>
+                <div class="form-field">
+                    <label class="form-check form-label" for="community_admin_boards_series_enabled">
+                        <input id="community_admin_boards_series_enabled" type="checkbox" name="series_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'series_enabled', !empty($settings['series_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이 게시판에서 시리즈 만들기와 게시글 연결 허용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_series_enabled', $boardSettingSource($formBoard, 'series_enabled')); ?>
+                    <?php if (empty($settings['series_enabled'])) { ?>
+                        <p class="form-help">커뮤니티 환경설정에서 시리즈 사용이 꺼져 있어, 이 값을 켜도 사용자 화면에서는 시리즈를 사용할 수 없습니다.</p>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="community_admin_boards_secret_comments_enabled">비밀 댓글</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_secret_comments_enabled">

@@ -42,6 +42,8 @@ if (sr_request_method() === 'POST') {
     $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board) || (string) ($board['status'] ?? '') !== 'enabled') {
         $errors[] = '게시판을 선택해 주세요.';
+    } elseif (!sr_community_effective_board_series_enabled($pdo, $board, $settings)) {
+        $errors[] = '이 게시판은 시리즈를 사용할 수 없습니다.';
     } elseif (!sr_community_account_can_write_board($pdo, $board, $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'))) {
         $errors[] = '글쓰기 권한이 있는 게시판만 선택할 수 있습니다.';
     }
@@ -84,7 +86,8 @@ if (sr_request_method() === 'POST') {
 $canWriteAsAdmin = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $boards = [];
 foreach ($pdo->query("SELECT id, board_key, title, board_group_id, status, write_policy FROM sr_community_boards WHERE status = 'enabled' ORDER BY sort_order ASC, id ASC")->fetchAll() as $boardOption) {
-    if (sr_community_account_can_write_board($pdo, $boardOption, $account, $canWriteAsAdmin)) {
+    $boardOption = sr_community_board_with_effective_settings($pdo, $boardOption);
+    if (sr_community_effective_board_series_enabled($pdo, $boardOption, $settings) && sr_community_account_can_write_board($pdo, $boardOption, $account, $canWriteAsAdmin)) {
         $boards[] = $boardOption;
     }
 }

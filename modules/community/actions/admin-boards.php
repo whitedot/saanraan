@@ -467,6 +467,7 @@ if (sr_request_method() === 'POST') {
         if ($categoryRequired) {
             $categoryEnabled = true;
         }
+        $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $postEditLockCommentCount = sr_admin_post_int_in_range('post_edit_lock_comment_count', 0, 1000000);
@@ -916,6 +917,7 @@ if (sr_request_method() === 'POST') {
                 'comment_min_level' => (string) $commentMinLevel,
                 'category_enabled' => $categoryEnabled ? '1' : '0',
                 'category_required' => $categoryRequired ? '1' : '0',
+                'series_enabled' => $seriesEnabled ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
                 'post_edit_lock_comment_count' => (string) $postEditLockCommentCount,
@@ -1006,6 +1008,7 @@ if (sr_request_method() === 'POST') {
                     'comment_min_level' => $commentMinLevel,
                     'category_enabled' => $categoryEnabled,
                     'category_required' => $categoryRequired,
+                    'series_enabled' => $seriesEnabled,
                     'level_post_score' => $levelPostScore,
                     'level_comment_score' => $levelCommentScore,
                     'secret_posts_enabled' => $secretPostsEnabled,
@@ -1038,6 +1041,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
+            sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
@@ -1088,6 +1092,7 @@ if (sr_request_method() === 'POST') {
                 $beforeCommentMinLevel = sr_community_board_min_level($pdo, $boardId, 'comment_min_level');
                 $beforeCategoryEnabled = sr_community_board_category_enabled($pdo, $boardId);
                 $beforeCategoryRequired = sr_community_board_category_required($pdo, $boardId);
+                $beforeSeriesEnabled = sr_community_effective_board_series_enabled($pdo, $board, $settings);
                 $beforeLevelPostScore = sr_community_board_level_score($pdo, $boardId, 'level_post_score', $settings);
                 $beforeLevelCommentScore = sr_community_board_level_score($pdo, $boardId, 'level_comment_score', $settings);
                 $beforeSkinKey = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
@@ -1132,6 +1137,7 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
+                sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
@@ -1224,6 +1230,8 @@ if (sr_request_method() === 'POST') {
                         'after_category_enabled' => $categoryEnabled,
                         'before_category_required' => $beforeCategoryRequired,
                         'after_category_required' => $categoryRequired,
+                        'before_series_enabled' => $beforeSeriesEnabled,
+                        'after_series_enabled' => $seriesEnabled,
                         'before_level_post_score' => $beforeLevelPostScore,
                         'after_level_post_score' => $levelPostScore,
                         'before_level_comment_score' => $beforeLevelCommentScore,

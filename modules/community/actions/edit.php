@@ -69,9 +69,11 @@ foreach ($storedExtraFieldValues as $extraFieldKey => $extraFieldRow) {
         $extraFieldValues[(string) $extraFieldKey] = (string) ($extraFieldRow['value'] ?? '');
     }
 }
-$seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
+$seriesEnabled = sr_community_effective_board_series_enabled($pdo, $board, $settings);
+$seriesOptions = $seriesEnabled && is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = sr_community_active_series_item_for_post($pdo, $postId);
-if (is_array($currentSeriesItem)
+if ($seriesEnabled
+    && is_array($currentSeriesItem)
     && is_array($account)
     && (int) ($currentSeriesItem['owner_account_id'] ?? 0) === (int) $account['id']
     && (int) ($currentSeriesItem['board_id'] ?? 0) === (int) $board['id']
@@ -139,16 +141,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values['seo_description'] = (string) ($post['seo_description'] ?? '');
     $values['og_title'] = (string) ($post['og_title'] ?? '');
     $values['og_description'] = (string) ($post['og_description'] ?? '');
-    $seriesSortOrder = sr_community_series_post_sort_order();
-    $seriesValues = [
-        'series_mode' => sr_post_string('series_mode', 20),
-        'series_id' => (int) sr_post_string('series_id', 20),
-        'new_series_title' => trim(sr_post_string('new_series_title', 160)),
-        'episode_label' => trim(sr_post_string('series_episode_label', 80)),
-        'sort_order' => $seriesSortOrder ?? 0,
-    ];
-    if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
-        $seriesValues['series_mode'] = 'none';
+    $seriesSortOrder = null;
+    if ($seriesEnabled) {
+        $seriesSortOrder = sr_community_series_post_sort_order();
+        $seriesValues = [
+            'series_mode' => sr_post_string('series_mode', 20),
+            'series_id' => (int) sr_post_string('series_id', 20),
+            'new_series_title' => trim(sr_post_string('new_series_title', 160)),
+            'episode_label' => trim(sr_post_string('series_episode_label', 80)),
+            'sort_order' => $seriesSortOrder ?? 0,
+        ];
+        if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
+            $seriesValues['series_mode'] = 'none';
+        }
     }
     $errors = sr_community_validate_post_input($values);
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values));
@@ -159,34 +164,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
-    if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
-        $errors[] = sr_community_series_unavailable_message($pdo);
-    }
-    if (!is_array($account) && (string) $seriesValues['series_mode'] !== 'none') {
-        $errors[] = '비회원 글은 시리즈를 연결할 수 없습니다.';
-    }
-    if ((string) $seriesValues['series_mode'] !== 'none' && $seriesSortOrder === null) {
-        $errors[] = '시리즈 정렬 순서를 확인해 주세요.';
-    }
-    if ((string) $seriesValues['series_mode'] === 'existing') {
-        $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
-        if (!is_array($selectedSeries)
-            || !is_array($account)
-            || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
-            || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
-            || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
-        ) {
-            $errors[] = '연결할 시리즈를 확인해 주세요.';
+    if ($seriesEnabled) {
+        if (!is_array($account) && (string) $seriesValues['series_mode'] !== 'none') {
+            $errors[] = '비회원 글은 시리즈를 연결할 수 없습니다.';
         }
-    } elseif ((string) $seriesValues['series_mode'] === 'new' && (string) $seriesValues['new_series_title'] === '') {
-        $errors[] = '새 시리즈 제목을 입력해 주세요.';
+        if ((string) $seriesValues['series_mode'] !== 'none' && $seriesSortOrder === null) {
+            $errors[] = '시리즈 정렬 순서를 확인해 주세요.';
+        }
+        if ((string) $seriesValues['series_mode'] === 'existing') {
+            $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
+            if (!is_array($selectedSeries)
+                || !is_array($account)
+                || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
+                || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
+                || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
+            ) {
+                $errors[] = '연결할 시리즈를 확인해 주세요.';
+            }
+        } elseif ((string) $seriesValues['series_mode'] === 'new' && (string) $seriesValues['new_series_title'] === '') {
+            $errors[] = '새 시리즈 제목을 입력해 주세요.';
+        }
     }
 
     if ($errors === []) {
         $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
         sr_community_update_post_content($pdo, $postId, $values, $authorAccountId);
         $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], $authorAccountId, 'community.post', $postId, $privacyConsentActionKeys, $board);
-        if (is_array($account) && (string) $seriesValues['series_mode'] === 'new') {
+        if ($seriesEnabled && is_array($account) && (string) $seriesValues['series_mode'] === 'new') {
             $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], $authorAccountId, [
                 'title' => (string) $seriesValues['new_series_title'],
                 'description' => '',
@@ -194,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'visibility' => 'public',
             ], $authorAccountId);
         }
-        if (is_array($account)) {
+        if ($seriesEnabled && is_array($account)) {
             sr_community_set_post_series(
                 $pdo,
                 $postId,

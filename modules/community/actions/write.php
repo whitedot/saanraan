@@ -50,7 +50,8 @@ $currentCategory = null;
 $categoryRequired = $categoryEnabled && sr_community_board_category_required($pdo, (int) $board['id']);
 $extraFieldDefinitions = sr_community_board_extra_field_definitions($pdo, $board);
 $extraFieldValues = [];
-$seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
+$seriesEnabled = sr_community_effective_board_series_enabled($pdo, $board, $settings);
+$seriesOptions = $seriesEnabled && is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = null;
 $seriesValues = [
     'series_mode' => 'none',
@@ -127,8 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values));
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
-    if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
-        $errors[] = sr_community_series_unavailable_message($pdo);
+    if ((string) $seriesValues['series_mode'] !== 'none' && !$seriesEnabled) {
+        $errors[] = sr_community_series_supported($pdo) ? '이 게시판은 시리즈를 사용할 수 없습니다.' : sr_community_series_unavailable_message($pdo);
     }
     if ($isGuestAuthor && (string) $seriesValues['series_mode'] !== 'none') {
         $errors[] = '비회원은 시리즈를 연결할 수 없습니다.';

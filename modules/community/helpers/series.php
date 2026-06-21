@@ -119,6 +119,12 @@ function sr_community_series_unavailable_message(PDO $pdo): string
         : '커뮤니티 시리즈 기능이 꺼져 있습니다.';
 }
 
+function sr_community_series_available_for_board(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    return function_exists('sr_community_effective_board_series_enabled')
+        && sr_community_effective_board_series_enabled($pdo, $board, $settings);
+}
+
 function sr_community_series_scraps_table_exists(PDO $pdo): bool
 {
     static $exists = null;
@@ -158,6 +164,7 @@ function sr_community_series_can_view(PDO $pdo, array $series, ?array $account =
     $board = sr_community_board_by_id($pdo, (int) ($series['board_id'] ?? 0));
     return is_array($board)
         && (string) ($board['status'] ?? '') === 'enabled'
+        && sr_community_series_available_for_board($pdo, $board)
         && sr_community_account_can_read_board($pdo, $board, $account);
 }
 
@@ -175,6 +182,13 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
 {
     if ($accountId < 1 || !sr_community_series_supported($pdo)) {
         return [];
+    }
+
+    if ($boardId > 0) {
+        $board = sr_community_board_by_id($pdo, $boardId);
+        if (!is_array($board) || !sr_community_series_available_for_board($pdo, $board)) {
+            return [];
+        }
     }
 
     $where = 'owner_account_id = :account_id AND status IN (\'pending\', \'active\', \'hidden\')';
@@ -454,6 +468,11 @@ function sr_community_series_for_post(PDO $pdo, int $postId, ?array $account = n
     $stmt->execute(['post_id' => $postId]);
     $series = $stmt->fetch();
     if (!is_array($series) || (string) ($series['status'] ?? '') !== 'active' || (string) ($series['item_status'] ?? '') !== 'active') {
+        return null;
+    }
+
+    $board = sr_community_board_by_id($pdo, (int) ($series['board_id'] ?? 0));
+    if (!is_array($board) || !sr_community_series_available_for_board($pdo, $board)) {
         return null;
     }
 

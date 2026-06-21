@@ -62,6 +62,7 @@ function sr_community_board_group_setting_keys(): array
         'read_min_level',
         'write_min_level',
         'comment_min_level',
+        'series_enabled',
         'category_enabled',
         'category_required',
         'secret_posts_enabled',
@@ -178,6 +179,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'read_min_level' => '0',
         'write_min_level' => '0',
         'comment_min_level' => '0',
+        'series_enabled' => !empty($settings['series_enabled']) ? '1' : '0',
         'category_enabled' => '1',
         'category_required' => !empty($settings['category_required']) ? '1' : '0',
         'secret_posts_enabled' => !empty($settings['secret_posts_enabled']) ? '1' : '0',
@@ -817,6 +819,8 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['comment_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'comment_min_level');
     $board['category_enabled'] = sr_community_board_category_enabled($pdo, (int) $board['id']) ? '1' : '0';
     $board['category_required'] = sr_community_board_category_required($pdo, (int) $board['id']) ? '1' : '0';
+    $board['series_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'series_enabled') ?? (!empty($settings['series_enabled']) ? '1' : '0');
+    $board['effective_series_enabled'] = sr_community_effective_board_series_enabled($pdo, $board, $settings) ? '1' : '0';
     $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
@@ -1167,6 +1171,20 @@ function sr_community_effective_board_image_uploads_enabled(PDO $pdo, array $boa
 function sr_community_effective_board_file_uploads_enabled(PDO $pdo, array $board): bool
 {
     return in_array(sr_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_effective_board_series_enabled(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    if (!function_exists('sr_community_series_supported') || !sr_community_series_supported($pdo)) {
+        return false;
+    }
+
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    if (empty($settings['series_enabled'])) {
+        return false;
+    }
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'series_enabled', '1'), ['1', 'true', 'yes', 'on'], true);
 }
 
 function sr_community_effective_board_secret_posts_enabled(PDO $pdo, array $board, ?array $settings = null): bool
