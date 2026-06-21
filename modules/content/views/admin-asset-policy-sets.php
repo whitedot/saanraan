@@ -113,7 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
     </section>
 <?php } else { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="set_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
         <section class="card">

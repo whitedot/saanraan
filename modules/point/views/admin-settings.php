@@ -9,7 +9,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice ?? '', $errors ?? []); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme">
     <section class="card">
         <h2><?php echo sr_e(sr_t('point::ui.settings.title')); ?></h2>
         <?php echo sr_csrf_field(); ?>
@@ -45,7 +45,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-point-expire-form data-confirm-message="<?php echo sr_e(sr_t('point::ui.settings.expire_due_confirm')); ?>" data-sr-validate-form>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-point-expire-form data-confirm-message="<?php echo sr_e(sr_t('point::ui.settings.expire_due_confirm')); ?>">
     <section class="card">
         <h2><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></h2>
         <p><?php echo sr_e(sr_t('point::ui.settings.expire_due_help')); ?></p>

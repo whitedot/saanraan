@@ -151,7 +151,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data" data-sr-validate-form>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
     <section class="card">
@@ -456,7 +456,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (!empty($currencyChangeCanSubmit)) { ?>
 <div id="admin-currency-change-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-currency-change-modal-title" aria-hidden="true" inert>
     <div class="modal-dialog modal-dialog-lg">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="modal-content ui-form-theme" autocomplete="off" data-admin-currency-change-form data-current-currency="<?php echo sr_e((string) $currencyChangeCurrentCurrency); ?>" data-sr-validate-form>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="modal-content ui-form-theme" autocomplete="off" data-admin-currency-change-form data-current-currency="<?php echo sr_e((string) $currencyChangeCurrentCurrency); ?>">
             <div class="modal-header">
                 <h3 id="admin-currency-change-modal-title" class="modal-title">위험! 기본 통화 변경</h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-currency-change-modal">

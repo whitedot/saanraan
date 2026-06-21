@@ -226,7 +226,7 @@ $quizSettingsSectionNavItems = [
         <?php $quizSettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
     <section id="quiz-settings-section-display" class="card" data-admin-section-anchor>

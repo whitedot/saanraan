@@ -321,7 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         ?>
         <div id="<?php echo sr_e($rewardAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/balances' . ((string) $rewardAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $rewardAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/balances' . ((string) $rewardAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $rewardAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($rewardAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('reward::ui.text.3e77739a')); ?></h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('reward::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($rewardAdjustModalId); ?>">
@@ -405,7 +405,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         ?>
         <div id="<?php echo sr_e($rewardRefundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($rewardRefundFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $rewardRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $rewardRefundTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($rewardRefundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('reward::ui.text.2515f98b')); ?></h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('reward::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($rewardRefundModalId); ?>">
@@ -462,7 +462,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         ?>
         <div id="<?php echo sr_e($rewardReclaimModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($rewardReclaimFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $rewardReclaimTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $rewardReclaimTransaction['account_public_hash']))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($rewardReclaimFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('reward::ui.text.f35d7f2f')); ?></h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('reward::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($rewardReclaimModalId); ?>">

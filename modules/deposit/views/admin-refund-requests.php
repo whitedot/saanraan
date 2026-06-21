@@ -109,7 +109,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-actions-cell">
                                 <?php if ((string) $request['status'] === 'pending') { ?>
-                                    <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="ui-form-theme" data-sr-validate-form>
+                                    <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="ui-form-theme">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                         <div class="admin-row-actions">
@@ -120,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </form>
                                     <div id="deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>-label" aria-hidden="true" inert>
                                         <div class="modal-dialog">
-                                            <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form>
+                                            <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme">
                                                 <div class="modal-header">
                                                     <h3 id="deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>-label" class="modal-title">환불 신청 거부</h3>
                                                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>">
@@ -162,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div id="deposit-refund-batch-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="deposit-refund-batch-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form>
+        <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="modal-content admin-form ui-form-theme">
             <div class="modal-header">
                 <h3 id="deposit-refund-batch-modal-label" class="modal-title">일괄처리</h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#deposit-refund-batch-modal">
