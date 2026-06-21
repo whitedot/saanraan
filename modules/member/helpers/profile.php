@@ -261,7 +261,14 @@ function sr_member_avatar_url(string $reference): string
         return '';
     }
 
-    return '/member/avatar?file=' . rawurlencode(sr_storage_reference((string) $storage['driver'], (string) $storage['key']));
+    $key = (string) $storage['key'];
+    $version = pathinfo($key, PATHINFO_FILENAME);
+    $url = '/member/avatar?file=' . rawurlencode(sr_storage_reference((string) $storage['driver'], $key));
+    if (preg_match('/\A[a-f0-9]{32}\z/', $version) === 1) {
+        $url .= '&v=' . rawurlencode($version);
+    }
+
+    return $url;
 }
 
 function sr_member_avatar_src(string $reference): string

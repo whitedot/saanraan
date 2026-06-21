@@ -254,6 +254,14 @@ sr_output_helper_assert(
     'Response header allowlist should allow numeric content-length headers.'
 );
 sr_output_helper_assert(
+    sr_response_header_is_allowed('ETag: "' . str_repeat('a', 64) . '"'),
+    'File response helper should allow quoted hash ETag headers.'
+);
+sr_output_helper_assert(
+    sr_response_header_is_allowed('Last-Modified: Wed, 21 Oct 2015 07:28:00 GMT'),
+    'File response helper should allow IMF-fixdate last-modified headers.'
+);
+sr_output_helper_assert(
     sr_response_header_is_allowed('X-Content-Type-Options: nosniff'),
     'Response header allowlist should allow nosniff response headers.'
 );
@@ -282,6 +290,14 @@ sr_output_helper_assert(
     'Response header allowlist should reject content-type values outside the normalized helper shape.'
 );
 sr_output_helper_assert(
+    !sr_response_header_is_allowed('ETag: abc'),
+    'Response header allowlist should reject unquoted ETag values.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Last-Modified: next Thursday'),
+    'Response header allowlist should reject non-HTTP-date last-modified values.'
+);
+sr_output_helper_assert(
     !sr_response_header_is_allowed('X-Content-Type-Options: sniff'),
     'Response header allowlist should reject x-content-type-options values other than nosniff.'
 );
@@ -296,6 +312,18 @@ sr_output_helper_assert(
 sr_output_helper_assert(
     !sr_response_header_is_allowed("Cache-Control: no-store\r\nSet-Cookie: bad=1"),
     'JSON response helper should reject injected headers even when the first header name is allowlisted.'
+);
+sr_output_helper_assert(
+    sr_http_date(0) === 'Thu, 01 Jan 1970 00:00:00 GMT',
+    'HTTP date helper should emit GMT IMF-fixdate strings.'
+);
+sr_output_helper_assert(
+    sr_etag_matches('W/"' . str_repeat('a', 64) . '", "' . str_repeat('b', 64) . '"', '"' . str_repeat('a', 64) . '"'),
+    'ETag matcher should use weak comparison for conditional GET validators.'
+);
+sr_output_helper_assert(
+    !sr_etag_matches('"' . str_repeat('b', 64) . '"', '"' . str_repeat('a', 64) . '"'),
+    'ETag matcher should reject non-matching validators.'
 );
 
 $publicExternalRedirect = sr_output_helper_run_fixture('public external redirect', <<<'PHP'

@@ -330,6 +330,15 @@ function sr_response_header_is_allowed(string $header): bool
         return sr_download_content_type($value) === $value;
     }
 
+    if ($name === 'etag') {
+        return preg_match('/\A"(?:[A-Fa-f0-9]{32}|[A-Fa-f0-9]{40}|[A-Fa-f0-9]{64})"\z/', $value) === 1;
+    }
+
+    if ($name === 'last-modified') {
+        return preg_match('/\A(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT\z/', $value) === 1
+            && strtotime($value) !== false;
+    }
+
     if ($name === 'pragma') {
         return strtolower($value) === 'no-cache';
     }
@@ -339,6 +348,58 @@ function sr_response_header_is_allowed(string $header): bool
     }
 
     return false;
+}
+
+function sr_http_date(int $timestamp): string
+{
+    return gmdate('D, d M Y H:i:s', max(0, $timestamp)) . ' GMT';
+}
+
+function sr_etag_matches(string $ifNoneMatch, string $etag): bool
+{
+    $ifNoneMatch = trim($ifNoneMatch);
+    if ($ifNoneMatch === '') {
+        return false;
+    }
+
+    if ($ifNoneMatch === '*') {
+        return true;
+    }
+
+    foreach (explode(',', $ifNoneMatch) as $candidate) {
+        $candidate = trim($candidate);
+        if (str_starts_with($candidate, 'W/')) {
+            $candidate = trim(substr($candidate, 2));
+        }
+        if ($candidate === $etag) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sr_send_file_cache_headers(string $cacheControl, string $etag, int $lastModified): void
+{
+    header('Cache-Control: ' . sr_download_cache_control($cacheControl));
+    header('ETag: ' . $etag);
+    header('Last-Modified: ' . sr_http_date($lastModified));
+}
+
+function sr_file_not_modified(string $etag, int $lastModified): bool
+{
+    $ifNoneMatch = (string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? '');
+    if ($ifNoneMatch !== '') {
+        return sr_etag_matches($ifNoneMatch, $etag);
+    }
+
+    $ifModifiedSince = (string) ($_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? '');
+    if ($ifModifiedSince === '') {
+        return false;
+    }
+
+    $modifiedSince = strtotime($ifModifiedSince);
+    return is_int($modifiedSince) && $modifiedSince >= $lastModified;
 }
 
 function sr_linkify_plain_text_urls(string $value): string

@@ -163,7 +163,7 @@ header($dynamicHeader)처럼 헤더 이름을 동적으로 만드는 호출
 http_response_code(...); exit; 패턴
 ```
 
-정적 검사는 `paths.php`에 등록된 action 파일에서 이 패턴을 확인한다. action에서 직접 호출하는 `header()`는 `Content-Type`, `Content-Length`, `Content-Disposition`, `Cache-Control`, `Pragma`, `X-Content-Type-Options`, `Content-Security-Policy` 같은 응답 메타 헤더 리터럴로 시작해야 하며, redirect는 내부 URL의 `sr_redirect()`, public 외부 URL의 `sr_redirect_external()`, 서버 생성 저장소 URL의 `sr_redirect_trusted_external()` 중 하나를 사용한다. 다운로드 streaming 응답은 직접 `Content-Disposition`과 `Content-Length`를 조립하지 않고 `sr_send_download_headers()`와 `sr_download_content_disposition()`을 사용한다. 이미지와 본문 이미지 proxy streaming 응답은 직접 `Content-Type`, `Content-Length`, `nosniff`, cache header를 반복하지 않고 `sr_send_file_headers()`를 사용한다.
+정적 검사는 `paths.php`에 등록된 action 파일에서 이 패턴을 확인한다. action에서 직접 호출하는 `header()`는 `Content-Type`, `Content-Length`, `Content-Disposition`, `Cache-Control`, `ETag`, `Last-Modified`, `Pragma`, `X-Content-Type-Options`, `Content-Security-Policy` 같은 응답 메타 헤더 리터럴로 시작해야 하며, redirect는 내부 URL의 `sr_redirect()`, public 외부 URL의 `sr_redirect_external()`, 서버 생성 저장소 URL의 `sr_redirect_trusted_external()` 중 하나를 사용한다. 다운로드 streaming 응답은 직접 `Content-Disposition`과 `Content-Length`를 조립하지 않고 `sr_send_download_headers()`와 `sr_download_content_disposition()`을 사용한다. 이미지와 본문 이미지 proxy streaming 응답은 직접 `Content-Type`, `Content-Length`, `nosniff`, cache header를 반복하지 않고 `sr_send_file_headers()`를 사용한다.
 
 `sr_request_contract_mark()`와 `sr_request_contract_guard_blocked()`는 코어와 공통 guard helper가 사용하는 낮은 층의 함수다. action 파일은 이 함수를 직접 호출하지 않고 `sr_require_csrf()`, `sr_member_require_login()`, `sr_admin_require_permission()`, `sr_admin_require_owner()` 같은 공개 helper를 통과한다.
 

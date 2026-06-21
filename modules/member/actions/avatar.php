@@ -33,10 +33,22 @@ if (!is_string($imagePath)) {
 
 $mimeType = sr_upload_detect_mime($imagePath);
 $sizeBytes = filesize($imagePath);
-if (!sr_member_avatar_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
+$lastModified = filemtime($imagePath);
+if (!sr_member_avatar_mime_is_allowed($mimeType) || !is_int($sizeBytes) || !is_int($lastModified)) {
     sr_render_error(404, sr_t('member::action.avatar.not_found'));
 }
 
-sr_send_file_headers($mimeType, $sizeBytes, 'public, max-age=31536000, immutable');
+$cacheControl = 'public, max-age=31536000, immutable';
+$etag = '"' . hash('sha256', $key . ':' . (string) $sizeBytes . ':' . (string) $lastModified) . '"';
+if (sr_file_not_modified($etag, $lastModified)) {
+    http_response_code(304);
+    sr_send_file_cache_headers($cacheControl, $etag, $lastModified);
+    sr_finish_response();
+}
+
+sr_send_file_headers($mimeType, $sizeBytes, $cacheControl, [
+    'ETag: ' . $etag,
+    'Last-Modified: ' . sr_http_date($lastModified),
+]);
 readfile($imagePath);
 sr_finish_response();

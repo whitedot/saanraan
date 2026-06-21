@@ -360,6 +360,7 @@ $allowedCacheControlHeaders = [
     ],
     'core/helpers/output.php' => [
         "header('Cache-Control: ' . sr_download_cache_control(\$cacheControl))",
+        "header('Cache-Control: ' . sr_download_cache_control(\$cacheControl))",
     ],
     'modules/admin/actions/icon-image.php' => [
         "header('Cache-Control: private, max-age=300')",
