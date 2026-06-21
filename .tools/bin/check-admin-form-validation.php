@@ -189,6 +189,10 @@ $files = [
     'modules/reaction/views/admin-reactions.php' => [
         '<legend>리액션 key <span class="sr-required-label">(필수)</span></legend>' => 'Reaction preset key checkbox groups must keep the required legend marker.',
         'name="reaction_keys[]"' => 'Reaction preset key checkbox groups must submit selected reaction keys.',
+        'data-reaction-cleanup-form' => 'Reaction cleanup forms must keep modal validation hooks.',
+        'data-reaction-cleanup-confirm' => 'Reaction cleanup confirmation input must keep modal validation hooks.',
+        'setCustomValidity(validationMessage === message ? message : \'\')' => 'Reaction cleanup confirmation must use browser constraint validation.',
+        'validation-error-note' => 'Reaction cleanup confirmation must render visible validation notes.',
     ],
 ];
 

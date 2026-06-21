@@ -518,7 +518,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($cleanupModalId); ?>" class="<?php echo sr_e($reactionModalClass($cleanupModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($cleanupModalTitleId); ?>"<?php echo $reactionModalHiddenAttrs($cleanupModalOpen); ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form data-reaction-cleanup-form data-reaction-cleanup-key="<?php echo sr_e($reactionKey); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="cleanup_records">
                 <input type="hidden" name="reaction_key" value="<?php echo sr_e($reactionKey); ?>">
@@ -530,7 +530,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="admin-summary-meta">기존 레코드 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
                     <div class="form-field">
                         <label for="<?php echo sr_e($cleanupModalId); ?>_policy">처리 방식</label>
-                        <select id="<?php echo sr_e($cleanupModalId); ?>_policy" name="cleanup_policy" class="form-select">
+                        <select id="<?php echo sr_e($cleanupModalId); ?>_policy" name="cleanup_policy" class="form-select" data-reaction-cleanup-policy>
                             <option value="keep_public_hidden">보관하고 공개 UI에서 숨김</option>
                             <option value="keep_admin_statistics">보관하고 관리자/통계에만 표시</option>
                             <option value="delete">기존 레코드 삭제</option>
@@ -539,7 +539,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="form-field">
                         <label for="<?php echo sr_e($cleanupModalId); ?>_merge_target">병합 대상 key</label>
-                        <select id="<?php echo sr_e($cleanupModalId); ?>_merge_target" name="merge_target_key" class="form-select">
+                        <select id="<?php echo sr_e($cleanupModalId); ?>_merge_target" name="merge_target_key" class="form-select" data-reaction-cleanup-merge-target>
                             <option value="">선택 안 함</option>
                             <?php foreach ($activeDefinitions as $activeDefinition) { ?>
                                 <?php $activeKey = (string) ($activeDefinition['reaction_key'] ?? ''); ?>
@@ -550,8 +550,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="form-field">
                         <label for="<?php echo sr_e($cleanupModalId); ?>_confirm">확인 문구</label>
-                        <input id="<?php echo sr_e($cleanupModalId); ?>_confirm" type="text" name="confirmation_key" class="form-input" maxlength="80">
+                        <input id="<?php echo sr_e($cleanupModalId); ?>_confirm" type="text" name="confirmation_key" class="form-input" maxlength="80" aria-describedby="<?php echo sr_e($cleanupModalId); ?>_confirm_error" data-reaction-cleanup-confirm>
                         <p class="form-help">삭제 또는 병합을 실행하려면 <code><?php echo sr_e($reactionKey); ?></code>를 입력하세요.</p>
+                        <p id="<?php echo sr_e($cleanupModalId); ?>_confirm_error" class="validation-error-note" hidden data-reaction-cleanup-error></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -695,5 +696,61 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <option value="<?php echo sr_e((string) $materialIconName); ?>"></option>
     <?php } ?>
 </datalist>
+
+<script>
+(function () {
+    var forms = document.querySelectorAll('[data-reaction-cleanup-form]');
+    forms.forEach(function (form) {
+        var policy = form.querySelector('[data-reaction-cleanup-policy]');
+        var mergeTarget = form.querySelector('[data-reaction-cleanup-merge-target]');
+        var confirm = form.querySelector('[data-reaction-cleanup-confirm]');
+        var note = form.querySelector('[data-reaction-cleanup-error]');
+        var expectedKey = form.getAttribute('data-reaction-cleanup-key') || '';
+        var message = '삭제 또는 병합을 실행하려면 리액션 key를 정확히 입력하세요.';
+        var mergeMessage = '병합을 실행하려면 병합 대상 key를 선택하세요.';
+
+        function syncValidation() {
+            var selectedPolicy = policy ? policy.value : '';
+            var destructive = selectedPolicy === 'delete' || selectedPolicy === 'merge';
+            var confirmationOk = !destructive || !confirm || confirm.value === expectedKey;
+            var mergeOk = selectedPolicy !== 'merge' || !mergeTarget || mergeTarget.value !== '';
+            var validationMessage = '';
+
+            if (!confirmationOk) {
+                validationMessage = message;
+            } else if (!mergeOk) {
+                validationMessage = mergeMessage;
+            }
+
+            if (confirm) {
+                confirm.required = destructive;
+                confirm.setCustomValidity(validationMessage === message ? message : '');
+                confirm.setAttribute('aria-invalid', validationMessage === message ? 'true' : 'false');
+            }
+            if (mergeTarget) {
+                mergeTarget.required = selectedPolicy === 'merge';
+                mergeTarget.setCustomValidity(validationMessage === mergeMessage ? mergeMessage : '');
+                mergeTarget.setAttribute('aria-invalid', validationMessage === mergeMessage ? 'true' : 'false');
+            }
+            if (note) {
+                note.textContent = validationMessage;
+                note.hidden = validationMessage === '';
+            }
+        }
+
+        if (policy) {
+            policy.addEventListener('change', syncValidation);
+        }
+        if (mergeTarget) {
+            mergeTarget.addEventListener('change', syncValidation);
+        }
+        if (confirm) {
+            confirm.addEventListener('input', syncValidation);
+        }
+        form.addEventListener('submit', syncValidation);
+        syncValidation();
+    });
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
