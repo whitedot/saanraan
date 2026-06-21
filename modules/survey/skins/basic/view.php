@@ -362,18 +362,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <div class="sr-survey-comments-panel-header">
                         <h2>댓글</h2>
                     </div>
-                    <?php if ($surveyCommentNotice !== ''): ?>
-                        <div class="sr-survey-comment-notice">
-                            <p><?php echo sr_e($surveyCommentNotice); ?></p>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($surveyCommentErrors !== []): ?>
-                        <div class="sr-form-errors">
-                            <?php foreach ($surveyCommentErrors as $error): ?>
-                                <p><?php echo sr_e((string) $error); ?></p>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
+                    <?php echo sr_public_feedback_toasts('survey', $surveyCommentNotice, $surveyCommentErrors); ?>
                     <?php if ($surveyComments === []): ?>
                         <p>아직 작성된 댓글이 없습니다.</p>
                     <?php else: ?>

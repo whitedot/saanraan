@@ -1482,3 +1482,18 @@ a.community-post-title:focus,
 .sr-mention-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
 .sr-mention{border-radius:4px;color:var(--sr-text,var(--text-strong,#242424));font-weight:var(--font-weight-semibold)}
 .sr-mention-prefix{color:var(--sr-muted,var(--text-muted,#666));font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size:.92em;font-weight:var(--font-weight-medium);margin-left:1px}
+
+.community-toast-stack {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    z-index: 1300;
+    display: grid;
+    gap: 10px;
+    width: min(420px, calc(100vw - 36px));
+    transform: translateX(-50%);
+}
+
+.community-toast {
+    overflow-wrap: anywhere;
+}

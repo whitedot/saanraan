@@ -106,14 +106,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php } ?>
             </div>
         <?php } else { ?>
-            <?php if ((string) ($pageActionNotice ?? '') !== '') { ?>
-                <p class="content-access-notice"><?php echo sr_e((string) $pageActionNotice); ?></p>
-            <?php } ?>
-            <?php if (is_array($pageActionErrors ?? null)) { ?>
-                <?php foreach ($pageActionErrors as $pageActionError) { ?>
-                    <p class="content-access-notice"><?php echo sr_e((string) $pageActionError); ?></p>
-                <?php } ?>
-            <?php } ?>
+            <?php echo sr_public_feedback_toasts('content', (string) ($pageActionNotice ?? ''), is_array($pageActionErrors ?? null) ? $pageActionErrors : []); ?>
             <?php if (!empty($pageAccess['charged'])) { ?>
                 <p class="content-access-notice">
                     <?php echo sr_e((string) ($pageAccess['asset_label'] ?? sr_t('content::ui.member.415a098e'))); ?>
@@ -291,16 +284,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <a href="#content-comment-form" class="btn btn-solid-light">작성</a>
                     <?php } ?>
                 </div>
-                <?php if ((string) ($contentCommentNotice ?? '') !== '') { ?>
-                    <p><?php echo sr_e((string) $contentCommentNotice); ?></p>
-                <?php } ?>
-                <?php if (is_array($contentCommentErrors ?? null) && $contentCommentErrors !== []) { ?>
-                    <ul>
-                        <?php foreach ($contentCommentErrors as $contentCommentError) { ?>
-                            <li><?php echo sr_e((string) $contentCommentError); ?></li>
-                        <?php } ?>
-                    </ul>
-                <?php } ?>
+                <?php echo sr_public_feedback_toasts('content', (string) ($contentCommentNotice ?? ''), is_array($contentCommentErrors ?? null) ? $contentCommentErrors : []); ?>
                 <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
                     <ul>
                         <?php foreach ($contentComments as $contentComment) { ?>

@@ -173,23 +173,7 @@ $communityFrameModifier = 'view';
             </div>
             </header>
 
-            <?php foreach ($postNotices as $postNotice) { ?>
-                <?php if (is_string($postNotice) && $postNotice !== '') { ?>
-                    <p><?php echo sr_e($postNotice); ?></p>
-                <?php } ?>
-            <?php } ?>
-
-            <?php if ($reportNotice !== '') { ?>
-                <p><?php echo sr_e($reportNotice); ?></p>
-            <?php } ?>
-
-            <?php if ($reportErrors !== []) { ?>
-                <ul>
-                    <?php foreach ($reportErrors as $error) { ?>
-                        <li><?php echo sr_e($error); ?></li>
-                    <?php } ?>
-                </ul>
-            <?php } ?>
+            <?php echo sr_public_feedback_toasts('community', implode(' ', array_filter(array_map('strval', $postNotices))) . ($reportNotice !== '' ? ($postNotices !== [] ? ' ' : '') . $reportNotice : ''), $reportErrors); ?>
 
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
@@ -358,9 +342,7 @@ $communityFrameModifier = 'view';
                     <a href="#community-comment-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></a>
                 <?php } ?>
             </div>
-            <?php if ($commentNotice !== '') { ?>
-                <p><?php echo sr_e($commentNotice); ?></p>
-            <?php } ?>
+            <?php echo sr_public_feedback_toasts('community', $commentNotice, []); ?>
 
             <?php if ($comments === []) { ?>
                 <p><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></p>
@@ -566,13 +548,7 @@ $communityFrameModifier = 'view';
                 </ul>
             <?php } ?>
 
-            <?php if ($commentErrors !== []) { ?>
-                <ul>
-                    <?php foreach ($commentErrors as $error) { ?>
-                        <li><?php echo sr_e($error); ?></li>
-                    <?php } ?>
-                </ul>
-            <?php } ?>
+            <?php echo sr_public_feedback_toasts('community', '', $commentErrors); ?>
 
             <?php if ($canComment) { ?>
                 <form id="community-comment-form" method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">

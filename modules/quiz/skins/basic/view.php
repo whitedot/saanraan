@@ -312,18 +312,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <div class="sr-quiz-comments-panel-header">
                         <h2>댓글</h2>
                     </div>
-                    <?php if ($quizCommentNotice !== ''): ?>
-                        <div class="sr-quiz-comment-notice">
-                            <p><?php echo sr_e($quizCommentNotice); ?></p>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($quizCommentErrors !== []): ?>
-                        <div class="sr-form-errors">
-                            <?php foreach ($quizCommentErrors as $error): ?>
-                                <p><?php echo sr_e((string) $error); ?></p>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
+                    <?php echo sr_public_feedback_toasts('quiz', $quizCommentNotice, $quizCommentErrors); ?>
                     <?php if ($quizComments === []): ?>
                         <p>아직 작성된 댓글이 없습니다.</p>
                     <?php else: ?>
