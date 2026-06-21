@@ -48,7 +48,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/banners/settings')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/banners/settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
     <section class="card">
         <h2><?php echo sr_e(sr_t('banner::ui.banner.settings.cc368bd0')); ?></h2>
         <p><?php echo sr_e(sr_t('banner::ui.banner.banner.select.settings.115fa68f')); ?></p>

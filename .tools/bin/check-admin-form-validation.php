@@ -161,6 +161,30 @@ $files = [
         'data-admin-required-selection-mode' => 'Admin shell must support explicit required selection group modes.',
         'fieldset' => 'Admin shell must detect required checkbox groups rendered as fieldsets.',
     ],
+    'modules/antispam/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'Antispam settings form must opt in to admin form validation.',
+    ],
+    'modules/banner/views/admin-banner-settings.php' => [
+        'data-sr-validate-form' => 'Banner settings form must opt in to admin form validation.',
+    ],
+    'modules/ckeditor/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'CKEditor settings form must opt in to admin form validation.',
+    ],
+    'modules/content/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'Content settings form must opt in to admin form validation.',
+    ],
+    'modules/point/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'Point settings form must opt in to admin form validation.',
+    ],
+    'modules/popup_layer/views/admin-popup-layer-settings.php' => [
+        'data-sr-validate-form' => 'Popup layer settings form must opt in to admin form validation.',
+    ],
+    'modules/quiz/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'Quiz settings form must opt in to admin form validation.',
+    ],
+    'modules/survey/views/admin-settings.php' => [
+        'data-sr-validate-form' => 'Survey settings form must opt in to admin form validation.',
+    ],
     'modules/site_menu/views/admin-site-menus.php' => [
         'data-sr-validate-form' => 'Site menu modals must opt in to admin form validation.',
         'data-validation-message' => 'Site menu required fields must provide field-specific validation messages.',
