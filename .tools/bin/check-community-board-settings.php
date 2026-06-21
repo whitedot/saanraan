@@ -274,6 +274,10 @@ $settingKeys = [
 ];
 
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', $settingKeys, 'community board/group setting key contract');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    "'secret_posts_enabled' => !empty(\$settings['secret_posts_enabled']) ? '1' : '0'",
+    "'secret_comments_enabled' => !empty(\$settings['secret_comments_enabled']) ? '1' : '0'",
+], 'community board group default secret setting contract');
 sr_check_community_board_settings_contains('modules/community/helpers/posts.php', [
     'sr_community_board_list_sort_values',
     'sr_community_board_list_per_page',
@@ -292,6 +296,20 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-boar
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    "\$board['secret_posts_enabled'] = sr_community_board_setting_value",
+    "\$board['secret_comments_enabled'] = sr_community_board_setting_value",
+    "\$board['post_edit_lock_comment_count'] = sr_community_board_setting_value",
+    "\$board['post_delete_lock_comment_count'] = sr_community_board_setting_value",
+    "\$board['post_body_min_length'] = sr_community_board_setting_value",
+    "\$board['post_body_max_length'] = sr_community_board_setting_value",
+    "\$board['comment_body_min_length'] = sr_community_board_setting_value",
+    "\$board['comment_body_max_length'] = sr_community_board_setting_value",
+    "\$board['list_excerpt_enabled'] = sr_community_board_setting_value",
+    "\$board['list_excerpt_length'] = sr_community_board_setting_value",
+    "\$board['list_per_page'] = sr_community_board_setting_value",
+    "\$board['list_default_sort'] =",
+], 'community admin board edit form value contract');
 sr_check_community_board_settings_contains('modules/community/actions/list.php', [
     'sr_community_board_list_per_page',
     'sr_community_board_list_default_sort',

@@ -429,6 +429,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section id="community-board-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18')); ?></h2>
             <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="<?php echo $communityBoardsPage === 'edit' ? 'update' : 'create'; ?>">
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                 <div class="form-row">

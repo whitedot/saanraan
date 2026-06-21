@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 $communityBoardsPage = 'edit';
-if (!isset($_POST['intent'])) {
+if (!isset($_POST['intent']) || (string) $_POST['intent'] === '') {
     $_POST['intent'] = 'update';
 }
 if (isset($_POST['board_id'])) {
