@@ -162,7 +162,7 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
     $errors = [];
     $consumerModuleKey = $entry['consumer_module_key'] ?? null;
     if (!is_string($consumerModuleKey) || $consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
-        $errors[] = '사용 모듈 관리용 키가 제공 모듈과 맞지 않습니다.';
+        $errors[] = '사용 모듈 Key가 제공 모듈과 맞지 않습니다.';
     }
 
     if (!is_string($entry['label'] ?? null) || trim((string) $entry['label']) === '') {
@@ -334,13 +334,13 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
 
     $rowFieldLabels = [
         'admin_url' => '관리 URL',
-        'consumer_module_key' => '사용 모듈 관리용 키',
+        'consumer_module_key' => '사용 모듈 Key',
         'message' => '메시지',
         'policy_status' => '정책 상태',
         'reference_id' => '참조 ID',
         'reference_type' => '참조 종류',
         'target_id' => '대상 ID',
-        'target_key' => '대상 관리용 키',
+        'target_key' => '대상 Key',
         'target_type' => '대상 종류',
         'title' => '제목',
         'updated_at' => '수정 시각',
@@ -387,7 +387,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         }
     }
     if (!sr_is_safe_module_key((string) ($row['consumer_module_key'] ?? '')) || (string) ($row['consumer_module_key'] ?? '') !== $moduleKey) {
-        $errors[] = '사용 모듈 관리용 키가 제공 모듈과 맞지 않습니다.';
+        $errors[] = '사용 모듈 Key가 제공 모듈과 맞지 않습니다.';
     }
     if (!sr_read_reference_reference_type_is_valid((string) ($row['reference_type'] ?? ''))) {
         $errors[] = '참조 종류 값이 올바르지 않습니다.';
@@ -407,7 +407,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
     $expectedTargetKey = sr_read_reference_target_key_value($target['target_key'] ?? '') ?? '';
     $rowTargetKey = (string) ($row['target_key'] ?? '');
     if (($expectedTargetKey !== '' && $rowTargetKey !== $expectedTargetKey) || ($expectedTargetKey === '' && $rowTargetKey !== '')) {
-        $errors[] = '대상 관리용 키가 조회 대상과 맞지 않습니다.';
+        $errors[] = '대상 Key가 조회 대상과 맞지 않습니다.';
     }
 
     return [
@@ -438,9 +438,9 @@ function sr_read_reference_target_errors(string $contractFile, array $target): a
 
     $targetKey = sr_read_reference_target_key_value($target['target_key'] ?? '');
     if ($targetKey === null) {
-        $errors[] = '읽기 참조 대상 관리용 키가 올바르지 않습니다.';
+        $errors[] = '읽기 참조 대상 Key가 올바르지 않습니다.';
     } elseif (in_array($expectedTargetType, ['member_group', 'site_setting'], true) && $targetKey === '') {
-        $errors[] = '읽기 참조 대상 관리용 키가 비어 있습니다.';
+        $errors[] = '읽기 참조 대상 Key가 비어 있습니다.';
     }
 
     return $errors;

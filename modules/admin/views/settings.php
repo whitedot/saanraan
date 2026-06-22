@@ -813,7 +813,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             row.setAttribute('data-admin-icon-key-default', 'help');
             row.innerHTML = ''
                 + '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-icon-key-delete" aria-label="제거" title="제거" data-admin-icon-key-remove-row><?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('delete')); ?></button>'
-                + '<input type="text" name="custom_icon_key[]" class="form-input form-input-sm admin-icon-key-name-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="아이콘 관리용 키" data-admin-key-input>'
+                + '<input type="text" name="custom_icon_key[]" class="form-input form-input-sm admin-icon-key-name-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="아이콘 Key" data-admin-key-input>'
                 + '<span class="admin-icon-key-preview" data-admin-icon-key-preview><?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('help')); ?></span>'
                 + '<label class="sr-only" for="custom_icon_key_type_' + index + '">표시 방식</label>'
                 + '<select id="custom_icon_key_type_' + index + '" name="custom_icon_key_type[]" class="form-select form-select-sm" data-admin-icon-key-type><option value="material">Material</option><option value="image">이미지</option></select>'

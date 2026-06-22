@@ -680,14 +680,14 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <div class="filtering-field">
                     <label for="member_group_rule_filter_field" class="filtering-label">검색조건</label>
                     <select id="member_group_rule_filter_field" name="field" class="form-select filtering-input">
-                        <?php foreach (['all' => '전체', 'group' => '대상 그룹', 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 관리용 키'] as $fieldValue => $fieldLabel) { ?>
+                        <?php foreach (['all' => '전체', 'group' => '대상 그룹', 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 Key'] as $fieldValue => $fieldLabel) { ?>
                             <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupRuleFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                         <?php } ?>
                     </select>
                 </div>
                 <div class="filtering-field filtering-field-fill admin-member-group-rule-filter-keyword">
                     <label for="member_group_rule_filter_q" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                    <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="대상 그룹, 모듈, 규칙 관리용 키">
+                    <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="대상 그룹, 모듈, 규칙 Key">
                 </div>
             </div>
             <div id="member_group_rule_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberGroupRuleDetailFilterOpen ? '' : ' hidden'; ?>>

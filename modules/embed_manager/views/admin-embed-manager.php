@@ -14,7 +14,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields admin-embed-manager-filter-grid">
             <div class="filtering-field filtering-field-fill">
                 <label class="filtering-label" for="embed_manager_q"><?php echo sr_e('검색어'); ?></label>
-                <input id="embed_manager_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e('참조 관리용 키, 소유 모듈, 대상 모듈, 대상 ID'); ?>">
+                <input id="embed_manager_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e('참조 Key, 소유 모듈, 대상 모듈, 대상 ID'); ?>">
             </div>
         </div>
         <div id="embed_manager_detail_filters" class="filtering-body" data-filtering-body<?php echo $detailFilterOpen ? '' : ' hidden'; ?>>

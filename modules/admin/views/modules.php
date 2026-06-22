@@ -601,7 +601,7 @@ $installedSections = [
                     <?php if (!$canManageModuleSources) { ?>
                         <p><?php echo sr_e(sr_t('admin::ui.text.db7d2323')); ?></p>
                     <?php } elseif (!$moduleUploadAvailable) { ?>
-                        <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{모듈관리용키}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
+                        <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
                     <?php } elseif (!$moduleSourcesEnabled) { ?>
                         <p>모듈 zip 업로드는 매니저 비밀번호 재확인으로 모듈 파일 반영을 일시 허용한 뒤 사용할 수 있습니다.</p>
                     <?php } ?>
@@ -662,7 +662,7 @@ $installedSections = [
                                 <input id="admin_modules_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                             </div>
                         </div>
-                        <p><?php echo sr_e(sr_t('admin::ui.password.db92fb99')); ?> <?php echo sr_e($moduleUploadLimitLabel); ?><?php echo sr_e(sr_t('admin::ui.text.52241dbe')); ?> <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?><?php echo sr_e(sr_t('admin::ui.text.f20440e8')); ?> <code>{모듈관리용키}/module.php</code> <?php echo sr_e(sr_t('admin::ui.text.ffa27cfc')); ?> <code>module/module.php</code> <?php echo sr_e(sr_t('admin::ui.module.fb45cdc5')); ?></p>
+                        <p><?php echo sr_e(sr_t('admin::ui.password.db92fb99')); ?> <?php echo sr_e($moduleUploadLimitLabel); ?><?php echo sr_e(sr_t('admin::ui.text.52241dbe')); ?> <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?><?php echo sr_e(sr_t('admin::ui.text.f20440e8')); ?> <code>{module_key}/module.php</code> <?php echo sr_e(sr_t('admin::ui.text.ffa27cfc')); ?> <code>module/module.php</code> <?php echo sr_e(sr_t('admin::ui.module.fb45cdc5')); ?></p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-upload-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

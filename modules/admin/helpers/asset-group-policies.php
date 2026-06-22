@@ -203,7 +203,7 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         }
 
         if (!sr_member_group_key_is_valid($groupKey)) {
-            $errors[] = $rowLabel . '의 회원 그룹 관리용 키가 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 회원 그룹 Key가 올바르지 않습니다.';
             continue;
         }
 

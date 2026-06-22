@@ -355,7 +355,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                             <div class="sr-install-module">
                                 <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? sr_t('ui.required.9825053d') : sr_t('ui.text.84dd6e38'); ?></span>
                                 <strong><?php echo sr_e((string) $module['label']); ?></strong>
-                                <small>관리용 키: <?php echo sr_e((string) $moduleKey); ?></small>
+                                <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
                                 <p><?php echo sr_e((string) $module['description']); ?></p>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <ul>
@@ -407,7 +407,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                                     <?php if ($moduleErrors !== []) { ?>
                                         <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
                                     <?php } ?>
-                                    <small>관리용 키: <?php echo sr_e((string) $moduleKey); ?></small>
+                                    <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
                                     <p><?php echo sr_e((string) $module['description']); ?></p>
                                     <?php if ($moduleFoundationLabels !== []) { ?>
                                         <p class="sr-install-help">함께 설치됨: <?php echo sr_e(implode(', ', $moduleFoundationLabels)); ?></p>

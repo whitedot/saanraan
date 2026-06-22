@@ -150,12 +150,12 @@ function sr_community_extra_field_definition_validation_errors(mixed $raw): arra
         $keyRaw = $item['key'] ?? '';
         $key = strtolower(trim(sr_community_extra_field_scalar_string($keyRaw)));
         if (!is_scalar($keyRaw)) {
-            $errors[] = $rowLabel . '의 관리용 키 형식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 Key 형식이 올바르지 않습니다.';
         }
         if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) !== 1) {
-            $errors[] = $rowLabel . '의 관리용 키는 영문 소문자로 시작하고 소문자, 숫자, _만 사용할 수 있습니다.';
+            $errors[] = $rowLabel . '의 Key는 영문 소문자로 시작하고 소문자, 숫자, _만 사용할 수 있습니다.';
         } elseif (isset($seenKeys[$key])) {
-            $errors[] = $rowLabel . '의 관리용 키가 중복되었습니다.';
+            $errors[] = $rowLabel . '의 Key가 중복되었습니다.';
         }
         if ($key !== '') {
             $seenKeys[$key] = true;

@@ -125,7 +125,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields">
             <div class="filtering-field filtering-field-fill admin-survey-response-filter-keyword">
                 <label for="survey_response_keyword" class="filtering-label">검색어</label>
-                <input id="survey_response_keyword" type="text" name="q" value="<?php echo sr_e($keyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="응답 ID, 회원 ID, 설문 관리용 키, 제목">
+                <input id="survey_response_keyword" type="text" name="q" value="<?php echo sr_e($keyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="응답 ID, 회원 ID, 설문 Key, 제목">
             </div>
         </div>
         <div id="survey_response_detail_filters" class="filtering-body" data-filtering-body<?php echo $responseDetailFilterOpen ? '' : ' hidden'; ?>>

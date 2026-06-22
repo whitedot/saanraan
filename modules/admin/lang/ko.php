@@ -366,7 +366,7 @@ return [
                                                     (Invalid Input)',
     'ui.ip.5c2a95fd' => '클라이언트 IP 판정',
     'ui.ip.647b5bb4' => '초 창 / 계정 기준, IP 기준',
-    'ui.key.d2f54e12' => '모듈 관리용 키',
+    'ui.key.d2f54e12' => '모듈 Key',
     'ui.label.badges.5c8bc6f6' => '라벨 배지 (Label Badges)',
     'ui.label.input.5bde99cc' => '라벨 입력 (Label Input)',
     'ui.large.865b14fe' => '크게
@@ -424,7 +424,7 @@ return [
     'ui.menu.settings.save.914d293b' => '순서 적용하기',
     'ui.modal.position.60f37d79' => '모달 위치 (Modal Position)',
     'ui.modals.c78d69ef' => '모달 (Modals)',
-    'ui.module.fb45cdc5' => '구조라면 모듈 관리용 키를 입력하세요.',
+    'ui.module.fb45cdc5' => '구조라면 모듈 Key를 입력하세요.',
     'ui.month.b274c0c9' => '월
                                                     (Month)',
     'ui.multiple.files.48167df8' => '다중 파일

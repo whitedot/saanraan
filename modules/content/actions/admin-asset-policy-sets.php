@@ -54,9 +54,9 @@ if (sr_request_method() === 'POST') {
     ];
 
     if (!sr_content_asset_policy_set_key_is_valid((string) $values['set_key'])) {
-        $errors[] = '회원 그룹별 설정 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '회원 그룹별 설정 Key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_content_asset_policy_set_key_exists($pdo, (string) $values['set_key'], $setId)) {
-        $errors[] = '이미 사용 중인 회원 그룹별 설정 관리용 키입니다.';
+        $errors[] = '이미 사용 중인 회원 그룹별 설정 Key입니다.';
     }
     if ((string) $values['title'] === '') {
         $errors[] = '회원 그룹별 설정 이름을 입력하세요.';

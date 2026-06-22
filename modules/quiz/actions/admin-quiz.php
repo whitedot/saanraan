@@ -268,7 +268,7 @@ if ($mode === 'list') {
             <table class="table table-list admin-quiz-table">
                 <thead>
                     <tr>
-                        <th<?php echo sr_admin_sort_aria('quiz_key', $quizSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'quiz_key', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('quiz_key', $quizSort); ?>><?php echo sr_admin_sort_header_html('Key', 'quiz_key', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('title', $quizSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('status', $quizSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('question_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('문제', 'question_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
@@ -448,7 +448,7 @@ $quizHelpBodyHtml = static function (array $items): string {
 $quizHelp = [
     'quiz_key' => [
         'id' => 'quiz-help-key-modal',
-        'title' => '퀴즈 관리용 키',
+        'title' => '퀴즈 Key',
         'body_html' => $quizHelpBodyHtml([
             '공개 URL과 내부 연결에 쓰는 고유 식별자입니다.',
             '소문자, 숫자, 밑줄만 사용하고 첫 글자는 소문자로 시작해야 합니다.',
@@ -525,7 +525,7 @@ $quizHelp = [
     ],
     'question_key' => [
         'id' => 'quiz-help-question-key-modal',
-        'title' => '문제 관리용 키',
+        'title' => '문제 Key',
         'body_html' => $quizHelpBodyHtml([
             '한 퀴즈 안에서 문제를 구분하는 내부 식별자입니다.',
             '소문자, 숫자, 밑줄만 사용하고 같은 퀴즈 안에서 중복되지 않아야 합니다.',

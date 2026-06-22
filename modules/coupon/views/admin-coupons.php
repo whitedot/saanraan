@@ -171,7 +171,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="sr-only" for="coupon_definition_bulk_select_all">현재 페이지 쿠폰 종류 전체 선택</label>
                     <input id="coupon_definition_bulk_select_all" type="checkbox" class="form-checkbox" data-coupon-definition-select-all<?php echo $definitions === [] ? ' disabled' : ''; ?>>
                 </th>
-                <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('Key', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('title', $definitionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰 이름', 'title', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('target_type', $definitionSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('status', $definitionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
@@ -421,7 +421,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-body">
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_coupon_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
+                    <label class="form-label" for="coupon_admin_coupon_key">Key <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
                         <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input data-admin-key-suggest-source="#coupon_admin_title" data-admin-key-suggest-fallback="coupon" data-overlay-focus required data-validation-message="영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력해 주세요.">
                         <p class="form-help">관리자가 구분하기 위한 고유값입니다. 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용합니다.</p>
@@ -503,7 +503,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <input type="text" name="q" maxlength="120" class="form-input" placeholder="번호, 제목, 관리용 키" data-overlay-focus>
+                    <input type="text" name="q" maxlength="120" class="form-input" placeholder="번호, 제목, Key" data-overlay-focus>
                     <button type="submit" class="btn btn-solid-primary">검색</button>
                 </form>
                 <div id="<?php echo sr_e($couponTargetLookupResultsId); ?>" class="admin-lookup-results">

@@ -1225,7 +1225,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <input type="hidden" value="" data-community-extra-field-index>
                     <div class="form-row">
-                        <label class="form-label" for="community_extra_field_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
+                        <label class="form-label" for="community_extra_field_key">Key <span class="sr-required-label">(필수)</span></label>
                         <div class="form-field">
                             <input id="community_extra_field_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-community-extra-field-input="key" data-overlay-focus class="form-input">
                             <p class="form-help">소문자, 숫자, _만 사용합니다.</p>
@@ -1531,7 +1531,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <caption class="sr-only">게시판 카테고리 목록</caption>
                     <thead>
                         <tr>
-                            <th>관리용 키</th>
+                            <th>Key</th>
                             <th>이름</th>
                             <th>상태</th>
                             <th>정렬</th>
@@ -1585,7 +1585,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="intent" value="category_create">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                             <div class="form-row">
-                                <label class="form-label" for="community_category_key_new">카테고리 관리용 키 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <label class="form-label" for="community_category_key_new">카테고리 Key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="form-field">
                                     <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_category_title_new" data-admin-key-suggest-fallback="category_<?php echo sr_e((string) (count($categories ?? []) + 1)); ?>" data-overlay-focus class="form-input">
                                 </div>
@@ -1643,7 +1643,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                 <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
                                 <div class="form-row">
-                                    <span class="form-label">관리용 키</span>
+                                    <span class="form-label">Key</span>
                                     <div class="form-field">
                                         <code><?php echo sr_e((string) $category['category_key']); ?></code>
                                     </div>
@@ -2004,7 +2004,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return field.key === keyInput.value && fieldIndex !== index;
         });
         if (duplicate) {
-            keyInput.setCustomValidity('이미 사용 중인 관리용 키입니다.');
+            keyInput.setCustomValidity('이미 사용 중인 Key입니다.');
         }
         var type = communityExtraFieldAllowedType(typeInput.value);
         var options = optionsInput.value.split(/\r?\n/).map(function (value) {

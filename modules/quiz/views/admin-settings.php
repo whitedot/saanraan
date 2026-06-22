@@ -68,7 +68,7 @@ $quizSettingsHelp = [
         'title' => '퀴즈 스킨',
         'body_html' => $quizSettingsHelpBodyHtml([
             '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 출력 방식입니다.',
-            '허용된 스킨 관리용 키만 저장하고, 누락된 화면 파일은 기본 스킨으로 대체합니다.',
+            '허용된 스킨 Key만 저장하고, 누락된 화면 파일은 기본 스킨으로 대체합니다.',
         ]),
     ],
     'default_status' => [
