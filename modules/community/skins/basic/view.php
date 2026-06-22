@@ -3,7 +3,7 @@
 $pageTitle = (string) $post['title'];
 $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && !empty($canViewPostBody));
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
-$communityReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $communityLayoutSettings);
+$communityReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, is_array($postBoard ?? null) ? $postBoard : null, $communityLayoutSettings);
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }

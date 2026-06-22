@@ -283,6 +283,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
     gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
     min-height:calc(var(--spacing) * 9.25);
 }
+.admin-form .form-row>.form-field:has(>.form-check.form-label):has(>.admin-setting-source-options){display:grid}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>:not(.admin-setting-source-options):not(.form-help){grid-column:1;justify-self:start}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.admin-setting-source-options{align-self:center;grid-column:2;grid-row:1 / span 2;justify-self:end;margin-left:0}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-help{grid-column:1;margin-top:0}
