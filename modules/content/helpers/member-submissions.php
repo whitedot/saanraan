@@ -290,13 +290,17 @@ function sr_content_create_admin_author_application_notifications(PDO $pdo, int 
     }
 
     $sentCount = 0;
+    $applicantPublicHash = function_exists('sr_admin_member_public_hash')
+        ? sr_admin_member_public_hash(sr_runtime_config(), $applicantAccountId)
+        : '';
+    $applicantLabel = $applicantPublicHash !== '' ? '회원 ' . $applicantPublicHash : '새 회원';
     foreach (sr_content_author_application_admin_account_ids($pdo) as $adminAccountId) {
         try {
             $createNotificationFunction($pdo, [
                 'audience' => 'account',
                 'account_id' => $adminAccountId,
                 'title' => '새 콘텐츠 등록자 신청이 접수되었습니다.',
-                'body_text' => '회원 #' . (string) $applicantAccountId . '의 콘텐츠 등록자 신청을 검토해 주세요.',
+                'body_text' => $applicantLabel . '의 콘텐츠 등록자 신청을 검토해 주세요.',
                 'link_url' => '/admin/content/author-applications',
                 'channels' => ['site'],
                 'created_by_account_id' => $applicantAccountId,
@@ -895,4 +899,3 @@ function sr_content_grant_submission_author_reward(PDO $pdo, int $submissionId, 
         sr_log_exception($exception, 'content_author_reward_grant_failed');
     }
 }
-

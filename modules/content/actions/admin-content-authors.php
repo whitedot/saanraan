@@ -29,7 +29,7 @@ if (sr_request_method() === 'POST') {
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
     try {
         if ($targetAccountId < 1) {
-            throw new InvalidArgumentException('회원 ID를 입력하세요.');
+            throw new InvalidArgumentException('작성자로 등록할 회원을 선택하세요.');
         }
         if (!in_array($status, ['allowed', 'blocked'], true)) {
             throw new InvalidArgumentException('상태를 선택하세요.');

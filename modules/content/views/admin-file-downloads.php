@@ -48,7 +48,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_account_id">
-                    <span class="filtering-label">회원 ID</span>
+                    <span class="filtering-label">회원 번호</span>
                     <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_date_from">
@@ -73,7 +73,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     <div class="card-header">
         <div>
             <h2 class="card-title">다운로드 내역</h2>
-            <p class="form-help">무료 다운로드는 로그인 회원만 회원 ID가 남고, 유료 다운로드는 차감 로그와 접근권을 함께 대조합니다.</p>
+            <p class="form-help">무료 다운로드는 로그인 회원만 회원 정보가 남고, 유료 다운로드는 차감 로그와 접근권을 함께 대조합니다.</p>
         </div>
         <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-sm btn-outline-secondary">파일 관리</a>
     </div>
@@ -106,9 +106,11 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                 <?php foreach ($downloadLogs as $downloadLog) { ?>
                     <?php
                     $isPaid = (string) ($downloadLog['download_type'] ?? '') === 'paid';
-                    $memberLabel = (int) ($downloadLog['account_id'] ?? 0) > 0
-                        ? '#' . (string) (int) $downloadLog['account_id'] . ' ' . trim((string) ($downloadLog['display_name'] ?? ''))
-                        : '비회원';
+                    $downloadAccountId = (int) ($downloadLog['account_id'] ?? 0);
+                    $memberName = trim((string) ($downloadLog['display_name'] ?? ''));
+                    $memberPublicHash = $downloadAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $downloadAccountId)
+                        : '';
                     $accessSummary = trim((string) ($downloadLog['access_log_summary'] ?? ''));
                     $refundStatus = (string) ($downloadLog['refund_status'] ?? '');
                     $refundModalId = 'content-file-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);
@@ -126,7 +128,16 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                             <strong><?php echo sr_e((string) ($downloadLog['file_title'] ?? '삭제된 파일')); ?></strong>
                             <small class="admin-summary-meta">#<?php echo sr_e((string) (int) ($downloadLog['file_id'] ?? 0)); ?> <?php echo sr_e((string) ($downloadLog['original_name'] ?? '')); ?></small>
                         </td>
-                        <td class="admin-table-break"><?php echo sr_e($memberLabel); ?></td>
+                        <td class="admin-table-break">
+                            <?php if ($downloadAccountId > 0) { ?>
+                                <strong><?php echo sr_e($memberName !== '' ? $memberName : '회원'); ?></strong>
+                                <?php if ($memberPublicHash !== '') { ?>
+                                    <small class="admin-summary-meta"><?php echo sr_e($memberPublicHash); ?></small>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <?php echo sr_e('비회원'); ?>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo $isPaid ? 'is-warning' : 'is-normal'; ?>"><?php echo $isPaid ? '유료' : '무료'; ?></span></td>
                         <td class="admin-table-break">
                             <?php if ($isPaid) { ?>
@@ -194,6 +205,10 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     $refundModalId = 'content-file-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);
     $refundFieldPrefix = 'content_file_download_refund_' . (int) ($downloadLog['id'] ?? 0);
     $refundTitle = (int) ($downloadLog['amount'] ?? 0) > 0 ? '파일 다운로드 수동 환불' : '파일 다운로드 접근권 회수';
+    $refundAccountId = (int) ($downloadLog['account_id'] ?? 0);
+    $refundAccountHash = $refundAccountId > 0 && function_exists('sr_admin_member_public_hash')
+        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $refundAccountId)
+        : '';
     ?>
     <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundFieldPrefix); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
@@ -209,7 +224,9 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     <input type="hidden" name="intent" value="refund_download">
                     <input type="hidden" name="download_log_id" value="<?php echo sr_e((string) (int) ($downloadLog['id'] ?? 0)); ?>">
                     <div class="admin-summary-stats">
-                        <span class="admin-summary-meta">회원 <strong>#<?php echo sr_e((string) (int) ($downloadLog['account_id'] ?? 0)); ?></strong></span>
+                        <?php if ($refundAccountHash !== '') { ?>
+                            <span class="admin-summary-meta">회원 <strong><?php echo sr_e($refundAccountHash); ?></strong></span>
+                        <?php } ?>
                         <span class="admin-summary-meta">파일 <strong>#<?php echo sr_e((string) (int) ($downloadLog['file_id'] ?? 0)); ?></strong></span>
                         <span class="admin-summary-meta">금액 <strong><?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?></strong></span>
                     </div>
