@@ -878,7 +878,7 @@ function sr_admin_handle_member_batch_revoke_sessions_post(PDO $pdo, array $acco
         $errors[] = '세션을 회수할 회원을 선택하세요.';
     }
     if ($hasInvalidSelectedId) {
-        $errors[] = '선택한 회원 ID 값이 올바르지 않습니다.';
+        $errors[] = '선택한 회원 값이 올바르지 않습니다.';
     }
     if (count($selectedIds) > 100) {
         $errors[] = '회원 세션 일괄 회수는 한 번에 100건 이하로 실행하세요.';
