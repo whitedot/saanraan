@@ -54,20 +54,6 @@ function sr_seo_default_settings(): array
     ];
 }
 
-function sr_seo_install_default_title_suffix(PDO $pdo, ?string $siteName = null): void
-{
-    if (!function_exists('sr_site_setting') || !function_exists('sr_site_title_suffix') || !function_exists('sr_save_site_setting')) {
-        return;
-    }
-
-    $titleSuffix = sr_seo_clean_single_line((string) ($siteName ?? sr_site_setting($pdo, 'site.name', '')), 80);
-    if ($titleSuffix === '' || sr_site_title_suffix($pdo) !== '') {
-        return;
-    }
-
-    sr_save_site_setting($pdo, 'site.title_suffix', $titleSuffix, 'string');
-}
-
 function sr_seo_settings(PDO $pdo): array
 {
     $settings = sr_seo_default_settings();
@@ -83,11 +69,6 @@ function sr_seo_settings(PDO $pdo): array
     $settings['robots_disallow_paths'] = sr_seo_clean_textarea((string) $settings['robots_disallow_paths'], 2000);
 
     return $settings;
-}
-
-function sr_seo_apply_public_defaults(PDO $pdo, array $seo): array
-{
-    return $seo;
 }
 
 function sr_seo_clean_single_line(string $value, int $maxLength): string

@@ -1348,10 +1348,6 @@ function sr_public_layout_end(): void
     if ($pdo instanceof PDO) {
         $seo = sr_site_apply_public_meta_defaults($pdo, $seo);
     }
-    if ($pdo instanceof PDO && is_file(SR_ROOT . '/modules/seo/helpers.php')) {
-        require_once SR_ROOT . '/modules/seo/helpers.php';
-        $seo = sr_seo_apply_public_defaults($pdo, $seo);
-    }
     $layoutContext = is_array($layoutState['layout_context'] ?? null) ? $layoutState['layout_context'] : [];
     $layoutKey = (string) ($layoutContext['layout_key'] ?? '');
     if ($layoutKey === '') {

@@ -446,10 +446,6 @@ function sr_install_module(PDO $pdo, string $moduleKey, string $status, bool $is
             'module_key' => $moduleKey,
         ]);
 
-        if ($moduleKey === 'seo') {
-            require_once SR_ROOT . '/modules/seo/helpers.php';
-            sr_seo_install_default_title_suffix($pdo);
-        }
     } catch (Throwable $exception) {
         try {
             $stmt = $pdo->prepare(
