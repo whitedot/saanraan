@@ -49,6 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
 $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_array($comments ?? null) ? count($comments) : 0));
+$communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']));
 ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
@@ -56,7 +57,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
         <?php } ?>
 
         <p class="community-post-view-board">
-            <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']))); ?>">
+            <a href="<?php echo sr_e($communityPostBoardUrl); ?>">
                 <?php echo sr_e((string) $post['board_title']); ?>
             </a>
         </p>
@@ -82,6 +83,7 @@ $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_arra
                 <?php } ?>
             </p>
             <div class="community-post-view-actions">
+                <a class="btn btn-ghost-default" href="<?php echo sr_e($communityPostBoardUrl); ?>"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
                 <button type="button" class="btn btn-ghost-default community-post-comments-jump" data-community-scroll-target="#comments" aria-label="<?php echo sr_e('댓글 ' . number_format($communityPostCommentCount) . '개로 바로가기'); ?>">
                     <?php echo sr_material_icon_html('comment', '', ''); ?>
                     <span><?php echo sr_e(number_format($communityPostCommentCount)); ?></span>
