@@ -30,24 +30,39 @@ if (!is_string($guide)) {
 
 $blockedPatterns = [
     '/admin-form-help/' => '관리자 힌트 표준 class는 form-help입니다.',
+    '/회원 ID/' => '운영자 화면 문구에는 회원 ID 대신 회원, 회원 번호, 공개 해시 등 문맥에 맞는 표현을 쓰세요.',
     '/게시판 추가 입력 항목과 같은/' => '회원 문구를 게시판 추가 입력에 빗대지 마세요.',
     '/커뮤니티 추가 항목처럼/' => '회원 문구를 커뮤니티 추가 항목에 빗대지 마세요.',
     '/커뮤니티 대상과 동일한 방식/' => '대상 검증 실패를 다른 모듈 방식에 빗대지 마세요.',
     '/reference contract 기반/' => '운영자 문구에 구현 contract 표현을 쓰지 마세요.',
 ];
 
-$scanFiles = [
-    'docs/admin-ui-guide.md',
-    'modules/admin/helpers/action-results.php',
-    'modules/member/lang/ko.php',
-    'modules/member/views/admin-settings.php',
-    'modules/member/views/admin-members.php',
-    'modules/coupon/views/admin-coupons.php',
-    'modules/banner/views/admin-banners.php',
-    'modules/popup_layer/views/admin-popup-layers.php',
-    'modules/community/views/admin-settings.php',
-    'modules/community/views/admin-boards.php',
-];
+$scanFiles = ['docs/admin-ui-guide.md', 'modules/admin/helpers/action-results.php'];
+$moduleRoot = $root . '/modules';
+foreach (glob($moduleRoot . '/*', GLOB_ONLYDIR) ?: [] as $moduleDir) {
+    foreach (['views', 'actions', 'helpers'] as $subdir) {
+        $scanRoot = $moduleDir . '/' . $subdir;
+        if (!is_dir($scanRoot)) {
+            continue;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($scanRoot, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if ($file instanceof SplFileInfo && $file->isFile() && strtolower($file->getExtension()) === 'php') {
+                $scanFiles[] = substr($file->getPathname(), strlen($root) + 1);
+            }
+        }
+    }
+
+    $langFile = $moduleDir . '/lang/ko.php';
+    if (is_file($langFile)) {
+        $scanFiles[] = substr($langFile, strlen($root) + 1);
+    }
+}
+
+$scanFiles = array_values(array_unique($scanFiles));
 
 foreach ($scanFiles as $relativePath) {
     $path = $root . '/' . $relativePath;
