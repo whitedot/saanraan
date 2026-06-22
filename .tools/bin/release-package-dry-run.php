@@ -59,6 +59,7 @@ $requiredFiles = [
     'LICENSE',
     'README.md',
     'docs/deployment/nginx-saanraan.conf',
+    'docs/deployment/nginx-saanraan-subdirectory.conf',
     'modules/htmlpurifier/DEPENDENCY.md',
     'modules/htmlpurifier/vendor/autoload.php',
     'modules/htmlpurifier/vendor/ezyang/htmlpurifier/LICENSE',

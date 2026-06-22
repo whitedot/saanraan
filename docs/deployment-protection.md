@@ -2,7 +2,7 @@
 
 산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다. 기본 아이콘셋인 Google Material Symbols는 CSP 친화적인 공유호스팅 배포를 위해 번들 폰트로 직접 제공한다.
 
-다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다. nginx에서는 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 기준으로 운영 환경에 맞는 `server/location` 규칙을 구성한다.
+다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다. nginx에서는 [nginx 루트 URL 샘플 설정](deployment/nginx-saanraan.conf) 또는 [nginx 서브디렉터리 URL 샘플 설정](deployment/nginx-saanraan-subdirectory.conf)을 기준으로 운영 환경에 맞는 `server/location` 규칙을 구성한다.
 
 ## 공개 진입점
 
@@ -76,7 +76,7 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/reset.css`, `/assets/layout.css`, `/assets/module.css`, `/assets/ui-kit.css`, `/assets/ui-kit-layout.css`, `/modules/content/assets/reset.css`, `/modules/content/assets/layout.css`, `/modules/content/assets/module.css`, `/modules/content/assets/layout.js`, `/modules/content/assets/module.js`, `/modules/community/assets/reset.css`, `/modules/community/assets/layout.css`, `/modules/community/assets/module.css`, `/modules/community/assets/layout.js`, `/modules/community/assets/module.js`, `/modules/member/skins/basic/skin.css`, `/modules/quiz/assets/layout.css`, `/modules/quiz/assets/layout.js`, `/modules/quiz/assets/module.js`, `/modules/survey/assets/layout.css`, `/modules/survey/assets/layout.js`, `/modules/survey/assets/module.js`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/.gitignore`나 임의 storage 파일은 계속 막히는지도 확인한다.
 
-nginx는 PHP-FPM과 front controller 구성을 사용한다. 저장소의 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`, `/modules/{module_key}/skins/{skin_key}/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
+nginx는 PHP-FPM과 front controller 구성을 사용한다. 도메인 루트 URL에 배포하면 저장소의 [nginx 루트 URL 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `/saanraan/` 같은 URL 서브디렉터리에 배포하면 [nginx 서브디렉터리 URL 샘플 설정](deployment/nginx-saanraan-subdirectory.conf)을 사용한다. 이때 `root`는 프로젝트 디렉터리가 아니라 그 부모 디렉터리를 가리켜야 한다. 예를 들어 파일이 `/var/www/example.com/saanraan`에 있고 URL이 `/saanraan/`이면 `root /var/www/example.com;`로 둔다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`, `/modules/{module_key}/skins/{skin_key}/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
 
 nginx 적용 후 다음 응답을 확인한다.
 
@@ -120,6 +120,7 @@ nginx 적용 후 다음 응답을 확인한다.
 ```text
 Apache: 기본 .htaccess, 가상호스트, 또는 호스팅 패널의 접근 제한
 Nginx: docs/deployment/nginx-saanraan.conf를 기준으로 한 server/location 규칙
+Nginx subdirectory URL: docs/deployment/nginx-saanraan-subdirectory.conf를 기준으로 prefix가 포함된 server/location 규칙
 공유호스팅: 파일 관리자 또는 보안 메뉴의 디렉터리 접근 차단
 ```
 
@@ -164,6 +165,6 @@ php .tools/bin/check-deployment-config.php
 - SQL 파일과 모듈 내부 PHP 파일은 직접 실행 대상이 아니다.
 - 업로드나 생성 파일은 가능한 한 `storage/` 아래에 두고 직접 접근을 차단한다.
 - Apache 기본 보호 규칙은 루트 `.htaccess`에 포함한다.
-- nginx 기본 보호 예시는 `docs/deployment/nginx-saanraan.conf`에 포함한다.
+- nginx 기본 보호 예시는 `docs/deployment/nginx-saanraan.conf`와 `docs/deployment/nginx-saanraan-subdirectory.conf`에 포함한다.
 - 서버별 추가 보호 규칙은 운영 환경 문서나 배포 자동화에서 관리한다.
 - 웹에서 차단해야 할 경로를 차단할 수 없는 호스팅에는 운영 설치하지 않는다.

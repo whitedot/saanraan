@@ -33,6 +33,7 @@ function sr_deployment_protection_read(string $file): string
 $doc = sr_deployment_protection_read('docs/deployment-protection.md');
 $apache = sr_deployment_protection_read('.htaccess');
 $nginx = sr_deployment_protection_read('docs/deployment/nginx-saanraan.conf');
+$nginxSubdirectory = sr_deployment_protection_read('docs/deployment/nginx-saanraan-subdirectory.conf');
 $smoke = sr_deployment_protection_read('.tools/bin/smoke-http.php');
 $devRouter = sr_deployment_protection_read('.tools/bin/dev-router.php');
 $risk = sr_deployment_protection_read('docs/risk-register.md');
@@ -57,6 +58,7 @@ foreach ($protectedDirectories as $directoryLabel => $markers) {
         'docs/deployment-protection.md' => $doc,
         '.htaccess' => $apache,
         'docs/deployment/nginx-saanraan.conf' => $nginx,
+        'docs/deployment/nginx-saanraan-subdirectory.conf' => $nginxSubdirectory,
     ] as $file => $contents) {
         $found = false;
         foreach ($markers as $marker) {
@@ -85,6 +87,7 @@ foreach ([
         'docs/deployment-protection.md' => $doc,
         '.htaccess' => $apache,
         'docs/deployment/nginx-saanraan.conf' => $nginx,
+        'docs/deployment/nginx-saanraan-subdirectory.conf' => $nginxSubdirectory,
     ] as $file => $contents) {
         $found = false;
         foreach ($markers as $marker) {
@@ -170,14 +173,40 @@ foreach ([
 }
 
 foreach ([
-    'location /assets/',
-    'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/assets/',
-    'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/',
-    'location = /modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
-    'location = /assets/fonts/material-symbols-outlined.ttf',
+    ['location /assets/'],
+    [
+        'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/assets/',
+        'location ~ "^/modules/[a-z][a-z0-9_]{1,39}/assets/',
+    ],
+    [
+        'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/',
+        'location ~ "^/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/',
+    ],
+    ['location = /modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js'],
+    ['location = /assets/fonts/material-symbols-outlined.ttf'],
+] as $markers) {
+    $matched = false;
+    foreach ($markers as $marker) {
+        if ($nginx !== '' && str_contains($nginx, $marker)) {
+            $matched = true;
+            break;
+        }
+    }
+
+    if (!$matched) {
+        sr_deployment_protection_error('nginx sample is missing public asset location marker: ' . $markers[0]);
+    }
+}
+
+foreach ([
+    'location /saanraan/assets/',
+    'location ~ ^/saanraan/(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$)',
+    'location ~ ^/saanraan/(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env(?:\..*)?)$',
+    'try_files $uri $uri/ /saanraan/index.php?$query_string',
+    'fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name',
 ] as $marker) {
-    if ($nginx !== '' && !str_contains($nginx, $marker)) {
-        sr_deployment_protection_error('nginx sample is missing public asset location marker: ' . $marker);
+    if ($nginxSubdirectory !== '' && !str_contains($nginxSubdirectory, $marker)) {
+        sr_deployment_protection_error('nginx subdirectory sample is missing marker: ' . $marker);
     }
 }
 

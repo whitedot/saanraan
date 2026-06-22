@@ -49,7 +49,7 @@ Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴
 - `config/` 디렉터리
 - `assets/`, `lang/`, `layouts/`
 - `docs/`, `examples/`, `README.md`, `LICENSE`
-- nginx 배포를 안내할 때는 `docs/deployment/nginx-saanraan.conf`
+- nginx 배포를 안내할 때는 `docs/deployment/nginx-saanraan.conf`, `docs/deployment/nginx-saanraan-subdirectory.conf`
 - 배포자가 릴리스 검증에 쓰는 `.tools/` 파일
 - 릴리스에 포함하기로 결정한 `vendor/` 파일 또는 선택 모듈 내부 vendor 파일과 라이선스 문서
 - HTML Purifier를 기본 sanitizer 선행 엔진으로 포함하는 릴리스라면 `modules/htmlpurifier/vendor/ezyang/htmlpurifier/`, `modules/htmlpurifier/vendor/autoload.php`, `modules/htmlpurifier/DEPENDENCY.md`
@@ -64,7 +64,7 @@ Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴
 - `storage/logs/`, `storage/module-backups/`, `storage/update-failed.json`
 - DB dump, SQLite/DB 파일, 운영 백업, 업로드 파일, SSH key, package registry token 파일, 비밀값이 들어 있는 파일. 이 기준은 루트뿐 아니라 모듈 내부 파일에도 적용한다.
 
-Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. nginx 배포에서는 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 기준으로 `server_name`, `root`, `fastcgi_pass`를 운영 환경에 맞게 바꾼 뒤 같은 보호 규칙을 서버 설정에 반영한다. `.tools/`나 `docs/`를 운영 서버에 함께 올리는 경우에도 [배포 보호 기준](deployment-protection.md)에 따라 웹 직접 접근을 차단해야 한다.
+Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. nginx 배포에서는 도메인 루트 URL용 [nginx 샘플 설정](deployment/nginx-saanraan.conf) 또는 URL 서브디렉터리용 [nginx 샘플 설정](deployment/nginx-saanraan-subdirectory.conf)을 기준으로 `server_name`, `root`, `fastcgi_pass`를 운영 환경에 맞게 바꾼 뒤 같은 보호 규칙을 서버 설정에 반영한다. `.tools/`나 `docs/`를 운영 서버에 함께 올리는 경우에도 [배포 보호 기준](deployment-protection.md)에 따라 웹 직접 접근을 차단해야 한다.
 
 릴리스 zip을 직접 만들었다면 SHA-256 checksum을 함께 기록한다. 직접 제작 zip은 `php .tools/bin/release-package-dry-run.php --manifest` 출력의 파일 수와 `manifest-sha256`도 함께 남겨 zip 생성 전 후보 파일 집합을 고정한다. dry-run은 루트 `vendor/`, `dist/`, `storage/`, 비밀 파일, 백업/임시 파일, DB dump, SQLite/DB 파일, SSH key, package registry token 파일이 후보에 들어오면 실패해야 한다. 모듈 내부 vendor처럼 릴리스에 포함하기로 한 vendored 의존성은 허용하되, 모듈 내부의 `.env`, dump, key 파일은 제외한다. 설치 DB smoke용 `.tools/bin/smoke-*.php` 도구 중 릴리스 검증 절차에서 직접 실행하는 파일은 패키지 정책 점검에서 실행권한도 확인한다. GitHub source zip을 그대로 사용하는 경우에는 태그와 commit SHA를 릴리스 노트에 기록한다.
 
