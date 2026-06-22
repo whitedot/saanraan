@@ -70,7 +70,7 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
             }
         }
 
-        $where = $keyword === '' ? 'p.status <> \'deleted\'' : "(p.id = :id OR (p.status <> 'deleted' AND p.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status <> 'deleted' AND b.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status <> 'deleted' AND b.board_key LIKE :keyword_like ESCAPE '\\\\'))";
+        $where = $keyword === '' ? "p.status IN ('published', 'hidden', 'pending')" : "(p.id = :id OR (p.status IN ('published', 'hidden', 'pending') AND p.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status IN ('published', 'hidden', 'pending') AND b.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status IN ('published', 'hidden', 'pending') AND b.board_key LIKE :keyword_like ESCAPE '\\\\'))";
         $stmt = $pdo->prepare(
             'SELECT p.id, p.title, p.status, p.updated_at, b.title AS board_title, b.board_key
              FROM sr_community_posts p
@@ -126,7 +126,7 @@ function sr_community_post_target_lookup(PDO $pdo, string $keyword, int $limit =
             $conditions[] = 'p.status = :status';
             $params['status'] = $status;
         } else {
-            $conditions[] = "p.status <> 'deleted'";
+            $conditions[] = "p.status IN ('published', 'hidden', 'pending')";
         }
     } else {
         if ($cursor > 0) {
@@ -141,7 +141,7 @@ function sr_community_post_target_lookup(PDO $pdo, string $keyword, int $limit =
             $conditions[] = 'p.status = :status';
             $params['status'] = $status;
         } else {
-            $conditions[] = "p.status <> 'deleted'";
+            $conditions[] = "p.status IN ('published', 'hidden', 'pending')";
         }
         if ($keyword !== '') {
             $textLength = function_exists('mb_strlen') ? mb_strlen($keyword) : strlen($keyword);

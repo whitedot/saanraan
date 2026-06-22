@@ -110,15 +110,6 @@ function sr_ckeditor_smoke_header_value(array $headers, string $name): string
     return '';
 }
 
-function sr_ckeditor_smoke_response_headers(): array
-{
-    $headers = function_exists('http_get_last_response_headers')
-        ? http_get_last_response_headers()
-        : ($GLOBALS['http_response_header'] ?? []);
-
-    return is_array($headers) ? $headers : [];
-}
-
 function sr_ckeditor_smoke_status(array $headers): int
 {
     $status = 0;
@@ -163,7 +154,10 @@ function sr_ckeditor_smoke_request(string $baseUrl, string $method, string $path
     $body = file_get_contents(sr_ckeditor_smoke_url($baseUrl, $path), false, $context);
     restore_error_handler();
 
-    $responseHeaders = sr_ckeditor_smoke_response_headers();
+    $responseHeaders = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
+    $responseHeaders = is_array($responseHeaders) ? $responseHeaders : [];
     sr_ckeditor_smoke_store_cookies($responseHeaders, $cookies);
 
     return [
@@ -216,7 +210,10 @@ function sr_ckeditor_smoke_multipart_request(string $baseUrl, string $path, arra
     $responseBody = file_get_contents(sr_ckeditor_smoke_url($baseUrl, $path), false, $context);
     restore_error_handler();
 
-    $responseHeaders = sr_ckeditor_smoke_response_headers();
+    $responseHeaders = function_exists('http_get_last_response_headers')
+        ? http_get_last_response_headers()
+        : ($http_response_header ?? []);
+    $responseHeaders = is_array($responseHeaders) ? $responseHeaders : [];
     sr_ckeditor_smoke_store_cookies($responseHeaders, $cookies);
 
     return [
