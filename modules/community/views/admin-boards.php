@@ -425,7 +425,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </nav>
 
-    <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
         <section id="community-board-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18')); ?></h2>
             <?php echo sr_csrf_field(); ?>
@@ -544,41 +544,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section id="community-board-section-seo" class="card" data-admin-section-anchor>
             <h2>SEO/OG 메타</h2>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_seo_title">SEO 제목</label>
+                <label class="form-label" for="community_admin_boards_seo_title">제목</label>
                 <div class="form-field">
                     <input id="community_admin_boards_seo_title" type="text" name="seo_title" maxlength="160" value="<?php echo sr_e($boardField($formBoard, 'seo_title')); ?>" class="form-input form-control-full">
                     <?php echo $settingSourceRadioHtml('source_seo_title', $boardSettingSource($formBoard, 'seo_title')); ?>
-                    <p class="form-help">비워 두면 게시판 이름을 사용합니다.</p>
+                    <p class="form-help">검색 결과와 공유 미리보기에서 함께 사용합니다. 비워 두면 게시판 이름을 사용합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_seo_description">SEO 설명</label>
+                <label class="form-label" for="community_admin_boards_seo_description">설명</label>
                 <div class="form-field">
                     <textarea id="community_admin_boards_seo_description" name="seo_description" rows="3" cols="60" maxlength="255" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'seo_description')); ?></textarea>
                     <?php echo $settingSourceRadioHtml('source_seo_description', $boardSettingSource($formBoard, 'seo_description')); ?>
-                    <p class="form-help">비워 두면 게시판 설명을 사용합니다.</p>
+                    <p class="form-help">검색 결과와 공유 미리보기에서 함께 사용합니다. 비워 두면 게시판 설명을 사용합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_og_title">OG 제목</label>
+                <label class="form-label" for="community_admin_boards_og_image_url">OG 이미지</label>
                 <div class="form-field">
-                    <input id="community_admin_boards_og_title" type="text" name="og_title" maxlength="160" value="<?php echo sr_e($boardField($formBoard, 'og_title')); ?>" class="form-input form-control-full">
-                    <?php echo $settingSourceRadioHtml('source_og_title', $boardSettingSource($formBoard, 'og_title')); ?>
-                </div>
-            </div>
-            <div class="form-row">
-                <label class="form-label" for="community_admin_boards_og_description">OG 설명</label>
-                <div class="form-field">
-                    <textarea id="community_admin_boards_og_description" name="og_description" rows="3" cols="60" maxlength="255" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'og_description')); ?></textarea>
-                    <?php echo $settingSourceRadioHtml('source_og_description', $boardSettingSource($formBoard, 'og_description')); ?>
-                </div>
-            </div>
-            <div class="form-row">
-                <label class="form-label" for="community_admin_boards_og_image_url">OG 이미지 URL</label>
-                <div class="form-field">
-                    <input id="community_admin_boards_og_image_url" type="url" name="og_image_url" maxlength="255" value="<?php echo sr_e($boardField($formBoard, 'og_image_url')); ?>" class="form-input form-control-full" placeholder="/storage/seo/example.webp">
+                    <input id="community_admin_boards_og_image_url" type="text" name="og_image_url" maxlength="255" value="<?php echo sr_e($boardField($formBoard, 'og_image_url')); ?>" class="form-input form-control-full" placeholder="/storage/seo/example.webp">
                     <?php echo $settingSourceRadioHtml('source_og_image_url', $boardSettingSource($formBoard, 'og_image_url')); ?>
-                    <p class="form-help">http(s) URL 또는 /로 시작하는 내부 경로만 사용할 수 있습니다. 게시글 지정 이미지가 없을 때 게시판 기본값으로 사용됩니다.</p>
+                    <p class="form-help">비워 두면 사이트 기본 OG 이미지를 사용합니다. http(s) URL 또는 /로 시작하는 내부 경로만 사용할 수 있습니다.</p>
+                    <input id="community_admin_boards_og_image_upload" type="file" name="og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input form-control-full">
+                    <?php if (function_exists('sr_seo_og_image_upload_max_bytes')) { ?>
+                        <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_seo_og_image_upload_max_bytes())); ?>.</p>
+                    <?php } ?>
                 </div>
             </div>
         </section>

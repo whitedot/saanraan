@@ -55,11 +55,19 @@ function sr_community_board_seo_values(PDO $pdo, array $board): array
 function sr_community_seo_og_from_values(array $values): array
 {
     $og = [];
-    if (trim((string) ($values['og_title'] ?? '')) !== '') {
-        $og['title'] = sr_community_seo_text((string) $values['og_title'], 120);
+    $title = trim((string) ($values['seo_title'] ?? ''));
+    if ($title === '') {
+        $title = trim((string) ($values['og_title'] ?? ''));
     }
-    if (trim((string) ($values['og_description'] ?? '')) !== '') {
-        $og['description'] = sr_community_seo_text((string) $values['og_description'], 200);
+    $description = trim((string) ($values['seo_description'] ?? ''));
+    if ($description === '') {
+        $description = trim((string) ($values['og_description'] ?? ''));
+    }
+    if ($title !== '') {
+        $og['title'] = sr_community_seo_text($title, 120);
+    }
+    if ($description !== '') {
+        $og['description'] = sr_community_seo_text($description, 200);
     }
     if (trim((string) ($values['og_image_url'] ?? '')) !== '') {
         $og['image'] = trim((string) $values['og_image_url']);
@@ -169,15 +177,15 @@ function sr_community_post_seo_meta(PDO $pdo, array $post, bool $bodyAllowed = t
         'robots' => $robots,
     ];
     $ogValues = [
-        'og_title' => trim((string) ($post['og_title'] ?? '')),
-        'og_description' => trim((string) ($post['og_description'] ?? '')),
+        'seo_title' => trim((string) ($post['og_title'] ?? '')),
+        'seo_description' => trim((string) ($post['og_description'] ?? '')),
         'og_image_url' => $bodyAllowed ? sr_community_post_og_image_url($pdo, $post) : '',
     ];
-    if ($ogValues['og_title'] === '') {
-        $ogValues['og_title'] = $seo['title'];
+    if ($ogValues['seo_title'] === '') {
+        $ogValues['seo_title'] = $seo['title'];
     }
-    if ($ogValues['og_description'] === '') {
-        $ogValues['og_description'] = $seo['description'];
+    if ($ogValues['seo_description'] === '') {
+        $ogValues['seo_description'] = $seo['description'];
     }
     $og = sr_community_seo_og_from_values($ogValues);
     if ($og !== []) {

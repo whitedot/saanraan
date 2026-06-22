@@ -949,13 +949,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
             </div>
             <div class="form-field">
-                <label class="form-label" for="survey_cover_image_url">커버 이미지 URL</label>
+                <label class="form-label" for="survey_cover_image_url">대표/OG 이미지</label>
                 <input id="survey_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
-                <p class="form-help">공개 설문 목록과 상세 화면 상단, 공유 이미지에 사용할 이미지 URL입니다.</p>
+                <p class="form-help">공개 설문 목록, 상세 화면 상단, 공유 미리보기에서 사용합니다. 비워 두면 공유 미리보기에는 사이트 기본 OG 이미지를 사용합니다.</p>
                 <input id="survey_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
                 <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_survey_cover_image_upload_max_bytes())); ?>.</p>
                 <?php if (sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
-                    <?php echo sr_admin_checkbox_toggle_html('survey_cover_image_delete', 'cover_image_delete', '1', false, '현재 커버 이미지 삭제'); ?>
+                    <?php echo sr_admin_checkbox_toggle_html('survey_cover_image_delete', 'cover_image_delete', '1', false, '현재 대표/OG 이미지 삭제'); ?>
                 <?php } ?>
             </div>
             <div class="form-field">

@@ -34,7 +34,7 @@ if (sr_is_http_url($defaultOgImage)) {
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="seo_admin_settings_default_og_image_upload"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
+            <label class="form-label" for="seo_admin_settings_default_og_image"><?php echo sr_e(sr_t('seo::ui.og.url.14dbf393')); ?></label>
             <div class="form-field">
                 <?php if ($defaultOgImageUrl !== '') { ?>
                     <div class="seo-og-image-current">
@@ -48,6 +48,8 @@ if (sr_is_http_url($defaultOgImage)) {
                         </div>
                     </div>
                 <?php } ?>
+                <input id="seo_admin_settings_default_og_image" type="text" name="default_og_image" value="<?php echo sr_e($defaultOgImage); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                <p class="form-help">각 화면에 별도 OG 이미지가 없을 때 사용할 기본 이미지입니다.</p>
                 <input id="seo_admin_settings_default_og_image_upload" type="file" name="default_og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
                 <p class="form-help"><?php echo sr_e(sr_t('seo::ui.og.upload.help.80d2d781')); ?> <?php echo sr_e(sr_seo_format_bytes(sr_seo_og_image_upload_max_bytes())); ?><?php echo sr_e(sr_t('seo::ui.og.upload.help.suffix.1a055fd3')); ?></p>
             </div>

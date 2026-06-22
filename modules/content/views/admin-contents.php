@@ -468,11 +468,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_admin_contents_cover_image_url">커버 이미지</label>
+                <label class="form-label" for="content_admin_contents_cover_image_url">대표/OG 이미지</label>
                 <div class="form-field">
                     <?php if ($contentCoverImageUrl !== '') { ?>
                         <div class="admin-content-cover-preview">
-                            <?php echo sr_content_cover_image_html(['cover_image_url' => $contentCoverImageUrl, 'title' => (string) ($values['title'] ?? '')], 'admin-content-cover-preview-image', '커버 이미지'); ?>
+                            <?php echo sr_content_cover_image_html(['cover_image_url' => $contentCoverImageUrl, 'title' => (string) ($values['title'] ?? '')], 'admin-content-cover-preview-image', '대표/OG 이미지'); ?>
                         </div>
                     <?php } ?>
                     <div class="admin-content-cover-inputs">
@@ -486,9 +486,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <?php if ($contentCoverImageUrl !== '') { ?>
-                        <?php echo sr_admin_checkbox_toggle_html('content_admin_contents_cover_image_delete', 'cover_image_delete', '1', (int) ($values['cover_image_delete'] ?? 0) === 1, '현재 커버 이미지 삭제'); ?>
+                        <?php echo sr_admin_checkbox_toggle_html('content_admin_contents_cover_image_delete', 'cover_image_delete', '1', (int) ($values['cover_image_delete'] ?? 0) === 1, '현재 대표/OG 이미지 삭제'); ?>
                     <?php } ?>
-                    <p class="form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
+                    <p class="form-help">홈, 목록, 상세 공유 미리보기에서 사용합니다. 비워 두면 공유 미리보기에는 사이트 기본 OG 이미지를 사용합니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
                 </div>
             </div>
             <div class="form-row">

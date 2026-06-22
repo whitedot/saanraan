@@ -5,6 +5,9 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (is_file(SR_ROOT . '/modules/seo/helpers.php')) {
+    require_once SR_ROOT . '/modules/seo/helpers.php';
+}
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
@@ -528,10 +531,12 @@ if (sr_request_method() === 'POST') {
         $boardSeoValues = [
             'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
             'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
-            'og_title' => sr_community_seo_text(sr_post_string('og_title', 160), 160),
-            'og_description' => sr_community_seo_text(sr_post_string('og_description', 255), 255),
+            'og_title' => '',
+            'og_description' => '',
             'og_image_url' => trim(sr_post_string('og_image_url', 255)),
         ];
+        $boardOgImageUploadFile = $_FILES['og_image_upload'] ?? null;
+        $boardOgImageUploadProvided = function_exists('sr_seo_og_image_upload_was_provided') && sr_seo_og_image_upload_was_provided($boardOgImageUploadFile);
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
@@ -797,8 +802,8 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        if ($boardSeoValues['og_image_url'] !== '' && !sr_is_http_url($boardSeoValues['og_image_url']) && !sr_is_safe_relative_url($boardSeoValues['og_image_url'])) {
-            $errors[] = '게시판 OG 이미지 URL은 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
+        if (!$boardOgImageUploadProvided && $boardSeoValues['og_image_url'] !== '' && !sr_is_http_url($boardSeoValues['og_image_url']) && !sr_is_safe_relative_url($boardSeoValues['og_image_url'])) {
+            $errors[] = '게시판 OG 이미지는 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
         }
 
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
@@ -900,6 +905,19 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_key_duplicate');
+        }
+
+        if ($errors === [] && $boardOgImageUploadProvided) {
+            if (!is_array($boardOgImageUploadFile) || !function_exists('sr_seo_upload_og_image')) {
+                $errors[] = '업로드할 게시판 OG 이미지를 확인할 수 없습니다.';
+            } else {
+                try {
+                    $uploadedBoardOgImage = sr_seo_upload_og_image($boardOgImageUploadFile);
+                    $boardSeoValues['og_image_url'] = sr_community_seo_text((string) ($uploadedBoardOgImage['public_url'] ?? ''), 255);
+                } catch (Throwable $exception) {
+                    $errors[] = $exception->getMessage();
+                }
+            }
         }
 
         if ($errors === []) {

@@ -20,7 +20,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/seo', 'edit');
 
-    $existingDefaultOgImage = (string) ($settings['default_og_image'] ?? '');
+    $postedDefaultOgImage = sr_seo_clean_single_line(sr_post_string('default_og_image', 255), 255);
     $ogImageUploadFile = $_FILES['default_og_image_upload'] ?? null;
     $ogImageUploadProvided = sr_seo_og_image_upload_was_provided($ogImageUploadFile);
     $deleteDefaultOgImage = ($_POST['delete_default_og_image'] ?? '') === '1';
@@ -28,7 +28,7 @@ if (sr_request_method() === 'POST') {
     $settings = [
         'title_suffix' => sr_seo_clean_single_line(sr_post_string('title_suffix', 80), 80),
         'default_description' => sr_seo_clean_single_line(sr_post_string('default_description', 255), 255),
-        'default_og_image' => $deleteDefaultOgImage ? '' : sr_seo_clean_single_line($existingDefaultOgImage, 255),
+        'default_og_image' => $deleteDefaultOgImage ? '' : $postedDefaultOgImage,
         'sitemap_include_home' => ($_POST['sitemap_include_home'] ?? '') === '1',
         'robots_disallow_paths' => sr_seo_clean_textarea(sr_post_string('robots_disallow_paths', 2000), 2000),
     ];
@@ -62,7 +62,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($settings['default_og_image'] !== '' && !sr_is_http_url($settings['default_og_image']) && !sr_is_safe_relative_url($settings['default_og_image'])) {
-        $errors[] = '기본 OG 이미지는 업로드된 이미지 경로만 저장할 수 있습니다.';
+        $errors[] = '기본 OG 이미지는 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
     }
 
     if ($errors === []) {
