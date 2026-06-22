@@ -12,9 +12,26 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', 'edit'
 $availableTargets = sr_banner_available_targets($pdo);
 $allowedTypes = sr_banner_subject_search_types($pdo, $availableTargets);
 $referenceType = sr_get_string('reference_type', 60);
+$limitInput = (int) sr_get_string('limit', 5);
+$limit = $limitInput > 0 ? max(1, min(30, $limitInput)) : 20;
+$options = [
+    'cursor' => sr_get_string('cursor', 40),
+    'board_id' => sr_get_string('board_id', 40),
+    'status' => sr_get_string('status', 30),
+    'response' => 'cursor',
+];
+$result = array_key_exists($referenceType, $allowedTypes)
+    ? sr_banner_subject_search($pdo, $referenceType, sr_get_string('q', 120), $limit, $options)
+    : [];
 
-sr_json_response([
-    'items' => array_key_exists($referenceType, $allowedTypes)
-        ? sr_banner_subject_search($pdo, $referenceType, sr_get_string('q', 120), 20)
-        : [],
-]);
+if (!isset($result['items']) || !is_array($result['items'])) {
+    $result = [
+        'items' => is_array($result) ? $result : [],
+        'next_cursor' => null,
+        'has_more' => false,
+        'limit' => $limit,
+        'notice' => '',
+    ];
+}
+
+sr_json_response($result);

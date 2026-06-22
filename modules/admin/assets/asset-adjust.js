@@ -78,6 +78,10 @@
         }
 
         var params = new URLSearchParams(new FormData(form));
+        var cursor = form.getAttribute('data-admin-reference-cursor') || '';
+        if (cursor) {
+            params.set('cursor', cursor);
+        }
         return endpoint + (endpoint.indexOf('?') === -1 ? '?' : '&') + params.toString();
     }
 
@@ -143,20 +147,33 @@
         results.appendChild(list);
     }
 
-    function renderReferenceResults(form, items) {
+    function renderReferenceResults(form, payload, append) {
+        var items = Array.isArray(payload) ? payload : (Array.isArray(payload.items) ? payload.items : []);
         var results = document.querySelector(form.getAttribute('data-results'));
         if (!results) {
             return;
         }
 
-        if (!items.length) {
+        if (!append && !items.length) {
             renderEmpty(results, '검색된 참조가 없습니다.');
+            if (payload && payload.notice) {
+                renderNotice(results, payload.notice);
+            }
             return;
         }
 
-        clearNode(results);
-        var list = document.createElement('div');
-        list.className = 'admin-lookup-results-list';
+        if (!append) {
+            clearNode(results);
+        }
+        if (payload && payload.notice && !append) {
+            renderNotice(results, payload.notice);
+        }
+        var list = append ? results.querySelector('.admin-lookup-results-list') : null;
+        if (!list) {
+            list = document.createElement('div');
+            list.className = 'admin-lookup-results-list';
+            results.appendChild(list);
+        }
         items.forEach(function (item) {
             var button = document.createElement('button');
             button.type = 'button';
@@ -177,15 +194,53 @@
                 item.member_email || '',
                 item.created_at || ''
             ]);
+            button.setAttribute('data-reference-summary', [
+                title.textContent,
+                item.reason || '',
+                item.member_name || '',
+                item.member_email || '',
+                item.created_at || ''
+            ].filter(Boolean).join(' / '));
             list.appendChild(button);
         });
-        results.appendChild(list);
+        var oldMore = results.querySelector('[data-admin-reference-more]');
+        if (oldMore) {
+            oldMore.remove();
+        }
+        if (payload && payload.has_more && payload.next_cursor) {
+            form.setAttribute('data-admin-reference-cursor-next', payload.next_cursor);
+            var more = document.createElement('button');
+            more.type = 'button';
+            more.className = 'btn btn-solid-light admin-lookup-more';
+            more.setAttribute('data-admin-reference-more', 'true');
+            more.textContent = '더 보기';
+            results.appendChild(more);
+        } else {
+            form.removeAttribute('data-admin-reference-cursor-next');
+        }
     }
 
-    function runSearch(form, render) {
+    function renderNotice(results, message) {
+        var paragraph = document.createElement('p');
+        paragraph.className = 'admin-empty-state admin-lookup-empty';
+        paragraph.textContent = message;
+        results.appendChild(paragraph);
+    }
+
+    function runSearch(form, render, append) {
         var results = document.querySelector(form.getAttribute('data-results'));
-        if (results) {
+        if (!append) {
+            form.removeAttribute('data-admin-reference-cursor');
+        }
+        if (results && !append) {
             renderEmpty(results, '검색 중입니다.');
+        }
+        if (results && append) {
+            var more = results.querySelector('[data-admin-reference-more]');
+            if (more) {
+                more.disabled = true;
+                more.textContent = '불러오는 중입니다.';
+            }
         }
 
         var url = endpointUrl(form);
@@ -203,7 +258,7 @@
             }
             return response.json();
         }).then(function (payload) {
-            render(form, Array.isArray(payload.items) ? payload.items : []);
+            render(form, render === renderReferenceResults ? payload : (Array.isArray(payload.items) ? payload.items : []), !!append);
         }).catch(function () {
             renderError(results);
         });
@@ -234,9 +289,28 @@
         document.querySelectorAll('[data-admin-reference-pair]').forEach(syncReferencePair);
     }
 
+    function syncReferenceFilters(form) {
+        var typeSelect = form ? form.querySelector('select[name="reference_type"]') : null;
+        if (!typeSelect) {
+            return;
+        }
+        var communityPost = typeSelect.value === 'community_post';
+        form.querySelectorAll('[data-admin-community-post-filter]').forEach(function (control) {
+            control.disabled = !communityPost;
+            control.hidden = !communityPost;
+            if (!communityPost) {
+                control.value = '';
+            }
+        });
+    }
+
     document.addEventListener('change', function (event) {
         var control = closest(event.target, '[data-admin-reference-type], [data-admin-reference-id]');
         if (!control) {
+            var referenceSearchForm = closest(event.target, REFERENCE_FORM_SELECTOR);
+            if (referenceSearchForm) {
+                syncReferenceFilters(referenceSearchForm);
+            }
             return;
         }
 
@@ -260,6 +334,7 @@
 
     document.addEventListener('DOMContentLoaded', syncAllReferencePairs);
     syncAllReferencePairs();
+    document.querySelectorAll(REFERENCE_FORM_SELECTOR).forEach(syncReferenceFilters);
 
     document.addEventListener('submit', function (event) {
         var memberForm = closest(event.target, MEMBER_FORM_SELECTOR);
@@ -272,7 +347,8 @@
         var referenceForm = closest(event.target, REFERENCE_FORM_SELECTOR);
         if (referenceForm) {
             event.preventDefault();
-            runSearch(referenceForm, renderReferenceResults);
+            referenceForm.removeAttribute('data-admin-reference-cursor');
+            runSearch(referenceForm, renderReferenceResults, false);
         }
     });
 
@@ -294,6 +370,7 @@
             event.preventDefault();
             var typeTarget = document.querySelector(referenceApply.getAttribute('data-type-target') || '');
             var idTarget = document.querySelector(referenceApply.getAttribute('data-id-target') || '');
+            var summaryTarget = document.querySelector(referenceApply.getAttribute('data-summary-target') || '');
             if (typeTarget) {
                 typeTarget.value = referenceApply.getAttribute('data-reference-type') || '';
                 typeTarget.dispatchEvent(new Event('change', { bubbles: true }));
@@ -302,7 +379,22 @@
                 idTarget.value = referenceApply.getAttribute('data-reference-id') || '';
                 idTarget.dispatchEvent(new Event('change', { bubbles: true }));
             }
+            if (summaryTarget) {
+                summaryTarget.textContent = referenceApply.getAttribute('data-reference-summary') || '';
+                summaryTarget.hidden = summaryTarget.textContent === '';
+            }
             returnToOverlay(referenceApply.closest('.overlay'));
+            return;
+        }
+
+        var referenceMore = closest(event.target, '[data-admin-reference-more]');
+        if (referenceMore) {
+            event.preventDefault();
+            var moreForm = closest(referenceMore, '.modal-body') ? closest(referenceMore, '.modal-body').querySelector(REFERENCE_FORM_SELECTOR) : null;
+            if (moreForm) {
+                moreForm.setAttribute('data-admin-reference-cursor', moreForm.getAttribute('data-admin-reference-cursor-next') || '');
+                runSearch(moreForm, renderReferenceResults, true);
+            }
             return;
         }
 
@@ -342,6 +434,13 @@
                 var modalQuery = referenceModal.querySelector('input[name="q"]');
                 if (modalType && referenceType) {
                     modalType.value = referenceType.value;
+                }
+                var modalForm = referenceModal.querySelector(REFERENCE_FORM_SELECTOR);
+                if (modalForm) {
+                    modalForm.setAttribute('data-summary-target', referenceOpen.getAttribute('data-summary-target') || '');
+                    modalForm.removeAttribute('data-admin-reference-cursor');
+                    modalForm.removeAttribute('data-admin-reference-cursor-next');
+                    syncReferenceFilters(modalForm);
                 }
                 if (modalQuery && referenceId && modalQuery.value === '') {
                     modalQuery.value = referenceId.value;

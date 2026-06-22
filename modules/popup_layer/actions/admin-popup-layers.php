@@ -350,11 +350,19 @@ if (sr_request_method() === 'POST') {
         }
 
         if (!$isPublicPopupLayer && $matchType === 'exact') {
-            if (sr_popup_layer_subject_target_type_for_target($target) === '') {
+            $subjectTargetType = sr_popup_layer_subject_target_type_for_target($target);
+            if ($subjectTargetType === '') {
                 $errors[] = '대상 선택을 지원하는 노출위치를 선택하세요.';
             }
             if ($subjectId === '') {
                 $errors[] = '대상을 선택해야 합니다.';
+            } elseif ($subjectTargetType !== '') {
+                $subjectHealth = sr_popup_layer_subject_health($pdo, $subjectTargetType, $subjectId);
+                if (!in_array((string) ($subjectHealth['status'] ?? ''), ['ok', 'disabled_target'], true)) {
+                    $errors[] = (string) ($subjectHealth['message'] ?? '') !== '' ? (string) $subjectHealth['message'] : '선택한 대상을 찾을 수 없습니다.';
+                } elseif ((string) ($subjectHealth['policy_status'] ?? '') === 'deleted') {
+                    $errors[] = '삭제된 대상은 선택할 수 없습니다.';
+                }
             }
         }
 

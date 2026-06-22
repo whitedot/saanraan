@@ -374,8 +374,21 @@ if (sr_request_method() === 'POST') {
         if (!in_array($matchType, $allowedMatchTypes, true)) {
             $errors[] = '매칭 방식이 올바르지 않습니다.';
         }
-        if (!$isPublicBanner && $matchType === 'exact' && $subjectId === '') {
-            $errors[] = '노출 대상 번호를 입력하세요.';
+        if (!$isPublicBanner && $matchType === 'exact') {
+            $subjectTargetType = sr_banner_subject_target_type_for_target($target);
+            if ($subjectTargetType === '') {
+                $errors[] = '대상 선택을 지원하는 노출 위치를 선택하세요.';
+            }
+            if ($subjectId === '') {
+                $errors[] = '노출 대상 번호를 입력하세요.';
+            } elseif ($subjectTargetType !== '') {
+                $subjectHealth = sr_banner_subject_health($pdo, $subjectTargetType, $subjectId);
+                if (!in_array((string) ($subjectHealth['status'] ?? ''), ['ok', 'disabled_target'], true)) {
+                    $errors[] = (string) ($subjectHealth['message'] ?? '') !== '' ? (string) $subjectHealth['message'] : '선택한 노출 대상을 찾을 수 없습니다.';
+                } elseif ((string) ($subjectHealth['policy_status'] ?? '') === 'deleted') {
+                    $errors[] = '삭제된 노출 대상은 선택할 수 없습니다.';
+                }
+            }
         }
         if (($isPublicBanner || $target !== null) && !sr_banner_skin_supports($skinKey, sr_banner_target_placement_kind($target, $isPublicBanner))) {
             $errors[] = '선택한 배너 스킨은 노출 위치와 호환되지 않습니다.';

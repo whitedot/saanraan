@@ -266,7 +266,7 @@ function sr_popup_layer_subject_target_type_map(PDO $pdo, array $availableTarget
     return $map;
 }
 
-function sr_popup_layer_subject_search(PDO $pdo, string $referenceType, string $keyword, int $limit = 20): array
+function sr_popup_layer_subject_search(PDO $pdo, string $referenceType, string $keyword, int $limit = 20, array $options = []): array
 {
     $contracts = sr_popup_layer_subject_target_contracts($pdo);
     $target = $contracts[$referenceType] ?? null;
@@ -276,11 +276,32 @@ function sr_popup_layer_subject_search(PDO $pdo, string $referenceType, string $
     }
 
     try {
-        $results = $searchFunction($pdo, $referenceType, sr_popup_layer_clean_single_line($keyword, 120), max(1, min(30, $limit)));
+        $reflection = new ReflectionFunction($searchFunction);
+        $results = $reflection->getNumberOfParameters() >= 5
+            ? $searchFunction($pdo, $referenceType, sr_popup_layer_clean_single_line($keyword, 120), max(1, min(30, $limit)), $options)
+            : $searchFunction($pdo, $referenceType, sr_popup_layer_clean_single_line($keyword, 120), max(1, min(30, $limit)));
         return is_array($results) ? $results : [];
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'popup_layer_subject_search_' . $referenceType);
         return [];
+    }
+}
+
+function sr_popup_layer_subject_health(PDO $pdo, string $referenceType, string $subjectId): array
+{
+    $contracts = sr_popup_layer_subject_target_contracts($pdo);
+    $target = $contracts[$referenceType] ?? null;
+    $healthFunction = is_array($target) ? (string) ($target['health_function'] ?? '') : '';
+    if ($healthFunction === '' || !function_exists($healthFunction)) {
+        return ['status' => 'unknown', 'message' => '대상 검증 계약을 찾을 수 없습니다.'];
+    }
+
+    try {
+        $result = $healthFunction($pdo, $referenceType, $subjectId);
+        return is_array($result) ? $result : ['status' => 'unknown', 'message' => '대상 검증 결과가 올바르지 않습니다.'];
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'popup_layer_subject_health_' . $referenceType);
+        return ['status' => 'unknown', 'message' => '대상 검증 중 오류가 발생했습니다.'];
     }
 }
 

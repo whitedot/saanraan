@@ -25,7 +25,7 @@ require_once SR_ROOT . '/modules/community/helpers/board-managers.php';
 require_once SR_ROOT . '/modules/community/helpers/privacy-consents.php';
 require_once SR_ROOT . '/modules/embed_manager/helpers.php';
 
-function sr_community_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array
+function sr_community_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20, array $options = []): array
 {
     $keyword = trim(preg_replace('/\s+/', ' ', $keyword) ?? '');
     $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
@@ -59,7 +59,18 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
     }
 
     if ($targetType === 'community_post') {
-        $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+        if (($options['cursor'] ?? null) !== null || ($options['board_id'] ?? null) !== null || ($options['status'] ?? null) !== null || array_key_exists('response', $options)) {
+            return sr_community_post_target_lookup($pdo, $keyword, $limit, $options);
+        }
+
+        if ($keyword !== '' && preg_match('/\A[1-9][0-9]*\z/', $keyword) !== 1) {
+            $textLength = function_exists('mb_strlen') ? mb_strlen($keyword) : strlen($keyword);
+            if ($textLength < 2) {
+                return [];
+            }
+        }
+
+        $where = $keyword === '' ? 'p.status <> \'deleted\'' : "(p.id = :id OR (p.status <> 'deleted' AND p.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status <> 'deleted' AND b.title LIKE :keyword_like ESCAPE '\\\\') OR (p.status <> 'deleted' AND b.board_key LIKE :keyword_like ESCAPE '\\\\'))";
         $stmt = $pdo->prepare(
             'SELECT p.id, p.title, p.status, p.updated_at, b.title AS board_title, b.board_key
              FROM sr_community_posts p
@@ -84,6 +95,110 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
     }
 
     return [];
+}
+
+function sr_community_post_target_lookup(PDO $pdo, string $keyword, int $limit = 20, array $options = []): array
+{
+    $keyword = trim(preg_replace('/\s+/', ' ', $keyword) ?? '');
+    $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
+    $limit = max(1, min(30, $limit));
+    $cursor = max(0, (int) ($options['cursor'] ?? 0));
+    $boardId = max(0, (int) ($options['board_id'] ?? 0));
+    $status = (string) ($options['status'] ?? '');
+    $allowedStatuses = function_exists('sr_community_post_statuses') ? sr_community_post_statuses() : ['published', 'hidden', 'deleted', 'pending'];
+    if (!in_array($status, $allowedStatuses, true)) {
+        $status = '';
+    }
+
+    $conditions = [];
+    $params = [];
+    $notice = '';
+    $idValue = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
+
+    if ($idValue > 0) {
+        $conditions[] = 'p.id = :id';
+        $params['id'] = $idValue;
+        if ($boardId > 0) {
+            $conditions[] = 'p.board_id = :board_id';
+            $params['board_id'] = $boardId;
+        }
+        if ($status !== '') {
+            $conditions[] = 'p.status = :status';
+            $params['status'] = $status;
+        } else {
+            $conditions[] = "p.status <> 'deleted'";
+        }
+    } else {
+        if ($cursor > 0) {
+            $conditions[] = 'p.id < :cursor';
+            $params['cursor'] = $cursor;
+        }
+        if ($boardId > 0) {
+            $conditions[] = 'p.board_id = :board_id';
+            $params['board_id'] = $boardId;
+        }
+        if ($status !== '') {
+            $conditions[] = 'p.status = :status';
+            $params['status'] = $status;
+        } else {
+            $conditions[] = "p.status <> 'deleted'";
+        }
+        if ($keyword !== '') {
+            $textLength = function_exists('mb_strlen') ? mb_strlen($keyword) : strlen($keyword);
+            if ($textLength < 2) {
+                return [
+                    'items' => [],
+                    'next_cursor' => null,
+                    'has_more' => false,
+                    'limit' => $limit,
+                    'notice' => '텍스트 검색은 2자 이상 입력해 주세요.',
+                ];
+            }
+            $conditions[] = "p.title LIKE :keyword_like ESCAPE '\\\\'";
+            $params['keyword_like'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+            if ($boardId <= 0) {
+                $notice = '게시판을 선택하면 더 좁은 범위에서 검색할 수 있습니다.';
+            }
+        }
+    }
+
+    $fetchLimit = $limit + 1;
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.title, p.status, p.updated_at, b.title AS board_title, b.board_key
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE ' . implode(' AND ', $conditions) . '
+         ORDER BY p.id DESC
+         LIMIT ' . $fetchLimit
+    );
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+    $hasMore = count($rows) > $limit;
+    if ($hasMore) {
+        array_pop($rows);
+    }
+
+    $items = array_map(static function (array $row): array {
+        return [
+            'reference_type' => 'community_post',
+            'reference_id' => (string) (int) ($row['id'] ?? 0),
+            'title' => (string) ($row['title'] ?? ''),
+            'reason' => '게시글 #' . (string) (int) ($row['id'] ?? 0),
+            'member_name' => '게시판: ' . (string) ($row['board_title'] ?? ''),
+            'member_email' => '(' . (string) ($row['board_key'] ?? '') . ')',
+            'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
+        ];
+    }, $rows);
+
+    $lastItem = $items[count($items) - 1] ?? null;
+
+    return [
+        'items' => $items,
+        'next_cursor' => $hasMore && is_array($lastItem) ? (string) ($lastItem['reference_id'] ?? '') : null,
+        'has_more' => $hasMore,
+        'limit' => $limit,
+        'notice' => $notice,
+    ];
 }
 
 function sr_community_coupon_revoke_access(PDO $pdo, int $accountId, string $dedupeKey): int

@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     KEY idx_sr_community_posts_author_id (author_account_id, id),
     KEY idx_sr_community_posts_guest_ip_id (guest_ip_hash, id),
     KEY idx_sr_community_posts_og_image_attachment (og_image_attachment_id),
+    KEY idx_sr_community_posts_status_id (status, id),
     KEY idx_sr_community_posts_status_updated (status, updated_at)
 );
 

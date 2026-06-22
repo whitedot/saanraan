@@ -43,6 +43,12 @@ if ($selectedTargetServiceKey === '') {
 $subjectRequired = !sr_popup_layer_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 $popupLayerSubjectTargetTypeMap = sr_popup_layer_subject_target_type_map($pdo, $availableTargets);
 $popupLayerSubjectSearchTypes = sr_popup_layer_subject_search_types($pdo, $availableTargets);
+$popupLayerCommunityPostBoards = [];
+$popupLayerCommunityPostStatuses = function_exists('sr_community_post_statuses') ? sr_community_post_statuses() : [];
+if (isset($popupLayerSubjectSearchTypes['community_post'])) {
+    $stmt = $pdo->query('SELECT id, title, board_key FROM sr_community_boards ORDER BY title ASC, id DESC');
+    $popupLayerCommunityPostBoards = $stmt->fetchAll();
+}
 $currentSubjectTargetType = (string) ($popupLayerSubjectTargetTypeMap[$selectedTargetOption] ?? '');
 $popupLayerSubjectSearchEnabled = $currentSubjectTargetType !== '';
 if (sr_popup_layer_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
@@ -57,6 +63,10 @@ $popupLayerMatchTypeOptions = [
 ];
 $popupLayerSubjectLookupModalId = 'popup-layer-subject-lookup-modal';
 $popupLayerSubjectLookupResultsId = 'popup-layer-subject-lookup-results';
+$popupLayerSubjectSummaryId = 'popup-layer-subject-summary';
+$popupLayerCurrentSubjectSummary = $editing && (string) ($editPopup['subject_id'] ?? '') !== ''
+    ? (string) ($currentSubjectTargetType !== '' ? $currentSubjectTargetType : '대상') . ' #' . (string) ($editPopup['subject_id'] ?? '')
+    : '';
 $popupLayerHelpOpenLabel = sr_t('popup_layer::help.open');
 $popupLayerHelpButtonHtml = static function (string $label, string $modalId) use ($popupLayerHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $popupLayerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -244,9 +254,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <div class="admin-lookup-control">
                             <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id data-validation-message="대상을 선택해 주세요." readonly<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
-                            <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-popup-layer-subject-search-button data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id"<?php echo $popupLayerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e('대상 검색'); ?></button>
+                            <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-popup-layer-subject-search-button data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id" data-summary-target="#<?php echo sr_e($popupLayerSubjectSummaryId); ?>"<?php echo $popupLayerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e('대상 검색'); ?></button>
                         </div>
                         <input id="popup_layer_admin_popup_layers_subject_reference_type" type="hidden" name="subject_reference_type" value="<?php echo sr_e($currentSubjectTargetType); ?>" data-admin-subject-reference-type>
+                        <p id="<?php echo sr_e($popupLayerSubjectSummaryId); ?>" class="form-help"<?php echo $popupLayerCurrentSubjectSummary !== '' ? '' : ' hidden'; ?>><?php echo sr_e($popupLayerCurrentSubjectSummary); ?></p>
                         <p class="form-help"><?php echo sr_e('선택한 노출위치 안에서 특정 대상에만 팝업을 띄울 때 사용합니다.'); ?></p>
                     </div>
                 </div>
@@ -569,12 +580,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/popup-layers/subject-search')); ?>" data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id" data-results="#<?php echo sr_e($popupLayerSubjectLookupResultsId); ?>">
+                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/popup-layers/subject-search')); ?>" data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id" data-summary-target="#<?php echo sr_e($popupLayerSubjectSummaryId); ?>" data-results="#<?php echo sr_e($popupLayerSubjectLookupResultsId); ?>">
                         <select name="reference_type" class="form-select" aria-label="<?php echo sr_e('대상 유형'); ?>">
                             <?php foreach ($popupLayerSubjectSearchTypes as $targetType => $targetLabel) { ?>
                                 <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetLabel); ?></option>
                             <?php } ?>
                         </select>
+                        <select name="board_id" class="form-select" aria-label="<?php echo sr_e('게시판 필터'); ?>" data-admin-community-post-filter>
+                            <option value=""><?php echo sr_e('전체 게시판'); ?></option>
+                            <?php foreach ($popupLayerCommunityPostBoards as $board) { ?>
+                                <option value="<?php echo sr_e((string) (int) ($board['id'] ?? 0)); ?>"><?php echo sr_e((string) ($board['title'] ?? '') . ' (' . (string) ($board['board_key'] ?? '') . ')'); ?></option>
+                            <?php } ?>
+                        </select>
+                        <select name="status" class="form-select" aria-label="<?php echo sr_e('상태 필터'); ?>" data-admin-community-post-filter>
+                            <option value=""><?php echo sr_e('삭제 제외'); ?></option>
+                            <?php foreach ($popupLayerCommunityPostStatuses as $statusOption) { ?>
+                                <option value="<?php echo sr_e((string) $statusOption); ?>"><?php echo sr_e(sr_admin_code_label((string) $statusOption, 'content_status')); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="hidden" name="limit" value="20">
                         <input type="text" name="q" maxlength="120" class="form-input" placeholder="<?php echo sr_e('제목이나 ID로 검색'); ?>" data-overlay-focus>
                         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('popup_layer::ui.search.4b8d541e')); ?></button>
                     </form>

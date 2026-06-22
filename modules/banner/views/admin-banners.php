@@ -33,6 +33,12 @@ if (!in_array($currentMatchType, ['all', 'exact'], true)) {
 }
 $bannerSubjectTargetTypeMap = sr_banner_subject_target_type_map($pdo, $availableTargets);
 $bannerSubjectSearchTypes = sr_banner_subject_search_types($pdo, $availableTargets);
+$bannerCommunityPostBoards = [];
+$bannerCommunityPostStatuses = function_exists('sr_community_post_statuses') ? sr_community_post_statuses() : [];
+if (isset($bannerSubjectSearchTypes['community_post'])) {
+    $stmt = $pdo->query('SELECT id, title, board_key FROM sr_community_boards ORDER BY title ASC, id DESC');
+    $bannerCommunityPostBoards = $stmt->fetchAll();
+}
 $currentSubjectTargetType = (string) ($bannerSubjectTargetTypeMap[$selectedTargetOption] ?? '');
 $bannerSubjectSearchEnabled = $currentSubjectTargetType !== '';
 if (sr_banner_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
@@ -51,6 +57,10 @@ if ($editing && (string) ($editBanner['content_type'] ?? '') === '' && sr_banner
 }
 $bannerSubjectLookupModalId = 'banner-subject-lookup-modal';
 $bannerSubjectLookupResultsId = 'banner-subject-lookup-results';
+$bannerSubjectSummaryId = 'banner-subject-summary';
+$bannerCurrentSubjectSummary = $editing && (string) ($editBanner['subject_id'] ?? '') !== ''
+    ? (string) ($currentSubjectTargetType !== '' ? $currentSubjectTargetType : '대상') . ' #' . (string) ($editBanner['subject_id'] ?? '')
+    : '';
 $bannerHelpOpenLabel = sr_t('banner::help.open');
 $bannerHelpButtonHtml = static function (string $label, string $modalId) use ($bannerHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $bannerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -287,9 +297,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <div class="admin-lookup-control">
                         <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id data-validation-message="대상 ID를 입력해 주세요."<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
-                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-banner-subject-search-button data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id"<?php echo $bannerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e(sr_t('banner::ui.subject_target.search')); ?></button>
+                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-banner-subject-search-button data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id" data-summary-target="#<?php echo sr_e($bannerSubjectSummaryId); ?>"<?php echo $bannerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e(sr_t('banner::ui.subject_target.search')); ?></button>
                     </div>
                     <input id="banner_admin_banners_subject_reference_type" type="hidden" name="subject_reference_type" value="<?php echo sr_e($currentSubjectTargetType); ?>" data-admin-subject-reference-type>
+                    <p id="<?php echo sr_e($bannerSubjectSummaryId); ?>" class="form-help"<?php echo $bannerCurrentSubjectSummary !== '' ? '' : ' hidden'; ?>><?php echo sr_e($bannerCurrentSubjectSummary); ?></p>
                     <p class="form-help"><?php echo sr_e(sr_t('banner::ui.subject_target.subject_help')); ?></p>
                 </div>
             </div>
@@ -646,12 +657,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/banners/subject-search')); ?>" data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id" data-results="#<?php echo sr_e($bannerSubjectLookupResultsId); ?>">
+                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/banners/subject-search')); ?>" data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id" data-summary-target="#<?php echo sr_e($bannerSubjectSummaryId); ?>" data-results="#<?php echo sr_e($bannerSubjectLookupResultsId); ?>">
                         <select name="reference_type" class="form-select" aria-label="<?php echo sr_e(sr_t('banner::ui.subject_target.search_type')); ?>">
                             <?php foreach ($bannerSubjectSearchTypes as $targetType => $targetLabel) { ?>
                                 <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetLabel); ?></option>
                             <?php } ?>
                         </select>
+                        <select name="board_id" class="form-select" aria-label="<?php echo sr_e('게시판 필터'); ?>" data-admin-community-post-filter>
+                            <option value=""><?php echo sr_e('전체 게시판'); ?></option>
+                            <?php foreach ($bannerCommunityPostBoards as $board) { ?>
+                                <option value="<?php echo sr_e((string) (int) ($board['id'] ?? 0)); ?>"><?php echo sr_e((string) ($board['title'] ?? '') . ' (' . (string) ($board['board_key'] ?? '') . ')'); ?></option>
+                            <?php } ?>
+                        </select>
+                        <select name="status" class="form-select" aria-label="<?php echo sr_e('상태 필터'); ?>" data-admin-community-post-filter>
+                            <option value=""><?php echo sr_e('삭제 제외'); ?></option>
+                            <?php foreach ($bannerCommunityPostStatuses as $statusOption) { ?>
+                                <option value="<?php echo sr_e((string) $statusOption); ?>"><?php echo sr_e(sr_admin_code_label((string) $statusOption, 'content_status')); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="hidden" name="limit" value="20">
                         <input type="text" name="q" maxlength="120" class="form-input" placeholder="<?php echo sr_e(sr_t('banner::ui.subject_target.search_placeholder')); ?>" data-overlay-focus>
                         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
                     </form>
