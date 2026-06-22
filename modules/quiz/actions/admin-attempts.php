@@ -96,7 +96,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields">
             <div class="filtering-field filtering-field-fill admin-quiz-attempt-filter-keyword">
                 <label for="quiz_attempt_keyword_filter" class="filtering-label">검색어</label>
-                <input id="quiz_attempt_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($attemptFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="시도 ID, 회원 ID, 퀴즈 키, 제목, 출처 제목">
+                <input id="quiz_attempt_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($attemptFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="시도 번호, 회원, 퀴즈 키, 제목, 출처 제목">
             </div>
         </div>
         <div id="quiz_attempt_detail_filters" class="filtering-body" data-filtering-body<?php echo $attemptDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -137,7 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th<?php echo sr_admin_sort_aria('updated_at', $attemptSort); ?>><?php echo sr_admin_sort_header_html('갱신일', 'updated_at', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('quiz', $attemptSort); ?>><?php echo sr_admin_sort_header_html('퀴즈', 'quiz', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('account_id', $attemptSort); ?>><?php echo sr_admin_sort_header_html('회원 ID', 'account_id', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('account_id', $attemptSort); ?>><?php echo sr_admin_sort_header_html('회원', 'account_id', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $attemptSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('total_score', $attemptSort); ?>><?php echo sr_admin_sort_header_html('점수', 'total_score', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th>통과</th>
@@ -155,6 +155,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($attempts as $attempt) { ?>
                     <?php
                     $attemptId = (int) ($attempt['id'] ?? 0);
+                    $attemptAccountId = (int) ($attempt['account_id'] ?? 0);
+                    $attemptAccountHash = $attemptAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $attemptAccountId)
+                        : '';
                     $attemptStatus = (string) ($attempt['status'] ?? '');
                     $grantCount = (int) ($attempt['grant_count'] ?? 0);
                     $pendingCount = (int) ($attempt['pending_count'] ?? 0);
@@ -183,7 +187,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <br><span class="admin-summary-meta"><?php echo sr_e((string) ($attempt['source_title_snapshot'] ?? '')); ?></span>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($attempt['account_id'] ?? 0)); ?></td>
+                        <td class="admin-table-break">
+                            <?php if ($attemptAccountHash !== '') { ?>
+                                <span class="admin-summary-meta"><?php echo sr_e($attemptAccountHash); ?></span>
+                            <?php } else { ?>
+                                <span class="admin-summary-meta"><?php echo sr_e('회원 정보 없음'); ?></span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_quiz_attempt_status_label($attemptStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) ($attempt['total_score'] ?? '-')); ?></td>
                         <td class="admin-table-nowrap"><?php echo ((int) ($attempt['passed'] ?? 0) === 1) ? '예' : '아니오'; ?></td>
@@ -289,7 +299,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="return_to" value="<?php echo sr_e($attemptReturnTo); ?>">
                     <div class="admin-summary-stats">
                         <span class="admin-summary-meta">Grant #<?php echo sr_e((string) $reclaimGrantId); ?></span>
-                        <span class="admin-summary-meta">회원 ID <?php echo sr_e((string) (int) ($reclaimGrant['account_id'] ?? 0)); ?></span>
+                        <?php
+                        $reclaimAccountId = (int) ($reclaimGrant['account_id'] ?? 0);
+                        $reclaimAccountHash = $reclaimAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                            ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $reclaimAccountId)
+                            : '';
+                        ?>
+                        <?php if ($reclaimAccountHash !== '') { ?>
+                            <span class="admin-summary-meta">회원 <?php echo sr_e($reclaimAccountHash); ?></span>
+                        <?php } ?>
                         <span class="admin-summary-meta">지급 <?php echo sr_e(number_format((int) ($reclaimGrant['reward_amount'] ?? 0))); ?></span>
                         <span class="admin-summary-meta">회수 가능 <strong><?php echo sr_e(number_format($reclaimRemainingAmount)); ?></strong></span>
                     </div>

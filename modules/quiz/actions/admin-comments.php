@@ -128,7 +128,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-break">
                             <?php echo sr_e((string) ($comment['author_public_name_snapshot'] ?? '회원')); ?><br>
-                            <span class="admin-summary-meta">회원 ID <?php echo sr_e((string) (int) ($comment['author_account_id'] ?? 0)); ?></span>
+                            <span class="admin-summary-meta">작성 회원</span>
                         </td>
                         <td class="admin-table-break">
                             <?php echo sr_member_mention_plain_text_html((string) ($comment['body_text'] ?? '')); ?>
