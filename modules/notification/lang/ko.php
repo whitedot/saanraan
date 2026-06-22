@@ -20,7 +20,7 @@ return [
     'ui.id.c7b74a34' => '제목, 내용, 링크, ID',
     'ui.id.notification.id.f7f271dc' => '발송 ID, 알림 ID, 제목, 수신자',
     'ui.member.900e04a5' => '회원 공개 해시',
-    'ui.member.id.07083483' => '회원 ID',
+    'ui.member.id.07083483' => '회원',
     'ui.member.search.f7a330b0' => '회원 검색',
     'ui.notification.12ddd6ca' => '알림',
     'ui.notification.16d30d47' => '알림이 없습니다.',
