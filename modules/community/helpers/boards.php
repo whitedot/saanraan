@@ -77,6 +77,7 @@ function sr_community_board_group_setting_keys(): array
         'list_excerpt_length',
         'list_per_page',
         'list_default_sort',
+        'reaction_enabled',
         'reaction_post_preset_key',
         'reaction_comment_preset_key',
         'level_post_score',
@@ -225,6 +226,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'privacy_consent_require_comment' => !empty($settings['privacy_consent_require_comment']) ? '1' : '0',
         'privacy_consent_require_attachment_upload' => !empty($settings['privacy_consent_require_attachment_upload']) ? '1' : '0',
         'extra_fields_json' => '[]',
+        'reaction_enabled' => !empty($settings['reaction_enabled']) ? '1' : '0',
         'reaction_post_preset_key' => (string) ($settings['reaction_post_preset_key'] ?? ''),
         'reaction_comment_preset_key' => (string) ($settings['reaction_comment_preset_key'] ?? ''),
     ];
@@ -851,6 +853,7 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
     $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? 'textarea'));
     $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
+    $board['reaction_enabled'] = sr_community_effective_board_setting($pdo, $board, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0');
     $board['reaction_post_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_post_preset_key') ?? '');
     $board['reaction_comment_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_comment_preset_key') ?? '');
     foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
@@ -1205,6 +1208,16 @@ function sr_community_effective_board_secret_comments_enabled(PDO $pdo, array $b
     $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
 
     return in_array(sr_community_effective_board_setting($pdo, $board, 'secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_effective_board_reaction_enabled(PDO $pdo, ?array $board, ?array $settings = null): bool
+{
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    if (!is_array($board)) {
+        return !empty($settings['reaction_enabled']);
+    }
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0'), ['1', 'true', 'yes', 'on'], true);
 }
 
 function sr_community_board_min_level(PDO $pdo, int $boardId, string $settingKey): int

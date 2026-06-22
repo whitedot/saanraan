@@ -251,7 +251,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .modal-body .form-row>.form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
 .modal-body .form-row>.form-field label{font-weight:var(--font-weight-normal)}
 .modal-body .form-row>.form-field .form-switch{--form-choice-color:var(--color-choice-light-active)}
-.modal-body .form-row>.form-field>.form-help{flex-basis:100%;font-size:var(--text-sm);line-height:var(--text-sm--line-height);margin-top:0}
+.modal-body .form-row>.form-field>.form-help{flex-basis:100%;font-size:var(--text-xs);line-height:var(--text-xs--line-height);margin-top:0}
 .admin-lookup-control{align-items:center;display:flex;gap:calc(var(--spacing) * 2);min-width:0;width:100%}
 .admin-lookup-control>.form-input,.admin-lookup-control>.form-select{min-width:0}
 .admin-lookup-control>.form-input{flex:1 1 16rem;width:auto}
@@ -278,15 +278,15 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-row>.form-field:has(>.form-check.form-label)>.form-help{flex-basis:100%;margin-top:0}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options){
     align-items:center;
-    display:flex;
-    flex-wrap:wrap;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
     gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
     min-height:calc(var(--spacing) * 9.25);
 }
-.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-help{flex-basis:100%;margin-top:0}
-.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
-.admin-form .form-row>.form-field:has(>textarea.form-control-full + .admin-setting-source-options){align-items:center}
-.admin-form .form-row>.form-field:has(>textarea.form-control-full + .admin-setting-source-options)>.admin-setting-source-options{align-self:center}
+.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>:not(.admin-setting-source-options):not(.form-help){grid-column:1;justify-self:start}
+.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.admin-setting-source-options{align-self:center;grid-column:2;grid-row:1 / span 2;justify-self:end;margin-left:0}
+.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-help{grid-column:1;margin-top:0}
+.admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-control-full{justify-self:stretch;width:100%}
 .admin-form .form-row>.form-field:has(>.admin-asset-setting-scope-inline){align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
 .admin-form .form-row>.form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{align-self:flex-start;margin-left:auto;order:2}
 .admin-form .form-row>.form-field:has(>.admin-asset-setting-scope-inline)>.form-help{flex-basis:100%;margin-top:0;order:3}
@@ -441,7 +441,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-row>.form-field:has(>p:not(.form-help):only-child){align-items:center;display:flex;min-height:calc(var(--spacing) * 9.25)}
 .admin-form .form-row>.form-field>.admin-form-static:only-child,
 .admin-form .form-row>.form-field>p:not(.form-help):only-child{margin:0;min-width:0}
-.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
+.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .admin-form .form-field>.form-help:first-child{margin-top:0}
 .admin-form .form-input{width:fit-content;max-width:100%}
 .admin-form .form-input.form-control-full{width:100%}
@@ -832,6 +832,16 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-setting-source-line>.admin-setting-source-options{
         justify-content:flex-start;
         margin-left:0;
+    }
+
+    .admin-form .form-row>.form-field:has(>.admin-setting-source-options){
+        grid-template-columns:1fr;
+    }
+
+    .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.admin-setting-source-options{
+        grid-column:1;
+        grid-row:auto;
+        justify-self:start;
     }
 
     .admin-page-file-charge-main>.admin-setting-source-options{

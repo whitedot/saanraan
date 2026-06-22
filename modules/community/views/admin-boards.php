@@ -50,12 +50,12 @@ $assetPrefixSettingSource = static function (array $board, string $prefix) use (
 $settingSourceRadioHtml = static function (string $name, string $selectedSource) use ($settingSourceLabels, $settingSourceLabelHtml): string {
     $selectedSource = array_key_exists($selectedSource, $settingSourceLabels) ? $selectedSource : 'board';
     $baseId = preg_replace('/[^a-zA-Z0-9_]+/', '_', $name);
-    $html = sr_t('community::ui.div.class.admin.setting.source.67eda3ac');
+    $html = '<div class="admin-setting-source-options">';
     foreach ($settingSourceLabels as $source => $label) {
         $id = 'setting_source_' . $baseId . '_' . $source;
         $html .= '<label class="form-check form-label" for="' . sr_e($id) . '">';
         $toast = (string) ($label['toast'] ?? '');
-        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio"' . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selectedSource === $source ? ' checked' : '') . '>';
+        $html .= '<input id="' . sr_e($id) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($source) . '" class="form-radio form-radio-light"' . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selectedSource === $source ? ' checked' : '') . '>';
         $html .= $settingSourceLabelHtml($label);
         $html .= '</label>';
     }
@@ -826,11 +826,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section id="community-board-section-reaction" class="card" data-admin-section-anchor>
             <h2>리액션</h2>
-            <?php if (empty($settings['reaction_enabled'])) { ?>
-                <div class="alert alert-warning alert-block" role="alert">
-                    커뮤니티 환경설정에서 리액션 사용이 꺼져 있습니다. 이 게시판의 리액션 프리셋을 저장해도 사용자 화면에는 리액션이 표시되지 않습니다.
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_reaction_enabled">리액션 사용</label>
+                <div class="form-field">
+                    <label class="form-check form-label" for="community_admin_boards_reaction_enabled">
+                        <input id="community_admin_boards_reaction_enabled" type="checkbox" name="reaction_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이 게시판의 게시글과 댓글 리액션 사용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_reaction_enabled', $boardSettingSource($formBoard, 'reaction_enabled')); ?>
+                    <p class="form-help">커뮤니티 환경설정과 별도로 이 게시판의 리액션 표시 여부를 정합니다.</p>
                 </div>
-            <?php } ?>
+            </div>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_reaction_post_preset_key">게시글 리액션 프리셋</label>
                 <div class="form-field">

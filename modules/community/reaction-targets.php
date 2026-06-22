@@ -65,11 +65,12 @@ if (!function_exists('sr_community_reaction_post_result')) {
         $status = sr_community_reaction_status((string) ($post['status'] ?? ''), $board);
         $canView = $status === 'active' && is_array($board) && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId);
         $settings = sr_community_settings($pdo);
-        if (empty($settings['reaction_enabled'])) {
+        $reactionEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $settings);
+        if (!$reactionEnabled) {
             $canView = false;
         }
         $presetKey = '';
-        if (!empty($settings['reaction_enabled'])) {
+        if ($reactionEnabled) {
             $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $post['reaction_preset_key'] ?? '') : '';
             if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
                 $canView = false;
@@ -130,11 +131,12 @@ if (!function_exists('sr_community_reaction_comment_result')) {
             && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId)
             && sr_community_account_can_view_comment_body($comment, $post, $account, $pdo);
         $settings = sr_community_settings($pdo);
-        if (empty($settings['reaction_enabled'])) {
+        $reactionEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $settings);
+        if (!$reactionEnabled) {
             $canView = false;
         }
         $presetKey = '';
-        if (!empty($settings['reaction_enabled'])) {
+        if ($reactionEnabled) {
             $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
             if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
                 $canView = false;

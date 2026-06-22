@@ -481,6 +481,7 @@ if (sr_request_method() === 'POST') {
         $listPerPage = sr_admin_post_int_in_range('list_per_page', 1, 100);
         $listDefaultSortInput = sr_post_string('list_default_sort', 20);
         $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
+        $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
@@ -930,6 +931,7 @@ if (sr_request_method() === 'POST') {
                 'list_excerpt_length' => (string) $listExcerptLength,
                 'list_per_page' => (string) $listPerPage,
                 'list_default_sort' => $listDefaultSort,
+                'reaction_enabled' => $reactionEnabled ? '1' : '0',
                 'reaction_post_preset_key' => $reactionPostPresetKey,
                 'reaction_comment_preset_key' => $reactionCommentPresetKey,
                 'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',
@@ -1013,6 +1015,9 @@ if (sr_request_method() === 'POST') {
                     'level_comment_score' => $levelCommentScore,
                     'secret_posts_enabled' => $secretPostsEnabled,
                     'secret_comments_enabled' => $secretCommentsEnabled,
+                    'reaction_enabled' => $reactionEnabled,
+                    'reaction_post_preset_key' => $reactionPostPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
                     'skin_key' => $skinKey,
                     'asset_settings' => $assetSettings,
                     'asset_prefix_sources' => $assetPrefixSources,
@@ -1044,6 +1049,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_setting($pdo, $boardId, 'reaction_enabled', $reactionEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
             sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
             sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
@@ -1140,6 +1146,7 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
+                sr_community_set_board_setting($pdo, $boardId, 'reaction_enabled', $reactionEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
                 sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
                 sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
@@ -1238,6 +1245,9 @@ if (sr_request_method() === 'POST') {
                         'after_level_comment_score' => $levelCommentScore,
                         'before_skin_key' => $beforeSkinKey,
                         'after_skin_key' => $skinKey,
+                        'after_reaction_enabled' => $reactionEnabled,
+                        'after_reaction_post_preset_key' => $reactionPostPresetKey,
+                        'after_reaction_comment_preset_key' => $reactionCommentPresetKey,
                         'before_asset_setting_sources' => $beforeAssetSettingSources,
                         'after_asset_prefix_sources' => $assetPrefixSources,
                         'after_asset_setting_sources' => $assetSettingSources,

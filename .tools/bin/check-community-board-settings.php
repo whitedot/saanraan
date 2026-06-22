@@ -164,6 +164,7 @@ function sr_check_community_board_settings_runtime(): void
         ['setting_key' => 'post_delete_lock_comment_count', 'setting_value' => '3', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_min_length', 'setting_value' => '2', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_max_length', 'setting_value' => '4', 'value_type' => 'int'],
+        ['setting_key' => 'reaction_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
     ] as $setting) {
         $boardSettingStmt->execute([
             'setting_key' => $setting['setting_key'],
@@ -258,6 +259,9 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_search_posts($pdo, [10], 'private', 10, 0, [10]) !== []) {
         sr_check_community_board_settings_error('community global search secret body exclusion failed.');
     }
+    if (!sr_community_effective_board_reaction_enabled($pdo, $board, ['reaction_enabled' => false])) {
+        sr_check_community_board_settings_error('community board reaction enabled override failed.');
+    }
 }
 
 $settingKeys = [
@@ -271,6 +275,7 @@ $settingKeys = [
     'list_excerpt_length',
     'list_per_page',
     'list_default_sort',
+    'reaction_enabled',
 ];
 
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', $settingKeys, 'community board/group setting key contract');
@@ -296,6 +301,13 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-boar
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    'function sr_community_effective_board_reaction_enabled',
+    "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",
+], 'community board reaction enabled helper');
+sr_check_community_board_settings_contains('modules/community/reaction-targets.php', [
+    'sr_community_effective_board_reaction_enabled($pdo, $board, $settings)',
+], 'community reaction target board enabled contract');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     "\$board['secret_posts_enabled'] = sr_community_board_setting_value",
     "\$board['secret_comments_enabled'] = sr_community_board_setting_value",

@@ -154,7 +154,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .form-grid{display:grid;gap:calc(var(--spacing) * 4)}
 .form-row{align-items:start;display:grid}
 .form-field{min-width:0}
-.form-help{color:var(--text-muted);display:block;font-size:var(--type-caption-size);line-height:var(--type-caption-line-height);margin-top:calc(var(--spacing) * 2)}
+.form-help{color:var(--text-muted);display:block;font-size:var(--text-xs);line-height:var(--text-xs--line-height);margin-top:calc(var(--spacing) * 2)}
 .form-field>.form-help:first-child{margin-top:0}
 .form-row-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px solid var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
@@ -532,7 +532,7 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .form-choice-warning{--form-choice-color:var(--color-warning)}
 .form-choice-danger{--form-choice-color:var(--color-danger)}
 .form-choice-dark{--form-choice-color:var(--color-dark)}
-.form-choice-light{--form-choice-color:var(--color-choice-light-active)}
+.form-choice-light,.form-radio-light{--form-choice-color:var(--color-choice-light-active)}
 .form-switch-light{--form-choice-color:var(--color-choice-light-active)}
 .form-choice-muted{background-color:var(--color-default-200)}
 .form-choice-invalid{border-color:var(--color-danger)!important;--form-choice-color:var(--color-danger)}
