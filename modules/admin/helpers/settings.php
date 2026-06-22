@@ -693,6 +693,9 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
         'default_currency' => $pdo instanceof PDO ? sr_site_default_currency($pdo) : (string) ($site['default_currency'] ?? 'KRW'),
         'status' => (string) ($site['status'] ?? 'active'),
         'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
+        'title_suffix' => (string) ($siteSettings['site.title_suffix'] ?? ''),
+        'meta_description' => (string) ($siteSettings['site.meta_description'] ?? ''),
+        'og_image' => (string) ($siteSettings['site.og_image'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
         'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
@@ -810,6 +813,9 @@ function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): 
         'default_currency' => $pdo instanceof PDO ? sr_site_default_currency($pdo) : (string) ($site['default_currency'] ?? 'KRW'),
         'status' => (string) ($site['status'] ?? ''),
         'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
+        'title_suffix' => (string) ($siteSettings['site.title_suffix'] ?? ''),
+        'meta_description' => (string) ($siteSettings['site.meta_description'] ?? ''),
+        'og_image' => (string) ($siteSettings['site.og_image'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
         'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
@@ -827,6 +833,9 @@ function sr_admin_post_site_setting_values(?array $site): array
         'default_currency' => (string) ($site['default_currency'] ?? 'KRW'),
         'status' => sr_post_string('status', 30),
         'member_only_enabled' => sr_post_string('member_only_enabled', 1) === '1' ? '1' : '0',
+        'title_suffix' => sr_clean_single_line(sr_post_string('title_suffix', 80), 80),
+        'meta_description' => sr_clean_single_line(sr_post_string('meta_description', 255), 255),
+        'og_image' => sr_clean_single_line(sr_post_string('og_image', 255), 255),
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
         'business_info_items' => sr_admin_post_business_info_items(),
@@ -1427,6 +1436,15 @@ function sr_admin_handle_settings_post(
             $errors[] = '회원 전용 모드를 사용하려면 회원 모듈이 활성화되어 있어야 합니다.';
         }
 
+        $siteOgImageUploadFile = $_FILES['og_image_upload'] ?? null;
+        $siteOgImageUploadProvided = sr_site_og_image_upload_was_provided($siteOgImageUploadFile);
+        if (sr_post_string('og_image_delete', 1) === '1') {
+            $values['og_image'] = '';
+        }
+        if (!$siteOgImageUploadProvided && $values['og_image'] !== '' && !sr_is_http_url($values['og_image']) && !sr_is_safe_relative_url($values['og_image'])) {
+            $errors[] = '기본 OG 이미지는 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
+        }
+
         if (!isset(sr_admin_public_layout_options($pdo)[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
@@ -1440,6 +1458,18 @@ function sr_admin_handle_settings_post(
             $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
 
             if ((string) ($previousValues['name'] ?? '') !== (string) $values['name']) {
+                $oldSiteName = (string) ($previousValues['name'] ?? '');
+                if ($oldSiteName !== '') {
+                    foreach ([
+                        'title_suffix' => '제목 접미사',
+                        'meta_description' => '기본 설명',
+                    ] as $siteMetaKey => $siteMetaLabel) {
+                        if (strpos((string) ($values[$siteMetaKey] ?? ''), $oldSiteName) !== false) {
+                            $errors[] = $siteMetaLabel . '에 이전 사이트명이 포함되어 있습니다. 사이트명과 함께 수정해 주세요.';
+                        }
+                    }
+                }
+
                 $referenceResult = sr_read_reference_collect($pdo, 'site-setting-references.php', [
                     'owner_module_key' => 'admin',
                     'target_type' => 'site_setting',
@@ -1457,6 +1487,19 @@ function sr_admin_handle_settings_post(
             }
         }
 
+        if ($errors === [] && $siteOgImageUploadProvided) {
+            if (!is_array($siteOgImageUploadFile)) {
+                $errors[] = '업로드할 기본 OG 이미지를 확인할 수 없습니다.';
+            } else {
+                try {
+                    $uploadedSiteOgImage = sr_site_upload_og_image($siteOgImageUploadFile);
+                    $values['og_image'] = sr_clean_single_line((string) ($uploadedSiteOgImage['public_url'] ?? ''), 255);
+                } catch (Throwable $exception) {
+                    $errors[] = $exception->getMessage();
+                }
+            }
+        }
+
         if ($errors === []) {
             $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
 
@@ -1468,6 +1511,9 @@ function sr_admin_handle_settings_post(
                 'site.supported_locales' => ['value' => $values['supported_locales'], 'type' => 'string'],
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
                 'site.member_only_enabled' => ['value' => $values['member_only_enabled'], 'type' => 'bool'],
+                'site.title_suffix' => ['value' => $values['title_suffix'], 'type' => 'string'],
+                'site.meta_description' => ['value' => $values['meta_description'], 'type' => 'string'],
+                'site.og_image' => ['value' => $values['og_image'], 'type' => 'string'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
                 'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
                 'site.business_info_items' => [

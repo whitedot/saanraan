@@ -5,9 +5,6 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
-if (is_file(SR_ROOT . '/modules/seo/helpers.php')) {
-    require_once SR_ROOT . '/modules/seo/helpers.php';
-}
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
@@ -536,7 +533,7 @@ if (sr_request_method() === 'POST') {
             'og_image_url' => trim(sr_post_string('og_image_url', 255)),
         ];
         $boardOgImageUploadFile = $_FILES['og_image_upload'] ?? null;
-        $boardOgImageUploadProvided = function_exists('sr_seo_og_image_upload_was_provided') && sr_seo_og_image_upload_was_provided($boardOgImageUploadFile);
+        $boardOgImageUploadProvided = sr_site_og_image_upload_was_provided($boardOgImageUploadFile);
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
@@ -908,11 +905,11 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && $boardOgImageUploadProvided) {
-            if (!is_array($boardOgImageUploadFile) || !function_exists('sr_seo_upload_og_image')) {
+            if (!is_array($boardOgImageUploadFile)) {
                 $errors[] = '업로드할 게시판 OG 이미지를 확인할 수 없습니다.';
             } else {
                 try {
-                    $uploadedBoardOgImage = sr_seo_upload_og_image($boardOgImageUploadFile);
+                    $uploadedBoardOgImage = sr_site_upload_og_image($boardOgImageUploadFile);
                     $boardSeoValues['og_image_url'] = sr_community_seo_text((string) ($uploadedBoardOgImage['public_url'] ?? ''), 255);
                 } catch (Throwable $exception) {
                     $errors[] = $exception->getMessage();

@@ -75,6 +75,12 @@ $siteSettingsHelp = [
         'body_html' => '<p>' . sr_e('켜면 비로그인 방문자가 공개 사이트 화면에 접근할 때 로그인 화면으로 이동합니다.') . '</p>'
             . '<p>' . sr_e('로그인 후에는 원래 요청한 내부 화면으로 돌아갑니다. 로그인, 가입, 비밀번호 재설정 같은 인증 화면은 계속 접근할 수 있습니다.') . '</p>',
     ],
+    'meta_defaults' => [
+        'id' => 'admin-settings-meta-defaults-help-modal',
+        'title' => '기본 메타 도움말',
+        'body_html' => '<p>' . sr_e('각 공개 화면이 제목, 설명, 공유 이미지를 직접 제공하지 않을 때 사용할 사이트 공통 기본값입니다.') . '</p>'
+            . '<p>' . sr_e('모듈이나 콘텐츠가 자체 SEO/OG 값을 제공하면 그 값이 우선합니다.') . '</p>',
+    ],
     'business_info' => [
         'id' => 'admin-settings-business-info-help-modal',
         'title' => '사업자 정보',
@@ -256,6 +262,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_member_only_enabled', 'member_only_enabled', ['0' => '끄기', '1' => '켜기'], (string) ($values['member_only_enabled'] ?? '0'), true); ?>
                 <p class="form-help">비로그인 방문자는 로그인 화면으로 이동하며, 로그인 후 원래 경로로 돌아갑니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_title_suffix', '제목 접미사', $siteSettingsHelp['meta_defaults']['id'], $siteSettingsHelpOpenLabel); ?>
+            <div class="form-field">
+                <input id="admin_settings_title_suffix" type="text" name="title_suffix" value="<?php echo sr_e((string) ($values['title_suffix'] ?? '')); ?>" class="form-input" maxlength="80">
+                <p class="form-help">공개 화면 title 끝에 붙일 사이트명입니다. 비워 두면 붙이지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_meta_description', '기본 설명', $siteSettingsHelp['meta_defaults']['id'], $siteSettingsHelpOpenLabel); ?>
+            <div class="form-field">
+                <input id="admin_settings_meta_description" type="text" name="meta_description" value="<?php echo sr_e((string) ($values['meta_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
+                <p class="form-help">화면별 설명이 없을 때 description과 og:description에 사용합니다.</p>
+            </div>
+        </div>
+        <?php
+        $siteOgImage = (string) ($values['og_image'] ?? '');
+        $siteOgImageUrl = '';
+        if (sr_is_http_url($siteOgImage)) {
+            $siteOgImageUrl = $siteOgImage;
+        } elseif (sr_is_safe_relative_url($siteOgImage)) {
+            $siteOgImageUrl = sr_url($siteOgImage);
+        }
+        ?>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_og_image', '기본 OG 이미지', $siteSettingsHelp['meta_defaults']['id'], $siteSettingsHelpOpenLabel); ?>
+            <div class="form-field">
+                <?php if ($siteOgImageUrl !== '') { ?>
+                    <div class="admin-site-og-image-current">
+                        <img src="<?php echo sr_e($siteOgImageUrl); ?>" alt="현재 기본 OG 이미지">
+                        <div>
+                            <a href="<?php echo sr_e($siteOgImageUrl); ?>">현재 기본 OG 이미지</a>
+                            <?php echo sr_admin_checkbox_toggle_html('admin_settings_og_image_delete', 'og_image_delete', '1', false, '현재 기본 OG 이미지 삭제'); ?>
+                        </div>
+                    </div>
+                <?php } ?>
+                <input id="admin_settings_og_image" type="text" name="og_image" value="<?php echo sr_e($siteOgImage); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                <p class="form-help">화면별 OG 이미지가 없을 때 사용합니다.</p>
+                <input id="admin_settings_og_image_upload" type="file" name="og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input form-control-full">
+                <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_site_og_image_upload_max_bytes())); ?>.</p>
             </div>
         </div>
     </section>

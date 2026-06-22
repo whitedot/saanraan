@@ -485,39 +485,40 @@ sr_output_helper_assert(
         && !isset($outputSlotContracts[0]['html'], $outputSlotContracts[0]['callable']),
     'Output slot renderer cache should store serializable contract metadata only.'
 );
-$seoPdo = new PDO('sqlite::memory:');
-$seoPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$seoPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-$seoPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
-$seoPdo->exec("CREATE TABLE sr_module_settings (module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL)");
-$seoPdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'seo', 'enabled')");
-$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'title_suffix', 'Site Suffix', 'string')");
-$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'default_description', 'Default description', 'string')");
-$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'default_og_image', '/uploads/og.png', 'string')");
-$appliedSeo = sr_seo_apply_public_defaults($seoPdo, [
+$siteMetaPdo = new PDO('sqlite::memory:');
+$siteMetaPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$siteMetaPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$siteMetaPdo->exec("CREATE TABLE sr_site_settings (setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL)");
+$siteMetaPdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.title_suffix', 'Site Suffix', 'string')");
+$siteMetaPdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.meta_description', 'Default description', 'string')");
+$siteMetaPdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.og_image', '/uploads/og.png', 'string')");
+$appliedSeo = sr_site_apply_public_meta_defaults($siteMetaPdo, [
     'title' => 'Page',
-    'og' => ['type' => 'article'],
+    'og' => ['type' => 'article', 'description' => ''],
 ]);
 sr_output_helper_assert(
     ($appliedSeo['title'] ?? '') === 'Page - Site Suffix'
+        && (($appliedSeo['og']['title'] ?? '') === 'Page - Site Suffix')
         && ($appliedSeo['description'] ?? '') === 'Default description'
+        && (($appliedSeo['og']['description'] ?? '') === 'Default description')
         && (($appliedSeo['og']['image'] ?? '') === '/uploads/og.png'),
-    'SEO module public defaults should apply title suffix, default description, and default OG image.'
+    'Site public meta defaults should apply title suffix, OG title, default description, OG description, and default OG image.'
 );
-$appliedSeoAgain = sr_seo_apply_public_defaults($seoPdo, $appliedSeo);
+$appliedSeoAgain = sr_site_apply_public_meta_defaults($siteMetaPdo, $appliedSeo);
 sr_output_helper_assert(
     ($appliedSeoAgain['title'] ?? '') === 'Page - Site Suffix',
-    'SEO title suffix should not be appended more than once.'
+    'Site title suffix should not be appended more than once.'
 );
-$explicitSeo = sr_seo_apply_public_defaults($seoPdo, [
+$explicitSeo = sr_site_apply_public_meta_defaults($siteMetaPdo, [
     'title' => 'Page',
     'description' => 'Custom description',
     'og' => ['image' => '/custom.png'],
 ]);
 sr_output_helper_assert(
     ($explicitSeo['description'] ?? '') === 'Custom description'
+        && (($explicitSeo['og']['description'] ?? '') === 'Custom description')
         && (($explicitSeo['og']['image'] ?? '') === '/custom.png'),
-    'SEO public defaults should preserve explicit description and OG image values.'
+    'Site public meta defaults should preserve explicit description for SEO and OG while preserving explicit OG image values.'
 );
 sr_output_helper_assert(
     sr_color_scheme(['ui_color_scheme' => 'dark']) === 'dark',

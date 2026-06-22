@@ -746,6 +746,9 @@ if (sr_request_method() === 'POST') {
                 'site.default_currency' => ['value' => $values['default_currency'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'site.member_only_enabled' => ['value' => '0', 'type' => 'bool'],
+                'site.title_suffix' => ['value' => $values['site_name'], 'type' => 'string'],
+                'site.meta_description' => ['value' => '', 'type' => 'string'],
+                'site.og_image' => ['value' => '', 'type' => 'string'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],
                 'public_layout_key' => ['value' => sr_public_layout_default_key(), 'type' => 'string'],
             ]);
@@ -789,12 +792,6 @@ if (sr_request_method() === 'POST') {
                     'installed_at' => $now,
                     'updated_at' => $now,
                 ]);
-            }
-
-            if (!empty($selectedOptionalModuleMap['seo'])) {
-                $installStage = 'save_seo_settings';
-                require_once SR_ROOT . '/modules/seo/helpers.php';
-                sr_seo_install_default_title_suffix($pdo, $values['site_name']);
             }
 
             if (!empty($selectedOptionalModuleMap['site_menu'])) {

@@ -412,10 +412,6 @@ $allowedCacheControlHeaders = [
     'modules/popup_layer/helpers/body-files.php' => [
         "sr_send_file_headers(\$mimeType, (int) (\$head['content_length'] ?? 0), 'private, max-age=300')",
     ],
-    'modules/seo/actions/image.php' => [
-        "header('Cache-Control: private, max-age=300')",
-        "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
-    ],
     'modules/survey/actions/cover-image.php' => [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",

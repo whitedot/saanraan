@@ -26,7 +26,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - 커뮤니티 보드 삭제 안전장치에는 `sr_banner_targets`, `sr_popup_layer_targets`, `sr_coupon_definitions`, `sr_site_menu_items` 직접 카운트가 일부 존재한다. 이 코드는 마일스톤 13 구현 후 읽기 참조 계약 기반 조회로 옮기거나, 보드 삭제 전용 직접 참조 검사로 남길지 명시해야 한다.
 - 회원 그룹 참조는 대부분 ID가 아니라 `group_key` 배열로 저장된다. 대표 후보는 reward `withdrawal_allowed_group_keys_json`, deposit `refund_allowed_group_keys_json`, community `message_write_group_keys`, 게시판/게시판 그룹의 `read_group_keys`, `write_group_keys`, `comment_group_keys`, content/community 자산 정책 JSON의 `group_key`이다.
 - `member` 내부 회원 그룹 자동 규칙은 ID 기반 대상/제외 그룹을 갖는다. 소유 모듈이 member 자신이더라도 그룹 삭제/key 변경 전에 같은 읽기 참조 계약으로 보여주는 것이 운영 흐름상 자연스럽다.
-- 사이트명은 코어 사이트 설정 `site.name`이고, 관리자 설정 화면은 `admin` 모듈에 있다. SEO `title_suffix`, `default_description`, logo_manager `alt_text`가 우선 소비 후보이다.
+- 사이트명은 코어 사이트 설정 `site.name`이고, 관리자 설정 화면은 `admin` 모듈에 있다. 사이트 기본 메타 `site.title_suffix`, `site.meta_description`은 같은 저장 화면의 직접 검증으로 다루고, 모듈 계약 소비 후보는 logo_manager `alt_text`이다.
 
 ## 결정
 
@@ -246,8 +246,9 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 현재 우선 후보:
 
-- `seo`: `title_suffix`, `default_description`
 - `logo_manager`: `sr_logo_manager_logos.alt_text`
+
+같은 관리자 사이트 설정 화면에서 저장하는 `site.title_suffix`, `site.meta_description`은 별도 소비 모듈 계약이 아니라 저장 action의 직접 검증으로 이전 사이트명 포함 여부를 막는다.
 
 관리자/공개 layout의 사이트명 fallback은 자동으로 새 설정을 읽는 동작이므로 자동 수정 대상이 아니다. 필요하면 낮은 위험 안내 row로만 표시한다.
 
@@ -309,7 +310,8 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - 콘텐츠와 커뮤니티가 직접 선택한 배너를 배너 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 콘텐츠와 커뮤니티가 직접 선택한 팝업레이어를 팝업레이어 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 회원 그룹을 게시판 권한, 쪽지 권한, 자산 정책, 출금/환불 신청 대상에 사용한 뒤 그룹 비활성화 전 경고가 표시되는지 확인. 삭제/key 변경은 현재 관리자 화면에 없으므로 해당 액션을 추가할 때 같은 기준을 적용한다.
-- 사이트명을 SEO title suffix, SEO 기본 설명, 로고 alt text에 직접 포함한 뒤 사이트명 변경 화면에서 참조 현황과 관리자 이동 링크가 표시되는지 확인
+- 사이트명을 로고 alt text에 직접 포함한 뒤 사이트명 변경 화면에서 참조 현황과 관리자 이동 링크가 표시되는지 확인
+- 사이트명을 사이트 title suffix, 사이트 기본 설명에 직접 포함한 뒤 사이트명 변경 저장이 직접 검증으로 거부되는지 확인
 - 소비 모듈을 비활성화하면 새 읽기 참조 계약 row로 표시하지 않고, 잔여 데이터 정리는 별도 운영 점검 범위로 남는지 확인
 - 잘못된 `admin_url`을 반환하는 계약 항목은 링크를 출력하지 않고 전체 화면을 500으로 만들지 않는지 확인
 - malformed 계약 파일, 누락 callable, 잘못된 row를 가진 활성 소비 모듈이 있을 때 삭제/비활성화/key 변경/사이트명 변경 POST가 진행되지 않고 계약 오류로 중단되는지 확인

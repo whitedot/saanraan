@@ -16,9 +16,6 @@ if (!function_exists('sr_module_metadata')) {
 
         return [
             'settings' => [
-                'title_suffix' => '',
-                'default_description' => '',
-                'default_og_image' => '',
                 'sitemap_include_home' => true,
                 'robots_disallow_paths' => "/admin\n/account\n//bad\njavascript:bad\n/admin",
             ],

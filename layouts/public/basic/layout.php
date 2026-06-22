@@ -244,7 +244,7 @@ if (
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
+    <?php echo sr_seo_tags($layoutPdo instanceof PDO ? sr_site_apply_public_meta_defaults($layoutPdo, $layoutSeo) : $layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
     <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
     <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>

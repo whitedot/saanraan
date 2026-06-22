@@ -1584,3 +1584,21 @@ body.admin-sidebar-condensed #gnb .admin-nav-panel.hidden{display:block!importan
 .admin-notification-menu-empty{padding:1rem;text-align:center;color:var(--admin-muted-text);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .admin-notification-menu-all{display:block;padding:.8rem 1rem;border-top:1px solid var(--admin-border-color);text-align:center;text-decoration:none;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-semibold);color:var(--color-primary)}
 @media (hover:hover){.admin-notification-menu-open:hover,.admin-notification-menu-all:hover,.admin-notification-menu-read-button:hover{background-color:var(--color-default-100);color:var(--color-default-950)}}
+.admin-site-og-image-current {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    margin-bottom: calc(var(--spacing) * 3);
+}
+
+.admin-site-og-image-current img {
+    background: var(--color-default-100);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-sm);
+    display: block;
+    height: 4.5rem;
+    object-fit: contain;
+    padding: .25rem;
+    width: 8rem;
+}

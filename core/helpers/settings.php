@@ -424,6 +424,153 @@ function sr_site_setting(PDO $pdo, string $key, mixed $default = null): mixed
     return array_key_exists($key, $settings) ? $settings[$key] : $default;
 }
 
+function sr_site_title_suffix(PDO $pdo): string
+{
+    return sr_clean_single_line((string) sr_site_setting($pdo, 'site.title_suffix', ''), 80);
+}
+
+function sr_site_meta_description(PDO $pdo): string
+{
+    return sr_clean_single_line((string) sr_site_setting($pdo, 'site.meta_description', ''), 255);
+}
+
+function sr_site_og_image(PDO $pdo): string
+{
+    return sr_clean_single_line((string) sr_site_setting($pdo, 'site.og_image', ''), 255);
+}
+
+function sr_site_apply_public_meta_defaults(PDO $pdo, array $seo): array
+{
+    $titleSuffix = sr_site_title_suffix($pdo);
+    if ($titleSuffix !== '') {
+        $title = trim((string) ($seo['title'] ?? ''));
+        if ($title !== '' && !str_ends_with($title, ' - ' . $titleSuffix)) {
+            $seo['title'] = $title . ' - ' . $titleSuffix;
+        }
+    }
+
+    $title = trim((string) ($seo['title'] ?? ''));
+    if ($title !== '') {
+        $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
+        if (trim((string) ($og['title'] ?? '')) === '') {
+            $og['title'] = $title;
+            $seo['og'] = $og;
+        }
+    }
+
+    $defaultDescription = sr_site_meta_description($pdo);
+    if ($defaultDescription !== '' && trim((string) ($seo['description'] ?? '')) === '') {
+        $seo['description'] = $defaultDescription;
+    }
+
+    $description = trim((string) ($seo['description'] ?? ''));
+    if ($description !== '') {
+        $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
+        if (trim((string) ($og['description'] ?? '')) === '') {
+            $og['description'] = $description;
+            $seo['og'] = $og;
+        }
+    }
+
+    $defaultOgImage = sr_site_og_image($pdo);
+    if ($defaultOgImage !== '') {
+        $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
+        if (trim((string) ($og['image'] ?? '')) === '') {
+            $og['image'] = $defaultOgImage;
+            $seo['og'] = $og;
+        }
+    }
+
+    return $seo;
+}
+
+function sr_site_og_image_upload_max_bytes(): int
+{
+    return 5242880;
+}
+
+function sr_site_og_image_upload_was_provided(mixed $file): bool
+{
+    return sr_upload_was_provided($file);
+}
+
+function sr_site_upload_og_image(array $file): array
+{
+    $validated = sr_upload_validate_file($file, [
+        'max_bytes' => sr_site_og_image_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+    ]);
+
+    $sourcePath = (string) $validated['tmp_name'];
+    $targetFormat = sr_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 OG 이미지 형식입니다.');
+    }
+
+    $dimensions = @getimagesize($sourcePath);
+    if (!is_array($dimensions) || (int) ($dimensions[0] ?? 0) < 1 || (int) ($dimensions[1] ?? 0) < 1) {
+        throw new RuntimeException('이미지 크기를 확인할 수 없습니다.');
+    }
+    if ((int) $dimensions[0] * (int) $dimensions[1] > 25000000) {
+        throw new RuntimeException('이미지 픽셀 수가 너무 큽니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/site-og-images/' . $datePath;
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('OG 이미지 임시 디렉터리를 만들 수 없습니다. storage/tmp 디렉터리 쓰기 권한을 확인해 주세요.');
+    }
+
+    $storedName = sr_upload_random_filename($targetFormat);
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
+
+    if (!sr_upload_reencode_image($sourcePath, $targetPath, $targetFormat, [
+        'max_pixels' => 25000000,
+        'quality' => 88,
+    ])) {
+        throw new RuntimeException('이미지 재인코딩에 실패했습니다.');
+    }
+
+    $storedMimeType = sr_upload_detect_mime($targetPath);
+    if (!sr_image_mime_is_allowed($storedMimeType)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 이미지 MIME을 확인할 수 없습니다.');
+    }
+
+    $storageKey = 'site/og-images/' . $datePath . '/' . $storedName;
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
+        'content_type' => $storedMimeType,
+    ]);
+    @unlink($targetPath);
+
+    $storageReference = sr_storage_reference((string) $stored['driver'], $storageKey);
+    $publicUrl = (string) ($stored['url'] ?? '');
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'public_url' => $publicUrl !== '' ? $publicUrl : '/site/og-image?file=' . rawurlencode($storageReference),
+        'mime_type' => $storedMimeType,
+    ];
+}
+
+function sr_site_og_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\A(?:site|seo)/og-images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
+}
+
+function sr_site_og_image_storage_reference(string $reference): ?array
+{
+    $storage = sr_storage_parse_reference($reference);
+    if (!is_array($storage) || !sr_site_og_image_storage_key_is_valid((string) $storage['key'])) {
+        return null;
+    }
+
+    return $storage;
+}
+
 function sr_save_site_setting(PDO $pdo, string $key, string $value, string $valueType = 'string'): void
 {
     if (preg_match('/\A[a-z][a-z0-9_.-]{1,119}\z/', $key) !== 1) {

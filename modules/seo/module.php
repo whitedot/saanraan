@@ -4,7 +4,7 @@ return [
     'name' => 'SEO',
     'version' => '2026.05.001',
     'type' => 'module',
-    'description' => 'SEO 출력 helper와 사이트맵 엔드포인트 모듈입니다.',
+    'description' => '사이트맵과 robots.txt 운영 설정을 관리하는 SEO 모듈입니다.',
     'admin' => [
         'category' => 'site',
         'category_label' => '사이트',
@@ -25,16 +25,12 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
-            'site-setting-references.php',
         ],
         'consumes' => [
             'sitemap.php',
         ],
     ],
     'settings' => [
-        'title_suffix' => '',
-        'default_description' => '',
-        'default_og_image' => '',
         'sitemap_include_home' => true,
         'robots_disallow_paths' => "/admin\n/account\n/login\n/register\n/password/reset",
     ],

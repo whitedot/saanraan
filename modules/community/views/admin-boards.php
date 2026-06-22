@@ -566,9 +566,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_og_image_url', $boardSettingSource($formBoard, 'og_image_url')); ?>
                     <p class="form-help">비워 두면 사이트 기본 OG 이미지를 사용합니다. http(s) URL 또는 /로 시작하는 내부 경로만 사용할 수 있습니다.</p>
                     <input id="community_admin_boards_og_image_upload" type="file" name="og_image_upload" accept="image/jpeg,image/png,image/webp" class="form-input form-control-full">
-                    <?php if (function_exists('sr_seo_og_image_upload_max_bytes')) { ?>
-                        <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_seo_og_image_upload_max_bytes())); ?>.</p>
-                    <?php } ?>
+                    <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_site_og_image_upload_max_bytes())); ?>.</p>
                 </div>
             </div>
         </section>
