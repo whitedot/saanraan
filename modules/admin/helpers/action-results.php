@@ -156,7 +156,7 @@ function sr_admin_feedback_toasts(string $notice = '', array $errors = []): stri
     ?>
     <div data-admin-toast-stack role="status" aria-live="polite" aria-atomic="false">
         <?php foreach ($items as $item) { ?>
-            <div class="admin-flash-message admin-flash-message-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
+            <div class="alert-removable alert <?php echo (string) $item['type'] === 'success' ? 'alert-success' : 'alert-danger'; ?> admin-flash-message admin-flash-message-<?php echo sr_e((string) $item['type']); ?>" data-admin-toast>
                 <strong><?php echo sr_e((string) $item['title']); ?></strong>
                 <span><?php echo sr_e((string) $item['message']); ?></span>
                 <button type="button" class="btn btn-sm btn-icon" data-admin-toast-close aria-label="<?php echo sr_e(sr_t('admin::feedback.close_label')); ?>">
