@@ -3,7 +3,7 @@
 return [
     [
         'point_key' => 'community.home',
-        'label' => sr_t('community::contract.extension.community_home'),
+        'label' => '커뮤니티 초기화면',
         'surface' => 'public',
         'output' => true,
         'slots' => [

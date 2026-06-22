@@ -40,8 +40,15 @@ $contentHomeExcerptText = static function (array $content): string {
 };
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => (string) ($contentHomeLayoutKey ?? ''),
+    'stylesheets' => ['/modules/popup_layer/assets/module.css'],
 ]));
 ?>
+
+<?php echo sr_render_output_slot($pdo, [
+    'module_key' => 'content',
+    'point_key' => 'content.home',
+    'slot_key' => 'screen',
+]); ?>
 
 <main class="content-home content-home-studio">
     <div class="content-home-studio-shell">

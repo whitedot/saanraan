@@ -49,6 +49,10 @@ $popupLayerDefaultTargetServiceKey = sr_popup_layer_selected_target_service_key(
 if ($popupLayerDefaultTargetServiceKey === '') {
     $popupLayerDefaultTargetServiceKey = sr_popup_layer_public_target_option_value();
 }
+$popupLayerMatchTypeOptions = [
+    'all' => '전체',
+    'exact' => '선택',
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -98,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
-            <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
+            <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 노출위치'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
             <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_default_target_detail_option" name="popup_layer_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
@@ -114,13 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_match_type', sr_t('popup_layer::settings.default_match_type'), $popupLayerSettingsHelp['default_match_type']['id'], $popupLayerHelpOpenLabel, true); ?>
             <div class="form-field">
-                <select id="popup_layer_admin_popup_layer_settings_default_match_type" name="popup_layer_default_match_type" class="form-select" required>
-                    <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                        <option value="<?php echo sr_e($matchType); ?>"<?php echo $popupLayerDefaultMatchType === $matchType ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('popup_layer_admin_popup_layer_settings_default_match_type', 'popup_layer_default_match_type', $popupLayerMatchTypeOptions, $popupLayerDefaultMatchType, true); ?>
                 <p class="form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_match_type.inline')); ?></p>
             </div>
         </div>
@@ -161,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var targetOption = form.querySelector('[data-admin-target-option]');
     var detailRow = form.querySelector('[data-admin-target-detail-row]');
     var detailRequired = form.querySelector('[data-admin-target-detail-required]');
-    var match = form.querySelector('select[name="popup_layer_default_match_type"]');
+    var allMatch = form.querySelector('input[name="popup_layer_default_match_type"][value="all"]');
 
     function syncTarget() {
         var isPublic = service && service.value === publicTarget;
@@ -190,8 +188,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (targetOption) {
             targetOption.value = isPublic ? publicTarget : (detail ? detail.value : '');
         }
-        if (isPublic && match) {
-            match.value = 'all';
+        if (isPublic && allMatch) {
+            allMatch.checked = true;
         }
     }
 

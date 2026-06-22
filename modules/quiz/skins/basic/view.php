@@ -165,9 +165,16 @@ $quizShareUrl = sr_absolute_url($site ?? null, '/quiz/' . rawurlencode((string) 
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
-    'stylesheets' => ['/modules/reaction/assets/module.css'],
+    'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
 ]));
 ?>
+<?php echo sr_render_output_slot($pdo, [
+    'module_key' => 'quiz',
+    'point_key' => 'quiz.view',
+    'slot_key' => 'screen',
+    'subject_id' => (string) (int) ($quiz['id'] ?? 0),
+]); ?>
+
 <main class="quiz-page-main">
     <section class="quiz-page-section">
         <div class="quiz-page-container">

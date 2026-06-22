@@ -54,6 +54,8 @@ $pdo = new SrPopupLayerCheckPdo([
     ['module_key' => 'content'],
     ['module_key' => 'member'],
     ['module_key' => 'community'],
+    ['module_key' => 'quiz'],
+    ['module_key' => 'survey'],
     ['module_key' => 'banner'],
     ['module_key' => 'popup_layer'],
 ]);
@@ -72,13 +74,18 @@ foreach ($targets as $target) {
 
 $errors = [];
 $expectedTargets = [
+    'content|content.home|screen',
     'content|content.view|before_content',
     'member|member.login|before_form',
-    'member|member.register|after_form',
+    'member|member.register|before_form',
     'community|community.home|after_secondary_navigation',
-    'community|community.post.view|after_comments',
+    'community|community.board.list|before_list',
+    'community|community.post.view|before_content',
     'community|community.post.form|before_form',
-    'community|community.post.form|after_form',
+    'quiz|quiz.home|screen',
+    'quiz|quiz.view|screen',
+    'survey|survey.home|screen',
+    'survey|survey.view|screen',
 ];
 
 $expectedBannerTargets = [
@@ -259,9 +266,27 @@ foreach ($expectedTargets as $expectedTarget) {
 }
 
 $popupServices = sr_popup_layer_target_service_options($targets, true);
-foreach ([sr_popup_layer_public_target_option_value(), 'content', 'community', 'member'] as $expectedService) {
+foreach ([sr_popup_layer_public_target_option_value(), 'content', 'community', 'member', 'quiz', 'survey'] as $expectedService) {
     if (!isset($popupServices[$expectedService])) {
         $errors[] = 'missing popup layer target service: ' . $expectedService;
+    }
+}
+
+$popupCommunityPostTarget = sr_popup_layer_find_target($targets, 'community|community.post.view|before_content');
+if (!is_array($popupCommunityPostTarget) || sr_popup_layer_target_detail_label($popupCommunityPostTarget) !== (string) $popupCommunityPostTarget['point_label']) {
+    $errors[] = 'popup layer target detail label must use screen label without slot label.';
+}
+
+$popupSubjectTargetTypes = sr_popup_layer_subject_target_type_map($pdo, $targets);
+foreach ([
+    'content|content.view|before_content' => 'content',
+    'community|community.board.list|before_list' => 'community_board',
+    'community|community.post.view|before_content' => 'community_post',
+    'quiz|quiz.view|screen' => 'quiz',
+    'survey|survey.view|screen' => 'survey',
+] as $targetOption => $expectedType) {
+    if (($popupSubjectTargetTypes[$targetOption] ?? '') !== $expectedType) {
+        $errors[] = 'popup layer subject target type mismatch: ' . $targetOption;
     }
 }
 

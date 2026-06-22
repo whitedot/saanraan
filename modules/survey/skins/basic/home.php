@@ -11,8 +11,15 @@ $seo = [
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'body_class' => 'sr-survey-page',
+    'stylesheets' => ['/modules/popup_layer/assets/module.css'],
 ]));
 ?>
+<?php echo sr_render_output_slot($pdo, [
+    'module_key' => 'survey',
+    'point_key' => 'survey.home',
+    'slot_key' => 'screen',
+]); ?>
+
 <main class="survey-page-main">
     <section class="survey-page-section sr-survey-home">
         <div class="survey-page-container">

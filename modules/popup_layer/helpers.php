@@ -35,14 +35,15 @@ function sr_popup_layer_available_targets(PDO $pdo): array
 
             $pointLabel = sr_popup_layer_clean_single_line((string) ($point['label'] ?? $pointKey), 120);
             $slots = sr_popup_layer_normalize_slots($point['slots'] ?? []);
-            foreach ($slots as $slot) {
+            $slot = $slots[0] ?? null;
+            if (is_array($slot)) {
                 $targets[] = [
                     'module_key' => $moduleKey,
                     'module_label' => sr_popup_layer_module_label($moduleKey),
                     'point_key' => $pointKey,
                     'point_label' => $pointLabel,
                     'slot_key' => (string) $slot['slot_key'],
-                    'slot_label' => (string) $slot['slot_label'],
+                    'slot_label' => '화면',
                 ];
             }
         }
@@ -123,12 +124,12 @@ function sr_popup_layer_is_public_target_option(string $option): bool
 
 function sr_popup_layer_target_option_label(array $target): string
 {
-    return (string) $target['module_label'] . ' / ' . (string) $target['point_label'] . ' / ' . (string) $target['slot_label'];
+    return (string) $target['module_label'] . ' / ' . (string) $target['point_label'];
 }
 
 function sr_popup_layer_target_detail_label(array $target): string
 {
-    return (string) $target['point_label'] . ' - ' . (string) $target['slot_label'];
+    return (string) $target['point_label'];
 }
 
 function sr_popup_layer_target_service_key(array $target): string
@@ -148,12 +149,139 @@ function sr_popup_layer_target_service_label(string $serviceKey): string
         'content' => '콘텐츠',
         'community' => '커뮤니티',
         'member' => '회원',
+        'quiz' => '퀴즈·테스트',
+        'survey' => '설문·여론조사',
     ];
     if (isset($labels[$serviceKey])) {
         return $labels[$serviceKey];
     }
 
     return sr_popup_layer_module_label($serviceKey);
+}
+
+function sr_popup_layer_subject_target_type_for_target(?array $target): string
+{
+    if ($target === null) {
+        return '';
+    }
+
+    $moduleKey = (string) ($target['module_key'] ?? '');
+    $pointKey = (string) ($target['point_key'] ?? '');
+
+    if ($moduleKey === 'content' && $pointKey === 'content.view') {
+        return 'content';
+    }
+
+    if ($moduleKey === 'community' && in_array($pointKey, ['community.board.list', 'community.post.form'], true)) {
+        return 'community_board';
+    }
+
+    if ($moduleKey === 'community' && $pointKey === 'community.post.view') {
+        return 'community_post';
+    }
+
+    if ($moduleKey === 'quiz' && $pointKey === 'quiz.view') {
+        return 'quiz';
+    }
+
+    if ($moduleKey === 'survey' && $pointKey === 'survey.view') {
+        return 'survey';
+    }
+
+    return '';
+}
+
+function sr_popup_layer_subject_target_contract_helper_path(string $moduleKey, array $target): string
+{
+    $helpers = (string) ($target['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $path = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+    return is_file($path) ? $path : '';
+}
+
+function sr_popup_layer_subject_target_contracts(PDO $pdo): array
+{
+    $contracts = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'coupon-targets.php', ['popup_layer']) as $moduleKey => $file) {
+        $contractTargets = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contractTargets)) {
+            continue;
+        }
+
+        foreach ($contractTargets as $target) {
+            if (!is_array($target)) {
+                continue;
+            }
+
+            $targetType = (string) ($target['target_type'] ?? '');
+            $label = sr_popup_layer_clean_single_line((string) ($target['label'] ?? ''), 80);
+            if ($targetType === '' || $label === '' || preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetType) !== 1) {
+                continue;
+            }
+
+            $helperPath = sr_popup_layer_subject_target_contract_helper_path($moduleKey, $target);
+            if ($helperPath !== '') {
+                require_once $helperPath;
+            }
+
+            $target['module_key'] = $moduleKey;
+            $target['label'] = $label;
+            $contracts[$targetType] = $target;
+        }
+    }
+
+    return $contracts;
+}
+
+function sr_popup_layer_subject_search_types(PDO $pdo, array $availableTargets): array
+{
+    $contracts = sr_popup_layer_subject_target_contracts($pdo);
+    $types = [];
+
+    foreach ($availableTargets as $target) {
+        $targetType = sr_popup_layer_subject_target_type_for_target($target);
+        if ($targetType !== '' && isset($contracts[$targetType])) {
+            $types[$targetType] = (string) ($contracts[$targetType]['label'] ?? $targetType);
+        }
+    }
+
+    return $types;
+}
+
+function sr_popup_layer_subject_target_type_map(PDO $pdo, array $availableTargets): array
+{
+    $contracts = sr_popup_layer_subject_target_contracts($pdo);
+    $map = [];
+
+    foreach ($availableTargets as $target) {
+        $targetType = sr_popup_layer_subject_target_type_for_target($target);
+        if ($targetType !== '' && isset($contracts[$targetType])) {
+            $map[sr_popup_layer_target_option_value($target)] = $targetType;
+        }
+    }
+
+    return $map;
+}
+
+function sr_popup_layer_subject_search(PDO $pdo, string $referenceType, string $keyword, int $limit = 20): array
+{
+    $contracts = sr_popup_layer_subject_target_contracts($pdo);
+    $target = $contracts[$referenceType] ?? null;
+    $searchFunction = is_array($target) ? (string) ($target['search_function'] ?? '') : '';
+    if ($searchFunction === '' || !function_exists($searchFunction)) {
+        return [];
+    }
+
+    try {
+        $results = $searchFunction($pdo, $referenceType, sr_popup_layer_clean_single_line($keyword, 120), max(1, min(30, $limit)));
+        return is_array($results) ? $results : [];
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'popup_layer_subject_search_' . $referenceType);
+        return [];
+    }
 }
 
 function sr_popup_layer_target_service_options(array $targets, bool $includePublic = true): array
@@ -238,7 +366,7 @@ function sr_popup_layer_normalize_posted_target_option(array $targets, string $s
             'option' => $detailOption,
             'is_public' => false,
             'target' => null,
-            'error' => '선택한 서비스에 속한 상세 노출 위치를 선택하세요.',
+            'error' => '선택한 서비스에 속한 화면을 선택하세요.',
         ];
     }
 

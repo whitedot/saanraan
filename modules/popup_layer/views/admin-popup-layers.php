@@ -41,6 +41,22 @@ if ($selectedTargetServiceKey === '') {
     $selectedTargetServiceKey = sr_popup_layer_public_target_option_value();
 }
 $subjectRequired = !sr_popup_layer_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
+$popupLayerSubjectTargetTypeMap = sr_popup_layer_subject_target_type_map($pdo, $availableTargets);
+$popupLayerSubjectSearchTypes = sr_popup_layer_subject_search_types($pdo, $availableTargets);
+$currentSubjectTargetType = (string) ($popupLayerSubjectTargetTypeMap[$selectedTargetOption] ?? '');
+$popupLayerSubjectSearchEnabled = $currentSubjectTargetType !== '';
+if (sr_popup_layer_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
+    $subjectRequired = false;
+    if ($currentMatchType === 'exact') {
+        $currentMatchType = 'all';
+    }
+}
+$popupLayerMatchTypeOptions = [
+    'all' => '전체',
+    'exact' => '선택',
+];
+$popupLayerSubjectLookupModalId = 'popup-layer-subject-lookup-modal';
+$popupLayerSubjectLookupResultsId = 'popup-layer-subject-lookup-results';
 $popupLayerHelpOpenLabel = sr_t('popup_layer::help.open');
 $popupLayerHelpButtonHtml = static function (string $label, string $modalId) use ($popupLayerHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $popupLayerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -200,11 +216,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 팝업레이어이고, 서비스 선택 시 상세 노출 위치를 고릅니다.'); ?></p>
+                        <p class="form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 팝업레이어이고, 서비스 선택 시 자동으로 띄울 화면을 고릅니다.'); ?></p>
                     </div>
                 </div>
                 <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
-                    <label class="form-label" for="popup_layer_admin_popup_layers_target_detail_option"><?php echo sr_e('상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_target_detail_option"><?php echo sr_e('노출위치'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
                     <div class="form-field">
                         <select id="popup_layer_admin_popup_layers_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
                             <?php foreach ($availableTargets as $target) { ?>
@@ -217,22 +233,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <p class="form-help"><?php echo sr_e(sr_t('popup_layer::ui.settings.select.active.a35cb577')); ?></p>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-admin-subject-scope-row<?php echo $currentSubjectTargetType !== '' ? '' : ' hidden'; ?>>
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_match_type', sr_t('popup_layer::ui.text.175f56ba'), $popupLayerHelp['match_type']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="form-field">
-                        <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select" required>
-                                                    <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                                                        <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
-                                                            <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
+                        <?php echo sr_admin_radio_toggle_group_html('popup_layer_admin_popup_layers_match_type', 'match_type', $popupLayerMatchTypeOptions, $currentMatchType, true); ?>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-label form-label-help"><?php echo $popupLayerHelpButtonHtml(sr_t('popup_layer::ui.subject.id.14852174'), $popupLayerHelp['subject_id']['id']); ?><label for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e(sr_t('popup_layer::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label></div>
+                <div class="form-row" data-admin-subject-row<?php echo $subjectRequired ? '' : ' hidden'; ?>>
+                    <div class="form-label form-label-help"><?php echo $popupLayerHelpButtonHtml(sr_t('popup_layer::ui.subject.id.14852174'), $popupLayerHelp['subject_id']['id']); ?><label for="popup_layer_admin_popup_layers_subject_id"><?php echo sr_e('대상 선택'); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label></div>
                     <div class="form-field">
-                        <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
+                        <div class="admin-lookup-control">
+                            <input id="popup_layer_admin_popup_layers_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editPopup['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id data-validation-message="대상을 선택해 주세요." readonly<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
+                            <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-popup-layer-subject-search-button data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id"<?php echo $popupLayerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e('대상 검색'); ?></button>
+                        </div>
+                        <input id="popup_layer_admin_popup_layers_subject_reference_type" type="hidden" name="subject_reference_type" value="<?php echo sr_e($currentSubjectTargetType); ?>" data-admin-subject-reference-type>
+                        <p class="form-help"><?php echo sr_e('선택한 노출위치 안에서 특정 대상에만 팝업을 띄울 때 사용합니다.'); ?></p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -329,7 +344,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                     <div class="filtering-field admin-popup-layer-filter-target">
-                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="filtering-label"><?php echo sr_e('상세'); ?></label>
+                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="filtering-label"><?php echo sr_e('노출위치'); ?></label>
                         <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select filtering-input" data-admin-target-detail>
                             <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
                             <?php foreach ($availableTargets as $target) { ?>
@@ -421,7 +436,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
                             <td class="admin-table-break admin-popup-layer-target-cell">
                                 <?php echo sr_e($popupTargetLabel); ?><br>
-                                <?php echo sr_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
+                                <?php echo sr_e((string) ($popupLayerMatchTypeOptions[(string) ($popup['match_type'] ?? 'all')] ?? (string) ($popup['match_type'] ?? 'all')) . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                             </td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?></td>
@@ -544,6 +559,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php foreach ($popupLayerHelp as $popupLayerHelpModal) { ?>
         <?php echo sr_admin_help_modal_html((string) $popupLayerHelpModal['id'], (string) $popupLayerHelpModal['title'], (string) $popupLayerHelpModal['body']); ?>
     <?php } ?>
+    <div id="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>_title" aria-hidden="true" inert data-overlay-stack="true">
+        <div class="modal-dialog admin-lookup-dialog">
+            <div class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($popupLayerSubjectLookupModalId); ?>_title" class="modal-title"><?php echo sr_e('대상 검색'); ?></h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($popupLayerSubjectLookupModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/popup-layers/subject-search')); ?>" data-type-target="#popup_layer_admin_popup_layers_subject_reference_type" data-id-target="#popup_layer_admin_popup_layers_subject_id" data-results="#<?php echo sr_e($popupLayerSubjectLookupResultsId); ?>">
+                        <select name="reference_type" class="form-select" aria-label="<?php echo sr_e('대상 유형'); ?>">
+                            <?php foreach ($popupLayerSubjectSearchTypes as $targetType => $targetLabel) { ?>
+                                <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="text" name="q" maxlength="120" class="form-input" placeholder="<?php echo sr_e('제목이나 ID로 검색'); ?>" data-overlay-focus>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('popup_layer::ui.search.4b8d541e')); ?></button>
+                    </form>
+                    <div id="<?php echo sr_e($popupLayerSubjectLookupResultsId); ?>" class="admin-lookup-results">
+                        <p class="admin-empty-state admin-lookup-empty"><?php echo sr_e('검색어를 입력해 대상을 찾으세요.'); ?></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($popupLayerSubjectLookupModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
 <?php } ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
@@ -560,10 +604,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var targetOption = form.querySelector('[data-admin-target-option]');
         var targetDetailRow = form.querySelector('[data-admin-target-detail-row]');
         var targetDetailRequired = form.querySelector('[data-admin-target-detail-required]');
-        var match = form.querySelector('select[name="match_type"]');
+        var scopes = form.querySelectorAll('input[name="match_type"]');
+        var exact = form.querySelector('input[name="match_type"][value="exact"]');
+        var all = form.querySelector('input[name="match_type"][value="all"]');
+        var scopeRow = form.querySelector('[data-admin-subject-scope-row]');
         var subject = form.querySelector('[data-admin-subject-id]');
+        var subjectRow = form.querySelector('[data-admin-subject-row]');
+        var subjectReferenceType = form.querySelector('[data-admin-subject-reference-type]');
+        var subjectSearchButton = form.querySelector('[data-popup-layer-subject-search-button]');
+        var subjectSearchModal = document.getElementById('<?php echo sr_e($popupLayerSubjectLookupModalId); ?>');
         var label = form.querySelector('[data-admin-subject-required]');
         var publicTarget = form.getAttribute('data-public-target-value') || '';
+        var searchableTargetTypes = <?php echo sr_js_json_encode($popupLayerSubjectTargetTypeMap); ?>;
+        var lastTargetOption = targetOption ? targetOption.value : '';
 
         function syncTargetDetail() {
             var service = targetService ? targetService.value : publicTarget;
@@ -593,25 +646,60 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (targetOption) {
                 targetOption.value = isPublic ? publicTarget : (targetDetail ? targetDetail.value : '');
             }
-            if (isPublic && match) {
-                match.value = 'all';
+            if (isPublic && all) {
+                all.checked = true;
             }
         }
 
         function syncSubjectRequired() {
             syncTargetDetail();
-            var needed = !!(targetOption && match && targetOption.value !== publicTarget && match.value === 'exact');
+            var currentTargetOption = targetOption ? targetOption.value : '';
+            var targetChanged = currentTargetOption !== lastTargetOption;
+            lastTargetOption = currentTargetOption;
+            var isPublic = currentTargetOption === publicTarget;
+            var subjectTargetType = searchableTargetTypes[currentTargetOption] || '';
+            var scopeVisible = !!subjectTargetType && !isPublic;
+            if (!scopeVisible && all) {
+                all.checked = true;
+            }
+            if (scopeRow) {
+                scopeRow.hidden = !scopeVisible;
+            }
+            if (exact) {
+                exact.disabled = !scopeVisible;
+            }
+            var needed = !!(subject && exact && scopeVisible && exact.checked);
             if (label) {
                 label.hidden = !needed;
+            }
+            if (subjectRow) {
+                subjectRow.hidden = !needed;
             }
             if (subject) {
                 subject.required = needed;
                 subject.disabled = !needed;
+                if (!needed || targetChanged) {
+                    subject.value = '';
+                }
+            }
+            if (subjectReferenceType) {
+                subjectReferenceType.value = subjectTargetType;
+            }
+            if (subjectSearchButton) {
+                subjectSearchButton.disabled = !scopeVisible;
+                subjectSearchButton.hidden = !scopeVisible;
+                subjectSearchButton.classList.toggle('hidden', !scopeVisible);
+            }
+            if (subjectSearchModal) {
+                var modalType = subjectSearchModal.querySelector('select[name="reference_type"]');
+                if (modalType && subjectTargetType) {
+                    modalType.value = subjectTargetType;
+                }
             }
         }
 
         form.addEventListener('change', function (event) {
-            if (event.target === targetService || event.target === targetDetail || event.target === match) {
+            if (event.target === targetService || event.target === targetDetail || Array.prototype.indexOf.call(scopes, event.target) !== -1) {
                 syncSubjectRequired();
             }
         });

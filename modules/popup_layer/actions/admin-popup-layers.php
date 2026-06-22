@@ -349,8 +349,13 @@ if (sr_request_method() === 'POST') {
             $errors[] = '대상 매칭 방식이 올바르지 않습니다.';
         }
 
-        if (!$isPublicPopupLayer && $matchType === 'exact' && $subjectId === '') {
-            $errors[] = '특정 대상 ID를 입력해야 합니다.';
+        if (!$isPublicPopupLayer && $matchType === 'exact') {
+            if (sr_popup_layer_subject_target_type_for_target($target) === '') {
+                $errors[] = '대상 선택을 지원하는 노출위치를 선택하세요.';
+            }
+            if ($subjectId === '') {
+                $errors[] = '대상을 선택해야 합니다.';
+            }
         }
 
         $existingPopup = null;

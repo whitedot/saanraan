@@ -797,6 +797,42 @@ function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null): array
     return $stmt->fetchAll();
 }
 
+function sr_quiz_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array
+{
+    if ($targetType !== 'quiz') {
+        return [];
+    }
+
+    $keyword = trim(preg_replace('/\s+/', ' ', $keyword) ?? '');
+    $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
+    $limit = max(1, min(30, $limit));
+    $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+    $idValue = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
+    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR quiz_key LIKE :keyword_like ESCAPE '\\\\')";
+
+    $stmt = $pdo->prepare(
+        'SELECT id, quiz_key, title, status, updated_at
+         FROM sr_quiz_sets
+         WHERE deleted_at IS NULL
+           AND ' . $where . '
+         ORDER BY id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute($keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike]);
+
+    return array_map(static function (array $row): array {
+        return [
+            'reference_type' => 'quiz',
+            'reference_id' => (string) (int) ($row['id'] ?? 0),
+            'title' => (string) ($row['title'] ?? ''),
+            'reason' => '퀴즈 #' . (string) (int) ($row['id'] ?? 0),
+            'member_name' => '(' . (string) ($row['quiz_key'] ?? '') . ')',
+            'member_email' => '',
+            'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
+        ];
+    }, $stmt->fetchAll());
+}
+
 function sr_quiz_by_key(PDO $pdo, string $quizKey): ?array
 {
     if (!sr_quiz_key_is_valid($quizKey)) {

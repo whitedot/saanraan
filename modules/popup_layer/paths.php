@@ -6,6 +6,7 @@ return [
     'POST /admin/popup-layers' => 'actions/admin-popup-layers.php',
     'GET /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
     'POST /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
+    'GET /admin/popup-layers/subject-search' => 'actions/admin-popup-layer-subject-search.php',
     'GET /admin/popup-layers/new' => 'actions/admin-popup-layer-new.php',
     'GET /admin/popup-layers/edit' => 'actions/admin-popup-layer-edit.php',
     'POST /admin/popup-layers/copy' => 'actions/admin-popup-layer-copy.php',
