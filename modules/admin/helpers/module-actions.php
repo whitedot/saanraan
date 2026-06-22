@@ -164,7 +164,7 @@ function sr_admin_handle_modules_post(
             $pendingCounts = sr_module_pending_update_counts(sr_pending_schema_updates($pdo));
 
             if ($errors === [] && (int) ($pendingCounts[$moduleKey] ?? 0) > 0) {
-                $errors[] = '미적용 SQL이 있는 모듈은 업데이트 화면에서 먼저 DB 업데이트를 실행하세요.';
+                $errors[] = '미적용 SQL이 있는 모듈은 업데이트 화면에서 먼저 데이터베이스 업데이트를 실행하세요.';
             } elseif ($errors === [] && strcmp($codeVersion, (string) $module['version']) <= 0) {
                 $errors[] = '설치 버전에 반영할 새 코드 버전이 없습니다.';
             }
