@@ -27,7 +27,7 @@ if (sr_request_method() === 'POST') {
 
     if ($intent === 'create_logo') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $positionKey = sr_logo_manager_clean_position_key(sr_post_string('position_key', 120));
@@ -189,7 +189,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'update_logo') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $logoId = sr_admin_post_positive_int('logo_id');
@@ -366,7 +366,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'generate_icon_set') {
         if (!$logoTableExists || !$iconVariantTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $logoId = sr_admin_post_positive_int('logo_id');
@@ -434,7 +434,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'purge_favicon_icons') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $faviconLogos = [];
@@ -512,7 +512,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'delete_logo') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $logoId = sr_admin_post_positive_int('logo_id');
@@ -586,7 +586,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'logo_status') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $logoId = sr_admin_post_positive_int('logo_id');
@@ -631,7 +631,7 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($intent === 'batch_status') {
         if (!$logoTableExists) {
-            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+            $errors[] = '로고 매니저 업데이트를 먼저 적용하세요.';
         }
 
         $operationKey = sr_post_string('operation_key', 80);
@@ -799,7 +799,7 @@ if ($logoTableExists) {
 } else {
     $logoPagination = sr_admin_pagination_from_total($pdo, 0, 'logo_page');
     if ($notice === '') {
-        $notice = '로고 매니저 DB 업데이트 적용 후 로고 배치를 등록할 수 있습니다.';
+        $notice = '로고 매니저 업데이트 적용 후 로고 배치를 등록할 수 있습니다.';
     }
 }
 

@@ -903,7 +903,7 @@ function sr_logo_manager_icon_variant_url(array $variant): string
 function sr_logo_manager_generate_icon_variants(PDO $pdo, array $logo, array $variantKeys, array $options = []): array
 {
     if (!sr_logo_manager_icon_variants_table_exists($pdo)) {
-        throw new RuntimeException('아이콘 세트 DB 업데이트를 먼저 적용하세요.');
+        throw new RuntimeException('아이콘 세트 업데이트를 먼저 적용하세요.');
     }
 
     $logoId = (int) ($logo['id'] ?? 0);
