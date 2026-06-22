@@ -262,7 +262,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
-                <button type="submit" class="btn btn-solid-primary modal-action">기록 추가</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
             </div>
         </form>
     </div>
@@ -309,7 +309,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <small class="form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
             </label>
             <div class="form-actions">
-                <button type="submit" class="btn btn-solid-primary">기록 추가</button>
+                <button type="submit" class="btn btn-solid-primary">저장</button>
             </div>
         </form>
     </section>

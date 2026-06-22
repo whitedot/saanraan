@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <div class="form-sticky-actions form-actions form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">환경설정 저장</button>
+        <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
 

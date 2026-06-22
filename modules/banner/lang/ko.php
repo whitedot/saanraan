@@ -87,7 +87,7 @@ return [
     'ui.banner.edit.52756afa' => '배너 수정',
     'ui.banner.list.f989d740' => '배너 목록',
     'ui.banner.settings.cc368bd0' => '배너 설정',
-    'ui.banner.settings.save.760342b3' => '배너 설정 저장',
+    'ui.banner.settings.save.760342b3' => '저장',
     'ui.banner.settings.select.active.88d78049' => '공용 배너는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.',
     'ui.banner.status.4bbdd30d' => '공개 화면에 연결된 배너 상태를 확인합니다.',
     'ui.banner.status.search.ae378c83' => '등록된 배너의 상태와 노출 위치를 확인하고 필요한 작업을 진행합니다.',

@@ -427,7 +427,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#reaction-definition-create-modal"><?php echo sr_e($reactionCloseLabel); ?></button>
-                <button type="submit" class="btn btn-solid-primary modal-action">정의 추가</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
             </div>
         </form>
     </div>
@@ -611,7 +611,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#reaction-preset-create-modal"><?php echo sr_e($reactionCloseLabel); ?></button>
-                <button type="submit" class="btn btn-solid-primary modal-action">Preset 추가</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
             </div>
         </form>
     </div>

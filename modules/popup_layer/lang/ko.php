@@ -73,7 +73,7 @@ return [
     'ui.search.b79bc9c8' => '검색 조건',
     'ui.search.bda397fc' => '검색어',
     'ui.settings.fca22866' => '팝업레이어 설정',
-    'ui.settings.save.2132c0ee' => '팝업레이어 설정 저장',
+    'ui.settings.save.2132c0ee' => '저장',
     'ui.settings.select.active.a35cb577' => '공용 팝업레이어는 자동 출력되지 않고, 게시판 같은 모듈의 개별 설정에서 선택해 사용합니다.',
     'ui.status.e10195a1' => '상태',
     'ui.status.search.2a2d14e6' => '등록된 팝업의 상태와 노출 위치를 확인하고 필요한 작업을 진행합니다.',

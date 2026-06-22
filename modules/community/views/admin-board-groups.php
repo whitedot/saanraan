@@ -413,7 +413,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardGroupDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardGroupDeleteModalId); ?>">삭제</button>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
         </div>
     </form>
 

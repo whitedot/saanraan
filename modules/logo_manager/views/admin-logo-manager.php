@@ -435,7 +435,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>"><?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action">로고 수정 저장</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">수정</button>
                 </div>
             </form>
         </div>

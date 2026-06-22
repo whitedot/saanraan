@@ -68,7 +68,7 @@ return [
     'ui.required.1f227c67' => '(필수)',
     'ui.save.1a5bb64e' => '환불 거래는 양수 적립금으로 저장됩니다.',
     'ui.save.5fb92622' => '저장',
-    'ui.save.ae2ff036' => '환불 저장',
+    'ui.save.ae2ff036' => '저장',
     'ui.search.3acacadd' => '기존 참조 검색',
     'ui.search.4b8d541e' => '검색',
     'ui.search.b79bc9c8' => '검색 조건',

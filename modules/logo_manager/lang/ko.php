@@ -30,7 +30,7 @@ return [
     'ui.logo.empty' => '등록된 로고 배치가 없습니다.',
     'ui.logo.form_help' => '로고를 사용할 용도와 기간을 선택합니다. 시작/종료 시각을 비우면 상시 적용됩니다.',
     'ui.logo.list' => '로고 배치 목록',
-    'ui.logo.save' => '로고 배치 저장',
+    'ui.logo.save' => '저장',
     'ui.icon_legend.delete' => '삭제',
     'ui.icon_legend.edit' => '수정',
     'ui.icon_legend.favicon_purge' => '파비콘 완전 삭제',

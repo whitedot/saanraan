@@ -1199,7 +1199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>" aria-label="<?php echo sr_e('삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
         </div>
     </form>
 
@@ -1611,7 +1611,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-category-create-modal">닫기</button>
-                            <button type="submit" class="btn btn-solid-primary modal-action">카테고리 추가</button>
+                            <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
                         </div>
                     </form>
                 </div>

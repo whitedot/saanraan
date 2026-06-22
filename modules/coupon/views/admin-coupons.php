@@ -481,7 +481,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">닫기</button>
-                <button type="submit" class="btn btn-solid-primary modal-action">쿠폰 추가</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
             </div>
         </form>
     </div>

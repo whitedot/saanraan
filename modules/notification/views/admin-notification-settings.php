@@ -276,7 +276,7 @@ $notificationSettingsSectionNavItems = [
 
     <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light">알림 목록</a>
-        <button type="submit" class="btn btn-solid-primary">환경설정 저장</button>
+        <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
 

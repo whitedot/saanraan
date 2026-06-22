@@ -350,7 +350,7 @@ return [
     'ui.saanraan.cad4cd41' => 'Saanraan 계정으로 계속 진행합니다.',
     'ui.save.5fb92622' => '저장',
     'ui.save.617f3ca3' => '저장된 회원 그룹 규칙',
-    'ui.save.95d3fea1' => '회원 그룹 규칙 저장',
+    'ui.save.95d3fea1' => '저장',
     'ui.save.be6da0db' => '계정 정보 저장',
     'ui.save.ff4a5952' => '프로필 저장',
     'ui.search.4b8d541e' => '검색',
