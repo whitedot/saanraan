@@ -7,7 +7,7 @@
 
         <footer id="ft" class="admin-footer">
             <p class="admin-footer-inner">
-                <span class="admin-footer-copy">Copyright &copy; <?php echo sr_e((string) date('Y')); ?> <?php echo sr_e((string) ($adminShell['site_title'] ?? sr_t('admin::ui.text.7f03504e'))); ?>. All rights reserved.</span>
+                <span class="admin-footer-copy">&copy; <?php echo sr_e((string) ($adminShell['site_title'] ?? sr_t('admin::ui.text.7f03504e'))); ?>.</span>
                 <button type="button" class="admin-footer-scroll-top scroll_top"><span>TOP</span></button>
             </p>
         </footer>
