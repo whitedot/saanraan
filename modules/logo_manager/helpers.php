@@ -32,6 +32,12 @@ function sr_logo_manager_default_position_options(): array
             'max_bytes' => 1048576,
             'surface' => 'global',
         ],
+        'public.app_icon' => [
+            'label' => sr_t('logo_manager::position.app_icon.label'),
+            'hint' => sr_t('logo_manager::position.app_icon.hint'),
+            'max_bytes' => 2097152,
+            'surface' => 'global',
+        ],
     ];
 }
 
@@ -118,9 +124,19 @@ function sr_logo_manager_position_label(string $positionKey, ?PDO $pdo = null): 
     return (string) ($options[$positionKey]['label'] ?? $positionKey);
 }
 
-function sr_logo_manager_public_symbol_position_key(): string
+function sr_logo_manager_favicon_position_key(): string
 {
     return 'public.favicon';
+}
+
+function sr_logo_manager_app_icon_position_key(): string
+{
+    return 'public.app_icon';
+}
+
+function sr_logo_manager_public_symbol_position_key(): string
+{
+    return sr_logo_manager_app_icon_position_key();
 }
 
 function sr_logo_manager_use_as_public_symbol_value(string $positionKey, mixed $value): int
@@ -891,7 +907,7 @@ function sr_logo_manager_generate_icon_variants(PDO $pdo, array $logo, array $va
     }
 
     $logoId = (int) ($logo['id'] ?? 0);
-    if ($logoId < 1 || (string) ($logo['position_key'] ?? '') !== sr_logo_manager_public_symbol_position_key()) {
+    if ($logoId < 1 || (string) ($logo['position_key'] ?? '') !== sr_logo_manager_favicon_position_key()) {
         throw new RuntimeException('파비콘 용도 로고에서만 아이콘 세트를 생성할 수 있습니다.');
     }
     if ((string) ($logo['mime_type'] ?? '') === 'image/svg+xml') {
@@ -1300,7 +1316,7 @@ function sr_logo_manager_favicon_has_configured_logo(PDO $pdo): bool
 
     try {
         $stmt = $pdo->prepare('SELECT 1 FROM sr_logo_manager_logos WHERE position_key = :position_key LIMIT 1');
-        $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+        $stmt->execute(['position_key' => sr_logo_manager_favicon_position_key()]);
 
         return (bool) $stmt->fetchColumn();
     } catch (Throwable $exception) {
@@ -1322,7 +1338,7 @@ function sr_logo_manager_favicon_cache_version(PDO $pdo): string
              FROM sr_logo_manager_logos
              WHERE position_key = :position_key'
         );
-        $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+        $stmt->execute(['position_key' => sr_logo_manager_favicon_position_key()]);
         $row = $stmt->fetch();
         if (is_array($row)) {
             $versionParts[] = (string) ($row['updated_at'] ?? '');
@@ -1340,7 +1356,7 @@ function sr_logo_manager_favicon_cache_version(PDO $pdo): string
                  INNER JOIN sr_logo_manager_logos l ON l.id = v.logo_id
                  WHERE l.position_key = :position_key'
             );
-            $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+            $stmt->execute(['position_key' => sr_logo_manager_favicon_position_key()]);
             $row = $stmt->fetch();
             if (is_array($row)) {
                 $versionParts[] = (string) ($row['updated_at'] ?? '');
@@ -1381,7 +1397,7 @@ function sr_logo_manager_url_with_cache_version(string $url, string $version): s
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
     $cacheVersion = sr_logo_manager_favicon_cache_version($pdo);
-    $logo = sr_logo_manager_active_logo($pdo, 'public.favicon');
+    $logo = sr_logo_manager_active_logo($pdo, sr_logo_manager_favicon_position_key());
     if (!is_array($logo)) {
         return '';
     }

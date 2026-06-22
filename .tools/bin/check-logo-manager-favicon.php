@@ -263,6 +263,33 @@ sr_logo_manager_favicon_check_assert(
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 101,
+    'position_key' => 'public.app_icon',
+    'use_as_public_symbol' => 1,
+    'public_url' => '/uploads/app-icon-active.png',
+]);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert_no_icon_tag($html, 'active public.app_icon logo');
+$symbolLogo = sr_logo_manager_public_symbol_logo($pdo);
+sr_logo_manager_favicon_check_assert(is_array($symbolLogo), 'active public.app_icon logo with symbol flag must be public symbol candidate');
+sr_logo_manager_favicon_check_assert(
+    is_array($symbolLogo) && (string) ($symbolLogo['public_url'] ?? '') === '/uploads/app-icon-active.png',
+    'public symbol helper must return public.app_icon logo instead of favicon logo'
+);
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 102,
+    'use_as_public_symbol' => 1,
+    'public_url' => '/uploads/favicon-symbol-legacy.png',
+]);
+sr_logo_manager_favicon_check_assert(
+    sr_logo_manager_public_symbol_logo($pdo) === null,
+    'legacy public.favicon symbol flag must not be used as public app icon symbol'
+);
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
     'id' => 2,
     'status' => 'disabled',
     'use_as_public_symbol' => 1,
@@ -483,14 +510,61 @@ if (is_string($adminAction)) {
         str_contains($adminAction, 'Clear-Site-Data: "cache"'),
         'favicon purge action must ask the browser to clear origin cache'
     );
+    foreach ([
+        "sr_logo_manager_favicon_position_key() && sr_post_string('also_use_as_app_icon'",
+        "sr_logo_manager_app_icon_position_key() && sr_post_string('also_use_as_favicon'",
+        "'copied_from_position_key' => \$insertPositionKey === \$positionKey ? '' : \$positionKey",
+    ] as $marker) {
+        sr_logo_manager_favicon_check_assert(
+            str_contains($adminAction, $marker),
+            'logo manager create action must preserve favicon/app icon copy marker: ' . $marker
+        );
+    }
+}
+
+$adminLogoManagerView = is_file('modules/logo_manager/views/admin-logo-manager.php') ? file_get_contents('modules/logo_manager/views/admin-logo-manager.php') : false;
+sr_logo_manager_favicon_check_assert(is_string($adminLogoManagerView), 'logo manager admin view must be readable');
+if (is_string($adminLogoManagerView)) {
+    foreach ([
+        'data-logo-manager-app-icon-copy-row',
+        'name="also_use_as_app_icon"',
+        'data-logo-manager-favicon-copy-row',
+        'name="also_use_as_favicon"',
+        'sr_logo_manager_favicon_position_key()',
+        'sr_logo_manager_app_icon_position_key()',
+    ] as $marker) {
+        sr_logo_manager_favicon_check_assert(
+            str_contains($adminLogoManagerView, $marker),
+            'logo manager view must preserve favicon/app icon split marker: ' . $marker
+        );
+    }
 }
 
 $adminHeader = is_file('modules/admin/skins/basic/layout-header.php') ? file_get_contents('modules/admin/skins/basic/layout-header.php') : false;
 sr_logo_manager_favicon_check_assert(is_string($adminHeader), 'admin layout header must be readable');
 if (is_string($adminHeader)) {
     sr_logo_manager_favicon_check_assert(
+        str_contains($adminHeader, "sr_logo_manager_active_url(\$pdo, 'public.app_icon')"),
+        'admin collapsed sidebar brand must read app icon from public.app_icon'
+    );
+    sr_logo_manager_favicon_check_assert(
         str_contains($adminHeader, '$adminBrandSidebarLogoUrl'),
-        'admin sidebar compact brand must use the configured admin sidebar logo before favicon fallback'
+        'admin sidebar compact brand must keep sidebar logo as fallback when app icon is unavailable'
+    );
+    $compactIconOffset = strpos($adminHeader, "if (\$adminBrandIconUrl !== '')");
+    $compactSidebarLogoOffset = strpos($adminHeader, "elseif (\$adminBrandSidebarLogoUrl !== '')");
+    sr_logo_manager_favicon_check_assert(
+        is_int($compactIconOffset) && is_int($compactSidebarLogoOffset) && $compactIconOffset < $compactSidebarLogoOffset,
+        'admin collapsed sidebar brand must prefer app icon before sidebar logo fallback'
+    );
+    sr_logo_manager_favicon_check_assert(
+        str_contains($adminHeader, "if (\$adminBrandLogoHtml === '')"),
+        'admin sidebar brand mark must not add initial/icon fallback classes when sidebar logo exists'
+    );
+    sr_logo_manager_favicon_check_assert(
+        str_contains($adminHeader, '$adminBrandLinkClass')
+            && str_contains($adminHeader, 'has-sidebar-logo'),
+        'admin sidebar brand link must expose a full-width sidebar-logo state class'
     );
     $mobileToggleOffset = strpos($adminHeader, 'id="btn_gnb_mobile"');
     $desktopToggleOffset = strpos($adminHeader, 'id="btn_gnb"');
@@ -508,8 +582,12 @@ sr_logo_manager_favicon_check_assert(is_string($adminCss), 'admin shell css must
 if (is_string($adminCss)) {
     foreach ([
         'has-sidebar-logo+.admin-sidebar-brand-name{display:none}',
-        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-logo-wrap{display:flex}',
-        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-compact{display:none}',
+        '#gnb>h2>a.has-sidebar-logo{justify-content:center;width:100%}',
+        '.admin-sidebar-brand-mark.has-sidebar-logo.has-brand-initial,#gnb>h2>a>.admin-sidebar-brand-mark.has-sidebar-logo.has-brand-icon{border:0;border-radius:0;background-color:transparent;color:inherit}',
+        'body.admin-sidebar-condensed #gnb>h2>a>.admin-sidebar-brand-mark.has-sidebar-logo{width:calc(var(--spacing) * 10);max-width:calc(var(--spacing) * 10);border:0;border-radius:0;background-color:transparent;color:inherit;overflow:hidden}',
+        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-logo-wrap{display:none}',
+        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-compact{display:flex;height:100%;width:100%}',
+        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-icon{height:100%;width:100%;object-fit:contain}',
         '@media (min-width:1024px){body.admin-sidebar-condensed #btn_gnb_mobile{display:none}}',
     ] as $marker) {
         sr_logo_manager_favicon_check_assert(
@@ -517,6 +595,15 @@ if (is_string($adminCss)) {
             'admin shell css must preserve sidebar logo display marker: ' . $marker
         );
     }
+}
+
+$adminShellScript = is_file('modules/admin/assets/admin-shell.js') ? file_get_contents('modules/admin/assets/admin-shell.js') : false;
+sr_logo_manager_favicon_check_assert(is_string($adminShellScript), 'admin shell script must be readable');
+if (is_string($adminShellScript)) {
+    sr_logo_manager_favicon_check_assert(
+        str_contains($adminShellScript, "desktopToggleIcon.textContent = desktopCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left'"),
+        'admin sidebar toggle must switch material icon name instead of relying on CSS rotation'
+    );
 }
 
 if ($errors !== []) {

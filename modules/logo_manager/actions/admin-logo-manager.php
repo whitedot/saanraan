@@ -44,9 +44,18 @@ if (sr_request_method() === 'POST') {
         $sortOrder = sr_logo_manager_clean_sort_order(sr_post_string('sort_order', 20));
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
+        $copyPositionKey = '';
 
         if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
             $errors[] = '로고 용도 값이 올바르지 않습니다.';
+        }
+        if ($positionKey === sr_logo_manager_favicon_position_key() && sr_post_string('also_use_as_app_icon', 1) === '1') {
+            $copyPositionKey = sr_logo_manager_app_icon_position_key();
+        } elseif ($positionKey === sr_logo_manager_app_icon_position_key() && sr_post_string('also_use_as_favicon', 1) === '1') {
+            $copyPositionKey = sr_logo_manager_favicon_position_key();
+        }
+        if ($copyPositionKey !== '' && !isset($positionOptions[$copyPositionKey])) {
+            $errors[] = '함께 등록할 로고 용도 값이 올바르지 않습니다.';
         }
         if ($title === '') {
             $errors[] = '로고 이름을 입력하세요.';
@@ -79,60 +88,101 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        $uploadedImagesByPosition = [];
         if ($errors === [] && is_array($uploadedImage)) {
+            $uploadedImagesByPosition[$positionKey] = $uploadedImage;
+            if ($copyPositionKey !== '' && is_array($uploadFile)) {
+                try {
+                    $uploadedImagesByPosition[$copyPositionKey] = sr_logo_manager_upload_image($uploadFile, $copyPositionKey, $pdo);
+                } catch (Throwable $exception) {
+                    $errors[] = $exception->getMessage();
+                }
+            }
+        }
+        if ($errors !== [] && $uploadedImagesByPosition !== []) {
+            $uploadedStorageReferences = [];
+            foreach ($uploadedImagesByPosition as $uploadedPositionImage) {
+                $uploadedStorageReferences[] = [
+                    'storage_driver' => (string) ($uploadedPositionImage['driver'] ?? 'local'),
+                    'storage_key' => (string) ($uploadedPositionImage['storage_key'] ?? ''),
+                ];
+            }
+            sr_logo_manager_delete_storage_references($uploadedStorageReferences);
+        }
+
+        if ($errors === [] && $uploadedImagesByPosition !== []) {
             try {
+                $pdo->beginTransaction();
                 $stmt = $pdo->prepare(
                     'INSERT INTO sr_logo_manager_logos
                         (position_key, title, alt_text, link_url, use_as_public_symbol, original_name, storage_driver, storage_key, public_url, mime_type,
                          size_bytes, width, height, checksum_sha256, status, starts_at, ends_at, sort_order, created_by_account_id, created_at, updated_at)
                      VALUES
-                        (:position_key, :title, :alt_text, :link_url, :use_as_public_symbol, :original_name, :storage_driver, :storage_key, :public_url, :mime_type,
+                         (:position_key, :title, :alt_text, :link_url, :use_as_public_symbol, :original_name, :storage_driver, :storage_key, :public_url, :mime_type,
                          :size_bytes, :width, :height, :checksum_sha256, :status, :starts_at, :ends_at, :sort_order, :created_by_account_id, :created_at, :updated_at)'
                 );
-                $stmt->execute([
-                    'position_key' => $positionKey,
-                    'title' => $title,
-                    'alt_text' => $altText,
-                    'link_url' => $linkUrl,
-                    'use_as_public_symbol' => $useAsPublicSymbol,
-                    'original_name' => (string) ($uploadedImage['original_name'] ?? ''),
-                    'storage_driver' => (string) $uploadedImage['driver'],
-                    'storage_key' => (string) $uploadedImage['storage_key'],
-                    'public_url' => (string) $uploadedImage['public_url'],
-                    'mime_type' => (string) $uploadedImage['mime_type'],
-                    'size_bytes' => (int) $uploadedImage['size_bytes'],
-                    'width' => (int) $uploadedImage['width'],
-                    'height' => (int) $uploadedImage['height'],
-                    'checksum_sha256' => (string) $uploadedImage['checksum_sha256'],
-                    'status' => $status,
-                    'starts_at' => $startsAt,
-                    'ends_at' => $endsAt,
-                    'sort_order' => $sortOrder,
-                    'created_by_account_id' => (int) $account['id'],
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-                $logoId = (int) $pdo->lastInsertId();
-
-                sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'logo_manager.logo.created',
-                    'target_type' => 'logo_manager_logo',
-                    'target_id' => (string) $logoId,
-                    'result' => 'success',
-                    'message' => 'Logo placement created.',
-                    'metadata' => [
-                        'position_key' => $positionKey,
-                        'use_as_public_symbol' => $useAsPublicSymbol,
+                $createdCount = 0;
+                foreach ($uploadedImagesByPosition as $insertPositionKey => $insertedImage) {
+                    $insertUseAsPublicSymbol = $insertPositionKey === $positionKey ? $useAsPublicSymbol : 0;
+                    $stmt->execute([
+                        'position_key' => $insertPositionKey,
+                        'title' => $title,
+                        'alt_text' => $altText,
+                        'link_url' => $linkUrl,
+                        'use_as_public_symbol' => $insertUseAsPublicSymbol,
+                        'original_name' => (string) ($insertedImage['original_name'] ?? ''),
+                        'storage_driver' => (string) $insertedImage['driver'],
+                        'storage_key' => (string) $insertedImage['storage_key'],
+                        'public_url' => (string) $insertedImage['public_url'],
+                        'mime_type' => (string) $insertedImage['mime_type'],
+                        'size_bytes' => (int) $insertedImage['size_bytes'],
+                        'width' => (int) $insertedImage['width'],
+                        'height' => (int) $insertedImage['height'],
+                        'checksum_sha256' => (string) $insertedImage['checksum_sha256'],
+                        'status' => $status,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
-                        'reencoded' => !empty($uploadedImage['reencoded']),
-                    ],
-                ]);
+                        'sort_order' => $sortOrder,
+                        'created_by_account_id' => (int) $account['id'],
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                    $logoId = (int) $pdo->lastInsertId();
+                    $createdCount++;
 
-                $notice = '로고 배치를 저장했습니다.';
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'logo_manager.logo.created',
+                        'target_type' => 'logo_manager_logo',
+                        'target_id' => (string) $logoId,
+                        'result' => 'success',
+                        'message' => 'Logo placement created.',
+                        'metadata' => [
+                            'position_key' => $insertPositionKey,
+                            'copied_from_position_key' => $insertPositionKey === $positionKey ? '' : $positionKey,
+                            'use_as_public_symbol' => $insertUseAsPublicSymbol,
+                            'starts_at' => $startsAt,
+                            'ends_at' => $endsAt,
+                            'reencoded' => !empty($insertedImage['reencoded']),
+                        ],
+                    ]);
+                }
+                $pdo->commit();
+
+                $notice = $createdCount > 1 ? '로고 배치를 함께 저장했습니다.' : '로고 배치를 저장했습니다.';
             } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $uploadedStorageReferences = [];
+                foreach ($uploadedImagesByPosition as $uploadedPositionImage) {
+                    $uploadedStorageReferences[] = [
+                        'storage_driver' => (string) ($uploadedPositionImage['driver'] ?? 'local'),
+                        'storage_key' => (string) ($uploadedPositionImage['storage_key'] ?? ''),
+                    ];
+                }
+                sr_logo_manager_delete_storage_references($uploadedStorageReferences);
                 sr_log_exception($exception, 'logo_manager_logo_create_failed');
                 $errors[] = '로고 저장 중 오류가 발생했습니다.';
             }
@@ -329,7 +379,7 @@ if (sr_request_method() === 'POST') {
         }
         if (!is_array($logo)) {
             $errors[] = '아이콘 세트를 생성할 로고를 찾을 수 없습니다.';
-        } elseif ((string) ($logo['position_key'] ?? '') !== sr_logo_manager_public_symbol_position_key()) {
+        } elseif ((string) ($logo['position_key'] ?? '') !== sr_logo_manager_favicon_position_key()) {
             $errors[] = '파비콘 용도 로고에서만 아이콘 세트를 생성할 수 있습니다.';
         }
 
@@ -391,7 +441,7 @@ if (sr_request_method() === 'POST') {
         $iconVariants = [];
         if ($logoTableExists) {
             $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE position_key = :position_key ORDER BY id ASC');
-            $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+            $stmt->execute(['position_key' => sr_logo_manager_favicon_position_key()]);
             $faviconLogos = $stmt->fetchAll();
 
             if ($iconVariantTableExists && $faviconLogos !== []) {
@@ -435,9 +485,9 @@ if (sr_request_method() === 'POST') {
                     'actor_type' => 'admin',
                     'event_type' => 'logo_manager.favicon.purged',
                     'target_type' => 'logo_manager_logo',
-                    'target_id' => sr_logo_manager_public_symbol_position_key(),
+                    'target_id' => sr_logo_manager_favicon_position_key(),
                     'result' => 'success',
-                    'message' => 'Logo manager favicon and app icons purged.',
+                    'message' => 'Logo manager favicon icons purged.',
                     'metadata' => [
                         'logo_count' => count($faviconLogos),
                         'icon_variant_count' => count($iconVariants),
@@ -447,7 +497,7 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
 
-                $notice = '파비콘/앱 아이콘을 완전 삭제했습니다. 활성 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.';
+                $notice = '파비콘을 완전 삭제했습니다. 활성 파비콘 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.';
                 if (($storageDeleteResult['failed'] ?? []) !== []) {
                     $notice .= ' 일부 저장소 파일은 정리하지 못했습니다.';
                 }
@@ -457,7 +507,7 @@ if (sr_request_method() === 'POST') {
                     $pdo->rollBack();
                 }
                 sr_log_exception($exception, 'logo_manager_favicon_purge_failed');
-                $errors[] = '파비콘/앱 아이콘 완전 삭제 중 오류가 발생했습니다.';
+                $errors[] = '파비콘 완전 삭제 중 오류가 발생했습니다.';
             }
         }
     } elseif ($intent === 'delete_logo') {
@@ -574,9 +624,9 @@ if (sr_request_method() === 'POST') {
             if (
                 $status === 'disabled'
                 && is_array($logo)
-                && (string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()
+                && (string) ($logo['position_key'] ?? '') === sr_logo_manager_favicon_position_key()
             ) {
-                $notice .= ' 이 파비콘/앱 아이콘 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+                $notice .= ' 이 파비콘 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
             }
         }
     } elseif ($intent === 'batch_status') {
@@ -677,12 +727,12 @@ if (sr_request_method() === 'POST') {
                 }
                 $selectedFaviconCount = 0;
                 foreach ($selectedLogoRows ?? [] as $selectedLogoRow) {
-                    if ((string) ($selectedLogoRow['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()) {
+                    if ((string) ($selectedLogoRow['position_key'] ?? '') === sr_logo_manager_favicon_position_key()) {
                         $selectedFaviconCount++;
                     }
                 }
                 if ($targetStatus === 'disabled' && $selectedFaviconCount > 0) {
-                    $notice .= ' 파비콘/앱 아이콘 로고를 중지하면 해당 로고와 아이콘 세트는 head link 후보에서 제외되며, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+                    $notice .= ' 파비콘 로고를 중지하면 해당 로고와 아이콘 세트는 head link 후보에서 제외되며, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {

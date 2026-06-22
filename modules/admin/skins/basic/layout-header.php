@@ -75,7 +75,7 @@ if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager'
     if (is_array($adminBrandSidebarLogo)) {
         $adminBrandSidebarLogoUrl = sr_logo_manager_logo_url($adminBrandSidebarLogo);
     }
-    $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'public.favicon');
+    $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'public.app_icon');
     $adminFaviconHtml = sr_logo_manager_favicon_link_tag($pdo);
 }
 $adminBrandInitialSource = trim((string) ($adminShell['site_title'] ?? ''));
@@ -84,7 +84,11 @@ $adminBrandInitial = $adminBrandInitialSource !== ''
     : 'S';
 $adminBrandMarkClass = 'admin-sidebar-brand-mark';
 $adminBrandMarkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has-no-sidebar-logo';
-$adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-brand-initial';
+if ($adminBrandLogoHtml === '') {
+    $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-brand-initial';
+}
+$adminBrandLinkClass = 'admin-sidebar-brand-link';
+$adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has-no-sidebar-logo';
 ?>
 <!doctype html>
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_admin_color_scheme(is_array($adminSettings ?? null) ? $adminSettings : [])); ?>">
@@ -127,7 +131,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
 
         <nav id="gnb" class="admin-sidebar" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
             <h2 class="admin-sidebar-brand">
-                <a class="admin-sidebar-brand-link" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>" aria-label="<?php echo sr_e((string) $adminShell['site_title']); ?>">
+                <a class="<?php echo sr_e($adminBrandLinkClass); ?>" href="<?php echo sr_e((string) $adminShell['dashboard_url']); ?>" aria-label="<?php echo sr_e((string) $adminShell['site_title']); ?>">
                     <span class="<?php echo sr_e($adminBrandMarkClass); ?>">
                         <?php if ($adminBrandLogoHtml !== '') { ?>
                             <span class="admin-sidebar-brand-logo-wrap">
@@ -135,10 +139,10 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                             </span>
                         <?php } ?>
                         <span class="admin-sidebar-brand-compact" aria-hidden="true">
-                        <?php if ($adminBrandSidebarLogoUrl !== '') { ?>
-                            <img class="admin-sidebar-brand-icon admin-sidebar-brand-icon-logo" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandSidebarLogoUrl)); ?>" alt="" loading="eager" decoding="async">
-                        <?php } elseif ($adminBrandIconUrl !== '') { ?>
+                        <?php if ($adminBrandIconUrl !== '') { ?>
                             <img class="admin-sidebar-brand-icon" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandIconUrl)); ?>" alt="" loading="eager" decoding="async">
+                        <?php } elseif ($adminBrandSidebarLogoUrl !== '') { ?>
+                            <img class="admin-sidebar-brand-icon admin-sidebar-brand-icon-logo" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandSidebarLogoUrl)); ?>" alt="" loading="eager" decoding="async">
                         <?php } else { ?>
                             <span class="admin-sidebar-brand-initial"><?php echo sr_e($adminBrandInitial); ?></span>
                         <?php } ?>

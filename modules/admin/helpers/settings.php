@@ -332,7 +332,7 @@ function sr_admin_event_type_label_options(): array
         'site.currency.changed' => '기본 통화 변경',
         'site.currency.reauth_blocked' => '기본 통화 변경 재인증 제한',
         'site.currency.reauth_failed' => '기본 통화 변경 재인증 실패',
-        'logo_manager.favicon.purged' => '파비콘/앱 아이콘 완전 삭제',
+        'logo_manager.favicon.purged' => '파비콘 완전 삭제',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리 권한 변경',

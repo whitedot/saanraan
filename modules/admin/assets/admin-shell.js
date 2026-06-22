@@ -1274,6 +1274,10 @@ window.AdminShell = {
             container.classList.toggle('container-small', desktopCollapsed);
             desktopToggle.classList.toggle('btn_gnb_open', desktopCollapsed);
             desktopToggle.setAttribute('aria-pressed', desktopCollapsed ? 'true' : 'false');
+            const desktopToggleIcon = desktopToggle.querySelector('[data-sr-material-icon]');
+            if (desktopToggleIcon) {
+                desktopToggleIcon.textContent = desktopCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left';
+            }
         };
 
         const setDesktopCollapsed = nextCollapsed => {

@@ -39,17 +39,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small><?php echo sr_e((string) ($active['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?> - <?php echo sr_e((string) ($active['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></small>
                 <?php } else { ?>
                     <span class="logo-manager-empty"><?php echo sr_e(sr_t('logo_manager::ui.text.8789bbce')); ?></span>
-                    <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && $logoManagerFaviconResetMarker !== '') { ?>
+                    <?php if ((string) $positionKey === sr_logo_manager_favicon_position_key() && $logoManagerFaviconResetMarker !== '') { ?>
                         <small><?php echo sr_e(sr_t('logo_manager::ui.favicon.no_link_active')); ?></small>
                     <?php } else { ?>
                         <small><?php echo sr_e((string) ($positionOption['hint'] ?? sr_t('logo_manager::ui.position.empty_help'))); ?></small>
                     <?php } ?>
                 <?php } ?>
-                <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && $logoTableExists) { ?>
+                <?php if ((string) $positionKey === sr_logo_manager_favicon_position_key() && $logoTableExists) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form logo-manager-current-action">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="purge_favicon_icons">
-                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘/앱 아이콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 활성 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
+                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 활성 파비콘 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                     </form>
                 <?php } ?>
             </article>
@@ -92,6 +92,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_admin_choice_label_html('사용'); ?>
                         </label>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
+                    </div>
+                </div>
+                <div class="form-row" data-logo-manager-app-icon-copy-row>
+                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.label')); ?></span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="logo_manager_also_use_as_app_icon">
+                            <input id="logo_manager_also_use_as_app_icon" type="checkbox" name="also_use_as_app_icon" value="1" class="form-switch form-switch-light">
+                            <?php echo sr_admin_choice_label_html('사용'); ?>
+                        </label>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.help')); ?></small>
+                    </div>
+                </div>
+                <div class="form-row" data-logo-manager-favicon-copy-row>
+                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.favicon.label')); ?></span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="logo_manager_also_use_as_favicon">
+                            <input id="logo_manager_also_use_as_favicon" type="checkbox" name="also_use_as_favicon" value="1" class="form-switch form-switch-light">
+                            <?php echo sr_admin_choice_label_html('사용'); ?>
+                        </label>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.copy.favicon.help')); ?></small>
                     </div>
                 </div>
                 <div class="form-row">
@@ -265,7 +285,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <?php $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id']; ?>
                                     <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
-                                    <?php if ($logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()) { ?>
+                                    <?php if ($logoManagerPositionKey === sr_logo_manager_favicon_position_key()) { ?>
                                         <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="아이콘 세트 관리" title="아이콘 세트" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerIconModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>"><?php echo sr_material_icon_html('apps'); ?></button>
                                     <?php } ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="로고 배치 수정" title="수정" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
@@ -277,8 +297,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php $logoManagerStatusButtonLabel = (string) $logo['status'] === 'active' ? sr_t('logo_manager::ui.text.92cdef3c') : sr_t('logo_manager::ui.active.93c558d7'); ?>
                                         <?php $logoManagerStatusButtonClass = $logoManagerNextStatus === 'disabled' ? 'btn-outline-secondary' : 'btn-solid-primary'; ?>
                                         <?php $logoManagerStatusButtonIcon = $logoManagerNextStatus === 'disabled' ? 'toggle_off' : 'toggle_on'; ?>
-                                        <?php $logoManagerStatusConfirmMessage = $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()
-                                            ? '이 파비콘/앱 아이콘 로고를 중지할까요? 이 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.'
+                                        <?php $logoManagerStatusConfirmMessage = $logoManagerPositionKey === sr_logo_manager_favicon_position_key()
+                                            ? '이 파비콘 로고를 중지할까요? 이 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.'
                                             : '이 로고 배치를 미사용 처리할까요? 같은 용도에 다른 활성 로고가 있으면 그 로고가 적용될 수 있습니다.'; ?>
                                         <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' onclick="return confirm(' . sr_e(sr_js_json_encode($logoManagerStatusConfirmMessage)) . ');"' : ''; ?>
                                         <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
@@ -420,13 +440,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
-    <?php if ($logoManagerEditPositionKey === sr_logo_manager_public_symbol_position_key()) { ?>
+    <?php if ($logoManagerEditPositionKey === sr_logo_manager_favicon_position_key()) { ?>
         <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
         <div id="<?php echo sr_e($logoManagerIconModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($logoManagerIconModalId); ?>-label" aria-hidden="true" inert>
             <div class="modal-dialog modal-dialog-lg">
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($logoManagerIconModalId); ?>-label" class="modal-title">파비콘/앱아이콘 세트</h3>
+                        <h3 id="<?php echo sr_e($logoManagerIconModalId); ?>-label" class="modal-title">파비콘 아이콘 세트</h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">
                             <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
                         </button>
@@ -563,7 +583,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             var nextStatus = submitter && submitter.getAttribute ? submitter.getAttribute('value') : '';
             var message = '선택한 로고 배치 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.';
             if (nextStatus === 'disabled') {
-                message += ' 파비콘/앱 아이콘이 포함되어 있으면 해당 로고와 아이콘 세트는 head link 후보에서 제외되고, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+                message += ' 파비콘이 포함되어 있으면 해당 로고와 아이콘 세트는 head link 후보에서 제외되고, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
             }
             if (!window.confirm(message)) {
                 event.preventDefault();
@@ -575,14 +595,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-position-select]')).forEach(function (positionSelect) {
         var form = positionSelect.closest('form');
         var symbolSwitch = form ? form.querySelector('[data-logo-manager-public-symbol-switch]') : null;
-        if (!symbolSwitch) {
-            return;
-        }
+        var appIconCopyRow = form ? form.querySelector('[data-logo-manager-app-icon-copy-row]') : null;
+        var faviconCopyRow = form ? form.querySelector('[data-logo-manager-favicon-copy-row]') : null;
         var sync = function () {
-            var enabled = positionSelect.value === <?php echo sr_js_json_encode(sr_logo_manager_public_symbol_position_key()); ?>;
-            symbolSwitch.disabled = !enabled;
-            if (!enabled) {
-                symbolSwitch.checked = false;
+            var symbolEnabled = positionSelect.value === <?php echo sr_js_json_encode(sr_logo_manager_public_symbol_position_key()); ?>;
+            if (symbolSwitch) {
+                symbolSwitch.disabled = !symbolEnabled;
+                if (!symbolEnabled) {
+                    symbolSwitch.checked = false;
+                }
+            }
+            if (appIconCopyRow) {
+                appIconCopyRow.hidden = positionSelect.value !== <?php echo sr_js_json_encode(sr_logo_manager_favicon_position_key()); ?>;
+            }
+            if (faviconCopyRow) {
+                faviconCopyRow.hidden = positionSelect.value !== <?php echo sr_js_json_encode(sr_logo_manager_app_icon_position_key()); ?>;
             }
         };
         positionSelect.addEventListener('change', sync);
