@@ -3,6 +3,12 @@
  * Owns the default public layout shell only.
  */
 .public-layout-body {
+    --public-layout-brand-font-size: var(--text-lg, 1.125rem);
+    --public-layout-brand-font-weight: 800;
+    --public-layout-module-font-size: var(--type-meta-size, 0.75rem);
+    --public-layout-module-font-weight: 800;
+    --public-layout-nav-font-size: var(--type-small-size, 0.875rem);
+    --public-layout-nav-font-weight: 500;
     background: var(--color-body-bg, #f6f7f9);
     color: var(--color-body-color, #20242a);
     display: flex;
@@ -38,7 +44,7 @@
 
 .public-layout-brand-link {
     align-items: center;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     display: inline-flex;
     gap: 8px;
     justify-self: start;
@@ -69,10 +75,10 @@
 }
 
 .public-layout-brand-text {
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     font-family: var(--font-body);
-    font-size: 1.18rem;
-    font-weight: 800;
+    font-size: var(--public-layout-brand-font-size);
+    font-weight: var(--public-layout-brand-font-weight);
     letter-spacing: 0;
     line-height: 1;
     min-width: 0;
@@ -129,10 +135,10 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     display: inline-flex;
-    font-size: .88rem;
-    font-weight: 500;
+    font-size: var(--public-layout-nav-font-size);
+    font-weight: var(--public-layout-nav-font-weight);
     gap: 0;
     line-height: 1;
     padding: 10px 0 11px;
@@ -155,12 +161,12 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     cursor: pointer;
     display: inline-flex;
     font: inherit;
-    font-size: .88rem;
-    font-weight: 500;
+    font-size: var(--public-layout-nav-font-size);
+    font-weight: var(--public-layout-nav-font-weight);
     gap: .35em;
     line-height: 1;
     margin: 0;

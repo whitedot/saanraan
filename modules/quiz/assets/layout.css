@@ -3,6 +3,13 @@
  * Owns the default public layout shell only.
  */
 .quiz-layout-body {
+    --quiz-layout-brand-mark-font-size: var(--type-display-size, 2.5rem);
+    --quiz-layout-brand-font-size: var(--text-lg, 1.125rem);
+    --quiz-layout-brand-font-weight: 800;
+    --quiz-layout-module-font-size: var(--type-meta-size, 0.75rem);
+    --quiz-layout-module-font-weight: 800;
+    --quiz-layout-nav-font-size: var(--type-small-size, 0.875rem);
+    --quiz-layout-nav-font-weight: 500;
     background: var(--color-body-bg, #f6f7f9);
     color: var(--color-body-color, #20242a);
     display: flex;
@@ -38,7 +45,7 @@
 
 .quiz-layout-brand-link {
     align-items: center;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     display: inline-flex;
     gap: 8px;
     justify-self: start;
@@ -78,19 +85,19 @@
 }
 
 .quiz-layout-brand-mark {
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     font-family: var(--font-body);
-    font-size: var(--type-display-size);
+    font-size: var(--quiz-layout-brand-mark-font-size);
     font-weight: 900;
     letter-spacing: 0;
     line-height: 1;
 }
 
 .quiz-layout-brand-text {
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     font-family: var(--font-body);
-    font-size: var(--text-lg);
-    font-weight: 800;
+    font-size: var(--quiz-layout-brand-font-size);
+    font-weight: var(--quiz-layout-brand-font-weight);
     letter-spacing: 0;
     line-height: 1;
     min-width: 0;
@@ -100,10 +107,10 @@
 }
 
 .quiz-layout-module-name {
-    color: var(--text-muted, var(--color-default-600, #47505c));
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600, #47505c)));
     flex: 0 0 auto;
-    font-size: var(--type-meta-size);
-    font-weight: 800;
+    font-size: var(--quiz-layout-module-font-size);
+    font-weight: var(--quiz-layout-module-font-weight);
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
@@ -157,10 +164,10 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     display: inline-flex;
-    font-size: var(--type-small-size);
-    font-weight: 500;
+    font-size: var(--quiz-layout-nav-font-size);
+    font-weight: var(--quiz-layout-nav-font-weight);
     gap: 0;
     line-height: 1;
     padding: 10px 0 11px;
@@ -183,12 +190,12 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    color: var(--color-body-color, #20242a);
+    color: var(--sr-text, var(--color-body-color, #20242a));
     cursor: pointer;
     display: inline-flex;
     font: inherit;
-    font-size: var(--type-small-size);
-    font-weight: 500;
+    font-size: var(--quiz-layout-nav-font-size);
+    font-weight: var(--quiz-layout-nav-font-weight);
     gap: .35em;
     line-height: 1;
     margin: 0;
