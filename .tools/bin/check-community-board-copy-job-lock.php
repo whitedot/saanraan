@@ -86,15 +86,15 @@ if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true))
 
     sr_community_board_copy_job_assert_lock($pdo, $runningJobId, 'token-a');
     sr_board_copy_job_lock_expect_throw(
-        static fn (): null => sr_community_board_copy_job_assert_lock($pdo, $runningJobId, 'stale-token'),
+        static fn () => sr_community_board_copy_job_assert_lock($pdo, $runningJobId, 'stale-token'),
         'Stale board copy lock token should be rejected.'
     );
     sr_board_copy_job_lock_expect_throw(
-        static fn (): null => sr_community_board_copy_job_assert_lock($pdo, $completedJobId, 'token-b'),
+        static fn () => sr_community_board_copy_job_assert_lock($pdo, $completedJobId, 'token-b'),
         'Completed board copy job should not pass running lock assertion.'
     );
     sr_board_copy_job_lock_expect_throw(
-        static fn (): null => sr_community_board_copy_job_assert_lock($pdo, $runningJobId, ''),
+        static fn () => sr_community_board_copy_job_assert_lock($pdo, $runningJobId, ''),
         'Empty board copy lock token should be rejected.'
     );
 
@@ -112,7 +112,7 @@ if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true))
         'id' => $runningJobId,
     ]);
     sr_board_copy_job_lock_expect_throw(
-        static fn (): null => sr_community_board_copy_job_mark_map($pdo, $mapId, 200, 'failed', 'late write', '', '', $runningJobId, 'token-a'),
+        static fn () => sr_community_board_copy_job_mark_map($pdo, $mapId, 200, 'failed', 'late write', '', '', $runningJobId, 'token-a'),
         'Stale board copy lock token should reject late map writes after takeover.'
     );
     $staleMap = $pdo->query('SELECT target_id, status, error_text FROM sr_community_board_copy_job_maps WHERE id = ' . $mapId)->fetch(PDO::FETCH_ASSOC);
