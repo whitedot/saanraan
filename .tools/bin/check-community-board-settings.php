@@ -335,7 +335,11 @@ sr_check_community_board_settings_contains('modules/community/actions/edit.php',
 sr_check_community_board_settings_contains('modules/community/actions/delete.php', ['sr_community_post_locked_by_comments($pdo, $board, $postId, \'delete\')'], 'community post delete lock validation');
 sr_check_community_board_settings_contains('modules/community/actions/comment.php', ['sr_community_validate_comment_body_length'], 'community comment create length validation');
 sr_check_community_board_settings_contains('modules/community/actions/comment-edit.php', ['sr_community_validate_comment_body_length'], 'community comment edit length validation');
-sr_check_community_board_settings_contains('modules/community/skins/basic/list.php', ['sr_community_body_excerpt'], 'community basic list excerpt rendering');
+sr_check_community_board_settings_contains('modules/community/skins/basic/list.php', [
+    'empty($listExcerptEnabled)',
+    '(int) $listExcerptLength',
+    'sr_community_body_excerpt',
+], 'community basic list excerpt rendering');
 sr_check_community_board_settings_contains('modules/community/layouts/basic/layout.php', [
     'data-community-layout-search-form',
     'data-community-layout-search-input',

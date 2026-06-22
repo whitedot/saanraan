@@ -286,6 +286,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-row>.form-field:has(>.form-check.form-label):has(>.admin-setting-source-options){display:grid}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>:not(.admin-setting-source-options):not(.form-help){grid-column:1;justify-self:start}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.admin-setting-source-options{align-self:center;grid-column:2;grid-row:1 / span 2;justify-self:end;margin-left:0}
+.admin-form .form-row>.form-field:has(>.admin-setting-source-options):not(:has(>.form-help))>.admin-setting-source-options{grid-row:1}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-help{grid-column:1;margin-top:0}
 .admin-form .form-row>.form-field:has(>.admin-setting-source-options)>.form-control-full{justify-self:stretch;width:100%}
 .admin-form .form-row>.form-field:has(>.admin-asset-setting-scope-inline){align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
@@ -313,6 +314,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-setting-source-line>.admin-setting-source-options{margin-left:auto}
 .admin-setting-source-line-end{justify-content:flex-end;min-height:0}
 .admin-setting-source-line-end>.admin-setting-source-options{margin-left:0}
+.admin-form>section.admin-list-card>.admin-setting-source-line-end{border-top:1px solid var(--color-default-200);min-height:calc(var(--spacing) * 13.25);padding:calc(var(--spacing) * 2) calc(var(--spacing) * 5)}
 .admin-page-file-charge-control{width:100%}
 .admin-page-file-charge-main{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-page-file-charge-main>.form-check{min-height:calc(var(--spacing) * 9.25)}

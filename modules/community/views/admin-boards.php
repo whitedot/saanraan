@@ -869,7 +869,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_privacy_consent_enabled">
                         <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
-                        <?php echo sr_admin_choice_label_html('이 게시판 제출 흐름에 개인정보 수집 및 이용동의를 표시하고 서버에서 검증'); ?>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
                 </div>

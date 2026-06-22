@@ -111,9 +111,9 @@ $communityFrameModifier = 'list';
                     <?php
                     $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
                     $thumbnailUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $communityLayoutSettings);
-                    $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed
+                    $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed || empty($listExcerptEnabled)
                         ? ''
-                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
+                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), (int) $listExcerptLength);
                     $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
                     $postAuthorInitial = $postAuthorLabel !== ''
                         ? (function_exists('mb_substr') ? mb_substr($postAuthorLabel, 0, 1) : substr($postAuthorLabel, 0, 1))
