@@ -346,7 +346,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>" type="text" name="account_identifier" class="form-control form-input" maxlength="80" data-overlay-focus required data-validation-message="지급할 회원을 입력해 주세요.">
                                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($couponMemberLookupModalId); ?>" data-overlay-stack="true" data-admin-member-lookup-open data-target="#coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>">회원 검색</button>
                             </div>
-                            <p class="form-help">회원 관리 화면의 공개 해시 또는 회원 ID를 입력합니다.</p>
+                            <p class="form-help">회원 관리 화면의 공개 해시를 입력하거나 회원 검색으로 대상을 선택합니다.</p>
                         </div>
                     </div>
                     <div class="form-row" data-coupon-issue-group-row hidden>
