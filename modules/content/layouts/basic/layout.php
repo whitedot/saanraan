@@ -52,11 +52,13 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'content-layout-brand-logo content-layout-brand-logo-desktop',
+        'fallback_position_key' => 'public.header.mobile',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
             ? 'content-layout-brand-logo content-layout-brand-logo-mobile'
             : 'content-layout-brand-logo',
+        'fallback_position_key' => 'public.header.desktop',
     ]);
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [

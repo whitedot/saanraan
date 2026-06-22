@@ -64,12 +64,17 @@ $adminNotificationReturnUrl = sr_admin_current_get_url('/admin');
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';
 $adminBrandIconUrl = '';
+$adminBrandSidebarLogoUrl = '';
 if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $adminBrandLogoHtml = sr_logo_manager_render_logo($pdo, 'admin.sidebar', $site ?? null, [
         'class' => 'admin-sidebar-brand-logo',
         'alt' => '',
     ]);
+    $adminBrandSidebarLogo = sr_logo_manager_active_logo($pdo, 'admin.sidebar');
+    if (is_array($adminBrandSidebarLogo)) {
+        $adminBrandSidebarLogoUrl = sr_logo_manager_logo_url($adminBrandSidebarLogo);
+    }
     $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'public.favicon');
     $adminFaviconHtml = sr_logo_manager_favicon_link_tag($pdo);
 }
@@ -130,7 +135,9 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                             </span>
                         <?php } ?>
                         <span class="admin-sidebar-brand-compact" aria-hidden="true">
-                        <?php if ($adminBrandIconUrl !== '') { ?>
+                        <?php if ($adminBrandSidebarLogoUrl !== '') { ?>
+                            <img class="admin-sidebar-brand-icon admin-sidebar-brand-icon-logo" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandSidebarLogoUrl)); ?>" alt="" loading="eager" decoding="async">
+                        <?php } elseif ($adminBrandIconUrl !== '') { ?>
                             <img class="admin-sidebar-brand-icon" src="<?php echo sr_e(sr_logo_manager_url_for_output($adminBrandIconUrl)); ?>" alt="" loading="eager" decoding="async">
                         <?php } else { ?>
                             <span class="admin-sidebar-brand-initial"><?php echo sr_e($adminBrandInitial); ?></span>
@@ -139,11 +146,6 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                     </span>
                     <span class="admin-sidebar-brand-name"><?php echo sr_e((string) $adminShell['site_title']); ?></span>
                 </a>
-                <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="<?php echo sr_e(sr_t('admin::ui.text.076c3ee0')); ?>" aria-pressed="false">
-                    <span aria-hidden="true">
-                        <?php echo sr_icon('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
-                    </span>
-                </button>
             </h2>
 
             <div class="gnb_menu_scroll_wrap admin-sidebar-scroll-wrap">
@@ -240,6 +242,11 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
             <div class="hd_top_left admin-topbar-left">
                 <button type="button" id="btn_gnb_mobile" class="admin-mobile-menu-button" aria-controls="gnb" aria-expanded="false" aria-label="<?php echo sr_e(sr_t('admin::ui.menu.ff7070c7')); ?>">
                     <?php echo sr_icon('menu', 'admin-shell-control-icon'); ?>
+                </button>
+                <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="<?php echo sr_e(sr_t('admin::ui.text.076c3ee0')); ?>" aria-pressed="false">
+                    <span aria-hidden="true">
+                        <?php echo sr_icon('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
+                    </span>
                 </button>
                 <div class="hd_breadcrumb admin-breadcrumb">
                     <span><?php echo sr_e(sr_t('admin::ui.dashboard.2b1a8070')); ?></span>

@@ -46,11 +46,13 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'public-layout-brand-logo public-layout-brand-logo-desktop',
+        'fallback_position_key' => 'public.header.mobile',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
             ? 'public-layout-brand-logo public-layout-brand-logo-mobile'
             : 'public-layout-brand-logo',
+        'fallback_position_key' => 'public.header.desktop',
     ]);
     $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
@@ -63,6 +65,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
         }
     }
     $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
+    if (!is_array($layoutBrandLogo)) {
+        $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.mobile');
+    }
     if (is_array($layoutBrandLogo)) {
         $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
         if ($layoutBrandLink !== '') {

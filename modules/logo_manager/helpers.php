@@ -1163,6 +1163,12 @@ function sr_logo_manager_default_logo(PDO $pdo, string $positionKey): ?array
 function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site = null, array $attributes = []): string
 {
     $logo = sr_logo_manager_active_logo($pdo, $positionKey);
+    if (!is_array($logo) && isset($attributes['fallback_position_key'])) {
+        $fallbackPositionKey = sr_logo_manager_clean_position_key((string) $attributes['fallback_position_key']);
+        if ($fallbackPositionKey !== '' && $fallbackPositionKey !== sr_logo_manager_clean_position_key($positionKey)) {
+            $logo = sr_logo_manager_active_logo($pdo, $fallbackPositionKey);
+        }
+    }
     if (!is_array($logo)) {
         return '';
     }

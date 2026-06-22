@@ -404,6 +404,37 @@ $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render icon links');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 10,
+    'position_key' => 'public.header.desktop',
+    'title' => 'Desktop public logo',
+    'public_url' => '/uploads/public-desktop.png',
+    'width' => 320,
+    'height' => 80,
+]);
+$html = sr_logo_manager_render_logo($pdo, 'public.header.mobile', ['site_name' => '산란'], [
+    'class' => 'public-layout-brand-logo public-layout-brand-logo-mobile',
+    'fallback_position_key' => 'public.header.desktop',
+]);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/public-desktop.png'), 'mobile public logo render must fall back to desktop logo when mobile is not configured');
+sr_logo_manager_favicon_check_assert(str_contains($html, 'public-layout-brand-logo-mobile'), 'fallback public logo render must preserve requested output class');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 11,
+    'position_key' => 'public.header.mobile',
+    'title' => 'Mobile public logo',
+    'public_url' => '/uploads/public-mobile.png',
+    'width' => 160,
+    'height' => 48,
+]);
+$html = sr_logo_manager_render_logo($pdo, 'public.header.desktop', ['site_name' => '산란'], [
+    'class' => 'public-layout-brand-logo public-layout-brand-logo-desktop',
+    'fallback_position_key' => 'public.header.mobile',
+]);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/public-mobile.png'), 'desktop public logo render must fall back to mobile logo when desktop is not configured');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
 $pdo->exec(
     "INSERT INTO sr_module_settings
         (module_id, setting_key, setting_value, value_type, created_at, updated_at)
@@ -452,6 +483,40 @@ if (is_string($adminAction)) {
         str_contains($adminAction, 'Clear-Site-Data: "cache"'),
         'favicon purge action must ask the browser to clear origin cache'
     );
+}
+
+$adminHeader = is_file('modules/admin/skins/basic/layout-header.php') ? file_get_contents('modules/admin/skins/basic/layout-header.php') : false;
+sr_logo_manager_favicon_check_assert(is_string($adminHeader), 'admin layout header must be readable');
+if (is_string($adminHeader)) {
+    sr_logo_manager_favicon_check_assert(
+        str_contains($adminHeader, '$adminBrandSidebarLogoUrl'),
+        'admin sidebar compact brand must use the configured admin sidebar logo before favicon fallback'
+    );
+    $mobileToggleOffset = strpos($adminHeader, 'id="btn_gnb_mobile"');
+    $desktopToggleOffset = strpos($adminHeader, 'id="btn_gnb"');
+    $breadcrumbOffset = strpos($adminHeader, 'class="hd_breadcrumb admin-breadcrumb"');
+    sr_logo_manager_favicon_check_assert(
+        is_int($mobileToggleOffset) && is_int($desktopToggleOffset) && is_int($breadcrumbOffset)
+            && $mobileToggleOffset < $desktopToggleOffset
+            && $desktopToggleOffset < $breadcrumbOffset,
+        'admin sidebar collapse toggle must render in the topbar before breadcrumb'
+    );
+}
+
+$adminCss = is_file('modules/admin/assets/admin.css') ? file_get_contents('modules/admin/assets/admin.css') : false;
+sr_logo_manager_favicon_check_assert(is_string($adminCss), 'admin shell css must be readable');
+if (is_string($adminCss)) {
+    foreach ([
+        'has-sidebar-logo+.admin-sidebar-brand-name{display:none}',
+        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-logo-wrap{display:flex}',
+        'body.admin-sidebar-condensed #gnb .admin-sidebar-brand-mark.has-sidebar-logo .admin-sidebar-brand-compact{display:none}',
+        '@media (min-width:1024px){body.admin-sidebar-condensed #btn_gnb_mobile{display:none}}',
+    ] as $marker) {
+        sr_logo_manager_favicon_check_assert(
+            str_contains($adminCss, $marker),
+            'admin shell css must preserve sidebar logo display marker: ' . $marker
+        );
+    }
 }
 
 if ($errors !== []) {
