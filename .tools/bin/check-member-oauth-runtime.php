@@ -234,6 +234,14 @@ function sr_member_oauth_check_runtime_helpers(): void
     }
 }
 
+function sr_member_oauth_check_installer_options(): void
+{
+    $install = sr_member_oauth_check_read('core/actions/install.php');
+    sr_member_oauth_check_assert(str_contains($install, "'member_oauth' => ["), 'Installer optional module list must include member_oauth.');
+    sr_member_oauth_check_assert(str_contains($install, "'member_oauth_providers' => ["), 'Installer optional module list must include member_oauth provider plugin.');
+    sr_member_oauth_check_assert(strpos($install, "'member_oauth' => [") < strpos($install, "'member_oauth_providers' => ["), 'Installer must list member_oauth before its provider plugin.');
+}
+
 sr_member_oauth_check_contains('modules/member_oauth/module.php', [
     "'oauth-providers.php'",
     "'privacy-export.php'",
@@ -362,6 +370,7 @@ sr_member_oauth_check_contains('modules/member/views/account.php', [
     '/account/oauth/unlink',
 ]);
 
+sr_member_oauth_check_installer_options();
 sr_member_oauth_check_runtime_helpers();
 
 if ($errors !== []) {

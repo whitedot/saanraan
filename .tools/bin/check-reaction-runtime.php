@@ -12,6 +12,30 @@ if (!defined('SR_ROOT')) {
 require_once SR_ROOT . '/core/helpers.php';
 require_once SR_ROOT . '/modules/reaction/helpers.php';
 
+$errors = [];
+
+function sr_reaction_check_assert(bool $condition, string $message): void
+{
+    global $errors;
+    if (!$condition) {
+        $errors[] = $message;
+    }
+}
+
+function sr_reaction_check_read(string $path): string
+{
+    $content = file_get_contents(SR_ROOT . '/' . $path);
+    if (!is_string($content)) {
+        sr_reaction_check_assert(false, 'cannot read ' . $path);
+        return '';
+    }
+
+    return str_replace(["\r\n", "\r"], "\n", $content);
+}
+
+$install = sr_reaction_check_read('core/actions/install.php');
+sr_reaction_check_assert(str_contains($install, "'reaction' => ["), 'Installer optional module list must include reaction.');
+
 $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec(
@@ -164,7 +188,6 @@ $target = [
     'public_url' => '/test/1',
 ];
 
-$errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
     if (!$condition) {
         $errors[] = $message;
