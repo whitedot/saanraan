@@ -606,7 +606,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
                         <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
                     <p class="form-help"><?php echo sr_e(sr_t('content::ui.select.member.content.42c8795b')); ?></p>
@@ -668,7 +668,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_content_admin_contents_asset_action_enabled">
                                             <input id="modules_content_admin_contents_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.904d506b')); ?>
+                                            <?php echo sr_admin_choice_label_html('사용'); ?>
                                         </label>
                                         <?php echo $pageSettingSourceRadioHtml('source_asset_action_enabled', $pageSettingSource($values, 'asset_action_enabled')); ?>
                                         <p class="form-help"><?php echo sr_e(sr_t('content::ui.member.content.select.02996bc9')); ?></p>

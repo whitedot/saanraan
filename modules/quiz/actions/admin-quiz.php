@@ -964,11 +964,11 @@ $quizSectionNavItems = [
                 <div class="form-field">
                     <label class="form-check form-label" for="quiz_comments_enabled">
                         <input id="quiz_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        공개 댓글 사용
+                        사용
                     </label>
                     <label class="form-check form-label" for="quiz_secret_comments_enabled">
                         <input id="quiz_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        비밀 댓글 선택 허용
+                        허용
                     </label>
                     <p class="form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
                 </div>
@@ -1231,7 +1231,7 @@ $quizSectionNavItems = [
                 <div class="form-field">
                     <label class="form-check form-label" for="quiz_reward_enabled">
                         <input id="quiz_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?> data-quiz-reward-enabled>
-                        <?php echo sr_admin_choice_label_html('자동 채점 통과 시 지급'); ?>
+                        <?php echo sr_admin_choice_label_html('지급'); ?>
                     </label>
                     <p class="form-help">켜면 회원이 퀴즈 통과 조건을 만족했을 때 아래 보상 정책으로 지급을 시도합니다.</p>
                 </div>

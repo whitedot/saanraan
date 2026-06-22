@@ -87,14 +87,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">본문 URL 자동 링크</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 본문 안의 http/https URL을 링크로 변환'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
                 <p class="form-help">textarea로 저장된 plain text 본문에만 적용합니다. HTML 본문은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">비밀 댓글</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '댓글 비밀 댓글 선택 허용'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 새 댓글 작성/수정 요청의 비밀 댓글 값은 저장하지 않습니다.</p>
             </div>
         </div>
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">시리즈 기능</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '콘텐츠 시리즈 사용'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠 시리즈 생성, 연결, 관리와 공개 콘텐츠의 시리즈 내비게이션을 사용하지 않습니다.</p>
             </div>
         </div>
@@ -145,7 +145,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">리액션 사용 여부</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '콘텐츠 리액션 사용'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠와 댓글의 리액션 위젯을 표시하지 않습니다.</p>
             </div>
         </div>
@@ -191,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">회원 제출 기능</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_enabled', 'member_submission_enabled', '1', !empty($settings['member_submission_enabled']), '승인 회원 또는 허용 그룹의 콘텐츠 제출 사용'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_enabled', 'member_submission_enabled', '1', !empty($settings['member_submission_enabled']), '사용'); ?>
                 <p class="form-help">콘텐츠 그룹별 제출 허용과 작성자 승인/회원 그룹 조건을 함께 만족해야 합니다.</p>
             </div>
         </div>
@@ -199,13 +199,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">기본 검수</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_default_review_required', 'member_submission_default_review_required', '1', !empty($settings['member_submission_default_review_required']), '회원 제출 콘텐츠는 기본적으로 검수 후 공개'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_default_review_required', 'member_submission_default_review_required', '1', !empty($settings['member_submission_default_review_required']), '필수'); ?>
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">리워드</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_author_reward_enabled', 'member_submission_author_reward_enabled', '1', !empty($settings['member_submission_author_reward_enabled']), '회원 제출 콘텐츠 승인 시 작성자에게 리워드 지급'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_author_reward_enabled', 'member_submission_author_reward_enabled', '1', !empty($settings['member_submission_author_reward_enabled']), '지급'); ?>
                 <p class="form-help">제출본이 승인되어 콘텐츠로 공개될 때 제출 회원에게 한 번만 지급합니다. 지급 실패는 로그에 남기고 승인 처리는 유지합니다.</p>
             </div>
         </div>

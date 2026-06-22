@@ -60,7 +60,7 @@ if (sr_is_http_url($defaultOgImage)) {
             <div class="form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.url.51ecf74b')); ?></span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_seo_admin_settings_sitemap_include_home', 'sitemap_include_home', '1', !empty($settings['sitemap_include_home']), sr_t('seo::ui.url.51ecf74b')); ?>
+                    <?php echo sr_admin_switch_html('modules_seo_admin_settings_sitemap_include_home', 'sitemap_include_home', '1', !empty($settings['sitemap_include_home']), '포함'); ?>
                 </div>
             </div>
         </div>

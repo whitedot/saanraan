@@ -1066,20 +1066,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-check form-label" for="survey_login_required">
                         <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                        로그인 필요
+                        필수
                     </label>
                     <p class="form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
                 </div>
                 <div class="form-field">
                     <label class="form-check form-label" for="survey_anonymous_allowed">
                         <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        익명 응답 허용
+                        허용
                     </label>
                 </div>
                 <div class="form-field">
                     <label class="form-check form-label" for="survey_public_listed">
                         <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                        공개 목록 노출
+                        노출
                     </label>
                 </div>
             </div>
@@ -1103,11 +1103,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
                 <label class="form-check form-label" for="survey_comments_enabled">
                     <input id="survey_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    공개 댓글 사용
+                    사용
                 </label>
                 <label class="form-check form-label" for="survey_secret_comments_enabled">
                     <input id="survey_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    비밀 댓글 선택 허용
+                    허용
                 </label>
                 <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
             </div>
@@ -1230,7 +1230,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-check form-label" for="survey_revision_locked">
                         <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        설문지 잠금
+                        잠금
                     </label>
                 </div>
             </div>
@@ -1245,7 +1245,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
                 <label class="form-check form-label" for="survey_consent_required">
                     <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    참여자 동의 확인
+                    필수
                 </label>
             </div>
             <div class="form-field">
@@ -1263,7 +1263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
                 <label class="form-check form-label" for="survey_reward_enabled">
                     <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    제출 완료 후 보상 지급
+                    지급
                 </label>
             </div>
             <div class="form-grid">

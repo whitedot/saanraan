@@ -36,7 +36,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">이메일 채널</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_email_channel_enabled', 'email_channel_enabled', '1', !empty($settings['email_channel_enabled']), '알림 등록에서 이메일 채널 사용', '', ' data-notification-email-enabled'); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_email_channel_enabled', 'email_channel_enabled', '1', !empty($settings['email_channel_enabled']), '사용', '', ' data-notification-email-enabled'); ?>
                 <small class="form-help">끄면 알림 등록 화면에서 이메일 채널을 선택할 수 없습니다.</small>
             </div>
         </div>
@@ -139,14 +139,14 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">외부 푸시 채널</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '관리자 운영 알림을 외부 provider로 발송', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '사용', '', ''); ?>
                 <small class="form-help">회원 대상 외부 푸시는 아직 사용하지 않습니다.</small>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">Slack provider</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_slack_webhook_enabled', 'slack_webhook_enabled', '1', !empty($settings['slack_webhook_enabled']), 'Slack webhook 사용', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_slack_webhook_enabled', 'slack_webhook_enabled', '1', !empty($settings['slack_webhook_enabled']), '사용', '', ''); ?>
             </div>
         </div>
         <div class="form-row">
@@ -166,7 +166,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">Discord provider</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_discord_webhook_enabled', 'discord_webhook_enabled', '1', !empty($settings['discord_webhook_enabled']), 'Discord webhook 사용', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_discord_webhook_enabled', 'discord_webhook_enabled', '1', !empty($settings['discord_webhook_enabled']), '사용', '', ''); ?>
             </div>
         </div>
         <div class="form-row">
@@ -186,7 +186,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">Telegram provider</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_telegram_bot_enabled', 'telegram_bot_enabled', '1', !empty($settings['telegram_bot_enabled']), 'Telegram bot 사용', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_telegram_bot_enabled', 'telegram_bot_enabled', '1', !empty($settings['telegram_bot_enabled']), '사용', '', ''); ?>
             </div>
         </div>
         <div class="form-row">
@@ -226,7 +226,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">웹 자동 실행</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_delivery_web_runner_enabled', 'delivery_web_runner_enabled', '1', !empty($settings['delivery_web_runner_enabled']), '공개/관리자 GET 요청 말미에 대기 발송 처리', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_delivery_web_runner_enabled', 'delivery_web_runner_enabled', '1', !empty($settings['delivery_web_runner_enabled']), '사용', '', ''); ?>
                 <small class="form-help">공유호스팅 기본 실행 방식입니다. 요청 응답 뒤 작은 배치만 처리합니다.</small>
             </div>
         </div>

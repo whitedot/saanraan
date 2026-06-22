@@ -201,7 +201,7 @@ $communitySettingsSectionNavItems = [
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_enabled">
                         <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?> data-community-level-enabled>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                 </div>
             </div>
@@ -224,7 +224,7 @@ $communitySettingsSectionNavItems = [
                 <div class="form-field">
                     <label class="form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
                         <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                 </div>
             </div>
@@ -257,7 +257,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <label class="form-check form-label" for="community_admin_settings_message_enabled">
                     <input id="community_admin_settings_message_enabled" type="checkbox" name="message_enabled" value="1" class="form-switch form-switch-light"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? ' checked' : ''; ?> data-community-message-enabled>
-                    <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
+                    <?php echo sr_admin_choice_label_html('사용'); ?>
                 </label>
                 <p class="form-help">끄면 회원이 쪽지함을 열거나 새 쪽지를 보낼 수 없습니다. 기존 쪽지 내역은 데이터로 유지됩니다.</p>
             </div>
@@ -322,7 +322,7 @@ $communitySettingsSectionNavItems = [
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_settings_privacy_consent_enabled">
                         <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
-                        <?php echo sr_admin_choice_label_html('새 게시판 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                 </div>
@@ -379,7 +379,7 @@ $communitySettingsSectionNavItems = [
                                 <div class="admin-asset-setting-primary">
                                     <label class="form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                         <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
-                                        <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
+                                        <?php echo sr_admin_choice_label_html('사용'); ?>
                                     </label>
                                 </div>
                             </div>
@@ -392,7 +392,7 @@ $communitySettingsSectionNavItems = [
                         <div class="form-field">
                             <label class="form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
                                 <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
+                                <?php echo sr_admin_choice_label_html('회수'); ?>
                             </label>
                         </div>
                     </div>
@@ -416,7 +416,7 @@ $communitySettingsSectionNavItems = [
                         <div class="form-field">
                             <label class="form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
                                 <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
+                                <?php echo sr_admin_choice_label_html('지급'); ?>
                             </label>
                         </div>
                     </div>
@@ -476,7 +476,7 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">시리즈 기능</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '커뮤니티 시리즈 기능 사용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 시리즈 생성, 연결, 관리, 스크랩, 공개 내비게이션과 커뮤니티 메인 시리즈 섹션을 사용하지 않습니다.</p>
             </div>
         </div>
@@ -487,7 +487,7 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">리액션 사용</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '커뮤니티 리액션 사용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
             </div>
         </div>
@@ -519,7 +519,7 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">썸네일 생성</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '읽기 화면 첨부 이미지에 캐시 썸네일 생성 사용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '사용'); ?>
                 <p class="form-help">게시글 목록 이미지는 공개 첨부 이미지가 있으면 항상 캐시 썸네일을 우선 사용합니다. 이 설정은 읽기 화면의 첨부 이미지 미리보기에 적용되며, 게시판 개별 설정에서 재정의할 수 있습니다.</p>
             </div>
         </div>
@@ -604,21 +604,21 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">본문 URL 자동 링크</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 게시글 안의 http/https URL을 링크로 변환'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
                 <p class="form-help">textarea로 저장된 plain text 게시글에만 적용합니다. HTML 게시글은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">비밀글</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_secret_posts_enabled', 'secret_posts_enabled', '1', !empty($settings['secret_posts_enabled']), '게시글 비밀글 선택 허용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_secret_posts_enabled', 'secret_posts_enabled', '1', !empty($settings['secret_posts_enabled']), '사용'); ?>
                 <p class="form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">비밀 댓글</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '댓글 비밀 댓글 선택 허용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '사용'); ?>
                 <p class="form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
             </div>
         </div>

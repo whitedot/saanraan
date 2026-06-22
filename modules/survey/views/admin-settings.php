@@ -168,13 +168,13 @@ $surveySettingsHelp = [
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_login_required', '로그인 필요', $surveySettingsHelp['default_login_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('survey_settings_login_required', 'default_login_required', '1', (int) ($settings['default_login_required'] ?? 1) === 1, '새 설문에 기본 적용'); ?>
+                    <?php echo sr_admin_switch_html('survey_settings_login_required', 'default_login_required', '1', (int) ($settings['default_login_required'] ?? 1) === 1, '적용'); ?>
                 </div>
             </div>
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '새 설문에 기본 적용'); ?>
+                    <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '적용'); ?>
                 </div>
             </div>
             <div class="form-row">

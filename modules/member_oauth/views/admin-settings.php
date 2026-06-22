@@ -31,7 +31,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <label class="form-check form-label" for="member_oauth_mock_enabled">
                     <input id="member_oauth_mock_enabled" type="checkbox" name="mock_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['mock_enabled']) ? ' checked' : ''; ?>>
-                    <?php echo sr_admin_choice_label_html('개발/검증용 Mock 제공자 사용'); ?>
+                    <?php echo sr_admin_choice_label_html('사용'); ?>
                 </label>
             </div>
         </div>

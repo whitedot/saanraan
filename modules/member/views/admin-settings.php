@@ -102,19 +102,19 @@ $memberSettingsSectionNavItems = [
             <div class="form-row">
                 <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.member.8df81cb2'), $memberSettingsHelp['allow_registration']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.member.8df81cb2')); ?></span></span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_member_admin_settings_allow_registration', 'allow_registration', '1', !empty($settings['allow_registration']), sr_t('member::ui.member.8df81cb2')); ?>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_allow_registration', 'allow_registration', '1', !empty($settings['allow_registration']), '사용'); ?>
                 </div>
             </div>
             <div class="form-row">
                 <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.active.f166bfe8'), $memberSettingsHelp['email_verification']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.active.f166bfe8')); ?></span></span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_member_admin_settings_email_verification_enabled', 'email_verification_enabled', '1', !empty($settings['email_verification_enabled']), sr_t('member::ui.email.active.f166bfe8')); ?>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_email_verification_enabled', 'email_verification_enabled', '1', !empty($settings['email_verification_enabled']), '사용'); ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="modules_member_admin_settings_nickname_enabled"><?php echo sr_e(sr_t('member::ui.nickname')); ?></label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_member_admin_settings_nickname_enabled', 'nickname_enabled', '1', !empty($settings['nickname_enabled']), sr_t('member::settings.nickname.enabled')); ?>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_nickname_enabled', 'nickname_enabled', '1', !empty($settings['nickname_enabled']), '사용'); ?>
                     <small class="form-help"><?php echo sr_e(sr_t('member::settings.nickname.help')); ?></small>
                 </div>
             </div>
@@ -158,8 +158,8 @@ $memberSettingsSectionNavItems = [
             <div class="form-row">
                 <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html($label, $memberSettingsHelp['profile_field']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e($label); ?></span></span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html($enabledFieldId, $enabledKey, '1', !empty($settings[$enabledKey]), (string) $label . sr_t('member::ui.text.dc690320'), '', ' data-member-profile-visible data-member-profile-required-target="' . sr_e('#' . $requiredFieldId) . '"'); ?>
-                    <?php echo sr_admin_switch_html($requiredFieldId, $requiredKey, '1', !empty($settings[$requiredKey]), (string) $label . sr_t('member::ui.required.800c5ae5'), '', ' data-member-profile-required data-member-profile-visible-target="' . sr_e('#' . $enabledFieldId) . '"'); ?>
+                    <?php echo sr_admin_switch_html($enabledFieldId, $enabledKey, '1', !empty($settings[$enabledKey]), '사용', '', ' data-member-profile-visible data-member-profile-required-target="' . sr_e('#' . $requiredFieldId) . '"'); ?>
+                    <?php echo sr_admin_switch_html($requiredFieldId, $requiredKey, '1', !empty($settings[$requiredKey]), '필수', '', ' data-member-profile-required data-member-profile-visible-target="' . sr_e('#' . $enabledFieldId) . '"'); ?>
                 </div>
             </div>
         <?php } ?>

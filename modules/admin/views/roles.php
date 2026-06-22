@@ -303,7 +303,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
                     </span>
                     <div class="form-field">
-                        <?php echo sr_admin_switch_html('admin-permission-add-owner', 'is_owner', '1', false, sr_t('admin::ui.text.7258c171')); ?>
+                        <?php echo sr_admin_switch_html('admin-permission-add-owner', 'is_owner', '1', false, '지정'); ?>
                         <p class="form-help">매니저 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
                     </div>
                 </div>
