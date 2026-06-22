@@ -38,6 +38,11 @@
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list{width:100%}
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list-control{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%}
 .admin-page-member-groups .member-group-rule-evaluate-dialog .admin-select-badge-list-select{max-width:none;width:100%}
+[data-member-profile-extra-field-table] .member-profile-extra-field-order-cell{width:1%;min-width:5.75rem;text-align:center;white-space:nowrap}
+[data-member-profile-extra-field-table] td.member-profile-extra-field-order-cell{padding-inline:calc(var(--spacing) * 1.5)}
+[data-member-profile-extra-field-table] th.member-profile-extra-field-order-cell{padding-inline:calc(var(--spacing) * 2)}
+[data-member-profile-extra-field-table] .member-profile-extra-field-order-cell:first-child{padding-left:calc(var(--spacing) * 2)}
+[data-member-profile-extra-field-table] .member-profile-extra-field-order-cell .admin-row-actions{justify-content:center;gap:calc(var(--spacing) * 1)}
 
 @media (max-width:1023px){
     .admin-page-member-list .admin-member-filter .filtering-submit{width:100%}

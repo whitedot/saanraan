@@ -174,7 +174,7 @@ $memberSettingsSectionNavItems = [
                 <caption class="sr-only">추가 프로필 항목 목록</caption>
                 <thead>
                     <tr>
-                        <th>순서</th>
+                        <th class="member-profile-extra-field-order-cell">순서</th>
                         <th>라벨</th>
                         <th>유형</th>
                         <th>표시</th>
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var row = document.createElement('tr');
 
             var orderCell = document.createElement('td');
-            orderCell.className = 'admin-table-actions-cell';
+            orderCell.className = 'member-profile-extra-field-order-cell';
             var orderGroup = document.createElement('div');
             orderGroup.className = 'admin-row-actions';
             [
