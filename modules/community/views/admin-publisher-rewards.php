@@ -85,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-break admin-community-publisher-reward-subject-cell">
                             <?php if ($postId > 0) { ?>
-                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) $postId))); ?>" class="btn btn-sm btn-solid-light">게시글</a>
+                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) $postId))); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer">게시글</a>
                             <?php } ?>
                             <strong><?php echo sr_e($postTitle !== '' ? $postTitle : '삭제된 게시글'); ?></strong>
                             <small class="admin-summary-meta">
