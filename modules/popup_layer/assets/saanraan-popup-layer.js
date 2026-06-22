@@ -1,4 +1,19 @@
 (function () {
+    function normalizePopupStacks() {
+        var stacks = Array.prototype.slice.call(document.querySelectorAll('[data-sr-popup-layer-stack]'));
+        if (stacks.length < 2) {
+            return;
+        }
+
+        var primaryStack = stacks[0];
+        stacks.slice(1).forEach(function (stack) {
+            Array.prototype.slice.call(stack.querySelectorAll('[data-sr-popup-layer]')).forEach(function (popup) {
+                primaryStack.appendChild(popup);
+            });
+            stack.remove();
+        });
+    }
+
     function functionalCookieAllowed() {
         return document.cookie.split(';').some(function (part) {
             var cookie = part.trim();
@@ -51,5 +66,16 @@
         }
 
         popup.remove();
+        if (document.querySelector('[data-sr-popup-layer]') === null) {
+            document.querySelectorAll('[data-sr-popup-layer-stack]').forEach(function (stack) {
+                stack.remove();
+            });
+        }
     });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', normalizePopupStacks);
+    } else {
+        normalizePopupStacks();
+    }
 }());

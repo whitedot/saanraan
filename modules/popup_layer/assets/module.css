@@ -1,12 +1,15 @@
 .sr-popup-layer-stack {
     display: grid;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 380px));
+    gap: 16px;
+    align-content: center;
+    justify-content: center;
     position: fixed;
-    right: 24px;
-    bottom: 24px;
+    inset: 24px;
     z-index: 1000;
-    width: min(420px, calc(100% - 32px));
     margin: 0;
+    overflow: auto;
+    pointer-events: none;
 }
 
 .sr-popup-layer {
@@ -15,6 +18,7 @@
     background: var(--sr-surface, var(--color-card));
     box-shadow: 0 8px 20px var(--sr-shadow-floating, rgba(32, 36, 42, 0.12));
     padding: 16px;
+    pointer-events: auto;
 }
 
 .sr-popup-layer h2 {
@@ -48,8 +52,8 @@
 
 @media (max-width: 720px) {
     .sr-popup-layer-stack {
-        right: 16px;
-        bottom: 16px;
+        grid-template-columns: minmax(0, 1fr);
+        inset: 16px;
     }
 
     .sr-popup-layer-actions {
