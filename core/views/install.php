@@ -38,6 +38,8 @@ $selectedAutoFoundationModuleLabels = [];
 foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
     if (isset($foundationModules[$moduleKey])) {
         $selectedAutoFoundationModuleLabels[] = (string) $foundationModules[$moduleKey]['label'] . ' (자동)';
+    } elseif (isset($optionalModules[$moduleKey])) {
+        $selectedAutoFoundationModuleLabels[] = (string) $optionalModules[$moduleKey]['label'] . ' (자동)';
     }
 }
 $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));

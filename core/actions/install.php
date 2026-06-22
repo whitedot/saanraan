@@ -110,6 +110,18 @@ $optionalModules = [
         'label' => '자동등록방지 CAPTCHA 제공자',
         'description' => '자동등록방지 모듈에 Turnstile, hCaptcha, reCAPTCHA provider 계약을 설치합니다.',
     ],
+    'member_oauth' => [
+        'name' => '회원 OAuth',
+        'version' => '2026.06.002',
+        'label' => '회원 OAuth',
+        'description' => 'OAuth/OIDC provider 로그인과 계정 연결 기반을 설치합니다.',
+    ],
+    'member_oauth_providers' => [
+        'name' => '회원 OAuth 제공자',
+        'version' => '2026.06.001',
+        'label' => '회원 OAuth 제공자',
+        'description' => '회원 OAuth 모듈에 Google, Kakao, Naver, GitHub, Apple ID provider 계약을 설치합니다.',
+    ],
     'embed_manager' => [
         'name' => '임베드 매니저',
         'version' => '2026.06.001',
@@ -151,6 +163,12 @@ $optionalModules = [
         'version' => '2026.05.001',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
+    ],
+    'reaction' => [
+        'name' => '리액션',
+        'version' => '2026.06.001',
+        'label' => '리액션',
+        'description' => '콘텐츠, 커뮤니티, 퀴즈, 설문이 함께 사용하는 공통 리액션 정의와 원장을 설치합니다.',
     ],
     'content' => [
         'name' => '콘텐츠',
@@ -299,6 +317,45 @@ function sr_install_foundation_dependency_keys(array $moduleKeys, array $availab
     return array_values($foundations);
 }
 
+function sr_install_module_dependency_keys(array $moduleKeys, array $availableModuleKeys, array $requiredModuleKeys): array
+{
+    $available = array_fill_keys($availableModuleKeys, true);
+    $required = array_fill_keys($requiredModuleKeys, true);
+    $dependencies = [];
+    $visited = [];
+    $visiting = [];
+
+    $visit = static function (string $moduleKey) use (&$visit, &$available, &$required, &$dependencies, &$visited, &$visiting): void {
+        if (isset($visited[$moduleKey]) || isset($visiting[$moduleKey])) {
+            return;
+        }
+
+        $visiting[$moduleKey] = true;
+        $metadata = sr_module_metadata($moduleKey);
+        $requires = is_array($metadata['requires']['modules'] ?? null) ? $metadata['requires']['modules'] : [];
+        foreach ($requires as $dependencyModuleKey) {
+            $dependencyModuleKey = is_string($dependencyModuleKey) ? $dependencyModuleKey : '';
+            if ($dependencyModuleKey === '' || isset($required[$dependencyModuleKey])) {
+                continue;
+            }
+
+            if (isset($available[$dependencyModuleKey])) {
+                $visit($dependencyModuleKey);
+            }
+            $dependencies[$dependencyModuleKey] = $dependencyModuleKey;
+        }
+
+        unset($visiting[$moduleKey]);
+        $visited[$moduleKey] = true;
+    };
+
+    foreach (array_values(array_unique(array_map('strval', $moduleKeys))) as $moduleKey) {
+        $visit((string) $moduleKey);
+    }
+
+    return array_values($dependencies);
+}
+
 function sr_install_database_owner_count(PDO $pdo): int
 {
     try {
@@ -334,26 +391,30 @@ foreach (array_keys($optionalModules) as $moduleKey) {
 
 $availableInstallModuleKeys = array_keys($requiredModules + $foundationModules + $optionalModules);
 foreach ($optionalModules as $moduleKey => $module) {
-    $foundationLabels = [];
-    $foundationErrors = [];
-    foreach (sr_install_foundation_dependency_keys([(string) $moduleKey], $availableInstallModuleKeys) as $foundationModuleKey) {
-        if (!isset($foundationModules[$foundationModuleKey])) {
-            $foundationErrors[] = (string) $foundationModuleKey . ' 기반 모듈을 찾을 수 없습니다.';
+    $dependencyLabels = [];
+    $dependencyErrors = [];
+    foreach (sr_install_module_dependency_keys([(string) $moduleKey], $availableInstallModuleKeys, array_keys($requiredModules)) as $dependencyModuleKey) {
+        if (isset($optionalModules[$dependencyModuleKey])) {
+            $dependencyModule = $optionalModules[$dependencyModuleKey];
+        } elseif (isset($foundationModules[$dependencyModuleKey])) {
+            $dependencyModule = $foundationModules[$dependencyModuleKey];
+        } else {
+            $dependencyErrors[] = (string) $dependencyModuleKey . ' 필요 모듈을 찾을 수 없습니다.';
             continue;
         }
 
-        $foundationLabels[] = (string) ($foundationModules[$foundationModuleKey]['label'] ?? $foundationModuleKey);
-        $foundationModuleErrors = isset($foundationModules[$foundationModuleKey]['metadata_errors']) && is_array($foundationModules[$foundationModuleKey]['metadata_errors'])
-            ? $foundationModules[$foundationModuleKey]['metadata_errors']
+        $dependencyLabels[] = (string) ($dependencyModule['label'] ?? $dependencyModuleKey);
+        $dependencyModuleErrors = isset($dependencyModule['metadata_errors']) && is_array($dependencyModule['metadata_errors'])
+            ? $dependencyModule['metadata_errors']
             : [];
-        foreach ($foundationModuleErrors as $foundationModuleError) {
-            $foundationErrors[] = (string) ($foundationModules[$foundationModuleKey]['label'] ?? $foundationModuleKey)
-                . '(' . (string) $foundationModuleKey . ') 기반 모듈 확인 필요: '
-                . (string) $foundationModuleError;
+        foreach ($dependencyModuleErrors as $dependencyModuleError) {
+            $dependencyErrors[] = (string) ($dependencyModule['label'] ?? $dependencyModuleKey)
+                . '(' . (string) $dependencyModuleKey . ') 필요 모듈 확인 필요: '
+                . (string) $dependencyModuleError;
         }
     }
-    $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($foundationLabels));
-    $optionalModules[$moduleKey]['foundation_dependency_errors'] = array_values(array_unique($foundationErrors));
+    $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($dependencyLabels));
+    $optionalModules[$moduleKey]['foundation_dependency_errors'] = array_values(array_unique($dependencyErrors));
 }
 
 $selectedOptionalModuleKeys = [];
@@ -497,18 +558,18 @@ if (sr_request_method() === 'POST') {
     }
     $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
     $selectedAutoFoundationModuleKeys = [];
-    foreach (sr_install_foundation_dependency_keys($selectedOptionalModuleKeys, $availableInstallModuleKeys) as $foundationModuleKey) {
-        if (isset($requiredModules[$foundationModuleKey])) {
+    foreach (sr_install_module_dependency_keys($selectedOptionalModuleKeys, $availableInstallModuleKeys, array_keys($requiredModules)) as $dependencyModuleKey) {
+        if (isset($requiredModules[$dependencyModuleKey]) || isset($selectedOptionalModuleMap[$dependencyModuleKey])) {
             continue;
         }
 
-        $foundationModule = sr_install_module_definition_lookup((string) $foundationModuleKey, $requiredModules, $foundationModules, $optionalModules);
-        if (!is_array($foundationModule)) {
-            $addInstallError((string) $foundationModuleKey . ' 기반 모듈을 찾을 수 없습니다.', 'account_modules');
+        $dependencyModule = sr_install_module_definition_lookup((string) $dependencyModuleKey, $requiredModules, $foundationModules, $optionalModules);
+        if (!is_array($dependencyModule)) {
+            $addInstallError((string) $dependencyModuleKey . ' 필요 모듈을 찾을 수 없습니다.', 'account_modules');
             continue;
         }
 
-        $selectedAutoFoundationModuleKeys[$foundationModuleKey] = $foundationModuleKey;
+        $selectedAutoFoundationModuleKeys[$dependencyModuleKey] = $dependencyModuleKey;
     }
     $selectedAutoFoundationModuleKeys = array_values($selectedAutoFoundationModuleKeys);
     $selectedInstallModuleKeys = array_values(array_unique(array_merge($selectedAutoFoundationModuleKeys, $selectedOptionalModuleKeys)));
