@@ -39,12 +39,35 @@ CREATE TABLE IF NOT EXISTS sr_member_profiles (
     account_id BIGINT UNSIGNED NOT NULL,
     phone VARCHAR(40) NOT NULL DEFAULT '',
     birth_date DATE NULL,
+    is_adult TINYINT(1) NULL,
     avatar_path VARCHAR(255) NOT NULL DEFAULT '',
     profile_text TEXT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_member_profiles_account (account_id)
+);
+
+CREATE TABLE IF NOT EXISTS sr_member_profile_field_values (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    field_key VARCHAR(60) NOT NULL,
+    label_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    field_type_snapshot VARCHAR(30) NOT NULL DEFAULT 'text',
+    visibility_snapshot VARCHAR(30) NOT NULL DEFAULT 'public',
+    show_on_profile_snapshot TINYINT(1) NOT NULL DEFAULT 1,
+    show_in_admin_snapshot TINYINT(1) NOT NULL DEFAULT 0,
+    privacy_purpose_snapshot VARCHAR(255) NOT NULL DEFAULT '',
+    export_policy_snapshot VARCHAR(30) NOT NULL DEFAULT 'include',
+    cleanup_policy_snapshot VARCHAR(30) NOT NULL DEFAULT 'anonymize',
+    value_text TEXT NULL,
+    value_json TEXT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_member_profile_field_value_key (account_id, field_key),
+    KEY idx_sr_member_profile_field_values_account (account_id),
+    KEY idx_sr_member_profile_field_values_key (field_key)
 );
 
 CREATE TABLE IF NOT EXISTS sr_member_nicknames (

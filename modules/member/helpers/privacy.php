@@ -139,6 +139,7 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
     }
 
     $profile = sr_member_profile($pdo, $accountId);
+    $profileExtraFields = sr_member_profile_extra_field_values_export(sr_member_profile_extra_field_values($pdo, $accountId));
     $nickname = [];
     if (sr_member_nicknames_table_exists($pdo)) {
         $stmt = $pdo->prepare(
@@ -191,6 +192,7 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
         'account' => $account,
         'nickname' => $nickname,
         'profile' => $profile,
+        'profile_extra_fields' => $profileExtraFields,
         'groups' => sr_member_group_privacy_export($pdo, $accountId),
         'consents' => $consents,
         'auth_logs' => $authLogs,

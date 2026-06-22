@@ -21,7 +21,8 @@ $registrationExtensionFields = sr_member_registration_extension_fields($pdo, $re
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
-$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
+$profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
+$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies) || $profileExtraFieldDefinitions !== [];
 $registrationPolicyDocumentState = $registrationAllowed ? sr_member_registration_policy_documents($pdo) : ['documents' => [], 'errors' => []];
 $registrationPolicyDocuments = $registrationPolicyDocumentState['documents'];
 $registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
@@ -36,6 +37,7 @@ $values = [
 ];
 $registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
+$profileExtraValues = [];
 $antispamRegisterContext = ['account' => null];
 
 if (sr_request_method() === 'POST') {
@@ -78,6 +80,7 @@ if (sr_request_method() === 'POST') {
     $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
     if ($profileFieldsEnabled) {
         $profileValues = sr_member_profile_values_from_post($profilePolicies, sr_member_empty_profile());
+        $profileExtraValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
     }
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
@@ -121,6 +124,9 @@ if (sr_request_method() === 'POST') {
 
     if ($profileFieldsEnabled) {
         foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+            $errors[] = $profileError;
+        }
+        foreach (sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraValues) as $profileError) {
             $errors[] = $profileError;
         }
         if (
@@ -212,6 +218,7 @@ if (sr_request_method() === 'POST') {
             }
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
+                sr_member_save_profile_extra_field_values($pdo, $accountId, $profileExtraFieldDefinitions, $profileExtraValues);
             }
             if (!empty($memberSettings['nickname_enabled']) && (string) $values['nickname'] !== '') {
                 sr_member_set_nickname($pdo, $accountId, (string) $values['nickname']);

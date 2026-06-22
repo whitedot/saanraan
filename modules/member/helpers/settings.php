@@ -28,14 +28,13 @@ function sr_member_default_settings(): array
         'register_throttle_window_seconds' => (int) ($settings['register_throttle_window_seconds'] ?? 900),
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
         'member_skin_key' => is_string($settings['member_skin_key'] ?? null) ? (string) $settings['member_skin_key'] : 'basic',
-        'profile_phone_enabled' => (bool) ($settings['profile_phone_enabled'] ?? true),
-        'profile_phone_required' => (bool) ($settings['profile_phone_required'] ?? false),
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
         'profile_birth_date_required' => (bool) ($settings['profile_birth_date_required'] ?? false),
+        'profile_is_adult_enabled' => (bool) ($settings['profile_is_adult_enabled'] ?? true),
+        'profile_is_adult_required' => (bool) ($settings['profile_is_adult_required'] ?? false),
         'profile_avatar_enabled' => (bool) ($settings['profile_avatar_enabled'] ?? true),
         'profile_avatar_required' => (bool) ($settings['profile_avatar_required'] ?? false),
-        'profile_text_enabled' => (bool) ($settings['profile_text_enabled'] ?? true),
-        'profile_text_required' => (bool) ($settings['profile_text_required'] ?? false),
+        'profile_fields_json' => is_string($settings['profile_fields_json'] ?? null) ? (string) $settings['profile_fields_json'] : '[]',
         'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
         'nickname_required' => (bool) ($settings['nickname_enabled'] ?? true),
     ];
@@ -51,6 +50,14 @@ function sr_member_settings(PDO $pdo): array
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
     $settings['member_skin_key'] = sr_member_skin_key($settings);
+    $profileFieldsSetting = $settings['profile_fields_json'] ?? '[]';
+    if (is_array($profileFieldsSetting)) {
+        $settings['profile_fields_json'] = json_encode($profileFieldsSetting, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
+    } elseif (is_scalar($profileFieldsSetting)) {
+        $settings['profile_fields_json'] = (string) $profileFieldsSetting;
+    } else {
+        $settings['profile_fields_json'] = '[]';
+    }
     foreach (sr_member_profile_field_definitions() as $definition) {
         $enabledKey = (string) $definition['enabled_key'];
         $requiredKey = (string) $definition['required_key'];
@@ -250,25 +257,20 @@ function sr_member_profile_field_required_setting_keys(): array
 function sr_member_profile_field_definitions(): array
 {
     return [
-        'phone' => [
-            'label' => sr_t('member::settings.profile.phone'),
-            'enabled_key' => 'profile_phone_enabled',
-            'required_key' => 'profile_phone_required',
-        ],
         'birth_date' => [
             'label' => sr_t('member::settings.profile.birth_date'),
             'enabled_key' => 'profile_birth_date_enabled',
             'required_key' => 'profile_birth_date_required',
         ],
+        'is_adult' => [
+            'label' => sr_t('member::settings.profile.is_adult'),
+            'enabled_key' => 'profile_is_adult_enabled',
+            'required_key' => 'profile_is_adult_required',
+        ],
         'avatar_path' => [
             'label' => sr_t('member::settings.profile.avatar'),
             'enabled_key' => 'profile_avatar_enabled',
             'required_key' => 'profile_avatar_required',
-        ],
-        'profile_text' => [
-            'label' => sr_t('member::settings.profile.profile_text'),
-            'enabled_key' => 'profile_text_enabled',
-            'required_key' => 'profile_text_required',
         ],
     ];
 }

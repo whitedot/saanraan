@@ -289,18 +289,23 @@ $settingsHelper = sr_member_auth_policy_read('modules/member/helpers/settings.ph
 if ($settingsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_setting_keys') !== false
-            && strpos($settingsHelper, 'profile_phone_enabled') !== false
             && strpos($settingsHelper, 'profile_birth_date_enabled') !== false
+            && strpos($settingsHelper, 'profile_is_adult_enabled') !== false
             && strpos($settingsHelper, 'profile_avatar_enabled') !== false
-            && strpos($settingsHelper, 'profile_text_enabled') !== false,
-        'Member settings helper should define configurable optional profile fields.'
+            && strpos($settingsHelper, 'profile_fields_json') !== false
+            && strpos($settingsHelper, 'profile_phone_enabled') === false
+            && strpos($settingsHelper, 'profile_text_enabled') === false,
+        'Member settings helper should keep birth date, adult status, and avatar as fixed optional profile fields and store dynamic profile fields separately.'
     );
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_settings') !== false
             && strpos($settingsHelper, 'function sr_member_profile_field_policies') !== false
-            && strpos($settingsHelper, 'profile_phone_required') !== false
-            && strpos($settingsHelper, 'profile_avatar_required') !== false,
-        'Member settings helper should expose normalized optional profile visibility and required policies.'
+            && strpos($settingsHelper, 'profile_birth_date_required') !== false
+            && strpos($settingsHelper, 'profile_is_adult_required') !== false
+            && strpos($settingsHelper, 'profile_avatar_required') !== false
+            && strpos($settingsHelper, 'profile_phone_required') === false
+            && strpos($settingsHelper, 'profile_text_required') === false,
+        'Member settings helper should expose normalized fixed profile visibility and required policies.'
     );
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'profile_nickname_enabled') === false
@@ -406,10 +411,12 @@ if ($accountAction !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($accountAction, '$profilePolicies = sr_member_profile_field_policies($memberSettings)') !== false
+            && strpos($accountAction, '$profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings)') !== false
             && strpos($accountAction, 'sr_member_profile_values_from_post($profilePolicies, $profile)') !== false
+            && strpos($accountAction, 'sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraFieldValues)') !== false
             && strpos($accountAction, "['validate_avatar' => false]") !== false
             && strpos($accountAction, 'sr_member_profile_validation_errors($profile, $profilePolicies)') !== false,
-        'Account action should update and validate optional profile fields through normalized profile policies.'
+        'Account action should update avatar and validate dynamic profile fields through normalized profile policies.'
     );
     sr_member_auth_policy_assert(
         strpos($accountAction, 'sr_member_avatar_upload_was_provided($_FILES[\'avatar_file\'] ?? null)') !== false
@@ -780,8 +787,9 @@ if ($adminSettingsAction !== '') {
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_member_profile_field_definitions()') !== false
             && strpos($adminSettingsAction, "\$settings[\$requiredKey] = (\$_POST[\$requiredKey] ?? '') === '1';") !== false
+            && strpos($adminSettingsAction, 'sr_member_profile_extra_field_definitions_json_from_input($profileFieldsInput)') !== false
             && strpos($adminSettingsAction, "'profile_fields' => sr_member_profile_field_policies(\$settings)") !== false,
-        'Member settings action should save optional profile visibility/required settings and audit them.'
+        'Member settings action should save avatar visibility/required settings, dynamic profile fields, and audit them.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_admin_post_int_in_range($key, (int) $limits[\'min\'], (int) $limits[\'max\'])') !== false
@@ -811,8 +819,10 @@ if ($adminSettingsView !== '') {
         )
             && strpos($adminSettingsView, 'sr_member_profile_field_definitions()') !== false
             && strpos($adminSettingsView, '$enabledKey') !== false
-            && strpos($adminSettingsView, '$requiredKey') !== false,
-        'Member settings view should expose optional profile visibility and required field settings.'
+            && strpos($adminSettingsView, '$requiredKey') !== false
+            && strpos($adminSettingsView, 'data-member-profile-extra-fields-builder') !== false
+            && strpos($adminSettingsView, 'data-member-profile-extra-field-modal') !== false,
+        'Member settings view should expose avatar visibility/required settings and the dynamic profile field builder.'
     );
 }
 
@@ -820,12 +830,14 @@ $accountView = sr_member_auth_policy_read('modules/member/views/account.php');
 if ($accountView !== '') {
     sr_member_auth_policy_assert(
         strpos($accountView, 'if ($profileFieldsEnabled)') !== false
-            && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['birth_date']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['is_adult']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['avatar_path']['visible']))") !== false
-            && strpos($accountView, "if (!empty(\$profilePolicies['profile_text']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") === false
+            && strpos($accountView, "if (!empty(\$profilePolicies['profile_text']['visible']))") === false
+            && strpos($accountView, 'sr_member_profile_extra_fields_form_html') !== false
             && strpos($accountView, 'name="avatar_file"') !== false,
-        'Account view should render only visible optional profile fields and use file upload for avatar.'
+        'Account view should render birth date, adult status, avatar, and dynamic profile fields without legacy phone/introduction inputs.'
     );
 }
 

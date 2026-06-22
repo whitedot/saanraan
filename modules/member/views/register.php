@@ -64,19 +64,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <?php } ?>
                     </p>
                 <?php } ?>
-                <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
-                    <p>
-                        <label for="modules_member_register_phone">
-                    <span><?php echo sr_e(sr_t('member::ui.text.4edc9439')); ?><?php echo !empty($profilePolicies['phone']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <input class="form-input" id="modules_member_register_phone" type="text" name="phone" value="<?php echo sr_e((string) $profileValues['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
-                        </label>
-                    </p>
-                <?php } ?>
                 <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
                     <p>
                         <label for="modules_member_register_birth_date">
                     <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                             <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
+                        </label>
+                    </p>
+                <?php } ?>
+                <?php if (!empty($profilePolicies['is_adult']['visible'])) { ?>
+                    <p>
+                        <label for="modules_member_register_is_adult">
+                    <span><?php echo sr_e(sr_t('member::ui.is_adult')); ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                            <select class="form-select" id="modules_member_register_is_adult" name="is_adult"<?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?>>
+                                <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
+                                <option value="1"<?php echo (string) ($profileValues['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
+                                <option value="0"<?php echo (string) ($profileValues['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
+                            </select>
                         </label>
                     </p>
                 <?php } ?>
@@ -89,14 +93,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
                     </p>
                 <?php } ?>
-                <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
-                    <p>
-                        <label for="modules_member_register_profile_text">
-                    <span><?php echo sr_e(sr_t('member::ui.text.7367283c')); ?><?php echo !empty($profilePolicies['profile_text']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <textarea class="form-textarea" id="modules_member_register_profile_text" name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e((string) $profileValues['profile_text']); ?></textarea>
-                        </label>
-                    </p>
-                <?php } ?>
+                <?php echo sr_member_profile_extra_fields_form_html(is_array($profileExtraFieldDefinitions ?? null) ? $profileExtraFieldDefinitions : [], is_array($profileExtraValues ?? null) ? $profileExtraValues : [], 'modules_member_register_profile_extra'); ?>
                 <p>
                     <label for="modules_member_register_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>

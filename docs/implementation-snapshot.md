@@ -74,7 +74,7 @@
 | --- | --- |
 | 코어 | `sr_site_settings`, `sr_modules`, `sr_module_settings`, `sr_sessions`, `sr_rate_limits`, `sr_schema_versions`, `sr_audit_logs` |
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
-| 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_nicknames`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
+| 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_profile_field_values`, `sr_member_nicknames`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 회원 OAuth | `sr_member_oauth_accounts`, `sr_member_oauth_states` |
 | 정책 문서 | `sr_policy_documents`, `sr_policy_document_versions`, `sr_policy_document_mail_jobs`, `sr_policy_document_mail_deliveries` |
 | 개인정보 | `sr_privacy_requests` |

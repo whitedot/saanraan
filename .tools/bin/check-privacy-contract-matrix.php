@@ -451,6 +451,8 @@ foreach ([
     'HMAC hash prefix',
     '회원 선택 프로필',
     '`birth_date`',
+    '`is_adult`',
+    '`sr_member_profile_field_values`',
     'OAuth/OIDC profile',
     'member`의 `birth_date`',
     '퀴즈/설문 답변',

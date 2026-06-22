@@ -29,7 +29,9 @@ if (isset($memberAccountRoutePages[$memberAccountCurrentPath])) {
 }
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
-$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
+$profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
+$profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies) || $profileExtraFieldDefinitions !== [];
+$profileExtraFieldValues = [];
 $memberLocaleOptions = sr_supported_locales($site ?? null);
 unset($_SESSION['sr_member_account_reauth']);
 
@@ -135,9 +137,13 @@ if (sr_request_method() === 'POST') {
         }
         $previousAvatarPath = (string) $profile['avatar_path'];
         $profile = sr_member_profile_values_from_post($profilePolicies, $profile);
+        $profileExtraFieldValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
         $submittedProfile = $profile;
 
         foreach (sr_member_profile_validation_errors($profile, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+            $errors[] = $profileError;
+        }
+        foreach (sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraFieldValues) as $profileError) {
             $errors[] = $profileError;
         }
 
@@ -179,8 +185,14 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === []) {
             try {
+                $pdo->beginTransaction();
                 sr_member_save_profile($pdo, (int) $account['id'], $profile);
+                sr_member_save_profile_extra_field_values($pdo, (int) $account['id'], $profileExtraFieldDefinitions, $profileExtraFieldValues);
+                $pdo->commit();
             } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 if ($uploadedAvatarReference !== '') {
                     sr_member_delete_avatar_reference($uploadedAvatarReference);
                 }
@@ -306,6 +318,15 @@ if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
 }
 if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);
+}
+if ($profileExtraFieldDefinitions !== []) {
+    if ($intent === 'profile' && $errors !== []) {
+        $profileExtraValues = $profileExtraFieldValues;
+    } else {
+        $profileExtraValues = sr_member_profile_extra_field_plain_values($pdo, (int) $account['id']);
+    }
+} else {
+    $profileExtraValues = [];
 }
 $consents = sr_member_latest_consents($pdo, (int) $account['id']);
 $oauthProviders = [];
