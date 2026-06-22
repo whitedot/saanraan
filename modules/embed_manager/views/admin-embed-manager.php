@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '임베드 매니저';
-$adminPageSubtitle = '본문에 삽입된 외부 콘텐츠 참조가 정상인지 확인합니다.';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-embed-manager-list admin-ui-scope';
 $selectedStatuses = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
 $detailFilterOpen = $selectedStatuses !== [];

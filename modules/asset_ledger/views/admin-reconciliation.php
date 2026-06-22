@@ -2,7 +2,6 @@
 
 $adminPageTitle = '포인트/금액 정합성 점검';
 $adminPageSubtitle = [
-    '회원 포인트/금액 모듈의 잔액 행과 거래 원장을 대조합니다.',
     '조회는 읽기 전용이며 불일치 상세는 항목별 최대 50건까지 노출됩니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/assets/reconciliation');

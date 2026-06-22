@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('site_menu::ui.menu.766fbd09');
-$adminPageSubtitle = sr_t('site_menu::ui.menu.3ddcbf35');
+$adminPageSubtitle = '항목은 최대 3단계까지 구성할 수 있습니다.';
 $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 

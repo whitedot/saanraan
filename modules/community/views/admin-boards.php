@@ -2,15 +2,15 @@
 
 $communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPage : 'list';
 $adminPageTitle = '커뮤니티 게시판 관리';
-$adminPageSubtitle = sr_t('community::ui.status.search.d3951518');
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-board-list admin-ui-scope';
 if ($communityBoardsPage === 'new') {
     $adminPageTitle = sr_t('community::ui.text.713b7a18');
-    $adminPageSubtitle = sr_t('community::ui.community.active.c7c009c1');
+    $adminPageSubtitle = '';
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 } elseif ($communityBoardsPage === 'edit') {
     $adminPageTitle = sr_t('community::ui.edit.e92ca332');
-    $adminPageSubtitle = sr_t('community::ui.edit.d3b31e46');
+    $adminPageSubtitle = '';
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 }
 $boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => [], 'group_id' => 0, 'field' => 'all', 'q' => ''];

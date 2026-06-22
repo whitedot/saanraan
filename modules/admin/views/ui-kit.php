@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.admin.ui.kit.e8bf017c');
-$adminPageSubtitle = sr_t('admin::ui.admin.ui.kit.6edaa059');
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-ui-kit';
 
 $uiKitSamples = [

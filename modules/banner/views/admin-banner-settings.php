@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('banner::ui.banner.settings.cc368bd0');
-$adminPageSubtitle = sr_t('banner::ui.banner.d6c7ef09');
+$adminPageSubtitle = '';
 $bannerHelpOpenLabel = sr_t('banner::help.open');
 $bannerSettingsHelpBodyHtml = static function (array $keys): string {
     $html = '';

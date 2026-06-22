@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('popup_layer::ui.settings.fca22866');
-$adminPageSubtitle = sr_t('popup_layer::ui.text.27af73ff');
+$adminPageSubtitle = '';
 $popupLayerHelpOpenLabel = sr_t('popup_layer::help.open');
 $popupLayerSettingsHelpBodyHtml = static function (array $keys): string {
     $html = '';

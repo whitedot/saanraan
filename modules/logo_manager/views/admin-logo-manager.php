@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('logo_manager::ui.text.e046e24f');
-$adminPageSubtitle = sr_t('logo_manager::ui.text.52f5a11e');
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-logo-manager admin-ui-scope';
 $logoSortOptions = sr_admin_logo_sort_options();
 $logoDefaultSort = sr_admin_logo_default_sort();

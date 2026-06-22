@@ -31,7 +31,7 @@ $contentSeriesValues = [
 ];
 
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : '콘텐츠 관리';
-$adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('content::ui.content.status.85bf8a35') : sr_t('content::ui.content.status.search.29f7335b');
+$adminPageSubtitle = '';
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-scope' : 'admin-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
 $adminPageTitleUrl = sr_admin_page_title_reset_url($pageAdminPage !== 'form', '/admin/content');

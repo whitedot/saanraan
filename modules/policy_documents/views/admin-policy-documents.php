@@ -9,8 +9,8 @@ $pageTitle = $policyDocumentAdminPage === 'form'
     : sr_t('policy_documents::ui.policy_documents');
 $adminPageTitle = $pageTitle;
 $adminPageSubtitle = $policyDocumentAdminPage === 'form'
-    ? ($creatingDocument ? sr_t('policy_documents::ui.document.form_description') : sr_t('policy_documents::ui.version.form_description'))
-    : sr_t('policy_documents::ui.description');
+    ? ($creatingDocument ? '' : sr_t('policy_documents::ui.version.form_description'))
+    : '';
 $adminContainerClass = $policyDocumentAdminPage === 'form' ? 'admin-page-policy-documents-form admin-ui-scope' : 'admin-page-policy-documents-list admin-ui-scope';
 
 $policyDocumentStatusClass = static function (string $status): string {

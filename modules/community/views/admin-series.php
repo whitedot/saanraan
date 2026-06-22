@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '커뮤니티 시리즈';
-$adminPageSubtitle = '회원이 만든 시리즈의 공개 상태와 노출 범위를 관리합니다.';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-series-list admin-ui-scope';
 $seriesFilters = isset($seriesFilters) && is_array($seriesFilters) ? $seriesFilters : ['status' => [], 'visibility' => [], 'field' => 'all', 'q' => ''];
 $seriesSortOptions = isset($seriesSortOptions) && is_array($seriesSortOptions) ? $seriesSortOptions : sr_community_admin_series_sort_options();

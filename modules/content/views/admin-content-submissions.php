@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '회원 제출 콘텐츠';
-$adminPageSubtitle = '회원이 제출한 콘텐츠를 확인하고 승인 또는 반려합니다.';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-content-submissions admin-ui-scope';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/submissions');
 include SR_ROOT . '/modules/admin/views/layout-header.php';

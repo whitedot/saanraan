@@ -2,7 +2,6 @@
 
 $adminPageTitle = sr_t('admin::ui.admin.004791bd');
 $adminPageSubtitle = [
-    sr_t('admin::ui.member.search.admin.411aa70f'),
     sr_t('admin::ui.member.6c9f2a2d'),
 ];
 $adminContainerClass = 'admin-page-role-list admin-ui-scope';

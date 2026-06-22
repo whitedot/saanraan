@@ -59,6 +59,6 @@ $downloadLogPagination = sr_admin_pagination_from_total($pdo, sr_content_admin_f
 $downloadLogs = sr_content_admin_file_download_logs($pdo, $filters, (int) $downloadLogPagination['per_page'], sr_admin_pagination_offset($downloadLogPagination), $downloadLogSort);
 
 $adminPageTitle = '파일 다운로드 내역';
-$adminPageSubtitle = '회원별 파일 다운로드 기록과 결제 처리 상태를 확인합니다.';
+$adminPageSubtitle = '';
 
 include SR_ROOT . '/modules/content/views/admin-file-downloads.php';

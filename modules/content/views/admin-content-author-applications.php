@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '콘텐츠 등록자 신청';
-$adminPageSubtitle = '회원이 보낸 콘텐츠 등록 권한 신청을 검토하고 승인 여부를 결정합니다.';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-content-author-applications admin-ui-scope';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/author-applications');
 include SR_ROOT . '/modules/admin/views/layout-header.php';

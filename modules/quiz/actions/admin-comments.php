@@ -59,7 +59,7 @@ $commentActionQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $commentActionSuffix = $commentActionQuery !== '' ? '?' . $commentActionQuery : '';
 
 $adminPageTitle = '퀴즈 댓글 관리';
-$adminPageSubtitle = '퀴즈 댓글을 최신순으로 확인하고 필요한 조치를 진행합니다.';
+$adminPageSubtitle = '';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/quiz/comments');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

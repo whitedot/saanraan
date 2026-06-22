@@ -2,7 +2,6 @@
 
 $adminPageTitle = '썸네일 캐시';
 $adminPageSubtitle = [
-    '공개 이미지 썸네일 캐시를 조회하고 정리합니다.',
     '정리해도 원본 파일은 삭제되지 않습니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/storage-cache');

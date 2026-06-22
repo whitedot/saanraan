@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '회원 리워드 로그';
-$adminPageSubtitle = '첨부 다운로드 수익과 게시자 지급 기록을 확인합니다.';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-publisher-rewards admin-ui-scope';
 $publisherRewardFilters = isset($publisherRewardFilters) && is_array($publisherRewardFilters) ? $publisherRewardFilters : ['status' => '', 'q' => ''];
 $publisherRewardLogs = isset($publisherRewardLogs) && is_array($publisherRewardLogs) ? $publisherRewardLogs : [];

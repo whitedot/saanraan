@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '자동등록방지 설정';
-$adminPageSubtitle = '회원가입과 공개 제출 폼에 적용할 자동등록방지 방식을 설정합니다.';
+$adminPageSubtitle = '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

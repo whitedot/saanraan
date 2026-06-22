@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = 'CKEditor 설정';
-$adminPageSubtitle = '본문 작성 화면에서 사용할 편집기 방식을 정합니다. 화면별 세부 적용은 각 모듈 설정을 따릅니다.';
+$adminPageSubtitle = '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

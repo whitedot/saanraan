@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '게시판 배치 복사';
-$adminPageSubtitle = '한 번에 복사하기 어려운 게시판 데이터를 나누어 처리합니다.';
+$adminPageSubtitle = '대량 데이터는 배치로 이어서 실행됩니다.';
 $adminContainerClass = 'admin-community-board-copy-jobs admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

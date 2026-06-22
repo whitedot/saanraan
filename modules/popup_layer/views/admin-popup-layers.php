@@ -3,7 +3,7 @@
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 $editing = is_array($editPopup);
 $adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc')) : sr_t('popup_layer::ui.list.2144397c');
-$adminPageSubtitle = $popupLayerAdminPage === 'form' ? sr_t('popup_layer::ui.close.130bd932') : sr_t('popup_layer::ui.status.search.2a2d14e6');
+$adminPageSubtitle = '';
 $adminContainerClass = $popupLayerAdminPage === 'form' ? 'admin-page-popup-layer-form admin-ui-scope' : 'admin-page-popup-layer-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
 $adminPageTitleUrl = sr_admin_page_title_reset_url($popupLayerAdminPage !== 'form', '/admin/popup-layers');

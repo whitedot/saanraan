@@ -2,7 +2,7 @@
 
 $communityPostsPage = isset($communityPostsPage) ? (string) $communityPostsPage : 'posts';
 $adminPageTitle = $communityPostsPage === 'comments' ? '커뮤니티 댓글 관리' : '커뮤니티 게시글 관리';
-$adminPageSubtitle = $communityPostsPage === 'comments' ? sr_t('community::ui.status.6bd8f817') : sr_t('community::ui.status.search.af9eb6e6');
+$adminPageSubtitle = '';
 $adminContainerClass = $communityPostsPage === 'comments' ? 'admin-page-community-comment-list admin-ui-scope' : 'admin-page-community-post-list admin-ui-scope';
 $postListFilters = isset($postListFilters) && is_array($postListFilters) ? $postListFilters : ['status' => [], 'board_id' => 0, 'category_id' => 0, 'field' => 'all', 'q' => ''];
 $postSort = isset($postSort) && is_array($postSort) ? $postSort : sr_community_admin_post_default_sort();

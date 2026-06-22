@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('point::ui.settings.title');
-$adminPageSubtitle = sr_t('point::ui.settings.subtitle');
+$adminPageSubtitle = '';
 $settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';

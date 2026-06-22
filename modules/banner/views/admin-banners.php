@@ -3,7 +3,7 @@
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 $editing = is_array($editBanner);
 $adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? sr_t('banner::ui.banner.edit.52756afa') : sr_t('banner::ui.banner.b0dbbde9')) : sr_t('banner::ui.banner.list.f989d740');
-$adminPageSubtitle = $bannerAdminPage === 'form' ? sr_t('banner::ui.banner.71184934') : sr_t('banner::ui.banner.status.search.ae378c83');
+$adminPageSubtitle = '';
 $adminContainerClass = $bannerAdminPage === 'form' ? 'admin-page-banner-form admin-ui-scope' : 'admin-page-banner-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
 $adminPageTitleUrl = sr_admin_page_title_reset_url($bannerAdminPage !== 'form', '/admin/banners');
