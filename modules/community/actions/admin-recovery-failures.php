@@ -32,6 +32,10 @@ if (sr_request_method() === 'POST') {
     if ($errors === [] && is_array($failure) && $intent === 'retry') {
         $pdo->beginTransaction();
         try {
+            $failure = sr_community_asset_recovery_failure_by_id_for_update($pdo, $failureId);
+            if (!is_array($failure) || (string) ($failure['status'] ?? '') !== 'open') {
+                throw new RuntimeException('이미 처리된 미회수 기록입니다.');
+            }
             $result = sr_community_reverse_asset_grant_for_operation(
                 $pdo,
                 (int) $failure['account_id'],

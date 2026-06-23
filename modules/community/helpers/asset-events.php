@@ -1188,12 +1188,21 @@ function sr_community_reverse_asset_grant_for_operation(PDO $pdo, int $accountId
     }
 
     $attemptedAmount = max(0, (int) ($original['amount'] ?? 0));
+    $existingFailure = sr_community_asset_recovery_failure_by_original($pdo, (int) ($original['id'] ?? 0), $canonicalReversalEventKey);
+    if (is_array($existingFailure) && in_array((string) ($existingFailure['status'] ?? ''), ['resolved', 'cancelled'], true)) {
+        return ['operation_allowed' => true, 'recovery_status' => 'not_needed', 'recovery_failure_id' => (int) ($existingFailure['id'] ?? 0), 'processed' => false, 'message' => ''];
+    }
+
     $alreadyRecoveredAmount = sr_community_asset_completed_reversal_amount($pdo, $original, $canonicalReversalEventKey);
     if ($attemptedAmount <= 0 || $alreadyRecoveredAmount >= $attemptedAmount) {
+        if (is_array($existingFailure) && (string) ($existingFailure['status'] ?? '') === 'open') {
+            $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $attemptedAmount, 'resolved', $operationContext);
+            return ['operation_allowed' => true, 'recovery_status' => 'completed', 'recovery_failure_id' => $failureId, 'processed' => false, 'message' => ''];
+        }
+
         return ['operation_allowed' => true, 'recovery_status' => 'not_needed', 'recovery_failure_id' => 0, 'processed' => false, 'message' => ''];
     }
 
-    $existingFailure = sr_community_asset_recovery_failure_by_original($pdo, (int) ($original['id'] ?? 0), $canonicalReversalEventKey);
     $isManualRetry = (string) ($operationContext['operation_event_key'] ?? '') === 'manual_retry';
     if (!$isManualRetry && is_array($existingFailure) && (string) ($existingFailure['status'] ?? '') === 'open') {
         $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $alreadyRecoveredAmount, 'balance_low', $operationContext);
@@ -1293,6 +1302,28 @@ function sr_community_asset_recovery_failure_by_id(PDO $pdo, int $failureId): ?a
          LEFT JOIN sr_member_accounts ma ON ma.id = f.account_id
          WHERE f.id = :id
          LIMIT 1'
+    );
+    $stmt->execute(['id' => $failureId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $failureId): ?array
+{
+    $lockSql = '';
+    try {
+        $lockSql = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    } catch (Throwable $exception) {
+        $lockSql = '';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT f.*, ma.email AS account_email, ma.display_name AS account_display_name
+         FROM sr_community_asset_recovery_failures f
+         LEFT JOIN sr_member_accounts ma ON ma.id = f.account_id
+         WHERE f.id = :id
+         LIMIT 1' . $lockSql
     );
     $stmt->execute(['id' => $failureId]);
     $row = $stmt->fetch();

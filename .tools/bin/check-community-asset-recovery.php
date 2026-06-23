@@ -30,8 +30,10 @@ foreach ([
     'sr_community_asset_grant_log_for_reversal',
     'sr_community_reverse_asset_grant_for_operation',
     'sr_community_asset_recovery_upsert',
+    'sr_community_asset_recovery_failure_by_id_for_update',
     'SAVEPOINT',
     'ROLLBACK TO SAVEPOINT',
+    "['resolved', 'cancelled']",
 ] as $needle) {
     if (!str_contains($assetEvents, $needle)) {
         $errors[] = 'community asset recovery helper is missing contract: ' . $needle;
@@ -83,6 +85,11 @@ foreach ([
     if (!str_contains($paths, $route)) {
         $errors[] = 'community recovery admin route is missing: ' . $route;
     }
+}
+
+$adminRecovery = $read('modules/community/actions/admin-recovery-failures.php');
+if (!str_contains($adminRecovery, 'sr_community_asset_recovery_failure_by_id_for_update')) {
+    $errors[] = 'community recovery retry action must recheck the latest row inside the transaction.';
 }
 
 if ($errors !== []) {
