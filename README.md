@@ -80,7 +80,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지, 레벨/회원 그룹 규칙 |
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계, 보상 지급 |
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 지급 |
-| 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 동기화 |
+| 서비스 | `embed_manager` | 본문 URL 임베딩 cache와 모듈별 URL renderer 조율 |
 | 운영 | `notification`, `privacy` | 알림, 발송 작업, 개인정보 요청/사본 제공 |
 | 플러그인 | `ckeditor` | CKEditor 5 에셋 로딩과 textarea 강화 |
 

@@ -49,8 +49,8 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 - 다른 모듈이 이 모듈을 활용할 때는 양방향 공유 테이블보다 안정 식별자 기반의 단방향 참조나 명시적 계약 파일을 우선한다.
 - 파일 업로드, 메일 운영 화면, 백업, healthcheck처럼 공통으로 보이지만 정책 판단이 들어가는 기능은 먼저 선택 모듈 후보로 검토한다.
 
-모듈 간 본문 연결은 `embed_manager`의 제한된 marker와 `sr_embed_manager_refs`를 사용한다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, legacy 링크 카드 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 활성 모듈의 `embed-manager-targets.php` 계약을 `embed_manager`가 읽어 구성하고, CKEditor 본문에는 `sr-embed-manager-marker` span과 안전한 인용 HTML을 삽입한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
-저장 action은 최종 정화 HTML에 남은 marker만 기준으로 ref_key, target module/type/id, variant, label을 검증하고, 소유 문서 저장 transaction 안에서 refs를 upsert한다. 계약의 허용 variant가 아닌 marker는 저장 실패로 처리한다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted/removed 상태 표시는 공개 렌더링 정책과 점검 화면으로 처리한다. 복사 흐름은 ref_key를 새로 발급해 본문을 rewrite하고 refs를 새 소유 대상으로 복사해야 한다.
+모듈 간 본문 연결은 `embed_manager`의 URL 기반 임베딩을 사용한다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML 링크만 저장해야 하며, 완성 카드 HTML, 전용 marker, legacy 링크 카드 토큰, hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 활성 모듈의 `embed-manager-targets.php` 검색 계약을 읽어 제목과 URL을 삽입하고, 공개 렌더링은 활성 모듈의 `embed-manager-url-targets.php` 계약으로 standalone URL 또는 bare URL 링크를 해석한다.
+저장 action은 본문 URL을 scan해 `sr_embed_manager_url_cache`를 파생 cache/index로 갱신할 수 있지만, cache row가 없어도 본문 URL 자체는 출력 가능해야 한다. URL 임베딩은 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정이 먼저 gate하며, 꺼져 있으면 resolver와 renderer를 호출하지 않는다. 공개 표시 HTML은 `embed_manager` 공통 카드가 아니라 대상 모듈의 `render_embed`가 제목, 요약, 대표 이미지, 공개 권한, 삭제/비공개 fallback을 결정한다.
 
 공통 반응/추천 기능은 커뮤니티 전용 테이블을 먼저 만들지 않고 공식 선택 모듈 `reaction`으로 둔다. 대상 모듈은 `reaction-targets.php` 계약으로 단건 resolve와 batch resolve, target 상태, viewer 기준 공개 열람 가능 여부, 반응 가능 여부, 공개/관리자 URL, label snapshot, 알림 가능 여부, 적용 가능한 preset/key를 제공한다. reaction 모듈은 도메인 테이블을 직접 조회하지 않고 계약 결과 위에서 key 적용, 취소, 변경, 중복, 작성자 본인 제한, throttle, CSRF, 개인정보 export/cleanup을 처리한다. 1차 target은 `content/content`, `content/comment`, `community/post`, `community/comment`, `quiz/quiz_set`, `quiz/comment`, `survey/survey_form`, `survey/comment`이며, 커뮤니티 시리즈와 추가 target은 후속 확장으로 둔다. 운영자는 리액션 정의의 표시 아이콘을 이모지, Material icon key, 직접 업로드한 JPG/PNG/WebP 이미지 중 선택할 수 있고, 업로드 이미지는 reaction 모듈 저장소와 `/reaction/icon` 출력 경로가 소유한다. 익명 write는 허용하지 않고 회원 탈퇴/익명화 시 계정의 reaction record를 삭제한다. reaction은 스크랩, 콘텐츠 완료, 퀴즈 시도, 설문 응답, 보상 grant, 랭킹/SEO 정책을 대신하지 않는다.
 
@@ -1137,7 +1137,8 @@ return [
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
-| `embed-manager-targets.php` | `embed_manager` 모듈 | 임베드 검색, 저장 검증, 렌더링, 상태 점검 | 모듈별 임베드 대상 후보와 snapshot/status/variant 계약 |
+| `embed-manager-targets.php` | `embed_manager` 모듈 | 임베드 검색 후보 | 작성 화면 검색 결과와 public URL 후보 |
+| `embed-manager-url-targets.php` | `embed_manager` 모듈 | URL resolve와 렌더링 | 모듈별 URL allowlist, canonical URL, cache 상태, snapshot, renderer 계약 |
 | `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
 | `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |
 | `popup-layer-references.php` | `popup_layer` 모듈 | 팝업레이어 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 팝업레이어 ID 역방향 참조 조회 |

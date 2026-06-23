@@ -21,7 +21,6 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 현재 Purifier 설정 기준:
 
 - `HTML.Allowed`는 산란 rich text allowlist와 같은 태그/속성 경계로 제한한다.
-- `Attr.AllowedClasses`는 `sr-embed-manager-marker`만 허용한다.
 - `URI.AllowedSchemes`는 `http`, `https`만 허용한다. 최종 canonicalizer는 이미지 `src`에서 외부 `http://`를 다시 제거한다.
 - `HTML.Nofollow`는 켜고 `HTML.TargetBlank`는 끈다.
 - `Cache.SerializerPath`는 `storage/cache/htmlpurifier` 아래만 사용한다.
@@ -43,7 +42,6 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 | `ul`, `ol`, `li` | 없음 | 목록 |
 | `a` | `href` | 링크 |
 | `h2`, `h3` | 없음 | 본문 안 제목 |
-| `span` | `class`, `data-sr-embed-manager-ref`, `data-sr-embed-manager-target-module`, `data-sr-embed-manager-target-type`, `data-sr-embed-manager-target-id`, `data-sr-embed-manager-variant`, `data-sr-embed-manager-label` | 임베드 매니저 marker |
 | `img` | `src`, `alt`, `width`, `height` | 본문 이미지 |
 
 허용되지 않은 태그는 태그 자체를 제거하고 가능한 경우 내부 텍스트만 남긴다. `script`, `style`, `iframe`, `object`, `embed`, `form`, `meta`는 자식 내용까지 제거한다.
@@ -58,13 +56,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 - `alt`: 최대 160자로 자른다.
 - `a`: 링크 속성이 남은 경우 `rel="nofollow noopener noreferrer"`를 서버가 추가한다.
 - `a`: 안전한 `href`가 남지 않으면 링크 태그를 제거하고 내부 텍스트만 남긴다.
-- `class`: `span`의 `sr-embed-manager-marker`만 허용한다.
-- `data-sr-embed-manager-ref`: `em_`으로 시작하는 소문자/숫자/밑줄 6-70자 suffix만 허용한다.
-- `data-sr-embed-manager-target-module`, `data-sr-embed-manager-target-type`, `data-sr-embed-manager-variant`: 소문자로 시작하는 소문자/숫자/밑줄 key만 허용한다.
-- `data-sr-embed-manager-target-id`: 양의 정수 문자열만 허용한다.
-- `data-sr-embed-manager-label`: 연속 공백을 한 칸으로 정규화하고 최대 120자로 자른다.
-
-이벤트 handler, inline style, `target`, 임의 class, 임의 data 속성은 허용하지 않는다.
+이벤트 handler, inline style, `target`, 임의 class, 임의 data 속성은 허용하지 않는다. 임베드 매니저는 저장 HTML에 전용 marker나 data 속성을 남기지 않고, 저장된 URL 또는 링크를 공개 렌더링 시점에 서버 resolver로 해석한다.
 
 ## 명시적 차단 기준
 

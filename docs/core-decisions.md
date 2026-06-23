@@ -133,13 +133,12 @@
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
-- 콘텐츠/커뮤니티 CKEditor 검색 삽입은 본문 안의 제한된 marker와 `sr_embed_manager_refs`를 함께 사용한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
-- 본문 marker는 예를 들어 `<span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_8f3k2" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="1"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
-- refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니라 임베드 렌더링과 관리자 점검을 위한 명시적 참조다. 대상 삭제나 비활성화는 기본적으로 refs 때문에 자동 차단하지 않고, 공개 렌더링에서 숨김 또는 관리자 점검 상태로 다룬다.
-- 저장 검증은 최종 본문 marker 목록을 같은 transaction에서 검증/동기화해야 한다. 본문에 없는 기존 refs, 대상 정보 없는 신규 marker, 중복 marker, 다른 owner의 ref_key, 비활성 대상 모듈 ref, 지원하지 않는 variant를 서버에서 처리한다.
-- 복사 시 기존 refs를 공유하지 않고 새 owner 기준으로 복제하며, ref_key가 바뀌면 본문 marker도 함께 rewrite한다.
-- 대상 모듈은 `embed-manager-targets.php` 계약으로 검색 후보, target id 검증, 공개 URL, snapshot, broken/private/deleted 상태, 허용 variant, 공개 열람 가능 여부를 제공한다.
-- 퀴즈·설문 임베드의 복귀 링크는 marker snapshot이 아니라 렌더링 중인 owner context로 서버가 재구성한다. 퀴즈 source 파라미터는 기존 `sr_quiz_sources` 연결이 있는 경우에만 붙이고, 설문은 `return_to`를 완료 redirect까지 보존한다.
+- 콘텐츠/커뮤니티 검색 삽입은 본문 안에 안전한 URL 또는 링크 HTML을 넣고 전용 marker를 만들지 않는다.
+- 본문 URL이 저장 진실원이며, `sr_embed_manager_url_cache`는 canonical URL hash, target tuple, public snapshot, cache status를 담는 파생 cache/index다.
+- URL 임베딩은 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
+- 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
+- 대상 모듈은 `embed-manager-url-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
+- 공개 표시 HTML은 `embed_manager` 공통 카드가 아니라 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
 - `embed_manager`는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.
 - legacy 링크 카드 토큰 감지/거부와 `sr_content_link_refs`, `sr_community_link_refs` 비움 helper는 `embed_manager`의 호환 범위다. 이 legacy refs 테이블은 1.0 호환을 위해 남기되 신규 저장과 운영 복사/삭제 차단에서는 참조 원장으로 쓰지 않는다.
