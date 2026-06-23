@@ -184,12 +184,12 @@ $memberSettingsSectionNavItems = [
                 <tbody data-member-profile-field-list></tbody>
             </table>
         </div>
-        <div class="alert alert-warning alert-block" role="alert">
-            <p>항목을 추가하거나 숨기거나 필수로 바꾸면 회원가입, 내 프로필 수정, 관리자 회원 수정 화면이 바로 달라집니다.</p>
-            <p>필수로 바꾸기 전에는 기존 회원에게 빈 값이 있어도 괜찮은지 확인하세요. 값이 없는 회원은 다음 저장 때 입력이 필요할 수 있습니다.</p>
-            <p>항목을 삭제하거나 개인정보 정책을 바꾸면 개인정보 내보내기와 정리 기준도 달라질 수 있습니다.</p>
-            <p>기본 항목은 삭제할 수 없습니다. 사용 여부와 순서만 바꿀 수 있습니다.</p>
-        </div>
+        <p class="form-help">
+            항목을 추가하거나 숨기거나 필수로 바꾸면 회원가입, 내 프로필 수정, 관리자 회원 수정 화면이 바로 달라집니다.<br>
+            필수로 바꾸기 전에는 기존 회원에게 빈 값이 있어도 괜찮은지 확인하세요. 값이 없는 회원은 다음 저장 때 입력이 필요할 수 있습니다.<br>
+            항목을 삭제하거나 개인정보 정책을 바꾸면 개인정보 내보내기와 정리 기준도 달라질 수 있습니다.<br>
+            기본 항목은 삭제할 수 없습니다. 사용 여부와 순서만 바꿀 수 있습니다.
+        </p>
         <p class="admin-empty-state" data-member-profile-extra-field-empty hidden>추가 프로필 항목이 없습니다.</p>
         <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e((string) ($settings['profile_fields_json'] ?? '[]')); ?></textarea>
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
