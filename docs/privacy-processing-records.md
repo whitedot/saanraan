@@ -210,3 +210,11 @@
 - 특별범주, 연령, 고유식별자성 데이터는 기본 번들 모듈에서 원문 저장하지 않는다. 필요하면 본인확인 같은 선택 플러그인이 원문 저장 금지와 결과 최소 snapshot 기준을 문서화해야 한다.
 - `export_retained`와 `operational_retained`는 삭제하지 않는다는 뜻이 아니다. 보존 사유, 접근 범위, 보존기간 또는 마스킹 시점을 기록해야 한다.
 - 설치 DB smoke가 필요한 처리활동은 `docs/release-verification-template.md`와 `docs/smoke-test.md`의 개인정보 export/cleanup smoke 기준에 연결한다.
+
+## 커뮤니티 보상 미회수 기록
+
+`sr_community_asset_recovery_failures`는 커뮤니티 게시글/댓글 운영 액션에 부수되는 보상 회수가 잔액 부족으로 완료되지 않았을 때 운영 감사와 재회수 판단을 위해 보존한다. 처리 근거는 재무 무결성 및 운영 감사에 대한 정당한 이익이며, 원 지급 로그 ID, 원 거래 ID, account id, 자산 모듈, 대상 타입/ID, 금액, 상태, 시도 시각을 저장한다.
+
+`operation_context_json`은 allowlist 필드만 담는다. 허용 필드는 `operation_event_key`, `before_status`, `after_status`, `actor_type`, `route_context`, `batch_operation_key`이며 제목, 본문, 비밀번호, IP, user agent, raw URL/query string, 관리자 자유 메모는 저장하지 않는다. 수동 해소/취소 사유는 감사 로그 metadata로 남기되 기존 감사 metadata sanitizer/display helper 기준을 따른다.
+
+미회수 기록은 원장성 운영 기록이므로 회원 탈퇴/삭제 요청 시 금액·거래·도메인 무결성에 필요한 ID와 금액 필드는 유지한다. 공개 표시명 같은 표시용 개인정보는 이 테이블에 저장하지 않고, 관리자 목록은 회원 테이블 join 결과를 화면에서만 표시한다. export/cleanup 자동화에는 원장 보존형 데이터로 분류하며, 보존기간은 자산 원장과 운영 감사 보존 기준을 따른다.

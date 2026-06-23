@@ -485,3 +485,16 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 ```
 
 보호 경로에서 내부 파일 내용이 보이면 코드 수정 전에 서버 배포 설정을 먼저 확인한다. 운영 환경에서 `config/`, `database/`, `modules/`, `storage/` 내부 파일이 직접 열리는 상태로 설치를 진행하지 않는다.
+
+## 커뮤니티 보상 미회수 스모크
+
+커뮤니티 모듈이 설치된 local/staging 환경에서만 보상 미회수 흐름을 점검한다. production 데이터로 destructive 또는 mutating smoke를 실행하지 않는다.
+
+확인 항목:
+
+- 게시글/댓글 작성 보상 지급 후 잔액을 회수 대상 금액보다 낮게 만든 dummy 계정 준비
+- 관리자 단건 숨김/삭제와 일괄 숨김에서 본래 상태 변경은 성공하고 `sr_community_asset_recovery_failures` open row가 생성되는지 확인
+- unknown failure는 상태 변경과 미회수 row가 함께 rollback되는지 정적 또는 fixture로 확인
+- `/admin/community/recovery-failures`에서 status, asset, subject, account/date 필터가 동작하고 open row에만 재회수/해소/취소 action이 보이는지 확인
+- 재회수 전액 성공은 원장 회수 거래와 resolved row를 만들고, 부분 성공은 recovered/unrecovered 금액을 갱신한 뒤 open 상태를 유지하는지 확인
+- 수동 resolved/cancelled는 확인 문구와 관리자 사유를 서버에서 검증하고 원장 거래를 만들지 않는지 확인

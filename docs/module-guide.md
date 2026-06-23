@@ -1596,3 +1596,11 @@ banner-2026.05.001.zip
 - 코어/member 테이블을 미래 도메인 요구로 넓히는 구조
 
 도구를 쓰더라도 프로젝트 실행에 필수가 되면 안 된다. 산란의 기본 가정은 일반 웹호스팅에서 PHP 파일과 SQL만으로 설치되고 동작하는 구조다.
+
+## 26. 운영 액션 부수 보상 회수
+
+모듈이 숨김, 삭제, 무효화, 정정 같은 운영 액션 중 과거 보상을 회수해야 한다면 회원 지불성 차감 helper를 그대로 정책 변경하지 않는다. 직접 회수 primitive는 실패 가능 의미를 유지하고, 운영 액션용 wrapper를 따로 둔다.
+
+운영 액션용 wrapper는 상위 트랜잭션 안에서 호출하고, 항목별 SAVEPOINT로 회수 시도만 되돌린다. `asset_balance_low`만 비차단 미회수로 기록하며, unknown failure와 DB transaction abort 류는 상위로 전파한다. 미회수 기록은 해당 도메인 모듈이 소유하고, 원 지급 로그와 canonical reversal key를 기준으로 중복 row를 만들지 않는다.
+
+상위 트랜잭션 안에서 호출 가능한 자산 transaction function은 `!$pdo->inTransaction()`일 때만 자체 begin/commit을 열어야 한다. 파일 삭제, 썸네일 삭제, 외부 호출, 즉시 알림처럼 DB rollback으로 되돌릴 수 없는 부작용은 상위 트랜잭션 안에 두지 않거나, 실패 기록과 재시도 가능한 후처리로 분리한다.
