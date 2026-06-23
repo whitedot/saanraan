@@ -1025,7 +1025,7 @@ function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, a
         'owner_id' => $ownerId,
         'owner_field' => $ownerField,
         'sort_order' => (int) ($context['sort_order'] ?? 0),
-        'created_by_account_id' => $context['viewer_account_id'] ?? null,
+        'created_by_account_id' => null,
         'created_at' => $now,
         'updated_at' => $now,
         'last_resolved_at' => $now,

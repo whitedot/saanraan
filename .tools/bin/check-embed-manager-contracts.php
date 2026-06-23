@@ -266,6 +266,7 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 1, 'URL cache miss must resolve once during render.');
     sr_embed_contract_assert(str_contains($missRendered, 'fixture-embed-summary'), 'URL cache miss must still render when resolver succeeds.');
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 13') === 1, 'URL cache miss render must write a derived cache row.');
+    sr_embed_contract_assert(sr_embed_contract_scalar($pdo, 'SELECT created_by_account_id FROM sr_embed_manager_url_cache WHERE owner_id = 13 LIMIT 1') === null, 'URL cache miss render must not attribute the derived row to the viewer.');
 
     $GLOBALS['sr_embed_contract_settings'] = ['internal_url_embed_enabled' => false];
     $GLOBALS['sr_embed_contract_resolve_count'] = 0;
