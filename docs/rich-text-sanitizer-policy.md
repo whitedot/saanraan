@@ -10,7 +10,7 @@
 - 커뮤니티 게시글 sanitizer: `sr_community_sanitize_post_html()`
 - CKEditor 플러그인으로 강화된 textarea의 HTML 저장
 - 콘텐츠, 커뮤니티 게시글, 팝업레이어처럼 기존 HTML 본문을 복사해 새 레코드를 만드는 경로
-- 임베드 매니저 marker가 포함된 본문 HTML
+- 임베드 매니저가 공개 렌더링 시점에 해석할 안전한 URL 또는 링크가 포함된 본문 HTML
 
 공통 rich text sanitizer는 `script`, `style`, `iframe`, `object`, `embed`, `form`, `meta` 같은 hard-drop 컨테이너를 먼저 제거한다. 그다음 HTML Purifier가 있으면 1차 정화를 실행하고, 이후 내부 allowlist canonicalizer를 한 번 더 통과한다. HTML Purifier가 없으면 내부 DOM 기반 fallback을 사용한다. 커뮤니티 게시글 sanitizer는 모듈 경계용 wrapper만 유지하고 실제 정화는 공통 sanitizer에 위임한다. 두 경로 모두 같은 fixture를 통과해야 한다.
 
