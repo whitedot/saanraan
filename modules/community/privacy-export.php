@@ -61,6 +61,7 @@ return static function (PDO $pdo, int $accountId): array {
         'level_logs' => [],
         'access_entitlements' => [],
         'asset_logs' => [],
+        'asset_recovery_failures' => [],
         'publisher_reward_logs' => [],
         'submission_consents' => [],
     ];
@@ -278,6 +279,25 @@ return static function (PDO $pdo, int $accountId): array {
         $stmt->execute(['account_id' => $accountId]);
         $empty['asset_logs'] = sr_community_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
+        try {
+            $pdo->query('SELECT 1 FROM sr_community_asset_recovery_failures LIMIT 1');
+            $stmt = $pdo->prepare(
+                'SELECT id, account_id, asset_module, original_asset_log_id, original_transaction_id,
+                        subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key,
+                        attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status,
+                        actor_account_id, actor_type, operation_context_json, attempt_count,
+                        created_at, updated_at, last_attempted_at, resolved_at
+                 FROM sr_community_asset_recovery_failures
+                 WHERE account_id = :account_id
+                 ORDER BY id ASC
+                 LIMIT 1000'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $empty['asset_recovery_failures'] = $stmt->fetchAll();
+        } catch (Throwable $exception) {
+            $empty['asset_recovery_failures'] = [];
+        }
+
         $stmt = $pdo->prepare(
             'SELECT id, charge_asset_log_id, charge_transaction_id, reward_transaction_id, reversal_transaction_id,
                     post_id, attachment_id,
@@ -314,6 +334,7 @@ return static function (PDO $pdo, int $accountId): array {
         $empty['level_logs'] = [];
         $empty['access_entitlements'] = [];
         $empty['asset_logs'] = [];
+        $empty['asset_recovery_failures'] = [];
         $empty['publisher_reward_logs'] = [];
         $empty['submission_consents'] = [];
     }
