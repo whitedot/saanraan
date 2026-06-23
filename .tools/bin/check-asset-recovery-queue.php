@@ -64,8 +64,8 @@ $requireContains('modules/asset_ledger/actions/admin-assets-recovery-failures.ph
     "'admin_reason' => mb_substr(\$reason, 0, 500)",
 ]);
 $requireContains('modules/asset_ledger/views/admin-recovery-failures.php', [
-    '지급 로그',
-    '미회수 큐',
+    '포인트/금액 미회수 관리',
+    '미회수 기록',
     'manual_resolve',
     'manual_cancel',
 ]);

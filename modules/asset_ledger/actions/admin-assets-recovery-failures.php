@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers/admin-members.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
 
@@ -22,7 +23,7 @@ if (sr_request_method() === 'POST') {
     $failureId = preg_match('/\A[1-9][0-9]*\z/', $failureIdValue) === 1 ? (int) $failureIdValue : 0;
     $failure = $failureId > 0 ? sr_asset_recovery_failure_by_id($pdo, $failureId) : null;
     if (!sr_asset_recovery_failures_table_exists($pdo)) {
-        $errors[] = '보상 미회수 테이블이 아직 준비되지 않았습니다. DB 업데이트를 먼저 적용하세요.';
+        $errors[] = '포인트/금액 미회수 테이블이 아직 준비되지 않았습니다. DB 업데이트를 먼저 적용하세요.';
     } elseif (!is_array($failure)) {
         $errors[] = '미회수 기록을 찾을 수 없습니다.';
     } elseif ((string) ($failure['status'] ?? '') !== 'open') {
@@ -107,6 +108,14 @@ if (sr_request_method() === 'POST') {
 }
 
 $recoveryFailureFilters = sr_asset_recovery_filters_from_request();
+if (trim((string) ($recoveryFailureFilters['q'] ?? '')) !== '') {
+    $recoveryFailureFilters['member_account_id'] = sr_admin_member_account_id_from_lookup(
+        $pdo,
+        isset($config) && is_array($config) ? $config : sr_runtime_config(),
+        'all',
+        (string) $recoveryFailureFilters['q']
+    );
+}
 $recoveryFailureTableReady = sr_asset_recovery_failures_table_exists($pdo);
 $recoveryFailureTotal = $recoveryFailureTableReady ? sr_asset_recovery_failure_count($pdo, $recoveryFailureFilters) : 0;
 $recoveryFailurePagination = sr_admin_pagination_from_total($pdo, $recoveryFailureTotal);

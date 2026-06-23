@@ -35,7 +35,7 @@
 | `antispam` | 산술 challenge, CAPTCHA provider 검증, 선택적 remote IP 전달 | DB 회원 귀속 데이터는 없지만 provider script와 remote IP 전달은 쿠키/외부 처리자 inventory에 포함한다. |
 | `antispam_captcha_providers` | Turnstile, hCaptcha, reCAPTCHA provider 계약 | 국외 처리와 외부 processor 후보로 기록하고, 동의 전 script 차단 필요 여부를 #151에서 결정한다. |
 | `asset_exchange` | 환전 로그와 정정 증빙 | 금액성 운영 증빙으로 export_retained, account 연결과 정정 가능 기간을 기록한다. |
-| `asset_ledger` | 자산 원장 primitive, reconciliation 조회, 보상 회수 실패 큐 | 공통 미회수 큐의 account 연결, 금액, source 식별자, 회수 상태를 보관하며 사본 제공과 탈퇴/익명화 cleanup 계약을 제공한다. |
+| `asset_ledger` | 자산 원장 primitive, reconciliation 조회, 포인트/금액 미회수 관리 | 공통 미회수 큐의 account 연결, 금액, source 식별자, 회수 상태를 보관하며 사본 제공과 탈퇴/익명화 cleanup 계약을 제공한다. |
 | `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
 | `ckeditor` | 에디터 asset, 업로드 adapter, sanitizer | 본문 개인정보는 소유 모듈에 귀속하고, 업로드/임시 파일 접근 정책은 소유 모듈 처리활동에 연결한다. |
 | `community` | 게시글, 댓글, 쪽지, 신고, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/상대방/신고자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
@@ -211,7 +211,7 @@
 - `export_retained`와 `operational_retained`는 삭제하지 않는다는 뜻이 아니다. 보존 사유, 접근 범위, 보존기간 또는 마스킹 시점을 기록해야 한다.
 - 설치 DB smoke가 필요한 처리활동은 GitHub 이슈나 마일스톤 체크리스트에 개인정보 export/cleanup 확인 항목으로 남긴다.
 
-## 보상 미회수 공통 큐
+## 포인트/금액 미회수 공통 큐
 
 `sr_asset_recovery_failures`는 커뮤니티 게시글/댓글 같은 source 모듈 운영 액션에 부수되는 보상 회수가 잔액 부족 등으로 완료되지 않았을 때 운영 감사와 재회수 판단을 위해 보존한다. 처리 근거는 재무 무결성 및 운영 감사에 대한 정당한 이익이며, source 모듈/로그 ID, 원 거래 ID, account id, 관리자 actor account id, 자산 모듈, 대상 타입/ID, 금액, 상태, 시도 시각을 저장한다. 기존 `sr_community_asset_recovery_failures` row는 호환 기간 동안 공통 큐로 보강되며, 신규 운영 화면은 `asset_ledger`의 공통 큐를 기준으로 한다.
 

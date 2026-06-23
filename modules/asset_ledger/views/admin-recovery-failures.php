@@ -1,12 +1,23 @@
 <?php
 
-$adminPageTitle = '보상 운영';
-$adminPageSubtitle = '지급 로그와 미회수 큐를 같은 운영 메뉴에서 확인합니다.';
+$adminPageTitle = '포인트/금액 미회수 관리';
+$adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-asset-recovery admin-ui-scope';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/assets/recovery-failures');
 $recoveryFailureFilters = isset($recoveryFailureFilters) && is_array($recoveryFailureFilters) ? $recoveryFailureFilters : [];
 $recoveryFailures = isset($recoveryFailures) && is_array($recoveryFailures) ? $recoveryFailures : [];
 $recoveryFailureTableReady = isset($recoveryFailureTableReady) ? (bool) $recoveryFailureTableReady : true;
+$recoveryFailureDetailFilterOpen = (string) ($recoveryFailureFilters['status'] ?? '') !== ''
+    || (string) ($recoveryFailureFilters['source_module'] ?? '') !== ''
+    || (string) ($recoveryFailureFilters['asset_module'] ?? '') !== ''
+    || (string) ($recoveryFailureFilters['created_from'] ?? '') !== ''
+    || (string) ($recoveryFailureFilters['created_to'] ?? '') !== '';
+$recoveryFailureStatusOptions = [];
+foreach (sr_asset_recovery_statuses() as $status) {
+    $recoveryFailureStatusOptions[$status] = sr_asset_recovery_status_label($status);
+}
+$recoveryFailureSourceOptions = ['community' => '커뮤니티', 'content' => '콘텐츠', 'quiz' => '퀴즈', 'survey' => '설문'];
+$recoveryFailureAssetOptions = ['point' => '포인트', 'reward' => '적립금', 'deposit' => '예치금'];
 $statusClass = static function (string $status): string {
     return match ($status) {
         'open' => 'is-warning',
@@ -35,83 +46,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice ?? '', $errors ?? []); ?>
 
-<div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/rewards/transactions')); ?>" class="btn btn-sm btn-solid-light">지급 로그</a>
-        <a href="<?php echo sr_e(sr_url('/admin/assets/recovery-failures')); ?>" class="btn btn-sm btn-solid-primary">미회수 큐</a>
-    </div>
-</div>
-
-<form method="get" action="<?php echo sr_e(sr_url('/admin/assets/recovery-failures')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
-    <div class="filtering-fields admin-community-recovery-filter-grid">
-        <label class="filtering-field" for="asset_recovery_status">
-            <span class="filtering-label">상태</span>
-            <select id="asset_recovery_status" name="status" class="form-select filtering-input">
-                <option value="">전체</option>
-                <?php foreach (sr_asset_recovery_statuses() as $status) { ?>
-                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($recoveryFailureFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_asset_recovery_status_label($status)); ?></option>
-                <?php } ?>
-            </select>
-        </label>
-        <label class="filtering-field" for="asset_recovery_source_module">
-            <span class="filtering-label">출처</span>
-            <select id="asset_recovery_source_module" name="source_module" class="form-select filtering-input">
-                <option value="">전체</option>
-                <?php foreach (['community' => '커뮤니티', 'content' => '콘텐츠', 'quiz' => '퀴즈', 'survey' => '설문'] as $sourceModule => $sourceLabel) { ?>
-                    <option value="<?php echo sr_e($sourceModule); ?>"<?php echo (string) ($recoveryFailureFilters['source_module'] ?? '') === $sourceModule ? ' selected' : ''; ?>><?php echo sr_e($sourceLabel); ?></option>
-                <?php } ?>
-            </select>
-        </label>
-        <label class="filtering-field" for="asset_recovery_asset_module">
-            <span class="filtering-label">자산</span>
-            <select id="asset_recovery_asset_module" name="asset_module" class="form-select filtering-input">
-                <option value="">전체</option>
-                <?php foreach (['point' => '포인트', 'reward' => '적립금', 'deposit' => '예치금'] as $assetModule => $assetModuleLabel) { ?>
-                    <option value="<?php echo sr_e($assetModule); ?>"<?php echo (string) ($recoveryFailureFilters['asset_module'] ?? '') === $assetModule ? ' selected' : ''; ?>><?php echo sr_e($assetModuleLabel); ?></option>
-                <?php } ?>
-            </select>
-        </label>
-        <label class="filtering-field" for="asset_recovery_subject_type">
-            <span class="filtering-label">대상 유형</span>
-            <input id="asset_recovery_subject_type" type="search" name="subject_type" value="<?php echo sr_e((string) ($recoveryFailureFilters['subject_type'] ?? '')); ?>" class="form-input filtering-input" maxlength="80">
-        </label>
-        <label class="filtering-field" for="asset_recovery_subject_id">
-            <span class="filtering-label">대상 ID</span>
-            <input id="asset_recovery_subject_id" type="search" name="subject_id" value="<?php echo sr_e((string) ((int) ($recoveryFailureFilters['subject_id'] ?? 0) ?: '')); ?>" class="form-input filtering-input" inputmode="numeric" pattern="[0-9]*">
-        </label>
-        <label class="filtering-field" for="asset_recovery_q">
-            <span class="filtering-label">회원</span>
-            <input id="asset_recovery_q" type="search" name="q" value="<?php echo sr_e((string) ($recoveryFailureFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120">
-        </label>
-        <label class="filtering-field" for="asset_recovery_created_from">
-            <span class="filtering-label">생성 시작</span>
-            <input id="asset_recovery_created_from" type="date" name="created_from" value="<?php echo sr_e((string) ($recoveryFailureFilters['created_from'] ?? '')); ?>" class="form-input filtering-input">
-        </label>
-        <label class="filtering-field" for="asset_recovery_created_to">
-            <span class="filtering-label">생성 종료</span>
-            <input id="asset_recovery_created_to" type="date" name="created_to" value="<?php echo sr_e((string) ($recoveryFailureFilters['created_to'] ?? '')); ?>" class="form-input filtering-input">
-        </label>
-        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/assets/recovery-failures')); ?>" class="filtering-form admin-asset-recovery-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $recoveryFailureDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-asset-recovery-search-grid">
+            <div class="filtering-field-fill filtering-field admin-asset-recovery-filter-keyword">
+                <label class="filtering-label" for="asset_recovery_q">검색어</label>
+                <input id="asset_recovery_q" type="search" name="q" value="<?php echo sr_e((string) ($recoveryFailureFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="회원 해시/아이디/이메일/닉네임, 대상 유형/ID">
+            </div>
+        </div>
+        <div id="asset_recovery_detail_filters" class="filtering-body" data-filtering-body<?php echo $recoveryFailureDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-field">
+                <span class="filtering-label">상태</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('asset_recovery_status_filter', 'status', $recoveryFailureStatusOptions, [(string) ($recoveryFailureFilters['status'] ?? '')], '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">출처</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('asset_recovery_source_filter', 'source_module', $recoveryFailureSourceOptions, [(string) ($recoveryFailureFilters['source_module'] ?? '')], '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">항목</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('asset_recovery_asset_filter', 'asset_module', $recoveryFailureAssetOptions, [(string) ($recoveryFailureFilters['asset_module'] ?? '')], '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">생성일</span>
+                <div class="admin-asset-recovery-date-range">
+                    <label class="sr-only" for="asset_recovery_created_from">생성 시작</label>
+                    <input id="asset_recovery_created_from" type="date" name="created_from" value="<?php echo sr_e((string) ($recoveryFailureFilters['created_from'] ?? '')); ?>" class="form-input filtering-input">
+                    <span class="admin-summary-meta" aria-hidden="true">-</span>
+                    <label class="sr-only" for="asset_recovery_created_to">생성 종료</label>
+                    <input id="asset_recovery_created_to" type="date" name="created_to" value="<?php echo sr_e((string) ($recoveryFailureFilters['created_to'] ?? '')); ?>" class="form-input filtering-input">
+                </div>
+            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $recoveryFailureDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="asset_recovery_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </div>
 </form>
 
 <?php if (!$recoveryFailureTableReady) { ?>
     <div class="alert alert-warning">
-        보상 미회수 테이블이 아직 준비되지 않았습니다.
+        포인트/금액 미회수 테이블이 아직 준비되지 않았습니다.
         <a href="<?php echo sr_e(sr_url('/admin/updates')); ?>">DB 업데이트</a>를 먼저 적용하세요.
     </div>
 <?php } ?>
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">미회수 큐</h2>
+        <h2 class="card-title">미회수 기록</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($recoveryFailurePagination); ?>
     </div>
     <div class="table-wrapper">
         <table class="table table-list admin-community-recovery-table">
-            <caption class="sr-only">보상 미회수 큐</caption>
+            <caption class="sr-only">포인트/금액 미회수 기록</caption>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -204,6 +195,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_status_description_list_html('asset_recovery_status', array_combine(sr_asset_recovery_statuses(), array_map('sr_asset_recovery_status_label', sr_asset_recovery_statuses())) ?: []); ?>
 </section>
 
-<?php echo sr_admin_pagination_html($recoveryFailurePagination, '보상 미회수 페이지'); ?>
+<?php echo sr_admin_pagination_html($recoveryFailurePagination, '포인트/금액 미회수 관리 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

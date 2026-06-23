@@ -588,8 +588,9 @@ function sr_asset_recovery_failure_where(array $filters, array &$params): string
     }
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
-        $conditions[] = "(f.account_id = :keyword_id OR ma.email LIKE :keyword_like ESCAPE '\\\\' OR ma.display_name LIKE :keyword_like ESCAPE '\\\\')";
+        $conditions[] = "(f.account_id = :keyword_id OR f.account_id = :keyword_account_id OR f.subject_id = :keyword_id OR f.subject_type LIKE :keyword_like ESCAPE '\\\\' OR ma.email LIKE :keyword_like ESCAPE '\\\\' OR ma.display_name LIKE :keyword_like ESCAPE '\\\\')";
         $params['keyword_id'] = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
+        $params['keyword_account_id'] = max(0, (int) ($filters['member_account_id'] ?? 0));
         $params['keyword_like'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
     }
     foreach (['created_from' => '>=', 'created_to' => '<='] as $key => $operator) {

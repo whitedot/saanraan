@@ -1,3 +1,46 @@
 .admin-asset-ledger-reconciliation-summary-row {
     padding-block: calc(var(--spacing) * 2);
 }
+
+.admin-asset-recovery-filter {
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-asset-recovery-search-grid {
+    width: 100%;
+}
+
+.admin-asset-recovery-filter-keyword {
+    min-width: min(28rem, 100%);
+    width: 100%;
+}
+
+.admin-asset-recovery-filter-keyword .filtering-input {
+    width: 100%;
+}
+
+.admin-asset-recovery-date-range {
+    align-items: center;
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: minmax(0, 12rem) auto minmax(0, 12rem);
+    justify-content: start;
+    max-width: 100%;
+}
+
+.admin-asset-recovery-date-range .filtering-input {
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 767px) {
+    .admin-asset-recovery-date-range {
+        grid-template-columns: minmax(0, 1fr);
+        justify-content: stretch;
+    }
+
+    .admin-asset-recovery-date-range .admin-summary-meta {
+        display: none;
+    }
+}

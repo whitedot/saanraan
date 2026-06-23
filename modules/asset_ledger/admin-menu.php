@@ -10,7 +10,7 @@ return [
             'order' => 10,
         ],
         [
-            'label' => '보상 미회수',
+            'label' => '미회수 관리',
             'path' => '/admin/assets/recovery-failures',
             'order' => 20,
         ],
