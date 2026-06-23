@@ -30,6 +30,7 @@ foreach ([
     'sr_community_asset_grant_log_for_reversal',
     'sr_community_reverse_asset_grant_for_operation',
     'sr_community_asset_recovery_upsert',
+    'sr_community_asset_recovery_failures_table_exists',
     'sr_community_asset_recovery_failure_by_id_for_update',
     'SAVEPOINT',
     'ROLLBACK TO SAVEPOINT',
@@ -90,6 +91,9 @@ foreach ([
 $adminRecovery = $read('modules/community/actions/admin-recovery-failures.php');
 if (!str_contains($adminRecovery, 'sr_community_asset_recovery_failure_by_id_for_update')) {
     $errors[] = 'community recovery retry action must recheck the latest row inside the transaction.';
+}
+if (!str_contains($adminRecovery, 'sr_community_asset_recovery_failures_table_exists')) {
+    $errors[] = 'community recovery admin action must tolerate unapplied DB updates.';
 }
 
 if ($errors !== []) {

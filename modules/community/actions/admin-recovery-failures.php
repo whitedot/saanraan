@@ -20,6 +20,14 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/recovery-failures', 'edit');
 
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+        sr_admin_redirect_with_result(
+            sr_admin_action_result(['보상 미회수 테이블이 아직 준비되지 않았습니다. DB 업데이트를 먼저 적용하세요.'], ''),
+            '/admin/community/recovery-failures' . ($redirectQuery !== '' ? '?' . $redirectQuery : '')
+        );
+    }
+
     $failureIdValue = sr_post_string('failure_id', 20);
     $failureId = preg_match('/\A[1-9][0-9]*\z/', $failureIdValue) === 1 ? (int) $failureIdValue : 0;
     $failure = $failureId > 0 ? sr_community_asset_recovery_failure_by_id($pdo, $failureId) : null;
@@ -125,8 +133,10 @@ if (sr_request_method() === 'POST') {
 }
 
 $recoveryFailureFilters = sr_community_asset_recovery_failure_filters_from_request();
-$recoveryFailurePagination = sr_admin_pagination_from_total($pdo, sr_community_asset_recovery_failure_count($pdo, $recoveryFailureFilters));
-$recoveryFailures = sr_community_asset_recovery_failures($pdo, $recoveryFailureFilters, (int) $recoveryFailurePagination['per_page'], sr_admin_pagination_offset($recoveryFailurePagination));
+$recoveryFailureTableReady = sr_community_asset_recovery_failures_table_exists($pdo);
+$recoveryFailureTotal = $recoveryFailureTableReady ? sr_community_asset_recovery_failure_count($pdo, $recoveryFailureFilters) : 0;
+$recoveryFailurePagination = sr_admin_pagination_from_total($pdo, $recoveryFailureTotal);
+$recoveryFailures = $recoveryFailureTableReady ? sr_community_asset_recovery_failures($pdo, $recoveryFailureFilters, (int) $recoveryFailurePagination['per_page'], sr_admin_pagination_offset($recoveryFailurePagination)) : [];
 $assetModuleOptions = sr_community_asset_modules($pdo);
 
 include SR_ROOT . '/modules/community/views/admin-recovery-failures.php';

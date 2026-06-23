@@ -5,6 +5,7 @@ $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-recovery-failures admin-ui-scope';
 $recoveryFailureFilters = isset($recoveryFailureFilters) && is_array($recoveryFailureFilters) ? $recoveryFailureFilters : [];
 $recoveryFailures = isset($recoveryFailures) && is_array($recoveryFailures) ? $recoveryFailures : [];
+$recoveryFailureTableReady = isset($recoveryFailureTableReady) ? (bool) $recoveryFailureTableReady : true;
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/recovery-failures');
 $statusClass = static function (string $status): string {
@@ -66,6 +67,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
+
+<?php if (!$recoveryFailureTableReady) { ?>
+    <div class="alert alert-warning">
+        보상 미회수 테이블이 아직 준비되지 않았습니다.
+        <a href="<?php echo sr_e(sr_url('/admin/updates')); ?>">DB 업데이트</a>를 먼저 적용하세요.
+    </div>
+<?php } ?>
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">

@@ -1005,6 +1005,10 @@ function sr_community_asset_grant_log_for_reversal(PDO $pdo, int $accountId, str
 
 function sr_community_asset_recovery_failure_by_original(PDO $pdo, int $originalAssetLogId, string $reversalEventKey): ?array
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        return null;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT *
          FROM sr_community_asset_recovery_failures
@@ -1019,6 +1023,25 @@ function sr_community_asset_recovery_failure_by_original(PDO $pdo, int $original
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_community_asset_recovery_failures_table_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+
+    $connectionKey = (string) spl_object_id($pdo);
+    if (array_key_exists($connectionKey, $existsByConnection)) {
+        return $existsByConnection[$connectionKey];
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT 1 FROM sr_community_asset_recovery_failures LIMIT 1');
+        $existsByConnection[$connectionKey] = $stmt !== false;
+    } catch (Throwable $exception) {
+        $existsByConnection[$connectionKey] = false;
+    }
+
+    return $existsByConnection[$connectionKey];
 }
 
 function sr_community_asset_completed_reversal_amount(PDO $pdo, array $originalLog, string $reversalEventKey): int
@@ -1082,6 +1105,10 @@ function sr_community_asset_recovery_savepoint_name(): string
 
 function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string $subjectType, int $subjectId, string $grantEventKey, string $reversalEventKey, int $recoveredAmount, string $failureReason, array $operationContext = []): int
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        throw new RuntimeException('Community asset recovery failure table is not available.');
+    }
+
     $attemptedAmount = max(0, (int) ($originalLog['amount'] ?? 0));
     $recoveredAmount = max(0, min($attemptedAmount, $recoveredAmount));
     $unrecoveredAmount = max(0, $attemptedAmount - $recoveredAmount);
@@ -1296,6 +1323,10 @@ function sr_community_asset_recovery_failure_status_label(string $status): strin
 
 function sr_community_asset_recovery_failure_by_id(PDO $pdo, int $failureId): ?array
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        return null;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT f.*, ma.email AS account_email, ma.display_name AS account_display_name
          FROM sr_community_asset_recovery_failures f
@@ -1311,6 +1342,10 @@ function sr_community_asset_recovery_failure_by_id(PDO $pdo, int $failureId): ?a
 
 function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $failureId): ?array
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        return null;
+    }
+
     $lockSql = '';
     try {
         $lockSql = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
@@ -1393,6 +1428,10 @@ function sr_community_asset_recovery_failure_where(array $filters, array &$param
 
 function sr_community_asset_recovery_failure_count(PDO $pdo, array $filters): int
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        return 0;
+    }
+
     $params = [];
     $where = sr_community_asset_recovery_failure_where($filters, $params);
     $stmt = $pdo->prepare(
@@ -1409,6 +1448,10 @@ function sr_community_asset_recovery_failure_count(PDO $pdo, array $filters): in
 
 function sr_community_asset_recovery_failures(PDO $pdo, array $filters, int $limit, int $offset): array
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        return [];
+    }
+
     $params = [];
     $where = sr_community_asset_recovery_failure_where($filters, $params);
     $stmt = $pdo->prepare(
@@ -1426,6 +1469,10 @@ function sr_community_asset_recovery_failures(PDO $pdo, array $filters, int $lim
 
 function sr_community_asset_recovery_failure_update_manual_status(PDO $pdo, int $failureId, string $status, int $actorAccountId, string $reason): void
 {
+    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
+        throw new RuntimeException('Community asset recovery failure table is not available.');
+    }
+
     if (!in_array($status, ['resolved', 'cancelled'], true)) {
         throw new InvalidArgumentException('Invalid recovery failure status.');
     }
