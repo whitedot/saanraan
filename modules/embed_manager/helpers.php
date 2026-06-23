@@ -963,6 +963,16 @@ function sr_embed_manager_cached_row_for_url(array $cacheRows, string $url): ?ar
     return null;
 }
 
+function sr_embed_manager_render_cache_key_for_url(array $cacheRows, string $url): string
+{
+    $row = sr_embed_manager_cached_row_for_url($cacheRows, $url);
+    if (is_array($row) && preg_match('/\A[a-f0-9]{64}\z/', (string) ($row['canonical_url_hash'] ?? '')) === 1) {
+        return 'canonical:' . (string) $row['canonical_url_hash'];
+    }
+
+    return 'source:' . hash('sha256', trim($url));
+}
+
 function sr_embed_manager_resolved_from_cache_row(array $row): array
 {
     $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? ''));
@@ -1121,7 +1131,10 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
         if (!$node instanceof DOMNode || $url === '') {
             continue;
         }
-        $cacheKey = hash('sha256', $url);
+        $cacheRows = isset($context['url_cache_by_source']) && is_array($context['url_cache_by_source'])
+            ? $context['url_cache_by_source']
+            : [];
+        $cacheKey = sr_embed_manager_render_cache_key_for_url($cacheRows, $url);
         if (!array_key_exists($cacheKey, $renderedByUrl)) {
             $renderContext = array_merge($context, ['sort_order' => (int) ($item['position'] ?? 0)]);
             $renderedByUrl[$cacheKey] = sr_embed_manager_render_url($pdo, $url, $renderContext);

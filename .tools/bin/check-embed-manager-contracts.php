@@ -116,6 +116,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                         ];
                     },
                     'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
+                        $GLOBALS['sr_embed_contract_render_count'] = (int) ($GLOBALS['sr_embed_contract_render_count'] ?? 0) + 1;
                         $stmt = $pdo->prepare('SELECT * FROM sr_fixture_embed_targets WHERE id = :id LIMIT 1');
                         $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -293,6 +294,16 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
     $allLinksRendered = sr_embed_manager_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
     sr_embed_contract_assert(substr_count($allLinksRendered, 'fixture-embed-summary') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
+    unset($GLOBALS['sr_embed_contract_settings']);
+
+    $dedupeBody = '<p><a href="/fixture/1">/fixture/1</a></p><p><a href="/fixture/1?tracking=1">/fixture/1?tracking=1</a></p>';
+    $GLOBALS['sr_embed_contract_settings'] = ['embed_scope' => 'all_supported_links'];
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 15, 'body', $dedupeBody, 7);
+    sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 15') === 1, 'Request cache dedupe fixture must store one canonical row for multiple source URLs.');
+    $GLOBALS['sr_embed_contract_render_count'] = 0;
+    $dedupeRendered = sr_embed_manager_render_body_html($pdo, $dedupeBody, 'fixture', 'doc', 15);
+    sr_embed_contract_assert(substr_count($dedupeRendered, 'fixture-embed-summary') === 2, 'Multiple source URLs for one canonical URL must still replace each occurrence.');
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_render_count'] ?? 0) === 1, 'Multiple source URLs for one canonical cache row must render once per request.');
     unset($GLOBALS['sr_embed_contract_settings']);
 
     sr_embed_contract_assert(sr_embed_manager_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
