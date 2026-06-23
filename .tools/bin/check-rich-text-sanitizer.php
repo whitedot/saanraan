@@ -92,30 +92,14 @@ function sr_sanitizer_check_case(callable $sanitize, string $label): void
         '<img src="/storage/proxy/body.png" alt="internal image">',
     ], $label . ' relative URLs');
 
-    $badMarker = $sanitize('<span class="sr-embed-manager-marker unknown" data-sr-embed-manager-ref="bad" data-sr-embed-manager-target-module="Content" data-sr-embed-manager-target-type="../post" data-sr-embed-manager-target-id="0" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="' . str_repeat('x', 140) . '">ignored</span>');
-    sr_sanitizer_check_contains($badMarker, [
-        '<span class="sr-embed-manager-marker"',
-        'data-sr-embed-manager-variant="card"',
-    ], $label . ' bad marker class filtering');
-    sr_sanitizer_check_not_contains($badMarker, [
-        'unknown',
-        'data-sr-embed-manager-ref=',
-        'data-sr-embed-manager-target-module=',
-        'data-sr-embed-manager-target-type=',
-        'data-sr-embed-manager-target-id=',
-    ], $label . ' bad marker invalid attributes');
-
-    $goodMarker = $sanitize('<span class="foo sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc1234" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="12" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="퀴즈  자세히 보기">ignored</span>');
-    sr_sanitizer_check_contains($goodMarker, [
-        '<span class="sr-embed-manager-marker"',
-        'data-sr-embed-manager-ref="em_abc1234"',
-        'data-sr-embed-manager-target-module="content"',
-        'data-sr-embed-manager-target-type="content"',
-        'data-sr-embed-manager-target-id="12"',
-        'data-sr-embed-manager-variant="card"',
-        'data-sr-embed-manager-label="퀴즈 자세히 보기"',
-    ], $label . ' good marker');
-    sr_sanitizer_check_not_contains($goodMarker, ['foo'], $label . ' good marker class filtering');
+    $markerOutput = $sanitize('<span class="foo sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc1234" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="12" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="퀴즈  자세히 보기">ignored</span>');
+    sr_sanitizer_check_not_contains($markerOutput, [
+        '<span',
+        'sr-embed-manager-marker',
+        'data-sr-embed-manager',
+        'class=',
+    ], $label . ' markerless URL policy');
+    sr_sanitizer_check_contains($markerOutput, ['ignored'], $label . ' marker text preservation');
 }
 
 function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): void
@@ -318,17 +302,13 @@ function sr_sanitizer_check_purifier_direct_case(): void
         'target=',
         'data:image',
         'rel="bookmark"',
+        'sr-embed-manager-marker',
+        'data-sr-embed-manager',
     ], 'HTML Purifier direct fixture');
     sr_sanitizer_check_contains($output, [
         '<a href="/content/example?x=1">internal</a>',
         '<a href="https://example.com/body" rel="nofollow">external</a>',
-        '<span class="sr-embed-manager-marker"',
-        'data-sr-embed-manager-ref="em_abc1234"',
-        'data-sr-embed-manager-target-module="content"',
-        'data-sr-embed-manager-target-type="content"',
-        'data-sr-embed-manager-target-id="12"',
-        'data-sr-embed-manager-variant="card"',
-        'data-sr-embed-manager-label="본문"',
+        'marker',
     ], 'HTML Purifier direct fixture');
 }
 

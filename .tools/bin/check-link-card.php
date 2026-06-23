@@ -54,11 +54,6 @@ if (sr_link_card_extract_tokens($fakeWidgetHtml) !== []) {
     sr_link_card_check_error('Rendered or pasted widget HTML must not be treated as a trusted link card reference.');
 }
 
-$markerRefs = sr_embed_manager_extract_marker_refs('<p>A</p><span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc123"></span>');
-if (count($markerRefs) !== 1 || (string) ($markerRefs[0]['ref_key'] ?? '') !== 'em_abc123') {
-    sr_link_card_check_error('Embed manager marker refs must be extracted from allowed marker spans.');
-}
-
 $adminRefsReflection = new ReflectionFunction('sr_embed_manager_admin_refs');
 if ($adminRefsReflection->getNumberOfParameters() !== 3) {
     sr_link_card_check_error('Embed manager admin refs helper signature changed unexpectedly.');

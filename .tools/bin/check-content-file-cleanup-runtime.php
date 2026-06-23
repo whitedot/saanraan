@@ -193,28 +193,43 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
     )');
-    $pdo->exec('CREATE TABLE sr_embed_manager_refs (
+    $pdo->exec('CREATE TABLE sr_module_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string", created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(module_id, setting_key))');
+    $pdo->exec('CREATE TABLE sr_embed_manager_url_cache (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ref_key TEXT NOT NULL UNIQUE,
         owner_module TEXT NOT NULL,
         owner_type TEXT NOT NULL,
         owner_id INTEGER NOT NULL,
         owner_field TEXT NOT NULL DEFAULT "body",
+        source_url TEXT NOT NULL,
+        canonical_url TEXT NOT NULL,
+        canonical_url_hash TEXT NOT NULL,
+        embed_kind TEXT NOT NULL DEFAULT "internal_url",
+        provider_key TEXT NOT NULL DEFAULT "",
+        render_variant TEXT NOT NULL DEFAULT "summary",
         target_module TEXT NOT NULL,
         target_type TEXT NOT NULL,
         target_id TEXT NOT NULL,
-        variant TEXT NOT NULL DEFAULT "card",
+        target_cache_version TEXT NOT NULL DEFAULT "",
         label_snapshot TEXT NOT NULL DEFAULT "",
         image_snapshot TEXT NOT NULL DEFAULT "",
+        image_snapshot_policy TEXT NOT NULL DEFAULT "none",
+        summary_snapshot TEXT,
+        target_state TEXT NOT NULL DEFAULT "",
+        resolver_state TEXT NOT NULL DEFAULT "",
+        cache_status TEXT NOT NULL DEFAULT "fresh",
+        resolved_payload_json TEXT,
         sort_order INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT "active",
         created_by_account_id INTEGER,
+        last_resolved_at TEXT,
+        last_render_checked_at TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        UNIQUE(owner_module, owner_type, owner_id, owner_field, canonical_url_hash)
     )');
     $pdo->exec('CREATE TABLE sr_content_storage_cleanup_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, source_type TEXT NOT NULL, source_id INTEGER NOT NULL, storage_driver TEXT NOT NULL, storage_key TEXT NOT NULL, error_message TEXT NOT NULL, status TEXT NOT NULL DEFAULT "pending", created_at TEXT NOT NULL, resolved_at TEXT)');
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('content', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'content', 'enabled'), (2, 'embed_manager', 'enabled')");
+    $pdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at) VALUES (2, 'url_embed_enabled', '1', 'bool', '2026-06-11 00:00:00', '2026-06-11 00:00:00'), (2, 'internal_url_embed_enabled', '1', 'bool', '2026-06-11 00:00:00', '2026-06-11 00:00:00')");
 }
 
 $pdo = new PDO('sqlite::memory:');
@@ -297,8 +312,9 @@ $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, activ
     'created_at' => $now,
     'updated_at' => $now,
 ]);
-$pdo->prepare('INSERT INTO sr_embed_manager_refs (ref_key, owner_module, owner_type, owner_id, owner_field, target_module, target_type, target_id, variant, label_snapshot, status, created_by_account_id, created_at, updated_at) VALUES ("content_cleanup_embed", "content", "content", :owner_id, "body", "content", "content", "123", "card", "Embedded content", "active", 1, :created_at, :updated_at)')->execute([
+$pdo->prepare('INSERT INTO sr_embed_manager_url_cache (owner_module, owner_type, owner_id, owner_field, source_url, canonical_url, canonical_url_hash, target_module, target_type, target_id, label_snapshot, target_state, cache_status, created_by_account_id, created_at, updated_at) VALUES ("content", "content", :owner_id, "body", "/content/embedded", "/content/embedded", :hash, "content", "content", "123", "Embedded content", "public", "fresh", 1, :created_at, :updated_at)')->execute([
     'owner_id' => $contentId,
+    'hash' => hash('sha256', '/content/embedded'),
     'created_at' => $now,
     'updated_at' => $now,
 ]);
@@ -339,7 +355,7 @@ sr_content_file_cleanup_assert((string) ($downloadLog['content_title_snapshot'] 
 sr_content_file_cleanup_assert((string) ($downloadLog['file_original_name_snapshot'] ?? '') !== 'download.txt', 'content file cleanup fixture should redact download log file original name snapshot.');
 sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $contentId]) === 0, 'content file cleanup fixture should remove link refs.');
 sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_series_items WHERE content_id = :content_id OR active_content_id = :content_id', ['content_id' => $contentId]) === 0, 'content file cleanup fixture should remove deleted content from series items.');
-sr_content_file_cleanup_assert((string) sr_content_file_cleanup_scalar($pdo, 'SELECT status FROM sr_embed_manager_refs WHERE ref_key = "content_cleanup_embed"') === 'removed', 'content file cleanup fixture should mark embed refs removed.');
+sr_content_file_cleanup_assert((string) sr_content_file_cleanup_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id', ['owner_id' => $contentId]) === 'stale', 'content file cleanup fixture should mark URL embed cache stale.');
 sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_storage_cleanup_failures') === 0, 'content file cleanup fixture should not leave cleanup failures.');
 
 if ($canWriteDownloadStorage) {

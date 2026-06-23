@@ -54,7 +54,6 @@ function sr_rich_text_policy_expected_allowed_tags(): array
         'a' => ['href'],
         'h2' => [],
         'h3' => [],
-        'span' => ['class', 'data-sr-embed-manager-ref', 'data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-target-id', 'data-sr-embed-manager-variant', 'data-sr-embed-manager-label'],
         'img' => ['src', 'alt', 'width', 'height'],
     ];
 }
@@ -90,13 +89,6 @@ sr_rich_text_policy_contains('docs/rich-text-sanitizer-policy.md', [
     'href',
     'h2',
     'h3',
-    'span',
-    'data-sr-embed-manager-ref',
-    'data-sr-embed-manager-target-module',
-    'data-sr-embed-manager-target-type',
-    'data-sr-embed-manager-target-id',
-    'data-sr-embed-manager-variant',
-    'data-sr-embed-manager-label',
     'img',
     'src',
     'alt',
@@ -104,11 +96,10 @@ sr_rich_text_policy_contains('docs/rich-text-sanitizer-policy.md', [
     'height',
     'javascript:',
     'data:image',
-    'sr-embed-manager-marker',
+    '전용 marker',
     '콘텐츠, 커뮤니티, 팝업 레이어, 알림 모듈',
     'rich text flow marker',
     'security-response-policy.md',
-    'risk-register.md',
 ]);
 
 sr_rich_text_policy_contains('docs/README.md', [
@@ -137,13 +128,11 @@ sr_rich_text_policy_contains('docs/risk-register.md', [
 sr_rich_text_policy_contains('core/helpers/output.php', [
     'sr_strip_rich_text_dropped_containers($html)',
     'HTML.Allowed',
-    'Attr.AllowedClasses',
     'URI.AllowedSchemes',
     'HTML.Nofollow',
     'HTML.TargetBlank',
     'Cache.SerializerPath',
     'Cache.DefinitionImpl',
-    'HTML.DefinitionID',
     'storage/cache/htmlpurifier',
     'sr_sanitize_rich_text_html_fallback($html)',
 ]);
@@ -151,7 +140,6 @@ sr_rich_text_policy_contains('core/helpers/output.php', [
 sr_rich_text_policy_contains('docs/rich-text-sanitizer-policy.md', [
     'HTML Purifier 설정 경계',
     'HTML.Allowed',
-    'Attr.AllowedClasses',
     'URI.AllowedSchemes',
     'HTML.Nofollow',
     'HTML.TargetBlank',

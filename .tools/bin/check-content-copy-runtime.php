@@ -42,21 +42,11 @@ function sr_content_copy_runtime_row(PDO $pdo, string $sql, array $params = []):
     return is_array($row) ? $row : [];
 }
 
-function sr_content_copy_runtime_marker(string $refKey, int $targetId): string
-{
-    return '<span class="sr-embed-manager-marker"'
-        . ' data-sr-embed-manager-ref="' . sr_e($refKey) . '"'
-        . ' data-sr-embed-manager-target-module="content"'
-        . ' data-sr-embed-manager-target-type="content"'
-        . ' data-sr-embed-manager-target-id="' . sr_e((string) $targetId) . '"'
-        . ' data-sr-embed-manager-variant="card"'
-        . ' data-sr-embed-manager-label="복사 원본"></span>';
-}
-
 function sr_content_copy_runtime_schema(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE sr_site_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string")');
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_module_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string", created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(module_id, setting_key))');
     $pdo->exec('CREATE TABLE sr_content_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         content_group_id INTEGER,
@@ -170,27 +160,41 @@ function sr_content_copy_runtime_schema(PDO $pdo): void
         UNIQUE(series_id, content_id),
         UNIQUE(active_content_id)
     )');
-    $pdo->exec('CREATE TABLE sr_embed_manager_refs (
+    $pdo->exec('CREATE TABLE sr_embed_manager_url_cache (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ref_key TEXT NOT NULL UNIQUE,
         owner_module TEXT NOT NULL,
         owner_type TEXT NOT NULL,
         owner_id INTEGER NOT NULL,
         owner_field TEXT NOT NULL DEFAULT "body",
+        source_url TEXT NOT NULL,
+        canonical_url TEXT NOT NULL,
+        canonical_url_hash TEXT NOT NULL,
+        embed_kind TEXT NOT NULL DEFAULT "internal_url",
+        provider_key TEXT NOT NULL DEFAULT "",
+        render_variant TEXT NOT NULL DEFAULT "summary",
         target_module TEXT NOT NULL,
         target_type TEXT NOT NULL,
         target_id TEXT NOT NULL,
-        variant TEXT NOT NULL DEFAULT "card",
+        target_cache_version TEXT NOT NULL DEFAULT "",
         label_snapshot TEXT NOT NULL DEFAULT "",
         image_snapshot TEXT NOT NULL DEFAULT "",
+        image_snapshot_policy TEXT NOT NULL DEFAULT "none",
+        summary_snapshot TEXT,
+        target_state TEXT NOT NULL DEFAULT "",
+        resolver_state TEXT NOT NULL DEFAULT "",
+        cache_status TEXT NOT NULL DEFAULT "fresh",
+        resolved_payload_json TEXT,
         sort_order INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT "active",
         created_by_account_id INTEGER,
+        last_resolved_at TEXT,
+        last_render_checked_at TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        UNIQUE(owner_module, owner_type, owner_id, owner_field, canonical_url_hash)
     )');
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('content', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'content', 'enabled'), (2, 'embed_manager', 'enabled')");
+    $pdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at) VALUES (2, 'url_embed_enabled', '1', 'bool', '2026-06-11 00:00:00', '2026-06-11 00:00:00'), (2, 'internal_url_embed_enabled', '1', 'bool', '2026-06-11 00:00:00', '2026-06-11 00:00:00')");
 }
 
 $pdo = new PDO('sqlite::memory:');
@@ -200,9 +204,8 @@ sr_content_copy_runtime_schema($pdo);
 
 $sourceContentId = 98101;
 $now = '2026-06-11 00:00:00';
-$sourceRefKey = 'em_content_copy_source';
-$sourceMarker = sr_content_copy_runtime_marker($sourceRefKey, $sourceContentId);
-$sourceBody = '<p>원본 본문</p>' . $sourceMarker;
+$sourceUrl = '/content/runtime-copy-source';
+$sourceBody = '<p>원본 본문</p><p><a href="' . $sourceUrl . '">' . $sourceUrl . '</a></p>';
 
 $pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "published", 987, 1, 1, :published_at, :created_at, :updated_at)')->execute([
     'id' => $sourceContentId,
@@ -238,7 +241,7 @@ $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, activ
 ]);
 
 sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $sourceContentId, 'body', $sourceBody, 1);
-sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_refs WHERE owner_id = :owner_id AND status = "active"', ['owner_id' => $sourceContentId]) === 1, 'content copy fixture should create a source embed ref before copying.');
+sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id AND cache_status = "fresh"', ['owner_id' => $sourceContentId]) === 1, 'content copy fixture should create a source URL cache row before copying.');
 
 $newContentId = sr_content_copy($pdo, $sourceContentId, [
     'title' => 'Runtime copy target',
@@ -253,15 +256,14 @@ sr_content_copy_runtime_assert((string) ($newContent['slug'] ?? '') === 'runtime
 sr_content_copy_runtime_assert((string) ($newContent['status'] ?? '') === 'draft', 'content copy fixture should keep copied content as draft.');
 sr_content_copy_runtime_assert((int) ($newContent['view_count'] ?? -1) === 0, 'content copy fixture should not copy source view count.');
 sr_content_copy_runtime_assert((string) ($newContent['body_format'] ?? '') === 'html', 'content copy fixture should preserve html body format.');
-sr_content_copy_runtime_assert(!str_contains((string) ($newContent['body_text'] ?? ''), $sourceRefKey), 'content copy fixture should rewrite embedded ref keys.');
+sr_content_copy_runtime_assert(str_contains((string) ($newContent['body_text'] ?? ''), $sourceUrl), 'content copy fixture should preserve embedded source URL.');
 
-$newRef = sr_content_copy_runtime_row($pdo, 'SELECT ref_key, owner_id, target_module, target_type, target_id, status, created_by_account_id FROM sr_embed_manager_refs WHERE owner_id = :owner_id LIMIT 1', ['owner_id' => $newContentId]);
-sr_content_copy_runtime_assert($newRef !== [], 'content copy fixture should create an embed ref for the copied content.');
-sr_content_copy_runtime_assert((string) ($newRef['ref_key'] ?? '') !== $sourceRefKey, 'content copy fixture should not reuse the source embed ref key.');
-sr_content_copy_runtime_assert(str_contains((string) ($newContent['body_text'] ?? ''), (string) ($newRef['ref_key'] ?? '')), 'content copy fixture should store the rewritten ref key in copied body.');
-sr_content_copy_runtime_assert((string) ($newRef['target_module'] ?? '') === 'content' && (string) ($newRef['target_type'] ?? '') === 'content' && (int) ($newRef['target_id'] ?? 0) === $sourceContentId, 'content copy fixture should preserve embed target metadata.');
-sr_content_copy_runtime_assert((string) ($newRef['status'] ?? '') === 'active' && (int) ($newRef['created_by_account_id'] ?? 0) === 2, 'content copy fixture should keep copied embed ref active with copier account id.');
-sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_refs WHERE owner_id = :owner_id AND ref_key = :ref_key', ['owner_id' => $sourceContentId, 'ref_key' => $sourceRefKey]) === 1, 'content copy fixture should keep the source embed ref on the source content.');
+$newCache = sr_content_copy_runtime_row($pdo, 'SELECT owner_id, source_url, canonical_url, target_module, target_type, target_id, cache_status, created_by_account_id FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id LIMIT 1', ['owner_id' => $newContentId]);
+sr_content_copy_runtime_assert($newCache !== [], 'content copy fixture should create a URL cache row for the copied content.');
+sr_content_copy_runtime_assert((string) ($newCache['source_url'] ?? '') === $sourceUrl && (string) ($newCache['canonical_url'] ?? '') === $sourceUrl, 'content copy fixture should preserve source and canonical URL.');
+sr_content_copy_runtime_assert((string) ($newCache['target_module'] ?? '') === 'content' && (string) ($newCache['target_type'] ?? '') === 'content' && (int) ($newCache['target_id'] ?? 0) === $sourceContentId, 'content copy fixture should preserve URL target metadata.');
+sr_content_copy_runtime_assert((string) ($newCache['cache_status'] ?? '') === 'fresh' && (int) ($newCache['created_by_account_id'] ?? 0) === 2, 'content copy fixture should keep copied URL cache fresh with copier account id.');
+sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id AND canonical_url = :canonical_url', ['owner_id' => $sourceContentId, 'canonical_url' => $sourceUrl]) === 1, 'content copy fixture should keep the source URL cache on the source content.');
 
 sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_file_links WHERE content_id = :content_id AND status = "active"', ['content_id' => $newContentId]) === 2, 'content copy fixture should copy explicit and legacy file links.');
 sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT sort_order FROM sr_content_file_links WHERE content_id = :content_id AND file_id = 1', ['content_id' => $newContentId]) === 3, 'content copy fixture should preserve explicit file link sort order.');
