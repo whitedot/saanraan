@@ -327,6 +327,18 @@ function sr_embed_manager_url_embedding_enabled(PDO $pdo): bool
     return !empty($settings['url_embed_enabled']);
 }
 
+function sr_embed_manager_embed_kind_allowed(string $embedKind, array $settings): bool
+{
+    if ($embedKind === 'internal_url') {
+        return !empty($settings['internal_url_embed_enabled']);
+    }
+    if ($embedKind === 'external_url') {
+        return !empty($settings['external_url_embed_enabled']);
+    }
+
+    return false;
+}
+
 function sr_embed_manager_url_cache_statuses(): array
 {
     return ['fresh', 'stale', 'deleted', 'broken'];
@@ -510,10 +522,7 @@ function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []
     if ($normalized === []) {
         return null;
     }
-    if ((string) $normalized['embed_kind'] === 'internal_url' && empty($settings['internal_url_embed_enabled'])) {
-        return null;
-    }
-    if ((string) $normalized['embed_kind'] === 'external_url' && empty($settings['external_url_embed_enabled'])) {
+    if (!sr_embed_manager_embed_kind_allowed((string) $normalized['embed_kind'], $settings)) {
         return null;
     }
 
@@ -951,6 +960,80 @@ function sr_embed_manager_owner_url_cache_by_source(PDO $pdo, string $ownerModul
     return $rows;
 }
 
+function sr_embed_manager_cached_row_for_url(array $cacheRows, string $url): ?array
+{
+    $url = trim($url);
+    if ($url === '') {
+        return null;
+    }
+    if (isset($cacheRows[$url]) && is_array($cacheRows[$url])) {
+        return $cacheRows[$url];
+    }
+
+    return null;
+}
+
+function sr_embed_manager_resolved_from_cache_row(array $row): array
+{
+    $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? ''));
+    $canonicalUrl = sr_embed_manager_safe_url((string) ($row['canonical_url'] ?? ''));
+    $targetModule = sr_embed_manager_clean_identifier((string) ($row['target_module'] ?? ''));
+    $targetType = sr_embed_manager_clean_identifier((string) ($row['target_type'] ?? ''));
+    if ($targetId === '' || $canonicalUrl === '' || $targetModule === '' || $targetType === '') {
+        return [];
+    }
+
+    return [
+        'source_url' => (string) ($row['source_url'] ?? ''),
+        'canonical_url' => $canonicalUrl,
+        'canonical_url_hash' => (string) ($row['canonical_url_hash'] ?? hash('sha256', $canonicalUrl)),
+        'embed_kind' => (string) ($row['embed_kind'] ?? 'internal_url'),
+        'provider_key' => (string) ($row['provider_key'] ?? $targetModule),
+        'render_variant' => (string) ($row['render_variant'] ?? 'summary'),
+        'target_module' => $targetModule,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'target_cache_version' => (string) ($row['target_cache_version'] ?? ''),
+        'label_snapshot' => (string) ($row['label_snapshot'] ?? ''),
+        'summary_snapshot' => (string) ($row['summary_snapshot'] ?? ''),
+        'image_snapshot' => (string) ($row['image_snapshot'] ?? ''),
+        'image_snapshot_policy' => (string) ($row['image_snapshot_policy'] ?? 'none'),
+        'target_state' => (string) ($row['target_state'] ?? ''),
+        'resolver_state' => (string) ($row['resolver_state'] ?? ''),
+        'cache_status' => sr_embed_manager_clean_cache_status((string) ($row['cache_status'] ?? 'broken')),
+        'resolved_payload_json' => (string) ($row['resolved_payload_json'] ?? '{}'),
+    ];
+}
+
+function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, array $context): void
+{
+    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+        return;
+    }
+    $ownerModule = sr_embed_manager_clean_identifier((string) ($context['owner_module'] ?? ''));
+    $ownerType = sr_embed_manager_clean_identifier((string) ($context['owner_type'] ?? ''));
+    $ownerId = (int) ($context['owner_id'] ?? 0);
+    $ownerField = sr_embed_manager_clean_identifier((string) ($context['owner_field'] ?? '')) ?: 'body';
+    if ($ownerModule === '' || $ownerType === '' || $ownerId < 1) {
+        return;
+    }
+
+    $now = sr_now();
+    $row = array_merge($resolved, [
+        'owner_module' => $ownerModule,
+        'owner_type' => $ownerType,
+        'owner_id' => $ownerId,
+        'owner_field' => $ownerField,
+        'sort_order' => (int) ($context['sort_order'] ?? 0),
+        'created_by_account_id' => $context['viewer_account_id'] ?? null,
+        'created_at' => $now,
+        'updated_at' => $now,
+        'last_resolved_at' => $now,
+        'last_render_checked_at' => $now,
+    ]);
+    sr_embed_manager_upsert_url_cache($pdo, $row);
+}
+
 function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
 {
     if (!sr_embed_manager_url_cache_table_exists($pdo)) {
@@ -1011,6 +1094,8 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
         'owner_id' => $ownerId,
         'owner_field' => $ownerField,
         'embed_scope' => (string) ($settings['embed_scope'] ?? 'standalone_url_only'),
+        'url_embed_settings' => $settings,
+        'url_cache_by_source' => sr_embed_manager_owner_url_cache_by_source($pdo, $ownerModule, $ownerType, $ownerId, $ownerField),
     ]);
     if ((int) ($context['viewer_account_id'] ?? 0) < 1 && function_exists('sr_member_current_account')) {
         $viewerAccount = sr_member_current_account($pdo);
@@ -1044,13 +1129,19 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
     if ($nodes === []) {
         return $bodyHtml;
     }
+    $renderedByUrl = [];
     foreach ($nodes as $item) {
         $node = $item['node'] ?? null;
         $url = (string) ($item['url'] ?? '');
         if (!$node instanceof DOMNode || $url === '') {
             continue;
         }
-        $html = sr_embed_manager_render_url($pdo, $url, $context);
+        $cacheKey = hash('sha256', $url);
+        if (!array_key_exists($cacheKey, $renderedByUrl)) {
+            $renderContext = array_merge($context, ['sort_order' => (int) ($item['position'] ?? 0)]);
+            $renderedByUrl[$cacheKey] = sr_embed_manager_render_url($pdo, $url, $renderContext);
+        }
+        $html = (string) $renderedByUrl[$cacheKey];
         if ($html !== '') {
             $replace[] = [$node, $html];
         }
@@ -1103,11 +1194,25 @@ function sr_embed_manager_dom_fragment_from_html(DOMDocument $targetDom, string 
 
 function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): string
 {
-    $resolved = sr_embed_manager_resolve_url($pdo, $url, $context);
-    if (!is_array($resolved)) {
-        return '';
+    $cacheRows = isset($context['url_cache_by_source']) && is_array($context['url_cache_by_source'])
+        ? $context['url_cache_by_source']
+        : [];
+    $cachedRow = sr_embed_manager_cached_row_for_url($cacheRows, $url);
+    $resolved = is_array($cachedRow) ? sr_embed_manager_resolved_from_cache_row($cachedRow) : [];
+    if ($resolved === [] || (string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+        $resolved = sr_embed_manager_resolve_url($pdo, $url, $context);
+        if (!is_array($resolved)) {
+            return '';
+        }
+        sr_embed_manager_cache_resolved_for_render($pdo, $resolved, $context);
     }
     if ((string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+        return '';
+    }
+    $settings = isset($context['url_embed_settings']) && is_array($context['url_embed_settings'])
+        ? $context['url_embed_settings']
+        : sr_embed_manager_settings($pdo);
+    if (!sr_embed_manager_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
         return '';
     }
 

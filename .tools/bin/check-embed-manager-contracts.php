@@ -39,12 +39,16 @@ if (!function_exists('sr_log_exception')) {
 if (!function_exists('sr_module_settings')) {
     function sr_module_settings(PDO $pdo, string $moduleKey): array
     {
-        return $moduleKey === 'embed_manager' ? [
+        $defaultSettings = [
             'url_embed_enabled' => true,
             'internal_url_embed_enabled' => true,
             'external_url_embed_enabled' => false,
             'embed_scope' => 'standalone_url_only',
-        ] : [];
+        ];
+
+        return $moduleKey === 'embed_manager'
+            ? array_merge($defaultSettings, isset($GLOBALS['sr_embed_contract_settings']) && is_array($GLOBALS['sr_embed_contract_settings']) ? $GLOBALS['sr_embed_contract_settings'] : [])
+            : [];
     }
 }
 
@@ -81,6 +85,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                     'allowed_variants' => ['summary'],
                     'default_variant' => 'summary',
                     'resolve_url' => static function (PDO $pdo, array $context): ?array {
+                        $GLOBALS['sr_embed_contract_resolve_count'] = (int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) + 1;
                         $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                         if (!preg_match('#\A/fixture/([1-9][0-9]*)\z#', $path, $matches)) {
                             return null;
@@ -238,7 +243,9 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT created_by_account_id FROM sr_embed_manager_url_cache LIMIT 1') === '7', 'URL cache row must store creator account id.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT canonical_url FROM sr_embed_manager_url_cache LIMIT 1') === '/fixture/1', 'Standalone URL cache must ignore inline URL links.');
 
+    $GLOBALS['sr_embed_contract_resolve_count'] = 0;
     $rendered = sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10);
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 0, 'Fresh URL cache hit must render without re-running the resolver.');
     sr_embed_contract_assert(str_contains($rendered, 'fixture-embed-summary'), 'URL render must use target module renderer HTML.');
     sr_embed_contract_assert(str_contains($rendered, '공개 항목'), 'URL render must include target label.');
     sr_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
@@ -248,8 +255,24 @@ function sr_embed_contract_runtime_fixture(): void
     $bareBody = '<p>/fixture/1</p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 12') === 1, 'Standalone bare relative URL must create one cache row.');
+    $GLOBALS['sr_embed_contract_resolve_count'] = 0;
     $bareRendered = sr_embed_manager_render_body_html($pdo, $bareBody, 'fixture', 'doc', 12);
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 0, 'Bare URL fresh cache hit must render without re-running the resolver.');
     sr_embed_contract_assert(str_contains($bareRendered, 'fixture-embed-summary'), 'Standalone bare relative URL must render through target module renderer.');
+
+    $missBody = '<p>/fixture/1</p>';
+    $GLOBALS['sr_embed_contract_resolve_count'] = 0;
+    $missRendered = sr_embed_manager_render_body_html($pdo, $missBody, 'fixture', 'doc', 13);
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 1, 'URL cache miss must resolve once during render.');
+    sr_embed_contract_assert(str_contains($missRendered, 'fixture-embed-summary'), 'URL cache miss must still render when resolver succeeds.');
+    sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 13') === 1, 'URL cache miss render must write a derived cache row.');
+
+    $GLOBALS['sr_embed_contract_settings'] = ['internal_url_embed_enabled' => false];
+    $GLOBALS['sr_embed_contract_resolve_count'] = 0;
+    $disabledRendered = sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10);
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 0, 'Disabled internal URL rendering must not re-run resolver on a cache hit.');
+    sr_embed_contract_assert(!str_contains($disabledRendered, 'fixture-embed-summary'), 'Disabled internal URL rendering must leave the original link in place.');
+    unset($GLOBALS['sr_embed_contract_settings']);
     sr_embed_contract_assert(sr_embed_manager_ref_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
     sr_embed_contract_assert(sr_embed_manager_ref_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
 
