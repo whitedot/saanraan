@@ -1237,6 +1237,14 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
             if (is_array($refreshed)) {
                 sr_embed_manager_cache_resolved_for_render($pdo, $refreshed, $context);
                 $resolved = $refreshed;
+                if ((string) ($resolved['cache_status'] ?? '') === 'fresh') {
+                    try {
+                        $rendered = $definition['render_embed']($pdo, $resolved, $context);
+                    } catch (Throwable $exception) {
+                        sr_log_exception($exception, 'embed_manager_url_render_refresh_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
+                        return '';
+                    }
+                }
             }
         }
     }

@@ -264,6 +264,11 @@ function sr_embed_contract_runtime_fixture(): void
     $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'active', updated_at = '2026-06-11 12:10:00' WHERE id = 1");
     sr_embed_contract_assert(str_contains(sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10), 'fixture-embed-summary'), 'Broken cache row must recover through resolver when target becomes public again.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === 'fresh', 'Recovered target must refresh cache status to fresh.');
+    $pdo->exec("UPDATE sr_fixture_embed_targets SET updated_at = '2026-06-11 12:20:00' WHERE id = 1");
+    $GLOBALS['sr_embed_contract_render_count'] = 0;
+    sr_embed_contract_assert(str_contains(sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10), 'fixture-embed-summary'), 'Fresh cache version mismatch must still render after refresh.');
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_render_count'] ?? 0) === 2, 'Fresh cache version mismatch must rerender after resolver refresh.');
+    sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT target_cache_version FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === '2026-06-11 12:20:00', 'Fresh cache version mismatch must update target cache version.');
 
     $bareBody = '<p>/fixture/1</p>';
     sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
