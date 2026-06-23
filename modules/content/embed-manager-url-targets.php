@@ -41,11 +41,14 @@ return [
                 ];
             },
             'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
-                $stmt = $pdo->prepare('SELECT slug, title, summary, status, cover_image_url FROM sr_content_items WHERE id = :id LIMIT 1');
+                $stmt = $pdo->prepare('SELECT slug, title, summary, status, cover_image_url, updated_at FROM sr_content_items WHERE id = :id LIMIT 1');
                 $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
                 $row = $stmt->fetch();
-                if (!is_array($row) || (string) ($row['status'] ?? '') !== 'published') {
-                    return ['html' => ''];
+                if (!is_array($row)) {
+                    return ['html' => '', 'cache_status' => 'deleted'];
+                }
+                if ((string) ($row['status'] ?? '') !== 'published') {
+                    return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = sr_content_path((string) ($row['slug'] ?? ''));
                 $label = (string) ($row['title'] ?? '');
@@ -59,7 +62,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>'];
+                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

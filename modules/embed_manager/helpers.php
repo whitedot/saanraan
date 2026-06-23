@@ -1222,6 +1222,25 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
         sr_log_exception($exception, 'embed_manager_url_render_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
         return '';
     }
+    if (is_array($rendered)) {
+        $renderCacheStatus = array_key_exists('cache_status', $rendered)
+            ? sr_embed_manager_clean_cache_status((string) $rendered['cache_status'])
+            : (string) ($resolved['cache_status'] ?? '');
+        $renderCacheVersion = sr_embed_manager_clean_label((string) ($rendered['target_cache_version'] ?? ''));
+        $cacheStatusChanged = $renderCacheStatus !== '' && $renderCacheStatus !== (string) ($resolved['cache_status'] ?? '');
+        $cacheVersionChanged = $renderCacheVersion !== '' && $renderCacheVersion !== (string) ($resolved['target_cache_version'] ?? '');
+        if ($cacheStatusChanged || $cacheVersionChanged) {
+            $refreshed = sr_embed_manager_resolve_url($pdo, $url, $context);
+            if (is_array($refreshed)) {
+                sr_embed_manager_cache_resolved_for_render($pdo, $refreshed, $context);
+                $resolved = $refreshed;
+            }
+        }
+    }
+    if ((string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+        return '';
+    }
+
     $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : (string) $rendered;
     if ($html === '') {
         return '';

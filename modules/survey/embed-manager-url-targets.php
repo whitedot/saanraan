@@ -48,13 +48,16 @@ return [
                 $stmt = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id = :id LIMIT 1');
                 $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
                 $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    return ['html' => '', 'cache_status' => 'deleted'];
+                }
                 $public = is_array($row)
                     && empty($row['deleted_at'])
                     && (string) ($row['status'] ?? '') === 'active'
                     && (int) ($row['public_listed'] ?? 0) === 1
                     && sr_survey_public_window_is_open($row);
                 if (!$public) {
-                    return ['html' => ''];
+                    return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = '/survey/' . (string) ($row['survey_key'] ?? '');
                 $label = (string) ($row['title'] ?? '');
@@ -68,7 +71,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>'];
+                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

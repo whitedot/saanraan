@@ -45,9 +45,12 @@ return [
                 $stmt = $pdo->prepare('SELECT * FROM sr_quiz_sets WHERE id = :id LIMIT 1');
                 $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
                 $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    return ['html' => '', 'cache_status' => 'deleted'];
+                }
                 $public = is_array($row) && empty($row['deleted_at']) && (string) ($row['status'] ?? '') === 'active' && sr_quiz_public_window_is_open($row);
                 if (!$public) {
-                    return ['html' => ''];
+                    return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = '/quiz/' . (string) ($row['quiz_key'] ?? '');
                 $label = (string) ($row['title'] ?? '');
@@ -61,7 +64,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>'];
+                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

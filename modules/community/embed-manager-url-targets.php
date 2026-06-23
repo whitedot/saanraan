@@ -70,12 +70,15 @@ return [
                 );
                 $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
                 $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    return ['html' => '', 'cache_status' => 'deleted'];
+                }
                 $public = is_array($row)
                     && (string) ($row['status'] ?? '') === 'published'
                     && (string) ($row['board_status'] ?? '') === 'enabled'
                     && (string) ($row['read_policy'] ?? 'public') === 'public';
                 if (!$public) {
-                    return ['html' => ''];
+                    return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = '/community/post?id=' . rawurlencode((string) (int) ($row['id'] ?? 0));
                 $label = (string) ($row['title'] ?? '');
@@ -89,7 +92,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>'];
+                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],
