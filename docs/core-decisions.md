@@ -123,6 +123,9 @@
 - helper는 원자적 balance update와 transaction insert 같은 좁은 DB primitive에 머문다.
 - 원장 조회 UI, 정산, 만료, 지급 정책, 통계, 외부 결제 연동은 코어에 넣지 않는다.
 - `point`는 만료와 소비 매핑 정책 때문에 `asset_ledger`의 공통 transaction helper를 쓰지 않는다. `sr_ledger_nullable_positive_int()` 같은 작은 입력 보정만 공유할 수 있다.
+- 보상 회수 실패 큐는 `asset_ledger`의 공통 운영 기반으로 둔다. `sr_asset_recovery_failures`는 정상 지급 로그가 아니라 실패한 회수 작업만 저장하며, dedupe key는 `source:{source_module}:{source_log_id}:rev:{reversal_event_key}` 형식을 사용한다. 지급 로그와 미회수 큐는 한 운영 메뉴 아래 별도 탭/화면으로 제공하고, 지급 로그 row는 읽기 전용으로 둔다.
+- 회수 실패 상태는 `open`, `recovered`, `manually_resolved`, `cancelled`를 사용한다. `recovered`는 전액 회수 종결, `manually_resolved`는 운영자의 오프라인 처리 또는 회수 포기 인정, `cancelled`는 회수 대상 제외다. 수동 해소와 취소는 남은 `unrecovered_amount`를 0으로 만들지 않고 보존한다. 부분 회수 원장 거래는 `sr_asset_recovery_reversal_links`로 회수 row와 연결한다.
+- 회수 실패 큐의 개인정보 export/cleanup은 `asset_ledger`가 소유한다. `operation_context_json`은 allowlist 키만 저장하고, `failure_reason`은 enum/code로 기록한다.
 
 `embed_manager` 유지 조건:
 

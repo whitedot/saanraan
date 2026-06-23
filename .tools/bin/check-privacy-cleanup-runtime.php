@@ -104,6 +104,30 @@ function sr_privacy_cleanup_runtime_check_quiz(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_quiz_comments WHERE author_account_id = 8') === 'name8', 'quiz cleanup must not alter other account comments.');
 }
 
+function sr_privacy_cleanup_runtime_check_asset_ledger(): void
+{
+    $cleanup = include 'modules/asset_ledger/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('asset_ledger privacy cleanup contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_asset_recovery_failures (id INTEGER PRIMARY KEY, dedupe_key TEXT NOT NULL, account_id INTEGER NOT NULL, actor_account_id INTEGER NULL, operation_context_json TEXT NULL, version INTEGER NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_asset_recovery_failures (id, dedupe_key, account_id, actor_account_id, operation_context_json, version, updated_at) VALUES (1, 'source:community:1:rev:community.post.reward_reversal', 7, 7, '{\"route_context\":\"admin.assets.recovery_failures\"}', 1, ''), (2, 'source:community:2:rev:community.post.reward_reversal', 8, 7, '{}', 1, '')");
+
+    $invalidResult = $cleanup($pdo, 0, []);
+    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && ($invalidResult['cleaned'] ?? null) === false, 'asset_ledger cleanup must return cleaned=false for invalid account id.');
+
+    $result = $cleanup($pdo, 7, []);
+    sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'asset_ledger cleanup must return cleaned=true.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['asset_recovery_failures_anonymized'] ?? -1) === 1, 'asset_ledger cleanup must report recovery failure anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_asset_recovery_failures WHERE id = 1') === 0, 'asset_ledger cleanup must remove target account id.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_asset_recovery_failures WHERE id = 1') === 'anonymized:asset_recovery:1', 'asset_ledger cleanup must rewrite target dedupe key.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT operation_context_json FROM sr_asset_recovery_failures WHERE id = 1') === '{}', 'asset_ledger cleanup must clear operation context.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_asset_recovery_failures WHERE id = 2') === 8, 'asset_ledger cleanup must not alter other account rows.');
+}
+
 function sr_privacy_cleanup_runtime_check_survey(): void
 {
     $cleanup = include 'modules/survey/privacy-cleanup.php';
@@ -451,6 +475,7 @@ function sr_privacy_cleanup_runtime_check_policy_documents(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_policy_document_mail_deliveries WHERE id = 2') === 8, 'policy_documents cleanup must not alter other account delivery account id.');
 }
 
+sr_privacy_cleanup_runtime_check_asset_ledger();
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
 sr_privacy_cleanup_runtime_check_content();

@@ -203,7 +203,7 @@ $expected = [
     'antispam' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'antispam_captcha_providers' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'asset_exchange' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
-    'asset_ledger' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
+    'asset_ledger' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'banner' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'ckeditor' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'community' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],

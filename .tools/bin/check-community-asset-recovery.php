@@ -34,7 +34,9 @@ foreach ([
     'sr_community_asset_recovery_failure_by_id_for_update',
     'SAVEPOINT',
     'ROLLBACK TO SAVEPOINT',
-    "['resolved', 'cancelled']",
+    "'recovered'",
+    "'manually_resolved'",
+    'sr_asset_recovery_record_failure',
 ] as $needle) {
     if (!str_contains($assetEvents, $needle)) {
         $errors[] = 'community asset recovery helper is missing contract: ' . $needle;
@@ -89,11 +91,8 @@ foreach ([
 }
 
 $adminRecovery = $read('modules/community/actions/admin-recovery-failures.php');
-if (!str_contains($adminRecovery, 'sr_community_asset_recovery_failure_by_id_for_update')) {
-    $errors[] = 'community recovery retry action must recheck the latest row inside the transaction.';
-}
-if (!str_contains($adminRecovery, 'sr_community_asset_recovery_failures_table_exists')) {
-    $errors[] = 'community recovery admin action must tolerate unapplied DB updates.';
+if (!str_contains($adminRecovery, "sr_redirect('/admin/assets/recovery-failures'")) {
+    $errors[] = 'community recovery admin action must redirect to common asset recovery screen.';
 }
 
 if ($errors !== []) {

@@ -690,6 +690,11 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL)');
     $pdo->exec("INSERT INTO sr_member_accounts (id, email) VALUES (7, 'member7@example.test'), (8, 'member8@example.test')");
 
+    $pdo->exec('CREATE TABLE sr_asset_recovery_failures (id INTEGER PRIMARY KEY, dedupe_key TEXT NOT NULL, source_module TEXT NOT NULL, source_log_id INTEGER NOT NULL, asset_module TEXT NOT NULL, account_id INTEGER NOT NULL, original_transaction_id INTEGER NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, grant_event_key TEXT NOT NULL, reversal_event_key TEXT NOT NULL, operation_event_key TEXT NOT NULL, attempted_amount INTEGER NOT NULL, recovered_amount INTEGER NOT NULL, unrecovered_amount INTEGER NOT NULL, failure_reason TEXT NOT NULL, status TEXT NOT NULL, actor_account_id INTEGER NULL, actor_type TEXT NOT NULL, operation_context_json TEXT NULL, attempt_count INTEGER NOT NULL, version INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, last_attempted_at TEXT NOT NULL, resolved_at TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_asset_recovery_reversal_links (id INTEGER PRIMARY KEY, failure_id INTEGER NOT NULL, asset_module TEXT NOT NULL, reversal_transaction_id INTEGER NOT NULL, recovered_amount INTEGER NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_asset_recovery_failures (id, dedupe_key, source_module, source_log_id, asset_module, account_id, original_transaction_id, subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key, attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status, actor_account_id, actor_type, operation_context_json, attempt_count, version, created_at, updated_at, last_attempted_at, resolved_at) VALUES (1, 'source:community:1:rev:community.post.reward_reversal', 'community', 1, 'point', 7, 101, 'community.post', 10, 'community.post.reward_grant', 'community.post.reward_reversal', 'manual_retry', 100, 40, 60, 'balance_low', 'open', NULL, 'admin', '{}', 2, 1, '', '', '', NULL), (2, 'source:community:2:rev:community.post.reward_reversal', 'community', 2, 'point', 8, 102, 'community.post', 20, 'community.post.reward_grant', 'community.post.reward_reversal', 'manual_retry', 200, 0, 200, 'balance_low', 'open', NULL, 'admin', '{}', 1, 1, '', '', '', NULL)");
+    $pdo->exec("INSERT INTO sr_asset_recovery_reversal_links (id, failure_id, asset_module, reversal_transaction_id, recovered_amount, created_at) VALUES (1, 1, 'point', 201, 40, ''), (2, 2, 'point', 202, 20, '')");
+
     $pdo->exec('CREATE TABLE sr_asset_exchange_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, exchange_group_id TEXT NOT NULL, from_module_key TEXT NOT NULL, to_module_key TEXT NOT NULL, request_amount INTEGER NOT NULL, deposit_amount INTEGER NOT NULL, fee_amount INTEGER NOT NULL, status TEXT NOT NULL, failure_reason TEXT NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec("INSERT INTO sr_asset_exchange_logs (account_id, exchange_group_id, from_module_key, to_module_key, request_amount, deposit_amount, fee_amount, status, failure_reason, created_at) VALUES (7, 'ex7', 'reward', 'deposit', 100, 90, 10, 'completed', '', ''), (8, 'ex8', 'reward', 'deposit', 200, 180, 20, 'completed', '', '')");
 
@@ -730,6 +735,7 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $pdo->exec("INSERT INTO sr_reward_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at) VALUES (1, 7, 700, 700, 'earn', 'reward7', 'community', '7', 99, ''), (2, 8, 800, 800, 'earn', 'reward8', 'community', '8', 99, '')");
     $pdo->exec("INSERT INTO sr_reward_withdrawal_requests (id, account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, processed_by_account_id, requested_at, processed_at, updated_at) VALUES (1, 7, 600, 'RewardBank7', '222-7', 'RewardHolder7', 'note7', 'completed', 'admin7', 1, 99, '', '', ''), (2, 8, 500, 'RewardBank8', '222-8', 'RewardHolder8', 'note8', 'pending', '', NULL, NULL, '', NULL, '')");
 
+    $assetLedgerExport = include 'modules/asset_ledger/privacy-export.php';
     $assetExchangeExport = include 'modules/asset_exchange/privacy-export.php';
     $couponExport = include 'modules/coupon/privacy-export.php';
     $depositExport = include 'modules/deposit/privacy-export.php';
@@ -738,6 +744,7 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $rewardExport = include 'modules/reward/privacy-export.php';
 
     foreach ([
+        'asset_ledger' => $assetLedgerExport,
         'asset_exchange' => $assetExchangeExport,
         'coupon' => $couponExport,
         'deposit' => $depositExport,
@@ -747,6 +754,10 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     ] as $moduleKey => $export) {
         sr_privacy_export_runtime_assert(is_callable($export), $moduleKey . ' retained privacy export contract must be callable.');
     }
+
+    $assetLedger = $assetLedgerExport($pdo, 7);
+    sr_privacy_export_runtime_assert(count($assetLedger['asset_recovery_failures'] ?? []) === 1 && (int) ($assetLedger['asset_recovery_failures'][0]['unrecovered_amount'] ?? 0) === 60, 'asset_ledger export must include target recovery failure.');
+    sr_privacy_export_runtime_assert(count($assetLedger['asset_recovery_reversal_links'] ?? []) === 1 && (int) ($assetLedger['asset_recovery_reversal_links'][0]['reversal_transaction_id'] ?? 0) === 201, 'asset_ledger export must include target recovery reversal link.');
 
     $assetExchange = $assetExchangeExport($pdo, 7);
     sr_privacy_export_runtime_assert(count($assetExchange['asset_exchange_logs'] ?? []) === 1 && ($assetExchange['asset_exchange_logs'][0]['exchange_group_id'] ?? '') === 'ex7', 'asset_exchange retained export must include only target exchange logs.');
