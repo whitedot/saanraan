@@ -61,6 +61,7 @@ return [
             'member-only-routes.php',
             'layout-options.php',
             'embed-manager-targets.php',
+            'embed-manager-url-targets.php',
             'reaction-targets.php',
         ],
         'consumes' => [

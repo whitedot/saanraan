@@ -115,7 +115,6 @@ function sr_content_link_card_search_content_targets(PDO $pdo, string $keyword, 
             'title' => (string) ($row['title'] ?? ''),
             'summary' => (string) ($row['summary'] ?? ''),
             'url' => sr_content_path((string) ($row['slug'] ?? '')),
-            'embed' => sr_embed_manager_search_payload('content', 'content', $contentId, (string) ($row['title'] ?? ''), 'card'),
             'status' => (string) ($row['status'] ?? ''),
             'meta' => '콘텐츠 #' . $contentId . ' / slug: ' . (string) ($row['slug'] ?? ''),
         ];

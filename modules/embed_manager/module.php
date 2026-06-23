@@ -2,9 +2,9 @@
 
 return [
     'name' => '임베드 매니저',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
-    'description' => '본문 안에 여러 모듈 대상을 marker와 참조 행으로 연결하는 임베드 매니저 기반 모듈입니다.',
+    'description' => '본문 URL을 모듈별 공개 임베드로 해석하는 임베드 매니저 기반 모듈입니다.',
     'admin' => [
         'category' => 'operation',
         'category_label' => '운영',
@@ -20,6 +20,12 @@ return [
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
+    'settings' => [
+        'url_embed_enabled' => false,
+        'internal_url_embed_enabled' => true,
+        'external_url_embed_enabled' => false,
+        'embed_scope' => 'standalone_url_only',
+    ],
     'contracts' => [
         'provides' => [
             'paths.php',
@@ -27,6 +33,7 @@ return [
         ],
         'consumes' => [
             'embed-manager-targets.php',
+            'embed-manager-url-targets.php',
         ],
     ],
 ];

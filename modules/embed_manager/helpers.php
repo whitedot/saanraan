@@ -2,68 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_embed_manager_marker_pattern(): string
-{
-    return '/<span\b(?=[^>]*\bsr-embed-manager-marker\b)(?=[^>]*\bdata-sr-embed-manager-ref=(["\'])([^"\']+)\\1)[^>]*><\/span>/iu';
-}
-
-function sr_embed_manager_extract_marker_refs(string $bodyHtml): array
-{
-    if ($bodyHtml === '') {
-        return [];
-    }
-
-    if (preg_match_all(sr_embed_manager_marker_pattern(), $bodyHtml, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
-        return [];
-    }
-
-    $refs = [];
-    $position = 0;
-    foreach ($matches as $match) {
-        $markerHtml = (string) ($match[0][0] ?? '');
-        $attributes = sr_embed_manager_marker_attributes($markerHtml);
-        $refKey = sr_embed_manager_clean_ref_key((string) ($attributes['data-sr-embed-manager-ref'] ?? ($match[2][0] ?? '')));
-        if ($refKey === '') {
-            continue;
-        }
-
-        $refs[] = [
-            'ref_key' => $refKey,
-            'target_module' => sr_embed_manager_clean_identifier((string) ($attributes['data-sr-embed-manager-target-module'] ?? '')),
-            'target_type' => sr_embed_manager_clean_identifier((string) ($attributes['data-sr-embed-manager-target-type'] ?? '')),
-            'target_id' => sr_embed_manager_clean_target_id((string) ($attributes['data-sr-embed-manager-target-id'] ?? '')),
-            'variant' => sr_embed_manager_clean_identifier((string) ($attributes['data-sr-embed-manager-variant'] ?? 'card')),
-            'label_snapshot' => sr_embed_manager_clean_label((string) ($attributes['data-sr-embed-manager-label'] ?? '')),
-            'position' => $position,
-            'source_offset' => (int) ($match[0][1] ?? 0),
-        ];
-        $position++;
-    }
-
-    return $refs;
-}
-
-function sr_embed_manager_marker_attributes(string $markerHtml): array
-{
-    if ($markerHtml === '' || preg_match_all('/\s([a-z0-9_-]+)\s*=\s*(["\'])(.*?)\\2/iu', $markerHtml, $matches, PREG_SET_ORDER) < 1) {
-        return [];
-    }
-
-    $attributes = [];
-    foreach ($matches as $match) {
-        $name = strtolower((string) ($match[1] ?? ''));
-        $attributes[$name] = html_entity_decode((string) ($match[3] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    }
-
-    return $attributes;
-}
-
-function sr_embed_manager_clean_ref_key(string $value): string
-{
-    $value = trim($value);
-    return preg_match('/\Aem_[a-z0-9_]{6,70}\z/', $value) === 1 ? $value : '';
-}
-
 function sr_embed_manager_clean_identifier(string $value): string
 {
     $value = trim($value);
@@ -80,27 +18,6 @@ function sr_embed_manager_clean_label(string $value): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     return function_exists('mb_substr') ? mb_substr($value, 0, 255) : substr($value, 0, 255);
-}
-
-function sr_embed_manager_new_ref_key(): string
-{
-    try {
-        return 'em_' . bin2hex(random_bytes(16));
-    } catch (Throwable $exception) {
-        return 'em_' . str_replace('.', '_', uniqid('', true));
-    }
-}
-
-function sr_embed_manager_search_payload(string $targetModule, string $targetType, string $targetId, string $label, string $variant = 'card'): array
-{
-    return [
-        'ref_key' => sr_embed_manager_new_ref_key(),
-        'target_module' => sr_embed_manager_clean_identifier($targetModule),
-        'target_type' => sr_embed_manager_clean_identifier($targetType),
-        'target_id' => sr_embed_manager_clean_target_id($targetId),
-        'variant' => sr_embed_manager_clean_identifier($variant) ?: 'card',
-        'label' => sr_embed_manager_clean_label($label),
-    ];
 }
 
 function sr_embed_manager_allowed_statuses(): array
@@ -312,7 +229,6 @@ function sr_embed_manager_normalize_target_result(array $row, string $targetModu
         'admin_url' => $adminUrl,
         'status' => $status,
         'meta' => sr_embed_manager_clean_summary((string) ($row['meta'] ?? '')),
-        'embed' => sr_embed_manager_search_payload($targetModule, $targetType, $targetId, $label, $variant),
     ];
 }
 
@@ -386,7 +302,42 @@ function sr_embed_manager_safe_url(string $value): string
     return '';
 }
 
+function sr_embed_manager_default_settings(): array
+{
+    return [
+        'url_embed_enabled' => false,
+        'internal_url_embed_enabled' => true,
+        'external_url_embed_enabled' => false,
+        'embed_scope' => 'standalone_url_only',
+    ];
+}
+
+function sr_embed_manager_settings(PDO $pdo): array
+{
+    try {
+        return array_merge(sr_embed_manager_default_settings(), sr_module_settings($pdo, 'embed_manager'));
+    } catch (Throwable $exception) {
+        return sr_embed_manager_default_settings();
+    }
+}
+
+function sr_embed_manager_url_embedding_enabled(PDO $pdo): bool
+{
+    $settings = sr_embed_manager_settings($pdo);
+    return !empty($settings['url_embed_enabled']);
+}
+
+function sr_embed_manager_url_cache_statuses(): array
+{
+    return ['fresh', 'stale', 'deleted', 'broken'];
+}
+
 function sr_embed_manager_table_exists(PDO $pdo): bool
+{
+    return sr_embed_manager_url_cache_table_exists($pdo);
+}
+
+function sr_embed_manager_url_cache_table_exists(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -394,7 +345,7 @@ function sr_embed_manager_table_exists(PDO $pdo): bool
     }
 
     try {
-        $pdo->query('SELECT 1 FROM sr_embed_manager_refs LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_embed_manager_url_cache LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -403,100 +354,236 @@ function sr_embed_manager_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
+function sr_embed_manager_clean_cache_status(string $value): string
 {
-    if (!sr_embed_manager_table_exists($pdo)) {
+    $value = trim($value);
+    return in_array($value, sr_embed_manager_url_cache_statuses(), true) ? $value : 'broken';
+}
+
+function sr_embed_manager_url_normalized_contract(array $definition): array
+{
+    $targetModule = sr_embed_manager_clean_identifier((string) ($definition['target_module'] ?? ''));
+    $targetType = sr_embed_manager_clean_identifier((string) ($definition['target_type'] ?? ''));
+    if ($targetModule === '' || $targetType === '') {
+        return [];
+    }
+    if (!is_callable($definition['resolve_url'] ?? null) || !is_callable($definition['render_embed'] ?? null)) {
         return [];
     }
 
-    $limit = max(1, min(200, $limit));
-    $where = [];
-    $params = [];
-
-    $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
-    $status = $statusValues === [] ? '' : (string) $statusValues[0];
-    if ($status !== '' && in_array($status, sr_embed_manager_allowed_statuses(), true)) {
-        $where[] = 'status = :status';
-        $params['status'] = $status;
+    $variants = [];
+    foreach ((array) ($definition['allowed_variants'] ?? ['summary']) as $variant) {
+        $variant = sr_embed_manager_clean_identifier((string) $variant);
+        if ($variant !== '') {
+            $variants[$variant] = true;
+        }
+    }
+    if ($variants === []) {
+        $variants['summary'] = true;
     }
 
-    $keyword = trim((string) ($filters['q'] ?? ''));
-    if ($keyword !== '') {
-        $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
-        $where[] = '(ref_key LIKE :keyword OR owner_module LIKE :keyword OR target_module LIKE :keyword OR target_type LIKE :keyword OR target_id LIKE :keyword OR label_snapshot LIKE :keyword)';
-        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
-    }
+    $definition['target_module'] = $targetModule;
+    $definition['target_type'] = $targetType;
+    $definition['allowed_variants'] = array_keys($variants);
+    $definition['default_variant'] = in_array((string) ($definition['default_variant'] ?? 'summary'), $definition['allowed_variants'], true)
+        ? (string) ($definition['default_variant'] ?? 'summary')
+        : $definition['allowed_variants'][0];
 
-    sr_embed_manager_refresh_known_ref_statuses($pdo);
-
-    $sql = 'SELECT *
-            FROM sr_embed_manager_refs'
-        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
-        . ' ORDER BY updated_at DESC, id DESC
-            LIMIT ' . $limit;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-
-    return $stmt->fetchAll();
+    return $definition;
 }
 
-function sr_embed_manager_refresh_known_ref_statuses(PDO $pdo, int $limit = 300): void
+function sr_embed_manager_url_contract_targets(PDO $pdo): array
 {
-    if (!sr_embed_manager_table_exists($pdo)) {
-        return;
-    }
-
-    $limit = max(1, min(1000, $limit));
-    $stmt = $pdo->query(
-        'SELECT ref_key, target_module, target_type, target_id, label_snapshot, image_snapshot, status
-         FROM sr_embed_manager_refs
-         WHERE status <> \'removed\'
-         ORDER BY updated_at DESC, id DESC
-         LIMIT ' . $limit
-    );
-    $refs = $stmt->fetchAll();
-    if ($refs === []) {
-        return;
-    }
-
-    $update = $pdo->prepare(
-        'UPDATE sr_embed_manager_refs
-         SET label_snapshot = :label_snapshot,
-             image_snapshot = :image_snapshot,
-             status = :status,
-             updated_at = :updated_at
-         WHERE ref_key = :ref_key'
-    );
-    $now = sr_now();
-    foreach ($refs as $ref) {
-        $target = sr_embed_manager_resolve_target($pdo, (string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''));
-        if ($target === null) {
+    $targets = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-url-targets.php', ['embed_manager']) as $moduleKey => $file) {
+        $contract = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contract)) {
             continue;
         }
-
-        $labelSnapshot = (string) ($target['label_snapshot'] ?? '');
-        $imageSnapshot = (string) ($target['image_snapshot'] ?? '');
-        $status = (string) ($target['status'] ?? 'active');
-        if ($labelSnapshot === (string) ($ref['label_snapshot'] ?? '')
-            && $imageSnapshot === (string) ($ref['image_snapshot'] ?? '')
-            && $status === (string) ($ref['status'] ?? '')
-        ) {
-            continue;
+        foreach ((array) ($contract['targets'] ?? []) as $definition) {
+            if (!is_array($definition)) {
+                continue;
+            }
+            $definition = sr_embed_manager_url_normalized_contract($definition);
+            if ($definition !== []) {
+                $targets[(string) $definition['target_module']][(string) $definition['target_type']] = $definition;
+            }
         }
-
-        $update->execute([
-            'label_snapshot' => $labelSnapshot,
-            'image_snapshot' => $imageSnapshot,
-            'status' => $status,
-            'updated_at' => $now,
-            'ref_key' => (string) ($ref['ref_key'] ?? ''),
-        ]);
     }
+
+    return $targets;
+}
+
+function sr_embed_manager_request_base_parts(PDO $pdo): array
+{
+    $baseUrl = '';
+    if (function_exists('sr_site_setting')) {
+        $baseUrl = (string) sr_site_setting($pdo, 'site.base_url', '');
+    }
+    if ($baseUrl === '' && function_exists('sr_current_base_url')) {
+        $baseUrl = sr_current_base_url();
+    }
+    $parts = $baseUrl !== '' ? parse_url($baseUrl) : [];
+    return is_array($parts) ? $parts : [];
+}
+
+function sr_embed_manager_normalize_source_url(PDO $pdo, string $url): array
+{
+    $url = trim(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $url = rtrim($url, " \t\r\n.,;:");
+    if ($url === '') {
+        return [];
+    }
+    if (sr_is_safe_relative_url($url)) {
+        return [
+            'source_url' => $url,
+            'canonical_probe_url' => $url,
+            'embed_kind' => 'internal_url',
+        ];
+    }
+    if (!sr_is_http_url($url)) {
+        return [];
+    }
+    $parts = parse_url($url);
+    if (!is_array($parts)) {
+        return [];
+    }
+    $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+    if (!in_array($scheme, ['http', 'https'], true)) {
+        return [];
+    }
+
+    $base = sr_embed_manager_request_base_parts($pdo);
+    $host = strtolower((string) ($parts['host'] ?? ''));
+    $baseHost = strtolower((string) ($base['host'] ?? ''));
+    $path = (string) ($parts['path'] ?? '/');
+    $query = (string) ($parts['query'] ?? '');
+    $relative = $path . ($query !== '' ? '?' . $query : '');
+
+    return [
+        'source_url' => $url,
+        'canonical_probe_url' => $baseHost !== '' && $host === $baseHost ? $relative : $url,
+        'embed_kind' => $baseHost !== '' && $host === $baseHost ? 'internal_url' : 'external_url',
+    ];
+}
+
+function sr_embed_manager_clean_resolved_url(array $resolved, array $definition): array
+{
+    $targetId = sr_embed_manager_clean_target_id((string) ($resolved['target_id'] ?? ''));
+    if ($targetId === '') {
+        return [];
+    }
+    $canonicalUrl = sr_embed_manager_safe_url((string) ($resolved['canonical_url'] ?? $resolved['public_url'] ?? ''));
+    if ($canonicalUrl === '') {
+        return [];
+    }
+    $variant = sr_embed_manager_clean_identifier((string) ($resolved['variant'] ?? $definition['default_variant'] ?? 'summary'));
+    if (!in_array($variant, (array) ($definition['allowed_variants'] ?? ['summary']), true)) {
+        $variant = (string) ($definition['default_variant'] ?? 'summary');
+    }
+    $cacheStatus = sr_embed_manager_clean_cache_status((string) ($resolved['cache_status'] ?? 'fresh'));
+    $targetState = sr_embed_manager_clean_identifier((string) ($resolved['target_state'] ?? $resolved['status'] ?? 'public'));
+    $resolverState = sr_embed_manager_clean_identifier((string) ($resolved['resolver_state'] ?? 'resolved'));
+    $imagePolicy = in_array((string) ($resolved['image_snapshot_policy'] ?? 'none'), ['none', 'opaque_key', 'public_url_ok'], true)
+        ? (string) ($resolved['image_snapshot_policy'] ?? 'none')
+        : 'none';
+
+    return [
+        'source_url' => (string) ($resolved['source_url'] ?? ''),
+        'canonical_url' => $canonicalUrl,
+        'canonical_url_hash' => hash('sha256', $canonicalUrl),
+        'embed_kind' => (string) ($resolved['embed_kind'] ?? 'internal_url'),
+        'provider_key' => sr_embed_manager_clean_identifier((string) ($resolved['provider_key'] ?? $definition['target_module'] ?? '')),
+        'render_variant' => $variant,
+        'target_module' => (string) ($definition['target_module'] ?? ''),
+        'target_type' => (string) ($definition['target_type'] ?? ''),
+        'target_id' => $targetId,
+        'target_cache_version' => sr_embed_manager_clean_label((string) ($resolved['target_cache_version'] ?? $resolved['updated_at'] ?? '')),
+        'label_snapshot' => sr_embed_manager_clean_label((string) ($resolved['label_snapshot'] ?? $resolved['title'] ?? '')),
+        'summary_snapshot' => sr_embed_manager_clean_summary((string) ($resolved['summary_snapshot'] ?? $resolved['summary'] ?? '')),
+        'image_snapshot' => $imagePolicy === 'public_url_ok' ? sr_embed_manager_safe_url((string) ($resolved['image_snapshot'] ?? '')) : '',
+        'image_snapshot_policy' => $imagePolicy,
+        'target_state' => $targetState,
+        'resolver_state' => $resolverState,
+        'cache_status' => $cacheStatus,
+        'resolved_payload_json' => json_encode($resolved, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
+    ];
+}
+
+function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []): ?array
+{
+    $settings = sr_embed_manager_settings($pdo);
+    $normalized = sr_embed_manager_normalize_source_url($pdo, $url);
+    if ($normalized === []) {
+        return null;
+    }
+    if ((string) $normalized['embed_kind'] === 'internal_url' && empty($settings['internal_url_embed_enabled'])) {
+        return null;
+    }
+    if ((string) $normalized['embed_kind'] === 'external_url' && empty($settings['external_url_embed_enabled'])) {
+        return null;
+    }
+
+    foreach (sr_embed_manager_url_contract_targets($pdo) as $types) {
+        foreach ($types as $definition) {
+            try {
+                $resolved = $definition['resolve_url']($pdo, array_merge($context, $normalized, [
+                    'url' => $normalized['canonical_probe_url'],
+                ]));
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'embed_manager_url_resolve_failed_' . (string) ($definition['target_module'] ?? '') . '_' . (string) ($definition['target_type'] ?? ''));
+                continue;
+            }
+            if (!is_array($resolved)) {
+                continue;
+            }
+            $resolved = array_merge($resolved, [
+                'source_url' => (string) $normalized['source_url'],
+                'embed_kind' => (string) $normalized['embed_kind'],
+            ]);
+            $clean = sr_embed_manager_clean_resolved_url($resolved, $definition);
+            return $clean !== [] ? $clean : null;
+        }
+    }
+
+    return null;
+}
+
+function sr_embed_manager_extract_candidate_urls(string $bodyHtml): array
+{
+    if ($bodyHtml === '') {
+        return [];
+    }
+
+    $urls = [];
+    $position = 0;
+    if (preg_match_all('/<a\b[^>]*\bhref\s*=\s*(["\'])(.*?)\\1[^>]*>(.*?)<\/a>/isu', $bodyHtml, $matches, PREG_SET_ORDER) > 0) {
+        foreach ($matches as $match) {
+            $href = html_entity_decode((string) ($match[2] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $label = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($match[3] ?? ''))) ?? '');
+            $bareHref = trim($href);
+            if ($bareHref !== '' && ($label === '' || $label === $bareHref)) {
+                $urls[] = ['url' => $bareHref, 'position' => $position++];
+            }
+        }
+    }
+    if (preg_match_all('#(?<![="\'])\bhttps?://[^\s<]+#iu', $bodyHtml, $matches, PREG_SET_ORDER) > 0) {
+        foreach ($matches as $match) {
+            $urls[] = ['url' => (string) ($match[0] ?? ''), 'position' => $position++];
+        }
+    }
+
+    return $urls;
 }
 
 function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
 {
-    if ($ownerId < 1 || !sr_embed_manager_table_exists($pdo)) {
+    sr_embed_manager_sync_body_url_cache($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $bodyHtml, $accountId);
+}
+
+function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
+{
+    if ($ownerId < 1 || !sr_embed_manager_url_embedding_enabled($pdo) || !sr_embed_manager_url_cache_table_exists($pdo)) {
         return;
     }
 
@@ -507,92 +594,168 @@ function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $
         throw new InvalidArgumentException('임베드 참조 소유자 정보가 올바르지 않습니다.');
     }
 
-    $markers = sr_embed_manager_extract_marker_refs($bodyHtml);
-    $seen = [];
-    foreach ($markers as $marker) {
-        $refKey = (string) $marker['ref_key'];
-        if (isset($seen[$refKey])) {
-            throw new InvalidArgumentException('본문 임베드 참조 키가 중복되었습니다.');
-        }
-        $seen[$refKey] = true;
-    }
-
-    $existing = sr_embed_manager_owner_refs_by_key($pdo, $ownerModule, $ownerType, $ownerId, $ownerField);
     $now = sr_now();
-    $activeKeys = [];
-    foreach ($markers as $marker) {
-        $refKey = (string) $marker['ref_key'];
-        $targetModule = (string) ($marker['target_module'] ?? '');
-        $targetType = (string) ($marker['target_type'] ?? '');
-        $targetId = (string) ($marker['target_id'] ?? '');
-        $variant = (string) ($marker['variant'] ?? 'card');
-        $label = (string) ($marker['label_snapshot'] ?? '');
-
-        $knownGlobal = sr_embed_manager_ref_by_key($pdo, $refKey);
-        if (is_array($knownGlobal)
-            && ((string) ($knownGlobal['owner_module'] ?? '') !== $ownerModule
-                || (string) ($knownGlobal['owner_type'] ?? '') !== $ownerType
-                || (int) ($knownGlobal['owner_id'] ?? 0) !== $ownerId
-                || (string) ($knownGlobal['owner_field'] ?? '') !== $ownerField)
-        ) {
-            throw new InvalidArgumentException('본문 임베드 참조 키가 다른 문서에서 이미 사용 중입니다.');
-        }
-
-        if ($targetModule === '' || $targetType === '' || $targetId === '') {
-            $known = $existing[$refKey] ?? null;
-            if (is_array($known)) {
-                $targetModule = (string) ($known['target_module'] ?? '');
-                $targetType = (string) ($known['target_type'] ?? '');
-                $targetId = (string) ($known['target_id'] ?? '');
-                $variant = $variant !== '' ? $variant : (string) ($known['variant'] ?? 'card');
-                $label = $label !== '' ? $label : (string) ($known['label_snapshot'] ?? '');
-            }
-        }
-
-        $target = sr_embed_manager_resolve_target($pdo, $targetModule, $targetType, $targetId);
-        if ($target === null) {
-            throw new InvalidArgumentException('본문 임베드 대상이 올바르지 않습니다.');
-        }
-        $allowedVariants = (array) ($target['allowed_variants'] ?? ['card']);
-        if ($variant === '') {
-            $variant = (string) ($target['default_variant'] ?? 'card');
-        }
-        if (!in_array($variant, $allowedVariants, true)) {
-            throw new InvalidArgumentException('본문 임베드 표시 방식이 지원되지 않습니다.');
-        }
-        if ($label === '') {
-            $label = (string) ($target['label_snapshot'] ?? '');
-        }
-
-        sr_embed_manager_upsert_ref($pdo, [
-            'ref_key' => $refKey,
+    $activeHashes = [];
+    foreach (sr_embed_manager_extract_candidate_urls($bodyHtml) as $candidate) {
+        $resolved = sr_embed_manager_resolve_url($pdo, (string) ($candidate['url'] ?? ''), [
             'owner_module' => $ownerModule,
             'owner_type' => $ownerType,
             'owner_id' => $ownerId,
             'owner_field' => $ownerField,
-            'target_module' => $targetModule,
-            'target_type' => $targetType,
-            'target_id' => $targetId,
-            'variant' => $variant !== '' ? $variant : 'card',
-            'label_snapshot' => $label,
-            'image_snapshot' => (string) ($target['image_snapshot'] ?? ''),
-            'sort_order' => (int) ($marker['position'] ?? 0),
-            'status' => (string) ($target['status'] ?? 'active'),
-            'created_by_account_id' => $accountId,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
-        $activeKeys[] = $refKey;
+        if (!is_array($resolved)) {
+            continue;
+        }
+        $resolved['owner_module'] = $ownerModule;
+        $resolved['owner_type'] = $ownerType;
+        $resolved['owner_id'] = $ownerId;
+        $resolved['owner_field'] = $ownerField;
+        $resolved['sort_order'] = (int) ($candidate['position'] ?? 0);
+        $resolved['created_by_account_id'] = $accountId;
+        $resolved['created_at'] = $now;
+        $resolved['updated_at'] = $now;
+        $resolved['last_resolved_at'] = $now;
+        $resolved['last_render_checked_at'] = null;
+        sr_embed_manager_upsert_url_cache($pdo, $resolved);
+        $activeHashes[] = (string) $resolved['canonical_url_hash'];
     }
 
-    sr_embed_manager_remove_missing_owner_refs($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $activeKeys, $now);
+    sr_embed_manager_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $activeHashes, $now);
 }
 
-function sr_embed_manager_owner_refs_by_key(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField): array
+function sr_embed_manager_upsert_url_cache(PDO $pdo, array $row): void
 {
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driver = '';
+    }
+
+    $upsertClause = 'ON DUPLICATE KEY UPDATE
+            source_url = VALUES(source_url),
+            canonical_url = VALUES(canonical_url),
+            embed_kind = VALUES(embed_kind),
+            provider_key = VALUES(provider_key),
+            render_variant = VALUES(render_variant),
+            target_module = VALUES(target_module),
+            target_type = VALUES(target_type),
+            target_id = VALUES(target_id),
+            target_cache_version = VALUES(target_cache_version),
+            label_snapshot = VALUES(label_snapshot),
+            summary_snapshot = VALUES(summary_snapshot),
+            image_snapshot = VALUES(image_snapshot),
+            image_snapshot_policy = VALUES(image_snapshot_policy),
+            target_state = VALUES(target_state),
+            resolver_state = VALUES(resolver_state),
+            cache_status = VALUES(cache_status),
+            resolved_payload_json = VALUES(resolved_payload_json),
+            sort_order = VALUES(sort_order),
+            last_resolved_at = VALUES(last_resolved_at),
+            updated_at = VALUES(updated_at)';
+    if ($driver === 'sqlite') {
+        $upsertClause = 'ON CONFLICT(owner_module, owner_type, owner_id, owner_field, canonical_url_hash) DO UPDATE SET
+            source_url = excluded.source_url,
+            canonical_url = excluded.canonical_url,
+            embed_kind = excluded.embed_kind,
+            provider_key = excluded.provider_key,
+            render_variant = excluded.render_variant,
+            target_module = excluded.target_module,
+            target_type = excluded.target_type,
+            target_id = excluded.target_id,
+            target_cache_version = excluded.target_cache_version,
+            label_snapshot = excluded.label_snapshot,
+            summary_snapshot = excluded.summary_snapshot,
+            image_snapshot = excluded.image_snapshot,
+            image_snapshot_policy = excluded.image_snapshot_policy,
+            target_state = excluded.target_state,
+            resolver_state = excluded.resolver_state,
+            cache_status = excluded.cache_status,
+            resolved_payload_json = excluded.resolved_payload_json,
+            sort_order = excluded.sort_order,
+            last_resolved_at = excluded.last_resolved_at,
+            updated_at = excluded.updated_at';
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_embed_manager_url_cache
+            (owner_module, owner_type, owner_id, owner_field, source_url, canonical_url, canonical_url_hash, embed_kind, provider_key, render_variant, target_module, target_type, target_id, target_cache_version, label_snapshot, summary_snapshot, image_snapshot, image_snapshot_policy, target_state, resolver_state, cache_status, resolved_payload_json, sort_order, last_resolved_at, last_render_checked_at, created_by_account_id, created_at, updated_at)
+         VALUES
+            (:owner_module, :owner_type, :owner_id, :owner_field, :source_url, :canonical_url, :canonical_url_hash, :embed_kind, :provider_key, :render_variant, :target_module, :target_type, :target_id, :target_cache_version, :label_snapshot, :summary_snapshot, :image_snapshot, :image_snapshot_policy, :target_state, :resolver_state, :cache_status, :resolved_payload_json, :sort_order, :last_resolved_at, :last_render_checked_at, :created_by_account_id, :created_at, :updated_at)
+         ' . $upsertClause
+    );
+    $stmt->execute([
+        'owner_module' => (string) ($row['owner_module'] ?? ''),
+        'owner_type' => (string) ($row['owner_type'] ?? ''),
+        'owner_id' => (int) ($row['owner_id'] ?? 0),
+        'owner_field' => (string) ($row['owner_field'] ?? 'body'),
+        'source_url' => (string) ($row['source_url'] ?? ''),
+        'canonical_url' => (string) ($row['canonical_url'] ?? ''),
+        'canonical_url_hash' => (string) ($row['canonical_url_hash'] ?? ''),
+        'embed_kind' => (string) ($row['embed_kind'] ?? 'internal_url'),
+        'provider_key' => (string) ($row['provider_key'] ?? ''),
+        'render_variant' => (string) ($row['render_variant'] ?? 'summary'),
+        'target_module' => (string) ($row['target_module'] ?? ''),
+        'target_type' => (string) ($row['target_type'] ?? ''),
+        'target_id' => (string) ($row['target_id'] ?? ''),
+        'target_cache_version' => (string) ($row['target_cache_version'] ?? ''),
+        'label_snapshot' => (string) ($row['label_snapshot'] ?? ''),
+        'summary_snapshot' => (string) ($row['summary_snapshot'] ?? ''),
+        'image_snapshot' => (string) ($row['image_snapshot'] ?? ''),
+        'image_snapshot_policy' => (string) ($row['image_snapshot_policy'] ?? 'none'),
+        'target_state' => (string) ($row['target_state'] ?? ''),
+        'resolver_state' => (string) ($row['resolver_state'] ?? ''),
+        'cache_status' => (string) ($row['cache_status'] ?? 'fresh'),
+        'resolved_payload_json' => (string) ($row['resolved_payload_json'] ?? '{}'),
+        'sort_order' => (int) ($row['sort_order'] ?? 0),
+        'last_resolved_at' => $row['last_resolved_at'] ?? null,
+        'last_render_checked_at' => $row['last_render_checked_at'] ?? null,
+        'created_by_account_id' => $row['created_by_account_id'] ?? null,
+        'created_at' => (string) ($row['created_at'] ?? sr_now()),
+        'updated_at' => (string) ($row['updated_at'] ?? sr_now()),
+    ]);
+}
+
+function sr_embed_manager_mark_missing_owner_urls_stale(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, array $activeHashes, string $now): void
+{
+    $params = [
+        'owner_module' => $ownerModule,
+        'owner_type' => $ownerType,
+        'owner_id' => $ownerId,
+        'owner_field' => $ownerField,
+        'updated_at' => $now,
+    ];
+    $sql = 'UPDATE sr_embed_manager_url_cache
+            SET cache_status = \'stale\', updated_at = :updated_at
+            WHERE owner_module = :owner_module
+              AND owner_type = :owner_type
+              AND owner_id = :owner_id
+              AND owner_field = :owner_field';
+    $placeholders = [];
+    foreach (array_values(array_unique($activeHashes)) as $index => $hash) {
+        if (!preg_match('/\A[a-f0-9]{64}\z/', (string) $hash)) {
+            continue;
+        }
+        $key = 'hash_' . (string) $index;
+        $params[$key] = (string) $hash;
+        $placeholders[] = ':' . $key;
+    }
+    if ($placeholders !== []) {
+        $sql .= ' AND canonical_url_hash NOT IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+}
+
+function sr_embed_manager_owner_url_cache_by_source(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField): array
+{
+    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+        return [];
+    }
     $stmt = $pdo->prepare(
         'SELECT *
-         FROM sr_embed_manager_refs
+         FROM sr_embed_manager_url_cache
          WHERE owner_module = :owner_module
            AND owner_type = :owner_type
            AND owner_id = :owner_id
@@ -605,207 +768,65 @@ function sr_embed_manager_owner_refs_by_key(PDO $pdo, string $ownerModule, strin
         'owner_field' => $ownerField,
     ]);
 
-    $refs = [];
+    $rows = [];
     foreach ($stmt->fetchAll() as $row) {
-        $refs[(string) ($row['ref_key'] ?? '')] = $row;
+        $rows[(string) ($row['source_url'] ?? '')] = $row;
+        $rows[(string) ($row['canonical_url'] ?? '')] = $row;
     }
 
-    return $refs;
+    return $rows;
 }
 
-function sr_embed_manager_ref_by_key(PDO $pdo, string $refKey): ?array
+function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
 {
-    $stmt = $pdo->prepare('SELECT * FROM sr_embed_manager_refs WHERE ref_key = :ref_key LIMIT 1');
-    $stmt->execute(['ref_key' => $refKey]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
-}
-
-function sr_embed_manager_resolve_target(PDO $pdo, string $targetModule, string $targetType, string $targetId, array $context = []): ?array
-{
-    $targetModule = sr_embed_manager_clean_identifier($targetModule);
-    $targetType = sr_embed_manager_clean_identifier($targetType);
-    $targetId = sr_embed_manager_clean_target_id($targetId);
-    if ($targetModule === '' || $targetType === '' || $targetId === '') {
-        return null;
-    }
-
-    $definition = sr_embed_manager_contract_target($pdo, $targetModule, $targetType);
-    if (!is_array($definition) || !is_callable($definition['resolve'] ?? null)) {
-        return null;
-    }
-
-    try {
-        $target = $definition['resolve']($pdo, array_merge($context, ['target_id' => $targetId]));
-    } catch (Throwable $exception) {
-        sr_log_exception($exception, 'embed_manager_resolve_failed_' . $targetModule . '_' . $targetType);
-        return null;
-    }
-
-    if (!is_array($target)) {
-        return null;
-    }
-
-    $target['target_module'] = $targetModule;
-    $target['target_type'] = $targetType;
-    $target['target_id'] = $targetId;
-    $target['label_snapshot'] = sr_embed_manager_clean_label((string) ($target['label_snapshot'] ?? $target['title'] ?? ''));
-    $target['summary'] = sr_embed_manager_clean_summary((string) ($target['summary'] ?? ''));
-    $target['image_snapshot'] = sr_embed_manager_safe_url((string) ($target['image_snapshot'] ?? ''));
-    $target['public_url'] = sr_embed_manager_safe_url((string) ($target['public_url'] ?? $target['url'] ?? ''));
-    $target['admin_url'] = sr_embed_manager_safe_url((string) ($target['admin_url'] ?? ''));
-    $target['status'] = in_array((string) ($target['status'] ?? 'active'), sr_embed_manager_allowed_statuses(), true) ? (string) $target['status'] : 'broken';
-    $target['allowed_variants'] = (array) ($definition['allowed_variants'] ?? ['card']);
-    $target['default_variant'] = (string) ($definition['default_variant'] ?? 'card');
-
-    if ((string) $target['label_snapshot'] === '') {
-        $target['label_snapshot'] = $targetModule . ' #' . $targetId;
-    }
-
-    return $target;
-}
-
-function sr_embed_manager_owner_public_url(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId): string
-{
-    if ($ownerModule === 'content' && $ownerType === 'content' && $ownerId > 0) {
-        $stmt = $pdo->prepare('SELECT slug FROM sr_content_items WHERE id = :id LIMIT 1');
-        $stmt->execute(['id' => $ownerId]);
-        $row = $stmt->fetch();
-        if (is_array($row) && function_exists('sr_content_path')) {
-            return sr_content_path((string) ($row['slug'] ?? ''));
-        }
-    }
-
-    if ($ownerModule === 'community' && $ownerType === 'post' && $ownerId > 0) {
-        return '/community/post?id=' . rawurlencode((string) $ownerId);
-    }
-
-    return '';
-}
-
-function sr_embed_manager_quiz_source_context_for_owner(PDO $pdo, int $quizId, string $ownerModule, string $ownerType, int $ownerId): array
-{
-    $sourceModule = '';
-    $sourceType = '';
-    if ($ownerModule === 'content' && $ownerType === 'content') {
-        $sourceModule = 'content';
-        $sourceType = 'content_item';
-    } elseif ($ownerModule === 'community' && $ownerType === 'post') {
-        $sourceModule = 'community';
-        $sourceType = 'community_post';
-    }
-
-    if ($quizId < 1 || $sourceModule === '' || $ownerId < 1) {
+    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
         return [];
     }
 
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT id
-             FROM sr_quiz_sources
-             WHERE quiz_id = :quiz_id
-               AND source_module = :source_module
-               AND source_type = :source_type
-               AND source_id = :source_id
-               AND status = \'active\'
-             LIMIT 1'
-        );
-        $stmt->execute([
-            'quiz_id' => $quizId,
-            'source_module' => $sourceModule,
-            'source_type' => $sourceType,
-            'source_id' => $ownerId,
-        ]);
-    } catch (Throwable $exception) {
-        return [];
+    $limit = max(1, min(200, $limit));
+    $where = [];
+    $params = [];
+
+    $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
+    $status = $statusValues === [] ? '' : (string) $statusValues[0];
+    if ($status !== '' && in_array($status, sr_embed_manager_url_cache_statuses(), true)) {
+        $where[] = 'cache_status = :status';
+        $params['status'] = $status;
     }
 
-    return is_array($stmt->fetch()) ? [
-        'source_module' => $sourceModule,
-        'source_type' => $sourceType,
-        'source_id' => (string) $ownerId,
-    ] : [];
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
+        $where[] = '(source_url LIKE :keyword OR canonical_url LIKE :keyword OR owner_module LIKE :keyword OR target_module LIKE :keyword OR target_type LIKE :keyword OR target_id LIKE :keyword OR label_snapshot LIKE :keyword)';
+        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+    }
+
+    $sql = 'SELECT *
+            FROM sr_embed_manager_url_cache'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . ' ORDER BY updated_at DESC, id DESC
+            LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
 }
 
-function sr_embed_manager_target_url(PDO $pdo, array $ref, array $target, array $context): string
+function sr_embed_manager_refresh_known_ref_statuses(PDO $pdo, int $limit = 300): void
 {
-    $url = sr_embed_manager_safe_url((string) ($target['public_url'] ?? ''));
-    if ($url === '') {
-        return '';
-    }
-
-    $ownerModule = (string) ($context['owner_module'] ?? '');
-    $ownerType = (string) ($context['owner_type'] ?? '');
-    $ownerId = (int) ($context['owner_id'] ?? 0);
-    $returnTo = sr_embed_manager_safe_url((string) ($context['return_to'] ?? ''));
-    if ($returnTo === '') {
-        $returnTo = sr_embed_manager_owner_public_url($pdo, $ownerModule, $ownerType, $ownerId);
-    }
-
-    $query = [];
-    if ($returnTo !== '') {
-        $query['return_to'] = $returnTo;
-    }
-    if ((string) ($ref['target_module'] ?? '') === 'quiz') {
-        $source = sr_embed_manager_quiz_source_context_for_owner($pdo, (int) ($ref['target_id'] ?? 0), $ownerModule, $ownerType, $ownerId);
-        $query = array_merge($query, $source);
-    }
-
-    if ($query === []) {
-        return $url;
-    }
-
-    return $url . (str_contains($url, '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
-}
-
-function sr_embed_manager_render_target_card(PDO $pdo, array $ref, array $target, array $context): string
-{
-    $status = (string) ($target['status'] ?? 'broken');
-    $mode = (string) ($context['mode'] ?? 'public');
-    if ($mode === 'public' && $status !== 'active') {
-        return '';
-    }
-
-    $url = sr_embed_manager_target_url($pdo, $ref, $target, $context);
-    $title = (string) ($target['label_snapshot'] ?? $ref['label_snapshot'] ?? '');
-    $summary = (string) ($target['summary'] ?? '');
-    $variant = (string) ($ref['variant'] ?? 'card');
-    $statusLabel = $status === 'active' ? '' : ' (' . $status . ')';
-    $class = 'sr-embed-manager-card sr-embed-manager-card-' . sr_e($variant);
-
-    $html = '<aside class="' . $class . '" data-sr-embed-manager-rendered="1">';
-    $html .= '<strong>';
-    if ($url !== '' && $status === 'active') {
-        $html .= '<a href="' . sr_e($url) . '">' . sr_e($title) . '</a>';
-    } else {
-        $html .= sr_e($title);
-    }
-    $html .= sr_e($statusLabel) . '</strong>';
-    if ($summary !== '' && $variant !== 'button') {
-        $html .= '<p>' . sr_e($summary) . '</p>';
-    }
-    if ($url !== '' && $status === 'active') {
-        $label = (string) ($ref['target_module'] ?? '') === 'survey' ? '설문 참여' : ((string) ($ref['target_module'] ?? '') === 'quiz' ? '퀴즈 풀기' : '열기');
-        $html .= '<p><a class="btn btn-solid-primary" href="' . sr_e($url) . '">' . sr_e($label) . '</a></p>';
-    } elseif ($mode !== 'public' && (string) ($target['admin_url'] ?? '') !== '') {
-        $html .= '<p><a class="btn btn-solid-light" href="' . sr_e((string) $target['admin_url']) . '">관리 화면</a></p>';
-    }
-
-    return $html . '</aside>';
+    return;
 }
 
 function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
 {
-    if ($bodyHtml === '' || $ownerId < 1 || !sr_embed_manager_table_exists($pdo)) {
+    if ($bodyHtml === '' || $ownerId < 1 || !sr_embed_manager_url_embedding_enabled($pdo)) {
         return $bodyHtml;
     }
 
     $ownerModule = sr_embed_manager_clean_identifier($ownerModule);
     $ownerType = sr_embed_manager_clean_identifier($ownerType);
     $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
-    $refs = sr_embed_manager_owner_refs_by_key($pdo, $ownerModule, $ownerType, $ownerId, $ownerField);
-    if ($refs === []) {
+    if ($ownerModule === '' || $ownerType === '') {
         return $bodyHtml;
     }
 
@@ -822,218 +843,173 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
         }
     }
 
-    $renderMarker = function (string $markerHtml) use ($pdo, $refs, $context): string {
-        $attributes = sr_embed_manager_marker_attributes($markerHtml);
-        $refKey = sr_embed_manager_clean_ref_key((string) ($attributes['data-sr-embed-manager-ref'] ?? ''));
-        $ref = $refs[$refKey] ?? null;
-        if (!is_array($ref) || (string) ($ref['status'] ?? '') === 'removed') {
-            return '';
-        }
+    if (class_exists('DOMDocument')) {
+        return sr_embed_manager_render_body_html_dom($pdo, $bodyHtml, $context);
+    }
 
-        try {
-            $target = sr_embed_manager_resolve_target($pdo, (string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''), $context);
-            if (!is_array($target)) {
-                $target = ['label_snapshot' => (string) ($ref['label_snapshot'] ?? ''), 'status' => 'broken'];
-            }
-
-            return sr_embed_manager_render_target_card($pdo, $ref, $target, $context);
-        } catch (Throwable $exception) {
-            sr_log_exception($exception, 'embed_manager_render_failed');
-            return '';
-        }
-    };
-
-    $bodyHtml = preg_replace_callback('/<blockquote\b[^>]*>.*?' . sr_embed_manager_marker_pattern_fragment() . '.*?<\/blockquote>/isu', static function (array $matches) use ($renderMarker): string {
-        if (preg_match(sr_embed_manager_marker_pattern(), (string) ($matches[0] ?? ''), $markerMatches) !== 1) {
-            return '';
-        }
-
-        return $renderMarker((string) ($markerMatches[0] ?? ''));
-    }, $bodyHtml) ?? $bodyHtml;
-
-    return preg_replace_callback(sr_embed_manager_marker_pattern(), static function (array $matches) use ($renderMarker): string {
-        return $renderMarker((string) ($matches[0] ?? ''));
-    }, $bodyHtml) ?? $bodyHtml;
+    return $bodyHtml;
 }
 
-function sr_embed_manager_marker_pattern_fragment(): string
+function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array $context): string
 {
-    return '<span\b(?=[^>]*\bsr-embed-manager-marker\b)(?=[^>]*\bdata-sr-embed-manager-ref=(["\'])([^"\']+)\1)[^>]*><\/span>';
+    $wrapped = '<div data-sr-embed-manager-root="1">' . $bodyHtml . '</div>';
+    $previous = libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $loaded = $dom->loadHTML('<?xml encoding="UTF-8">' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return $bodyHtml;
+    }
+
+    $xpath = new DOMXPath($dom);
+    $links = $xpath->query('//a[@href]');
+    if (!$links instanceof DOMNodeList || $links->length < 1) {
+        return $bodyHtml;
+    }
+
+    $replace = [];
+    foreach ($links as $link) {
+        if (!$link instanceof DOMElement) {
+            continue;
+        }
+        $href = $link->getAttribute('href');
+        $label = trim(preg_replace('/\s+/', ' ', $link->textContent) ?? '');
+        if ($href === '' || ($label !== '' && $label !== $href)) {
+            continue;
+        }
+        $html = sr_embed_manager_render_url($pdo, $href, $context);
+        if ($html !== '') {
+            $replace[] = [$link, $html];
+        }
+    }
+    foreach ($replace as $item) {
+        [$node, $html] = $item;
+        if (!$node instanceof DOMElement || $node->parentNode === null) {
+            continue;
+        }
+        $fragment = sr_embed_manager_dom_fragment_from_html($dom, $html);
+        if ($fragment instanceof DOMDocumentFragment) {
+            $node->parentNode->replaceChild($fragment, $node);
+        }
+    }
+
+    $root = $xpath->query('//*[@data-sr-embed-manager-root="1"]')->item(0);
+    if (!$root instanceof DOMElement) {
+        return $bodyHtml;
+    }
+    $html = '';
+    foreach ($root->childNodes as $child) {
+        $html .= $dom->saveHTML($child);
+    }
+
+    return $html !== '' ? $html : $bodyHtml;
 }
 
-function sr_embed_manager_resolve_content_target(PDO $pdo, int $contentId): ?array
+function sr_embed_manager_dom_fragment_from_html(DOMDocument $targetDom, string $html): ?DOMDocumentFragment
 {
-    if ($contentId < 1) {
+    if ($html === '') {
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT id, title, status, cover_image_url FROM sr_content_items WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $contentId]);
-    $row = $stmt->fetch();
-    if (!is_array($row)) {
-        return [
-            'label_snapshot' => '콘텐츠 #' . (string) $contentId,
-            'image_snapshot' => '',
-            'status' => 'broken',
-        ];
+    $previous = libxml_use_internal_errors(true);
+    $sourceDom = new DOMDocument('1.0', 'UTF-8');
+    $loaded = $sourceDom->loadHTML('<?xml encoding="UTF-8"><div>' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded || !$sourceDom->documentElement instanceof DOMElement) {
+        return null;
     }
 
-    return [
-        'label_snapshot' => (string) ($row['title'] ?? ('콘텐츠 #' . (string) $contentId)),
-        'image_snapshot' => (string) ($row['cover_image_url'] ?? ''),
-        'status' => (string) ($row['status'] ?? '') === 'published' ? 'active' : 'private',
-    ];
+    $fragment = $targetDom->createDocumentFragment();
+    foreach ($sourceDom->documentElement->childNodes as $child) {
+        $fragment->appendChild($targetDom->importNode($child, true));
+    }
+
+    return $fragment;
 }
 
-function sr_embed_manager_upsert_ref(PDO $pdo, array $ref): void
+function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): string
 {
-    $driver = '';
+    $resolved = sr_embed_manager_resolve_url($pdo, $url, $context);
+    if (!is_array($resolved)) {
+        return '';
+    }
+    if ((string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+        return '';
+    }
+
+    $definition = sr_embed_manager_url_contract_targets($pdo)[$resolved['target_module']][$resolved['target_type']] ?? null;
+    if (!is_array($definition) || !is_callable($definition['render_embed'] ?? null)) {
+        return '';
+    }
+
     try {
-        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $rendered = $definition['render_embed']($pdo, $resolved, $context);
     } catch (Throwable $exception) {
-        $driver = '';
+        sr_log_exception($exception, 'embed_manager_url_render_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
+        return '';
+    }
+    $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : (string) $rendered;
+    if ($html === '') {
+        return '';
     }
 
-    $upsertClause = 'ON DUPLICATE KEY UPDATE
-            owner_module = VALUES(owner_module),
-            owner_type = VALUES(owner_type),
-            owner_id = VALUES(owner_id),
-            owner_field = VALUES(owner_field),
-            target_module = VALUES(target_module),
-            target_type = VALUES(target_type),
-            target_id = VALUES(target_id),
-            variant = VALUES(variant),
-            label_snapshot = VALUES(label_snapshot),
-            image_snapshot = VALUES(image_snapshot),
-            sort_order = VALUES(sort_order),
-            status = VALUES(status),
-            updated_at = VALUES(updated_at)';
-    if ($driver === 'sqlite') {
-        $upsertClause = 'ON CONFLICT(ref_key) DO UPDATE SET
-            owner_module = excluded.owner_module,
-            owner_type = excluded.owner_type,
-            owner_id = excluded.owner_id,
-            owner_field = excluded.owner_field,
-            target_module = excluded.target_module,
-            target_type = excluded.target_type,
-            target_id = excluded.target_id,
-            variant = excluded.variant,
-            label_snapshot = excluded.label_snapshot,
-            image_snapshot = excluded.image_snapshot,
-            sort_order = excluded.sort_order,
-            status = excluded.status,
-            updated_at = excluded.updated_at';
-    }
-
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_embed_manager_refs
-            (ref_key, owner_module, owner_type, owner_id, owner_field, target_module, target_type, target_id, variant, label_snapshot, image_snapshot, sort_order, status, created_by_account_id, created_at, updated_at)
-         VALUES
-            (:ref_key, :owner_module, :owner_type, :owner_id, :owner_field, :target_module, :target_type, :target_id, :variant, :label_snapshot, :image_snapshot, :sort_order, :status, :created_by_account_id, :created_at, :updated_at)
-         ' . $upsertClause
-    );
-    $stmt->execute($ref);
+    return sr_embed_manager_sanitize_rendered_fragment($html);
 }
 
-function sr_embed_manager_remove_missing_owner_refs(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, array $activeKeys, string $now): void
+function sr_embed_manager_sanitize_rendered_fragment(string $html): string
 {
-    $params = [
-        'owner_module' => $ownerModule,
-        'owner_type' => $ownerType,
-        'owner_id' => $ownerId,
-        'owner_field' => $ownerField,
-        'updated_at' => $now,
-    ];
-    $sql = 'UPDATE sr_embed_manager_refs
-            SET status = \'removed\', updated_at = :updated_at
-            WHERE owner_module = :owner_module
-              AND owner_type = :owner_type
-              AND owner_id = :owner_id
-              AND owner_field = :owner_field';
-    $cleanKeys = [];
-    foreach ($activeKeys as $index => $refKey) {
-        $cleanKey = sr_embed_manager_clean_ref_key((string) $refKey);
-        if ($cleanKey === '') {
+    if ($html === '' || !class_exists('DOMDocument')) {
+        return '';
+    }
+    $previous = libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $loaded = $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return '';
+    }
+    $allowedTags = ['div', 'aside', 'a', 'img', 'strong', 'p', 'span'];
+    $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-quiz-embed', 'data-survey-embed'];
+    $nodes = [];
+    foreach ($dom->getElementsByTagName('*') as $node) {
+        $nodes[] = $node;
+    }
+    foreach (array_reverse($nodes) as $node) {
+        if (!$node instanceof DOMElement) {
             continue;
         }
-        $placeholder = 'ref_key_' . (string) $index;
-        $params[$placeholder] = $cleanKey;
-        $cleanKeys[] = ':' . $placeholder;
+        if (!in_array(strtolower($node->tagName), $allowedTags, true)) {
+            $node->parentNode?->removeChild($node);
+            continue;
+        }
+        foreach (iterator_to_array($node->attributes) as $attribute) {
+            if (!$attribute instanceof DOMAttr || !in_array(strtolower($attribute->name), $allowedAttrs, true)) {
+                $node->removeAttributeNode($attribute);
+                continue;
+            }
+            if (in_array(strtolower($attribute->name), ['href', 'src'], true) && sr_embed_manager_safe_url($attribute->value) === '') {
+                $node->removeAttributeNode($attribute);
+            }
+        }
     }
-    if ($cleanKeys !== []) {
-        $sql .= ' AND ref_key NOT IN (' . implode(', ', $cleanKeys) . ')';
+    $root = $dom->documentElement;
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+    $out = '';
+    foreach ($root->childNodes as $child) {
+        $out .= $dom->saveHTML($child);
     }
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    return $out;
 }
 
 function sr_embed_manager_rewrite_body_refs_for_copy(PDO $pdo, string $sourceOwnerModule, string $sourceOwnerType, int $sourceOwnerId, string $sourceOwnerField, string $targetOwnerModule, string $targetOwnerType, int $targetOwnerId, string $targetOwnerField, string $bodyHtml, ?int $accountId = null): string
 {
-    if ($sourceOwnerId < 1 || $targetOwnerId < 1 || $bodyHtml === '' || !sr_embed_manager_table_exists($pdo)) {
-        return $bodyHtml;
-    }
-
-    $sourceOwnerModule = sr_embed_manager_clean_identifier($sourceOwnerModule);
-    $sourceOwnerType = sr_embed_manager_clean_identifier($sourceOwnerType);
-    $sourceOwnerField = sr_embed_manager_clean_identifier($sourceOwnerField) ?: 'body';
-    $targetOwnerModule = sr_embed_manager_clean_identifier($targetOwnerModule);
-    $targetOwnerType = sr_embed_manager_clean_identifier($targetOwnerType);
-    $targetOwnerField = sr_embed_manager_clean_identifier($targetOwnerField) ?: 'body';
-    $sourceRefs = sr_embed_manager_owner_refs_by_key($pdo, $sourceOwnerModule, $sourceOwnerType, $sourceOwnerId, $sourceOwnerField);
-    if ($sourceRefs === []) {
-        return $bodyHtml;
-    }
-
-    $map = [];
-    foreach (sr_embed_manager_extract_marker_refs($bodyHtml) as $marker) {
-        $oldKey = (string) ($marker['ref_key'] ?? '');
-        if ($oldKey !== '' && isset($sourceRefs[$oldKey]) && !isset($map[$oldKey])) {
-            $map[$oldKey] = sr_embed_manager_new_ref_key();
-        }
-    }
-    if ($map === []) {
-        return $bodyHtml;
-    }
-
-    $rewritten = preg_replace_callback(sr_embed_manager_marker_pattern(), static function (array $matches) use ($map): string {
-        $attributes = sr_embed_manager_marker_attributes((string) ($matches[0] ?? ''));
-        $oldKey = sr_embed_manager_clean_ref_key((string) ($attributes['data-sr-embed-manager-ref'] ?? ''));
-        if ($oldKey === '' || !isset($map[$oldKey])) {
-            return (string) ($matches[0] ?? '');
-        }
-
-        return preg_replace_callback('/\bdata-sr-embed-manager-ref=(["\'])[^"\']+\\1/iu', static function (array $attributeMatches) use ($map, $oldKey): string {
-            $quote = (string) ($attributeMatches[1] ?? '"');
-            return 'data-sr-embed-manager-ref=' . $quote . $map[$oldKey] . $quote;
-        }, (string) ($matches[0] ?? '')) ?? (string) ($matches[0] ?? '');
-    }, $bodyHtml) ?? $bodyHtml;
-
-    $now = sr_now();
-    foreach ($map as $oldKey => $newKey) {
-        $sourceRef = $sourceRefs[$oldKey];
-        sr_embed_manager_upsert_ref($pdo, [
-            'ref_key' => $newKey,
-            'owner_module' => $targetOwnerModule,
-            'owner_type' => $targetOwnerType,
-            'owner_id' => $targetOwnerId,
-            'owner_field' => $targetOwnerField,
-            'target_module' => (string) ($sourceRef['target_module'] ?? ''),
-            'target_type' => (string) ($sourceRef['target_type'] ?? ''),
-            'target_id' => (string) ($sourceRef['target_id'] ?? ''),
-            'variant' => (string) ($sourceRef['variant'] ?? 'card'),
-            'label_snapshot' => (string) ($sourceRef['label_snapshot'] ?? ''),
-            'image_snapshot' => (string) ($sourceRef['image_snapshot'] ?? ''),
-            'sort_order' => (int) ($sourceRef['sort_order'] ?? 0),
-            'status' => (string) ($sourceRef['status'] ?? 'active'),
-            'created_by_account_id' => $accountId,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-    }
-    sr_embed_manager_sync_body_refs($pdo, $targetOwnerModule, $targetOwnerType, $targetOwnerId, $targetOwnerField, $rewritten, $accountId);
-
-    return $rewritten;
+    return $bodyHtml;
 }
 
 function sr_link_card_token_pattern(): string

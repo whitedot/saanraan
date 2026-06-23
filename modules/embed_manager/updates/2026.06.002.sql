@@ -33,3 +33,5 @@ CREATE TABLE IF NOT EXISTS sr_embed_manager_url_cache (
     KEY idx_sr_embed_manager_url_target (target_module, target_type, target_id, cache_status),
     KEY idx_sr_embed_manager_url_hash (canonical_url_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS sr_embed_manager_refs;

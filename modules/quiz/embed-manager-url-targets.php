@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers.php';
+
+return [
+    'targets' => [
+        [
+            'target_module' => 'quiz',
+            'target_type' => 'quiz_set',
+            'label' => '퀴즈·테스트',
+            'allowed_variants' => ['summary'],
+            'default_variant' => 'summary',
+            'resolve_url' => static function (PDO $pdo, array $context): ?array {
+                $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
+                if (!str_starts_with($path, '/quiz/')) {
+                    return null;
+                }
+                $quizKey = rawurldecode(substr($path, strlen('/quiz/')));
+                if ($quizKey === '' || str_contains($quizKey, '/')) {
+                    return null;
+                }
+                $stmt = $pdo->prepare('SELECT * FROM sr_quiz_sets WHERE quiz_key = :quiz_key LIMIT 1');
+                $stmt->execute(['quiz_key' => $quizKey]);
+                $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    return null;
+                }
+                $public = empty($row['deleted_at']) && (string) ($row['status'] ?? '') === 'active' && sr_quiz_public_window_is_open($row);
+                return [
+                    'target_id' => (string) (int) ($row['id'] ?? 0),
+                    'canonical_url' => '/quiz/' . (string) ($row['quiz_key'] ?? ''),
+                    'label_snapshot' => (string) ($row['title'] ?? ''),
+                    'summary_snapshot' => (string) ($row['description'] ?? ''),
+                    'image_snapshot' => sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')),
+                    'image_snapshot_policy' => (string) ($row['cover_image_url'] ?? '') !== '' ? 'public_url_ok' : 'none',
+                    'target_state' => $public ? 'public' : 'private',
+                    'cache_status' => $public ? 'fresh' : 'broken',
+                    'target_cache_version' => (string) ($row['updated_at'] ?? ''),
+                ];
+            },
+            'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
+                if ((string) ($embed['target_state'] ?? '') !== 'public') {
+                    return ['html' => ''];
+                }
+                $image = (string) ($embed['image_snapshot'] ?? '');
+                $html = '<aside class="quiz-embed-summary" data-quiz-embed="summary">';
+                if ($image !== '') {
+                    $html .= '<a class="quiz-embed-summary-image" href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
+                }
+                $html .= '<strong><a href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '">' . sr_e((string) ($embed['label_snapshot'] ?? '')) . '</a></strong>';
+                if ((string) ($embed['summary_snapshot'] ?? '') !== '') {
+                    $html .= '<p>' . sr_e((string) $embed['summary_snapshot']) . '</p>';
+                }
+                return ['html' => $html . '</aside>'];
+            },
+        ],
+    ],
+];

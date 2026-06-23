@@ -821,6 +821,7 @@ function sr_module_known_contract_files(): array
         'antispam-providers.php',
         'oauth-providers.php',
         'embed-manager-targets.php',
+        'embed-manager-url-targets.php',
         'reaction-targets.php',
     ];
 }

@@ -63,6 +63,7 @@ return [
             'sitemap.php',
             'member-only-routes.php',
             'embed-manager-targets.php',
+            'embed-manager-url-targets.php',
             'reaction-targets.php',
         ],
         'consumes' => [

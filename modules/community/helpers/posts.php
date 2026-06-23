@@ -1016,7 +1016,6 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
             'title' => (string) ($row['title'] ?? ''),
             'summary' => $summary,
             'url' => '/community/post?id=' . rawurlencode($postId),
-            'embed' => sr_embed_manager_search_payload('community', 'post', $postId, (string) ($row['title'] ?? ''), 'card'),
             'status' => (string) ($row['status'] ?? ''),
             'meta' => '게시글 #' . $postId . ' / 게시판: ' . (string) ($row['board_title'] ?? '') . ' (' . (string) ($row['board_key'] ?? '') . ')',
         ];
