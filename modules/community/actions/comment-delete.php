@@ -32,44 +32,65 @@ if ($isGuestDelete) {
 }
 
 $settings = sr_community_settings($pdo);
-if (!$isGuestDelete && !empty($settings['comment_reward_reversal_enabled'])) {
-    $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal');
-    if (empty($reversalResult['allowed'])) {
-        sr_render_error(409, sr_community_asset_reversal_error_message($reversalResult, 'community::action.error.comment_reward_reversal_balance_low', 'community::action.error.comment_reward_reversal_failed'));
-    }
-}
-sr_community_update_comment_status($pdo, $commentId, 'deleted');
 $isAdminDelete = !$isAuthorDelete && (
     is_array($account) && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'edit')
     || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
     || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
     || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete'))
 );
-if ((int) ($comment['author_account_id'] ?? 0) > 0) {
-    $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
-    $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
-        'source_module_key' => 'community',
+$commentActorType = $isGuestDelete ? 'guest' : ($isAuthorDelete ? 'member' : ($isAdminDelete ? 'admin' : 'community_board_manager'));
+// Release check keeps the original author-delete event contract: 'event_type' => 'community.comment.deleted_by_author'
+$commentEventType = $isGuestDelete ? 'community.comment.deleted_by_guest' : ($isAuthorDelete ? 'community.comment.deleted_by_author' : 'community.comment.deleted_by_manager');
+$recoveryResult = ['recovery_status' => 'not_needed'];
+try {
+    $pdo->beginTransaction();
+    if (!$isGuestDelete && !empty($settings['comment_reward_reversal_enabled'])) {
+        $recoveryResult = sr_community_reverse_asset_grant_for_operation($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal', 'community.comment.reward_reversal', [
+            'operation_event_key' => $commentEventType,
+            'before_status' => (string) $comment['status'],
+            'after_status' => 'deleted',
+            'actor_account_id' => is_array($account) ? (int) $account['id'] : 0,
+            'actor_type' => $commentActorType,
+            'route_context' => 'community.comment.delete',
+        ]);
+        if (empty($recoveryResult['operation_allowed'])) {
+            throw new RuntimeException(sr_community_asset_reversal_error_message($recoveryResult, 'community::action.error.comment_reward_reversal_balance_low', 'community::action.error.comment_reward_reversal_failed'));
+        }
+    }
+    sr_community_update_comment_status($pdo, $commentId, 'deleted');
+    if ((int) ($comment['author_account_id'] ?? 0) > 0) {
+        $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
+        $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
+            'source_module_key' => 'community',
+        ]);
+    } else {
+        $levelSnapshot = ['level_value' => 0, 'score_value' => 0];
+        $groupEvaluationSummary = [];
+    }
+    sr_audit_log($pdo, [
+        'actor_account_id' => is_array($account) ? (int) $account['id'] : null,
+        'actor_type' => $commentActorType,
+        'event_type' => $commentEventType,
+        'target_type' => 'community_comment',
+        'target_id' => (string) $commentId,
+        'result' => 'success',
+        'message' => 'Community comment deleted by author.',
+        'metadata' => array_merge([
+            'post_id' => (int) $comment['post_id'],
+            'before_status' => (string) $comment['status'],
+            'after_status' => 'deleted',
+            'recovery_status' => (string) ($recoveryResult['recovery_status'] ?? 'not_needed'),
+            'recovery_failure_id' => (int) ($recoveryResult['recovery_failure_id'] ?? 0),
+            'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
+            'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
+        ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
     ]);
-} else {
-    $levelSnapshot = ['level_value' => 0, 'score_value' => 0];
-    $groupEvaluationSummary = [];
+    $pdo->commit();
+} catch (Throwable $exception) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    sr_render_error(409, $exception->getMessage() !== '' ? $exception->getMessage() : sr_t('community::action.error.comment_reward_reversal_failed'));
 }
-sr_audit_log($pdo, [
-    'actor_account_id' => is_array($account) ? (int) $account['id'] : null,
-    'actor_type' => $isGuestDelete ? 'guest' : ($isAuthorDelete ? 'member' : ($isAdminDelete ? 'admin' : 'community_board_manager')),
-    // Release check keeps the original author-delete event contract: 'event_type' => 'community.comment.deleted_by_author'
-    'event_type' => $isGuestDelete ? 'community.comment.deleted_by_guest' : ($isAuthorDelete ? 'community.comment.deleted_by_author' : 'community.comment.deleted_by_manager'),
-    'target_type' => 'community_comment',
-    'target_id' => (string) $commentId,
-    'result' => 'success',
-    'message' => 'Community comment deleted by author.',
-    'metadata' => array_merge([
-        'post_id' => (int) $comment['post_id'],
-        'before_status' => (string) $comment['status'],
-        'after_status' => 'deleted',
-        'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
-        'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
-    ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
-]);
 $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_deleted');
 sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

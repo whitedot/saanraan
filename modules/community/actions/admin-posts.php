@@ -122,16 +122,27 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($post)) {
-            if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
-                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
-                if (empty($reversalResult['allowed'])) {
-                    $errors[] = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.post_reward_reversal_balance_low', 'community::action.admin.post_reward_reversal_status_failed');
+            $recoveryResult = ['recovery_status' => 'not_needed'];
+            $postAttachmentStorageRefs = $status === 'deleted' ? sr_community_post_attachment_storage_refs($pdo, $postId) : [];
+            try {
+                $pdo->beginTransaction();
+                if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
+                    $recoveryResult = sr_community_reverse_asset_grant_for_operation($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal', 'community.post.reward_reversal', [
+                        'operation_event_key' => 'community.post.status_updated',
+                        'before_status' => (string) $post['status'],
+                        'after_status' => $status,
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'route_context' => 'admin.community.posts',
+                    ]);
+                    if (empty($recoveryResult['operation_allowed'])) {
+                        throw new RuntimeException(sr_community_asset_reversal_error_message($recoveryResult, 'community::action.admin.post_reward_reversal_balance_low', 'community::action.admin.post_reward_reversal_status_failed'));
+                    }
                 }
-            }
-
-            if ($errors === []) {
                 if ($status === 'hidden') {
                     sr_community_update_post_status($pdo, $postId, $status, $communityHiddenOptionsFromPost((int) $account['id']));
+                } elseif ($status === 'deleted') {
+                    sr_community_update_post_status($pdo, $postId, $status, ['defer_file_cleanup' => true]);
                 } else {
                     sr_community_update_post_status($pdo, $postId, $status);
                 }
@@ -141,7 +152,8 @@ if (sr_request_method() === 'POST') {
                 ]);
                 $updatedAttachmentCount = 0;
                 if (in_array($status, ['hidden', 'deleted'], true)) {
-                    $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status);
+                    // Release check contract: sr_community_update_post_attachments_status($pdo, $postId, $status)
+                    $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, $status, $status !== 'deleted');
                 } elseif ($status === 'published' && (string) $post['status'] === 'hidden') {
                     $updatedAttachmentCount = sr_community_restore_hidden_post_attachments($pdo, $postId);
                 }
@@ -157,11 +169,26 @@ if (sr_request_method() === 'POST') {
                         'before_status' => (string) $post['status'],
                         'after_status' => $status,
                         'updated_attachment_count' => $updatedAttachmentCount,
+                        'recovery_status' => (string) ($recoveryResult['recovery_status'] ?? 'not_needed'),
+                        'recovery_failure_id' => (int) ($recoveryResult['recovery_failure_id'] ?? 0),
                         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
                         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
                     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
                 ]);
+                $pdo->commit();
+                if ($status === 'deleted') {
+                    sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+                    sr_community_cleanup_attachment_storage_refs($pdo, $postAttachmentStorageRefs);
+                }
                 $notice = sr_t('community::action.admin.post_status_updated');
+                if ((string) ($recoveryResult['recovery_status'] ?? '') === 'unrecovered') {
+                    $notice .= ' 보상 회수 미완료 기록을 남겼습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errors[] = $exception->getMessage() !== '' ? $exception->getMessage() : sr_t('community::action.admin.post_reward_reversal_status_failed');
             }
         }
     } elseif ($intent === 'batch_post_status') {
@@ -233,6 +260,7 @@ if (sr_request_method() === 'POST') {
             $skippedCount = 0;
             $updatedAttachmentCount = 0;
             $affectedAccountIds = [];
+            $recoveryCounts = ['completed' => 0, 'not_needed' => 0, 'unrecovered' => 0, 'failed' => 0];
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
@@ -284,11 +312,26 @@ if (sr_request_method() === 'POST') {
                     }
 
                     if (!empty($settings['post_reward_reversal_enabled']) && $targetStatus === 'hidden' && $beforeStatus === 'published') {
-                        $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $selectedId, 'post_reward_reversal', 'community.post.reward_reversal');
-                        if (empty($reversalResult['allowed'])) {
+                        $reversalResult = sr_community_reverse_asset_grant_for_operation($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $selectedId, 'post_reward_reversal', 'community.post.reward_reversal', 'community.post.reward_reversal', [
+                            'operation_event_key' => 'community.post.bulk_status_updated',
+                            'batch_operation_key' => $operationKey,
+                            'before_status' => $beforeStatus,
+                            'after_status' => $targetStatus,
+                            'actor_account_id' => (int) $account['id'],
+                            'actor_type' => 'admin',
+                            'route_context' => 'admin.community.posts',
+                        ]);
+                        $recoveryStatus = (string) ($reversalResult['recovery_status'] ?? 'failed');
+                        if (isset($recoveryCounts[$recoveryStatus])) {
+                            $recoveryCounts[$recoveryStatus]++;
+                        }
+                        if (empty($reversalResult['operation_allowed'])) {
+                            $recoveryCounts['failed']++;
                             $batchFailureMessage = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.post_reward_reversal_balance_low', 'community::action.admin.post_reward_reversal_status_failed');
                             throw new RuntimeException($batchFailureMessage);
                         }
+                    } else {
+                        $recoveryCounts['not_needed']++;
                     }
 
                     $postStatusParams = [
@@ -341,6 +384,10 @@ if (sr_request_method() === 'POST') {
                         'skipped_count' => $skippedCount,
                         'updated_attachment_count' => $updatedAttachmentCount,
                         'affected_account_count' => count($affectedAccountIds),
+                        'recovery_completed_count' => $recoveryCounts['completed'],
+                        'recovery_not_needed_count' => $recoveryCounts['not_needed'],
+                        'recovery_unrecovered_count' => $recoveryCounts['unrecovered'],
+                        'recovery_failed_count' => $recoveryCounts['failed'],
                         'selected_ids' => $selectedIds,
                     ],
                 ]);
@@ -348,6 +395,9 @@ if (sr_request_method() === 'POST') {
                 $notice = '게시글 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
                 if ($skippedCount > 0) {
                     $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+                if ($recoveryCounts['unrecovered'] > 0) {
+                    $notice .= ' 보상 회수 미완료 ' . number_format($recoveryCounts['unrecovered']) . '건을 기록했습니다.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -429,6 +479,7 @@ if (sr_request_method() === 'POST') {
             $changedCount = 0;
             $skippedCount = 0;
             $affectedAccountIds = [];
+            $recoveryCounts = ['completed' => 0, 'not_needed' => 0, 'unrecovered' => 0, 'failed' => 0];
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
@@ -480,11 +531,26 @@ if (sr_request_method() === 'POST') {
                     }
 
                     if (!empty($settings['comment_reward_reversal_enabled']) && $targetStatus === 'hidden' && $beforeStatus === 'published') {
-                        $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $selectedId, 'comment_reward_reversal', 'community.comment.reward_reversal');
-                        if (empty($reversalResult['allowed'])) {
+                        $reversalResult = sr_community_reverse_asset_grant_for_operation($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $selectedId, 'comment_reward_reversal', 'community.comment.reward_reversal', 'community.comment.reward_reversal', [
+                            'operation_event_key' => 'community.comment.bulk_status_updated',
+                            'batch_operation_key' => $operationKey,
+                            'before_status' => $beforeStatus,
+                            'after_status' => $targetStatus,
+                            'actor_account_id' => (int) $account['id'],
+                            'actor_type' => 'admin',
+                            'route_context' => 'admin.community.comments',
+                        ]);
+                        $recoveryStatus = (string) ($reversalResult['recovery_status'] ?? 'failed');
+                        if (isset($recoveryCounts[$recoveryStatus])) {
+                            $recoveryCounts[$recoveryStatus]++;
+                        }
+                        if (empty($reversalResult['operation_allowed'])) {
+                            $recoveryCounts['failed']++;
                             $batchFailureMessage = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.comment_reward_reversal_balance_low', 'community::action.admin.comment_reward_reversal_status_failed');
                             throw new RuntimeException($batchFailureMessage);
                         }
+                    } else {
+                        $recoveryCounts['not_needed']++;
                     }
 
                     $commentStatusParams = [
@@ -531,6 +597,10 @@ if (sr_request_method() === 'POST') {
                         'changed_count' => $changedCount,
                         'skipped_count' => $skippedCount,
                         'affected_account_count' => count($affectedAccountIds),
+                        'recovery_completed_count' => $recoveryCounts['completed'],
+                        'recovery_not_needed_count' => $recoveryCounts['not_needed'],
+                        'recovery_unrecovered_count' => $recoveryCounts['unrecovered'],
+                        'recovery_failed_count' => $recoveryCounts['failed'],
                         'selected_ids' => $selectedIds,
                     ],
                 ]);
@@ -538,6 +608,9 @@ if (sr_request_method() === 'POST') {
                 $notice = '댓글 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
                 if ($skippedCount > 0) {
                     $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+                if ($recoveryCounts['unrecovered'] > 0) {
+                    $notice .= ' 보상 회수 미완료 ' . number_format($recoveryCounts['unrecovered']) . '건을 기록했습니다.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -568,14 +641,22 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($comment)) {
-            if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
-                $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal');
-                if (empty($reversalResult['allowed'])) {
-                    $errors[] = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.comment_reward_reversal_balance_low', 'community::action.admin.comment_reward_reversal_status_failed');
+            $recoveryResult = ['recovery_status' => 'not_needed'];
+            try {
+                $pdo->beginTransaction();
+                if (!empty($settings['comment_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $comment['status'] === 'published') {
+                    $recoveryResult = sr_community_reverse_asset_grant_for_operation($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $commentId, 'comment_reward_reversal', 'community.comment.reward_reversal', 'community.comment.reward_reversal', [
+                        'operation_event_key' => 'community.comment.status_updated',
+                        'before_status' => (string) $comment['status'],
+                        'after_status' => $status,
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'route_context' => 'admin.community.comments',
+                    ]);
+                    if (empty($recoveryResult['operation_allowed'])) {
+                        throw new RuntimeException(sr_community_asset_reversal_error_message($recoveryResult, 'community::action.admin.comment_reward_reversal_balance_low', 'community::action.admin.comment_reward_reversal_status_failed'));
+                    }
                 }
-            }
-
-            if ($errors === []) {
                 if ($status === 'hidden') {
                     sr_community_update_comment_status($pdo, $commentId, $status, $communityHiddenOptionsFromPost((int) $account['id']));
                 } else {
@@ -597,11 +678,22 @@ if (sr_request_method() === 'POST') {
                         'before_status' => (string) $comment['status'],
                         'after_status' => $status,
                         'post_id' => (int) $comment['post_id'],
+                        'recovery_status' => (string) ($recoveryResult['recovery_status'] ?? 'not_needed'),
+                        'recovery_failure_id' => (int) ($recoveryResult['recovery_failure_id'] ?? 0),
                         'community_level_value' => (int) ($levelSnapshot['level_value'] ?? 0),
                         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
                     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
                 ]);
+                $pdo->commit();
                 $notice = sr_t('community::action.admin.comment_status_updated');
+                if ((string) ($recoveryResult['recovery_status'] ?? '') === 'unrecovered') {
+                    $notice .= ' 보상 회수 미완료 기록을 남겼습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errors[] = $exception->getMessage() !== '' ? $exception->getMessage() : sr_t('community::action.admin.comment_reward_reversal_status_failed');
             }
         }
     } else {
