@@ -21,6 +21,53 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url($memberAdminPage === 'members
 $memberSort = isset($memberSort) && is_array($memberSort) ? $memberSort : sr_admin_member_default_sort();
 $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
+$memberAdminProfileExtraFieldDefinitions = isset($memberAdminProfileExtraFieldDefinitions) && is_array($memberAdminProfileExtraFieldDefinitions) ? $memberAdminProfileExtraFieldDefinitions : [];
+$memberAdminProfileExtraValues = isset($memberAdminProfileExtraValues) && is_array($memberAdminProfileExtraValues) ? $memberAdminProfileExtraValues : [];
+$memberAdminProfileExtraByKey = [];
+foreach ($memberAdminProfileExtraFieldDefinitions as $memberAdminProfileExtraDefinition) {
+    $memberAdminProfileExtraByKey[(string) ($memberAdminProfileExtraDefinition['key'] ?? '')] = $memberAdminProfileExtraDefinition;
+}
+$memberAdminProfileOrderItems = sr_member_profile_field_order_items($memberSettings ?? [], $memberAdminProfileExtraFieldDefinitions);
+$memberAdminProfileExtraFieldHtml = static function (array $definition, array $values): string {
+    $key = (string) ($definition['key'] ?? '');
+    if ($key === '') {
+        return '';
+    }
+
+    $label = (string) ($definition['label'] ?? $key);
+    $type = (string) ($definition['type'] ?? 'text');
+    $required = !empty($definition['required']);
+    $id = 'modules_member_admin_edit_profile_extra_' . $key;
+    $name = 'member_profile_fields[' . $key . ']';
+    $rawValue = $values[$key] ?? '';
+    $value = is_array($rawValue) ? '' : (string) $rawValue;
+    $requiredHtml = $required ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : '';
+    $requiredAttribute = $required ? ' required' : '';
+    $html = '<div class="form-row">';
+    $html .= '<label class="form-label" for="' . sr_e($id) . '">' . sr_e($label) . $requiredHtml . '</label>';
+    $html .= '<div class="form-field">';
+    if ($type === 'textarea') {
+        $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" maxlength="5000" class="form-textarea form-control-full"' . $requiredAttribute . '>' . sr_e($value) . '</textarea>';
+    } elseif ($type === 'select') {
+        $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select"' . $requiredAttribute . '>';
+        $html .= '<option value="">' . sr_e('선택') . '</option>';
+        foreach ((array) ($definition['options'] ?? []) as $option) {
+            $option = (string) $option;
+            $html .= '<option value="' . sr_e($option) . '"' . ($value === $option ? ' selected' : '') . '>' . sr_e($option) . '</option>';
+        }
+        $html .= '</select>';
+    } elseif ($type === 'checkbox') {
+        $html .= '<label class="form-check form-label" for="' . sr_e($id) . '">';
+        $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . $requiredAttribute . '>';
+        $html .= sr_admin_choice_label_html($label);
+        $html .= '</label>';
+    } else {
+        $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input form-control-full"' . $requiredAttribute . '>';
+    }
+    $html .= '</div></div>';
+
+    return $html;
+};
 $createStatuses = sr_admin_member_create_allowed_statuses();
 $memberLocaleOptions = sr_supported_locales($site ?? null);
 $memberAdminHelpOpenLabel = sr_t('member::help.open');
@@ -231,6 +278,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </section>
+            <?php if ($memberAdminProfileExtraFieldDefinitions !== []) { ?>
+                <section class="card">
+                    <h2>선택 프로필</h2>
+                    <p class="form-help">회원 설정에서 관리자 수정 화면 표시를 켠 추가 프로필 항목입니다.</p>
+                    <?php foreach ($memberAdminProfileOrderItems as $memberAdminProfileOrderItem) { ?>
+                        <?php if ((string) ($memberAdminProfileOrderItem['kind'] ?? '') === 'extra') { ?>
+                            <?php echo $memberAdminProfileExtraFieldHtml($memberAdminProfileExtraByKey[(string) ($memberAdminProfileOrderItem['key'] ?? '')] ?? [], $memberAdminProfileExtraValues); ?>
+                        <?php } ?>
+                    <?php } ?>
+                </section>
+            <?php } ?>
             <div class="form-sticky-actions form-actions form-actions-split">
                 <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>

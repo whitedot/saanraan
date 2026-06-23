@@ -22,6 +22,13 @@ if (sr_request_method() === 'GET' && in_array($memberAdminPage, ['create_form', 
 $memberCreateValues = sr_admin_member_create_default_values(is_array($site ?? null) ? $site : []);
 $memberEditValues = [];
 $memberSettings = sr_member_settings($pdo);
+$memberAdminProfileExtraFieldDefinitions = array_values(array_filter(
+    sr_member_profile_extra_field_definitions($memberSettings),
+    static function (array $definition): bool {
+        return !empty($definition['show_in_admin']);
+    }
+));
+$memberAdminProfileExtraValues = [];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -52,6 +59,9 @@ if (sr_request_method() === 'POST') {
     }
     if (isset($postResult['edit_values']) && is_array($postResult['edit_values'])) {
         $memberEditValues = $postResult['edit_values'];
+    }
+    if (isset($postResult['profile_extra_values']) && is_array($postResult['profile_extra_values'])) {
+        $memberAdminProfileExtraValues = $postResult['profile_extra_values'];
     }
 
     $redirectPath = '/admin/members';
@@ -85,6 +95,9 @@ if ($memberAdminPage === 'edit_form') {
     $editMember = sr_admin_member_by_id($pdo, $editMemberId);
     if (is_array($editMember) && $memberEditValues === []) {
         $memberEditValues = $editMember;
+    }
+    if (is_array($editMember) && $memberAdminProfileExtraValues === []) {
+        $memberAdminProfileExtraValues = sr_member_profile_extra_field_plain_values($pdo, (int) $editMember['id']);
     }
     if (!is_array($editMember) && $errors === []) {
         $errors[] = sr_t('member::action.admin.member_edit_not_found');

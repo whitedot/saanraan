@@ -367,7 +367,7 @@ $memberSettingsSectionNavItems = [
                         </label>
                         <label class="form-check form-label" for="member_profile_extra_field_show_in_admin">
                             <input id="member_profile_extra_field_show_in_admin" type="checkbox" value="1" class="form-switch form-switch-light" data-member-profile-extra-field-input="show_in_admin">
-                            <?php echo sr_admin_choice_label_html('관리자 목록 표시'); ?>
+                            <?php echo sr_admin_choice_label_html('관리자 수정 화면 표시'); ?>
                         </label>
                     </div>
                 </div>
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     display.push('프로필');
                 }
                 if (field.show_in_admin) {
-                    display.push('관리자 목록');
+                    display.push('관리자 수정');
                 }
             }
             displayCell.textContent = display.join(' / ');

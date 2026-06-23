@@ -660,6 +660,16 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $emailInput = sr_post_string_without_truncation('email', 255);
         $email = sr_normalize_identifier((string) ($emailInput ?? ''));
         $memberSettings = sr_member_settings($pdo);
+        $profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
+        $adminProfileExtraFieldDefinitions = array_values(array_filter(
+            $profileExtraFieldDefinitions,
+            static function (array $definition): bool {
+                return !empty($definition['show_in_admin']);
+            }
+        ));
+        $storedProfileExtraFieldValues = sr_member_profile_extra_field_plain_values($pdo, $targetAccountId);
+        $postedProfileExtraFieldValues = sr_member_profile_extra_field_input_values($adminProfileExtraFieldDefinitions);
+        $profileExtraFieldValues = array_merge($storedProfileExtraFieldValues, $postedProfileExtraFieldValues);
         $displayName = sr_member_normalize_display_name(sr_post_string('display_name', 120));
         $nickname = sr_member_normalize_nickname(sr_post_string('nickname', 80));
         $locale = sr_post_string('locale', 20);
@@ -671,6 +681,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             'locale' => $locale,
             'status' => $status,
         ];
+        $resultExtra['profile_extra_values'] = $profileExtraFieldValues;
 
         if ($emailInput === null) {
             $errors[] = sr_t('member::action.register.email_too_long');
@@ -686,6 +697,10 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
 
         foreach (sr_member_nickname_validation_errors($pdo, $nickname, $memberSettings, $targetAccountId) as $nicknameError) {
             $errors[] = $nicknameError;
+        }
+
+        foreach (sr_member_validate_profile_extra_field_values($adminProfileExtraFieldDefinitions, $postedProfileExtraFieldValues) as $profileError) {
+            $errors[] = $profileError;
         }
 
         if (!in_array($locale, $supportedLocales, true)) {
@@ -758,6 +773,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 } else {
                     sr_member_delete_nickname($pdo, $targetAccountId);
                 }
+                if ($profileExtraFieldDefinitions !== []) {
+                    sr_member_save_profile_extra_field_values($pdo, $targetAccountId, $profileExtraFieldDefinitions, $profileExtraFieldValues);
+                }
 
                 $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
                 if ($revokedSessions < 0) {
@@ -791,6 +809,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'nickname_changed' => $nickname !== (string) ($targetAccount['nickname'] ?? ''),
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
+                    'profile_extra_fields_changed' => $postedProfileExtraFieldValues !== array_intersect_key($storedProfileExtraFieldValues, $postedProfileExtraFieldValues),
                     'privacy_cleanup' => $privacyCleanupResults,
                 ],
             ]);
