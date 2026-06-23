@@ -19,11 +19,14 @@ return static function (PDO $pdo, int $accountId): array {
                     failure_reason, status, actor_account_id, actor_type, operation_context_json,
                     attempt_count, version, created_at, updated_at, last_attempted_at, resolved_at
              FROM sr_asset_recovery_failures
-             WHERE account_id = :account_id
+             WHERE account_id = :account_id OR actor_account_id = :actor_account_id
              ORDER BY id ASC
              LIMIT 1000'
         );
-        $stmt->execute(['account_id' => $accountId]);
+        $stmt->execute([
+            'account_id' => $accountId,
+            'actor_account_id' => $accountId,
+        ]);
         $failures = $stmt->fetchAll();
     } catch (Throwable) {
         $failures = [];

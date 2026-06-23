@@ -75,6 +75,8 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $postExtraValuesAnonymizedCount = 0;
     $postFieldValuesAnonymizedCount = 0;
     $submissionConsentAnonymizedCount = 0;
+    $assetRecoveryFailureAnonymizedCount = 0;
+    $assetRecoveryFailureActorLinksCleared = 0;
 
     foreach (['sr_community_posts', 'sr_community_comments'] as $tableName) {
         if (!$columnExists($pdo, $tableName, 'author_public_name_snapshot')) {
@@ -195,6 +197,43 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $submissionConsentAnonymizedCount = $stmt->rowCount();
     }
 
+    if ($columnExists($pdo, 'sr_community_asset_recovery_failures', 'account_id')) {
+        $hasRecoveryActorColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'actor_account_id');
+        $hasRecoveryContextColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'operation_context_json');
+        $setParts = ['account_id = 0'];
+        if ($hasRecoveryActorColumn) {
+            $setParts[] = 'actor_account_id = CASE WHEN actor_account_id = :actor_account_id THEN NULL ELSE actor_account_id END';
+        }
+        if ($hasRecoveryContextColumn) {
+            $setParts[] = "operation_context_json = '{}'";
+        }
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_asset_recovery_failures
+             SET ' . implode(",\n                 ", $setParts) . '
+             WHERE account_id = :account_id'
+        );
+        $params = ['account_id' => $accountId];
+        if ($hasRecoveryActorColumn) {
+            $params['actor_account_id'] = $accountId;
+        }
+        $stmt->execute($params);
+        $assetRecoveryFailureAnonymizedCount = $stmt->rowCount();
+
+        if ($hasRecoveryActorColumn) {
+            $actorSetParts = ['actor_account_id = NULL'];
+            if ($hasRecoveryContextColumn) {
+                $actorSetParts[] = "operation_context_json = '{}'";
+            }
+            $stmt = $pdo->prepare(
+                'UPDATE sr_community_asset_recovery_failures
+                 SET ' . implode(",\n                     ", $actorSetParts) . '
+                 WHERE actor_account_id = :actor_account_id'
+            );
+            $stmt->execute(['actor_account_id' => $accountId]);
+            $assetRecoveryFailureActorLinksCleared = $stmt->rowCount();
+        }
+    }
+
     return [
         'cleaned' => true,
         'event_type' => (string) ($context['event_type'] ?? ''),
@@ -206,6 +245,8 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_post_extra_values_anonymized_count' => $postExtraValuesAnonymizedCount,
         'community_post_field_values_anonymized_count' => $postFieldValuesAnonymizedCount,
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
+        'community_asset_recovery_failure_anonymized_count' => $assetRecoveryFailureAnonymizedCount,
+        'community_asset_recovery_failure_actor_links_cleared' => $assetRecoveryFailureActorLinksCleared,
         'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,
         'community_series_metadata_anonymized_count' => $seriesMetadataCount,
     ];

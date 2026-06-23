@@ -122,10 +122,12 @@ function sr_privacy_cleanup_runtime_check_asset_ledger(): void
     $result = $cleanup($pdo, 7, []);
     sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'asset_ledger cleanup must return cleaned=true.');
     sr_privacy_cleanup_runtime_assert((int) ($result['asset_recovery_failures_anonymized'] ?? -1) === 1, 'asset_ledger cleanup must report recovery failure anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['asset_recovery_failure_actor_links_cleared'] ?? -1) === 1, 'asset_ledger cleanup must report actor link cleanup count.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_asset_recovery_failures WHERE id = 1') === 0, 'asset_ledger cleanup must remove target account id.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_asset_recovery_failures WHERE id = 1') === 'anonymized:asset_recovery:1', 'asset_ledger cleanup must rewrite target dedupe key.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT operation_context_json FROM sr_asset_recovery_failures WHERE id = 1') === '{}', 'asset_ledger cleanup must clear operation context.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_asset_recovery_failures WHERE id = 2') === 8, 'asset_ledger cleanup must not alter other account rows.');
+    sr_privacy_cleanup_runtime_assert(sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT actor_account_id FROM sr_asset_recovery_failures WHERE id = 2') === null, 'asset_ledger cleanup must clear actor-only recovery links.');
 }
 
 function sr_privacy_cleanup_runtime_check_survey(): void
@@ -323,6 +325,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, actor_account_id INTEGER NULL, operation_context_json TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, downloader_account_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL)');
     $pdo->exec(
         'CREATE TABLE sr_community_submission_consents (
@@ -344,6 +347,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_series_items (created_by) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_series_scraps (account_id) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_asset_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_community_asset_recovery_failures (account_id, actor_account_id, operation_context_json) VALUES (7, 7, '{\"route_context\":\"admin.community.posts\"}'), (8, 7, '{\"route_context\":\"admin.community.posts\"}')");
     $pdo->exec("INSERT INTO sr_community_publisher_reward_logs (downloader_account_id, publisher_account_id) VALUES (7, 8), (8, 7)");
     $pdo->exec("INSERT INTO sr_community_submission_consents (account_id, ip_hash, user_agent_hash) VALUES (7, 'ip7', 'ua7'), (8, 'ip8', 'ua8')");
 
@@ -362,6 +366,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_extra_values_anonymized_count'] ?? -1) === 1, 'community cleanup must report post extra value snapshot anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_field_values_anonymized_count'] ?? -1) === 2, 'community cleanup must report post field values anonymization count including legacy policy rows.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_submission_consent_anonymized_count'] ?? -1) === 1, 'community cleanup must report submission consent anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_asset_recovery_failure_anonymized_count'] ?? -1) === 1, 'community cleanup must report asset recovery failure anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_asset_recovery_failure_actor_links_cleared'] ?? -1) === 1, 'community cleanup must report asset recovery actor link cleanup count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_series_scrap_deleted_count'] ?? -1) === 1, 'community cleanup must report series scrap deletion count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_series_metadata_anonymized_count'] ?? -1) === 4, 'community cleanup must report series metadata anonymization count.');
 
@@ -381,6 +387,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series WHERE id = 1 AND created_by IS NULL AND updated_by IS NULL AND moderated_by IS NULL') === 1, 'community cleanup must clear target series metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series_items WHERE id = 1 AND created_by IS NULL') === 1, 'community cleanup must clear target series item metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_community_asset_logs WHERE id = 1') === 7, 'community cleanup must retain account id on asset logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_community_asset_recovery_failures WHERE id = 1') === 0, 'community cleanup must anonymize target asset recovery failure account id.');
+    sr_privacy_cleanup_runtime_assert(sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT actor_account_id FROM sr_community_asset_recovery_failures WHERE id = 2') === null, 'community cleanup must clear actor-only asset recovery links.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT downloader_account_id FROM sr_community_publisher_reward_logs WHERE id = 1') === 7, 'community cleanup must retain downloader account id on publisher reward logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT publisher_account_id FROM sr_community_publisher_reward_logs WHERE id = 2') === 7, 'community cleanup must retain publisher account id on publisher reward logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_submission_consents WHERE id = 1 AND account_id IS NULL AND ip_hash IS NULL AND user_agent_hash IS NULL') === 1, 'community cleanup must anonymize target submission consent.');

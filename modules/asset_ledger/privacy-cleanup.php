@@ -38,8 +38,24 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'updated_at' => sr_now(),
     ]);
 
+    $targetAccountRows = $stmt->rowCount();
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_asset_recovery_failures
+         SET actor_account_id = NULL,
+             operation_context_json = '{}',
+             version = version + 1,
+             updated_at = :updated_at
+         WHERE actor_account_id = :actor_account_id"
+    );
+    $stmt->execute([
+        'actor_account_id' => $accountId,
+        'updated_at' => sr_now(),
+    ]);
+
     return [
         'cleaned' => true,
-        'asset_recovery_failures_anonymized' => $stmt->rowCount(),
+        'asset_recovery_failures_anonymized' => $targetAccountRows,
+        'asset_recovery_failure_actor_links_cleared' => $stmt->rowCount(),
     ];
 };

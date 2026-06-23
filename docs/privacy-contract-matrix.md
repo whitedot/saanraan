@@ -23,7 +23,7 @@
 | `antispam` | `no_member_personal_data` | 없음 | 없음 | 자동등록방지 설정, 산술 challenge 세션, 외부 provider 검증 요청만 다루며 현재 설치 SQL 또는 update SQL 기준 회원 귀속 개인정보를 저장하지 않는다. |
 | `antispam_captcha_providers` | `no_member_personal_data` | 없음 | 없음 | Turnstile, hCaptcha, reCAPTCHA provider 계약만 제공하며 설정 저장과 검증 정책은 `antispam` 모듈이 소유한다. |
 | `asset_exchange` | `export_retained` | 제공 | 없음 | 회원별 환전 이력과 실행자 메타데이터는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
-| `asset_ledger` | `export_cleanup` | 제공 | 제공 | 공통 원장 점검 helper와 보상 회수 실패 큐를 제공한다. `sr_asset_recovery_failures`는 실패한 회수 작업의 account 연결과 금액을 저장하며, 사본 제공과 탈퇴/익명화 cleanup 계약은 `asset_ledger`가 소유한다. |
+| `asset_ledger` | `export_cleanup` | 제공 | 제공 | 공통 원장 점검 helper와 보상 회수 실패 큐를 제공한다. `sr_asset_recovery_failures`는 실패한 회수 작업의 account/actor 연결과 금액을 저장하며, 사본 제공과 탈퇴/익명화 cleanup 계약은 `asset_ledger`가 소유한다. |
 | `banner` | `no_member_personal_data` | 없음 | 없음 | 배너 설정은 회원 귀속 데이터가 아니다. 클릭 dedupe hash는 account/session/IP/UA에서 파생될 수 있는 가명성 운영 데이터로 분리해 보관일 정책에 따른다. |
 | `ckeditor` | `no_member_personal_data` | 없음 | 없음 | 에디터 asset과 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
 | `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 동의 증적, 접근권, 보상 로그, 보상 미회수 기록 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 기록은 금액성 운영 증빙으로 account 연결과 금액을 보존한다. |
