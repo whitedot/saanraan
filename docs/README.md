@@ -126,6 +126,7 @@
 - [개선 보강 검증 기록 - 2026-06-11](records/improvement-hardening-verification-2026-06-11.md)
 - [HTML Purifier 배포 방식 결정 - 2026-06-11](records/htmlpurifier-packaging-decision-2026-06-11.md)
 - [이슈 #348 절차형 구조 후속 점검 기록 - 2026-06-17](records/issue-348-procedural-structure-followup-2026-06-17.md)
+- [문서 상태 업데이트 - 2026-06-23](records/documentation-status-2026-06-23.md)
 
 ## Wiki로 충분한 문서
 
