@@ -2,6 +2,8 @@
 
 이 문서는 saanraan이 공유호스팅 환경에서 성능을 어떻게 다루는지 정리한다. 목표는 대형 트래픽을 약속하는 것이 아니라, 작은 PHP 실행 기반에서 병목을 예측 가능하게 만들고 보안/개인정보 경계를 깨는 캐시를 피하는 것이다.
 
+운영 상태 점검 기준은 [운영 상태 점검 기준](operational-status.md)과 함께 본다. 성능 수동 점검 결과는 [검증 상태와 증거 기준](verification-status.md)과 `docs/records/`의 릴리스 검증 기록에 연결한다.
+
 ## 기본 방향
 
 - 상시 worker, Redis, queue daemon, 별도 cache server를 1.0 기본 요구사항으로 두지 않는다.

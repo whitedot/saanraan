@@ -1,6 +1,6 @@
 # 저장소 문서 안내
 
-이 디렉터리는 산란을 소개하고, 설치·배포·기여·모듈 개발에 꼭 필요한 문서만 둔다. 현재 상태 점검, 검증 기록, 구현 전 계획은 저장소 문서로 누적하지 않고 GitHub 이슈와 마일스톤에서 관리한다.
+이 디렉터리는 산란을 소개하고, 설치·배포·기여·모듈 개발에 필요한 문서와 릴리스 판단에 필요한 검증 기준 문서를 둔다. 현재 구현과 직접 연결되는 상태표, 검증 기준, 리스크 문서는 저장소에 두고, 새 기능 제안과 후속 작업은 GitHub 이슈와 마일스톤에서 관리한다.
 
 ## 읽는 순서
 
@@ -13,10 +13,13 @@
 | 관리자 화면 작성 | [관리자 UI 작성 기준](admin-ui-guide.md), [관리자 목록 컬럼 기준](admin-list-columns.md) |
 | 보안과 정책 | [산란 보안 모델](security-model.md), [보안 체크리스트](security-checklist.md), [보안 제보와 처리 기준](security-response-policy.md), [DB 접근 정책](database-access-policy.md), [외부 의존성 배치 기준](dependency-policy.md) |
 | 운영 정책 | [성능과 캐시 기준](performance-policy.md), [개인정보 처리활동 기록 기준](privacy-processing-records.md), [Rich Text Sanitizer 정책](rich-text-sanitizer-policy.md) |
+| 검증과 리스크 | [모듈 상태표](module-status.md), [검증 상태와 증거 기준](verification-status.md), [프로젝트 리스크 레지스터](risk-register.md), [릴리스 검증 기록 템플릿](release-verification-template.md), [릴리스 절차](release-process.md), [운영 상태 점검 기준](operational-status.md), [Smoke 테스트 기준](smoke-test.md) |
+| 정책 기록 | [마일스톤 28 통화·정산 정책 기록 - 2026-06-11](records/milestone-28-currency-settlement-policy-2026-06-11.md) |
 
 ## 문서 운영 기준
 
-- 프로젝트의 방향, 사용 방법, 기여 방법, 배포와 보안 기준을 이해하는 데 필요한 문서만 저장소에 둔다.
+- 프로젝트의 방향, 사용 방법, 기여 방법, 배포와 보안 기준을 이해하는 데 필요한 문서를 저장소에 둔다.
 - 기능 계획, 후속 작업, 마일스톤별 진행 상황은 GitHub 이슈와 마일스톤에서 관리한다.
-- 일회성 점검 기록이나 현재 상태 스냅샷은 저장소에 새 문서로 쌓지 않는다.
+- 릴리스 판단에 필요한 상태 등급, 검증 증거 수준, 리스크, smoke 기준은 저장소 문서와 `docs/records/`의 검증 기록으로 남긴다.
+- 일회성 점검 기록은 검증 기준에 연결되는 경우에만 `docs/records/`에 남기고, 구현 상태 설명은 현재 코드와 Wiki를 우선한다.
 - DB 명세, 관리자 화면별 항목 설명, 운영 중 참고 문서는 GitHub Wiki를 우선한다.

@@ -10,11 +10,11 @@
 | --- | --- |
 | 프로젝트 방향, 경쟁 범위, 비목표 | [산란 포지셔닝 기준](positioning.md), GitHub 이슈와 마일스톤 |
 | 코어와 모듈 경계 | [핵심 설계 결정](core-decisions.md), [모듈 작성 가이드](module-guide.md) |
-| 모듈 상태와 릴리스 판단 | GitHub 이슈와 마일스톤 |
+| 모듈 상태와 릴리스 판단 | [1.0 범위](1.0-scope.md), [모듈 상태표](module-status.md), [검증 상태와 증거 기준](verification-status.md), [운영 상태 점검 기준](operational-status.md) |
 | 보안, 인증, 개인정보 | [산란 보안 모델](security-model.md), [보안 체크리스트](security-checklist.md) |
 | DB, 원장, 금액성 흐름 | [DB 접근 정책](database-access-policy.md), 관련 GitHub 이슈 |
 | 외부 라이브러리와 vendored asset | [외부 의존성 배치 기준](dependency-policy.md) |
-| 배포, smoke, 릴리스 기록 | GitHub 이슈와 마일스톤 체크리스트 |
+| 배포, smoke, 릴리스 기록 | [Smoke 테스트 기준](smoke-test.md), [릴리스 절차](release-process.md), [릴리스 검증 기록 템플릿](release-verification-template.md) |
 
 ## 작업 범위 잡기
 

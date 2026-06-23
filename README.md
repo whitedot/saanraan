@@ -50,6 +50,8 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 
 [산란 특장점 소개](docs/operator-feature-list.md)는 회원, 콘텐츠, 커뮤니티, 퀴즈, 설문, 리액션, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다. 기능 목록은 프로젝트가 어떤 방향의 모듈형 베이스인지 빠르게 이해하기 위한 소개 문서입니다.
 
+운영 신뢰성 판단은 기능 목록만으로 하지 않습니다. 번들별 상태 등급은 [모듈 상태표](docs/module-status.md), 검증 증거 수준은 [검증 상태와 증거 기준](docs/verification-status.md), 남은 리스크는 [프로젝트 리스크 레지스터](docs/risk-register.md)를 함께 봅니다.
+
 구현된 기반:
 
 - 웹 설치와 설치 후 모듈 설치/활성화/업데이트 흐름.
@@ -63,7 +65,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 - 알림 모듈, 사이트 알림, 이메일 delivery queue, 도메인 이벤트 템플릿.
 - 포인트 유효기간/만료를 포함한 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면, 포인트/금액 항목 간 환전 정책과 실행 로그.
 - 쿠폰·이용권 모듈과 콘텐츠/커뮤니티 유료 열람 우선 적용, 회원 탈퇴 시 쿠폰 상태 처리.
-- 임베드 매니저 공식 선택 모듈과 본문 URL 임베드 cache 점검.
+- 임베드 매니저 공식 선택 모듈과 본문 URL 임베드 캐시 점검.
 - CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
 - 로컬 파일 저장과 S3 호환 저장소 helper, Apache/nginx 배포 보호 기준.
 
@@ -109,6 +111,8 @@ php .tools/bin/check.php
 | 기여 | [기여 기준](CONTRIBUTING.md), [기여자 작업 기준](docs/contribution-guide.md) |
 | 보안과 정책 | [SECURITY.md](SECURITY.md), [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [보안 제보와 처리 기준](docs/security-response-policy.md), [DB 접근 정책](docs/database-access-policy.md), [외부 의존성 배치 기준](docs/dependency-policy.md) |
 | 개인정보와 본문 | [개인정보 처리활동 기록 기준](docs/privacy-processing-records.md), [Rich Text Sanitizer 정책](docs/rich-text-sanitizer-policy.md) |
+| 성능과 운영 | [성능과 캐시 기준](docs/performance-policy.md), [운영 상태 점검 기준](docs/operational-status.md), [Smoke 테스트 기준](docs/smoke-test.md) |
+| 검증과 리스크 | [모듈 상태표](docs/module-status.md), [검증 상태와 증거 기준](docs/verification-status.md), [프로젝트 리스크 레지스터](docs/risk-register.md), [릴리스 검증 기록 템플릿](docs/release-verification-template.md) |
 | 예제 | [sample_module](examples/sample_module/README.md) |
 
 구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 주요 문서 안내는 프로젝트 소개, 사용 방법, 기여 방법, 배포와 보안 기준 중심으로 유지합니다.
