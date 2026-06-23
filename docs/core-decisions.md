@@ -103,7 +103,7 @@
 
 코어에 두는 것을 기본값으로 삼지 않는다. 여러 모듈에서 반복되더라도 데이터 모델이나 업무 규칙의 모양을 강하게 유도한다면 코어 primitive가 아니라 공유 도메인 패턴이다.
 
-현재 공유 도메인 패턴은 코어 밖 공식 선택 모듈로 이동한다. `asset_ledger`는 자산 원장 primitive, `embed_manager`는 본문 임베드 참조와 legacy 링크 카드 호환 처리를 소유한다.
+현재 공유 도메인 패턴은 코어 밖 공식 선택 모듈로 이동한다. `asset_ledger`는 자산 원장 primitive, `embed_manager`는 본문 URL 임베드 cache와 legacy 링크 카드 호환 처리를 소유한다.
 
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 거래 insert만 `asset_ledger` 공식 선택 모듈의 helper로 줄이고, 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 

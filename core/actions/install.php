@@ -126,7 +126,7 @@ $optionalModules = [
         'name' => '임베드 매니저',
         'version' => '2026.06.001',
         'label' => '임베드 매니저',
-        'description' => '본문 임베드 참조 점검과 legacy 링크 카드 호환 helper를 설치합니다.',
+        'description' => '본문 URL 임베드 cache 점검과 legacy 링크 카드 호환 helper를 설치합니다.',
     ],
     'point' => [
         'name' => '포인트',
