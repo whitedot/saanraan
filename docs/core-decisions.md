@@ -129,7 +129,7 @@
 
 `embed_manager` 유지 조건:
 
-- 내부 키는 `embed_manager`, 운영자 표시명과 메뉴명은 `임베드 매니저`다.
+- 내부 키는 `embed_manager`, 운영자 표시명은 `임베드 매니저`이고 관리자 메뉴 그룹명은 `임베드 관리`다. 하위 메뉴는 `임베드 캐시 관리`와 `환경설정`으로 분리한다.
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
