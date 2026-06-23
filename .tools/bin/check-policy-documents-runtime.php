@@ -14,6 +14,34 @@ require_once $root . '/modules/policy_documents/helpers.php';
 
 $errors = [];
 
+foreach ([
+    'modules/policy_documents/install.sql',
+    'modules/policy_documents/helpers.php',
+    'modules/policy_documents/actions/admin-policy-documents.php',
+    'modules/policy_documents/views/admin-policy-documents.php',
+] as $policyDocumentSourcePath) {
+    $policyDocumentSource = file_get_contents($policyDocumentSourcePath);
+    if (!is_string($policyDocumentSource)) {
+        $errors[] = 'policy document source must be readable: ' . $policyDocumentSourcePath;
+        continue;
+    }
+
+    if (str_contains($policyDocumentSource, 'document_type')) {
+        $errors[] = 'legacy policy document document_type column must stay removed from ' . $policyDocumentSourcePath;
+    }
+}
+foreach (glob('modules/policy_documents/updates/*.sql') ?: [] as $policyDocumentUpdatePath) {
+    $policyDocumentUpdate = file_get_contents($policyDocumentUpdatePath);
+    if (!is_string($policyDocumentUpdate)) {
+        $errors[] = 'policy document update source must be readable: ' . $policyDocumentUpdatePath;
+        continue;
+    }
+
+    if (str_contains($policyDocumentUpdate, 'document_type')) {
+        $errors[] = 'legacy policy document document_type cleanup update must stay removed from ' . $policyDocumentUpdatePath;
+    }
+}
+
 function sr_policy_documents_check_assert(bool $condition, string $message): void
 {
     global $errors;

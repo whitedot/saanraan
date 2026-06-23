@@ -97,17 +97,6 @@ function sr_site_menu_admin_subtree_max_relative_depth(PDO $pdo, int $itemId): i
     return $maxDepth;
 }
 
-function sr_site_menu_admin_is_legacy_url_unique_violation(Throwable $exception): bool
-{
-    if (!$exception instanceof PDOException) {
-        return false;
-    }
-
-    $message = $exception->getMessage();
-    return str_contains($message, 'uq_sr_site_menu_items_menu_url')
-        || (str_contains($message, 'Duplicate entry') && str_contains($message, 'site_menu_items_menu_url'));
-}
-
 function sr_site_menu_admin_publish_draft(PDO $pdo, bool $includeIconName): int
 {
     $now = sr_now();
@@ -360,15 +349,7 @@ if (sr_request_method() === 'POST') {
                      SET parent_id = :parent_id, label = :label, url = :url, ' . $iconNameSetSql . 'target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
                      WHERE id = :id AND menu_id = :menu_id'
                 );
-                try {
-                    $stmt->execute($itemSaveParams);
-                } catch (PDOException $exception) {
-                    if (!sr_site_menu_admin_is_legacy_url_unique_violation($exception)) {
-                        throw $exception;
-                    }
-
-                    $errors[] = sr_t('site_menu::action.admin.item_url_schema_update_required');
-                }
+                $stmt->execute($itemSaveParams);
             } else {
                 $itemIconColumnSql = $siteMenuIconNameColumnExists ? 'icon_name, ' : '';
                 $itemIconValueSql = $siteMenuIconNameColumnExists ? ':icon_name, ' : '';
@@ -392,16 +373,8 @@ if (sr_request_method() === 'POST') {
                 if ($siteMenuIconNameColumnExists) {
                     $itemSaveParams['icon_name'] = $iconName;
                 }
-                try {
-                    $stmt->execute($itemSaveParams);
-                    $itemId = (int) $pdo->lastInsertId();
-                } catch (PDOException $exception) {
-                    if (!sr_site_menu_admin_is_legacy_url_unique_violation($exception)) {
-                        throw $exception;
-                    }
-
-                    $errors[] = sr_t('site_menu::action.admin.item_url_schema_update_required');
-                }
+                $stmt->execute($itemSaveParams);
+                $itemId = (int) $pdo->lastInsertId();
             }
 
             if ($errors === []) {

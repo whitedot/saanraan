@@ -86,6 +86,35 @@ require_once 'modules/logo_manager/helpers.php';
 
 $errors = [];
 
+foreach ([
+    'modules/logo_manager/updates/2026.06.001.sql',
+    'modules/logo_manager/updates/2026.06.002.sql',
+    'modules/logo_manager/updates/2026.06.003.sql',
+    'modules/logo_manager/updates/2026.06.004.sql',
+] as $legacyUpdatePath) {
+    if (is_file($legacyUpdatePath)) {
+        $errors[] = 'logo manager update-only compatibility file must stay removed: ' . $legacyUpdatePath;
+    }
+}
+
+$logoManagerSources = array_merge(
+    ['modules/logo_manager/install.sql', 'modules/logo_manager/helpers.php', 'modules/logo_manager/actions/admin-logo-manager.php'],
+    glob('modules/logo_manager/updates/*.sql') ?: []
+);
+foreach ($logoManagerSources as $sourcePath) {
+    $source = file_get_contents($sourcePath);
+    if (!is_string($source)) {
+        $errors[] = 'logo manager source must be readable: ' . $sourcePath;
+        continue;
+    }
+
+    foreach (['sr_logo_manager_assignments', 'sr_logo_manager_assets'] as $legacyTable) {
+        if (str_contains($source, $legacyTable)) {
+            $errors[] = 'logo manager legacy table reference must stay removed from ' . $sourcePath . ': ' . $legacyTable;
+        }
+    }
+}
+
 function sr_logo_manager_favicon_check_add_error(string $message): void
 {
     global $errors;

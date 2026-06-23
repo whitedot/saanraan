@@ -18,7 +18,6 @@ FROM (
         SELECT '/admin' AS menu_path
         UNION ALL SELECT '/admin/settings'
         UNION ALL SELECT '/admin/modules'
-        UNION ALL SELECT '/admin/menu'
         UNION ALL SELECT '/admin/audit-logs'
         UNION ALL SELECT '/admin/members'
         UNION ALL SELECT '/admin/member-settings'

@@ -37,8 +37,6 @@ function sr_point_settings(PDO $pdo): array
         $settings['unit_label'] = 'P';
     }
     $settings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
-    unset($settings['manual_adjust_group_policies_json']);
-
     return $settings;
 }
 
@@ -86,13 +84,6 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
             'updated_at' => $now,
         ]);
     }
-
-    $stmt = $pdo->prepare(
-        "DELETE FROM sr_module_settings
-         WHERE module_id = :module_id
-           AND setting_key = 'manual_adjust_group_policies_json'"
-    );
-    $stmt->execute(['module_id' => (int) $module['id']]);
 
     sr_clear_module_settings_cache('point');
 }

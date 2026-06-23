@@ -422,8 +422,8 @@ function sr_admin_status_description_options(string $context, array $labels = []
             'dismissed' => '조치하지 않기로 판단한 신고입니다.',
         ],
         'embed_manager_status' => [
-            'active' => 'URL 임베드 cache가 정상적으로 연결되어 있습니다.',
-            'removed' => '원본 URL 또는 cache 대상이 제거된 상태입니다.',
+            'active' => 'URL 임베드 캐시가 정상적으로 연결되어 있습니다.',
+            'removed' => '원본 URL 또는 캐시 대상이 제거된 상태입니다.',
             'broken' => 'URL 임베드 대상 연결이 깨져 확인이 필요합니다.',
             'private' => '비공개 대상이라 공개 렌더링이 제한됩니다.',
             'deleted' => '삭제된 대상으로 일반 렌더링에서 제외됩니다.',

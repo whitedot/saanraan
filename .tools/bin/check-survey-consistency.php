@@ -75,13 +75,11 @@ foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NU
         'Survey display override update must add individual skin column'
     );
 }
-foreach (['ALTER TABLE {{SR_TABLE_PREFIX}}survey_forms DROP COLUMN theme_key', "s.setting_key = 'theme_key'", "version = '2026.06.010'"] as $needle) {
-    sr_survey_check_contains(
-        'modules/survey/updates/2026.06.010.sql',
-        $needle,
-        'Survey display override cleanup update must remove legacy theme key'
-    );
-}
+sr_survey_check_not_contains(
+    'modules/survey/install.sql',
+    'theme_key',
+    'Survey initial schema must not keep legacy theme key'
+);
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN reaction_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'', 'ADD COLUMN reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
         'modules/survey/updates/2026.06.011.sql',

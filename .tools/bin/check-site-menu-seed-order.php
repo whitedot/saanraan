@@ -156,6 +156,7 @@ sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#',
 $publicLayoutCss = (string) file_get_contents(SR_ROOT . '/assets/layout.css');
 $communityLayoutCss = (string) file_get_contents(SR_ROOT . '/modules/community/assets/layout.css');
 sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/assets/module.css'), 'Site menu module must not own a public stylesheet.');
+sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/updates/2026.04.003.sql'), 'Site menu version-only update must stay removed from the current fresh-install baseline.');
 sr_site_menu_check_assert(str_contains($publicLayoutCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Public layout CSS must support site menu dropdown open state.');
 sr_site_menu_check_assert(str_contains($communityLayoutCss, '.community-layout-nav .sr-site-menu-list-depth-3'), 'Community layout CSS must cover site menu depth 3 menus.');
 sr_site_menu_check_assert(str_contains($publicLayoutCss, '@media (max-width: 767px)'), 'Public layout CSS must include mobile site menu rules.');
@@ -167,11 +168,21 @@ sr_site_menu_check_assert(str_contains($commonUiJs, "event.key === 'Escape'"), '
 
 $siteMenuAction = (string) file_get_contents(SR_ROOT . '/modules/site_menu/actions/admin-site-menus.php');
 $siteMenuInstallSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/install.sql');
-$siteMenuDuplicatePathUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.002.sql');
 $siteMenuDraftUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.003.sql');
 sr_site_menu_check_assert(!str_contains($siteMenuAction, 'item_url_duplicate'), 'Site menu admin action must allow multiple items with the same URL.');
-sr_site_menu_check_assert(!str_contains($siteMenuInstallSql, 'uq_sr_site_menu_items_menu_url'), 'Site menu install schema must not enforce unique URLs within a menu.');
-sr_site_menu_check_assert(str_contains($siteMenuDuplicatePathUpdateSql, 'DROP INDEX uq_sr_site_menu_items_menu_url'), 'Site menu update must drop the legacy unique URL index.');
+sr_site_menu_check_assert(!str_contains($siteMenuAction, 'item_url_schema_update_required'), 'Site menu admin action must not keep legacy URL unique-index guidance.');
+sr_site_menu_check_assert(!str_contains($siteMenuAction, 'sr_site_menu_admin_is_legacy_url_unique_violation'), 'Site menu admin action must not special-case the removed URL unique index.');
+foreach (array_merge([
+    'modules/site_menu/install.sql',
+    'modules/site_menu/updates/2026.04.002.sql',
+    'modules/site_menu/actions/admin-site-menus.php',
+    'modules/site_menu/lang/ko.php',
+], glob(SR_ROOT . '/modules/site_menu/updates/*.sql') ?: []) as $siteMenuSourcePath) {
+    $siteMenuSource = (string) file_get_contents($siteMenuSourcePath);
+    sr_site_menu_check_assert(!str_contains($siteMenuSource, 'uq_sr_site_menu_items_menu_url'), 'Site menu must not reference the removed URL unique index: ' . $siteMenuSourcePath);
+    sr_site_menu_check_assert(!str_contains($siteMenuSource, 'site_menu_items_menu_url'), 'Site menu must not keep removed URL unique-index error handling: ' . $siteMenuSourcePath);
+}
+sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/updates/2026.06.002.sql'), 'Site menu legacy URL unique-index drop update must stay removed.');
 sr_site_menu_check_assert(str_contains($siteMenuInstallSql, 'sr_site_menu_draft_menus'), 'Site menu install schema must create draft menu tables.');
 sr_site_menu_check_assert(str_contains($siteMenuDraftUpdateSql, 'site_menu_draft_menus'), 'Site menu update must create draft menu tables for existing installations.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'publish_site_menus'), 'Site menu admin action must publish draft menus explicitly.');

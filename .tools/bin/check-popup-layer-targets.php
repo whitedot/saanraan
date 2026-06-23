@@ -73,6 +73,11 @@ foreach ($targets as $target) {
 }
 
 $errors = [];
+
+if (is_file('modules/banner/updates/2026.06.002.sql')) {
+    $errors[] = 'banner default target migration-only update must stay removed: modules/banner/updates/2026.06.002.sql';
+}
+
 $expectedTargets = [
     'content|content.home|screen',
     'content|content.view|before_content',

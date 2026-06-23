@@ -1,13 +1,3 @@
-DELETE i
-FROM sr_site_menu_items i
-INNER JOIN sr_site_menu_items kept
-    ON kept.menu_id = i.menu_id
-    AND kept.url = i.url
-    AND kept.id < i.id;
-
-ALTER TABLE sr_site_menu_items
-    ADD UNIQUE KEY uq_sr_site_menu_items_menu_url (menu_id, url);
-
 INSERT INTO sr_site_menus (menu_key, label, status, created_at, updated_at)
 VALUES ('header', '헤더 메뉴', 'enabled', NOW(), NOW())
 ON DUPLICATE KEY UPDATE

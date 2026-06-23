@@ -31,6 +31,21 @@ function sr_quiz_check_file_contains(string $path, array $needles): string
     return $content;
 }
 
+function sr_quiz_check_file_not_contains(string $path, array $needles): void
+{
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        sr_quiz_check_error('file cannot be read: ' . $path);
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($content, $needle)) {
+            sr_quiz_check_error($path . ' must not contain legacy marker: ' . $needle);
+        }
+    }
+}
+
 function sr_quiz_check_command(array $command, int $expectedExitCode, array $markers, string $label): void
 {
     $parts = [];
@@ -111,11 +126,8 @@ function sr_quiz_check_schema(): void
         'ALTER TABLE sr_quiz_sets',
         'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
     ]);
-    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.013.sql', [
-        'ALTER TABLE {{SR_TABLE_PREFIX}}quiz_sets DROP COLUMN theme_key',
-        'UPDATE {{SR_TABLE_PREFIX}}quiz_sets SET skin_key = theme_key',
-        "s.setting_key = 'theme_key'",
-        "version = '2026.06.013'",
+    sr_quiz_check_file_not_contains('modules/quiz/install.sql', [
+        'theme_key',
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.014.sql', [
         'ADD COLUMN reaction_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'',

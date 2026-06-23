@@ -101,7 +101,6 @@ if (
 ) {
     $errors[] = 'Asset exchange reexchange fee lookup must have an account/to-module/status/created index in install and update SQL.';
 }
-
 if (
     !is_string($helper)
     || strpos($helper, 'function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy): void') === false
