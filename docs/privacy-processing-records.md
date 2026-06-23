@@ -1,6 +1,6 @@
 # 개인정보 처리활동 기록 기준
 
-이 문서는 `docs/privacy-contract-matrix.md`를 ROPA(개인정보 처리활동 기록) 씨앗으로 확장하기 위한 운영 기준이다. 1.0 전에는 별도 관리자 DB 화면을 만들지 않고 문서와 자동 점검으로 기준을 고정한다. 실제 export/cleanup 책임은 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 우선한다.
+이 문서는 ROPA(개인정보 처리활동 기록) 씨앗을 운영 기준으로 정리한다. 개인정보 export/cleanup 책임은 각 모듈의 계약 파일과 GitHub 이슈에서 관리한다.
 
 ## 기록 컬럼
 
@@ -204,12 +204,12 @@
 
 ## 운영 기준
 
-- 새 모듈이 `account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`, `recipient`, `email`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, `consent_snapshot_json`, `answer_snapshot_json`, `metadata_snapshot_json` 같은 개인정보성 필드를 추가하면 이 문서와 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 함께 갱신한다.
+- 새 모듈이 `account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`, `recipient`, `email`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, `consent_snapshot_json`, `answer_snapshot_json`, `metadata_snapshot_json` 같은 개인정보성 필드를 추가하면 이 문서와 해당 모듈의 개인정보 export/cleanup 계약을 함께 갱신한다.
 - 처리활동 row는 `processing_purpose`, `lawful_basis`, `retention_basis`, `retention_period`를 함께 적어 목적과 보존 근거가 분리되도록 한다.
 - 외부 provider script를 공개 화면에 추가하면 쿠키/브라우저 저장소 inventory와 processor/국외이전 후보에 포함한다.
 - 특별범주, 연령, 고유식별자성 데이터는 기본 번들 모듈에서 원문 저장하지 않는다. 필요하면 본인확인 같은 선택 플러그인이 원문 저장 금지와 결과 최소 snapshot 기준을 문서화해야 한다.
 - `export_retained`와 `operational_retained`는 삭제하지 않는다는 뜻이 아니다. 보존 사유, 접근 범위, 보존기간 또는 마스킹 시점을 기록해야 한다.
-- 설치 DB smoke가 필요한 처리활동은 `docs/release-verification-template.md`와 `docs/smoke-test.md`의 개인정보 export/cleanup smoke 기준에 연결한다.
+- 설치 DB smoke가 필요한 처리활동은 GitHub 이슈나 마일스톤 체크리스트에 개인정보 export/cleanup 확인 항목으로 남긴다.
 
 ## 보상 미회수 공통 큐
 

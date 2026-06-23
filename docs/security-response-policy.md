@@ -42,7 +42,7 @@ kimminsup@gmail.com
 5. 요청 흐름, 권한, 개인정보, 배포 가정이 바뀌면 관련 문서를 갱신한다.
 6. 유사 경로가 있는 모듈을 함께 검색한다.
 
-수정 중 임시 우회나 기능 비활성화를 선택한 경우에는 복구 조건과 남은 위험을 [릴리스 검증 기록 템플릿](release-verification-template.md)에 남긴다.
+수정 중 임시 우회나 기능 비활성화를 선택한 경우에는 복구 조건과 남은 위험을 GitHub 이슈나 마일스톤 체크리스트에 남긴다.
 
 ## 필수 검증
 
@@ -96,4 +96,3 @@ php .tools/bin/ops-status.php
 - 실사용 쿠키, Authorization header, 외부 서비스 credential
 
 재현에는 더미 계정과 로컬 또는 스테이징 데이터를 사용한다.
-

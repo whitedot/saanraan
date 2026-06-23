@@ -17,7 +17,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 
 이렇게 나누는 이유는 실제 운영에서 필요한 형태로 조립하기 쉽게 하기 위해서입니다. 미리 완성된 형태로 제공할 수도 있지만, 운영자가 자기 사이트에 맞추려면 결국 커스터마이징이 필요하고, 쓰지 않는 기능의 DB 테이블이나 업로드 자산, 설정값이 남을 가능성도 커집니다. 그래서 saanraan은 기본 골격을 단순하게 유지하고, 필요한 모듈과 사이트별 확장을 선택해 붙이는 방향을 우선합니다.
 
-구체적인 기준은 [모듈 작성 가이드](docs/module-guide.md), [핵심 설계 결정](docs/core-decisions.md), [커스터마이징과 업데이트 충돌 가이드](docs/customization-guide.md)에 정리되어 있습니다. 모듈 간 참조를 직접 수정 없이 확인하는 방식은 [읽기 참조 계약 계획](docs/plans/read-reference-contract-plan.md)에서 더 자세히 볼 수 있습니다.
+구체적인 기준은 [모듈 작성 가이드](docs/module-guide.md), [핵심 설계 결정](docs/core-decisions.md), [커스터마이징과 업데이트 충돌 가이드](docs/customization-guide.md)에 정리되어 있습니다.
 
 ## 한눈에 보기
 
@@ -48,7 +48,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 
 산란은 아직 정식 릴리스보다 개발 베이스에 가깝습니다. 다만 단순 골격 단계는 지나, 설치/관리자/회원/콘텐츠/커뮤니티/퀴즈/설문/리액션/자산/운영 보조 흐름을 실제 파일과 DB 테이블로 검증하며 확장하는 중입니다. 기능을 적게 유지하는 것보다, 기능이 늘어나도 요청 흐름과 책임 경계를 파일에서 따라갈 수 있게 두는 일을 더 중요한 기준으로 삼습니다.
 
-[산란 특장점 소개](docs/operator-feature-list.md)는 회원, 콘텐츠, 커뮤니티, 퀴즈, 설문, 리액션, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다. 기능 목록은 구현 표면을 보여 주는 문서이며, 릴리스 판단에는 [모듈 상태 등급](docs/module-status.md)과 [검증 상태와 증거 기준](docs/verification-status.md)을 함께 봅니다.
+[산란 특장점 소개](docs/operator-feature-list.md)는 회원, 콘텐츠, 커뮤니티, 퀴즈, 설문, 리액션, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다. 기능 목록은 프로젝트가 어떤 방향의 모듈형 베이스인지 빠르게 이해하기 위한 소개 문서입니다.
 
 구현된 기반:
 
@@ -67,15 +67,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 - CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
 - 로컬 파일 저장과 S3 호환 저장소 helper, Apache/nginx 배포 보호 기준.
 
-보완 중인 부분:
-
-- 본인확인, 회원 마이그레이션, 결제 플러그인은 계획 문서 단계이며 1.0 범위에서는 새 구현을 잠급니다.
-- 1.0 릴리스 후보로 묶기 전 새 설치, 선택 모듈 설치, 업데이트, 관리자 권한 흐름의 HTTP/브라우저 수동 점검 기록이 더 필요합니다.
-- Wiki 구현 명세는 1.0 배포 정리 때 맞추되, 그 전까지는 저장소의 임시 구현 스냅샷을 함께 봅니다.
-
 ## 번들 모듈
-
-상태 등급은 기능 구현 여부가 아니라 검증 증거 수준이다. 각 모듈의 `stable-candidate`/`beta` 판단과 1.0 전 보강 기준은 [모듈 상태 등급](docs/module-status.md)을 기준으로 한다.
 
 | 분류 | 모듈 | 기능 요약 |
 | --- | --- | --- |
@@ -92,41 +84,34 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | 운영 | `notification`, `privacy` | 알림, 발송 작업, 개인정보 요청/사본 제공 |
 | 플러그인 | `ckeditor` | CKEditor 5 에셋 로딩과 textarea 강화 |
 
-## 개발과 검증
+## 개발과 기여
 
 대표 점검 명령:
 
 ```bash
 find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n 1 php -l
 php .tools/bin/check.php
-php .tools/bin/reconcile-assets.php
-php .tools/bin/ops-status.php
 ```
 
-현재 `php -l` 전체 문법 검사와 `php .tools/bin/check.php` 통합 정책 점검은 통과하는 상태입니다. `php .tools/bin/reconcile-assets.php`는 설치된 로컬 또는 스테이징 DB에서 자산 모듈 balance/transaction 정합성을 read-only로 확인할 때 사용합니다. `php .tools/bin/ops-status.php`는 알림 delivery, 저장소 정리 실패, 게시판 복사, 보상 지급, 포인트 만료 같은 운영 지연 신호를 read-only로 확인할 때 사용합니다. 변경 후에는 관련 명령을 다시 실행하고, HTTP/브라우저 스모크 점검이 필요한 변경인지 함께 판단합니다.
+변경 후에는 영향 범위에 맞는 자동 점검을 실행하고, 필요한 경우 브라우저나 HTTP 흐름도 함께 확인합니다. 작업 기준은 [기여 기준](CONTRIBUTING.md)과 [기여자 작업 기준](docs/contribution-guide.md)을 따릅니다.
 
 ## 주요 문서
 
 | 목적 | 문서 |
 | --- | --- |
-| 문서 구분 | [저장소 문서 기준](docs/README.md) |
+| 문서 구분 | [저장소 문서 안내](docs/README.md) |
 | 특장점 소개 | [산란 특장점 소개](docs/operator-feature-list.md) |
-| 1.0 범위 | [1.0 범위 잠금 기준](docs/1.0-scope.md) |
-| 구현 스냅샷 | [1.0 전 구현 스냅샷](docs/implementation-snapshot.md) |
-| 상태 등급 | [모듈 상태 등급](docs/module-status.md), [검증 상태와 증거 기준](docs/verification-status.md) |
-| 리스크 | [프로젝트 리스크 레지스터](docs/risk-register.md) |
-| 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
-| 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
-| 보안 | [SECURITY.md](SECURITY.md), [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [보안 제보와 처리 기준](docs/security-response-policy.md), [DB 접근 정책](docs/database-access-policy.md) |
-| 의존성 | [외부 의존성 배치 기준](docs/dependency-policy.md) |
-| 성능 | [성능과 캐시 기준](docs/performance-policy.md) |
-| 기여 | [기여 기준](CONTRIBUTING.md), [기여자 작업 기준](docs/contribution-guide.md) |
-| 배포와 릴리스 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
-| 검증 | [스모크 테스트 기준](docs/smoke-test.md), [운영 상태 점검 기준](docs/operational-status.md), [수동 화면 점검 체크리스트](manual-check.md) |
 | 사용 판단 | [산란 포지셔닝 기준](docs/positioning.md) |
+| 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
+| 설치와 배포 | [배포 보호 기준](docs/deployment-protection.md), [nginx 샘플 설정](docs/deployment/nginx-saanraan.conf) |
+| 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md), [커스터마이징과 업데이트 충돌 가이드](docs/customization-guide.md) |
+| 관리자 UI | [관리자 UI 작성 기준](docs/admin-ui-guide.md), [관리자 목록 컬럼 기준](docs/admin-list-columns.md) |
+| 기여 | [기여 기준](CONTRIBUTING.md), [기여자 작업 기준](docs/contribution-guide.md) |
+| 보안과 정책 | [SECURITY.md](SECURITY.md), [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [보안 제보와 처리 기준](docs/security-response-policy.md), [DB 접근 정책](docs/database-access-policy.md), [외부 의존성 배치 기준](docs/dependency-policy.md) |
+| 개인정보와 본문 | [개인정보 처리활동 기록 기준](docs/privacy-processing-records.md), [Rich Text Sanitizer 정책](docs/rich-text-sanitizer-policy.md) |
 | 예제 | [sample_module](examples/sample_module/README.md) |
 
-구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 `docs/`는 설계 결정, 정책, 점검 기준, 구현 전 계획 문서를 보관합니다.
+구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 주요 문서 안내는 프로젝트 소개, 사용 방법, 기여 방법, 배포와 보안 기준 중심으로 유지합니다.
 
 ## 보안 제보
 

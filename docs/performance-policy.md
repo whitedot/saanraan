@@ -57,9 +57,9 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 2. 검색 조건, 상태 필터, 정렬 컬럼은 허용 목록으로 제한한다.
 3. 대량 일괄 작업은 [관리자 UI 작성 기준](admin-ui-guide.md)의 즉시 제한형/작업 테이블형 기준을 따른다.
 4. 금액성 원장, 알림, 개인정보, 감사 로그, 작업 queue처럼 증가하는 테이블은 조회 패턴에 맞는 인덱스를 설치 SQL과 update SQL에 함께 둔다.
-5. 핵심 인덱스는 [성능 베이스라인 증거표](performance-baseline-evidence.md)의 인덱스 안전선에 기록하고, 설치 SQL에서 marker가 빠지면 `.tools/bin/check-performance-baseline.php`가 실패해야 한다.
+5. 핵심 인덱스는 설치 SQL과 관련 이슈에 기록하고, 설치 SQL에서 marker가 빠지면 `.tools/bin/check-performance-baseline.php`가 실패해야 한다.
 6. 관리자 CSV export는 타입별 행 상한을 두고, 감사 로그 metadata에 실제 적용 상한을 남긴다.
-7. [성능 베이스라인 증거표](performance-baseline-evidence.md)는 주요 관리자 목록의 페이지네이션, 캐시 경로, 핵심 인덱스, sitemap/export 상한, 관리자 CSV export 상한을 정적 기준으로 묶는다.
+7. 주요 관리자 목록의 페이지네이션, 캐시 경로, 핵심 인덱스, sitemap/export 상한, 관리자 CSV export 상한은 관련 코드와 이슈에서 추적한다.
 8. `php .tools/bin/check.php`는 SQL 파일 비어 있음, 모듈 계약, 일부 인덱스/정합성 marker를 확인하지만 실제 쿼리 실행 계획을 증명하지 않는다. 릴리스 후보에서는 느린 화면을 수동 점검 기록에 남긴다.
 
 커뮤니티 게시글처럼 큰 테이블을 관리자 lookup에서 참조할 때는 offset pagination과 기본 count를 피하고, `id < cursor` 최신순 조회와 `LIMIT + 1` 방식의 `has_more` 계산을 기본으로 한다. 보드가 선택된 최신순/상태 조회는 `(board_id, status, id)` 계열 인덱스에 맞추고, 보드 없이 상태만 거는 최신순 조회를 허용하면 `(status, id)` 인덱스를 설치 SQL과 update SQL에 함께 둔다. 제목 `LIKE '%keyword%'` 검색은 보조 fallback으로만 두고, 텍스트 최소 길이와 강한 limit, 가능하면 보드 필터로 범위를 좁힌다.
@@ -69,7 +69,7 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 공유호스팅에서는 요청 시간, 메모리, cron 간격, 파일 I/O가 제한될 수 있다.
 
 - 긴 작업은 한 요청에 모두 넣지 않고 배치 또는 작업 테이블형으로 나눈다.
-- cron이 없거나 느린 환경에서는 [운영 상태 점검 기준](operational-status.md)의 read-only 점검과 관리자 재시도 흐름을 사용한다.
+- cron이 없거나 느린 환경에서는 read-only 운영 점검 명령과 관리자 재시도 흐름을 사용한다.
 - 실시간 발송, 실시간 만료, 실시간 대량 재계산을 보장한다고 설명하지 않는다.
 - 대형 커뮤니티 규모의 캐시 서버나 worker 기반 확장은 1.0 기본 범위가 아니다.
 

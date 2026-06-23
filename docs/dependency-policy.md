@@ -63,7 +63,7 @@ modules/htmlpurifier/vendor/ezyang/htmlpurifier/library/HTMLPurifier.auto.php
 
 - 라이브러리 이름, 버전, 출처 URL, 라이선스가 문서화되어 있는가
 - vendored Composer metadata, `VERSION`, 런타임 클래스 버전, 라이선스 파일이 같은 버전을 가리키는가
-- 배포 zip 포함/제외 기준이 [릴리스 절차](release-process.md)에 반영되어 있는가
+- 배포 zip 포함/제외 기준이 배포 이슈나 릴리스 체크리스트에 반영되어 있는가
 - 루트 `vendor/`는 기본 제외하고, 릴리스에 포함하기로 한 모듈 내부 vendor만 허용하는가
 - 모듈 내부 vendor를 허용하더라도 `.env`, DB dump, SQLite/DB 파일, 백업/임시 파일, SSH key, package registry token 파일은 제외되는가
 - cache/log/temp 쓰기 경로가 `storage/` 아래인가
