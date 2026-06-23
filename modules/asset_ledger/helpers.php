@@ -695,6 +695,7 @@ function sr_asset_recovery_retry(PDO $pdo, int $failureId, int $actorAccountId):
             (string) $failure['subject_type'],
             (int) $failure['subject_id'],
             (string) $failure['reversal_event_key'],
+            (string) $failure['reversal_event_key'],
             'asset.recovery.retry',
             [
                 'operation_event_key' => 'manual_retry',

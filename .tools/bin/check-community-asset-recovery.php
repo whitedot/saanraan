@@ -30,6 +30,7 @@ foreach ([
     'sr_community_asset_grant_log_for_reversal',
     'sr_community_reverse_asset_grant_for_operation',
     'sr_community_asset_recovery_upsert',
+    'sr_community_asset_recovery_legacy_event_key',
     'sr_community_asset_recovery_failures_table_exists',
     'sr_community_asset_recovery_failure_by_id_for_update',
     'SAVEPOINT',
@@ -40,6 +41,20 @@ foreach ([
 ] as $needle) {
     if (!str_contains($assetEvents, $needle)) {
         $errors[] = 'community asset recovery helper is missing contract: ' . $needle;
+    }
+}
+
+foreach ([
+    'function sr_community_reverse_asset_grant_for_operation(PDO $pdo, int $accountId, string $grantEventKey, string $subjectType, int $subjectId, string $reversalEventKey, string $canonicalReversalEventKey, string $reason, array $operationContext = []): array',
+    "\$legacyGrantEventKey = sr_community_asset_recovery_legacy_event_key(\$grantEventKey, \$subjectType, 'grant');",
+    "\$legacyReversalEventKey = sr_community_asset_recovery_legacy_event_key(\$reversalEventKey, \$subjectType, 'reversal');",
+    'sr_community_asset_grant_log_for_reversal($pdo, $accountId, $legacyGrantEventKey, $subjectId)',
+    'sr_community_asset_recovery_failure_by_original($pdo, (int) ($original[\'id\'] ?? 0), $legacyReversalEventKey)',
+    "if (\$eventKey === 'community.post.reward_grant')",
+    "if (\$eventKey === 'community.comment.reward_reversal')",
+] as $needle) {
+    if (!str_contains($assetEvents, $needle)) {
+        $errors[] = 'community recovery event key mapping is missing marker: ' . $needle;
     }
 }
 

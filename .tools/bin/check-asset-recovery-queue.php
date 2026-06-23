@@ -53,6 +53,7 @@ $requireContains('modules/asset_ledger/helpers.php', [
     'sr_asset_recovery_record_reversal_link',
     'sr_asset_recovery_retry',
     'AND version = :version',
+    "(string) \$failure['reversal_event_key'],\n            (string) \$failure['reversal_event_key'],\n            'asset.recovery.retry'",
 ]);
 $requireContains('modules/asset_ledger/paths.php', [
     'GET /admin/assets/recovery-failures',
