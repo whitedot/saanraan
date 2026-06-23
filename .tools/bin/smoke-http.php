@@ -318,6 +318,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community admin recovery failures entry',
+        'path' => '/admin/community/recovery-failures',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'sitemap endpoint',
         'path' => '/sitemap.xml',
         'allowed_statuses' => [200, 404],
