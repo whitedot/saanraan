@@ -36,7 +36,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <option value="standalone_url_only"<?php echo (string) ($settings['embed_scope'] ?? '') === 'standalone_url_only' ? ' selected' : ''; ?>><?php echo sr_e('단독 URL만'); ?></option>
             <option value="all_supported_links"<?php echo (string) ($settings['embed_scope'] ?? '') === 'all_supported_links' ? ' selected' : ''; ?>><?php echo sr_e('지원 링크 전체'); ?></option>
         </select>
-        <p class="form-help"><?php echo sr_e('현재 렌더러는 의미 있는 라벨 링크는 보존하고 단독 URL 링크만 임베드합니다.'); ?></p>
+        <p class="form-help"><?php echo sr_e('단독 URL만은 한 줄 또는 한 블록을 URL만으로 구성한 경우에 임베드합니다. 지원 링크 전체는 라벨이 URL인 링크도 임베드 후보로 봅니다. 의미 있는 라벨 링크는 보존합니다.'); ?></p>
     </div>
     <div class="form-actions">
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('저장'); ?></button>
@@ -48,7 +48,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields admin-embed-manager-filter-grid">
             <div class="filtering-field filtering-field-fill">
                 <label class="filtering-label" for="embed_manager_q"><?php echo sr_e('검색어'); ?></label>
-                <input id="embed_manager_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e('참조 Key, 소유 모듈, 대상 모듈, 대상 ID'); ?>">
+                <input id="embed_manager_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e('URL, hash, 소유 모듈, 대상 모듈, 대상 ID'); ?>">
             </div>
         </div>
         <div id="embed_manager_detail_filters" class="filtering-body" data-filtering-body<?php echo $detailFilterOpen ? '' : ' hidden'; ?>>
