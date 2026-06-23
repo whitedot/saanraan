@@ -26,7 +26,7 @@
 | `asset_ledger` | `no_member_personal_data` | 없음 | 없음 | 공통 원장 점검 helper와 화면만 제공하고 자기 회원 귀속 테이블을 만들지 않는다. |
 | `banner` | `no_member_personal_data` | 없음 | 없음 | 배너 설정은 회원 귀속 데이터가 아니다. 클릭 dedupe hash는 account/session/IP/UA에서 파생될 수 있는 가명성 운영 데이터로 분리해 보관일 정책에 따른다. |
 | `ckeditor` | `no_member_personal_data` | 없음 | 없음 | 에디터 asset과 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
-| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 동의 증적, 접근권, 보상 로그 등 회원 활동 데이터와 IP/UA hash를 가진다. |
+| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 동의 증적, 접근권, 보상 로그, 보상 미회수 기록 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 기록은 금액성 운영 증빙으로 account 연결과 금액을 보존한다. |
 | `content` | `export_cleanup` | 제공 | 제공 | 작성자, 신청자, 댓글, 유료 접근권, 다운로드 로그, 자산 처리 로그 등 회원 활동 데이터를 가진다. |
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 없음 | 예치금 잔액, 원장, 환불 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
@@ -57,7 +57,7 @@
 | 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers` | 계정 식별자/email hash, 세션/token hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 가입 동의 snapshot, OAuth provider 계약 | #158, #159, #160, #161 |
 | 정책 문서와 동의 | `member`, `policy_documents`, `community`, `survey` | 회원 동의 증적, 정책 문서 버전 snapshot, 안내메일 delivery account 연결, 제출/응답 동의 snapshot | #151, #158, #160, #161 |
 | 사용자 제출과 활동 | `community`, `content`, `quiz`, `survey`, `reaction` | 작성자/응답자/시도자 account 연결, 댓글/쪽지/스크랩/리액션, answer/metadata snapshot, IP/UA hash, 제3자 식별자 | #155, #158, #159, #161 |
-| 금액성 원장과 권리 | `asset_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/유료 접근권/보상 grant, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
+| 금액성 원장과 권리 | `asset_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/유료 접근권/보상 grant/보상 미회수 기록, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
 | 알림과 외부 발송 | `notification`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction` | site/email delivery recipient, push endpoint ciphertext와 masked recipient, 정책문서 안내메일, 멘션/댓글/리액션 알림 | #154, #158, #160, #161 |
 | 운영 보존과 감사 | `admin`, `privacy`, `embed_manager`, `logo_manager`, `notification` | 관리자 권한, 감사 로그 actor/metadata, 개인정보 요청 requester/admin note/handler, embed ref 작성자, 운영 알림 처리자 | #153, #157, #158, #160 |
 
