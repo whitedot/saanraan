@@ -173,7 +173,6 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
     ]);
     sr_community_redact_post_field_values($pdo, $postId);
 
-    $pdo->prepare('DELETE FROM sr_community_link_refs WHERE post_id = :post_id')->execute(['post_id' => $postId]);
     if (function_exists('sr_embed_manager_sync_body_url_cache')) {
         sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', null);
     }
@@ -294,7 +293,6 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             is_array($values['extra_field_definitions'] ?? null) ? $values['extra_field_definitions'] : [],
             is_array($values['extra_field_values'] ?? null) ? $values['extra_field_values'] : []
         );
-        sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
@@ -546,7 +544,6 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
             is_array($values['extra_field_definitions'] ?? null) ? $values['extra_field_definitions'] : [],
             is_array($values['extra_field_values'] ?? null) ? $values['extra_field_values'] : []
         );
-        sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
         sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 작성 후 임시 본문 이미지 정리에 실패했습니다.');
 

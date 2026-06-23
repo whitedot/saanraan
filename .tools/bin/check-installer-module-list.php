@@ -94,6 +94,52 @@ foreach ($optionalKeys as $moduleKey) {
     }
 }
 
+if (!str_contains($install, "'embed_manager' => [\n        'name' => '임베드 매니저',\n        'version' => '2026.06.002'")) {
+    $errors[] = 'embed_manager initial installer version must match its file-only current module version.';
+}
+if (!str_contains($install, "'seo' => [\n        'name' => 'SEO',\n        'version' => '2026.05.001'")) {
+    $errors[] = 'seo initial installer version must match its file-only current module version.';
+}
+if (glob($root . '/modules/seo/updates/*.sql')) {
+    $errors[] = 'seo must not keep version-only update SQL files for the current fresh-install baseline.';
+}
+if (is_file($root . '/modules/asset_exchange/updates/2026.05.006.sql')) {
+    $errors[] = 'asset_exchange version-only update must stay removed from the current fresh-install baseline.';
+}
+foreach (['2026.05.015', '2026.05.016', '2026.05.019', '2026.06.007'] as $contentVersionOnlyUpdate) {
+    if (is_file($root . '/modules/content/updates/' . $contentVersionOnlyUpdate . '.sql')) {
+        $errors[] = 'content version-only update must stay removed from the current fresh-install baseline: ' . $contentVersionOnlyUpdate;
+    }
+}
+foreach (['2026.05.014', '2026.05.024', '2026.05.026', '2026.06.008', '2026.06.027', '2026.06.029'] as $communityVersionOnlyUpdate) {
+    if (is_file($root . '/modules/community/updates/' . $communityVersionOnlyUpdate . '.sql')) {
+        $errors[] = 'community version-only update must stay removed from the current fresh-install baseline: ' . $communityVersionOnlyUpdate;
+    }
+}
+if (is_file($root . '/modules/member/updates/2026.04.006.sql')) {
+    $errors[] = 'member version-only update must stay removed from the current fresh-install baseline.';
+}
+foreach ([
+    'point' => ['2026.05.001', '2026.05.004'],
+    'deposit' => ['2026.05.001', '2026.05.004'],
+    'reward' => ['2026.05.001', '2026.05.004', '2026.06.001'],
+] as $assetModuleKey => $assetVersionOnlyUpdates) {
+    foreach ($assetVersionOnlyUpdates as $assetVersionOnlyUpdate) {
+        if (is_file($root . '/modules/' . $assetModuleKey . '/updates/' . $assetVersionOnlyUpdate . '.sql')) {
+            $errors[] = $assetModuleKey . ' version-only update must stay removed from the current fresh-install baseline: ' . $assetVersionOnlyUpdate;
+        }
+    }
+}
+
+foreach (['point', 'deposit', 'reward'] as $moduleKey) {
+    foreach (glob($root . '/modules/' . $moduleKey . '/{helpers.php,module.php,install.sql,updates/*.sql}', GLOB_BRACE) ?: [] as $path) {
+        $content = file_get_contents($path);
+        if (is_string($content) && str_contains($content, 'manual_adjust_group_policies_json')) {
+            $errors[] = 'legacy manual adjustment group policy setting must stay removed from ' . str_replace($root . '/', '', $path);
+        }
+    }
+}
+
 foreach (['function sr_install_module_dependency_keys', 'sr_install_module_dependency_keys($selectedOptionalModuleKeys'] as $marker) {
     if (!str_contains($install, $marker)) {
         $errors[] = 'initial installer must auto-include selected module dependencies: ' . $marker;

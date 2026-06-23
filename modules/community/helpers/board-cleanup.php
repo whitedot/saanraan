@@ -164,9 +164,6 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
         if (sr_community_optional_table_exists($pdo, 'sr_community_scraps')) {
             $pdo->prepare('DELETE FROM sr_community_scraps WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
         }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_link_refs')) {
-            $pdo->prepare('DELETE FROM sr_community_link_refs WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
         if (sr_community_optional_table_exists($pdo, 'sr_community_attachments')) {
             $pdo->prepare('DELETE FROM sr_community_attachments WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
         }

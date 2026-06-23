@@ -54,9 +54,9 @@ if (sr_link_card_extract_tokens($fakeWidgetHtml) !== []) {
     sr_link_card_check_error('Rendered or pasted widget HTML must not be treated as a trusted link card reference.');
 }
 
-$adminRefsReflection = new ReflectionFunction('sr_embed_manager_admin_url_cache_rows');
-if ($adminRefsReflection->getNumberOfParameters() !== 3) {
-    sr_link_card_check_error('Embed manager admin refs helper signature changed unexpectedly.');
+$adminUrlCacheReflection = new ReflectionFunction('sr_embed_manager_admin_url_cache_rows');
+if ($adminUrlCacheReflection->getNumberOfParameters() !== 3) {
+    sr_link_card_check_error('Embed manager admin URL cache helper signature changed unexpectedly.');
 }
 
 $multiTargetLimit = sr_embed_manager_search_result_limit(10, [

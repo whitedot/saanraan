@@ -213,7 +213,8 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 ': sr_content_clean_text($bodyText, 100000)',
                 'function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $accountId): int',
                 '$copy[\'body_text\'] = sr_sanitize_rich_text_html((string) ($copy[\'body_text\'] ?? \'\'));',
-                '$rewrittenBodyText = sr_sanitize_rich_text_html($rewrittenBodyText);',
+                '$rewrittenBodyText = sr_sanitize_rich_text_html((string) ($copy[\'body_text\'] ?? \'\'));',
+                'sr_embed_manager_sync_body_url_cache($pdo, \'content\', \'content\', $newContentId, \'body\', (string) ($copy[\'body_text\'] ?? \'\'), $accountId);',
             ],
         ],
         'community rich text flow' => [

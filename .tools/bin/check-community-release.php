@@ -66,6 +66,26 @@ function sr_community_release_file_contains(string $path, array $needles, string
     }
 }
 
+function sr_community_release_file_not_contains(string $path, array $needles, string $label): void
+{
+    if (!is_file($path)) {
+        sr_community_release_error('Required community release file is missing: ' . $path);
+        return;
+    }
+
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        sr_community_release_error('Required community release file cannot be read: ' . $path);
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($content, $needle)) {
+            sr_community_release_error($label . ' must not contain legacy marker: ' . $needle);
+        }
+    }
+}
+
 function sr_community_release_package_entries(string $directory): array
 {
     $entries = [];
@@ -745,6 +765,7 @@ sr_community_release_file_contains('modules/community/actions/view.php', [
 sr_community_release_file_contains('modules/community/helpers/posts-writing.php', [
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
+    "sr_embed_manager_sync_body_url_cache(\$pdo, 'community', 'post', \$postId, 'body', '', null)",
 ], 'Community delegated post delete policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
     'sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null)',
@@ -855,6 +876,62 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     'sr_community_update_level_min_scores($pdo, $minScoresById',
     "'event_type' => 'community.settings.updated'",
 ], 'Community admin settings policy');
+foreach (array_merge([
+    'modules/community/module.php',
+    'modules/community/actions/admin-settings.php',
+    'modules/community/install.sql',
+], glob('modules/community/updates/*.sql') ?: []) as $communitySettingsSource) {
+    sr_community_release_file_not_contains($communitySettingsSource, [
+        'access_condition_priority',
+    ], 'Community legacy access condition priority cleanup');
+}
+sr_community_release_file_not_contains('modules/community/helpers/members.php', [
+    'sr_community_safe_next_path',
+    'sr_community_member_needs_nickname',
+    'sr_community_require_member_nickname',
+    'sr_community_handle_member_nickname_setup_post',
+    '/community/nickname',
+], 'Community legacy nickname setup cleanup');
+sr_community_release_file_not_contains('modules/community/lang/ko.php', [
+    'nickname_setup_blocked',
+    'ui.nickname.setup.body',
+    'ui.nickname.setup.submit',
+    'ui.nickname.setup.title',
+], 'Community legacy nickname setup language cleanup');
+sr_community_release_file_not_contains('modules/community/helpers/members.php', [
+    'sr_community_member_registration_fields',
+    'sr_community_member_registration_validate',
+    'sr_community_member_registration_save',
+    'community_nickname_set',
+], 'Community legacy nickname registration extension cleanup');
+sr_community_release_file_not_contains('modules/community/lang/ko.php', [
+    'action.nickname_duplicate',
+    'action.nickname_required',
+    'action.nickname_saved',
+    'action.nickname_too_long',
+    'ui.nickname.register.help',
+], 'Community legacy nickname registration language cleanup');
+foreach ([
+    'modules/community/module.php',
+    'modules/community/helpers/levels.php',
+    'modules/community/actions/admin-settings.php',
+    'modules/community/views/admin-settings.php',
+    'modules/community/install.sql',
+] as $communityNicknameSettingsSource) {
+    sr_community_release_file_not_contains($communityNicknameSettingsSource, [
+        'nickname_enabled',
+        'nickname_required',
+        'community_settings_help_nickname',
+    ], 'Community legacy nickname setting cleanup');
+}
+sr_community_release_file_not_contains('modules/community/lang/ko.php', [
+    'help.nickname.body.1',
+    'help.nickname.body.2',
+    'help.nickname.title',
+    'ui.nickname.enabled',
+    'ui.nickname.enabled.choice',
+    'ui.nickname.enabled.help',
+], 'Community legacy nickname setting language cleanup');
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communityPostsPermissionPath, 'view')",
     "'extra_values_supported' => sr_community_post_extra_values_column_exists(\$pdo)",

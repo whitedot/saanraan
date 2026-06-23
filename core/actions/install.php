@@ -64,7 +64,7 @@ foreach (sr_foundation_module_keys() as $foundationModuleKey) {
 $optionalModules = [
     'seo' => [
         'name' => 'SEO',
-        'version' => '2026.04.002',
+        'version' => '2026.05.001',
         'label' => 'SEO',
         'description' => 'robots.txt, sitemap.xml, 기본 meta 설정 화면을 설치합니다.',
     ],
@@ -124,9 +124,9 @@ $optionalModules = [
     ],
     'embed_manager' => [
         'name' => '임베드 매니저',
-        'version' => '2026.06.001',
+        'version' => '2026.06.002',
         'label' => '임베드 매니저',
-        'description' => '본문 URL 임베드 cache 점검과 legacy 링크 카드 호환 helper를 설치합니다.',
+        'description' => '본문 URL 임베드 캐시 점검과 legacy 링크 카드 토큰 거부 처리를 설치합니다.',
     ],
     'point' => [
         'name' => '포인트',

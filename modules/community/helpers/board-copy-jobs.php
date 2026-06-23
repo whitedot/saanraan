@@ -253,9 +253,6 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     if ($stage === 'comments') {
         return sr_community_board_copy_job_copy_comments($pdo, $job, (int) ($limits['comments'] ?? 300), $lockToken);
     }
-    if ($stage === 'link_refs') {
-        return sr_community_board_copy_job_skip_link_refs($pdo, $job, $lockToken);
-    }
     if ($stage === 'attachments') {
         return sr_community_board_copy_job_copy_attachments($pdo, $job, (int) ($limits['attachments'] ?? 50), $lockToken);
     }
@@ -482,34 +479,10 @@ function sr_community_board_copy_job_stage_for_map_type(string $type): string
     return [
         'post' => 'posts',
         'comment' => 'comments',
-        'link_ref' => 'link_refs',
         'attachment' => 'attachments',
         'series' => 'series',
         'series_item' => 'series',
     ][$type] ?? $type;
-}
-
-function sr_community_board_copy_job_skip_link_refs(PDO $pdo, array $job, string $lockToken): array
-{
-    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
-    $stmt = $pdo->prepare(
-        "UPDATE sr_community_board_copy_job_maps
-         SET status = 'skipped', updated_at = :updated_at
-         WHERE job_id = :job_id
-           AND entity_type = 'link_ref'
-           AND status = 'pending'"
-    );
-    $stmt->execute([
-        'updated_at' => sr_now(),
-        'job_id' => (int) $job['id'],
-    ]);
-
-    return [
-        'done' => false,
-        'stage' => 'attachments',
-        'status' => 'running',
-        'message' => 'legacy 링크 참조 복사 단계를 건너뛰었습니다.',
-    ];
 }
 
 function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit, string $lockToken): array
@@ -588,7 +561,6 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             $newPostId = (int) $pdo->lastInsertId();
             if ((string) ($post['body_format'] ?? 'plain') === 'html') {
                 $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $params['body_text'], $createdBodyFiles);
-                $bodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'community', 'post', (int) $post['id'], 'body', 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
                 $bodyText = sr_community_sanitize_post_html($bodyText);
                 if ($bodyText !== (string) $params['body_text']) {
                     $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
@@ -596,9 +568,8 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
                         'updated_at' => (string) $post['updated_at'],
                         'id' => $newPostId,
                     ]);
-                } else {
-                    sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
                 }
+                sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
             } else {
                 sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $newPostId, 'body', '', (int) $post['author_account_id']);
             }
@@ -871,7 +842,7 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
 function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
 {
     $jobId = (int) $job['id'];
-    foreach (['post', 'comment', 'link_ref', 'attachment', 'series', 'series_item'] as $type) {
+    foreach (['post', 'comment', 'attachment', 'series', 'series_item'] as $type) {
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND entity_type = :entity_type AND status IN ('pending', 'failed')");
         $stmt->execute(['job_id' => $jobId, 'entity_type' => $type]);
         if ((int) $stmt->fetchColumn() > 0) {
@@ -953,7 +924,6 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
             'DELETE a FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id',
             'DELETE si FROM sr_community_series_items si INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id',
             'DELETE FROM sr_community_series WHERE board_id = :board_id',
-            'DELETE r FROM sr_community_link_refs r INNER JOIN sr_community_posts p ON p.id = r.post_id WHERE p.board_id = :board_id',
             'DELETE c FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id',
             'DELETE FROM sr_community_posts WHERE board_id = :board_id',
             'DELETE FROM sr_community_categories WHERE board_id = :board_id',

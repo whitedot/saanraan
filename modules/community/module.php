@@ -85,8 +85,6 @@ return [
         'message_write_policy' => 'member',
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,
-        'nickname_enabled' => true,
-        'nickname_required' => true,
         'layout_key' => 'community.basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',

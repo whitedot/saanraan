@@ -167,7 +167,6 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         file_original_name_snapshot TEXT NOT NULL DEFAULT "",
         created_at TEXT NOT NULL
     )');
-    $pdo->exec('CREATE TABLE sr_content_link_refs (id INTEGER PRIMARY KEY AUTOINCREMENT, content_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_content_series (
         id INTEGER PRIMARY KEY,
         series_key TEXT NOT NULL,
@@ -304,7 +303,6 @@ $pdo->prepare('INSERT INTO sr_content_files (id, content_id, title, original_nam
 $pdo->prepare('INSERT INTO sr_content_file_links (content_id, file_id, sort_order, status, updated_at) VALUES (:content_id, :file_id, 1, "active", :updated_at)')->execute(['content_id' => $contentId, 'file_id' => $downloadFileId, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_file_links (content_id, file_id, sort_order, status, updated_at) VALUES (:content_id, :file_id, 2, "active", :updated_at)')->execute(['content_id' => $contentId, 'file_id' => $sharedFileId, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_file_download_logs (content_id, content_title_snapshot, content_slug_snapshot, file_id, file_title_snapshot, file_original_name_snapshot, created_at) VALUES (:content_id, "Runtime cleanup content", "runtime-cleanup-content", :file_id, "Download file", "download.txt", :created_at)')->execute(['content_id' => $contentId, 'file_id' => $downloadFileId, 'created_at' => $now]);
-$pdo->prepare('INSERT INTO sr_content_link_refs (content_id) VALUES (:content_id)')->execute(['content_id' => $contentId]);
 $pdo->prepare('INSERT INTO sr_content_series (id, series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at) VALUES (1, "runtime_series", "Runtime series", "", "active", "public", 1, 1, 1, :created_at, :updated_at)')->execute(['created_at' => $now, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at) VALUES (1, :content_id, :active_content_id, "1화", "active", 1, 1, :created_at, :updated_at)')->execute([
     'content_id' => $contentId,
@@ -353,7 +351,6 @@ $downloadLog = sr_content_file_cleanup_row($pdo, 'SELECT content_title_snapshot,
 sr_content_file_cleanup_assert((string) ($downloadLog['content_slug_snapshot'] ?? 'x') === '', 'content file cleanup fixture should clear download log content slug snapshot.');
 sr_content_file_cleanup_assert((string) ($downloadLog['content_title_snapshot'] ?? '') !== 'Runtime cleanup content', 'content file cleanup fixture should redact download log content title snapshot.');
 sr_content_file_cleanup_assert((string) ($downloadLog['file_original_name_snapshot'] ?? '') !== 'download.txt', 'content file cleanup fixture should redact download log file original name snapshot.');
-sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $contentId]) === 0, 'content file cleanup fixture should remove link refs.');
 sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_series_items WHERE content_id = :content_id OR active_content_id = :content_id', ['content_id' => $contentId]) === 0, 'content file cleanup fixture should remove deleted content from series items.');
 sr_content_file_cleanup_assert((string) sr_content_file_cleanup_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id', ['owner_id' => $contentId]) === 'stale', 'content file cleanup fixture should mark URL embed cache stale.');
 sr_content_file_cleanup_assert((int) sr_content_file_cleanup_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_storage_cleanup_failures') === 0, 'content file cleanup fixture should not leave cleanup failures.');

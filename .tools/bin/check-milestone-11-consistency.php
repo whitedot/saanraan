@@ -194,8 +194,6 @@ try {
     m11_assert(count(sr_schema_version_rows($pdo)) > 0, '#143 schema version rows are recorded');
     foreach ([
         'sr_modules' => ['module_key', 'status', 'installed_at', 'updated_at'],
-        'sr_content_link_refs' => ['content_id', 'target_module', 'target_entity_type', 'target_entity_id'],
-        'sr_community_link_refs' => ['post_id', 'target_module', 'target_entity_type', 'target_entity_id'],
         'sr_coupon_redemptions' => ['dedupe_key', 'coupon_issue_id', 'coupon_definition_id'],
         'sr_notification_deliveries' => ['notification_id', 'channel', 'status', 'error_message'],
         'sr_privacy_requests' => ['account_id', 'request_type', 'status', 'admin_note'],
@@ -239,10 +237,8 @@ try {
     $linkToken = '{{sr_link_card module="content" entity_type="content" entity_id="' . $publishedId . '" variant="compact" slot="body" label="M11 카드"}}';
     $linkTokenErrors = sr_link_card_token_rejection_errors($linkToken);
     $linkPageId = sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>일반 링크</p>', 'published'), $adminId, (int) m11_value($pdo, "SELECT id FROM sr_content_items WHERE slug = 'm11-link-card' LIMIT 1"));
-    $linkRefCount = (int) m11_value($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $linkPageId]);
     sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>카드 제거</p>', 'published'), $adminId, $linkPageId);
-    $linkRefRemoved = (int) m11_value($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $linkPageId]);
-    m11_assert($linkTokenErrors !== [] && $linkRefCount === 0 && $linkRefRemoved === 0, '#146 legacy link card tokens are rejected and link refs stay empty');
+    m11_assert($linkTokenErrors !== [] && $linkPageId > 0, '#146 legacy link card tokens are rejected without legacy ref tables');
 
     foreach (['point', 'reward', 'deposit'] as $assetKey) {
         $function = 'sr_' . $assetKey . '_create_transaction';
