@@ -174,6 +174,12 @@ function sr_admin_code_label_context_options(): array
             'private' => '비공개',
             'deleted' => '삭제됨',
         ],
+        'embed_manager_cache_status' => [
+            'fresh' => '정상',
+            'stale' => '재확인 필요',
+            'deleted' => '삭제됨',
+            'broken' => '깨짐',
+        ],
         'policy' => [
             'public' => '전체 공개',
             'member' => '회원',

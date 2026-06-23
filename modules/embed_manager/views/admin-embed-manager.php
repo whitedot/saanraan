@@ -9,6 +9,40 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/embed-manager')
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
+<?php echo sr_admin_feedback_toasts($notice ?? '', $errors ?? []); ?>
+
+<form method="post" action="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>" class="card admin-form ui-form-theme">
+    <?php echo sr_csrf_field(); ?>
+    <div class="card-header">
+        <h2 class="card-title"><?php echo sr_e('URL 임베딩 설정'); ?></h2>
+    </div>
+    <div class="form-row">
+        <label class="form-label" for="embed_manager_url_embed_enabled"><?php echo sr_e('URL 임베딩'); ?></label>
+        <input id="embed_manager_url_embed_enabled" type="checkbox" name="url_embed_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['url_embed_enabled']) ? ' checked' : ''; ?>>
+        <p class="form-help"><?php echo sr_e('꺼져 있으면 URL resolver와 renderer를 호출하지 않고 원래 링크를 출력합니다.'); ?></p>
+    </div>
+    <div class="form-row">
+        <label class="form-label" for="embed_manager_internal_url_embed_enabled"><?php echo sr_e('내부 URL 임베딩'); ?></label>
+        <input id="embed_manager_internal_url_embed_enabled" type="checkbox" name="internal_url_embed_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['internal_url_embed_enabled']) ? ' checked' : ''; ?>>
+    </div>
+    <div class="form-row">
+        <label class="form-label" for="embed_manager_external_url_embed_enabled"><?php echo sr_e('외부 URL 임베딩'); ?></label>
+        <input id="embed_manager_external_url_embed_enabled" type="checkbox" name="external_url_embed_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['external_url_embed_enabled']) ? ' checked' : ''; ?>>
+        <p class="form-help"><?php echo sr_e('외부 provider 계약과 개인정보/CSP 기준이 준비된 경우에만 켭니다.'); ?></p>
+    </div>
+    <div class="form-row">
+        <label class="form-label" for="embed_manager_embed_scope"><?php echo sr_e('임베딩 범위'); ?></label>
+        <select id="embed_manager_embed_scope" name="embed_scope" class="form-select">
+            <option value="standalone_url_only"<?php echo (string) ($settings['embed_scope'] ?? '') === 'standalone_url_only' ? ' selected' : ''; ?>><?php echo sr_e('단독 URL만'); ?></option>
+            <option value="all_supported_links"<?php echo (string) ($settings['embed_scope'] ?? '') === 'all_supported_links' ? ' selected' : ''; ?>><?php echo sr_e('지원 링크 전체'); ?></option>
+        </select>
+        <p class="form-help"><?php echo sr_e('현재 렌더러는 의미 있는 라벨 링크는 보존하고 단독 URL 링크만 임베드합니다.'); ?></p>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('저장'); ?></button>
+    </div>
+</form>
+
 <form method="get" action="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>" class="filtering-form admin-embed-manager-filter ui-form-theme">
     <div class="filtering filtering-card<?php echo $detailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
         <div class="filtering-fields admin-embed-manager-filter-grid">
@@ -20,7 +54,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div id="embed_manager_detail_filters" class="filtering-body" data-filtering-body<?php echo $detailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field">
                 <span class="filtering-label"><?php echo sr_e('상태'); ?></span>
-                <?php echo sr_admin_filter_radio_toggle_group_html('embed_manager_status_filter', 'status', sr_admin_code_label_options(sr_embed_manager_allowed_statuses(), 'embed_manager_status'), $selectedStatuses, '전체'); ?>
+                <?php echo sr_admin_filter_radio_toggle_group_html('embed_manager_status_filter', 'status', sr_admin_code_label_options(sr_embed_manager_url_cache_statuses(), 'embed_manager_cache_status'), $selectedStatuses, '전체'); ?>
             </div>
         </div>
         <div class="filtering-actions">
@@ -36,12 +70,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
         </div>
-        <p class="admin-empty-state"><?php echo sr_e('임베드 매니저 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
+        <p class="admin-empty-state"><?php echo sr_e('URL 임베드 cache 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
     </section>
 <?php } else { ?>
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
+            <h2 class="card-title"><?php echo sr_e('URL 임베드 cache'); ?></h2>
         </div>
         <div class="admin-list-summary-row">
             <div class="admin-list-summary">
@@ -69,8 +103,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($refs as $ref) { ?>
                         <tr>
                             <td class="admin-table-break">
-                                <strong><?php echo sr_e((string) ($ref['ref_key'] ?? '')); ?></strong>
-                                <span class="admin-muted-text"><?php echo sr_e((string) ($ref['variant'] ?? '')); ?></span>
+                                <strong><?php echo sr_e((string) ($ref['canonical_url_hash'] ?? '')); ?></strong>
+                                <span class="admin-muted-text"><?php echo sr_e((string) ($ref['source_url'] ?? '')); ?></span>
                             </td>
                             <td class="admin-table-break"><?php echo sr_e(sr_embed_manager_ref_target_label((string) ($ref['owner_module'] ?? ''), (string) ($ref['owner_type'] ?? ''), (string) ($ref['owner_id'] ?? ''))); ?></td>
                             <td class="admin-table-break">
@@ -79,14 +113,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <span class="admin-muted-text"><?php echo sr_e((string) $ref['label_snapshot']); ?></span>
                                 <?php } ?>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ((string) ($ref['status'] ?? '') === 'active' ? 'is-normal' : 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label((string) ($ref['status'] ?? ''), 'embed_manager_status')); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ((string) ($ref['cache_status'] ?? '') === 'fresh' ? 'is-normal' : 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label((string) ($ref['cache_status'] ?? ''), 'embed_manager_cache_status')); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($ref['updated_at'] ?? '')); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
         </div>
-        <?php echo sr_admin_status_description_list_html('embed_manager_status'); ?>
+        <?php echo sr_admin_status_description_list_html('embed_manager_cache_status'); ?>
     </section>
 <?php } ?>
 
