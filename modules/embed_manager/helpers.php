@@ -361,8 +361,18 @@ function sr_embed_manager_module_enabled(PDO $pdo, string $moduleKey): bool
     } catch (Throwable $exception) {
         return true;
     }
+    if (array_key_exists('embed_enabled', $settings)) {
+        return !empty($settings['embed_enabled']);
+    }
+    if (function_exists('sr_module_metadata')) {
+        $metadata = sr_module_metadata($moduleKey);
+        $defaultSettings = is_array($metadata['settings'] ?? null) ? $metadata['settings'] : [];
+        if (array_key_exists('embed_enabled', $defaultSettings)) {
+            return !empty($defaultSettings['embed_enabled']);
+        }
+    }
 
-    return !array_key_exists('embed_enabled', $settings) || !empty($settings['embed_enabled']);
+    return true;
 }
 
 function sr_embed_manager_embed_kind_allowed(string $embedKind, array $settings): bool

@@ -135,7 +135,7 @@
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
 - 콘텐츠/커뮤니티 검색 삽입은 본문 안에 안전한 URL 또는 링크 HTML을 넣고 전용 marker를 만들지 않는다.
 - 본문 URL이 저장 진실원이며, `sr_embed_manager_url_cache`는 canonical URL hash, target tuple, public snapshot, cache status를 담는 파생 cache/index다.
-- URL 임베딩은 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
+- URL 임베딩은 전역 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정과 각 지원 모듈의 `embed_enabled` 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
 - 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
 - 대상 모듈은 `embed-manager-url-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
 - 공개 표시 HTML은 `embed_manager` 공통 카드가 아니라 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.

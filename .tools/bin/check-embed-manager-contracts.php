@@ -64,6 +64,15 @@ if (!function_exists('sr_module_settings')) {
     }
 }
 
+if (!function_exists('sr_module_metadata')) {
+    function sr_module_metadata(string $moduleKey): array
+    {
+        return isset($GLOBALS['sr_embed_contract_module_metadata'][$moduleKey]) && is_array($GLOBALS['sr_embed_contract_module_metadata'][$moduleKey])
+            ? $GLOBALS['sr_embed_contract_module_metadata'][$moduleKey]
+            : [];
+    }
+}
+
 if (!function_exists('sr_site_setting')) {
     function sr_site_setting(PDO $pdo, string $key, mixed $default = null): mixed
     {
@@ -368,10 +377,25 @@ function sr_embed_contract_runtime_fixture(): void
     $searchItems = sr_embed_manager_search_targets($pdo, '공개', 10);
     sr_embed_contract_assert(isset($searchItems[0]) && (string) ($searchItems[0]['url'] ?? '') === 'https://example.test/fixture/1', 'Search target public URL must be returned as an absolute URL for insertion.');
 
+    $providerBody = '<p>/fixture/1</p>';
+    sr_embed_manager_sync_body_url_cache($pdo, 'owner', 'doc', 16, 'body', $providerBody, 7);
+    sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_module = \'owner\' AND owner_id = 16 LIMIT 1') === 'fresh', 'Provider disable fixture must start from a fresh owner cache row.');
+    sr_embed_contract_assert(str_contains(sr_embed_manager_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Provider disable fixture must render before target module is disabled.');
+
     $GLOBALS['sr_embed_contract_module_settings'] = ['fixture' => ['embed_enabled' => false]];
     sr_embed_contract_assert(sr_embed_manager_search_targets($pdo, '공개', 10) === [], 'Disabled target module embed setting must remove search contract results.');
-    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, '<p>/fixture/1</p>', 'fixture', 'doc', 16), 'fixture-embed-summary'), 'Disabled owner module embed setting must leave body URLs unrendered.');
+    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Disabled target module embed setting must leave cached target URLs unrendered.');
     unset($GLOBALS['sr_embed_contract_module_settings']);
+
+    $GLOBALS['sr_embed_contract_module_settings'] = ['owner' => ['embed_enabled' => false]];
+    sr_embed_manager_sync_body_url_cache($pdo, 'owner', 'doc', 16, 'body', $providerBody, 7);
+    sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_module = \'owner\' AND owner_id = 16 LIMIT 1') === 'stale', 'Disabled owner module embed setting must stale existing owner cache rows.');
+    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Disabled owner module embed setting must leave body URLs unrendered.');
+    unset($GLOBALS['sr_embed_contract_module_settings']);
+
+    $GLOBALS['sr_embed_contract_module_metadata'] = ['fixture' => ['settings' => ['embed_enabled' => false]]];
+    sr_embed_contract_assert(sr_embed_manager_search_targets($pdo, '공개', 10) === [], 'Disabled target module metadata default must remove search contract results when no saved setting exists.');
+    unset($GLOBALS['sr_embed_contract_module_metadata']);
 }
 
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
