@@ -275,6 +275,9 @@ $targets = [
             'function sr_member_required_skin_view_keys(): array',
             "sr_t('member::settings.skin.default_missing')",
         ],
+        'helper_forbidden' => [
+            "'/assets/ui-kit-layout.css'",
+        ],
         'action_needles' => [
             "sr_post_string('member_skin_key', 40)",
             'if (!isset(sr_member_skin_options()[$memberSkinKey]))',
@@ -361,6 +364,9 @@ $targets = [
 foreach ($targets as $target) {
     $label = (string) $target['label'];
     sr_skin_theme_check_contains((string) $target['helper'], $target['helper_needles'], $label . ' helper');
+    if (isset($target['helper_forbidden']) && is_array($target['helper_forbidden'])) {
+        sr_skin_theme_check_not_contains((string) $target['helper'], $target['helper_forbidden'], $label . ' helper');
+    }
     sr_skin_theme_check_contains($target['action'], $target['action_needles'], $label . ' admin action');
     sr_skin_theme_check_contains($target['view'], $target['view_needles'], $label . ' admin view');
 

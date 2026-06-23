@@ -310,9 +310,34 @@ if ($settingsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($settingsHelper, 'profile_nickname_enabled') === false
             && strpos($settingsHelper, 'profile_nickname_required') === false,
-        'Member settings helper should not define nickname policies because community owns nicknames.'
+        'Member settings helper should not keep legacy profile nickname policies.'
     );
 }
+
+$memberUpdateSql = '';
+foreach (glob($root . '/modules/member/updates/*.sql') ?: [] as $updateFile) {
+    $memberUpdateSql .= "\n" . sr_member_auth_policy_read(str_replace($root . '/', '', $updateFile));
+}
+$communityUpdateSql = '';
+foreach (glob($root . '/modules/community/updates/*.sql') ?: [] as $updateFile) {
+    $communityUpdateSql .= "\n" . sr_member_auth_policy_read(str_replace($root . '/', '', $updateFile));
+}
+$communityMembersHelper = sr_member_auth_policy_read('modules/community/helpers/members.php');
+sr_member_auth_policy_assert(
+    strpos($memberUpdateSql . $communityUpdateSql, 'profile_nickname_enabled') === false
+        && strpos($memberUpdateSql . $communityUpdateSql, 'profile_nickname_required') === false
+        && strpos($memberUpdateSql, 'profile_phone_enabled') === false
+        && strpos($memberUpdateSql, 'profile_phone_required') === false
+        && strpos($memberUpdateSql, 'profile_text_enabled') === false
+        && strpos($memberUpdateSql, 'profile_text_required') === false
+        && strpos($memberUpdateSql . $communityUpdateSql, 'member_profiles DROP COLUMN nickname') === false,
+    'Member/community update SQL should not carry legacy fixed-profile setting cleanup residue.'
+);
+sr_member_auth_policy_assert(
+    strpos($communityUpdateSql, 'community_member_nicknames') === false
+        && strpos($communityMembersHelper, 'sr_community_member_nicknames_table_exists') === false,
+    'Community should not keep the legacy temporary nickname handoff table or compatibility helper.'
+);
 
 $profileHelper = sr_member_auth_policy_read('modules/member/helpers/profile.php');
 if ($profileHelper !== '') {
@@ -322,7 +347,20 @@ if ($profileHelper !== '') {
             && strpos($profileHelper, 'SELECT nickname') === false,
         'Member profile helper should not accept, return, or read member-owned nicknames.'
     );
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, "'phone' =>") === false
+            && strpos($profileHelper, 'SELECT phone') === false
+            && strpos($profileHelper, 'profile_text') === false,
+        'Member profile helper should not keep legacy fixed phone or introduction fields.'
+    );
 }
+
+$memberInstallSql = sr_member_auth_policy_read('modules/member/install.sql');
+sr_member_auth_policy_assert(
+    strpos($memberInstallSql, 'phone VARCHAR') === false
+        && strpos($memberInstallSql, 'profile_text') === false,
+    'Member install schema should not keep legacy fixed phone or introduction profile columns.'
+);
 
 $sessionHelper = sr_member_auth_policy_read('modules/member/helpers/sessions.php');
 if ($sessionHelper !== '') {
@@ -797,6 +835,14 @@ if ($adminSettingsAction !== '') {
             && strpos($adminSettingsAction, '$settings[$key] = $integerValue;') !== false
             && strpos($adminSettingsAction, 'sr_member_clamp_int((int) $rawValue') === false,
         'Member settings action should reject out-of-range integer settings instead of truncating or clamping submitted values.'
+    );
+}
+
+foreach (glob(SR_ROOT . '/modules/member/updates/*.sql') ?: [] as $memberUpdateSqlPath) {
+    $memberUpdateSql = sr_member_auth_policy_read(str_replace(SR_ROOT . '/', '', $memberUpdateSqlPath));
+    sr_member_auth_policy_assert(
+        strpos($memberUpdateSql, 'login_identifier') === false,
+        'Member update SQL should not keep migration-only login_identifier value rewrites: ' . str_replace(SR_ROOT . '/', '', $memberUpdateSqlPath)
     );
 }
 
