@@ -117,9 +117,7 @@ function sr_member_registration_extension_fields(PDO $pdo, array $contracts): ar
         'terms_consent',
         'privacy_consent',
         'marketing_consent',
-        'phone',
         'birth_date',
-        'profile_text',
         'avatar_file',
     ], true);
 

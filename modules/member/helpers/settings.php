@@ -109,7 +109,6 @@ function sr_member_skin_options(): array
         'basic' => [
             'label' => sr_t('member::settings.skin.basic'),
             'stylesheets' => [
-                '/assets/ui-kit-layout.css',
                 '/modules/member/skins/basic/skin.css',
             ],
             'scripts' => [

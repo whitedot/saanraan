@@ -37,11 +37,9 @@ CREATE TABLE IF NOT EXISTS sr_member_auth_logs (
 CREATE TABLE IF NOT EXISTS sr_member_profiles (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,
-    phone VARCHAR(40) NOT NULL DEFAULT '',
     birth_date DATE NULL,
     is_adult TINYINT(1) NULL,
     avatar_path VARCHAR(255) NOT NULL DEFAULT '',
-    profile_text TEXT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),

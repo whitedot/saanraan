@@ -128,11 +128,6 @@ $communitySettingsHelp = [
         'title' => sr_t('community::help.message_min_level.title'),
         'body' => $communitySettingsHelpBodyHtml(['community::help.message_min_level.body.1', 'community::help.message_min_level.body.2']),
     ],
-    'nickname' => [
-        'id' => 'community_settings_help_nickname',
-        'title' => sr_t('community::help.nickname.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.nickname.body.1', 'community::help.nickname.body.2']),
-    ],
     'asset_settings' => [
         'id' => 'community_settings_help_asset_settings',
         'title' => sr_t('community::help.asset_settings.title'),

@@ -435,11 +435,6 @@ if (sr_request_method() === 'POST') {
                     ]);
                 }
                 $createdLevelCount = sr_community_ensure_level_definitions($pdo, (int) $levelMaxValue);
-                $stmt = $pdo->prepare('DELETE FROM sr_module_settings WHERE module_id = :module_id AND setting_key = :setting_key');
-                $stmt->execute([
-                    'module_id' => (int) $communityModule['id'],
-                    'setting_key' => 'access_condition_priority',
-                ]);
                 $pdo->commit();
                 sr_clear_module_settings_cache('community');
                 $settings = sr_community_settings($pdo);

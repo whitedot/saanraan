@@ -462,6 +462,26 @@ if (!is_string($adminRolesHelper)) {
 ) {
     $errors[] = 'Admin role grants and owner role changes must require owner password reauthentication.';
 }
+if (is_string($adminRolesHelper) && (
+    strpos($adminRolesHelper, "'/admin/menu' => true") === false
+    || strpos($adminRolesHelper, 'function sr_admin_owner_only_permission_keys') === false
+)) {
+    $errors[] = 'Admin menu settings must stay owner-only instead of delegated through menu permissions.';
+}
+$adminMenuAction = file_get_contents($root . '/modules/admin/actions/menu.php');
+if (!is_string($adminMenuAction) || strpos($adminMenuAction, 'sr_admin_require_owner($pdo, (int) $account[\'id\'])') === false) {
+    $errors[] = 'Admin menu action must require owner access.';
+}
+foreach (glob($root . '/modules/admin/updates/*.sql') ?: [] as $adminUpdatePath) {
+    $adminUpdate = file_get_contents($adminUpdatePath);
+    if (!is_string($adminUpdate)) {
+        continue;
+    }
+    $relativePath = str_replace($root . '/', '', $adminUpdatePath);
+    if (strpos($adminUpdate, "SELECT '/admin/menu'") !== false || strpos($adminUpdate, "menu_path = '/admin/menu'") !== false) {
+        $errors[] = 'Admin update SQL should not grant or clean legacy /admin/menu delegated permissions: ' . $relativePath;
+    }
+}
 
 $adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
 if (!isset($adminModuleActionsHelper)) {

@@ -111,11 +111,6 @@ function sr_community_clear_member_nickname_cache(PDO $pdo, int $accountId): voi
     unset($GLOBALS['sr_community_member_nickname_cache'][(string) spl_object_id($pdo) . ':' . (string) $accountId]);
 }
 
-function sr_community_member_nicknames_table_exists(PDO $pdo): bool
-{
-    return sr_member_nicknames_table_exists($pdo);
-}
-
 function sr_community_delete_member_nickname(PDO $pdo, int $accountId): bool
 {
     if ($accountId < 1 || !sr_member_nicknames_table_exists($pdo)) {
@@ -324,67 +319,6 @@ function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $ex
     return sr_member_nickname_exists($pdo, $nickname, $excludeAccountId);
 }
 
-function sr_community_member_registration_fields(PDO $pdo): array
-{
-    $settings = sr_community_settings($pdo);
-    if (empty($settings['nickname_enabled'])) {
-        return [];
-    }
-
-    return [
-        [
-            'key' => 'community_nickname',
-            'type' => 'text',
-            'label' => sr_t('community::ui.nickname'),
-            'help' => sr_t('community::ui.nickname.register.help'),
-            'maxlength' => 80,
-            'required' => true,
-        ],
-    ];
-}
-
-function sr_community_member_registration_validate(PDO $pdo, array $values, array $context = []): array
-{
-    $settings = sr_community_settings($pdo);
-    if (empty($settings['nickname_enabled'])) {
-        return [];
-    }
-
-    $nickname = trim((string) ($values['community_nickname'] ?? ''));
-    if ($nickname === '') {
-        return [sr_t('community::action.nickname_required')];
-    }
-
-    if (sr_community_member_nickname_exists($pdo, $nickname)) {
-        return [sr_t('community::action.nickname_duplicate')];
-    }
-
-    return [];
-}
-
-function sr_community_member_registration_save(PDO $pdo, int $accountId, array $values, array $context = []): array
-{
-    $settings = sr_community_settings($pdo);
-    $nickname = trim((string) ($values['community_nickname'] ?? ''));
-    if (empty($settings['nickname_enabled']) || $nickname === '') {
-        return ['community_nickname_set' => false];
-    }
-
-    try {
-        sr_community_create_member_nickname($pdo, $accountId, $nickname);
-    } catch (Throwable $exception) {
-        if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
-            throw $exception;
-        }
-        if ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
-            throw new RuntimeException('community_nickname_duplicate', 0, $exception);
-        }
-        throw $exception;
-    }
-
-    return ['community_nickname_set' => true];
-}
-
 function sr_community_random_member_nickname(PDO $pdo, string $currentNickname = ''): string
 {
     $currentNickname = trim($currentNickname);
@@ -415,87 +349,6 @@ function sr_community_nickname_reset_reason_label(string $reason): string
     $options = sr_community_nickname_reset_reason_options();
 
     return isset($options[$reason]) ? (string) $options[$reason] : '';
-}
-
-function sr_community_safe_next_path(string $next, string $fallback = '/community'): string
-{
-    $next = trim($next);
-    $parts = parse_url($next);
-    if (!is_array($parts)
-        || isset($parts['scheme'])
-        || isset($parts['host'])
-        || str_contains($next, "\r")
-        || str_contains($next, "\n")
-    ) {
-        return $fallback;
-    }
-
-    $path = (string) ($parts['path'] ?? '');
-    if ($path === ''
-        || ($path !== '/community' && !str_starts_with($path, '/community/'))
-        || $path === '/community/nickname'
-    ) {
-        return $fallback;
-    }
-
-    $query = isset($parts['query']) && is_string($parts['query']) && $parts['query'] !== ''
-        ? '?' . $parts['query']
-        : '';
-    $fragment = isset($parts['fragment']) && is_string($parts['fragment']) && $parts['fragment'] !== ''
-        ? '#' . $parts['fragment']
-        : '';
-
-    return $path . $query . $fragment;
-}
-
-function sr_community_member_needs_nickname(PDO $pdo, array $account, array $settings): bool
-{
-    return false;
-}
-
-function sr_community_require_member_nickname(PDO $pdo, array $account, array $settings, string $nextPath): void
-{
-    return;
-}
-
-function sr_community_handle_member_nickname_setup_post(PDO $pdo, array $account): array
-{
-    $errors = [];
-    $notice = '';
-    $nicknameInput = sr_post_string_without_truncation('nickname', 80);
-    $nickname = $nicknameInput === null ? '' : trim($nicknameInput);
-
-    if (sr_community_nickname_status_blocks_identity((string) ($account['status'] ?? ''))) {
-        $errors[] = sr_t('community::action.nickname_setup_blocked');
-    }
-
-    if ($nicknameInput === null) {
-        $errors[] = sr_t('community::action.nickname_too_long');
-    } elseif ($nickname === '') {
-        $errors[] = sr_t('community::action.nickname_required');
-    } elseif (sr_community_member_nickname_exists($pdo, $nickname, (int) ($account['id'] ?? 0))) {
-        $errors[] = sr_t('community::action.nickname_duplicate');
-    }
-
-    if ($errors === []) {
-        try {
-            sr_community_create_member_nickname($pdo, (int) $account['id'], $nickname);
-            $notice = sr_t('community::action.nickname_saved');
-        } catch (Throwable $exception) {
-            if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
-                $errors[] = sr_t('community::action.nickname_duplicate');
-            } elseif ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
-                $errors[] = sr_t('community::action.nickname_duplicate');
-            } else {
-                throw $exception;
-            }
-        }
-    }
-
-    return [
-        'errors' => $errors,
-        'notice' => $notice,
-    ];
 }
 
 function sr_community_handle_nickname_reset_post(PDO $pdo, array $account): array

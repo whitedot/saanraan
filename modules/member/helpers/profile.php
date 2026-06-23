@@ -8,11 +8,9 @@ require_once dirname(__DIR__, 3) . '/core/helpers/upload.php';
 function sr_member_empty_profile(): array
 {
     return [
-        'phone' => '',
         'birth_date' => '',
         'is_adult' => '',
         'avatar_path' => '',
-        'profile_text' => '',
     ];
 }
 
@@ -20,7 +18,7 @@ function sr_member_profile(PDO $pdo, int $accountId): array
 {
     $isAdultSelectSql = sr_member_profile_is_adult_column_exists($pdo) ? 'is_adult' : 'NULL AS is_adult';
     $stmt = $pdo->prepare(
-        'SELECT phone, birth_date, ' . $isAdultSelectSql . ', avatar_path, profile_text
+        'SELECT birth_date, ' . $isAdultSelectSql . ', avatar_path
          FROM sr_member_profiles
          WHERE account_id = :account_id
          LIMIT 1'
@@ -33,11 +31,9 @@ function sr_member_profile(PDO $pdo, int $accountId): array
     }
 
     return [
-        'phone' => (string) $profile['phone'],
         'birth_date' => is_string($profile['birth_date']) ? $profile['birth_date'] : '',
         'is_adult' => $profile['is_adult'] === null ? '' : ((int) $profile['is_adult'] === 1 ? '1' : '0'),
         'avatar_path' => (string) $profile['avatar_path'],
-        'profile_text' => (string) ($profile['profile_text'] ?? ''),
     ];
 }
 
@@ -54,32 +50,26 @@ function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
 
     $sql = $hasIsAdultColumn
         ? 'INSERT INTO sr_member_profiles
-            (account_id, phone, birth_date, is_adult, avatar_path, profile_text, created_at, updated_at)
+            (account_id, birth_date, is_adult, avatar_path, created_at, updated_at)
          VALUES
-            (:account_id, :phone, :birth_date, :is_adult, :avatar_path, :profile_text, :created_at, :updated_at)
+            (:account_id, :birth_date, :is_adult, :avatar_path, :created_at, :updated_at)
          ON DUPLICATE KEY UPDATE
-            phone = VALUES(phone),
             birth_date = VALUES(birth_date),
             is_adult = VALUES(is_adult),
             avatar_path = VALUES(avatar_path),
-            profile_text = VALUES(profile_text),
             updated_at = VALUES(updated_at)'
         : 'INSERT INTO sr_member_profiles
-            (account_id, phone, birth_date, avatar_path, profile_text, created_at, updated_at)
+            (account_id, birth_date, avatar_path, created_at, updated_at)
          VALUES
-            (:account_id, :phone, :birth_date, :avatar_path, :profile_text, :created_at, :updated_at)
+            (:account_id, :birth_date, :avatar_path, :created_at, :updated_at)
          ON DUPLICATE KEY UPDATE
-            phone = VALUES(phone),
             birth_date = VALUES(birth_date),
             avatar_path = VALUES(avatar_path),
-            profile_text = VALUES(profile_text),
             updated_at = VALUES(updated_at)';
     $params = [
         'account_id' => $accountId,
-        'phone' => trim((string) ($profile['phone'] ?? '')),
         'birth_date' => $birthDate,
         'avatar_path' => trim((string) ($profile['avatar_path'] ?? '')),
-        'profile_text' => trim((string) ($profile['profile_text'] ?? '')),
         'created_at' => $now,
         'updated_at' => $now,
     ];

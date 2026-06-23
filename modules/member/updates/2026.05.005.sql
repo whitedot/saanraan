@@ -32,17 +32,6 @@ PREPARE schema_stmt FROM @schema_sql;
 EXECUTE schema_stmt;
 DEALLOCATE PREPARE schema_stmt;
 
-UPDATE sr_module_settings s
-INNER JOIN sr_modules m ON m.id = s.module_id
-SET s.setting_value = CASE
-        WHEN s.setting_value = 'login_id' THEN 'login_id'
-        ELSE 'both'
-    END,
-    s.value_type = 'string',
-    s.updated_at = NOW()
-WHERE m.module_key = 'member'
-  AND s.setting_key = 'login_identifier';
-
 UPDATE sr_modules
 SET version = '2026.05.005',
     updated_at = NOW()

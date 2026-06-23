@@ -37,19 +37,6 @@ PREPARE schema_stmt FROM @schema_sql;
 EXECUTE schema_stmt;
 DEALLOCATE PREPARE schema_stmt;
 
-DELETE FROM {{SR_TABLE_PREFIX}}module_settings
-WHERE module_id IN (
-    SELECT id
-    FROM {{SR_TABLE_PREFIX}}modules
-    WHERE module_key = 'member'
-)
-  AND setting_key IN (
-    'profile_phone_enabled',
-    'profile_phone_required',
-    'profile_text_enabled',
-    'profile_text_required'
-  );
-
 UPDATE {{SR_TABLE_PREFIX}}modules
 SET version = '2026.06.003',
     updated_at = NOW()
