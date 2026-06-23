@@ -87,7 +87,10 @@ if (sr_request_method() === 'POST') {
                     'target_id' => (string) $failureId,
                     'result' => 'success',
                     'message' => 'Asset recovery failure manually updated.',
-                    'metadata' => ['source_module' => (string) ($failure['source_module'] ?? '')],
+                    'metadata' => [
+                        'source_module' => (string) ($failure['source_module'] ?? ''),
+                        'admin_reason' => mb_substr($reason, 0, 500),
+                    ],
                 ]);
                 $notice = $intent === 'manual_resolve' ? '미회수 기록을 수동 해소 처리했습니다.' : '미회수 기록을 수동 취소 처리했습니다.';
             } catch (Throwable $exception) {

@@ -58,6 +58,10 @@ $requireContains('modules/asset_ledger/paths.php', [
     'GET /admin/assets/recovery-failures',
     'POST /admin/assets/recovery-failures',
 ]);
+$requireContains('modules/asset_ledger/actions/admin-assets-recovery-failures.php', [
+    "'event_type' => 'asset_recovery.'",
+    "'admin_reason' => mb_substr(\$reason, 0, 500)",
+]);
 $requireContains('modules/asset_ledger/views/admin-recovery-failures.php', [
     '지급 로그',
     '미회수 큐',
