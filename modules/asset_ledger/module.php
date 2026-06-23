@@ -2,7 +2,7 @@
 
 return [
     'name' => '잔액 처리 기반',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
     'description' => '회원 자산 모듈의 잔액 갱신과 거래 기록 primitive를 제공하는 숨김 기반 모듈입니다.',
     'admin' => [
@@ -24,6 +24,8 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'privacy-export.php',
+            'privacy-cleanup.php',
         ],
     ],
 ];

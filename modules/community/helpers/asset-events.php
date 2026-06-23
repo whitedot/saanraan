@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
+
 function sr_community_paid_read_session_key(int $accountId, int $postId): string
 {
     return (string) $accountId . ':' . (string) $postId;
@@ -1095,6 +1097,21 @@ function sr_community_asset_recovery_context_json(array $operationContext): stri
     return is_string($encoded) ? $encoded : '{}';
 }
 
+function sr_community_asset_recovery_canonical_event_key(string $eventKey, string $subjectType, string $purpose): string
+{
+    $subjectDomain = match ($subjectType) {
+        'community.comment' => 'comment',
+        default => 'post',
+    };
+    $purposeName = match ($purpose) {
+        'reversal' => 'reward_reversal',
+        default => 'reward_grant',
+    };
+    $canonical = 'community.' . $subjectDomain . '.' . $purposeName;
+
+    return function_exists('sr_asset_recovery_event_key_valid') && sr_asset_recovery_event_key_valid($eventKey) ? $eventKey : $canonical;
+}
+
 function sr_community_asset_recovery_savepoint_name(): string
 {
     static $counter = 0;
@@ -1112,8 +1129,10 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
     $attemptedAmount = max(0, (int) ($originalLog['amount'] ?? 0));
     $recoveredAmount = max(0, min($attemptedAmount, $recoveredAmount));
     $unrecoveredAmount = max(0, $attemptedAmount - $recoveredAmount);
-    $status = $unrecoveredAmount > 0 ? 'open' : 'resolved';
+    $status = $unrecoveredAmount > 0 ? 'open' : 'recovered';
     $now = sr_now();
+    $canonicalGrantEventKey = sr_community_asset_recovery_canonical_event_key($grantEventKey, $subjectType, 'grant');
+    $canonicalReversalEventKey = sr_community_asset_recovery_canonical_event_key($reversalEventKey, $subjectType, 'reversal');
     $operationEventKey = mb_substr((string) ($operationContext['operation_event_key'] ?? ''), 0, 80);
     $actorAccountIdValue = isset($operationContext['actor_account_id']) ? (int) $operationContext['actor_account_id'] : 0;
     $actorAccountId = $actorAccountIdValue > 0 ? $actorAccountIdValue : null;
@@ -1143,7 +1162,7 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
                  recovered_amount = MAX(recovered_amount, excluded.recovered_amount),
                  unrecovered_amount = excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount),
                  failure_reason = excluded.failure_reason,
-                 status = CASE WHEN excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN \'resolved\' ELSE sr_community_asset_recovery_failures.status END,
+                 status = CASE WHEN excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN \'recovered\' ELSE sr_community_asset_recovery_failures.status END,
                  actor_account_id = excluded.actor_account_id,
                  actor_type = excluded.actor_type,
                  operation_context_json = excluded.operation_context_json,
@@ -1168,7 +1187,7 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
                  recovered_amount = GREATEST(recovered_amount, VALUES(recovered_amount)),
                  unrecovered_amount = GREATEST(0, attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount))),
                  failure_reason = VALUES(failure_reason),
-                 status = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, \'resolved\', status),
+                 status = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, \'recovered\', status),
                  actor_account_id = VALUES(actor_account_id),
                  actor_type = VALUES(actor_type),
                  operation_context_json = VALUES(operation_context_json),
@@ -1200,8 +1219,26 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
         'created_at' => $now,
         'updated_at' => $now,
         'last_attempted_at' => $now,
-        'resolved_at' => $status === 'resolved' ? $now : null,
+        'resolved_at' => $status === 'recovered' ? $now : null,
     ]);
+
+    if (function_exists('sr_asset_recovery_record_failure') && sr_asset_recovery_failures_table_exists($pdo)) {
+        sr_asset_recovery_record_failure($pdo, [
+            'source_module' => 'community',
+            'source_log_id' => (int) ($originalLog['id'] ?? 0),
+            'asset_module' => (string) ($originalLog['asset_module'] ?? ''),
+            'account_id' => (int) ($originalLog['account_id'] ?? 0),
+            'original_transaction_id' => (int) ($originalLog['transaction_id'] ?? 0),
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'grant_event_key' => $canonicalGrantEventKey,
+            'reversal_event_key' => $canonicalReversalEventKey,
+            'attempted_amount' => $attemptedAmount,
+            'recovered_amount' => $recoveredAmount,
+            'failure_reason' => $failureReason === 'resolved' ? 'recovered' : $failureReason,
+            'operation_context' => $operationContext,
+        ]);
+    }
 
     $row = sr_community_asset_recovery_failure_by_original($pdo, (int) ($originalLog['id'] ?? 0), $reversalEventKey);
     return is_array($row) ? (int) ($row['id'] ?? 0) : 0;
@@ -1216,14 +1253,14 @@ function sr_community_reverse_asset_grant_for_operation(PDO $pdo, int $accountId
 
     $attemptedAmount = max(0, (int) ($original['amount'] ?? 0));
     $existingFailure = sr_community_asset_recovery_failure_by_original($pdo, (int) ($original['id'] ?? 0), $canonicalReversalEventKey);
-    if (is_array($existingFailure) && in_array((string) ($existingFailure['status'] ?? ''), ['resolved', 'cancelled'], true)) {
+    if (is_array($existingFailure) && in_array((string) ($existingFailure['status'] ?? ''), ['recovered', 'resolved', 'manually_resolved', 'cancelled'], true)) {
         return ['operation_allowed' => true, 'recovery_status' => 'not_needed', 'recovery_failure_id' => (int) ($existingFailure['id'] ?? 0), 'processed' => false, 'message' => ''];
     }
 
     $alreadyRecoveredAmount = sr_community_asset_completed_reversal_amount($pdo, $original, $canonicalReversalEventKey);
     if ($attemptedAmount <= 0 || $alreadyRecoveredAmount >= $attemptedAmount) {
         if (is_array($existingFailure) && (string) ($existingFailure['status'] ?? '') === 'open') {
-            $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $attemptedAmount, 'resolved', $operationContext);
+            $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $attemptedAmount, 'recovered', $operationContext);
             return ['operation_allowed' => true, 'recovery_status' => 'completed', 'recovery_failure_id' => $failureId, 'processed' => false, 'message' => ''];
         }
 
@@ -1256,12 +1293,26 @@ function sr_community_reverse_asset_grant_for_operation(PDO $pdo, int $accountId
             $totalRecovered = $alreadyRecoveredAmount + $recoverableAmount;
             if ($totalRecovered >= $attemptedAmount) {
                 $failureId = is_array($existingFailure)
-                    ? sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $totalRecovered, 'resolved', $operationContext)
+                    ? sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $totalRecovered, 'recovered', $operationContext)
                     : 0;
+                if ($failureId > 0 && function_exists('sr_asset_recovery_record_reversal_link')) {
+                    $commonFailure = sr_asset_recovery_failure_by_dedupe_key($pdo, sr_asset_recovery_dedupe_key('community', (int) ($original['id'] ?? 0), sr_community_asset_recovery_canonical_event_key($canonicalReversalEventKey, $subjectType, 'reversal')));
+                    $commonFailureId = is_array($commonFailure) ? (int) ($commonFailure['id'] ?? 0) : 0;
+                    foreach ((array) ($result['processed_logs'] ?? []) as $processedLog) {
+                        sr_asset_recovery_record_reversal_link($pdo, $commonFailureId, (string) ($processedLog['asset_module'] ?? ''), (int) ($processedLog['transaction_id'] ?? 0), (int) ($processedLog['amount'] ?? 0));
+                    }
+                }
                 return ['operation_allowed' => true, 'recovery_status' => 'completed', 'recovery_failure_id' => $failureId, 'processed' => true, 'message' => ''];
             }
 
             $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $grantEventKey, $canonicalReversalEventKey, $totalRecovered, 'balance_low', $operationContext);
+            if ($failureId > 0 && function_exists('sr_asset_recovery_record_reversal_link')) {
+                $commonFailure = sr_asset_recovery_failure_by_dedupe_key($pdo, sr_asset_recovery_dedupe_key('community', (int) ($original['id'] ?? 0), sr_community_asset_recovery_canonical_event_key($canonicalReversalEventKey, $subjectType, 'reversal')));
+                $commonFailureId = is_array($commonFailure) ? (int) ($commonFailure['id'] ?? 0) : 0;
+                foreach ((array) ($result['processed_logs'] ?? []) as $processedLog) {
+                    sr_asset_recovery_record_reversal_link($pdo, $commonFailureId, (string) ($processedLog['asset_module'] ?? ''), (int) ($processedLog['transaction_id'] ?? 0), (int) ($processedLog['amount'] ?? 0));
+                }
+            }
             return ['operation_allowed' => true, 'recovery_status' => 'unrecovered', 'recovery_failure_id' => $failureId, 'processed' => true, 'message' => ''];
         }
 
@@ -1308,13 +1359,15 @@ function sr_community_asset_reversal_error_message(array $result, string $balanc
 
 function sr_community_asset_recovery_failure_statuses(): array
 {
-    return ['open', 'resolved', 'cancelled'];
+    return ['open', 'recovered', 'manually_resolved', 'cancelled'];
 }
 
 function sr_community_asset_recovery_failure_status_label(string $status): string
 {
     return match ($status) {
         'open' => '미회수',
+        'recovered' => '전액 회수',
+        'manually_resolved' => '수동 해소',
         'resolved' => '해소',
         'cancelled' => '취소',
         default => $status,
@@ -1473,14 +1526,14 @@ function sr_community_asset_recovery_failure_update_manual_status(PDO $pdo, int 
         throw new RuntimeException('Community asset recovery failure table is not available.');
     }
 
-    if (!in_array($status, ['resolved', 'cancelled'], true)) {
+    if (!in_array($status, ['manually_resolved', 'cancelled'], true)) {
         throw new InvalidArgumentException('Invalid recovery failure status.');
     }
     $reason = trim($reason);
     if ($reason === '') {
         throw new InvalidArgumentException('Manual recovery status reason is required.');
     }
-    $failureReason = $status === 'resolved' ? 'manual_resolved' : 'manual_cancelled';
+    $failureReason = $status === 'manually_resolved' ? 'manual_resolved' : 'manual_cancelled';
     $now = sr_now();
     $stmt = $pdo->prepare(
         'UPDATE sr_community_asset_recovery_failures
