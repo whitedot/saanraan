@@ -371,6 +371,7 @@ function sr_survey_default_settings(): array
         'default_consent_required' => 0,
         'default_response_limit_policy' => 'per_survey_once',
         'default_response_limit_period_seconds' => 0,
+        'embed_enabled' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
@@ -426,6 +427,7 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
     $normalized['default_response_limit_policy'] = in_array((string) $normalized['default_response_limit_policy'], sr_survey_response_limit_policies(), true) ? (string) $normalized['default_response_limit_policy'] : (string) $defaults['default_response_limit_policy'];
     $normalized['default_response_limit_period_seconds'] = max(0, (int) $normalized['default_response_limit_period_seconds']);
+    $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
     $normalized['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
@@ -449,6 +451,7 @@ function sr_survey_settings_from_post(): array
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
         'default_response_limit_policy' => sr_survey_clean_key(sr_post_string('default_response_limit_policy', 30), 30),
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
+        'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
         'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
@@ -574,11 +577,11 @@ function sr_survey_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ($settings as $key => $value) {
-        $valueType = is_int($value) ? 'int' : 'string';
+        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
         $save->execute([
             'module_id' => (int) $module['id'],
             'setting_key' => (string) $key,
-            'setting_value' => (string) $value,
+            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
             'value_type' => $valueType,
             'created_at' => $now,
             'updated_at' => $now,

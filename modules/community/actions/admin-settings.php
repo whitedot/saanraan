@@ -72,6 +72,7 @@ if (sr_request_method() === 'POST') {
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
         $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
+        $embedEnabled = ($_POST['embed_enabled'] ?? '') === '1';
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
@@ -334,6 +335,7 @@ if (sr_request_method() === 'POST') {
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
+                ['embed_enabled', $embedEnabled ? '1' : '0', 'bool'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],

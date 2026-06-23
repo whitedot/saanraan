@@ -54,8 +54,12 @@ if (!function_exists('sr_module_settings')) {
             'embed_scope' => 'standalone_url_only',
         ];
 
-        return $moduleKey === 'embed_manager'
-            ? array_merge($defaultSettings, isset($GLOBALS['sr_embed_contract_settings']) && is_array($GLOBALS['sr_embed_contract_settings']) ? $GLOBALS['sr_embed_contract_settings'] : [])
+        if ($moduleKey === 'embed_manager') {
+            return array_merge($defaultSettings, isset($GLOBALS['sr_embed_contract_settings']) && is_array($GLOBALS['sr_embed_contract_settings']) ? $GLOBALS['sr_embed_contract_settings'] : []);
+        }
+
+        return isset($GLOBALS['sr_embed_contract_module_settings'][$moduleKey]) && is_array($GLOBALS['sr_embed_contract_module_settings'][$moduleKey])
+            ? $GLOBALS['sr_embed_contract_module_settings'][$moduleKey]
             : [];
     }
 }
@@ -363,6 +367,11 @@ function sr_embed_contract_runtime_fixture(): void
 
     $searchItems = sr_embed_manager_search_targets($pdo, '공개', 10);
     sr_embed_contract_assert(isset($searchItems[0]) && (string) ($searchItems[0]['url'] ?? '') === 'https://example.test/fixture/1', 'Search target public URL must be returned as an absolute URL for insertion.');
+
+    $GLOBALS['sr_embed_contract_module_settings'] = ['fixture' => ['embed_enabled' => false]];
+    sr_embed_contract_assert(sr_embed_manager_search_targets($pdo, '공개', 10) === [], 'Disabled target module embed setting must remove search contract results.');
+    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, '<p>/fixture/1</p>', 'fixture', 'doc', 16), 'fixture-embed-summary'), 'Disabled owner module embed setting must leave body URLs unrendered.');
+    unset($GLOBALS['sr_embed_contract_module_settings']);
 }
 
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {

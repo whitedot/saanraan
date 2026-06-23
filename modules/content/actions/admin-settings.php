@@ -43,6 +43,7 @@ if (sr_request_method() === 'POST') {
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
         'editor_toolbar_preset' => $postedToolbarPreset,
+        'embed_enabled' => sr_post_string('embed_enabled', 1) === '1',
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
         'secret_comments_enabled' => sr_post_string('secret_comments_enabled', 1) === '1',
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),

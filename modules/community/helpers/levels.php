@@ -51,6 +51,7 @@ function sr_community_default_settings(): array
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
+        'embed_enabled' => (bool) ($settings['embed_enabled'] ?? true),
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
@@ -236,6 +237,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['series_enabled'] = sr_community_bool_setting($settings['series_enabled'] ?? true);
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
+    $settings['embed_enabled'] = sr_community_bool_setting($settings['embed_enabled'] ?? true);
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);

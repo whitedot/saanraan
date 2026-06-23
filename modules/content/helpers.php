@@ -102,6 +102,7 @@ function sr_content_default_settings(): array
     return [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'content_basic',
+        'embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
         'secret_comments_enabled' => false,
         'once_history_policy' => 'all_access',
@@ -198,6 +199,7 @@ function sr_content_settings(PDO $pdo): array
     $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
     $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
+    $settings['embed_enabled'] = sr_content_bool_setting($settings['embed_enabled'] ?? true);
     $settings['plain_text_auto_link_urls'] = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_comments_enabled'] = sr_content_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
@@ -352,6 +354,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
     $rows = [
         ['editor', sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea')), 'string'],
         ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic')), 'string'],
+        ['embed_enabled', !empty($settings['embed_enabled']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],

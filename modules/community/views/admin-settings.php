@@ -602,6 +602,13 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
+            <span class="form-label">임베드 사용</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
+                <p class="form-help">꺼져 있으면 커뮤니티 게시글 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에서 게시글을 임베드 대상으로 검색하거나 자동 표시하지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <span class="form-label">본문 URL 자동 링크</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>

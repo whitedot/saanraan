@@ -110,6 +110,9 @@ function sr_embed_manager_contract_targets(PDO $pdo): array
 {
     $targets = [];
     foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-targets.php', ['embed_manager']) as $moduleKey => $file) {
+        if (!sr_embed_manager_module_enabled($pdo, (string) $moduleKey)) {
+            continue;
+        }
         $contract = sr_load_module_contract_file($moduleKey, $file);
         if (!is_array($contract)) {
             continue;
@@ -346,6 +349,22 @@ function sr_embed_manager_url_embedding_enabled(PDO $pdo): bool
     return !empty($settings['url_embed_enabled']);
 }
 
+function sr_embed_manager_module_enabled(PDO $pdo, string $moduleKey): bool
+{
+    $moduleKey = sr_embed_manager_clean_identifier($moduleKey);
+    if ($moduleKey === '' || $moduleKey === 'embed_manager') {
+        return true;
+    }
+
+    try {
+        $settings = sr_module_settings($pdo, $moduleKey);
+    } catch (Throwable $exception) {
+        return true;
+    }
+
+    return !array_key_exists('embed_enabled', $settings) || !empty($settings['embed_enabled']);
+}
+
 function sr_embed_manager_embed_kind_allowed(string $embedKind, array $settings): bool
 {
     if ($embedKind === 'internal_url') {
@@ -420,6 +439,9 @@ function sr_embed_manager_url_contract_targets(PDO $pdo): array
 {
     $targets = [];
     foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-url-targets.php', ['embed_manager']) as $moduleKey => $file) {
+        if (!sr_embed_manager_module_enabled($pdo, (string) $moduleKey)) {
+            continue;
+        }
         $contract = sr_load_module_contract_file($moduleKey, $file);
         if (!is_array($contract)) {
             continue;
@@ -785,6 +807,10 @@ function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, str
     if ($ownerModule === '' || $ownerType === '') {
         throw new InvalidArgumentException('URL 임베드 cache 소유자 정보가 올바르지 않습니다.');
     }
+    if (!sr_embed_manager_module_enabled($pdo, $ownerModule)) {
+        sr_embed_manager_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, [], sr_now());
+        return;
+    }
 
     $now = sr_now();
     $activeHashes = [];
@@ -1099,6 +1125,9 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
     $ownerType = sr_embed_manager_clean_identifier($ownerType);
     $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
     if ($ownerModule === '' || $ownerType === '') {
+        return $bodyHtml;
+    }
+    if (!sr_embed_manager_module_enabled($pdo, $ownerModule)) {
         return $bodyHtml;
     }
 

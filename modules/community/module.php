@@ -95,6 +95,7 @@ return [
         'layout_quinary_menu_key' => '',
         'post_editor' => 'textarea',
         'post_toolbar_preset' => 'community_post_basic',
+        'embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
         'secret_posts_enabled' => false,
         'secret_comments_enabled' => false,

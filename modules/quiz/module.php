@@ -44,6 +44,7 @@ return [
         'default_reward_amount' => '',
         'default_reward_dedupe_scope' => 'per_quiz',
         'default_cta_label' => '퀴즈 풀기',
+        'embed_enabled' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,

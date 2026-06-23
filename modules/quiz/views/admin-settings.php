@@ -469,6 +469,13 @@ $quizSettingsSectionNavItems = [
         </div>
         <div class="form-grid">
             <div class="form-row">
+                <span class="form-label">임베드 사용</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('quiz_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
+                    <p class="form-help">꺼져 있으면 콘텐츠나 커뮤니티 본문에서 퀴즈를 임베드 대상으로 검색하거나 주소로 자동 표시하지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_cta_label', '기본 연결 CTA 문구', $quizSettingsHelp['default_cta_label']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="quiz_settings_default_cta_label" type="text" name="default_cta_label" value="<?php echo sr_e((string) ($settings['default_cta_label'] ?? '퀴즈 풀기')); ?>" class="form-input" maxlength="120" required>
