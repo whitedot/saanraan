@@ -56,7 +56,9 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
 {
     if ($status === 'deleted') {
         sr_community_redact_deleted_post($pdo, $postId);
-        sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+        if (empty($options['defer_file_cleanup'])) {
+            sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+        }
         return;
     }
 

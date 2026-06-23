@@ -473,14 +473,14 @@ function sr_community_create_attachment(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function sr_community_update_post_attachments_status(PDO $pdo, int $postId, string $status): int
+function sr_community_update_post_attachments_status(PDO $pdo, int $postId, string $status, bool $deleteFiles = true): int
 {
     if ($postId < 1 || !in_array($status, ['active', 'hidden', 'deleted'], true)) {
         return 0;
     }
 
     if ($status === 'deleted') {
-        return sr_community_redact_deleted_post_attachments($pdo, $postId);
+        return sr_community_redact_deleted_post_attachments($pdo, $postId, $deleteFiles);
     }
 
     $stmt = $pdo->prepare(
@@ -498,10 +498,10 @@ function sr_community_update_post_attachments_status(PDO $pdo, int $postId, stri
     return $stmt->rowCount();
 }
 
-function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): int
+function sr_community_post_attachment_storage_refs(PDO $pdo, int $postId): array
 {
     if ($postId < 1) {
-        return 0;
+        return [];
     }
 
     $stmt = $pdo->prepare(
@@ -511,12 +511,16 @@ function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): in
            AND status <> 'deleted'"
     );
     $stmt->execute(['post_id' => $postId]);
-    $attachments = $stmt->fetchAll();
-    if ($attachments === []) {
-        return 0;
-    }
 
+    return $stmt->fetchAll();
+}
+
+function sr_community_cleanup_attachment_storage_refs(PDO $pdo, array $attachments, string $sourceType = 'attachment_post_delete'): void
+{
     foreach ($attachments as $attachment) {
+        if (!is_array($attachment)) {
+            continue;
+        }
         $driver = sr_community_attachment_storage_driver($attachment);
         $key = sr_community_attachment_storage_key($attachment);
         sr_thumbnail_delete_variants([
@@ -527,13 +531,29 @@ function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): in
         if ($key !== '' && !sr_storage_delete($driver, $key)) {
             sr_community_record_storage_cleanup_failure(
                 $pdo,
-                'attachment_post_delete',
+                $sourceType,
                 (int) ($attachment['id'] ?? 0),
                 $driver,
                 $key,
                 '게시글 삭제 후 첨부파일 저장소 정리에 실패했습니다.'
             );
         }
+    }
+}
+
+function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId, bool $deleteFiles = true): int
+{
+    if ($postId < 1) {
+        return 0;
+    }
+
+    $attachments = sr_community_post_attachment_storage_refs($pdo, $postId);
+    if ($attachments === []) {
+        return 0;
+    }
+
+    if ($deleteFiles) {
+        sr_community_cleanup_attachment_storage_refs($pdo, $attachments);
     }
 
     $update = $pdo->prepare(

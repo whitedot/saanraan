@@ -538,6 +538,37 @@ CREATE TABLE IF NOT EXISTS sr_community_asset_logs (
     KEY idx_sr_community_asset_logs_transaction (asset_module, transaction_id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_asset_recovery_failures (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    asset_module VARCHAR(20) NOT NULL,
+    original_asset_log_id BIGINT UNSIGNED NOT NULL,
+    original_transaction_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    subject_type VARCHAR(60) NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    grant_event_key VARCHAR(60) NOT NULL,
+    reversal_event_key VARCHAR(60) NOT NULL,
+    operation_event_key VARCHAR(80) NOT NULL DEFAULT '',
+    attempted_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    recovered_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    unrecovered_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    failure_reason VARCHAR(40) NOT NULL DEFAULT 'balance_low',
+    status VARCHAR(20) NOT NULL DEFAULT 'open',
+    actor_account_id BIGINT UNSIGNED NULL,
+    actor_type VARCHAR(30) NOT NULL DEFAULT '',
+    operation_context_json TEXT NULL,
+    attempt_count INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    last_attempted_at DATETIME NOT NULL,
+    resolved_at DATETIME NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_asset_recovery_original (original_asset_log_id, reversal_event_key),
+    KEY idx_sr_community_asset_recovery_account (account_id, status, updated_at),
+    KEY idx_sr_community_asset_recovery_subject (subject_type, subject_id),
+    KEY idx_sr_community_asset_recovery_status (status, updated_at)
+);
+
 CREATE TABLE IF NOT EXISTS sr_community_publisher_reward_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     charge_asset_log_id BIGINT UNSIGNED NOT NULL,
