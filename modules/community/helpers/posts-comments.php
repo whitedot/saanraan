@@ -229,7 +229,8 @@ function sr_community_admin_comment_query_parts(array $filters): array
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $where[] = '(c.id = :keyword_id OR c.body_text LIKE :body_keyword OR p.title LIKE :post_title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $params['keyword_id'] = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
             $params['body_keyword'] = '%' . $keyword . '%';
             $params['post_title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';

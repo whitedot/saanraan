@@ -828,7 +828,8 @@ function sr_community_admin_post_query_parts(array $filters, bool $categorySuppo
             } elseif (!empty($filters['extra_values_supported'])) {
                 $extraValuesCondition = ' OR p.extra_values_json LIKE :extra_values_keyword';
             }
-            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword' . $extraValuesCondition . ')';
+            $where[] = '(p.id = :keyword_id OR p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword' . $extraValuesCondition . ')';
+            $params['keyword_id'] = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
             $params['title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
             $params['author_nickname_keyword'] = '%' . $keyword . '%';
