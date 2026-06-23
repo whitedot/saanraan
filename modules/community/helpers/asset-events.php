@@ -1159,17 +1159,17 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
                  :unrecovered_amount, :failure_reason, :status, :actor_account_id, :actor_type, :operation_context_json,
                  1, :created_at, :updated_at, :last_attempted_at, :resolved_at)
              ON CONFLICT(original_asset_log_id, reversal_event_key) DO UPDATE SET
-                 recovered_amount = MAX(recovered_amount, excluded.recovered_amount),
-                 unrecovered_amount = excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount),
-                 failure_reason = excluded.failure_reason,
-                 status = CASE WHEN excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN \'recovered\' ELSE sr_community_asset_recovery_failures.status END,
-                 actor_account_id = excluded.actor_account_id,
-                 actor_type = excluded.actor_type,
-                 operation_context_json = excluded.operation_context_json,
-                 attempt_count = attempt_count + 1,
-                 updated_at = excluded.updated_at,
-                 last_attempted_at = excluded.last_attempted_at,
-                 resolved_at = CASE WHEN excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN excluded.updated_at ELSE resolved_at END'
+                 recovered_amount = CASE WHEN status = \'open\' THEN MAX(recovered_amount, excluded.recovered_amount) ELSE recovered_amount END,
+                 unrecovered_amount = CASE WHEN status = \'open\' THEN excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) ELSE unrecovered_amount END,
+                 failure_reason = CASE WHEN status = \'open\' THEN excluded.failure_reason ELSE failure_reason END,
+                 actor_account_id = CASE WHEN status = \'open\' THEN excluded.actor_account_id ELSE actor_account_id END,
+                 actor_type = CASE WHEN status = \'open\' THEN excluded.actor_type ELSE actor_type END,
+                 operation_context_json = CASE WHEN status = \'open\' THEN excluded.operation_context_json ELSE operation_context_json END,
+                 attempt_count = CASE WHEN status = \'open\' THEN attempt_count + 1 ELSE attempt_count END,
+                 updated_at = CASE WHEN status = \'open\' THEN excluded.updated_at ELSE updated_at END,
+                 last_attempted_at = CASE WHEN status = \'open\' THEN excluded.last_attempted_at ELSE last_attempted_at END,
+                 resolved_at = CASE WHEN status = \'open\' AND excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN excluded.updated_at ELSE resolved_at END,
+                 status = CASE WHEN status = \'open\' AND excluded.attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN \'recovered\' ELSE status END'
         );
     } else {
         $stmt = $pdo->prepare(
@@ -1184,17 +1184,17 @@ function sr_community_asset_recovery_upsert(PDO $pdo, array $originalLog, string
                  :unrecovered_amount, :failure_reason, :status, :actor_account_id, :actor_type, :operation_context_json,
                  1, :created_at, :updated_at, :last_attempted_at, :resolved_at)
              ON DUPLICATE KEY UPDATE
-                 recovered_amount = GREATEST(recovered_amount, VALUES(recovered_amount)),
-                 unrecovered_amount = GREATEST(0, attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount))),
-                 failure_reason = VALUES(failure_reason),
-                 status = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, \'recovered\', status),
-                 actor_account_id = VALUES(actor_account_id),
-                 actor_type = VALUES(actor_type),
-                 operation_context_json = VALUES(operation_context_json),
-                 attempt_count = attempt_count + 1,
-                 updated_at = VALUES(updated_at),
-                 last_attempted_at = VALUES(last_attempted_at),
-                 resolved_at = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, VALUES(updated_at), resolved_at)'
+                 recovered_amount = IF(status = \'open\', GREATEST(recovered_amount, VALUES(recovered_amount)), recovered_amount),
+                 unrecovered_amount = IF(status = \'open\', GREATEST(0, attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount))), unrecovered_amount),
+                 failure_reason = IF(status = \'open\', VALUES(failure_reason), failure_reason),
+                 actor_account_id = IF(status = \'open\', VALUES(actor_account_id), actor_account_id),
+                 actor_type = IF(status = \'open\', VALUES(actor_type), actor_type),
+                 operation_context_json = IF(status = \'open\', VALUES(operation_context_json), operation_context_json),
+                 attempt_count = IF(status = \'open\', attempt_count + 1, attempt_count),
+                 updated_at = IF(status = \'open\', VALUES(updated_at), updated_at),
+                 last_attempted_at = IF(status = \'open\', VALUES(last_attempted_at), last_attempted_at),
+                 resolved_at = IF(status = \'open\' AND attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, VALUES(updated_at), resolved_at),
+                 status = IF(status = \'open\' AND attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, \'recovered\', status)'
         );
     }
 

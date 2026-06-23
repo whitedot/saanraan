@@ -254,6 +254,24 @@ function sr_asset_recovery_failure_by_dedupe_key(PDO $pdo, string $dedupeKey): ?
     return is_array($row) ? $row : null;
 }
 
+function sr_asset_recovery_failure_by_dedupe_key_for_update(PDO $pdo, string $dedupeKey): ?array
+{
+    if (!sr_asset_recovery_failures_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_asset_recovery_failures
+         WHERE dedupe_key = :dedupe_key
+         LIMIT 1' . sr_ledger_for_update_clause($pdo)
+    );
+    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_asset_recovery_failure_by_id(PDO $pdo, int $failureId): ?array
 {
     if (!sr_asset_recovery_failures_table_exists($pdo)) {
@@ -321,67 +339,7 @@ function sr_asset_recovery_record_failure(PDO $pdo, array $data): int
     $actorType = mb_substr((string) ($operationContext['actor_type'] ?? $data['actor_type'] ?? ''), 0, 30);
     $contextJson = sr_asset_recovery_context_json($operationContext);
 
-    if (sr_ledger_pdo_driver($pdo) === 'sqlite') {
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_asset_recovery_failures
-                (dedupe_key, source_module, source_log_id, asset_module, account_id, original_transaction_id,
-                 subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key,
-                 attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status,
-                 actor_account_id, actor_type, operation_context_json, attempt_count, version,
-                 created_at, updated_at, last_attempted_at, resolved_at)
-             VALUES
-                (:dedupe_key, :source_module, :source_log_id, :asset_module, :account_id, :original_transaction_id,
-                 :subject_type, :subject_id, :grant_event_key, :reversal_event_key, :operation_event_key,
-                 :attempted_amount, :recovered_amount, :unrecovered_amount, :failure_reason, :status,
-                 :actor_account_id, :actor_type, :operation_context_json, 1, 1,
-                 :created_at, :updated_at, :last_attempted_at, :resolved_at)
-             ON CONFLICT(dedupe_key) DO UPDATE SET
-                 original_transaction_id = CASE WHEN excluded.original_transaction_id > 0 THEN excluded.original_transaction_id ELSE original_transaction_id END,
-                 recovered_amount = MAX(recovered_amount, excluded.recovered_amount),
-                 unrecovered_amount = MAX(0, attempted_amount - MAX(recovered_amount, excluded.recovered_amount)),
-                 failure_reason = excluded.failure_reason,
-                 status = CASE WHEN attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN \'recovered\' ELSE status END,
-                 actor_account_id = excluded.actor_account_id,
-                 actor_type = excluded.actor_type,
-                 operation_context_json = excluded.operation_context_json,
-                 attempt_count = attempt_count + 1,
-                 version = version + 1,
-                 updated_at = excluded.updated_at,
-                 last_attempted_at = excluded.last_attempted_at,
-                 resolved_at = CASE WHEN attempted_amount - MAX(recovered_amount, excluded.recovered_amount) <= 0 THEN excluded.updated_at ELSE resolved_at END'
-        );
-    } else {
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_asset_recovery_failures
-                (dedupe_key, source_module, source_log_id, asset_module, account_id, original_transaction_id,
-                 subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key,
-                 attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status,
-                 actor_account_id, actor_type, operation_context_json, attempt_count, version,
-                 created_at, updated_at, last_attempted_at, resolved_at)
-             VALUES
-                (:dedupe_key, :source_module, :source_log_id, :asset_module, :account_id, :original_transaction_id,
-                 :subject_type, :subject_id, :grant_event_key, :reversal_event_key, :operation_event_key,
-                 :attempted_amount, :recovered_amount, :unrecovered_amount, :failure_reason, :status,
-                 :actor_account_id, :actor_type, :operation_context_json, 1, 1,
-                 :created_at, :updated_at, :last_attempted_at, :resolved_at)
-             ON DUPLICATE KEY UPDATE
-                 original_transaction_id = IF(VALUES(original_transaction_id) > 0, VALUES(original_transaction_id), original_transaction_id),
-                 recovered_amount = GREATEST(recovered_amount, VALUES(recovered_amount)),
-                 unrecovered_amount = GREATEST(0, attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount))),
-                 failure_reason = VALUES(failure_reason),
-                 status = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, \'recovered\', status),
-                 actor_account_id = VALUES(actor_account_id),
-                 actor_type = VALUES(actor_type),
-                 operation_context_json = VALUES(operation_context_json),
-                 attempt_count = attempt_count + 1,
-                 version = version + 1,
-                 updated_at = VALUES(updated_at),
-                 last_attempted_at = VALUES(last_attempted_at),
-                 resolved_at = IF(attempted_amount - GREATEST(recovered_amount, VALUES(recovered_amount)) <= 0, VALUES(updated_at), resolved_at)'
-        );
-    }
-
-    $stmt->execute([
+    $params = [
         'dedupe_key' => $dedupeKey,
         'source_module' => $sourceModule,
         'source_log_id' => $sourceLogId,
@@ -405,10 +363,100 @@ function sr_asset_recovery_record_failure(PDO $pdo, array $data): int
         'updated_at' => $now,
         'last_attempted_at' => $now,
         'resolved_at' => $status === 'recovered' ? $now : null,
-    ]);
+    ];
 
-    $row = sr_asset_recovery_failure_by_dedupe_key($pdo, $dedupeKey);
-    return is_array($row) ? (int) ($row['id'] ?? 0) : 0;
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            sr_ledger_insert_ignore_into_clause($pdo) . ' sr_asset_recovery_failures
+                (dedupe_key, source_module, source_log_id, asset_module, account_id, original_transaction_id,
+                 subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key,
+                 attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status,
+                 actor_account_id, actor_type, operation_context_json, attempt_count, version,
+                 created_at, updated_at, last_attempted_at, resolved_at)
+             VALUES
+                (:dedupe_key, :source_module, :source_log_id, :asset_module, :account_id, :original_transaction_id,
+                 :subject_type, :subject_id, :grant_event_key, :reversal_event_key, :operation_event_key,
+                 :attempted_amount, :recovered_amount, :unrecovered_amount, :failure_reason, :status,
+                 :actor_account_id, :actor_type, :operation_context_json, 1, 1,
+                 :created_at, :updated_at, :last_attempted_at, :resolved_at)'
+        );
+        $stmt->execute($params);
+        $inserted = $stmt->rowCount() > 0;
+
+        $row = sr_asset_recovery_failure_by_dedupe_key_for_update($pdo, $dedupeKey);
+        if (!is_array($row)) {
+            throw new RuntimeException('Asset recovery failure row was not created.');
+        }
+
+        if (!$inserted) {
+            if ((string) ($row['status'] ?? '') !== 'open') {
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
+
+                return (int) ($row['id'] ?? 0);
+            }
+
+            $updatedRecoveredAmount = max((int) ($row['recovered_amount'] ?? 0), $recoveredAmount);
+            $updatedUnrecoveredAmount = max(0, (int) ($row['attempted_amount'] ?? $attemptedAmount) - $updatedRecoveredAmount);
+            $updatedStatus = $updatedUnrecoveredAmount <= 0 ? 'recovered' : 'open';
+            $stmt = $pdo->prepare(
+                'UPDATE sr_asset_recovery_failures
+                 SET original_transaction_id = CASE WHEN :original_transaction_id > 0 THEN :original_transaction_id ELSE original_transaction_id END,
+                     recovered_amount = :recovered_amount,
+                     unrecovered_amount = :unrecovered_amount,
+                     failure_reason = :failure_reason,
+                     status = :status,
+                     actor_account_id = :actor_account_id,
+                     actor_type = :actor_type,
+                     operation_context_json = :operation_context_json,
+                     attempt_count = attempt_count + 1,
+                     version = version + 1,
+                     updated_at = :updated_at,
+                     last_attempted_at = :last_attempted_at,
+                     resolved_at = CASE WHEN :resolved_status = \'recovered\' THEN :resolved_at ELSE resolved_at END
+                 WHERE id = :id
+                   AND status = \'open\'
+                   AND version = :version'
+            );
+            $stmt->execute([
+                'original_transaction_id' => (int) $params['original_transaction_id'],
+                'recovered_amount' => $updatedRecoveredAmount,
+                'unrecovered_amount' => $updatedUnrecoveredAmount,
+                'failure_reason' => (string) $params['failure_reason'],
+                'status' => $updatedStatus,
+                'resolved_status' => $updatedStatus,
+                'actor_account_id' => $params['actor_account_id'],
+                'actor_type' => (string) $params['actor_type'],
+                'operation_context_json' => (string) $params['operation_context_json'],
+                'updated_at' => $now,
+                'last_attempted_at' => $now,
+                'resolved_at' => $now,
+                'id' => (int) ($row['id'] ?? 0),
+                'version' => (int) ($row['version'] ?? 0),
+            ]);
+            if ($stmt->rowCount() < 1) {
+                throw new RuntimeException('Asset recovery failure row was changed concurrently.');
+            }
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return (int) ($row['id'] ?? 0);
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_asset_recovery_record_reversal_link(PDO $pdo, int $failureId, string $assetModule, int $reversalTransactionId, int $recoveredAmount): void
@@ -548,36 +596,60 @@ function sr_asset_recovery_update_manual_status(PDO $pdo, int $failureId, string
         throw new InvalidArgumentException('Manual recovery status reason is required.');
     }
 
-    $now = sr_now();
-    $contextJson = sr_asset_recovery_context_json([
-        'operation_event_key' => $status === 'manually_resolved' ? 'manual_resolve' : 'manual_cancel',
-        'actor_type' => 'admin',
-        'route_context' => 'admin.assets.recovery_failures',
-    ]);
-    $stmt = $pdo->prepare(
-        'UPDATE sr_asset_recovery_failures
-         SET status = :status,
-             failure_reason = :failure_reason,
-             actor_account_id = :actor_account_id,
-             actor_type = \'admin\',
-             operation_context_json = :operation_context_json,
-             version = version + 1,
-             updated_at = :updated_at,
-             resolved_at = :resolved_at
-         WHERE id = :id
-           AND status = \'open\''
-    );
-    $stmt->execute([
-        'status' => $status,
-        'failure_reason' => $status === 'manually_resolved' ? 'manual_resolved' : 'manual_cancelled',
-        'actor_account_id' => $actorAccountId,
-        'operation_context_json' => $contextJson,
-        'updated_at' => $now,
-        'resolved_at' => $now,
-        'id' => $failureId,
-    ]);
-    if ($stmt->rowCount() < 1) {
-        throw new RuntimeException('미회수 row가 이미 처리되었거나 찾을 수 없습니다.');
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $failure = sr_asset_recovery_failure_by_id_for_update($pdo, $failureId);
+        if (!is_array($failure) || (string) ($failure['status'] ?? '') !== 'open') {
+            throw new RuntimeException('미회수 row가 이미 처리되었거나 찾을 수 없습니다.');
+        }
+
+        $now = sr_now();
+        $contextJson = sr_asset_recovery_context_json([
+            'operation_event_key' => $status === 'manually_resolved' ? 'manual_resolve' : 'manual_cancel',
+            'actor_type' => 'admin',
+            'route_context' => 'admin.assets.recovery_failures',
+        ]);
+        $stmt = $pdo->prepare(
+            'UPDATE sr_asset_recovery_failures
+             SET status = :status,
+                 failure_reason = :failure_reason,
+                 actor_account_id = :actor_account_id,
+                 actor_type = \'admin\',
+                 operation_context_json = :operation_context_json,
+                 version = version + 1,
+                 updated_at = :updated_at,
+                 resolved_at = :resolved_at
+             WHERE id = :id
+               AND status = \'open\'
+               AND version = :version'
+        );
+        $stmt->execute([
+            'status' => $status,
+            'failure_reason' => $status === 'manually_resolved' ? 'manual_resolved' : 'manual_cancelled',
+            'actor_account_id' => $actorAccountId,
+            'operation_context_json' => $contextJson,
+            'updated_at' => $now,
+            'resolved_at' => $now,
+            'id' => $failureId,
+            'version' => (int) ($failure['version'] ?? 0),
+        ]);
+        if ($stmt->rowCount() < 1) {
+            throw new RuntimeException('미회수 row가 이미 처리되었거나 찾을 수 없습니다.');
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
     }
 }
 
