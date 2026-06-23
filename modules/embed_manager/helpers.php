@@ -339,19 +339,12 @@ function sr_embed_manager_table_exists(PDO $pdo): bool
 
 function sr_embed_manager_url_cache_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
-    }
-
     try {
         $pdo->query('SELECT 1 FROM sr_embed_manager_url_cache LIMIT 1');
-        $exists = true;
+        return true;
     } catch (Throwable $exception) {
-        $exists = false;
+        return false;
     }
-
-    return $exists;
 }
 
 function sr_embed_manager_clean_cache_status(string $value): string

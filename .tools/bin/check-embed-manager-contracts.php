@@ -224,6 +224,13 @@ function sr_embed_contract_scalar(PDO $pdo, string $sql, array $params = []): mi
 function sr_embed_contract_runtime_fixture(): void
 {
     $pdo = sr_embed_contract_pdo();
+    $emptyPdo = new PDO('sqlite::memory:');
+    $emptyPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    sr_embed_contract_assert(sr_embed_manager_url_cache_table_exists($pdo), 'URL cache table must be detected on the fixture connection.');
+    sr_embed_contract_assert(!sr_embed_manager_url_cache_table_exists($emptyPdo), 'URL cache table detection must be scoped per PDO connection.');
+    $emptyPdo->exec('CREATE TABLE sr_embed_manager_url_cache (id INTEGER PRIMARY KEY)');
+    sr_embed_contract_assert(sr_embed_manager_url_cache_table_exists($emptyPdo), 'URL cache table detection must notice a table created later in the same process.');
+
     $body = '<p><a href="/fixture/1">/fixture/1</a></p><p>문장 안의 <a href="/fixture/2">/fixture/2</a> 링크</p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache') === 1, 'URL cache sync must create one canonical cache row.');
