@@ -13,7 +13,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
 
     <section class="card">
-        <h2><?php echo sr_e('본문 주소 자동 표시'); ?></h2>
+        <h2><?php echo sr_e('임베드 설정'); ?></h2>
         <div class="form-row">
             <span class="form-label"><?php echo sr_e('기능 사용'); ?></span>
             <div class="form-field">
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="card">
-        <h2><?php echo sr_e('자동 표시 범위'); ?></h2>
+        <h2><?php echo sr_e('임베드 범위'); ?></h2>
         <div class="form-row">
             <label class="form-label" for="embed_manager_embed_scope"><?php echo sr_e('바꿀 링크'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
             <div class="form-field">
