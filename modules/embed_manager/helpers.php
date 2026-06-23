@@ -194,7 +194,26 @@ function sr_embed_manager_search_result_limit(int $limit, array $filterMap): int
     return min(90, $limit * max(1, count($filterMap)));
 }
 
-function sr_embed_manager_normalize_target_result(array $row, string $targetModule, string $targetType, array $definition): ?array
+function sr_embed_manager_absolute_public_url(PDO $pdo, string $url): string
+{
+    $url = sr_embed_manager_safe_url($url);
+    if ($url === '' || sr_is_http_url($url)) {
+        return $url;
+    }
+
+    $baseUrl = '';
+    if (function_exists('sr_site_setting')) {
+        $baseUrl = (string) sr_site_setting($pdo, 'site.base_url', '');
+    }
+    $site = ['base_url' => $baseUrl];
+    if ($baseUrl === '' && function_exists('sr_current_base_url')) {
+        $site['base_url'] = sr_current_base_url();
+    }
+
+    return function_exists('sr_absolute_url') ? sr_absolute_url($site, $url) : $url;
+}
+
+function sr_embed_manager_normalize_target_result(PDO $pdo, array $row, string $targetModule, string $targetType, array $definition): ?array
 {
     $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? $row['entity_id'] ?? $row['id'] ?? ''));
     if ($targetId === '') {
@@ -216,7 +235,7 @@ function sr_embed_manager_normalize_target_result(array $row, string $targetModu
         $variant = (string) ($definition['default_variant'] ?? 'card');
     }
 
-    $publicUrl = sr_embed_manager_safe_url((string) ($row['public_url'] ?? $row['url'] ?? ''));
+    $publicUrl = sr_embed_manager_absolute_public_url($pdo, (string) ($row['public_url'] ?? $row['url'] ?? ''));
     $adminUrl = sr_embed_manager_safe_url((string) ($row['admin_url'] ?? ''));
 
     return [
@@ -271,7 +290,7 @@ function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, 
                 if (!is_array($row)) {
                     continue;
                 }
-                $item = sr_embed_manager_normalize_target_result($row, (string) $targetModule, (string) $targetType, $definition);
+                $item = sr_embed_manager_normalize_target_result($pdo, $row, (string) $targetModule, (string) $targetType, $definition);
                 if (is_array($item)) {
                     $items[] = $item;
                 }

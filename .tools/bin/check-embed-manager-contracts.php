@@ -30,6 +30,14 @@ if (!function_exists('sr_is_http_url')) {
     }
 }
 
+if (!function_exists('sr_absolute_url')) {
+    function sr_absolute_url(?array $site, string $path): string
+    {
+        $baseUrl = rtrim((string) ($site['base_url'] ?? ''), '/');
+        return $baseUrl !== '' ? $baseUrl . '/' . ltrim($path, '/') : $path;
+    }
+}
+
 if (!function_exists('sr_log_exception')) {
     function sr_log_exception(Throwable $exception, string $context = ''): void
     {
@@ -62,18 +70,49 @@ if (!function_exists('sr_site_setting')) {
 if (!function_exists('sr_enabled_module_contract_files')) {
     function sr_enabled_module_contract_files(PDO $pdo, string $contractFile, array $excludeModuleKeys = []): array
     {
-        if ($contractFile !== 'embed-manager-url-targets.php') {
+        if (!in_array($contractFile, ['embed-manager-targets.php', 'embed-manager-url-targets.php'], true)) {
             return [];
         }
 
-        return ['fixture' => 'embed-manager-url-targets.php'];
+        return ['fixture' => $contractFile];
     }
 }
 
 if (!function_exists('sr_load_module_contract_file')) {
     function sr_load_module_contract_file(string $moduleKey, string $file): mixed
     {
-        if ($moduleKey !== 'fixture' || $file !== 'embed-manager-url-targets.php') {
+        if ($moduleKey !== 'fixture') {
+            return null;
+        }
+
+        if ($file === 'embed-manager-targets.php') {
+            return [
+                'targets' => [
+                    [
+                        'target_module' => 'fixture',
+                        'target_type' => 'item',
+                        'allowed_variants' => ['card'],
+                        'default_variant' => 'card',
+                        'search' => static function (PDO $pdo, array $context): array {
+                            return [
+                                [
+                                    'target_id' => '1',
+                                    'label_snapshot' => '공개 항목',
+                                    'summary' => '공개 요약',
+                                    'public_url' => '/fixture/1',
+                                    'status' => 'active',
+                                ],
+                            ];
+                        },
+                        'resolve' => static function (PDO $pdo, array $context): ?array {
+                            return null;
+                        },
+                    ],
+                ],
+            ];
+        }
+
+        if ($file !== 'embed-manager-url-targets.php') {
             return null;
         }
 
@@ -321,6 +360,9 @@ function sr_embed_contract_runtime_fixture(): void
 
     sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', '<p>removed</p>', 7);
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === 'stale', 'Removed owner URL must become stale.');
+
+    $searchItems = sr_embed_manager_search_targets($pdo, '공개', 10);
+    sr_embed_contract_assert(isset($searchItems[0]) && (string) ($searchItems[0]['url'] ?? '') === 'https://example.test/fixture/1', 'Search target public URL must be returned as an absolute URL for insertion.');
 }
 
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
