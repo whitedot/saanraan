@@ -64,7 +64,7 @@ $filters = [
     'status' => sr_admin_get_allowed_single_array('status', sr_embed_manager_url_cache_statuses(), 30),
     'q' => trim(sr_get_string('q', 120)),
 ];
-$refs = sr_embed_manager_admin_refs($pdo, $filters, 100);
+$urlCacheRows = sr_embed_manager_admin_url_cache_rows($pdo, $filters, 100);
 $tableReady = sr_embed_manager_table_exists($pdo);
 $settings = sr_embed_manager_settings($pdo);
 

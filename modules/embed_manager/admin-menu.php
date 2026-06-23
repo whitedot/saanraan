@@ -5,7 +5,7 @@ return [
     'order' => 40,
     'items' => [
         [
-            'label' => '임베드 참조',
+            'label' => 'URL 임베드',
             'path' => '/admin/embed-manager',
             'order' => 10,
         ],

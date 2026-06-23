@@ -504,7 +504,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
                                 <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
                             </div>
-                            <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('게시글, 퀴즈, 설문을 검색해 본문에 임베드 참조로 삽입합니다.'); ?></div>
+                            <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('게시글, 퀴즈, 설문을 검색해 본문에 URL 링크로 삽입합니다.'); ?></div>
                         </div>
                     <?php } ?>
                 </div>

@@ -68,7 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (!$tableReady) { ?>
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
+            <h2 class="card-title"><?php echo sr_e('URL 임베드 cache'); ?></h2>
         </div>
         <p class="admin-empty-state"><?php echo sr_e('URL 임베드 cache 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
     </section>
@@ -79,15 +79,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-list-summary-row">
             <div class="admin-list-summary">
-                <span><?php echo sr_e('표시'); ?> <strong><?php echo sr_e((string) count($refs)); ?></strong><?php echo sr_e('건'); ?></span>
+                <span><?php echo sr_e('표시'); ?> <strong><?php echo sr_e((string) count($urlCacheRows)); ?></strong><?php echo sr_e('건'); ?></span>
             </div>
         </div>
         <div class="table-wrapper">
             <table class="table table-list admin-embed-manager-table">
-                <caption class="sr-only"><?php echo sr_e('임베드 매니저 참조 목록'); ?></caption>
+                <caption class="sr-only"><?php echo sr_e('URL 임베드 cache 목록'); ?></caption>
                 <thead>
                     <tr>
-                        <th><?php echo sr_e('참조'); ?></th>
+                        <th><?php echo sr_e('URL'); ?></th>
                         <th><?php echo sr_e('소유 대상'); ?></th>
                         <th><?php echo sr_e('임베드 대상'); ?></th>
                         <th><?php echo sr_e('상태'); ?></th>
@@ -95,20 +95,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($refs === []) { ?>
+                    <?php if ($urlCacheRows === []) { ?>
                         <tr>
-                            <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 임베드 참조가 없습니다.'); ?></td>
+                            <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 URL 임베드 cache가 없습니다.'); ?></td>
                         </tr>
                     <?php } ?>
-                    <?php foreach ($refs as $ref) { ?>
+                    <?php foreach ($urlCacheRows as $ref) { ?>
                         <tr>
                             <td class="admin-table-break">
                                 <strong><?php echo sr_e((string) ($ref['canonical_url_hash'] ?? '')); ?></strong>
                                 <span class="admin-muted-text"><?php echo sr_e((string) ($ref['source_url'] ?? '')); ?></span>
                             </td>
-                            <td class="admin-table-break"><?php echo sr_e(sr_embed_manager_ref_target_label((string) ($ref['owner_module'] ?? ''), (string) ($ref['owner_type'] ?? ''), (string) ($ref['owner_id'] ?? ''))); ?></td>
+                            <td class="admin-table-break"><?php echo sr_e(sr_embed_manager_target_label((string) ($ref['owner_module'] ?? ''), (string) ($ref['owner_type'] ?? ''), (string) ($ref['owner_id'] ?? ''))); ?></td>
                             <td class="admin-table-break">
-                                <?php echo sr_e(sr_embed_manager_ref_target_label((string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''))); ?>
+                                <?php echo sr_e(sr_embed_manager_target_label((string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''))); ?>
                                 <?php if ((string) ($ref['label_snapshot'] ?? '') !== '') { ?>
                                     <span class="admin-muted-text"><?php echo sr_e((string) $ref['label_snapshot']); ?></span>
                                 <?php } ?>

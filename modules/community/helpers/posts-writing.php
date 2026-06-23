@@ -174,8 +174,8 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
     sr_community_redact_post_field_values($pdo, $postId);
 
     $pdo->prepare('DELETE FROM sr_community_link_refs WHERE post_id = :post_id')->execute(['post_id' => $postId]);
-    if (function_exists('sr_embed_manager_sync_body_refs')) {
-        sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', null);
+    if (function_exists('sr_embed_manager_sync_body_url_cache')) {
+        sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', null);
     }
 }
 
@@ -284,9 +284,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $stmt->execute($params);
         if ($bodyFormat === 'html') {
-            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', $bodyText, $accountId > 0 ? $accountId : null);
+            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $accountId > 0 ? $accountId : null);
         } else {
-            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
+            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
         }
         sr_community_save_post_field_values(
             $pdo,
@@ -536,9 +536,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
                     'id' => $postId,
                 ]);
             }
-            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', $bodyText, $authorAccountId);
+            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $authorAccountId);
         } else {
-            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
+            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
         }
         sr_community_save_post_field_values(
             $pdo,

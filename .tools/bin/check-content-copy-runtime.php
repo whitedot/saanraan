@@ -240,7 +240,7 @@ $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, activ
     'updated_at' => $now,
 ]);
 
-sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $sourceContentId, 'body', $sourceBody, 1);
+sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $sourceContentId, 'body', $sourceBody, 1);
 sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = :owner_id AND cache_status = "fresh"', ['owner_id' => $sourceContentId]) === 1, 'content copy fixture should create a source URL cache row before copying.');
 
 $newContentId = sr_content_copy($pdo, $sourceContentId, [

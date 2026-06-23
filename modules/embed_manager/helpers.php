@@ -57,7 +57,7 @@ function sr_embed_manager_target_type_label(string $targetModule, string $target
     return (string) ($labels[$targetModule][$targetType] ?? $targetType);
 }
 
-function sr_embed_manager_ref_target_label(string $moduleKey, string $targetType, string $targetId): string
+function sr_embed_manager_target_label(string $moduleKey, string $targetType, string $targetId): string
 {
     $label = sr_embed_manager_module_label($moduleKey);
     $typeLabel = sr_embed_manager_target_type_label($moduleKey, $targetType);
@@ -753,11 +753,6 @@ function sr_embed_manager_extract_legacy_candidate_urls(string $bodyHtml): array
     return $urls;
 }
 
-function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
-{
-    sr_embed_manager_sync_body_url_cache($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $bodyHtml, $accountId);
-}
-
 function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
 {
     $settings = sr_embed_manager_settings($pdo);
@@ -769,7 +764,7 @@ function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, str
     $ownerType = sr_embed_manager_clean_identifier($ownerType);
     $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
     if ($ownerModule === '' || $ownerType === '') {
-        throw new InvalidArgumentException('임베드 참조 소유자 정보가 올바르지 않습니다.');
+        throw new InvalidArgumentException('URL 임베드 cache 소유자 정보가 올바르지 않습니다.');
     }
 
     $now = sr_now();
@@ -1029,7 +1024,7 @@ function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, a
     sr_embed_manager_upsert_url_cache($pdo, $row);
 }
 
-function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
+function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
 {
     if (!sr_embed_manager_url_cache_table_exists($pdo)) {
         return [];
@@ -1062,11 +1057,6 @@ function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100)
     $stmt->execute($params);
 
     return $stmt->fetchAll();
-}
-
-function sr_embed_manager_refresh_known_ref_statuses(PDO $pdo, int $limit = 300): void
-{
-    return;
 }
 
 function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string

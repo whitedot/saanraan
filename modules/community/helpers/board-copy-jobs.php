@@ -597,10 +597,10 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
                         'id' => $newPostId,
                     ]);
                 } else {
-                    sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
+                    sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
                 }
             } else {
-                sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $newPostId, 'body', '', (int) $post['author_account_id']);
+                sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $newPostId, 'body', '', (int) $post['author_account_id']);
             }
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied', '', '', '', (int) $job['id'], $lockToken);
             $pdo->commit();

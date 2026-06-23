@@ -243,7 +243,7 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert(sr_embed_manager_url_cache_table_exists($emptyPdo), 'URL cache table detection must notice a table created later in the same process.');
 
     $body = '<p><a href="/fixture/1">/fixture/1</a></p><p>문장 안의 <a href="/fixture/2">/fixture/2</a> 링크</p>';
-    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache') === 1, 'URL cache sync must create one canonical cache row.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache LIMIT 1') === 'fresh', 'URL cache row must be fresh.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT created_by_account_id FROM sr_embed_manager_url_cache LIMIT 1') === '7', 'URL cache row must store creator account id.');
@@ -265,7 +265,7 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === 'fresh', 'Recovered target must refresh cache status to fresh.');
 
     $bareBody = '<p>/fixture/1</p>';
-    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 12') === 1, 'Standalone bare relative URL must create one cache row.');
     $GLOBALS['sr_embed_contract_resolve_count'] = 0;
     $bareRendered = sr_embed_manager_render_body_html($pdo, $bareBody, 'fixture', 'doc', 12);
@@ -289,21 +289,21 @@ function sr_embed_contract_runtime_fixture(): void
 
     $allLinksBody = '<p>문장 안의 <a href="/fixture/1">/fixture/1</a> 링크</p><p>/fixture/1</p>';
     $GLOBALS['sr_embed_contract_settings'] = ['embed_scope' => 'all_supported_links'];
-    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 14, 'body', $allLinksBody, 7);
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 14, 'body', $allLinksBody, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
     $allLinksRendered = sr_embed_manager_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
     sr_embed_contract_assert(substr_count($allLinksRendered, 'fixture-embed-summary') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
     unset($GLOBALS['sr_embed_contract_settings']);
 
-    sr_embed_contract_assert(sr_embed_manager_ref_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
-    sr_embed_contract_assert(sr_embed_manager_ref_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
+    sr_embed_contract_assert(sr_embed_manager_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
+    sr_embed_contract_assert(sr_embed_manager_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
 
     $privateBody = '<p><a href="/fixture/2">/fixture/2</a></p>';
-    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 11, 'body', $privateBody, 7);
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 11, 'body', $privateBody, 7);
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 11 LIMIT 1') === 'broken', 'Private target cache must not be stored as fresh.');
     sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $privateBody, 'fixture', 'doc', 11), '비공개 항목'), 'Private target render must fall back to original link.');
 
-    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 10, 'body', '<p>removed</p>', 7);
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', '<p>removed</p>', 7);
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === 'stale', 'Removed owner URL must become stale.');
 }
 
