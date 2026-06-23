@@ -60,17 +60,34 @@ return [
                 ];
             },
             'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
-                if ((string) ($embed['target_state'] ?? '') !== 'public') {
+                $stmt = $pdo->prepare(
+                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id,
+                            b.status AS board_status, b.read_policy
+                     FROM sr_community_posts p
+                     INNER JOIN sr_community_boards b ON b.id = p.board_id
+                     WHERE p.id = :id
+                     LIMIT 1'
+                );
+                $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
+                $row = $stmt->fetch();
+                $public = is_array($row)
+                    && (string) ($row['status'] ?? '') === 'published'
+                    && (string) ($row['board_status'] ?? '') === 'enabled'
+                    && (string) ($row['read_policy'] ?? 'public') === 'public';
+                if (!$public) {
                     return ['html' => ''];
                 }
-                $image = (string) ($embed['image_snapshot'] ?? '');
+                $canonicalUrl = '/community/post?id=' . rawurlencode((string) (int) ($row['id'] ?? 0));
+                $label = (string) ($row['title'] ?? '');
+                $summary = sr_embed_manager_clean_summary((string) ($row['body_text'] ?? ''));
+                $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
                 $html = '<aside class="community-embed-summary" data-community-embed="summary">';
                 if ($image !== '') {
-                    $html .= '<a class="community-embed-summary-image" href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
+                    $html .= '<a class="community-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
-                $html .= '<strong><a href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '">' . sr_e((string) ($embed['label_snapshot'] ?? '')) . '</a></strong>';
-                if ((string) ($embed['summary_snapshot'] ?? '') !== '') {
-                    $html .= '<p>' . sr_e((string) $embed['summary_snapshot']) . '</p>';
+                $html .= '<strong><a href="' . sr_e($canonicalUrl) . '">' . sr_e($label) . '</a></strong>';
+                if ($summary !== '') {
+                    $html .= '<p>' . sr_e($summary) . '</p>';
                 }
                 return ['html' => $html . '</aside>'];
             },

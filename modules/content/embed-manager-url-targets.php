@@ -41,17 +41,23 @@ return [
                 ];
             },
             'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
-                if ((string) ($embed['target_state'] ?? '') !== 'public') {
+                $stmt = $pdo->prepare('SELECT slug, title, summary, status, cover_image_url FROM sr_content_items WHERE id = :id LIMIT 1');
+                $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
+                $row = $stmt->fetch();
+                if (!is_array($row) || (string) ($row['status'] ?? '') !== 'published') {
                     return ['html' => ''];
                 }
-                $image = (string) ($embed['image_snapshot'] ?? '');
+                $canonicalUrl = sr_content_path((string) ($row['slug'] ?? ''));
+                $label = (string) ($row['title'] ?? '');
+                $summary = sr_embed_manager_clean_summary((string) ($row['summary'] ?? ''));
+                $image = sr_embed_manager_safe_url((string) ($row['cover_image_url'] ?? ''));
                 $html = '<aside class="content-embed-summary" data-content-embed="summary">';
                 if ($image !== '') {
-                    $html .= '<a class="content-embed-summary-image" href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
+                    $html .= '<a class="content-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
-                $html .= '<strong><a href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '">' . sr_e((string) ($embed['label_snapshot'] ?? '')) . '</a></strong>';
-                if ((string) ($embed['summary_snapshot'] ?? '') !== '') {
-                    $html .= '<p>' . sr_e((string) $embed['summary_snapshot']) . '</p>';
+                $html .= '<strong><a href="' . sr_e($canonicalUrl) . '">' . sr_e($label) . '</a></strong>';
+                if ($summary !== '') {
+                    $html .= '<p>' . sr_e($summary) . '</p>';
                 }
                 return ['html' => $html . '</aside>'];
             },

@@ -116,16 +116,19 @@ if (!function_exists('sr_load_module_contract_file')) {
                         ];
                     },
                     'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
-                        if ((string) ($embed['target_state'] ?? '') !== 'public') {
+                        $stmt = $pdo->prepare('SELECT * FROM sr_fixture_embed_targets WHERE id = :id LIMIT 1');
+                        $stmt->execute(['id' => (int) ($embed['target_id'] ?? 0)]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if (!is_array($row) || (string) ($row['status'] ?? '') !== 'active') {
                             return ['html' => ''];
                         }
-                        $image = (string) ($embed['image_snapshot'] ?? '');
+                        $image = (string) ($row['image_snapshot'] ?? '');
                         $html = '<aside class="fixture-embed-summary" data-content-embed="summary">';
                         if ($image !== '') {
                             $html .= '<img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" />';
                         }
-                        $html .= '<strong><a href="' . sr_e((string) ($embed['canonical_url'] ?? '')) . '">' . sr_e((string) ($embed['label_snapshot'] ?? '')) . '</a></strong>';
-                        $html .= '<p>' . sr_e((string) ($embed['summary_snapshot'] ?? '')) . '</p></aside>';
+                        $html .= '<strong><a href="/fixture/' . sr_e((string) (int) ($row['id'] ?? 0)) . '">' . sr_e((string) ($row['label_snapshot'] ?? '')) . '</a></strong>';
+                        $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></aside>';
                         return ['html' => $html];
                     },
                 ],
@@ -251,6 +254,9 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
     sr_embed_contract_assert(str_contains($rendered, '문장 안의'), 'Inline URL link paragraph must remain in body.');
     sr_embed_contract_assert(str_contains($rendered, '/fixture/2'), 'Inline URL link must remain a link in standalone-only scope.');
+    $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'private' WHERE id = 1");
+    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10), 'fixture-embed-summary'), 'Target renderer must live-gate a fresh cache hit after target becomes private.');
+    $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'active' WHERE id = 1");
 
     $bareBody = '<p>/fixture/1</p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
