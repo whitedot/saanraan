@@ -1319,9 +1319,8 @@ function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $fai
     }
 
     $stmt = $pdo->prepare(
-        'SELECT f.*, ma.email AS account_email, ma.display_name AS account_display_name
+        'SELECT f.*
          FROM sr_community_asset_recovery_failures f
-         LEFT JOIN sr_member_accounts ma ON ma.id = f.account_id
          WHERE f.id = :id
          LIMIT 1' . $lockSql
     );
@@ -1341,7 +1340,8 @@ function sr_community_asset_recovery_failure_filters_from_request(): array
     if ($subjectType !== '' && !in_array($subjectType, ['community.post', 'community.comment'], true)) {
         $subjectType = '';
     }
-    $assetModule = sr_community_asset_module_key_or_empty(sr_get_string('asset_module', 20));
+    $assetModuleValue = strtolower(trim(sr_get_string('asset_module', 20)));
+    $assetModule = isset(sr_community_asset_modules()[$assetModuleValue]) ? $assetModuleValue : '';
     $subjectIdValue = sr_get_string('subject_id', 20);
 
     return [
@@ -1376,7 +1376,7 @@ function sr_community_asset_recovery_failure_where(array $filters, array &$param
     }
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
-        $conditions[] = '(f.account_id = :keyword_id OR ma.email LIKE :keyword_like OR ma.display_name LIKE :keyword_like)';
+        $conditions[] = "(f.account_id = :keyword_id OR ma.email LIKE :keyword_like ESCAPE '\\\\' OR ma.display_name LIKE :keyword_like ESCAPE '\\\\')";
         $params['keyword_id'] = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
         $params['keyword_like'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
     }
