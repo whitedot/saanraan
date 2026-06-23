@@ -47,10 +47,10 @@ function sr_embed_manager_target_type_label(string $targetModule, string $target
             'post' => '게시글',
         ],
         'quiz' => [
-            'quiz' => '퀴즈',
+            'quiz_set' => '퀴즈',
         ],
         'survey' => [
-            'survey' => '설문',
+            'survey_form' => '설문',
         ],
     ];
 

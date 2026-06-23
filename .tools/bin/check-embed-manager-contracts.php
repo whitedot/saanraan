@@ -243,6 +243,8 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 12') === 1, 'Standalone bare relative URL must create one cache row.');
     $bareRendered = sr_embed_manager_render_body_html($pdo, $bareBody, 'fixture', 'doc', 12);
     sr_embed_contract_assert(str_contains($bareRendered, 'fixture-embed-summary'), 'Standalone bare relative URL must render through target module renderer.');
+    sr_embed_contract_assert(sr_embed_manager_ref_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
+    sr_embed_contract_assert(sr_embed_manager_ref_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
 
     $privateBody = '<p><a href="/fixture/2">/fixture/2</a></p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 11, 'body', $privateBody, 7);
