@@ -449,7 +449,6 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
             sr_content_cleanup_unreferenced_body_files($pdo, $pageId, '');
             sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
         }
-        sr_link_card_clear_legacy_refs($pdo, 'sr_content_link_refs', 'content_id', $pageId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         if ($startedTransaction) {
             $pdo->commit();
@@ -651,8 +650,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         ]);
         $newContentId = (int) $pdo->lastInsertId();
         if ((string) ($copy['body_format'] ?? 'plain') === 'html') {
-            $rewrittenBodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'content', 'content', $sourceContentId, 'body', 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
-            $rewrittenBodyText = sr_sanitize_rich_text_html($rewrittenBodyText);
+            $rewrittenBodyText = sr_sanitize_rich_text_html((string) ($copy['body_text'] ?? ''));
             if ($rewrittenBodyText !== (string) ($copy['body_text'] ?? '')) {
                 $copy['body_text'] = $rewrittenBodyText;
                 $pdo->prepare('UPDATE sr_content_items SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
@@ -660,9 +658,8 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
                     'updated_at' => $now,
                     'id' => $newContentId,
                 ]);
-            } else {
-                sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
             }
+            sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
         } else {
             sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', '', $accountId);
         }
@@ -1078,11 +1075,6 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                 'file_original_name_snapshot' => $deletedFileName,
                 'content_id' => $pageId,
             ]);
-        }
-
-        if (sr_content_optional_table_exists($pdo, 'sr_content_link_refs')) {
-            $stmt = $pdo->prepare('DELETE FROM sr_content_link_refs WHERE content_id = :content_id');
-            $stmt->execute(['content_id' => $pageId]);
         }
 
         if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
