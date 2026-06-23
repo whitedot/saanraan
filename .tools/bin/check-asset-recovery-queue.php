@@ -88,6 +88,9 @@ $communityMenu = $read('modules/community/admin-menu.php');
 if (str_contains($communityMenu, '/admin/community/recovery-failures')) {
     $errors[] = 'community admin menu must not expose duplicate recovery failures screen.';
 }
+if (is_file('modules/community/views/admin-recovery-failures.php')) {
+    $errors[] = 'community module must not keep a duplicate legacy recovery failures view.';
+}
 $requireContains('docs/core-decisions.md', [
     'sr_asset_recovery_failures',
     'source:{source_module}:{source_log_id}:rev:{reversal_event_key}',

@@ -493,8 +493,9 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 확인 항목:
 
 - 게시글/댓글 작성 보상 지급 후 잔액을 회수 대상 금액보다 낮게 만든 dummy 계정 준비
-- 관리자 단건 숨김/삭제와 일괄 숨김에서 본래 상태 변경은 성공하고 `sr_community_asset_recovery_failures` open row가 생성되는지 확인
+- 관리자 단건 숨김/삭제와 일괄 숨김에서 본래 상태 변경은 성공하고 `sr_asset_recovery_failures` open row가 생성되는지 확인
 - unknown failure는 상태 변경과 미회수 row가 함께 rollback되는지 정적 또는 fixture로 확인
-- `/admin/community/recovery-failures`에서 status, asset, subject, account/date 필터가 동작하고 open row에만 재회수/해소/취소 action이 보이는지 확인
+- `/admin/assets/recovery-failures`에서 status, asset, subject, account/date 필터가 동작하고 open row에만 재회수/해소/취소 action이 보이는지 확인
+- `/admin/community/recovery-failures` legacy route는 공통 미회수 큐로 redirect되는지 확인
 - 재회수 전액 성공은 기존 open row를 `recovered`로 닫고, 부분 성공은 recovered/unrecovered 금액을 갱신한 뒤 open 상태를 유지하는지 확인
 - 수동 `manually_resolved`/`cancelled`는 확인 문구와 관리자 사유를 서버에서 검증하고 원장 거래를 만들지 않는지 확인
