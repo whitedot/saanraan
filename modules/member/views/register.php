@@ -19,6 +19,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'before_form']); ?>
 
         <?php if ($registrationReady) { ?>
+            <?php
+            $memberRegisterProfileExtraDefinitions = is_array($profileExtraFieldDefinitions ?? null) ? $profileExtraFieldDefinitions : [];
+            $memberRegisterProfileOrderItems = sr_member_profile_field_order_items($memberSettings, $memberRegisterProfileExtraDefinitions);
+            $memberRegisterProfileExtraByKey = [];
+            foreach ($memberRegisterProfileExtraDefinitions as $memberRegisterProfileExtraDefinition) {
+                $memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileExtraDefinition['key'] ?? '')] = $memberRegisterProfileExtraDefinition;
+            }
+            ?>
             <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                 <?php echo sr_csrf_field(); ?>
                 <p>
@@ -64,36 +72,37 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <?php } ?>
                     </p>
                 <?php } ?>
-                <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
-                    <p>
-                        <label for="modules_member_register_birth_date">
-                    <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
-                        </label>
-                    </p>
+                <?php foreach ($memberRegisterProfileOrderItems as $memberRegisterProfileOrderItem) { ?>
+                    <?php if ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'birth_date' && !empty($profilePolicies['birth_date']['visible'])) { ?>
+                        <p>
+                            <label for="modules_member_register_birth_date">
+                        <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                                <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
+                            </label>
+                        </p>
+                    <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'is_adult' && !empty($profilePolicies['is_adult']['visible'])) { ?>
+                        <p>
+                            <label for="modules_member_register_is_adult">
+                        <span><?php echo sr_e(sr_t('member::ui.is_adult')); ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                                <select class="form-select" id="modules_member_register_is_adult" name="is_adult"<?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?>>
+                                    <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
+                                    <option value="1"<?php echo (string) ($profileValues['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
+                                    <option value="0"<?php echo (string) ($profileValues['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
+                                </select>
+                            </label>
+                        </p>
+                    <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'avatar_path' && !empty($profilePolicies['avatar_path']['visible'])) { ?>
+                        <p>
+                            <label for="modules_member_register_avatar_file">
+                        <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                                <input class="form-input" id="modules_member_register_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' required' : ''; ?>>
+                            </label>
+                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
+                        </p>
+                    <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'extra') { ?>
+                        <?php echo sr_member_profile_extra_fields_form_html([$memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileOrderItem['key'] ?? '')] ?? []], is_array($profileExtraValues ?? null) ? $profileExtraValues : [], 'modules_member_register_profile_extra', false); ?>
+                    <?php } ?>
                 <?php } ?>
-                <?php if (!empty($profilePolicies['is_adult']['visible'])) { ?>
-                    <p>
-                        <label for="modules_member_register_is_adult">
-                    <span><?php echo sr_e(sr_t('member::ui.is_adult')); ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <select class="form-select" id="modules_member_register_is_adult" name="is_adult"<?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?>>
-                                <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
-                                <option value="1"<?php echo (string) ($profileValues['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
-                                <option value="0"<?php echo (string) ($profileValues['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
-                            </select>
-                        </label>
-                    </p>
-                <?php } ?>
-                <?php if (!empty($profilePolicies['avatar_path']['visible'])) { ?>
-                    <p>
-                        <label for="modules_member_register_avatar_file">
-                    <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <input class="form-input" id="modules_member_register_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' required' : ''; ?>>
-                        </label>
-                        <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
-                    </p>
-                <?php } ?>
-                <?php echo sr_member_profile_extra_fields_form_html(is_array($profileExtraFieldDefinitions ?? null) ? $profileExtraFieldDefinitions : [], is_array($profileExtraValues ?? null) ? $profileExtraValues : [], 'modules_member_register_profile_extra'); ?>
                 <p>
                     <label for="modules_member_register_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>

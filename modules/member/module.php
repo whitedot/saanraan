@@ -59,6 +59,7 @@ return [
         'profile_avatar_enabled' => true,
         'profile_avatar_required' => false,
         'profile_fields_json' => '[]',
+        'profile_field_order_json' => '[]',
         'nickname_enabled' => true,
         'nickname_required' => true,
     ],

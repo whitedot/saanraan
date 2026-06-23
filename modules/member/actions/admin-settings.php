@@ -51,6 +51,13 @@ if (sr_request_method() === 'POST') {
             $settings['profile_fields_json'] = $profileFieldsJson;
         }
     }
+    $profileFieldOrderInput = sr_post_string_without_truncation('profile_field_order_json', 20000);
+    $profileFieldOrderExtraDefinitions = sr_member_profile_extra_field_definitions($settings);
+    if (!is_string($profileFieldOrderInput)) {
+        $errors[] = '프로필 항목 순서를 저장할 수 없습니다.';
+    } else {
+        $settings['profile_field_order_json'] = sr_member_profile_field_order_json_from_input($profileFieldOrderInput, $profileFieldOrderExtraDefinitions);
+    }
 
     foreach ($integerSettingKeys as $key => $limits) {
         $integerValue = sr_admin_post_int_in_range($key, (int) $limits['min'], (int) $limits['max']);
@@ -92,6 +99,7 @@ if (sr_request_method() === 'POST') {
             ['nickname_required', $settings['nickname_required'] ? '1' : '0', 'bool'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
             ['profile_fields_json', (string) ($settings['profile_fields_json'] ?? '[]'), 'json'],
+            ['profile_field_order_json', (string) ($settings['profile_field_order_json'] ?? '[]'), 'json'],
         ];
         foreach (sr_member_profile_field_definitions() as $definition) {
             $enabledKey = (string) $definition['enabled_key'];
@@ -133,6 +141,7 @@ if (sr_request_method() === 'POST') {
                 'member_skin_key' => (string) $settings['member_skin_key'],
                 'profile_fields' => sr_member_profile_field_policies($settings),
                 'profile_extra_fields' => sr_member_profile_extra_field_definitions($settings),
+                'profile_field_order' => sr_member_profile_field_order_items($settings, sr_member_profile_extra_field_definitions($settings)),
             ],
         ]);
 

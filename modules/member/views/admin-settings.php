@@ -68,6 +68,23 @@ $memberSettingsHelp = [
         ]),
     ],
 ];
+$memberProfileFixedFields = [];
+foreach (sr_member_profile_field_definitions() as $memberProfileFixedFieldKey => $memberProfileFixedFieldDefinition) {
+    $enabledKey = (string) $memberProfileFixedFieldDefinition['enabled_key'];
+    $requiredKey = (string) $memberProfileFixedFieldDefinition['required_key'];
+    $memberProfileFixedFields[] = [
+        'key' => (string) $memberProfileFixedFieldKey,
+        'label' => (string) $memberProfileFixedFieldDefinition['label'],
+        'enabled_key' => $enabledKey,
+        'required_key' => $requiredKey,
+        'enabled' => !empty($settings[$enabledKey]),
+        'required' => !empty($settings[$requiredKey]),
+    ];
+}
+$memberProfileFieldOrderItems = sr_member_profile_field_order_items($settings, sr_member_profile_extra_field_definitions($settings));
+$memberProfileFieldOrderJson = sr_js_json_encode(array_map(static function (array $item): string {
+    return (string) ($item['kind'] ?? '') . ':' . (string) ($item['key'] ?? '');
+}, $memberProfileFieldOrderItems));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -151,27 +168,9 @@ $memberSettingsSectionNavItems = [
                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-profile-extra-field-modal" data-overlay="#member-profile-extra-field-modal" data-member-profile-extra-field-add>항목 추가</button>
             </div>
         </div>
-        <?php foreach (sr_member_profile_field_definitions() as $definition) { ?>
-        <?php
-        $label = (string) $definition['label'];
-        $enabledKey = (string) $definition['enabled_key'];
-        $requiredKey = (string) $definition['required_key'];
-        $enabledFieldId = 'member_profile_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', $enabledKey);
-        $requiredFieldId = 'member_profile_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', $requiredKey);
-        ?>
-        <div class="form-grid">
-            <div class="form-row">
-                <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html($label, $memberSettingsHelp['profile_field']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e($label); ?></span></span>
-                <div class="form-field">
-                    <?php echo sr_admin_switch_html($enabledFieldId, $enabledKey, '1', !empty($settings[$enabledKey]), '사용', '', ' data-member-profile-visible data-member-profile-required-target="' . sr_e('#' . $requiredFieldId) . '"'); ?>
-                    <?php echo sr_admin_switch_html($requiredFieldId, $requiredKey, '1', !empty($settings[$requiredKey]), '필수', '', ' data-member-profile-required data-member-profile-visible-target="' . sr_e('#' . $enabledFieldId) . '"'); ?>
-                </div>
-            </div>
-        </div>
-        <?php } ?>
-        <div class="table-wrapper" data-member-profile-extra-field-table-wrap hidden>
+        <div class="table-wrapper" data-member-profile-extra-field-table-wrap>
             <table class="table table-list" data-member-profile-extra-field-table>
-                <caption class="sr-only">추가 프로필 항목 목록</caption>
+                <caption class="sr-only">선택 프로필 항목 목록</caption>
                 <thead>
                     <tr>
                         <th class="member-profile-extra-field-order-cell">순서</th>
@@ -182,11 +181,15 @@ $memberSettingsSectionNavItems = [
                         <th class="text-end">작업</th>
                     </tr>
                 </thead>
-                <tbody data-member-profile-extra-field-list></tbody>
+                <tbody data-member-profile-field-list></tbody>
             </table>
         </div>
+        <p class="form-help">기본 항목은 삭제할 수 없으며, 사용 여부와 순서만 변경할 수 있습니다.</p>
         <p class="admin-empty-state" data-member-profile-extra-field-empty hidden>추가 프로필 항목이 없습니다.</p>
         <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e((string) ($settings['profile_fields_json'] ?? '[]')); ?></textarea>
+        <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
+        <div data-member-profile-fixed-field-inputs></div>
+        <script type="application/json" data-member-profile-fixed-fields-json><?php echo sr_js_json_encode($memberProfileFixedFields); ?></script>
     </section>
 
     <section id="member-settings-section-login" class="card" data-admin-section-anchor>
@@ -297,7 +300,9 @@ $memberSettingsSectionNavItems = [
             </div>
             <div class="modal-body">
                 <input type="hidden" value="" data-member-profile-extra-field-index>
-                <div class="form-row">
+                <input type="hidden" value="extra" data-member-profile-extra-field-kind>
+                <input type="hidden" value="" data-member-profile-extra-field-original-key>
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_key">Key <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
                         <input id="member_profile_extra_field_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-member-profile-extra-field-input="key" data-overlay-focus class="form-input">
@@ -309,7 +314,7 @@ $memberSettingsSectionNavItems = [
                         <input id="member_profile_extra_field_label" type="text" maxlength="120" required data-member-profile-extra-field-input="label" class="form-input form-control-full">
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_type">유형 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_type" required data-member-profile-extra-field-input="type" class="form-select">
@@ -320,10 +325,19 @@ $memberSettingsSectionNavItems = [
                         </select>
                     </div>
                 </div>
-                <div class="form-row" data-member-profile-extra-field-options-row>
+                <div class="form-row" data-member-profile-extra-field-options-row data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_options">선택지 <span class="sr-required-label" data-member-profile-extra-field-options-required hidden>(필수)</span></label>
                     <div class="form-field">
                         <textarea id="member_profile_extra_field_options" rows="4" maxlength="6000" data-member-profile-extra-field-input="options" class="form-textarea form-control-full"></textarea>
+                    </div>
+                </div>
+                <div class="form-row" data-member-profile-extra-field-fixed-only hidden>
+                    <span class="form-label">사용 여부</span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="member_profile_extra_field_enabled">
+                            <input id="member_profile_extra_field_enabled" type="checkbox" value="1" class="form-switch form-switch-light" data-member-profile-extra-field-input="enabled">
+                            <?php echo sr_admin_choice_label_html('사용'); ?>
+                        </label>
                     </div>
                 </div>
                 <div class="form-row">
@@ -335,7 +349,7 @@ $memberSettingsSectionNavItems = [
                         </label>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_visibility">공개 범위</label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_visibility" data-member-profile-extra-field-input="visibility" class="form-select">
@@ -344,7 +358,7 @@ $memberSettingsSectionNavItems = [
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <span class="form-label">표시 위치</span>
                     <div class="form-field">
                         <label class="form-check form-label" for="member_profile_extra_field_show_on_profile">
@@ -357,13 +371,13 @@ $memberSettingsSectionNavItems = [
                         </label>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_privacy_purpose">개인정보 목적</label>
                     <div class="form-field">
                         <input id="member_profile_extra_field_privacy_purpose" type="text" maxlength="255" data-member-profile-extra-field-input="privacy_purpose" class="form-input form-control-full">
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_export_policy">Export 정책</label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_export_policy" data-member-profile-extra-field-input="export_policy" class="form-select">
@@ -372,7 +386,7 @@ $memberSettingsSectionNavItems = [
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" data-member-profile-extra-field-extra-only>
                     <label class="form-label" for="member_profile_extra_field_cleanup_policy">Cleanup 정책</label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_cleanup_policy" data-member-profile-extra-field-input="cleanup_policy" class="form-select">
@@ -507,32 +521,161 @@ document.addEventListener('DOMContentLoaded', function () {
         return 'field_' + String(Date.now()).slice(-10);
     }
 
-    function memberProfileExtraFieldWrite(root, definitions) {
+    function memberProfileExtraFieldParseJson(text) {
+        try {
+            var decoded = JSON.parse(text || '[]');
+            return Array.isArray(decoded) ? decoded : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function memberProfileFixedFieldParse(root) {
+        var script = root ? root.querySelector('[data-member-profile-fixed-fields-json]') : null;
+        var raw = script ? memberProfileExtraFieldParseJson(script.textContent || '[]') : [];
+        return raw.map(function (field) {
+            return {
+                key: String(field.key || ''),
+                label: String(field.label || ''),
+                enabled_key: String(field.enabled_key || ''),
+                required_key: String(field.required_key || ''),
+                enabled: !!field.enabled,
+                required: !!field.required
+            };
+        }).filter(function (field) {
+            return field.key !== '' && field.label !== '' && field.enabled_key !== '' && field.required_key !== '';
+        });
+    }
+
+    function memberProfileFieldOrderParse(root, fixedFields, definitions) {
+        var textarea = root ? root.querySelector('[data-member-profile-field-order-json]') : null;
+        var raw = textarea ? memberProfileExtraFieldParseJson(textarea.value || '[]') : [];
+        var fixedMap = {};
+        var extraMap = {};
+        var seen = {};
+        var order = [];
+        fixedFields.forEach(function (field) {
+            fixedMap[field.key] = true;
+        });
+        definitions.forEach(function (field) {
+            extraMap[field.key] = true;
+        });
+        raw.forEach(function (item) {
+            if (typeof item !== 'string') {
+                return;
+            }
+            item = item.trim();
+            var parts = item.split(':');
+            if (parts.length !== 2) {
+                return;
+            }
+            var kind = parts[0];
+            var key = parts[1];
+            var id = kind + ':' + key;
+            if (seen[id]) {
+                return;
+            }
+            if (kind === 'fixed' && fixedMap[key]) {
+                order.push({ kind: 'fixed', key: key });
+                seen[id] = true;
+            } else if (kind === 'extra' && extraMap[key]) {
+                order.push({ kind: 'extra', key: key });
+                seen[id] = true;
+            }
+        });
+        fixedFields.forEach(function (field) {
+            var id = 'fixed:' + field.key;
+            if (!seen[id]) {
+                order.push({ kind: 'fixed', key: field.key });
+                seen[id] = true;
+            }
+        });
+        definitions.forEach(function (field) {
+            var id = 'extra:' + field.key;
+            if (!seen[id]) {
+                order.push({ kind: 'extra', key: field.key });
+                seen[id] = true;
+            }
+        });
+        return order;
+    }
+
+    function memberProfileFieldOrderWrite(root, order) {
+        var textarea = root ? root.querySelector('[data-member-profile-field-order-json]') : null;
+        if (!textarea) {
+            return;
+        }
+        textarea.value = JSON.stringify(order.map(function (item) {
+            return item.kind + ':' + item.key;
+        }), null, 2);
+    }
+
+    function memberProfileFixedFieldWrite(root, fixedFields) {
+        var holder = root ? root.querySelector('[data-member-profile-fixed-field-inputs]') : null;
+        var script = root ? root.querySelector('[data-member-profile-fixed-fields-json]') : null;
+        if (!holder) {
+            return;
+        }
+        if (script) {
+            script.textContent = JSON.stringify(fixedFields);
+        }
+        holder.innerHTML = '';
+        fixedFields.forEach(function (field) {
+            [
+                [field.enabled_key, field.enabled ? '1' : '0'],
+                [field.required_key, field.required ? '1' : '0']
+            ].forEach(function (item) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = item[0];
+                input.value = item[1];
+                holder.appendChild(input);
+            });
+        });
+    }
+
+    function memberProfileExtraFieldWrite(root, definitions, order, fixedFields) {
         var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
         if (!textarea) {
             return;
         }
         textarea.value = JSON.stringify(memberProfileExtraFieldNormalize(definitions), null, 2);
-        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+        memberProfileFieldOrderWrite(root, order || memberProfileFieldOrderParse(root, fixedFields || [], definitions));
+        memberProfileFixedFieldWrite(root, fixedFields || memberProfileFixedFieldParse(root));
     }
 
     function memberProfileExtraFieldRender(root) {
         var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
-        var list = root ? root.querySelector('[data-member-profile-extra-field-list]') : null;
+        var list = root ? root.querySelector('[data-member-profile-field-list]') : null;
         var empty = root ? root.querySelector('[data-member-profile-extra-field-empty]') : null;
         var tableWrap = root ? root.querySelector('[data-member-profile-extra-field-table-wrap]') : null;
         if (!textarea || !list) {
             return;
         }
         var definitions = memberProfileExtraFieldParse(textarea);
+        var fixedFields = memberProfileFixedFieldParse(root);
+        var order = memberProfileFieldOrderParse(root, fixedFields, definitions);
+        var fixedByKey = {};
+        var extraByKey = {};
+        fixedFields.forEach(function (field) {
+            fixedByKey[field.key] = field;
+        });
+        definitions.forEach(function (field) {
+            extraByKey[field.key] = field;
+        });
         list.innerHTML = '';
         if (empty) {
-            empty.hidden = definitions.length > 0;
+            empty.hidden = order.length > 0;
         }
         if (tableWrap) {
-            tableWrap.hidden = definitions.length === 0;
+            tableWrap.hidden = order.length === 0;
         }
-        definitions.forEach(function (field, index) {
+        memberProfileExtraFieldWrite(root, definitions, order, fixedFields);
+        order.forEach(function (item, index) {
+            var field = item.kind === 'fixed' ? fixedByKey[item.key] : extraByKey[item.key];
+            if (!field) {
+                return;
+            }
             var row = document.createElement('tr');
 
             var orderCell = document.createElement('td');
@@ -551,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.setAttribute('data-member-profile-extra-field-action', action[0]);
                 button.setAttribute('data-member-profile-extra-field-index-value', String(index));
                 button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
+                button.disabled = (action[0] === 'up' && index === 0) || (action[0] === 'down' && index === order.length - 1);
                 orderGroup.appendChild(button);
             });
             orderCell.appendChild(orderGroup);
@@ -561,33 +705,38 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(labelCell);
 
             var typeCell = document.createElement('td');
-            typeCell.textContent = memberProfileExtraFieldTypeLabel(field.type);
+            typeCell.textContent = item.kind === 'fixed' ? '기본 항목' : memberProfileExtraFieldTypeLabel(field.type);
             row.appendChild(typeCell);
 
             var displayCell = document.createElement('td');
             var display = [];
-            display.push(field.visibility === 'admin' ? '관리자 전용' : '공개');
-            if (field.show_on_profile) {
-                display.push('프로필');
-            }
-            if (field.show_in_admin) {
-                display.push('관리자 목록');
+            if (item.kind === 'fixed') {
+                display.push(field.enabled ? '사용' : '미사용');
+                if (field.required) {
+                    display.push('필수');
+                }
+            } else {
+                display.push(field.visibility === 'admin' ? '관리자 전용' : '공개');
+                if (field.show_on_profile) {
+                    display.push('프로필');
+                }
+                if (field.show_in_admin) {
+                    display.push('관리자 목록');
+                }
             }
             displayCell.textContent = display.join(' / ');
             row.appendChild(displayCell);
 
             var privacyCell = document.createElement('td');
-            privacyCell.textContent = (field.privacy_purpose || '목적 없음') + ' / ' + memberProfileExtraFieldPolicyLabel(field);
+            privacyCell.textContent = item.kind === 'fixed' ? '기본 프로필 / Export 포함 / 익명화' : (field.privacy_purpose || '목적 없음') + ' / ' + memberProfileExtraFieldPolicyLabel(field);
             row.appendChild(privacyCell);
 
             var actionCell = document.createElement('td');
             actionCell.className = 'admin-table-actions-cell';
             var actionGroup = document.createElement('div');
             actionGroup.className = 'admin-row-actions';
-            [
-                ['edit', '수정', 'edit'],
-                ['remove', '제거', 'delete']
-            ].forEach(function (action) {
+            var actions = [['edit', '수정', 'edit'], ['remove', '제거', 'delete']];
+            actions.forEach(function (action) {
                 var button = document.createElement('button');
                 button.type = 'button';
                 button.className = action[0] === 'remove' ? 'btn btn-sm btn-icon btn-outline-danger' : 'btn btn-sm btn-icon btn-solid-light';
@@ -595,6 +744,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.setAttribute('title', action[1]);
                 button.setAttribute('data-member-profile-extra-field-action', action[0]);
                 button.setAttribute('data-member-profile-extra-field-index-value', String(index));
+                if (item.kind === 'fixed' && action[0] === 'remove') {
+                    button.disabled = true;
+                    button.setAttribute('aria-disabled', 'true');
+                }
                 button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
                 actionGroup.appendChild(button);
             });
@@ -609,13 +762,33 @@ document.addEventListener('DOMContentLoaded', function () {
         return modal ? modal.querySelector('[data-member-profile-extra-field-input="' + name + '"]') : null;
     }
 
-    function memberProfileExtraFieldSetModal(modal, field, index) {
+    function memberProfileExtraFieldSetModalMode(modal, isFixed) {
         if (!modal) {
             return;
         }
+        modal.querySelectorAll('[data-member-profile-extra-field-extra-only]').forEach(function (row) {
+            row.hidden = !!isFixed;
+            row.querySelectorAll('input, select, textarea').forEach(function (control) {
+                control.disabled = !!isFixed;
+            });
+        });
+        modal.querySelectorAll('[data-member-profile-extra-field-fixed-only]').forEach(function (row) {
+            row.hidden = !isFixed;
+            row.querySelectorAll('input, select, textarea').forEach(function (control) {
+                control.disabled = !isFixed;
+            });
+        });
+    }
+
+    function memberProfileExtraFieldSetModal(modal, field, index, kind) {
+        if (!modal) {
+            return;
+        }
+        kind = kind === 'fixed' ? 'fixed' : 'extra';
         field = field || {
             key: '',
             label: '',
+            enabled: true,
             type: 'text',
             required: false,
             options: [],
@@ -627,15 +800,26 @@ document.addEventListener('DOMContentLoaded', function () {
             cleanup_policy: 'anonymize'
         };
         var indexInput = modal.querySelector('[data-member-profile-extra-field-index]');
+        var kindInput = modal.querySelector('[data-member-profile-extra-field-kind]');
+        var originalKeyInput = modal.querySelector('[data-member-profile-extra-field-original-key]');
         var title = modal.querySelector('[data-member-profile-extra-field-modal-title]');
         if (indexInput) {
             indexInput.value = typeof index === 'number' && index >= 0 ? String(index) : '';
         }
-        if (title) {
-            title.textContent = typeof index === 'number' && index >= 0 ? '추가 프로필 항목 수정' : '추가 프로필 항목 추가';
+        if (kindInput) {
+            kindInput.value = kind;
         }
+        if (originalKeyInput) {
+            originalKeyInput.value = field.key || '';
+        }
+        if (title) {
+            title.textContent = kind === 'fixed' ? '기본 프로필 항목 설정' : (typeof index === 'number' && index >= 0 ? '추가 프로필 항목 수정' : '추가 프로필 항목 추가');
+        }
+        memberProfileExtraFieldSetModalMode(modal, kind === 'fixed');
         memberProfileExtraFieldInput(modal, 'key').value = field.key || '';
         memberProfileExtraFieldInput(modal, 'label').value = field.label || '';
+        memberProfileExtraFieldInput(modal, 'label').readOnly = kind === 'fixed';
+        memberProfileExtraFieldInput(modal, 'enabled').checked = Object.prototype.hasOwnProperty.call(field, 'enabled') ? !!field.enabled : true;
         memberProfileExtraFieldInput(modal, 'type').value = memberProfileExtraFieldAllowedType(field.type || 'text');
         memberProfileExtraFieldInput(modal, 'options').value = Array.isArray(field.options) ? field.options.join("\n") : '';
         memberProfileExtraFieldInput(modal, 'required').checked = !!field.required;
@@ -668,19 +852,38 @@ document.addEventListener('DOMContentLoaded', function () {
         var typeInput = memberProfileExtraFieldInput(modal, 'type');
         var optionsInput = memberProfileExtraFieldInput(modal, 'options');
         var indexInput = modal ? modal.querySelector('[data-member-profile-extra-field-index]') : null;
+        var kindInput = modal ? modal.querySelector('[data-member-profile-extra-field-kind]') : null;
+        var originalKeyInput = modal ? modal.querySelector('[data-member-profile-extra-field-original-key]') : null;
         var index = indexInput && indexInput.value !== '' ? parseInt(indexInput.value, 10) : -1;
+        var kind = kindInput && kindInput.value === 'fixed' ? 'fixed' : 'extra';
+        var originalKey = originalKeyInput ? String(originalKeyInput.value || '') : '';
         [keyInput, labelInput, typeInput, optionsInput].forEach(function (input) {
             if (input && typeof input.setCustomValidity === 'function') {
                 input.setCustomValidity('');
             }
         });
-        if (!keyInput || !labelInput || !typeInput || !optionsInput) {
+        if (!labelInput || !memberProfileExtraFieldInput(modal, 'required')) {
+            return null;
+        }
+        if (kind === 'fixed') {
+            var enabled = !!memberProfileExtraFieldInput(modal, 'enabled').checked;
+            var required = !!memberProfileExtraFieldInput(modal, 'required').checked;
+            return {
+                kind: 'fixed',
+                index: index,
+                field: {
+                    enabled: enabled || required,
+                    required: required
+                }
+            };
+        }
+        if (!keyInput || !typeInput || !optionsInput) {
             return null;
         }
         keyInput.value = keyInput.value.trim().toLowerCase();
         labelInput.value = labelInput.value.replace(/\s+/g, ' ').trim();
-        var duplicate = definitions.some(function (field, fieldIndex) {
-            return field.key === keyInput.value && fieldIndex !== index;
+        var duplicate = definitions.some(function (field) {
+            return field.key === keyInput.value && field.key !== originalKey;
         });
         if (duplicate) {
             keyInput.setCustomValidity('이미 사용 중인 Key입니다.');
@@ -702,6 +905,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         return {
+            kind: 'extra',
             index: index,
             field: {
                 key: keyInput.value,
@@ -730,41 +934,33 @@ document.addEventListener('DOMContentLoaded', function () {
         textarea.addEventListener('change', function () {
             memberProfileExtraFieldRender(root);
         });
+        var orderTextarea = root.querySelector('[data-member-profile-field-order-json]');
+        if (orderTextarea) {
+            orderTextarea.addEventListener('change', function () {
+                memberProfileExtraFieldRender(root);
+            });
+        }
         var type = memberProfileExtraFieldInput(modal, 'type');
         if (type) {
             type.addEventListener('change', function () {
                 memberProfileExtraFieldSyncOptions(modal);
             });
         }
+        var enabled = memberProfileExtraFieldInput(modal, 'enabled');
+        var required = memberProfileExtraFieldInput(modal, 'required');
+        if (enabled && required) {
+            required.addEventListener('change', function () {
+                if (required.checked) {
+                    enabled.checked = true;
+                }
+            });
+            enabled.addEventListener('change', function () {
+                if (!enabled.checked) {
+                    required.checked = false;
+                }
+            });
+        }
     }
-
-    document.querySelectorAll('[data-member-profile-required]').forEach(function (requiredInput) {
-        requiredInput.addEventListener('change', function () {
-            if (!requiredInput.checked) {
-                return;
-            }
-
-            var visibleTarget = requiredInput.getAttribute('data-member-profile-visible-target');
-            var visibleInput = visibleTarget ? document.querySelector(visibleTarget) : null;
-            if (visibleInput) {
-                visibleInput.checked = true;
-            }
-        });
-    });
-
-    document.querySelectorAll('[data-member-profile-visible]').forEach(function (visibleInput) {
-        visibleInput.addEventListener('change', function () {
-            if (visibleInput.checked) {
-                return;
-            }
-
-            var requiredTarget = visibleInput.getAttribute('data-member-profile-required-target');
-            var requiredInput = requiredTarget ? document.querySelector(requiredTarget) : null;
-            if (requiredInput) {
-                requiredInput.checked = false;
-            }
-        });
-    });
 
     memberProfileExtraFieldInit();
 
@@ -778,6 +974,7 @@ document.addEventListener('DOMContentLoaded', function () {
             memberProfileExtraFieldSetModal(extraFieldModal, {
                 key: memberProfileExtraFieldRandomKey(extraFieldDefinitionsForAdd),
                 label: '',
+                enabled: true,
                 type: 'text',
                 required: false,
                 options: [],
@@ -787,7 +984,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 privacy_purpose: '',
                 export_policy: 'include',
                 cleanup_policy: 'anonymize'
-            }, -1);
+            }, -1, 'extra');
             return;
         }
 
@@ -797,31 +994,50 @@ document.addEventListener('DOMContentLoaded', function () {
             var extraFieldRoot = document.querySelector('[data-member-profile-extra-fields-builder]');
             var extraFieldTextarea = extraFieldRoot ? extraFieldRoot.querySelector('[data-member-profile-extra-fields-json]') : null;
             var extraFieldDefinitions = memberProfileExtraFieldParse(extraFieldTextarea);
+            var extraFieldFixedFields = memberProfileFixedFieldParse(extraFieldRoot);
+            var extraFieldOrder = memberProfileFieldOrderParse(extraFieldRoot, extraFieldFixedFields, extraFieldDefinitions);
             var extraFieldIndex = parseInt(extraFieldAction.getAttribute('data-member-profile-extra-field-index-value') || '-1', 10);
             var extraFieldActionName = extraFieldAction.getAttribute('data-member-profile-extra-field-action') || '';
-            if (extraFieldIndex < 0 || extraFieldIndex >= extraFieldDefinitions.length) {
+            if (extraFieldIndex < 0 || extraFieldIndex >= extraFieldOrder.length) {
                 return;
             }
+            var orderItem = extraFieldOrder[extraFieldIndex];
             if (extraFieldActionName === 'edit') {
+                var fieldForEdit = null;
+                if (orderItem.kind === 'fixed') {
+                    fieldForEdit = extraFieldFixedFields.find(function (field) {
+                        return field.key === orderItem.key;
+                    }) || null;
+                } else {
+                    fieldForEdit = extraFieldDefinitions.find(function (field) {
+                        return field.key === orderItem.key;
+                    }) || null;
+                }
+                if (!fieldForEdit) {
+                    return;
+                }
                 var openButton = document.querySelector('[data-member-profile-extra-field-add]');
                 if (openButton) {
                     openButton.click();
                 }
-                memberProfileExtraFieldSetModal(document.querySelector('[data-member-profile-extra-field-modal]'), extraFieldDefinitions[extraFieldIndex], extraFieldIndex);
+                memberProfileExtraFieldSetModal(document.querySelector('[data-member-profile-extra-field-modal]'), fieldForEdit, extraFieldIndex, orderItem.kind);
                 return;
             }
             if (extraFieldActionName === 'up' && extraFieldIndex > 0) {
-                var previous = extraFieldDefinitions[extraFieldIndex - 1];
-                extraFieldDefinitions[extraFieldIndex - 1] = extraFieldDefinitions[extraFieldIndex];
-                extraFieldDefinitions[extraFieldIndex] = previous;
-            } else if (extraFieldActionName === 'down' && extraFieldIndex < extraFieldDefinitions.length - 1) {
-                var next = extraFieldDefinitions[extraFieldIndex + 1];
-                extraFieldDefinitions[extraFieldIndex + 1] = extraFieldDefinitions[extraFieldIndex];
-                extraFieldDefinitions[extraFieldIndex] = next;
-            } else if (extraFieldActionName === 'remove') {
-                extraFieldDefinitions.splice(extraFieldIndex, 1);
+                var previous = extraFieldOrder[extraFieldIndex - 1];
+                extraFieldOrder[extraFieldIndex - 1] = extraFieldOrder[extraFieldIndex];
+                extraFieldOrder[extraFieldIndex] = previous;
+            } else if (extraFieldActionName === 'down' && extraFieldIndex < extraFieldOrder.length - 1) {
+                var next = extraFieldOrder[extraFieldIndex + 1];
+                extraFieldOrder[extraFieldIndex + 1] = extraFieldOrder[extraFieldIndex];
+                extraFieldOrder[extraFieldIndex] = next;
+            } else if (extraFieldActionName === 'remove' && orderItem.kind === 'extra') {
+                extraFieldDefinitions = extraFieldDefinitions.filter(function (field) {
+                    return field.key !== orderItem.key;
+                });
+                extraFieldOrder.splice(extraFieldIndex, 1);
             }
-            memberProfileExtraFieldWrite(extraFieldRoot, extraFieldDefinitions);
+            memberProfileExtraFieldWrite(extraFieldRoot, extraFieldDefinitions, extraFieldOrder, extraFieldFixedFields);
             memberProfileExtraFieldRender(extraFieldRoot);
             return;
         }
@@ -833,16 +1049,37 @@ document.addEventListener('DOMContentLoaded', function () {
             var saveTextarea = saveRoot ? saveRoot.querySelector('[data-member-profile-extra-fields-json]') : null;
             var saveModal = document.querySelector('[data-member-profile-extra-field-modal]');
             var saveDefinitions = memberProfileExtraFieldParse(saveTextarea);
+            var saveFixedFields = memberProfileFixedFieldParse(saveRoot);
+            var saveOrder = memberProfileFieldOrderParse(saveRoot, saveFixedFields, saveDefinitions);
             var collected = memberProfileExtraFieldCollect(saveModal, saveDefinitions);
             if (!collected) {
                 return;
             }
-            if (collected.index >= 0 && collected.index < saveDefinitions.length) {
-                saveDefinitions[collected.index] = collected.field;
+            if (collected.kind === 'fixed') {
+                if (collected.index < 0 || collected.index >= saveOrder.length || saveOrder[collected.index].kind !== 'fixed') {
+                    return;
+                }
+                saveFixedFields = saveFixedFields.map(function (field) {
+                    if (field.key !== saveOrder[collected.index].key) {
+                        return field;
+                    }
+                    field.enabled = collected.field.enabled;
+                    field.required = collected.field.required;
+                    return field;
+                });
             } else {
-                saveDefinitions.push(collected.field);
+                if (collected.index >= 0 && collected.index < saveOrder.length && saveOrder[collected.index].kind === 'extra') {
+                    var previousKey = saveOrder[collected.index].key;
+                    saveDefinitions = saveDefinitions.map(function (field) {
+                        return field.key === previousKey ? collected.field : field;
+                    });
+                    saveOrder[collected.index].key = collected.field.key;
+                } else {
+                    saveDefinitions.push(collected.field);
+                    saveOrder.push({ kind: 'extra', key: collected.field.key });
+                }
             }
-            memberProfileExtraFieldWrite(saveRoot, saveDefinitions);
+            memberProfileExtraFieldWrite(saveRoot, saveDefinitions, saveOrder, saveFixedFields);
             memberProfileExtraFieldRender(saveRoot);
             var closeButton = saveModal ? saveModal.querySelector('.modal-close') : null;
             if (closeButton) {

@@ -644,42 +644,52 @@ function sr_member_delete_profile_field_values(PDO $pdo, int $accountId): void
     $stmt->execute(['account_id' => $accountId]);
 }
 
-function sr_member_profile_extra_fields_form_html(array $definitions, array $values = [], string $idPrefix = 'modules_member_profile_extra'): string
+function sr_member_profile_extra_field_form_html(array $definition, array $values = [], string $idPrefix = 'modules_member_profile_extra'): string
+{
+    $key = (string) ($definition['key'] ?? '');
+    if ($key === '') {
+        return '';
+    }
+
+    $label = (string) ($definition['label'] ?? $key);
+    $type = (string) ($definition['type'] ?? 'text');
+    $required = !empty($definition['required']);
+    $id = $idPrefix . '_' . $key;
+    $name = 'member_profile_fields[' . $key . ']';
+    $rawValue = $values[$key] ?? '';
+    $value = is_array($rawValue) ? '' : (string) $rawValue;
+    $html = '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : '') . '</span>';
+    if ($type === 'textarea') {
+        $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000" class="form-textarea"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
+    } elseif ($type === 'select') {
+        $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select"' . ($required ? ' required' : '') . '>';
+        $html .= '<option value="">' . sr_e('선택') . '</option>';
+        foreach ((array) ($definition['options'] ?? []) as $option) {
+            $option = (string) $option;
+            $html .= '<option value="' . sr_e($option) . '"' . ($value === $option ? ' selected' : '') . '>' . sr_e($option) . '</option>';
+        }
+        $html .= '</select>';
+    } elseif ($type === 'checkbox') {
+        $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
+    } else {
+        $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input"' . ($required ? ' required' : '') . '>';
+    }
+    $html .= '</label></p>';
+
+    return $html;
+}
+
+function sr_member_profile_extra_fields_form_html(array $definitions, array $values = [], string $idPrefix = 'modules_member_profile_extra', bool $wrap = true): string
 {
     if ($definitions === []) {
         return '';
     }
 
-    $html = '<fieldset class="member-profile-extra-fields">';
-    $html .= '<legend>' . sr_e('추가 프로필') . '</legend>';
+    $html = $wrap ? '<fieldset class="member-profile-extra-fields"><legend>' . sr_e('추가 프로필') . '</legend>' : '';
     foreach ($definitions as $definition) {
-        $key = (string) ($definition['key'] ?? '');
-        $label = (string) ($definition['label'] ?? $key);
-        $type = (string) ($definition['type'] ?? 'text');
-        $required = !empty($definition['required']);
-        $id = $idPrefix . '_' . $key;
-        $name = 'member_profile_fields[' . $key . ']';
-        $rawValue = $values[$key] ?? '';
-        $value = is_array($rawValue) ? '' : (string) $rawValue;
-        $html .= '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : '') . '</span>';
-        if ($type === 'textarea') {
-            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000" class="form-textarea"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
-        } elseif ($type === 'select') {
-            $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select"' . ($required ? ' required' : '') . '>';
-            $html .= '<option value="">' . sr_e('선택') . '</option>';
-            foreach ((array) ($definition['options'] ?? []) as $option) {
-                $option = (string) $option;
-                $html .= '<option value="' . sr_e($option) . '"' . ($value === $option ? ' selected' : '') . '>' . sr_e($option) . '</option>';
-            }
-            $html .= '</select>';
-        } elseif ($type === 'checkbox') {
-            $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
-        } else {
-            $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input"' . ($required ? ' required' : '') . '>';
-        }
-        $html .= '</label></p>';
+        $html .= sr_member_profile_extra_field_form_html($definition, $values, $idPrefix);
     }
-    $html .= '</fieldset>';
+    $html .= $wrap ? '</fieldset>' : '';
 
     return $html;
 }

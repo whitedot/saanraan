@@ -35,6 +35,7 @@ function sr_member_default_settings(): array
         'profile_avatar_enabled' => (bool) ($settings['profile_avatar_enabled'] ?? true),
         'profile_avatar_required' => (bool) ($settings['profile_avatar_required'] ?? false),
         'profile_fields_json' => is_string($settings['profile_fields_json'] ?? null) ? (string) $settings['profile_fields_json'] : '[]',
+        'profile_field_order_json' => is_string($settings['profile_field_order_json'] ?? null) ? (string) $settings['profile_field_order_json'] : '[]',
         'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
         'nickname_required' => (bool) ($settings['nickname_enabled'] ?? true),
     ];
@@ -57,6 +58,14 @@ function sr_member_settings(PDO $pdo): array
         $settings['profile_fields_json'] = (string) $profileFieldsSetting;
     } else {
         $settings['profile_fields_json'] = '[]';
+    }
+    $profileFieldOrderSetting = $settings['profile_field_order_json'] ?? '[]';
+    if (is_array($profileFieldOrderSetting)) {
+        $settings['profile_field_order_json'] = json_encode($profileFieldOrderSetting, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
+    } elseif (is_scalar($profileFieldOrderSetting)) {
+        $settings['profile_field_order_json'] = (string) $profileFieldOrderSetting;
+    } else {
+        $settings['profile_field_order_json'] = '[]';
     }
     foreach (sr_member_profile_field_definitions() as $definition) {
         $enabledKey = (string) $definition['enabled_key'];
@@ -310,6 +319,81 @@ function sr_member_profile_field_policies(array $settings): array
     }
 
     return $policies;
+}
+
+function sr_member_profile_field_order_items(array $settings, array $extraDefinitions = []): array
+{
+    $fixedDefinitions = sr_member_profile_field_definitions();
+    $extraKeys = [];
+    foreach ($extraDefinitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key !== '') {
+            $extraKeys[$key] = true;
+        }
+    }
+
+    $items = [];
+    $seen = [];
+    $decoded = json_decode((string) ($settings['profile_field_order_json'] ?? '[]'), true);
+    if (is_array($decoded)) {
+        foreach ($decoded as $rawItem) {
+            if (!is_string($rawItem)) {
+                continue;
+            }
+            $rawItem = trim($rawItem);
+            if (str_starts_with($rawItem, 'fixed:')) {
+                $key = substr($rawItem, 6);
+                $id = 'fixed:' . $key;
+                if (isset($fixedDefinitions[$key]) && empty($seen[$id])) {
+                    $items[] = ['kind' => 'fixed', 'key' => $key];
+                    $seen[$id] = true;
+                }
+                continue;
+            }
+            if (str_starts_with($rawItem, 'extra:')) {
+                $key = substr($rawItem, 6);
+                $id = 'extra:' . $key;
+                if (isset($extraKeys[$key]) && empty($seen[$id])) {
+                    $items[] = ['kind' => 'extra', 'key' => $key];
+                    $seen[$id] = true;
+                }
+            }
+        }
+    }
+
+    foreach ($fixedDefinitions as $key => $definition) {
+        $id = 'fixed:' . (string) $key;
+        if (empty($seen[$id])) {
+            $items[] = ['kind' => 'fixed', 'key' => (string) $key];
+            $seen[$id] = true;
+        }
+    }
+    foreach ($extraDefinitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        $id = 'extra:' . $key;
+        if ($key !== '' && empty($seen[$id])) {
+            $items[] = ['kind' => 'extra', 'key' => $key];
+            $seen[$id] = true;
+        }
+    }
+
+    return $items;
+}
+
+function sr_member_profile_field_order_json_from_input(?string $json, array $extraDefinitions = []): string
+{
+    $settings = ['profile_field_order_json' => is_string($json) ? $json : '[]'];
+    $items = sr_member_profile_field_order_items($settings, $extraDefinitions);
+    $order = [];
+    foreach ($items as $item) {
+        $kind = (string) ($item['kind'] ?? '');
+        $key = (string) ($item['key'] ?? '');
+        if (($kind === 'fixed' || $kind === 'extra') && $key !== '') {
+            $order[] = $kind . ':' . $key;
+        }
+    }
+
+    return json_encode($order, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
 
 function sr_member_profile_has_visible_fields(array $policies): bool
