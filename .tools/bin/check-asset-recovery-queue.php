@@ -173,6 +173,16 @@ try {
         $errors[] = 'common recovery queue must preserve manually closed rows against later dedupe retries.';
     }
 
+    $fullRecoveryOnlyId = sr_asset_recovery_record_failure($pdo, array_merge($basePayload, [
+        'source_log_id' => 12,
+        'recovered_amount' => 100,
+        'failure_reason' => 'recovered',
+    ]));
+    $fullRecoveryOnlyCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_asset_recovery_failures WHERE source_log_id = 12")->fetchColumn();
+    if ($fullRecoveryOnlyId !== 0 || $fullRecoveryOnlyCount !== 0) {
+        $errors[] = 'common recovery queue must not create a new row for first-attempt full recovery.';
+    }
+
     $secondId = sr_asset_recovery_record_failure($pdo, array_merge($basePayload, [
         'source_log_id' => 11,
         'recovered_amount' => 0,

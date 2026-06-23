@@ -371,6 +371,67 @@ function sr_asset_recovery_record_failure(PDO $pdo, array $data): int
     }
 
     try {
+        if ($unrecoveredAmount <= 0) {
+            $row = sr_asset_recovery_failure_by_dedupe_key_for_update($pdo, $dedupeKey);
+            if (!is_array($row)) {
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
+
+                return 0;
+            }
+
+            if ((string) ($row['status'] ?? '') !== 'open') {
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
+
+                return (int) ($row['id'] ?? 0);
+            }
+
+            $stmt = $pdo->prepare(
+                'UPDATE sr_asset_recovery_failures
+                 SET original_transaction_id = CASE WHEN :original_transaction_id > 0 THEN :original_transaction_id ELSE original_transaction_id END,
+                     recovered_amount = :recovered_amount,
+                     unrecovered_amount = 0,
+                     failure_reason = :failure_reason,
+                     status = \'recovered\',
+                     actor_account_id = :actor_account_id,
+                     actor_type = :actor_type,
+                     operation_context_json = :operation_context_json,
+                     attempt_count = attempt_count + 1,
+                     version = version + 1,
+                     updated_at = :updated_at,
+                     last_attempted_at = :last_attempted_at,
+                     resolved_at = :resolved_at
+                 WHERE id = :id
+                   AND status = \'open\'
+                   AND version = :version'
+            );
+            $stmt->execute([
+                'original_transaction_id' => (int) $params['original_transaction_id'],
+                'recovered_amount' => max((int) ($row['recovered_amount'] ?? 0), $recoveredAmount),
+                'failure_reason' => (string) $params['failure_reason'],
+                'actor_account_id' => $params['actor_account_id'],
+                'actor_type' => (string) $params['actor_type'],
+                'operation_context_json' => (string) $params['operation_context_json'],
+                'updated_at' => $now,
+                'last_attempted_at' => $now,
+                'resolved_at' => $now,
+                'id' => (int) ($row['id'] ?? 0),
+                'version' => (int) ($row['version'] ?? 0),
+            ]);
+            if ($stmt->rowCount() < 1) {
+                throw new RuntimeException('Asset recovery failure row was changed concurrently.');
+            }
+
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            return (int) ($row['id'] ?? 0);
+        }
+
         $stmt = $pdo->prepare(
             sr_ledger_insert_ignore_into_clause($pdo) . ' sr_asset_recovery_failures
                 (dedupe_key, source_module, source_log_id, asset_module, account_id, original_transaction_id,

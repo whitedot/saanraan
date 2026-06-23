@@ -50,6 +50,7 @@ foreach ([
     "\$legacyReversalEventKey = sr_community_asset_recovery_legacy_event_key(\$reversalEventKey, \$subjectType, 'reversal');",
     'sr_community_asset_grant_log_for_reversal($pdo, $accountId, $legacyGrantEventKey, $subjectId)',
     'sr_community_asset_recovery_failure_by_original($pdo, (int) ($original[\'id\'] ?? 0), $legacyReversalEventKey)',
+    "if (is_array(\$existingFailure) && (string) (\$existingFailure['status'] ?? '') === 'open')",
     "if (\$eventKey === 'community.post.reward_grant')",
     "if (\$eventKey === 'community.comment.reward_reversal')",
 ] as $needle) {

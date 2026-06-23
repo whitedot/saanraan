@@ -1323,7 +1323,10 @@ function sr_community_reverse_asset_grant_for_operation(PDO $pdo, int $accountId
             $pdo->exec('RELEASE SAVEPOINT ' . $savepoint);
             $totalRecovered = $alreadyRecoveredAmount + $recoverableAmount;
             if ($totalRecovered >= $attemptedAmount) {
-                $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $legacyGrantEventKey, $legacyReversalEventKey, $totalRecovered, 'recovered', $operationContext);
+                $failureId = 0;
+                if (is_array($existingFailure) && (string) ($existingFailure['status'] ?? '') === 'open') {
+                    $failureId = sr_community_asset_recovery_upsert($pdo, $original, $subjectType, $subjectId, $legacyGrantEventKey, $legacyReversalEventKey, $totalRecovered, 'recovered', $operationContext);
+                }
                 if ($failureId > 0 && function_exists('sr_asset_recovery_record_reversal_link')) {
                     $commonFailure = sr_asset_recovery_failure_by_dedupe_key($pdo, sr_asset_recovery_dedupe_key('community', (int) ($original['id'] ?? 0), sr_community_asset_recovery_canonical_event_key($canonicalReversalEventKey, $subjectType, 'reversal')));
                     $commonFailureId = is_array($commonFailure) ? (int) ($commonFailure['id'] ?? 0) : 0;
