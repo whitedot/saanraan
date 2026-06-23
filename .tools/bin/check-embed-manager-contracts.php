@@ -280,6 +280,15 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) === 0, 'Disabled internal URL rendering must not re-run resolver on a cache hit.');
     sr_embed_contract_assert(!str_contains($disabledRendered, 'fixture-embed-summary'), 'Disabled internal URL rendering must leave the original link in place.');
     unset($GLOBALS['sr_embed_contract_settings']);
+
+    $allLinksBody = '<p>문장 안의 <a href="/fixture/1">/fixture/1</a> 링크</p><p>/fixture/1</p>';
+    $GLOBALS['sr_embed_contract_settings'] = ['embed_scope' => 'all_supported_links'];
+    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 14, 'body', $allLinksBody, 7);
+    sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
+    $allLinksRendered = sr_embed_manager_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
+    sr_embed_contract_assert(substr_count($allLinksRendered, 'fixture-embed-summary') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
+    unset($GLOBALS['sr_embed_contract_settings']);
+
     sr_embed_contract_assert(sr_embed_manager_ref_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
     sr_embed_contract_assert(sr_embed_manager_ref_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
 

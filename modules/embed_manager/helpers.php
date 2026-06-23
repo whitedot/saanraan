@@ -613,11 +613,10 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
 
     $urls = [];
     $position = 0;
-    if ($scope === 'all_supported_links') {
-        return sr_embed_manager_extract_legacy_candidate_urls($bodyHtml);
-    }
-
     if (!class_exists('DOMDocument')) {
+        if ($scope === 'all_supported_links') {
+            return sr_embed_manager_extract_legacy_candidate_urls($bodyHtml);
+        }
         if (sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)) !== '') {
             return [['url' => sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)), 'position' => 0]];
         }
@@ -644,11 +643,11 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
         if ($href === '' || ($label !== '' && $label !== $href)) {
             continue;
         }
-        if (!sr_embed_manager_node_is_only_meaningful_child($link)) {
+        if ($scope !== 'all_supported_links' && !sr_embed_manager_node_is_only_meaningful_child($link)) {
             continue;
         }
-        $replaceNode = sr_embed_manager_standalone_replacement_node($link, $root);
-        if (sr_embed_manager_normalized_node_text($replaceNode) === $label) {
+        $replaceNode = $scope === 'all_supported_links' ? $link : sr_embed_manager_standalone_replacement_node($link, $root);
+        if ($scope === 'all_supported_links' || sr_embed_manager_normalized_node_text($replaceNode) === $label) {
             $urls[] = ['url' => $href, 'position' => $position++];
         }
     }
@@ -702,10 +701,6 @@ function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $roo
         }
         $seen[$key] = true;
         $items[] = ['node' => $replaceNode, 'url' => $href, 'position' => $position++];
-    }
-
-    if ($scope === 'all_supported_links') {
-        return $items;
     }
 
     $xpath = new DOMXPath($dom);
