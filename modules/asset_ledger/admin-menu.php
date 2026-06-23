@@ -9,5 +9,10 @@ return [
             'path' => '/admin/assets/reconciliation',
             'order' => 10,
         ],
+        [
+            'label' => '보상 미회수',
+            'path' => '/admin/assets/recovery-failures',
+            'order' => 20,
+        ],
     ],
 ];

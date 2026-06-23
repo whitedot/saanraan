@@ -54,10 +54,5 @@ return [
             'path' => '/admin/community/publisher-rewards',
             'order' => 95,
         ],
-        [
-            'label' => '보상 미회수',
-            'path' => '/admin/community/recovery-failures',
-            'order' => 96,
-        ],
     ],
 ];

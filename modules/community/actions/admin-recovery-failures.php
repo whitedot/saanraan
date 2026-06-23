@@ -7,7 +7,9 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/recovery-failures', 'view');
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/assets/recovery-failures', 'view');
+
+sr_redirect('/admin/assets/recovery-failures' . ((string) ($_SERVER['QUERY_STRING'] ?? '') !== '' ? '?' . (string) ($_SERVER['QUERY_STRING'] ?? '') : ''));
 
 $errors = [];
 $notice = '';
