@@ -59,10 +59,11 @@ php -S 127.0.0.1:8097 -t .tools/public .tools/bin/dev-router.php
 SR_SMOKE_BASE_URL=http://127.0.0.1:8097 php .tools/bin/smoke-http.php
 ```
 
-HTML sanitizer, CKEditor, 임베드 marker 변경은 rich text sanitizer fixture를 직접 실행한다.
+HTML sanitizer, CKEditor, URL 임베드 변경은 rich text sanitizer fixture와 임베드 매니저 계약 fixture를 직접 실행한다.
 
 ```bash
 php .tools/bin/check-rich-text-sanitizer.php
+php .tools/bin/check-embed-manager-contracts.php
 ```
 
 포인트, 적립금, 예치금, 쿠폰, 환전, 유료 열람, 환불 변경은 설치된 로컬 또는 스테이징 DB에서 read-only reconciliation 결과를 확인한다.

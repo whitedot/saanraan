@@ -224,17 +224,25 @@ function sr_embed_contract_scalar(PDO $pdo, string $sql, array $params = []): mi
 function sr_embed_contract_runtime_fixture(): void
 {
     $pdo = sr_embed_contract_pdo();
-    $body = '<p><a href="/fixture/1">/fixture/1</a></p><p><a href="/fixture/1?utm_source=x">의미 있는 링크</a></p>';
+    $body = '<p><a href="/fixture/1">/fixture/1</a></p><p>문장 안의 <a href="/fixture/2">/fixture/2</a> 링크</p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
     sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache') === 1, 'URL cache sync must create one canonical cache row.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache LIMIT 1') === 'fresh', 'URL cache row must be fresh.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT created_by_account_id FROM sr_embed_manager_url_cache LIMIT 1') === '7', 'URL cache row must store creator account id.');
+    sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT canonical_url FROM sr_embed_manager_url_cache LIMIT 1') === '/fixture/1', 'Standalone URL cache must ignore inline URL links.');
 
     $rendered = sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10);
     sr_embed_contract_assert(str_contains($rendered, 'fixture-embed-summary'), 'URL render must use target module renderer HTML.');
     sr_embed_contract_assert(str_contains($rendered, '공개 항목'), 'URL render must include target label.');
     sr_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
-    sr_embed_contract_assert(str_contains($rendered, '의미 있는 링크'), 'Meaningful label links must remain as links.');
+    sr_embed_contract_assert(str_contains($rendered, '문장 안의'), 'Inline URL link paragraph must remain in body.');
+    sr_embed_contract_assert(str_contains($rendered, '/fixture/2'), 'Inline URL link must remain a link in standalone-only scope.');
+
+    $bareBody = '<p>/fixture/1</p>';
+    sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 12, 'body', $bareBody, 7);
+    sr_embed_contract_assert((int) sr_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_embed_manager_url_cache WHERE owner_id = 12') === 1, 'Standalone bare relative URL must create one cache row.');
+    $bareRendered = sr_embed_manager_render_body_html($pdo, $bareBody, 'fixture', 'doc', 12);
+    sr_embed_contract_assert(str_contains($bareRendered, 'fixture-embed-summary'), 'Standalone bare relative URL must render through target module renderer.');
 
     $privateBody = '<p><a href="/fixture/2">/fixture/2</a></p>';
     sr_embed_manager_sync_body_refs($pdo, 'fixture', 'doc', 11, 'body', $privateBody, 7);

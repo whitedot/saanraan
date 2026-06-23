@@ -33,7 +33,7 @@
 다음 변경은 작은 수정처럼 보여도 고위험으로 취급한다.
 
 - 로그인, 세션, CSRF, 권한, rate limit
-- HTML sanitizer, CKEditor, 업로드, 다운로드, 임베드 marker
+- HTML sanitizer, CKEditor, 업로드, 다운로드, URL 임베드
 - 포인트, 적립금, 예치금, 쿠폰, 유료 열람, 환불, 환전
 - 개인정보 export, cleanup, 회원 탈퇴, 보존 정책
 - queue, cron, 배치, 예약 발행, storage cleanup

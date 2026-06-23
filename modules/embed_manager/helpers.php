@@ -549,12 +549,192 @@ function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []
     return null;
 }
 
-function sr_embed_manager_extract_candidate_urls(string $bodyHtml): array
+function sr_embed_manager_url_from_standalone_text(string $text): string
+{
+    $text = trim(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $text = preg_replace('/\s+/', ' ', $text) ?? '';
+    if ($text === '') {
+        return '';
+    }
+    if (preg_match('#\Ahttps?://[^\s<>"\']+\z#iu', $text) === 1 || preg_match('#\A/[^\s<>"\']+\z#u', $text) === 1) {
+        return $text;
+    }
+
+    return '';
+}
+
+function sr_embed_manager_normalized_node_text(DOMNode $node): string
+{
+    return trim(preg_replace('/\s+/', ' ', html_entity_decode($node->textContent, ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?? '');
+}
+
+function sr_embed_manager_node_is_only_meaningful_child(DOMNode $node): bool
+{
+    $parent = $node->parentNode;
+    if (!$parent instanceof DOMNode) {
+        return true;
+    }
+    foreach ($parent->childNodes as $sibling) {
+        if ($sibling->isSameNode($node)) {
+            continue;
+        }
+        if ($sibling instanceof DOMText && trim($sibling->textContent) === '') {
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+function sr_embed_manager_standalone_replacement_node(DOMNode $node, DOMElement $root): DOMNode
+{
+    $candidate = $node;
+    $candidateText = sr_embed_manager_normalized_node_text($node);
+    while ($candidate->parentNode instanceof DOMElement && !$candidate->parentNode->isSameNode($root)) {
+        $parent = $candidate->parentNode;
+        if (sr_embed_manager_normalized_node_text($parent) !== $candidateText || !sr_embed_manager_node_is_only_meaningful_child($candidate)) {
+            break;
+        }
+        $candidate = $parent;
+    }
+
+    return $candidate;
+}
+
+function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope = 'standalone_url_only'): array
 {
     if ($bodyHtml === '') {
         return [];
     }
 
+    $urls = [];
+    $position = 0;
+    if ($scope === 'all_supported_links') {
+        return sr_embed_manager_extract_legacy_candidate_urls($bodyHtml);
+    }
+
+    if (!class_exists('DOMDocument')) {
+        if (sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)) !== '') {
+            return [['url' => sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)), 'position' => 0]];
+        }
+
+        return [];
+    }
+
+    $previous = libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $loaded = $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $bodyHtml . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded || !$dom->documentElement instanceof DOMElement) {
+        return [];
+    }
+    $root = $dom->documentElement;
+
+    foreach ($dom->getElementsByTagName('a') as $link) {
+        if (!$link instanceof DOMElement) {
+            continue;
+        }
+        $href = trim(html_entity_decode($link->getAttribute('href'), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $label = sr_embed_manager_normalized_node_text($link);
+        if ($href === '' || ($label !== '' && $label !== $href)) {
+            continue;
+        }
+        if (!sr_embed_manager_node_is_only_meaningful_child($link)) {
+            continue;
+        }
+        $replaceNode = sr_embed_manager_standalone_replacement_node($link, $root);
+        if (sr_embed_manager_normalized_node_text($replaceNode) === $label) {
+            $urls[] = ['url' => $href, 'position' => $position++];
+        }
+    }
+
+    $xpath = new DOMXPath($dom);
+    $textNodes = $xpath->query('//text()[normalize-space()]');
+    if ($textNodes instanceof DOMNodeList) {
+        foreach ($textNodes as $textNode) {
+            if (!$textNode instanceof DOMText || $textNode->parentNode instanceof DOMElement && strtolower($textNode->parentNode->tagName) === 'a') {
+                continue;
+            }
+            $url = sr_embed_manager_url_from_standalone_text($textNode->textContent);
+            if ($url === '') {
+                continue;
+            }
+            $replaceNode = sr_embed_manager_standalone_replacement_node($textNode, $root);
+            if (sr_embed_manager_normalized_node_text($replaceNode) === $url) {
+                $urls[] = ['url' => $url, 'position' => $position++];
+            }
+        }
+    }
+
+    return $urls;
+}
+
+function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $root, string $scope): array
+{
+    $items = [];
+    $seen = [];
+    $position = 0;
+
+    foreach ($dom->getElementsByTagName('a') as $link) {
+        if (!$link instanceof DOMElement) {
+            continue;
+        }
+        $href = trim(html_entity_decode($link->getAttribute('href'), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $label = sr_embed_manager_normalized_node_text($link);
+        if ($href === '' || ($label !== '' && $label !== $href)) {
+            continue;
+        }
+        if ($scope !== 'all_supported_links' && !sr_embed_manager_node_is_only_meaningful_child($link)) {
+            continue;
+        }
+        $replaceNode = $scope === 'all_supported_links' ? $link : sr_embed_manager_standalone_replacement_node($link, $root);
+        if ($scope !== 'all_supported_links' && sr_embed_manager_normalized_node_text($replaceNode) !== $label) {
+            continue;
+        }
+        $key = spl_object_id($replaceNode);
+        if (isset($seen[$key])) {
+            continue;
+        }
+        $seen[$key] = true;
+        $items[] = ['node' => $replaceNode, 'url' => $href, 'position' => $position++];
+    }
+
+    if ($scope === 'all_supported_links') {
+        return $items;
+    }
+
+    $xpath = new DOMXPath($dom);
+    $textNodes = $xpath->query('//text()[normalize-space()]');
+    if ($textNodes instanceof DOMNodeList) {
+        foreach ($textNodes as $textNode) {
+            if (!$textNode instanceof DOMText || $textNode->parentNode instanceof DOMElement && strtolower($textNode->parentNode->tagName) === 'a') {
+                continue;
+            }
+            $url = sr_embed_manager_url_from_standalone_text($textNode->textContent);
+            if ($url === '') {
+                continue;
+            }
+            $replaceNode = sr_embed_manager_standalone_replacement_node($textNode, $root);
+            if (sr_embed_manager_normalized_node_text($replaceNode) !== $url) {
+                continue;
+            }
+            $key = spl_object_id($replaceNode);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $items[] = ['node' => $replaceNode, 'url' => $url, 'position' => $position++];
+        }
+    }
+
+    return $items;
+}
+
+function sr_embed_manager_extract_legacy_candidate_urls(string $bodyHtml): array
+{
     $urls = [];
     $position = 0;
     if (preg_match_all('/<a\b[^>]*\bhref\s*=\s*(["\'])(.*?)\\1[^>]*>(.*?)<\/a>/isu', $bodyHtml, $matches, PREG_SET_ORDER) > 0) {
@@ -583,7 +763,8 @@ function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $
 
 function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
 {
-    if ($ownerId < 1 || !sr_embed_manager_url_embedding_enabled($pdo) || !sr_embed_manager_url_cache_table_exists($pdo)) {
+    $settings = sr_embed_manager_settings($pdo);
+    if ($ownerId < 1 || empty($settings['url_embed_enabled']) || !sr_embed_manager_url_cache_table_exists($pdo)) {
         return;
     }
 
@@ -596,7 +777,7 @@ function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, str
 
     $now = sr_now();
     $activeHashes = [];
-    foreach (sr_embed_manager_extract_candidate_urls($bodyHtml) as $candidate) {
+    foreach (sr_embed_manager_extract_candidate_urls($bodyHtml, (string) ($settings['embed_scope'] ?? 'standalone_url_only')) as $candidate) {
         $resolved = sr_embed_manager_resolve_url($pdo, (string) ($candidate['url'] ?? ''), [
             'owner_module' => $ownerModule,
             'owner_type' => $ownerType,
@@ -819,7 +1000,8 @@ function sr_embed_manager_refresh_known_ref_statuses(PDO $pdo, int $limit = 300)
 
 function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
 {
-    if ($bodyHtml === '' || $ownerId < 1 || !sr_embed_manager_url_embedding_enabled($pdo)) {
+    $settings = sr_embed_manager_settings($pdo);
+    if ($bodyHtml === '' || $ownerId < 1 || empty($settings['url_embed_enabled'])) {
         return $bodyHtml;
     }
 
@@ -835,6 +1017,7 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
         'owner_type' => $ownerType,
         'owner_id' => $ownerId,
         'owner_field' => $ownerField,
+        'embed_scope' => (string) ($settings['embed_scope'] ?? 'standalone_url_only'),
     ]);
     if ((int) ($context['viewer_account_id'] ?? 0) < 1 && function_exists('sr_member_current_account')) {
         $viewerAccount = sr_member_current_account($pdo);
@@ -863,29 +1046,25 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
     }
 
     $xpath = new DOMXPath($dom);
-    $links = $xpath->query('//a[@href]');
-    if (!$links instanceof DOMNodeList || $links->length < 1) {
+    $replace = [];
+    $nodes = sr_embed_manager_dom_renderable_nodes($dom, $dom->documentElement, (string) ($context['embed_scope'] ?? 'standalone_url_only'));
+    if ($nodes === []) {
         return $bodyHtml;
     }
-
-    $replace = [];
-    foreach ($links as $link) {
-        if (!$link instanceof DOMElement) {
+    foreach ($nodes as $item) {
+        $node = $item['node'] ?? null;
+        $url = (string) ($item['url'] ?? '');
+        if (!$node instanceof DOMNode || $url === '') {
             continue;
         }
-        $href = $link->getAttribute('href');
-        $label = trim(preg_replace('/\s+/', ' ', $link->textContent) ?? '');
-        if ($href === '' || ($label !== '' && $label !== $href)) {
-            continue;
-        }
-        $html = sr_embed_manager_render_url($pdo, $href, $context);
+        $html = sr_embed_manager_render_url($pdo, $url, $context);
         if ($html !== '') {
-            $replace[] = [$link, $html];
+            $replace[] = [$node, $html];
         }
     }
     foreach ($replace as $item) {
         [$node, $html] = $item;
-        if (!$node instanceof DOMElement || $node->parentNode === null) {
+        if (!$node instanceof DOMNode || $node->parentNode === null) {
             continue;
         }
         $fragment = sr_embed_manager_dom_fragment_from_html($dom, $html);
