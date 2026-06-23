@@ -124,6 +124,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin asset recovery failures entry',
+        'path' => '/admin/assets/recovery-failures',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin asset exchange logs entry',
         'path' => '/admin/asset-exchange/logs',
         'allowed_statuses' => [200, 302, 403, 404],
