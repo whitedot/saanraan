@@ -60,5 +60,18 @@ $flashResult = sr_admin_pop_flash_result();
 $notice = (string) ($flashResult['notice'] ?? '');
 $errors = isset($flashResult['errors']) && is_array($flashResult['errors']) ? $flashResult['errors'] : [];
 $settings = sr_embed_manager_settings($pdo);
+$urlContractTargetLabels = [];
+foreach (sr_embed_manager_url_contract_targets($pdo) as $targetModule => $targetTypes) {
+    foreach ($targetTypes as $targetType => $definition) {
+        $label = trim((string) ($definition['label'] ?? ''));
+        if ($label === '') {
+            $label = sr_embed_manager_target_type_label((string) $targetModule, (string) $targetType);
+        }
+        if ($label !== '') {
+            $urlContractTargetLabels[$label] = $label;
+        }
+    }
+}
+$urlContractTargetLabels = array_values($urlContractTargetLabels);
 
 include SR_ROOT . '/modules/embed_manager/views/admin-settings.php';
