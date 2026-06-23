@@ -184,7 +184,11 @@ $memberSettingsSectionNavItems = [
                 <tbody data-member-profile-field-list></tbody>
             </table>
         </div>
-        <p class="form-help">기본 항목은 삭제할 수 없으며, 사용 여부와 순서만 변경할 수 있습니다.</p>
+        <div class="alert alert-warning alert-block" role="alert">
+            <p>선택 프로필 설정을 바꾸면 가입, 내 계정 프로필 수정, 관리자 회원 수정 화면의 입력 항목과 필수 검증이 함께 달라집니다.</p>
+            <p>기존 회원은 새 필수 항목 값이 비어 있을 수 있으므로, 운영 중 필수 전환이나 항목 삭제 전에는 회원 수정 흐름과 개인정보 export/cleanup 영향을 함께 확인하세요.</p>
+            <p>기본 항목은 삭제할 수 없으며, 사용 여부와 순서만 변경할 수 있습니다.</p>
+        </div>
         <p class="admin-empty-state" data-member-profile-extra-field-empty hidden>추가 프로필 항목이 없습니다.</p>
         <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e((string) ($settings['profile_fields_json'] ?? '[]')); ?></textarea>
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
