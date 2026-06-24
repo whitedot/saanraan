@@ -166,6 +166,9 @@ function sr_measure_community_home_feed_run(PDO $pdo, array $boardIds, string $f
     echo "response-ms-cold: " . (string) $latestColdMs . "\n";
     echo "response-ms-warm: " . (string) $latestWarmMs . "\n";
     echo "returned-rows: cold=" . (string) count($latestCold) . " warm=" . (string) count($latestWarm) . "\n";
+    if ($latestCold === [] && $latestWarm === []) {
+        echo "representative-warning: no returned rows; this does not prove a populated feed bottleneck\n";
+    }
     echo "decision: " . $decision . "\n";
     echo "follow-up: compare against #369 cache-table threshold before persistent cache work\n";
     echo "query-id: community.home.popular\n";
@@ -178,6 +181,9 @@ function sr_measure_community_home_feed_run(PDO $pdo, array $boardIds, string $f
     echo "response-ms-cold: " . (string) $popularColdMs . "\n";
     echo "response-ms-warm: " . (string) $popularWarmMs . "\n";
     echo "returned-rows: cold=" . (string) count($popularCold) . " warm=" . (string) count($popularWarm) . "\n";
+    if ($popularCold === [] && $popularWarm === []) {
+        echo "representative-warning: no returned rows; this does not prove a populated feed bottleneck\n";
+    }
     echo "decision: " . $decision . "\n";
     echo "follow-up: compare against #369 cache-table threshold before persistent cache work\n";
 }
