@@ -46,6 +46,7 @@ $popupLayerEditorAttributes = sr_editor_textarea_attributes($pdo, $popupLayerEdi
 if ($popupLayerEditorAttributes !== '' && $popupLayerEditorKey === 'ckeditor') {
     $popupLayerEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_popup_layer_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_popup_layer_body_file_upload_token()) . '"';
 }
+$popupLayerCouponCampaignOptions = sr_popup_layer_coupon_claim_campaign_options($pdo);
 $allowedTargetOptions = [sr_popup_layer_public_target_option_value()];
 foreach ($availableTargets as $availableTarget) {
     $allowedTargetOptions[] = sr_popup_layer_target_option_value($availableTarget);
@@ -280,6 +281,12 @@ if (sr_request_method() === 'POST') {
         $startsAt = sr_popup_layer_clean_admin_datetime($startsAtInput);
         $endsAt = sr_popup_layer_clean_admin_datetime($endsAtInput);
         $dismissCookieDays = max(0, min(365, (int) sr_post_string('dismiss_cookie_days', 5)));
+        $couponClaimCampaignKey = '';
+        try {
+            $couponClaimCampaignKey = sr_popup_layer_validate_coupon_claim_campaign($pdo, sr_post_string('coupon_claim_campaign_key', 60));
+        } catch (InvalidArgumentException $exception) {
+            $errors[] = $exception->getMessage();
+        }
         $postedTargetResult = sr_popup_layer_normalize_posted_target_option(
             $availableTargets,
             sr_post_string('target_service_key', 120),
@@ -398,13 +405,14 @@ if (sr_request_method() === 'POST') {
                 if ($popupId > 0) {
                     $stmt = $pdo->prepare(
                         'UPDATE sr_popup_layers
-                         SET title = :title, body_text = :body_text, body_format = :body_format, status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
+                         SET title = :title, body_text = :body_text, body_format = :body_format, coupon_claim_campaign_key = :coupon_claim_campaign_key, status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
                          WHERE id = :id'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
                         'body_format' => $bodyFormat,
+                        'coupon_claim_campaign_key' => $couponClaimCampaignKey,
                         'status' => $status,
                         'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
@@ -416,14 +424,15 @@ if (sr_request_method() === 'POST') {
                 } else {
                     $stmt = $pdo->prepare(
                         'INSERT INTO sr_popup_layers
-                            (title, body_text, body_format, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                            (title, body_text, body_format, coupon_claim_campaign_key, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
                          VALUES
-                            (:title, :body_text, :body_format, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                            (:title, :body_text, :body_format, :coupon_claim_campaign_key, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
                         'body_format' => $bodyFormat,
+                        'coupon_claim_campaign_key' => $couponClaimCampaignKey,
                         'status' => $status,
                         'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
@@ -487,6 +496,7 @@ if (sr_request_method() === 'POST') {
                         'slot_key' => $target !== null ? (string) $target['slot_key'] : '',
                         'match_type' => $matchType,
                         'skin_key' => $skinKey,
+                        'coupon_claim_campaign_key' => $couponClaimCampaignKey,
                     ],
                 ]);
 
@@ -512,7 +522,7 @@ $editPopup = null;
 $editId = (int) sr_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.body_text, p.body_format, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
+        'SELECT p.id, p.title, p.body_text, p.body_format, p.coupon_claim_campaign_key, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
          FROM sr_popup_layers p
          LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id
@@ -549,7 +559,7 @@ foreach ($stmt->fetchAll() as $row) {
 
 $popups = [];
 $popupLayerReadReferencesById = [];
-$popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
+$popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.coupon_claim_campaign_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
                     t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
              FROM sr_popup_layers p
              LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id';

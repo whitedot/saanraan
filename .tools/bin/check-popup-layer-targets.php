@@ -338,18 +338,88 @@ function sr_popup_layer_check_runtime_fixture(): array
     $errors = [];
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY, module_key TEXT NOT NULL UNIQUE, status TEXT NOT NULL)");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'popup_layer', 'enabled'), (2, 'coupon', 'enabled')");
     $pdo->exec(
         'CREATE TABLE sr_popup_layers (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             body_text TEXT,
             body_format TEXT NOT NULL DEFAULT \'plain\',
+            coupon_claim_campaign_key TEXT NOT NULL DEFAULT \'\',
             status TEXT NOT NULL DEFAULT \'draft\',
             skin_key TEXT NOT NULL DEFAULT \'basic\',
             starts_at TEXT NULL,
             ends_at TEXT NULL,
             dismiss_cookie_days INTEGER NOT NULL DEFAULT 1,
             created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_coupon_definitions (
+            id INTEGER PRIMARY KEY,
+            coupon_key TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT \'active\',
+            coupon_type TEXT NOT NULL DEFAULT \'access\',
+            target_type TEXT NOT NULL DEFAULT \'all\',
+            target_id TEXT NOT NULL DEFAULT \'\',
+            refundable_policy TEXT NOT NULL DEFAULT \'none\',
+            max_uses_per_issue INTEGER NOT NULL DEFAULT 1,
+            valid_from TEXT,
+            valid_until TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_coupon_claim_campaigns (
+            id INTEGER PRIMARY KEY,
+            campaign_key TEXT NOT NULL UNIQUE,
+            coupon_definition_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT \'draft\',
+            claim_type TEXT NOT NULL DEFAULT \'free\',
+            price_amount INTEGER,
+            price_currency_code TEXT NOT NULL DEFAULT \'\',
+            starts_at TEXT,
+            ends_at TEXT,
+            issue_expires_in_days INTEGER,
+            issue_expires_at TEXT,
+            total_claim_limit INTEGER,
+            per_account_limit INTEGER NOT NULL DEFAULT 1,
+            visibility TEXT NOT NULL DEFAULT \'hidden\',
+            exposure_surfaces_json TEXT NOT NULL,
+            login_required INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_coupon_claim_logs (
+            id INTEGER PRIMARY KEY,
+            campaign_id INTEGER NOT NULL,
+            coupon_definition_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            coupon_issue_id INTEGER,
+            claim_source TEXT NOT NULL DEFAULT \'coupon_zone\',
+            source_context_json TEXT NOT NULL DEFAULT \'{}\',
+            payment_reference_module TEXT NOT NULL DEFAULT \'\',
+            payment_reference_type TEXT NOT NULL DEFAULT \'\',
+            payment_reference_id TEXT NOT NULL DEFAULT \'\',
+            dedupe_key TEXT NOT NULL,
+            dedupe_hash TEXT NOT NULL,
+            occupying_account_id INTEGER,
+            status TEXT NOT NULL DEFAULT \'reserved\',
+            reserved_until TEXT,
+            failure_code TEXT NOT NULL DEFAULT \'\',
+            failure_message TEXT NOT NULL DEFAULT \'\',
+            created_at TEXT NOT NULL,
+            issued_at TEXT,
             updated_at TEXT NOT NULL
         )'
     );
@@ -374,18 +444,20 @@ function sr_popup_layer_check_runtime_fixture(): array
         [4, 'all target visible', 'enabled', null, null, 7],
         [5, 'exact visible', 'enabled', null, null, 1],
         [6, 'exact hidden', 'enabled', null, null, 1],
+        [7, 'coupon cta visible', 'enabled', null, null, 1],
     ];
     $stmt = $pdo->prepare(
         'INSERT INTO sr_popup_layers
-            (id, title, body_text, body_format, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+            (id, title, body_text, body_format, coupon_claim_campaign_key, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
          VALUES
-            (:id, :title, :body_text, \'plain\', :status, \'basic\', :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+            (:id, :title, :body_text, \'plain\', :coupon_claim_campaign_key, :status, \'basic\', :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
     );
     foreach ($rows as [$id, $title, $status, $startsAt, $endsAt, $dismissDays]) {
         $stmt->execute([
             'id' => $id,
             'title' => $title,
             'body_text' => $title,
+            'coupon_claim_campaign_key' => $id === 7 ? 'claim_popup' : '',
             'status' => $status,
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
@@ -405,6 +477,7 @@ function sr_popup_layer_check_runtime_fixture(): array
         [1, 4, 'content', 'content.view', 'before_content', '', 'all'],
         [2, 5, 'content', 'content.view', 'before_content', 'content-1', 'exact'],
         [3, 6, 'content', 'content.view', 'before_content', 'content-2', 'exact'],
+        [4, 7, 'content', 'content.view', 'before_content', '', 'all'],
     ] as [$id, $popupLayerId, $moduleKey, $pointKey, $slotKey, $subjectId, $matchType]) {
         $targetStmt->execute([
             'id' => $id,
@@ -417,6 +490,18 @@ function sr_popup_layer_check_runtime_fixture(): array
             'created_at' => $now,
         ]);
     }
+    $pdo->prepare(
+        'INSERT INTO sr_coupon_definitions
+            (id, coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            (1, \'popup_coupon\', \'Popup coupon\', \'\', \'active\', \'access\', \'all\', \'\', \'none\', 1, NULL, NULL, :created_at, :updated_at)'
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        'INSERT INTO sr_coupon_claim_campaigns
+            (id, campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
+         VALUES
+            (1, \'claim_popup\', 1, \'Popup claim\', \'\', \'active\', \'free\', NULL, \'\', NULL, NULL, NULL, NULL, 10, 1, \'public\', \'["popup_layer"]\', 1, :created_at, :updated_at)'
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
 
     $html = sr_popup_layer_render($pdo, [
         'module_key' => 'content',
@@ -424,10 +509,13 @@ function sr_popup_layer_check_runtime_fixture(): array
         'slot_key' => 'before_content',
         'subject_id' => 'content-1',
     ]);
-    foreach (['all target visible', 'exact visible'] as $expected) {
+    foreach (['all target visible', 'exact visible', 'coupon cta visible'] as $expected) {
         if (!str_contains($html, $expected)) {
             $errors[] = 'popup layer runtime fixture must render expected popup: ' . $expected;
         }
+    }
+    if (!str_contains($html, 'data-sr-popup-layer-coupon-cta') || !str_contains($html, '/login?return_to=%2Fcoupons%3Fcampaign%3Dclaim_popup')) {
+        $errors[] = 'popup layer runtime fixture should render coupon campaign CTA without mixing it with dismiss cookie state.';
     }
     foreach (['draft hidden', 'future hidden', 'expired hidden', 'exact hidden'] as $unexpected) {
         if (str_contains($html, $unexpected)) {

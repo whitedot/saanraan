@@ -435,6 +435,106 @@ function sr_popup_layer_settings(PDO $pdo): array
     return array_merge(sr_popup_layer_default_settings(), $defaults, sr_module_settings($pdo, 'popup_layer'));
 }
 
+function sr_popup_layer_coupon_helpers_available(PDO $pdo): bool
+{
+    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'coupon')) {
+        return false;
+    }
+    $helper = SR_ROOT . '/modules/coupon/helpers.php';
+    if (!is_file($helper)) {
+        return false;
+    }
+    require_once $helper;
+
+    return function_exists('sr_coupon_claim_tables_available')
+        && function_exists('sr_coupon_public_claim_campaign')
+        && sr_coupon_claim_tables_available($pdo);
+}
+
+function sr_popup_layer_coupon_claim_campaign_options(PDO $pdo): array
+{
+    if (!sr_popup_layer_coupon_helpers_available($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        "SELECT c.campaign_key, c.title, c.status, c.visibility, c.exposure_surfaces_json, d.title AS coupon_title
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         WHERE c.claim_type = 'free'
+         ORDER BY c.id DESC
+         LIMIT 300"
+    );
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $surfaces = function_exists('sr_coupon_claim_surfaces_from_value')
+            ? sr_coupon_claim_surfaces_from_value($row['exposure_surfaces_json'] ?? '')
+            : [];
+        if (!in_array('popup_layer', $surfaces, true)) {
+            continue;
+        }
+        if ((string) ($row['visibility'] ?? '') !== 'public') {
+            continue;
+        }
+        $rows[] = $row;
+    }
+
+    return $rows;
+}
+
+function sr_popup_layer_coupon_claim_campaign_label(array $campaign): string
+{
+    $title = sr_popup_layer_clean_single_line((string) ($campaign['title'] ?? ''), 120);
+    $couponTitle = sr_popup_layer_clean_single_line((string) ($campaign['coupon_title'] ?? ''), 120);
+    $key = sr_popup_layer_clean_single_line((string) ($campaign['campaign_key'] ?? ''), 60);
+    $parts = [];
+    if ($title !== '') {
+        $parts[] = $title;
+    }
+    if ($couponTitle !== '') {
+        $parts[] = $couponTitle;
+    }
+    if ($key !== '') {
+        $parts[] = $key;
+    }
+
+    return implode(' / ', $parts);
+}
+
+function sr_popup_layer_validate_coupon_claim_campaign(PDO $pdo, string $campaignKey): string
+{
+    $campaignKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($campaignKey))) ?? '';
+    $campaignKey = substr($campaignKey, 0, 60);
+    if ($campaignKey === '') {
+        return '';
+    }
+    if (!sr_popup_layer_coupon_helpers_available($pdo) || !function_exists('sr_coupon_claim_campaign_by_key') || !function_exists('sr_coupon_claim_surfaces_from_value')) {
+        throw new InvalidArgumentException('쿠폰 발급 캠페인 업데이트를 먼저 적용하세요.');
+    }
+
+    $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+    if (!is_array($campaign)) {
+        throw new InvalidArgumentException('연결할 쿠폰 발급 캠페인을 찾을 수 없습니다.');
+    }
+    if ((string) ($campaign['claim_type'] ?? '') !== 'free') {
+        throw new InvalidArgumentException('팝업레이어 CTA는 무료 발급 캠페인만 연결할 수 있습니다.');
+    }
+    if ((string) ($campaign['visibility'] ?? '') !== 'public') {
+        throw new InvalidArgumentException('팝업레이어 CTA는 공개 캠페인만 연결할 수 있습니다.');
+    }
+    if (!in_array('popup_layer', sr_coupon_claim_surfaces_from_value($campaign['exposure_surfaces_json'] ?? ''), true)) {
+        throw new InvalidArgumentException('쿠폰 발급 캠페인의 노출 위치에 팝업레이어를 포함해야 합니다.');
+    }
+
+    return $campaignKey;
+}
+
+function sr_popup_layer_coupon_cta(array $popup): array
+{
+    return is_array($popup['coupon_cta'] ?? null) ? $popup['coupon_cta'] : [];
+}
+
 function sr_popup_layer_default_settings(): array
 {
     return [
@@ -607,6 +707,10 @@ function sr_popup_layer_render_basic_stack(array $popups): string
         $bodyHtml = (string) ($popup['body_format'] ?? 'plain') === 'html' ? sr_sanitize_rich_text_html($bodyText) : nl2br(sr_e($bodyText), false);
         $html[] = '<div class="sr-popup-layer-body">' . $bodyHtml . '</div>';
         $html[] = '<div class="sr-popup-layer-actions">';
+        $couponCta = sr_popup_layer_coupon_cta($popup);
+        if ($couponCta !== []) {
+            $html[] = '<a class="sr-popup-layer-coupon-cta" href="' . sr_e((string) ($couponCta['url'] ?? '')) . '" data-sr-popup-layer-coupon-cta>' . sr_e((string) ($couponCta['label'] ?? '쿠폰 받기')) . '</a>';
+        }
         $html[] = '<button class="sr-popup-layer-close" type="button" data-sr-popup-layer-close>닫기</button>';
         if ($cookieDays > 0) {
             $html[] = '<button class="sr-popup-layer-dismiss" type="button" data-sr-popup-layer-dismiss>' . sr_e((string) $cookieDays) . '일 동안 보지 않기</button>';
@@ -627,7 +731,7 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
 
     $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.body_format, p.skin_key, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.body_format, p.coupon_claim_campaign_key, p.skin_key, p.dismiss_cookie_days
          FROM sr_popup_layers p
          WHERE p.id = :id
            AND p.status = 'enabled'
@@ -657,16 +761,17 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
     }
 
     $skinKey = sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($row['skin_key'] ?? 'basic')]);
-    return sr_popup_layer_render_stack([
-        [
+    $popup = sr_popup_layer_prepare_render_popup($pdo, [
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
             'body_format' => (string) ($row['body_format'] ?? 'plain'),
+            'coupon_claim_campaign_key' => (string) ($row['coupon_claim_campaign_key'] ?? ''),
             'skin_key' => $skinKey,
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
-        ],
-    ], $skinKey);
+        ]);
+
+    return sr_popup_layer_render_stack([$popup], $skinKey);
 }
 
 function sr_popup_layer_render(PDO $pdo, array $context): string
@@ -686,7 +791,7 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
 
     $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.body_format, p.skin_key, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.body_format, p.coupon_claim_campaign_key, p.skin_key, p.dismiss_cookie_days
          FROM sr_popup_layers p
          INNER JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id
          WHERE p.status = 'enabled'
@@ -722,14 +827,15 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
             continue;
         }
 
-        $popups[] = [
+        $popups[] = sr_popup_layer_prepare_render_popup($pdo, [
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
             'body_format' => (string) ($row['body_format'] ?? 'plain'),
+            'coupon_claim_campaign_key' => (string) ($row['coupon_claim_campaign_key'] ?? ''),
             'skin_key' => sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($row['skin_key'] ?? 'basic')]),
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
-        ];
+        ]);
     }
 
     $html = '';
@@ -742,6 +848,45 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
     }
 
     return $html;
+}
+
+function sr_popup_layer_prepare_render_popup(PDO $pdo, array $popup): array
+{
+    $campaignKey = (string) ($popup['coupon_claim_campaign_key'] ?? '');
+    if ($campaignKey === '' || !sr_popup_layer_coupon_helpers_available($pdo)) {
+        return $popup;
+    }
+
+    $accountId = 0;
+    if (function_exists('sr_member_current_account') && isset($_SESSION) && is_array($_SESSION)) {
+        try {
+            $account = sr_member_current_account($pdo);
+            $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+        } catch (Throwable) {
+            $accountId = 0;
+        }
+    }
+    $campaign = sr_coupon_public_claim_campaign($pdo, $campaignKey, $accountId, ['popup_layer']);
+    if (!is_array($campaign)) {
+        return $popup;
+    }
+
+    $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
+    $state = is_array($campaign['claim_state'] ?? null) ? $campaign['claim_state'] : [];
+    $label = $accountId > 0 ? '쿠폰 받기' : '로그인하고 받기';
+    $url = $accountId > 0 ? $campaignUrl : '/login?return_to=' . rawurlencode($campaignUrl);
+    if ($accountId > 0 && empty($state['claimable'])) {
+        $label = (string) ($state['message'] ?? '쿠폰 확인');
+        $url = $campaignUrl;
+    }
+
+    $popup['coupon_cta'] = [
+        'campaign_key' => (string) ($campaign['campaign_key'] ?? ''),
+        'label' => $label,
+        'url' => $url,
+    ];
+
+    return $popup;
 }
 
 function sr_popup_layer_cookie_name(int $popupId): string

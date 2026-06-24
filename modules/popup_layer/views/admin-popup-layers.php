@@ -64,6 +64,15 @@ $popupLayerMatchTypeOptions = [
 $popupLayerSubjectLookupModalId = 'popup-layer-subject-lookup-modal';
 $popupLayerSubjectLookupResultsId = 'popup-layer-subject-lookup-results';
 $popupLayerSubjectSummaryId = 'popup-layer-subject-summary';
+$popupLayerCouponCampaignOptions = isset($popupLayerCouponCampaignOptions) && is_array($popupLayerCouponCampaignOptions) ? $popupLayerCouponCampaignOptions : [];
+$popupLayerCouponCampaignLabels = [];
+foreach ($popupLayerCouponCampaignOptions as $couponCampaignOption) {
+    $popupLayerCouponCampaignLabels[(string) ($couponCampaignOption['campaign_key'] ?? '')] = sr_popup_layer_coupon_claim_campaign_label($couponCampaignOption);
+}
+$currentCouponClaimCampaignKey = $editing ? (string) ($editPopup['coupon_claim_campaign_key'] ?? '') : '';
+if ($currentCouponClaimCampaignKey !== '' && !isset($popupLayerCouponCampaignLabels[$currentCouponClaimCampaignKey])) {
+    $popupLayerCouponCampaignLabels[$currentCouponClaimCampaignKey] = $currentCouponClaimCampaignKey;
+}
 $popupLayerCurrentSubjectSummary = $editing && (string) ($editPopup['subject_id'] ?? '') !== ''
     ? (string) ($currentSubjectTargetType !== '' ? $currentSubjectTargetType : '대상') . ' #' . (string) ($editPopup['subject_id'] ?? '')
     : '';
@@ -189,6 +198,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="popup_layer_admin_popup_layers_body_text"><?php echo sr_e(sr_t('popup_layer::ui.text.cb0f2404')); ?></label>
                     <div class="form-field">
                         <textarea id="popup_layer_admin_popup_layers_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $popupLayerEditorAttributes; ?>><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="popup_layer_admin_popup_layers_coupon_claim_campaign_key">쿠폰 CTA</label>
+                    <div class="form-field">
+                        <select id="popup_layer_admin_popup_layers_coupon_claim_campaign_key" name="coupon_claim_campaign_key" class="form-select">
+                            <option value="">연결 안 함</option>
+                            <?php foreach ($popupLayerCouponCampaignLabels as $campaignKey => $campaignLabel) { ?>
+                                <option value="<?php echo sr_e((string) $campaignKey); ?>"<?php echo $currentCouponClaimCampaignKey === (string) $campaignKey ? ' selected' : ''; ?>><?php echo sr_e((string) $campaignLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <p class="form-help">팝업레이어 노출 위치가 켜진 공개 무료 캠페인만 연결할 수 있습니다. 발급 가능 여부와 재고는 팝업 렌더링 시 서버에서 다시 확인합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -410,6 +431,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('title', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.08b17e43'), 'title', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.status.e10195a1'), 'status', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('target', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.8c609deb'), 'target', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th>쿠폰 CTA</th>
                     <th<?php echo sr_admin_sort_aria('starts_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.65bdaefd'), 'starts_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('ends_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.26c25fca'), 'ends_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('dismiss_cookie_days', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.close.06cddc6e'), 'dismiss_cookie_days', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
@@ -420,7 +442,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($popups === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
+                        <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($popups as $popup) { ?>
@@ -449,6 +471,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_e($popupTargetLabel); ?><br>
                                 <?php echo sr_e((string) ($popupLayerMatchTypeOptions[(string) ($popup['match_type'] ?? 'all')] ?? (string) ($popup['match_type'] ?? 'all')) . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                             </td>
+                            <td class="admin-table-break"><?php echo (string) ($popup['coupon_claim_campaign_key'] ?? '') !== '' ? sr_e((string) $popup['coupon_claim_campaign_key']) : sr_e('-'); ?></td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
