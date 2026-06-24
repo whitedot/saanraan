@@ -40,12 +40,19 @@ function sr_community_publisher_reward_where_sql(array $filters, array &$params)
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
+        $qAccountId = (int) ($filters['q_account_id'] ?? 0);
         if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
-            $where[] = '(r.id = :q_id OR r.post_id = :q_id OR r.attachment_id = :q_id OR r.publisher_account_id = :q_id OR r.downloader_account_id = :q_id)';
+            $where[] = '(r.post_id = :q_id OR r.attachment_id = :q_id OR r.charge_transaction_id = :q_id OR r.reward_transaction_id = :q_id)';
             $params['q_id'] = (int) $q;
         } else {
-            $where[] = '(p.title LIKE :q_like OR a.original_name LIKE :q_like)';
+            $keywordWhere = ['p.title LIKE :q_like', 'a.original_name LIKE :q_like'];
             $params['q_like'] = '%' . $q . '%';
+            if ($qAccountId > 0) {
+                $keywordWhere[] = 'r.publisher_account_id = :q_account_id';
+                $keywordWhere[] = 'r.downloader_account_id = :q_account_id';
+                $params['q_account_id'] = $qAccountId;
+            }
+            $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
         }
     }
 

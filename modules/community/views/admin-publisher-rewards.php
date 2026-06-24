@@ -32,7 +32,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </label>
         <label class="filtering-field admin-community-publisher-reward-filter-keyword" for="community_publisher_reward_q">
             <span class="filtering-label">검색</span>
-            <input id="community_publisher_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($publisherRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시글, 첨부, ID">
+            <input id="community_publisher_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($publisherRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시글, 첨부, 공개 해시, 거래 ID">
         </label>
         <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
@@ -76,6 +76,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $attachmentName = trim((string) ($rewardLog['attachment_name'] ?? ''));
                     $downloaderLabel = trim((string) (($rewardLog['downloader_display_name'] ?? '') ?: ($rewardLog['downloader_email'] ?? '')));
                     $publisherLabel = trim((string) (($rewardLog['publisher_display_name'] ?? '') ?: ($rewardLog['publisher_email'] ?? '')));
+                    $downloaderAccountId = (int) ($rewardLog['downloader_account_id'] ?? 0);
+                    $publisherAccountId = (int) ($rewardLog['publisher_account_id'] ?? 0);
+                    $downloaderHash = $downloaderAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $downloaderAccountId)
+                        : '';
+                    $publisherHash = $publisherAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $publisherAccountId)
+                        : '';
                     $failureMessage = trim((string) ($rewardLog['failure_message'] ?? ''));
                     ?>
                     <tr>
@@ -96,11 +104,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </small>
                         </td>
                         <td class="admin-table-break admin-community-publisher-reward-account-cell">
-                            <strong>#<?php echo sr_e((string) (int) ($rewardLog['downloader_account_id'] ?? 0)); ?></strong>
+                            <strong><?php echo sr_e($downloaderHash !== '' ? $downloaderHash : '회원 정보 없음'); ?></strong>
                             <small class="admin-summary-meta"><?php echo sr_e($downloaderLabel !== '' ? $downloaderLabel : '회원 정보 없음'); ?></small>
                         </td>
                         <td class="admin-table-break admin-community-publisher-reward-account-cell">
-                            <strong>#<?php echo sr_e((string) (int) ($rewardLog['publisher_account_id'] ?? 0)); ?></strong>
+                            <strong><?php echo sr_e($publisherHash !== '' ? $publisherHash : '회원 정보 없음'); ?></strong>
                             <small class="admin-summary-meta"><?php echo sr_e($publisherLabel !== '' ? $publisherLabel : '회원 정보 없음'); ?></small>
                         </td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($rewardLog['charge_amount'] ?? 0))); ?> <?php echo sr_e($unitLabel); ?></td>

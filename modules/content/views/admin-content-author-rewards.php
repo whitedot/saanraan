@@ -31,7 +31,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </label>
         <label class="filtering-field admin-content-author-reward-filter-keyword" for="content_author_reward_q">
             <span class="filtering-label">검색</span>
-            <input id="content_author_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($authorRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="콘텐츠, 제출본, 작성자, ID">
+            <input id="content_author_reward_q" type="search" name="q" value="<?php echo sr_e((string) ($authorRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="콘텐츠, 제출본 ID, 작성자, 공개 해시, 거래 ID">
         </label>
         <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
@@ -73,6 +73,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $submissionTitle = trim((string) ($rewardLog['submission_title'] ?? ''));
                     $authorLabel = trim((string) (($rewardLog['author_display_name'] ?? '') ?: ($rewardLog['author_email'] ?? '')));
                     $reviewerLabel = trim((string) (($rewardLog['reviewer_display_name'] ?? '') ?: ($rewardLog['reviewer_email'] ?? '')));
+                    $authorAccountId = (int) ($rewardLog['author_account_id'] ?? 0);
+                    $reviewerAccountId = (int) ($rewardLog['created_by_account_id'] ?? 0);
+                    $authorHash = $authorAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $authorAccountId)
+                        : '';
+                    $reviewerHash = $reviewerAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $reviewerAccountId)
+                        : '';
                     $failureReason = trim((string) ($rewardLog['failure_reason'] ?? ''));
                     $contentSlug = trim((string) ($rewardLog['content_slug'] ?? ''));
                     ?>
@@ -92,7 +100,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </small>
                         </td>
                         <td class="admin-table-break admin-content-author-reward-account-cell">
-                            <strong>#<?php echo sr_e((string) (int) ($rewardLog['author_account_id'] ?? 0)); ?></strong>
+                            <strong><?php echo sr_e($authorHash !== '' ? $authorHash : '회원 정보 없음'); ?></strong>
                             <small class="admin-summary-meta"><?php echo sr_e($authorLabel !== '' ? $authorLabel : '회원 정보 없음'); ?></small>
                         </td>
                         <td class="admin-table-nowrap text-end">
@@ -106,8 +114,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-break admin-content-author-reward-account-cell">
-                            <?php if ((int) ($rewardLog['created_by_account_id'] ?? 0) > 0) { ?>
-                                <strong>#<?php echo sr_e((string) (int) ($rewardLog['created_by_account_id'] ?? 0)); ?></strong>
+                            <?php if ($reviewerAccountId > 0) { ?>
+                                <strong><?php echo sr_e($reviewerHash !== '' ? $reviewerHash : '회원 정보 없음'); ?></strong>
                                 <small class="admin-summary-meta"><?php echo sr_e($reviewerLabel !== '' ? $reviewerLabel : '회원 정보 없음'); ?></small>
                             <?php } else { ?>
                                 <span class="admin-summary-meta">없음</span>

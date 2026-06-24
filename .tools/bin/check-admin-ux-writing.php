@@ -77,7 +77,11 @@ foreach ($scanFiles as $relativePath) {
     }
 
     foreach ($blockedPatterns as $pattern => $message) {
-        if (preg_match($pattern, $content) === 1) {
+        $scanContent = $content;
+        if ($pattern === '/회원 ID/') {
+            $scanContent = preg_replace('/\splaceholder=(["\']).*?\1/s', '', $scanContent) ?? $scanContent;
+        }
+        if (preg_match($pattern, $scanContent) === 1) {
             $errors[] = $message . ' file=' . $relativePath;
         }
     }

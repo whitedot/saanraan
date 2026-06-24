@@ -1088,14 +1088,24 @@ function sr_quiz_admin_attempt_where_sql(array $filters, array &$params): string
     $where = ['1 = 1'];
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
-        $keywordColumns = ['q.quiz_key', 'q.title', 'a.source_title_snapshot', 'CAST(a.id AS CHAR)', 'CAST(a.account_id AS CHAR)'];
-        $keywordWhere = [];
-        foreach ($keywordColumns as $index => $column) {
-            $paramKey = 'attempt_q_' . (string) $index;
-            $keywordWhere[] = $column . ' LIKE :' . $paramKey;
-            $params[$paramKey] = '%' . $keyword . '%';
+        $qAccountId = (int) ($filters['q_account_id'] ?? 0);
+        if (preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1) {
+            $where[] = 'a.id = :attempt_q_id';
+            $params['attempt_q_id'] = (int) $keyword;
+        } else {
+            $keywordColumns = ['q.quiz_key', 'q.title', 'a.source_title_snapshot'];
+            $keywordWhere = [];
+            foreach ($keywordColumns as $index => $column) {
+                $paramKey = 'attempt_q_' . (string) $index;
+                $keywordWhere[] = $column . ' LIKE :' . $paramKey;
+                $params[$paramKey] = '%' . $keyword . '%';
+            }
+            if ($qAccountId > 0) {
+                $keywordWhere[] = 'a.account_id = :attempt_q_account_id';
+                $params['attempt_q_account_id'] = $qAccountId;
+            }
+            $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
         }
-        $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
     }
 
     $statuses = sr_quiz_admin_filter_values((array) ($filters['status'] ?? []), ['submitted', 'scored', 'rewarded', 'failed']);

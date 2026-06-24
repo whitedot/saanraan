@@ -3,8 +3,12 @@
 $adminPageTitle = '설문 리워드 로그';
 $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-survey-reward-logs admin-ui-scope';
-$surveyRewardFilters = isset($surveyRewardFilters) && is_array($surveyRewardFilters) ? $surveyRewardFilters : ['status' => '', 'provider' => '', 'q' => ''];
+$surveyRewardFilters = isset($surveyRewardFilters) && is_array($surveyRewardFilters) ? $surveyRewardFilters : ['survey_id' => 0, 'status' => '', 'provider' => '', 'q' => ''];
 $surveyRewardLogs = isset($surveyRewardLogs) && is_array($surveyRewardLogs) ? $surveyRewardLogs : [];
+$surveyRewardSurveyOptions = isset($surveyRewardSurveyOptions) && is_array($surveyRewardSurveyOptions) ? $surveyRewardSurveyOptions : [];
+$surveyRewardDetailFilterOpen = !empty($surveyRewardDetailFilterOpen);
+$surveyRewardStatusOptions = isset($surveyRewardStatusOptions) && is_array($surveyRewardStatusOptions) ? $surveyRewardStatusOptions : [];
+$surveyRewardProviderOptions = isset($surveyRewardProviderOptions) && is_array($surveyRewardProviderOptions) ? $surveyRewardProviderOptions : [];
 $surveyRewardStatusClass = static function (string $status): string {
     return match ($status) {
         'granted' => 'is-normal',
@@ -19,31 +23,44 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/surveys/reward-
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/reward-logs')); ?>" class="filtering-form filtering filtering-plain admin-survey-reward-log-filter ui-form-theme">
-    <div class="filtering-fields admin-survey-reward-log-search-grid">
-        <label class="filtering-field" for="survey_reward_log_status">
-            <span class="filtering-label">상태</span>
-            <select id="survey_reward_log_status" name="status" class="form-select filtering-input">
-                <option value="">전체</option>
-                <?php foreach (sr_survey_reward_log_statuses() as $status) { ?>
-                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($surveyRewardFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_reward_log_status_label($status)); ?></option>
-                <?php } ?>
-            </select>
-        </label>
-        <label class="filtering-field" for="survey_reward_log_provider">
-            <span class="filtering-label">공급자</span>
-            <select id="survey_reward_log_provider" name="provider" class="form-select filtering-input">
-                <option value="">전체</option>
-                <?php foreach (sr_survey_reward_providers() as $provider) { ?>
-                    <option value="<?php echo sr_e($provider); ?>"<?php echo (string) ($surveyRewardFilters['provider'] ?? '') === $provider ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_reward_provider_label($provider)); ?></option>
-                <?php } ?>
-            </select>
-        </label>
-        <label class="filtering-field admin-survey-reward-log-filter-keyword" for="survey_reward_log_q">
-            <span class="filtering-label">검색</span>
-            <input id="survey_reward_log_q" type="search" name="q" value="<?php echo sr_e((string) ($surveyRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="설문, 응답, 회원, 지급 참조, 실패 사유">
-        </label>
-        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/reward-logs')); ?>" class="filtering-form admin-survey-reward-log-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $surveyRewardDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields">
+            <div class="filtering-field filtering-field-fill admin-survey-reward-log-filter-keyword">
+                <label for="survey_reward_log_q" class="filtering-label">검색어</label>
+                <input id="survey_reward_log_q" type="search" name="q" value="<?php echo sr_e((string) ($surveyRewardFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="설문, 응답 ID, 공개 해시, 지급 참조, 실패 사유">
+            </div>
+        </div>
+        <div id="survey_reward_log_detail_filters" class="filtering-body" data-filtering-body<?php echo $surveyRewardDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-field">
+                <label for="survey_reward_log_survey_id" class="filtering-label">설문</label>
+                <select id="survey_reward_log_survey_id" name="survey_id" class="form-select form-control-full">
+                    <option value="">전체</option>
+                    <?php foreach ($surveyRewardSurveyOptions as $surveyOption) { ?>
+                        <?php
+                        $optionSurveyId = (int) ($surveyOption['id'] ?? 0);
+                        $optionSurveyKey = trim((string) ($surveyOption['survey_key'] ?? ''));
+                        ?>
+                        <option value="<?php echo sr_e((string) $optionSurveyId); ?>"<?php echo (int) ($surveyRewardFilters['survey_id'] ?? 0) === $optionSurveyId ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($surveyOption['title'] ?? '')); ?><?php echo $optionSurveyKey !== '' ? ' (' . sr_e($optionSurveyKey) . ')' : ''; ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">상태</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('survey_reward_log_status_filter', 'status', $surveyRewardStatusOptions, [(string) ($surveyRewardFilters['status'] ?? '')], '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">공급자</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('survey_reward_log_provider_filter', 'provider', $surveyRewardProviderOptions, [(string) ($surveyRewardFilters['provider'] ?? '')], '전체'); ?>
+            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $surveyRewardDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="survey_reward_log_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </div>
 </form>
 
@@ -80,6 +97,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $surveyTitle = trim((string) ($rewardLog['survey_title'] ?? ''));
                     $surveyKey = trim((string) ($rewardLog['survey_key'] ?? ''));
                     $accountLabel = trim((string) (($rewardLog['account_display_name'] ?? '') ?: ($rewardLog['account_email'] ?? '')));
+                    $rewardAccountId = (int) ($rewardLog['account_id'] ?? 0);
+                    $rewardAccountHash = $rewardAccountId > 0 && function_exists('sr_admin_member_public_hash')
+                        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $rewardAccountId)
+                        : '';
                     $errorMessage = trim((string) ($rewardLog['error_message'] ?? ''));
                     $referenceType = trim((string) ($rewardLog['provider_reference_type'] ?? ''));
                     $referenceId = trim((string) ($rewardLog['provider_reference_id'] ?? ''));
@@ -98,8 +119,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </small>
                         </td>
                         <td class="admin-table-break admin-survey-reward-log-account-cell">
-                            <?php if ((int) ($rewardLog['account_id'] ?? 0) > 0) { ?>
-                                <strong>#<?php echo sr_e((string) (int) ($rewardLog['account_id'] ?? 0)); ?></strong>
+                            <?php if ($rewardAccountId > 0) { ?>
+                                <strong><?php echo sr_e($rewardAccountHash !== '' ? $rewardAccountHash : '회원 정보 없음'); ?></strong>
                                 <small class="admin-summary-meta"><?php echo sr_e($accountLabel !== '' ? $accountLabel : '회원 정보 없음'); ?></small>
                             <?php } else { ?>
                                 <span class="admin-summary-meta">회원 정보 없음</span>

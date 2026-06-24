@@ -84,6 +84,11 @@ foreach ([
 foreach ([
     '$adminPageTitle = \'설문 리워드 로그\'',
     'action="<?php echo sr_e(sr_url(\'/admin/surveys/reward-logs\')); ?>"',
+    'filtering filtering-card',
+    'survey_reward_log_detail_filters',
+    'data-filtering-toggle',
+    'data-filtering-reset',
+    'name="survey_id"',
     '리워드 로그가 없습니다.',
     'sr_survey_reward_log_status_label',
     'sr_survey_reward_provider_label',

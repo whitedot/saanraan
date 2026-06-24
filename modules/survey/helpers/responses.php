@@ -462,8 +462,10 @@ function sr_survey_reward_log_filters_from_request(): array
 {
     $status = sr_survey_clean_key(sr_get_string('status', 30), 30);
     $provider = sr_survey_clean_key(sr_get_string('provider', 30), 30);
+    $surveyId = max(0, (int) sr_get_string('survey_id', 20));
 
     return [
+        'survey_id' => $surveyId,
         'status' => in_array($status, sr_survey_reward_log_statuses(), true) ? $status : '',
         'provider' => in_array($provider, sr_survey_reward_providers(), true) ? $provider : '',
         'q' => sr_survey_clean_single_line(sr_get_string('q', 120), 120),
@@ -473,6 +475,12 @@ function sr_survey_reward_log_filters_from_request(): array
 function sr_survey_reward_log_where_sql(array $filters, array &$params): string
 {
     $where = ['s.deleted_at IS NULL'];
+    $surveyId = (int) ($filters['survey_id'] ?? 0);
+    if ($surveyId > 0) {
+        $where[] = 'g.survey_id = :survey_id';
+        $params['survey_id'] = $surveyId;
+    }
+
     $status = (string) ($filters['status'] ?? '');
     if ($status !== '') {
         $where[] = 'g.status = :status';
@@ -487,13 +495,19 @@ function sr_survey_reward_log_where_sql(array $filters, array &$params): string
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
+        $qAccountId = (int) ($filters['q_account_id'] ?? 0);
         if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
-            $where[] = '(g.id = :q_id OR g.survey_id = :q_id OR g.response_id = :q_id OR g.account_id = :q_id OR g.provider_reference_id = :q_text)';
+            $where[] = '(g.response_id = :q_id OR g.provider_reference_id = :q_text)';
             $params['q_id'] = (int) $q;
             $params['q_text'] = $q;
         } else {
-            $where[] = '(s.survey_key LIKE :q_like OR s.title LIKE :q_like OR g.reward_module LIKE :q_like OR g.reward_code LIKE :q_like OR g.error_message LIKE :q_like)';
+            $keywordWhere = ['s.survey_key LIKE :q_like', 's.title LIKE :q_like', 'g.reward_module LIKE :q_like', 'g.reward_code LIKE :q_like', 'g.error_message LIKE :q_like'];
             $params['q_like'] = '%' . $q . '%';
+            if ($qAccountId > 0) {
+                $keywordWhere[] = 'g.account_id = :q_account_id';
+                $params['q_account_id'] = $qAccountId;
+            }
+            $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
         }
     }
 

@@ -56,6 +56,14 @@ if (sr_request_method() === 'POST') {
 
 // Reward columns in this list are aggregated from sr_quiz_reward_grants by sr_quiz_admin_attempts().
 $attemptFilters = sr_quiz_admin_attempt_filters_from_request();
+$attemptQuery = trim((string) ($attemptFilters['q'] ?? ''));
+if ($attemptQuery !== ''
+    && function_exists('sr_member_public_account_hash_is_valid')
+    && function_exists('sr_admin_member_account_id_from_identifier')
+    && sr_member_public_account_hash_is_valid(strtolower($attemptQuery))
+) {
+    $attemptFilters['q_account_id'] = sr_admin_member_account_id_from_identifier($pdo, sr_runtime_config(), $attemptQuery);
+}
 $attemptSortOptions = sr_quiz_admin_attempt_sort_options();
 $attemptDefaultSort = sr_quiz_admin_attempt_default_sort();
 $attemptSort = sr_admin_sort_from_request($attemptSortOptions, $attemptDefaultSort);
@@ -96,7 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields">
             <div class="filtering-field filtering-field-fill admin-quiz-attempt-filter-keyword">
                 <label for="quiz_attempt_keyword_filter" class="filtering-label">검색어</label>
-                <input id="quiz_attempt_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($attemptFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="시도 번호, 회원, 퀴즈 키, 제목, 출처 제목">
+                <input id="quiz_attempt_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($attemptFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="퀴즈 키, 제목, 출처 제목, 시도 ID, 공개 해시">
             </div>
         </div>
         <div id="quiz_attempt_detail_filters" class="filtering-body" data-filtering-body<?php echo $attemptDetailFilterOpen ? '' : ' hidden'; ?>>

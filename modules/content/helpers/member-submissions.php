@@ -824,12 +824,19 @@ function sr_content_author_reward_where_sql(array $filters, array &$params): str
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
+        $qAccountId = (int) ($filters['q_account_id'] ?? 0);
         if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
-            $where[] = '(r.id = :q_id OR r.submission_id = :q_id OR r.content_id = :q_id OR r.author_account_id = :q_id OR r.transaction_id = :q_id)';
+            $where[] = '(r.submission_id = :q_id OR r.content_id = :q_id OR r.transaction_id = :q_id)';
             $params['q_id'] = (int) $q;
         } else {
-            $where[] = '(c.title LIKE :q_like OR s.title LIKE :q_like OR author.email LIKE :q_like OR author.display_name LIKE :q_like)';
+            $keywordWhere = ['c.title LIKE :q_like', 's.title LIKE :q_like', 'author.email LIKE :q_like', 'author.display_name LIKE :q_like'];
             $params['q_like'] = '%' . $q . '%';
+            if ($qAccountId > 0) {
+                $keywordWhere[] = 'r.author_account_id = :q_account_id';
+                $keywordWhere[] = 'r.created_by_account_id = :q_account_id';
+                $params['q_account_id'] = $qAccountId;
+            }
+            $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
         }
     }
 
