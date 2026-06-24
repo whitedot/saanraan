@@ -19,5 +19,10 @@ return [
             'path' => '/admin/coupons/redemptions',
             'order' => 30,
         ],
+        [
+            'label' => '발급 캠페인',
+            'path' => '/admin/coupons/campaigns',
+            'order' => 40,
+        ],
     ],
 ];

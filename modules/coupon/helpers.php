@@ -1088,6 +1088,24 @@ function sr_coupon_admin_redemption_default_sort(): array
     return sr_admin_sort_default('redeemed_at', 'desc');
 }
 
+function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100): array
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(300, $limit));
+    $stmt = $pdo->query(
+        'SELECT c.*, d.coupon_key, d.title AS coupon_title
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         ORDER BY c.id DESC
+         LIMIT ' . $limit
+    );
+
+    return $stmt->fetchAll();
+}
+
 function sr_coupon_create_definition(PDO $pdo, array $data): int
 {
     $couponKey = sr_coupon_clean_key((string) ($data['coupon_key'] ?? ''));

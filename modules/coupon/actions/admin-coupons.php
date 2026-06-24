@@ -17,6 +17,8 @@ if ($requestPath === '/admin/coupons/issues') {
     $couponAdminPage = 'issues';
 } elseif ($requestPath === '/admin/coupons/redemptions') {
     $couponAdminPage = 'redemptions';
+} elseif ($requestPath === '/admin/coupons/campaigns') {
+    $couponAdminPage = 'campaigns';
 }
 $account = sr_member_require_login($pdo);
 $couponPermissionPath = '/admin/coupons';
@@ -24,6 +26,8 @@ if ($couponAdminPage === 'issues') {
     $couponPermissionPath = '/admin/coupons/issues';
 } elseif ($couponAdminPage === 'redemptions') {
     $couponPermissionPath = '/admin/coupons/redemptions';
+} elseif ($couponAdminPage === 'campaigns') {
+    $couponPermissionPath = '/admin/coupons/campaigns';
 }
 sr_admin_require_permission($pdo, (int) $account['id'], $couponPermissionPath, 'view');
 $couponCreateModalOpen = false;
@@ -60,6 +64,34 @@ if (sr_request_method() === 'POST') {
             $notice = '쿠폰 종류를 만들었습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons');
+        } elseif ($intent === 'create_campaign' && $couponAdminPage === 'campaigns') {
+            $campaignId = sr_coupon_create_claim_campaign($pdo, [
+                'campaign_key' => sr_post_string('campaign_key', 60),
+                'coupon_definition_id' => sr_admin_post_positive_int('coupon_definition_id'),
+                'title' => sr_post_string('title', 120),
+                'description' => sr_post_string('description', 1000),
+                'status' => sr_post_string('status', 30),
+                'claim_type' => 'free',
+                'starts_at' => sr_post_string('starts_at', 30),
+                'ends_at' => sr_post_string('ends_at', 30),
+                'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
+                'total_claim_limit' => sr_post_string('total_claim_limit', 10),
+                'per_account_limit' => sr_post_string('per_account_limit', 10),
+                'visibility' => sr_post_string('visibility', 20),
+                'exposure_surfaces' => $_POST['exposure_surfaces'] ?? ['coupon_zone'],
+                'login_required' => sr_post_string('login_required', 1) === '1',
+            ]);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'coupon.claim_campaign.created',
+                'target_type' => 'coupon_claim_campaign',
+                'target_id' => (string) $campaignId,
+                'result' => 'success',
+                'message' => 'Coupon claim campaign created.',
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], '쿠폰 발급 캠페인을 만들었습니다.'));
+            sr_redirect('/admin/coupons/campaigns');
         } elseif ($intent === 'issue_coupon' && $couponAdminPage === 'definitions') {
             $definitionId = sr_admin_post_positive_int('coupon_definition_id');
             if ($definitionId < 1) {
@@ -344,7 +376,7 @@ $definitionPagination = sr_admin_pagination_meta(0, 1, 1);
 $issuePagination = sr_admin_pagination_meta(0, 1, 1);
 $redemptionPagination = sr_admin_pagination_meta(0, 1, 1);
 $definitions = [];
-if ($couponAdminPage === 'definitions') {
+if ($couponAdminPage === 'definitions' || $couponAdminPage === 'campaigns') {
     $definitionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_definition_count($pdo, $definitionFilters));
     $definitions = sr_coupon_admin_definitions($pdo, $definitionFilters, (int) $definitionPagination['per_page'], $definitionSort, sr_admin_pagination_offset($definitionPagination));
 }
@@ -367,12 +399,15 @@ foreach ($definitions as $definition) {
 $memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_groups($pdo) : [];
 $issues = [];
 $redemptions = [];
+$claimCampaigns = [];
 if ($couponAdminPage === 'issues') {
     $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
     $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
 } elseif ($couponAdminPage === 'redemptions') {
     $redemptionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_redemption_count($pdo, $runtimeConfig, $redemptionFilters));
     $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, (int) $redemptionPagination['per_page'], $redemptionFilters, $redemptionSort, sr_admin_pagination_offset($redemptionPagination));
+} elseif ($couponAdminPage === 'campaigns') {
+    $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';
