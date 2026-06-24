@@ -1981,6 +1981,59 @@ function sr_coupon_redemption_refund_columns_available(PDO $pdo): bool
     return $available;
 }
 
+function sr_coupon_redemption_pricing_columns_available(PDO $pdo): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT amount, currency_code, asset_unit, policy_summary, priced_at, target_snapshot_json FROM sr_coupon_redemptions LIMIT 1');
+        $available = $stmt !== false;
+    } catch (Throwable) {
+        $available = false;
+    }
+
+    return $available;
+}
+
+function sr_coupon_redemption_pricing_snapshot(PDO $pdo, string $targetType, string $targetId, int $accountId, array $context): array
+{
+    $pricing = sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context);
+    if (empty($pricing['ok'])) {
+        return [
+            'amount' => 0,
+            'currency_code' => '',
+            'asset_unit' => '',
+            'policy_summary' => '',
+            'priced_at' => null,
+            'target_snapshot_json' => null,
+        ];
+    }
+
+    $snapshot = [
+        'target_type' => (string) ($pricing['target_type'] ?? $targetType),
+        'target_id' => (string) ($pricing['target_id'] ?? $targetId),
+        'amount' => max(0, (int) ($pricing['price_amount'] ?? 0)),
+        'currency_code' => strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3)),
+        'asset_unit' => sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40),
+        'is_free' => !empty($pricing['is_free']),
+        'already_entitled' => !empty($pricing['already_entitled']),
+        'policy_summary' => sr_coupon_clean_text((string) ($pricing['policy_summary'] ?? ''), 255),
+        'priced_at' => sr_coupon_clean_text((string) ($pricing['priced_at'] ?? sr_now()), 30),
+    ];
+
+    return [
+        'amount' => $snapshot['amount'],
+        'currency_code' => $snapshot['currency_code'],
+        'asset_unit' => $snapshot['asset_unit'],
+        'policy_summary' => $snapshot['policy_summary'],
+        'priced_at' => $snapshot['priced_at'],
+        'target_snapshot_json' => json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
+    ];
+}
+
 function sr_coupon_admin_redemption_count(PDO $pdo, array $runtimeConfig, array $filters = []): int
 {
     $where = [];
@@ -2307,13 +2360,21 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
         }
 
         $now = sr_now();
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_coupon_redemptions
-                (coupon_issue_id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, dedupe_key, status, redeemed_at, created_at)
-             VALUES
-                (:coupon_issue_id, :coupon_definition_id, :account_id, :target_type, :target_id, :reference_module, :reference_type, :reference_id, :dedupe_key, :status, :redeemed_at, :created_at)'
-        );
-        $stmt->execute([
+        $redemptionColumns = [
+            'coupon_issue_id',
+            'coupon_definition_id',
+            'account_id',
+            'target_type',
+            'target_id',
+            'reference_module',
+            'reference_type',
+            'reference_id',
+            'dedupe_key',
+            'status',
+            'redeemed_at',
+            'created_at',
+        ];
+        $redemptionValues = [
             'coupon_issue_id' => (int) $selectedIssue['id'],
             'coupon_definition_id' => (int) $selectedIssue['coupon_definition_id'],
             'account_id' => $accountId,
@@ -2326,7 +2387,22 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             'status' => 'redeemed',
             'redeemed_at' => $now,
             'created_at' => $now,
-        ]);
+        ];
+        if (sr_coupon_redemption_pricing_columns_available($pdo)) {
+            $pricingSnapshot = sr_coupon_redemption_pricing_snapshot($pdo, $targetType, $targetId, $accountId, $context);
+            foreach (['amount', 'currency_code', 'asset_unit', 'policy_summary', 'priced_at', 'target_snapshot_json'] as $column) {
+                $redemptionColumns[] = $column;
+                $redemptionValues[$column] = $pricingSnapshot[$column];
+            }
+        }
+        $placeholders = array_map(static fn (string $column): string => ':' . $column, $redemptionColumns);
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_coupon_redemptions
+                (' . implode(', ', $redemptionColumns) . ')
+             VALUES
+                (' . implode(', ', $placeholders) . ')'
+        );
+        $stmt->execute($redemptionValues);
         $redemptionId = (int) $pdo->lastInsertId();
 
         $usedCount = (int) $selectedIssue['used_count'] + 1;

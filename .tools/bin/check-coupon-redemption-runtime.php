@@ -92,6 +92,12 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         reference_module TEXT NOT NULL DEFAULT '',
         reference_type TEXT NOT NULL DEFAULT '',
         reference_id TEXT NOT NULL DEFAULT '',
+        amount INTEGER NOT NULL DEFAULT 0,
+        currency_code TEXT NOT NULL DEFAULT '',
+        asset_unit TEXT NOT NULL DEFAULT '',
+        policy_summary TEXT NOT NULL DEFAULT '',
+        priced_at TEXT,
+        target_snapshot_json TEXT,
         dedupe_key TEXT NOT NULL UNIQUE,
         status TEXT NOT NULL DEFAULT 'redeemed',
         redeemed_at TEXT NOT NULL,
@@ -143,6 +149,12 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         title TEXT NOT NULL,
         slug TEXT NOT NULL,
         status TEXT NOT NULL,
+        asset_access_enabled INTEGER NOT NULL DEFAULT 0,
+        asset_module TEXT NOT NULL DEFAULT '',
+        asset_access_amount INTEGER NOT NULL DEFAULT 0,
+        asset_access_amounts_json TEXT NOT NULL DEFAULT '',
+        asset_access_settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        asset_charge_policy TEXT NOT NULL DEFAULT 'once',
         updated_at TEXT NOT NULL
     )");
     $pdo->exec("CREATE TABLE sr_content_files (
@@ -214,6 +226,48 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         granted_at TEXT NOT NULL,
         anonymized_at TEXT,
         created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_community_board_groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        group_key TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'enabled',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_community_boards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_group_id INTEGER,
+        board_key TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'enabled',
+        read_policy TEXT NOT NULL DEFAULT 'public',
+        write_policy TEXT NOT NULL DEFAULT 'member',
+        comment_policy TEXT NOT NULL DEFAULT 'member',
+        image_uploads_enabled INTEGER NOT NULL DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_community_board_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT,
+        value_type TEXT NOT NULL DEFAULT 'string',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_community_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'published',
+        title TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
     )");
     $pdo->exec("CREATE TABLE sr_community_asset_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -605,6 +659,22 @@ function sr_coupon_runtime_fixture(): void
     $downloadIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $downloadIssueId]);
     sr_coupon_runtime_assert((string) ($downloadIssue['status'] ?? '') === 'used', 'content paid download fixture should mark the priority coupon issue used.');
     sr_coupon_runtime_assert((int) ($downloadIssue['used_count'] ?? -1) === 1, 'content paid download fixture should increment the priority coupon issue once.');
+    $downloadRedemption = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT amount, currency_code, asset_unit, policy_summary, priced_at, target_snapshot_json
+         FROM sr_coupon_redemptions
+         WHERE reference_module = 'content'
+           AND reference_type = 'content.download'
+           AND reference_id = '501'
+         LIMIT 1"
+    );
+    $downloadSnapshot = json_decode((string) ($downloadRedemption['target_snapshot_json'] ?? ''), true);
+    sr_coupon_runtime_assert((int) ($downloadRedemption['amount'] ?? -1) === 120, 'content paid download redemption should store the pricing amount snapshot.');
+    sr_coupon_runtime_assert((string) ($downloadRedemption['currency_code'] ?? '') === 'KRW', 'content paid download redemption should store the pricing currency snapshot.');
+    sr_coupon_runtime_assert((string) ($downloadRedemption['asset_unit'] ?? '') === '', 'content paid download redemption should leave asset_unit empty for currency pricing.');
+    sr_coupon_runtime_assert((string) ($downloadRedemption['policy_summary'] ?? '') === '콘텐츠 다운로드 120KRW', 'content paid download redemption should store the pricing policy summary.');
+    sr_coupon_runtime_assert((string) ($downloadRedemption['priced_at'] ?? '') !== '', 'content paid download redemption should store priced_at.');
+    sr_coupon_runtime_assert(is_array($downloadSnapshot) && (string) ($downloadSnapshot['target_type'] ?? '') === 'content_file' && (int) ($downloadSnapshot['amount'] ?? -1) === 120, 'content paid download redemption should store a whitelisted target pricing snapshot.');
     $downloadEntitlement = sr_coupon_runtime_row(
         $pdo,
         "SELECT source_kind, source_asset_module, source_charge_policy, source_reference
@@ -640,6 +710,38 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['access_revoked_at'] ?? '') !== '', 'content paid download fixture should store access_revoked_at.');
 
     $communityIssueId = sr_coupon_runtime_issue($pdo, 'community_priority', 'community_post', '9901', 7);
+    $pdo->prepare(
+        "INSERT INTO sr_community_boards
+            (id, board_group_id, board_key, title, description, status, read_policy, write_policy, comment_policy, image_uploads_enabled, sort_order, created_at, updated_at)
+         VALUES
+            (9902, NULL, 'paid_board', 'Paid board', '', 'enabled', 'public', 'member', 'member', 1, 0, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    foreach ([
+        'paid_read_enabled' => ['1', 'bool'],
+        'paid_read_asset_module' => ['point', 'string'],
+        'paid_read_amount' => ['150', 'int'],
+        'paid_read_settlement_currency' => ['KRW', 'string'],
+        'paid_read_charge_policy' => ['once', 'string'],
+    ] as $settingKey => $setting) {
+        $pdo->prepare(
+            "INSERT INTO sr_community_board_settings
+                (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+             VALUES
+                (9902, :setting_key, :setting_value, :value_type, :created_at, :updated_at)"
+        )->execute([
+            'setting_key' => $settingKey,
+            'setting_value' => $setting[0],
+            'value_type' => $setting[1],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $pdo->prepare(
+        "INSERT INTO sr_community_posts
+            (id, board_id, status, title, created_at, updated_at)
+         VALUES
+            (9901, 9902, 'published', 'Paid post', :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
     $communityPaidReadConfig = [
         'asset_module' => 'point',
         'amount' => 150,
@@ -658,6 +760,20 @@ function sr_coupon_runtime_fixture(): void
     $communityIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $communityIssueId]);
     sr_coupon_runtime_assert((string) ($communityIssue['status'] ?? '') === 'used', 'community paid read fixture should mark the priority coupon issue used.');
     sr_coupon_runtime_assert((int) ($communityIssue['used_count'] ?? -1) === 1, 'community paid read fixture should increment the priority coupon issue once.');
+    $communitySnapshotRow = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT amount, currency_code, policy_summary, target_snapshot_json
+         FROM sr_coupon_redemptions
+         WHERE reference_module = 'community'
+           AND reference_type = 'community.post'
+           AND reference_id = '9901'
+         LIMIT 1"
+    );
+    $communitySnapshot = json_decode((string) ($communitySnapshotRow['target_snapshot_json'] ?? ''), true);
+    sr_coupon_runtime_assert((int) ($communitySnapshotRow['amount'] ?? -1) === 150, 'community paid read redemption should store the pricing amount snapshot.');
+    sr_coupon_runtime_assert((string) ($communitySnapshotRow['currency_code'] ?? '') === 'KRW', 'community paid read redemption should store the pricing currency snapshot.');
+    sr_coupon_runtime_assert((string) ($communitySnapshotRow['policy_summary'] ?? '') === '게시글 열람 150KRW', 'community paid read redemption should store the pricing policy summary.');
+    sr_coupon_runtime_assert(is_array($communitySnapshot) && (string) ($communitySnapshot['target_type'] ?? '') === 'community_post' && (int) ($communitySnapshot['amount'] ?? -1) === 150, 'community paid read redemption should store a whitelisted target pricing snapshot.');
     $communityEntitlement = sr_coupon_runtime_row(
         $pdo,
         "SELECT source_kind, source_asset_module, source_charge_policy, source_reference

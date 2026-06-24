@@ -28,9 +28,12 @@ return static function (PDO $pdo, int $accountId): array {
     $refundColumns = sr_coupon_redemption_refund_columns_available($pdo)
         ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
         : 'NULL AS refunded_at, NULL AS refunded_by_account_id, \'\' AS refund_note';
+    $pricingColumns = sr_coupon_redemption_pricing_columns_available($pdo)
+        ? 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at'
+        : '0 AS amount, \'\' AS currency_code, \'\' AS asset_unit, \'\' AS policy_summary, NULL AS priced_at';
     $stmt = $pdo->prepare(
         'SELECT r.id, r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
-                r.status, r.redeemed_at, ' . $refundColumns . ', d.coupon_key, d.title
+                r.status, r.redeemed_at, ' . $refundColumns . ', ' . $pricingColumns . ', d.coupon_key, d.title
          FROM sr_coupon_redemptions r
          INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
          WHERE r.account_id = :account_id
