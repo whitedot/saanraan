@@ -29,8 +29,8 @@ return static function (PDO $pdo, int $accountId): array {
         ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
         : 'NULL AS refunded_at, NULL AS refunded_by_account_id, \'\' AS refund_note';
     $pricingColumns = sr_coupon_redemption_pricing_columns_available($pdo)
-        ? 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at'
-        : '0 AS amount, \'\' AS currency_code, \'\' AS asset_unit, \'\' AS policy_summary, NULL AS priced_at';
+        ? 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at, r.target_snapshot_json'
+        : '0 AS amount, \'\' AS currency_code, \'\' AS asset_unit, \'\' AS policy_summary, NULL AS priced_at, NULL AS target_snapshot_json';
     $stmt = $pdo->prepare(
         'SELECT r.id, r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
                 r.status, r.redeemed_at, ' . $refundColumns . ', ' . $pricingColumns . ', d.coupon_key, d.title

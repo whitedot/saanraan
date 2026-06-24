@@ -104,7 +104,7 @@
 | 모듈 | 보존 사유 | 고위험 필드/연결 | 1.0 전 검토 항목 |
 | --- | --- | --- | --- |
 | `asset_exchange` | 환전 실행 증빙, 정정 로그, 중복 환전 방지 | `account_id`, `created_by_account_id`, 환전 묶음 ID와 자산 원장 reference | 완료 환전 정정 후 보존 기간과 관리자 조회 범위 |
-| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 사용 시점 가격 스냅샷 | 만료/환불 완료 쿠폰의 표시명, 메모, 관리자 접근 범위 |
+| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 사용 시점 가격/target 스냅샷, 공개 발급 campaign/source 로그 | 만료/환불 완료 쿠폰의 표시명, 메모, 관리자 접근 범위 |
 | `deposit` | 현금성 예치금 원장, 환불 신청, 처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 은행명/계좌번호/예금주 | 환불 완료 후 계좌정보 마스킹 시점과 보존 기간 |
 | `notification` | 회원 알림 제공 이력, delivery 실패 추적, 운영 알림 읽음 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, delivery destination/metadata, push endpoint ciphertext | 대상 회원 delivery만 export하고 다른 회원 recipient는 제외한다. 발송 완료/실패 delivery의 주소 마스킹과 재발송 가능 기간, 탈퇴/익명화 시 push endpoint ciphertext 제거 |
 | `point` | 포인트 원장, 만료 소비 매핑, 환불/회수 증빙 | `account_id`, `created_by_account_id`, 만료 source/consume transaction 연결 | 탈퇴 후 회원 식별자 노출 최소화와 오래된 만료 소비 매핑 보존 기간 |
