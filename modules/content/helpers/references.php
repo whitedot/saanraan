@@ -132,6 +132,99 @@ function sr_content_coupon_target_admin_url(string $targetType, string $targetId
     return '/admin/content/edit?id=' . rawurlencode($targetId);
 }
 
+function sr_content_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
+{
+    if (!in_array($targetType, ['content', 'content_file'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        return ['ok' => false, 'failure_code' => 'target_invalid', 'failure_message' => '콘텐츠 대상 형식이 올바르지 않습니다.'];
+    }
+
+    require_once SR_ROOT . '/modules/content/helpers/assets.php';
+    if ($targetType === 'content_file') {
+        $stmt = $pdo->prepare(
+            'SELECT id, content_id, asset_download_enabled, asset_module, asset_download_amount, asset_download_amounts_json, asset_download_settlement_currency, asset_charge_policy
+             FROM sr_content_files
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => (int) $targetId]);
+        $row = $stmt->fetch();
+        if (!is_array($row) || (int) ($row['asset_download_enabled'] ?? 0) !== 1) {
+            return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 다운로드 대상이 아닙니다.'];
+        }
+
+        $assetModules = sr_content_asset_module_keys_from_value($row['asset_module'] ?? '');
+        $amounts = sr_content_asset_amounts_from_value($row['asset_download_amounts_json'] ?? '', $assetModules, (int) ($row['asset_download_amount'] ?? 0));
+        $amount = sr_content_asset_amount_total($amounts, (int) ($row['asset_download_amount'] ?? 0));
+
+        return [
+            'ok' => true,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'price_amount' => $amount,
+            'currency_code' => (string) ($row['asset_download_settlement_currency'] ?? 'KRW'),
+            'asset_unit' => '',
+            'already_entitled' => $accountId > 0 && sr_content_coupon_target_has_entitlement($pdo, $accountId, (int) ($row['content_id'] ?? 0), 'content_file', (int) $targetId, 'download'),
+            'policy_summary' => '콘텐츠 다운로드 ' . number_format($amount) . (string) ($row['asset_download_settlement_currency'] ?? 'KRW'),
+            'priced_at' => sr_now(),
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_settlement_currency, asset_charge_policy
+         FROM sr_content_items
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => (int) $targetId]);
+    $row = $stmt->fetch();
+    if (!is_array($row) || (int) ($row['asset_access_enabled'] ?? 0) !== 1) {
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 대상이 아닙니다.'];
+    }
+
+    $assetModules = sr_content_asset_module_keys_from_value($row['asset_module'] ?? '');
+    $amounts = sr_content_asset_amounts_from_value($row['asset_access_amounts_json'] ?? '', $assetModules, (int) ($row['asset_access_amount'] ?? 0));
+    $amount = sr_content_asset_amount_total($amounts, (int) ($row['asset_access_amount'] ?? 0));
+
+    return [
+        'ok' => true,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'price_amount' => $amount,
+        'currency_code' => (string) ($row['asset_access_settlement_currency'] ?? 'KRW'),
+        'asset_unit' => '',
+        'already_entitled' => $accountId > 0 && sr_content_coupon_target_has_entitlement($pdo, $accountId, (int) $targetId, 'content', (int) $targetId, 'view'),
+        'policy_summary' => '콘텐츠 열람 ' . number_format($amount) . (string) ($row['asset_access_settlement_currency'] ?? 'KRW'),
+        'priced_at' => sr_now(),
+    ];
+}
+
+function sr_content_coupon_target_has_entitlement(PDO $pdo, int $accountId, int $contentId, string $subjectType, int $subjectId, string $accessKind): bool
+{
+    if ($accountId <= 0 || $contentId <= 0 || $subjectId <= 0) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_content_access_entitlements
+         WHERE account_id = :account_id
+           AND content_id = :content_id
+           AND subject_type = :subject_type
+           AND subject_id = :subject_id
+           AND access_kind = :access_kind
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'content_id' => $contentId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'access_kind' => $accessKind,
+    ]);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_content_banner_reference_count(PDO $pdo, array $target, array $context): int
 {
     return count(sr_content_banner_reference_rows($pdo, $target, $context));

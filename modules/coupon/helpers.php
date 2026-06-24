@@ -205,11 +205,133 @@ function sr_coupon_target_contracts(PDO $pdo): array
 
             $target['module_key'] = $moduleKey;
             $target['label'] = $label;
+            $target['capabilities'] = sr_coupon_target_contract_capabilities($target);
             $contracts[$targetType] = $target;
         }
     }
 
     return $contracts;
+}
+
+function sr_coupon_target_contract_capabilities(array $target): array
+{
+    $capabilities = [];
+    foreach ($target['capabilities'] ?? [] as $capability) {
+        $capability = (string) $capability;
+        if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $capability) === 1) {
+            $capabilities[$capability] = true;
+        }
+    }
+
+    foreach ([
+        'search' => 'search_function',
+        'health' => 'health_function',
+        'admin_url' => 'admin_url_function',
+        'pricing' => 'pricing_function',
+        'redeem' => 'redeem_function',
+        'revoke_access' => 'revoke_access_function',
+    ] as $capability => $functionKey) {
+        $functionName = (string) ($target[$functionKey] ?? '');
+        if ($functionName !== '' && function_exists($functionName)) {
+            $capabilities[$capability] = true;
+        }
+    }
+
+    return array_keys($capabilities);
+}
+
+function sr_coupon_target_contract_has_capability(array $target, string $capability): bool
+{
+    return in_array($capability, array_map('strval', $target['capabilities'] ?? []), true);
+}
+
+function sr_coupon_target_contracts_with_capabilities(PDO $pdo, array $requiredCapabilities): array
+{
+    $requiredCapabilities = array_values(array_filter(array_map('strval', $requiredCapabilities)));
+    if ($requiredCapabilities === []) {
+        return sr_coupon_target_contracts($pdo);
+    }
+
+    return array_filter(
+        sr_coupon_target_contracts($pdo),
+        static function (array $target) use ($requiredCapabilities): bool {
+            foreach ($requiredCapabilities as $capability) {
+                if (!sr_coupon_target_contract_has_capability($target, $capability)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    );
+}
+
+function sr_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
+{
+    $contracts = sr_coupon_target_contracts($pdo);
+    $target = $contracts[$targetType] ?? null;
+    $pricingFunction = is_array($target) ? (string) ($target['pricing_function'] ?? '') : '';
+    if (!is_array($target) || $pricingFunction === '' || !function_exists($pricingFunction)) {
+        return [
+            'ok' => false,
+            'failure_code' => 'pricing_not_supported',
+            'failure_message' => '가격 조회를 지원하지 않는 쿠폰 사용처입니다.',
+        ];
+    }
+
+    try {
+        $pricing = $pricingFunction($pdo, $targetType, $targetId, $accountId, $context);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'coupon_target_pricing_' . $targetType);
+        return [
+            'ok' => false,
+            'failure_code' => 'pricing_failed',
+            'failure_message' => '쿠폰 사용처 가격을 확인할 수 없습니다.',
+        ];
+    }
+
+    return sr_coupon_normalize_target_pricing($pricing, $targetType, $targetId);
+}
+
+function sr_coupon_normalize_target_pricing(mixed $pricing, string $targetType, string $targetId): array
+{
+    if (!is_array($pricing) || empty($pricing['ok'])) {
+        return [
+            'ok' => false,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'failure_code' => sr_coupon_clean_key((string) ($pricing['failure_code'] ?? 'target_unavailable'), 60),
+            'failure_message' => sr_coupon_clean_text((string) ($pricing['failure_message'] ?? '사용할 수 없는 대상입니다.'), 255),
+        ];
+    }
+
+    $priceAmount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    $currencyCode = strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3));
+    $assetUnit = sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40);
+    if (($currencyCode === '' && $assetUnit === '') || ($currencyCode !== '' && $assetUnit !== '')) {
+        return [
+            'ok' => false,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'failure_code' => 'pricing_unit_invalid',
+            'failure_message' => '쿠폰 사용처 가격 단위가 올바르지 않습니다.',
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'target_type' => (string) ($pricing['target_type'] ?? $targetType),
+        'target_id' => (string) ($pricing['target_id'] ?? $targetId),
+        'price_amount' => $priceAmount,
+        'currency_code' => $currencyCode,
+        'asset_unit' => $assetUnit,
+        'is_free' => $priceAmount === 0,
+        'already_entitled' => !empty($pricing['already_entitled']),
+        'policy_summary' => sr_coupon_clean_text((string) ($pricing['policy_summary'] ?? ''), 255),
+        'priced_at' => sr_coupon_clean_text((string) ($pricing['priced_at'] ?? sr_now()), 30),
+        'failure_code' => null,
+        'failure_message' => null,
+    ];
 }
 
 function sr_coupon_issue_member_groups(PDO $pdo): array

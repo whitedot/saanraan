@@ -256,6 +256,57 @@ function sr_community_coupon_target_admin_url(string $targetType, string $target
     return '';
 }
 
+function sr_community_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
+{
+    if ($targetType !== 'community_post' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        return ['ok' => false, 'failure_code' => 'target_invalid', 'failure_message' => '커뮤니티 사용 대상 형식이 올바르지 않습니다.'];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.board_id, p.status, b.title AS board_title
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE p.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => (int) $targetId]);
+    $post = $stmt->fetch();
+    if (!is_array($post) || (string) ($post['status'] ?? '') !== 'published') {
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 가능한 게시글이 아닙니다.'];
+    }
+
+    $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+    if (!is_array($board)) {
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '게시글의 게시판을 찾을 수 없습니다.'];
+    }
+
+    require_once SR_ROOT . '/modules/community/helpers/assets.php';
+    $settings = sr_community_settings($pdo);
+    $config = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+    if (empty($config['enabled'])) {
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 대상이 아닙니다.'];
+    }
+
+    $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
+    $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
+    if ($amounts === []) {
+        $amounts = sr_community_asset_amounts_from_value($config['amounts_json'] ?? '', $assetModules, (int) ($config['amount'] ?? 0));
+    }
+    $amount = sr_community_asset_amount_total($amounts, (int) ($config['amount'] ?? 0));
+
+    return [
+        'ok' => true,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'price_amount' => $amount,
+        'currency_code' => (string) ($config['settlement_currency'] ?? 'KRW'),
+        'asset_unit' => '',
+        'already_entitled' => $accountId > 0 && sr_community_has_access_entitlement($pdo, $assetModules, $accountId, 'post_read', 'community.post', (int) $targetId, '', 'all_access'),
+        'policy_summary' => '게시글 열람 ' . number_format($amount) . (string) ($config['settlement_currency'] ?? 'KRW'),
+        'priced_at' => sr_now(),
+    ];
+}
+
 function sr_community_banner_reference_count(PDO $pdo, array $target, array $context): int
 {
     return count(sr_community_banner_reference_rows($pdo, $target, $context));
