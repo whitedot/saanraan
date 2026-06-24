@@ -45,10 +45,10 @@
 | 게시판 복사 실패 | `sr_community_board_copy_jobs.status IN ('failed', 'canceled')` | 즉시 지연 초과 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
 | 커뮤니티 레벨 재계산 진행 중 | `sr_community_level_recalculate_jobs.status = 'running'` | 15분 초과 시 지연 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
 | 커뮤니티 레벨 재계산 실패 | `sr_community_level_recalculate_jobs.status = 'failed'` | 즉시 지연 초과 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
-| 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 보상/응시 관리 |
-| 퀴즈 보상 지급 실패 | `sr_quiz_reward_grants.status = 'failed'` | 즉시 지연 초과 | 퀴즈 제목 또는 ID | 퀴즈 보상/응시 관리 |
-| 설문 보상 지급 대기 | `sr_survey_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 설문 제목 또는 ID | 설문 응답/보상 관리 |
-| 설문 보상 지급 실패 | `sr_survey_reward_grants.status = 'failed'` | 즉시 지연 초과 | 설문 제목 또는 ID | 설문 응답/보상 관리 |
+| 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 리워드 로그 |
+| 퀴즈 보상 지급 실패 | `sr_quiz_reward_grants.status = 'failed'` | 즉시 지연 초과 | 퀴즈 제목 또는 ID | 퀴즈 리워드 로그 |
+| 설문 보상 지급 대기 | `sr_survey_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 설문 제목 또는 ID | 설문 리워드 로그 |
+| 설문 보상 지급 실패 | `sr_survey_reward_grants.status = 'failed'` | 즉시 지연 초과 | 설문 제목 또는 ID | 설문 리워드 로그 |
 | 포인트 만료 처리 대상 | `sr_point_transactions.expires_at <= NOW() AND expires_remaining > 0` | 24시간 초과 시 지연 | 계정 ID | 포인트 만료 CLI 또는 포인트 거래 흐름 |
 
 ## 추가 권장

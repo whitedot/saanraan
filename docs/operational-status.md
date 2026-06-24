@@ -42,10 +42,10 @@ php .tools/bin/ops-status.php
 | `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | 실패 단계, 부분 생성물 정리 |
 | `community.level_recalculate.running` | 커뮤니티 레벨 재계산 작업이 실행 중 | 15분 | `/admin/community/levels` 재계산 진행 상태와 재실행 필요 여부 |
 | `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | 실패 사유, 재실행 가능 여부 |
-| `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | 보상 정책, 자산/쿠폰 provider 상태 |
-| `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | 관리자 복구 또는 수동 완료 |
-| `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | 보상 정책, 자산/쿠폰 provider 상태 |
-| `survey.reward_grants.failed` | 설문 보상 지급 실패 | 즉시 | 관리자 복구 또는 수동 완료 |
+| `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | `/admin/quiz/attempts` 리워드 로그에서 보상 정책, 자산/쿠폰 provider 상태 확인 |
+| `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | `/admin/quiz/attempts` 리워드 로그에서 관리자 복구 또는 수동 완료 판단 |
+| `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | `/admin/surveys/reward-logs` 리워드 로그에서 보상 정책, 자산/쿠폰 provider 상태 확인 |
+| `survey.reward_grants.failed` | 설문 보상 지급 실패 | 즉시 | `/admin/surveys/reward-logs` 리워드 로그에서 관리자 복구 또는 수동 완료 판단 |
 | `point.expiration.due` | 만료 시각이 지난 포인트 잔여분 | 24시간 | `php .tools/bin/expire-points.php` 또는 다음 포인트 거래 |
 
 미설치 환경에서는 명령이 `saanraan is not installed.`를 출력하고 종료한다. 모듈이 비활성화되어 있으면 해당 항목은 `skipped`로 표시한다.

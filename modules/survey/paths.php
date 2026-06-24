@@ -15,6 +15,7 @@ return [
     'POST /admin/surveys/comments' => 'actions/admin-comments.php',
     'GET /admin/surveys/responses' => 'actions/admin-responses.php',
     'POST /admin/surveys/responses' => 'actions/admin-responses.php',
+    'GET /admin/surveys/reward-logs' => 'actions/admin-reward-logs.php',
     'GET /admin/surveys/statistics' => 'actions/admin-statistics.php',
     'GET /admin/surveys/export' => 'actions/admin-export.php',
     'GET /admin/surveys/settings' => 'actions/admin-settings.php',

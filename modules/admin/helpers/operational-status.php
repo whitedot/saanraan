@@ -302,14 +302,14 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '15분',
             'warn_after_seconds' => 900,
-            'target_sql' => "SELECT q.title AS target_label, g.quiz_id AS target_fallback
+            'target_sql' => "SELECT g.quiz_id AS target_fallback, g.quiz_id, g.attempt_id
                 FROM sr_quiz_reward_grants g
-                LEFT JOIN sr_quiz_sets q ON q.id = g.quiz_id
                 WHERE g.status = 'pending'
                 ORDER BY g.updated_at ASC, g.id ASC
                 LIMIT 5",
+            'target_format' => '퀴즈 #{quiz_id} / 시도 #{attempt_id}',
             'target_fallback_prefix' => '퀴즈',
-            'followup' => '보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
+            'followup' => '/admin/quiz/attempts 리워드 로그에서 보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
         ],
         [
             'label' => 'quiz.reward_grants.failed',
@@ -320,14 +320,14 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'failed_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
-            'target_sql' => "SELECT q.title AS target_label, g.quiz_id AS target_fallback
+            'target_sql' => "SELECT g.quiz_id AS target_fallback, g.quiz_id, g.attempt_id
                 FROM sr_quiz_reward_grants g
-                LEFT JOIN sr_quiz_sets q ON q.id = g.quiz_id
                 WHERE g.status = 'failed'
                 ORDER BY g.failed_at ASC, g.id ASC
                 LIMIT 5",
+            'target_format' => '퀴즈 #{quiz_id} / 시도 #{attempt_id}',
             'target_fallback_prefix' => '퀴즈',
-            'followup' => '중복 지급 없이 복구할 수 있는지 보상 로그를 확인합니다.',
+            'followup' => '/admin/quiz/attempts 리워드 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
         ],
         [
             'label' => 'survey.reward_grants.pending',
@@ -338,14 +338,14 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '15분',
             'warn_after_seconds' => 900,
-            'target_sql' => "SELECT s.title AS target_label, g.survey_id AS target_fallback
+            'target_sql' => "SELECT g.survey_id AS target_fallback, g.survey_id, g.response_id
                 FROM sr_survey_reward_grants g
-                LEFT JOIN sr_survey_forms s ON s.id = g.survey_id
                 WHERE g.status = 'pending'
                 ORDER BY g.updated_at ASC, g.id ASC
                 LIMIT 5",
+            'target_format' => '설문 #{survey_id} / 응답 #{response_id}',
             'target_fallback_prefix' => '설문',
-            'followup' => '보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
+            'followup' => '/admin/surveys/reward-logs 리워드 로그에서 보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
         ],
         [
             'label' => 'survey.reward_grants.failed',
@@ -356,14 +356,14 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'failed_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
-            'target_sql' => "SELECT s.title AS target_label, g.survey_id AS target_fallback
+            'target_sql' => "SELECT g.survey_id AS target_fallback, g.survey_id, g.response_id
                 FROM sr_survey_reward_grants g
-                LEFT JOIN sr_survey_forms s ON s.id = g.survey_id
                 WHERE g.status = 'failed'
                 ORDER BY g.failed_at ASC, g.id ASC
                 LIMIT 5",
+            'target_format' => '설문 #{survey_id} / 응답 #{response_id}',
             'target_fallback_prefix' => '설문',
-            'followup' => '중복 지급 없이 복구할 수 있는지 보상 로그를 확인합니다.',
+            'followup' => '/admin/surveys/reward-logs 리워드 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
         ],
         [
             'label' => 'point.expiration.due',

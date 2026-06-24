@@ -443,6 +443,104 @@ function sr_survey_active_reward_policy(PDO $pdo, int $surveyId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_survey_reward_log_statuses(): array
+{
+    return ['pending', 'granted', 'failed', 'duplicate'];
+}
+
+function sr_survey_reward_log_status_label(string $status): string
+{
+    return [
+        'pending' => '대기',
+        'granted' => '지급',
+        'failed' => '실패',
+        'duplicate' => '중복',
+    ][$status] ?? $status;
+}
+
+function sr_survey_reward_log_filters_from_request(): array
+{
+    $status = sr_survey_clean_key(sr_get_string('status', 30), 30);
+    $provider = sr_survey_clean_key(sr_get_string('provider', 30), 30);
+
+    return [
+        'status' => in_array($status, sr_survey_reward_log_statuses(), true) ? $status : '',
+        'provider' => in_array($provider, sr_survey_reward_providers(), true) ? $provider : '',
+        'q' => sr_survey_clean_single_line(sr_get_string('q', 120), 120),
+    ];
+}
+
+function sr_survey_reward_log_where_sql(array $filters, array &$params): string
+{
+    $where = ['s.deleted_at IS NULL'];
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'g.status = :status';
+        $params['status'] = $status;
+    }
+
+    $provider = (string) ($filters['provider'] ?? '');
+    if ($provider !== '') {
+        $where[] = 'g.reward_provider = :provider';
+        $params['provider'] = $provider;
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
+            $where[] = '(g.id = :q_id OR g.survey_id = :q_id OR g.response_id = :q_id OR g.account_id = :q_id OR g.provider_reference_id = :q_text)';
+            $params['q_id'] = (int) $q;
+            $params['q_text'] = $q;
+        } else {
+            $where[] = '(s.survey_key LIKE :q_like OR s.title LIKE :q_like OR g.reward_module LIKE :q_like OR g.reward_code LIKE :q_like OR g.error_message LIKE :q_like)';
+            $params['q_like'] = '%' . $q . '%';
+        }
+    }
+
+    return implode(' AND ', $where);
+}
+
+function sr_survey_reward_log_count(PDO $pdo, array $filters = []): int
+{
+    $params = [];
+    $whereSql = sr_survey_reward_log_where_sql($filters, $params);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_survey_reward_grants g
+         INNER JOIN sr_survey_forms s ON s.id = g.survey_id
+         LEFT JOIN sr_survey_responses r ON r.id = g.response_id
+         WHERE ' . $whereSql
+    );
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_survey_reward_logs(PDO $pdo, int $limit = 50, int $offset = 0, array $filters = []): array
+{
+    $params = [];
+    $whereSql = sr_survey_reward_log_where_sql($filters, $params);
+    $params['limit_value'] = max(1, min(200, $limit));
+    $params['offset_value'] = max(0, $offset);
+    $stmt = $pdo->prepare(
+        'SELECT g.*, s.survey_key, s.title AS survey_title, r.quality_status, r.submitted_at, r.is_test,
+                account.email AS account_email, account.display_name AS account_display_name
+         FROM sr_survey_reward_grants g
+         INNER JOIN sr_survey_forms s ON s.id = g.survey_id
+         LEFT JOIN sr_survey_responses r ON r.id = g.response_id
+         LEFT JOIN sr_member_accounts account ON account.id = g.account_id
+         WHERE ' . $whereSql . '
+         ORDER BY g.id DESC
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value, in_array($key, ['limit_value', 'offset_value', 'q_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, int $accountId, array $policy, array $assetOptions, string $now): array
 {
     $surveyId = (int) ($survey['id'] ?? 0);

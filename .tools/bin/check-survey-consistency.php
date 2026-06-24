@@ -46,6 +46,54 @@ sr_survey_check_contains(
     'CREATE TABLE IF NOT EXISTS sr_survey_reward_grants',
     'Survey reward grants table must exist'
 );
+foreach ([
+    "'GET /admin/surveys/reward-logs' => 'actions/admin-reward-logs.php'",
+    "'label' => '리워드 로그'",
+    "'path' => '/admin/surveys/reward-logs'",
+] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/' . (str_contains($needle, 'actions/admin-reward-logs') ? 'paths.php' : 'admin-menu.php'),
+        $needle,
+        'Survey admin navigation must expose reward logs'
+    );
+}
+foreach ([
+    'sr_admin_require_permission($pdo, (int) ($account[\'id\'] ?? 0), \'/admin/surveys/reward-logs\', \'view\')',
+    'sr_survey_reward_log_filters_from_request',
+    'sr_survey_reward_logs',
+] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/admin-reward-logs.php',
+        $needle,
+        'Survey reward log action must query reward logs with admin permission'
+    );
+}
+foreach ([
+    'sr_survey_reward_log_statuses',
+    'sr_survey_reward_log_count',
+    'sr_survey_reward_logs',
+    'FROM sr_survey_reward_grants g',
+    'g.error_message LIKE :q_like',
+] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/helpers/responses.php',
+        $needle,
+        'Survey reward log helper must read grant rows as operator reward logs'
+    );
+}
+foreach ([
+    '$adminPageTitle = \'설문 리워드 로그\'',
+    'action="<?php echo sr_e(sr_url(\'/admin/surveys/reward-logs\')); ?>"',
+    '리워드 로그가 없습니다.',
+    'sr_survey_reward_log_status_label',
+    'sr_survey_reward_provider_label',
+] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/views/admin-reward-logs.php',
+        $needle,
+        'Survey reward log view must render searchable operator log'
+    );
+}
 sr_survey_check_contains(
     'modules/survey/install.sql',
     'CREATE TABLE IF NOT EXISTS sr_survey_comments',

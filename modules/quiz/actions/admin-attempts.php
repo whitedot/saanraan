@@ -84,7 +84,7 @@ $grantStatusOptions = [
     'failed' => sr_quiz_reward_grant_status_label('failed'),
 ];
 
-$adminPageTitle = '퀴즈 시도/보상 내역';
+$adminPageTitle = '퀴즈 리워드 로그';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/quiz/attempts');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -123,7 +123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">시도/보상 내역</h2>
+        <h2 class="card-title">리워드 로그</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php if (empty($attemptSort['is_default'])) { ?>

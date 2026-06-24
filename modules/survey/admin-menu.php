@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '리워드 로그',
+            'path' => '/admin/surveys/reward-logs',
+            'order' => 25,
+        ],
+        [
             'label' => '통계',
             'path' => '/admin/surveys/statistics',
             'order' => 30,

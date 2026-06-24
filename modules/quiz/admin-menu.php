@@ -10,7 +10,7 @@ return [
             'order' => 10,
         ],
         [
-            'label' => '시도/보상 내역',
+            'label' => '리워드 로그',
             'path' => '/admin/quiz/attempts',
             'order' => 20,
         ],

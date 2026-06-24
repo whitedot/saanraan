@@ -724,9 +724,25 @@ function sr_survey_reward_providers(): array
     return ['ledger_asset', 'coupon'];
 }
 
+function sr_survey_reward_provider_label(string $provider): string
+{
+    return [
+        'ledger_asset' => '포인트/금액',
+        'coupon' => '쿠폰 발급',
+    ][$provider] ?? $provider;
+}
+
 function sr_survey_reward_dedupe_scopes(): array
 {
     return ['per_survey', 'per_response'];
+}
+
+function sr_survey_reward_dedupe_scope_label(string $scope): string
+{
+    return [
+        'per_survey' => '설문당 1회',
+        'per_response' => '응답마다',
+    ][$scope] ?? $scope;
 }
 
 function sr_survey_clean_admin_datetime(string $value): ?string

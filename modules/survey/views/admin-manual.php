@@ -21,6 +21,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">4. 응답 관리</span>
             <div class="form-field"><p>응답 관리에서 품질 상태를 포함, 검토, 제외로 표시하고 필요한 메모를 남깁니다. 통계 화면은 제외 응답을 집계에서 빼고 계산합니다.</p></div>
         </div>
+        <div class="form-row">
+            <span class="form-label">5. 리워드 로그</span>
+            <div class="form-field"><p>리워드 로그에서 설문 응답 보상 지급 성공/실패와 실패 사유를 확인합니다. 보상 실패가 있으면 보상 자산, 쿠폰 상태, 중복 지급 기준을 함께 확인합니다.</p></div>
+        </div>
     </div>
 </section>
 
@@ -30,6 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <ul class="quiz-manual-list">
             <li>보상 설문은 로그인 필요 상태에서만 저장할 수 있습니다.</li>
             <li>응답 저장 시 동의 문구와 설문 메타데이터 스냅샷을 함께 보존합니다.</li>
+            <li>응답 보상 지급 기록은 리워드 로그에서 설문, 응답, 회원, 보상 공급자, 지급 참조, 실패 사유 기준으로 확인합니다.</li>
             <li>회원 개인정보 정리 요청이 처리되면 설문 응답과 보상 지급 기록의 회원 연결값, IP 해시, 사용자 에이전트 해시를 익명화합니다.</li>
             <li>CSV 내보내기는 관리자 감사 로그를 남기고 최대 5,000행까지 내려받습니다.</li>
         </ul>

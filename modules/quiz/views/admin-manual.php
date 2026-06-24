@@ -29,7 +29,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">4. 운영 중 확인하기</span>
             <div class="form-field">
-                <p><strong>시도/보상 내역</strong>에서 회원 응시 상태, 점수, 통과 여부, 보상 지급 성공/실패를 확인합니다. 보상 실패가 있으면 보상 자산, 쿠폰 상태, 중복 지급 기준을 함께 확인합니다.</p>
+                <p><strong>리워드 로그</strong>에서 회원 응시 상태, 점수, 통과 여부, 보상 지급 성공/실패를 확인합니다. 보상 실패가 있으면 보상 자산, 쿠폰 상태, 중복 지급 기준을 함께 확인합니다.</p>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">시도/보상 내역</span>
+            <span class="form-label">리워드 로그</span>
             <div class="form-field">
                 <p>회원이 퀴즈를 풀었는지, 보상이 지급됐는지 확인할 때 사용합니다. 시도 상태, 점수, 통과 여부, 보상 상태, 실패 사유를 확인합니다.</p>
             </div>
@@ -505,7 +505,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">보상이 지급되지 않음</span>
             <div class="form-field">
                 <ul class="quiz-manual-list">
-                    <li>시도/보상 내역에서 통과 여부를 확인합니다.</li>
+                    <li>리워드 로그에서 통과 여부를 확인합니다.</li>
                     <li>보상 상태와 실패 사유를 확인합니다.</li>
                     <li>중복 지급 기준에 이미 걸렸는지 확인합니다.</li>
                     <li>포인트/금액 항목 또는 쿠폰이 현재 사용 가능한지 확인합니다.</li>

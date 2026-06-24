@@ -32,7 +32,7 @@
 | 커뮤니티 | `/admin/community/posts`, `/admin/community/comments`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/reports`, `/admin/community/series` |
 | 자산/권리 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/asset-exchange/logs` |
 | 알림/개인정보 | `/admin/notifications`, `/admin/notification-deliveries`, `/admin/admin-notifications`, `/admin/privacy-requests` |
-| 참여 | `/admin/quiz`, `/admin/quiz/attempts`, `/admin/surveys/responses` |
+| 참여 | `/admin/quiz`, `/admin/quiz/attempts`, `/admin/surveys/responses`, `/admin/surveys/reward-logs` |
 | 사이트 운영 | `/admin/banners`, `/admin/popup-layers`, `/admin/logo-manager` |
 
 이 표는 모든 화면이 같은 쿼리 비용이라는 뜻이 아니다. 다만 행 수가 늘어날 수 있는 목록은 무제한 출력으로 회귀하지 않게 최소 기준을 둔다.
