@@ -239,9 +239,12 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     $stage = (string) ($job['stage'] ?? 'prepare');
     sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     if ($stage === 'prepare') {
-        sr_community_board_copy_job_prepare($pdo, $job, $lockToken);
+        $prepareDone = sr_community_board_copy_job_prepare($pdo, $job, $lockToken, (int) ($limits['prepare'] ?? 500));
+        if (!$prepareDone) {
+            return ['done' => false, 'stage' => 'prepare', 'status' => 'running', 'message' => '복사 대상 목록을 묶음으로 준비했습니다.'];
+        }
         sr_community_board_copy_job_refresh_counts($pdo, $job, $lockToken);
-        return ['done' => false, 'stage' => 'board', 'status' => 'running', 'message' => '복사 대상 목록을 준비했습니다.'];
+        return ['done' => false, 'stage' => 'board', 'status' => 'running', 'message' => '복사 대상 목록 준비를 완료했습니다.'];
     }
     if ($stage === 'board') {
         sr_community_board_copy_job_create_board($pdo, $job, $lockToken);
@@ -268,15 +271,18 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return ['done' => true, 'stage' => 'complete', 'status' => 'completed', 'message' => '게시판 배치 복사가 완료되었습니다.'];
     }
     if ($stage === 'cleanup') {
-        $cleanupFailed = sr_community_board_copy_job_cleanup($pdo, $job, $lockToken);
-        if ($cleanupFailed > 0) {
+        $cleanup = sr_community_board_copy_job_cleanup($pdo, $job, $lockToken, (int) ($limits['cleanup'] ?? 100));
+        if ((int) ($cleanup['failed'] ?? 0) > 0) {
             return [
                 'done' => true,
                 'stage' => 'cleanup',
                 'status' => 'cleanup_required',
                 'message' => '일부 파일을 정리하지 못했습니다. 정리 상태를 확인한 뒤 다시 시도하세요.',
-                'error' => '정리 실패 항목 ' . (string) $cleanupFailed . '개가 남아 있습니다.',
+                'error' => '정리 실패 항목 ' . (string) (int) $cleanup['failed'] . '개가 남아 있습니다.',
             ];
+        }
+        if ((int) ($cleanup['remaining'] ?? 0) > 0) {
+            return ['done' => false, 'stage' => 'cleanup', 'status' => 'running', 'message' => '정리 작업을 묶음으로 처리했습니다.'];
         }
         return ['done' => true, 'stage' => 'cleanup', 'status' => 'cancelled', 'message' => '복사 작업을 정리했습니다.'];
     }
@@ -284,32 +290,38 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     throw new RuntimeException('복사 작업 단계가 올바르지 않습니다.');
 }
 
-function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockToken): void
+function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockToken, int $limit = 500): bool
 {
     $jobId = (int) $job['id'];
     $boardId = (int) $job['source_board_id'];
     sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+    $limit = max(1, min(1000, $limit));
     $now = sr_now();
     $insert = $pdo->prepare(
         'INSERT IGNORE INTO sr_community_board_copy_job_maps (job_id, entity_type, source_id, status, created_at, updated_at)
          VALUES (:job_id, :entity_type, :source_id, :status, :created_at, :updated_at)'
     );
     $sources = [
-        'category' => 'SELECT id FROM sr_community_categories WHERE board_id = :board_id ORDER BY id ASC',
-        'post' => 'SELECT id FROM sr_community_posts WHERE board_id = :board_id ORDER BY id ASC',
-        'comment' => 'SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id ORDER BY c.id ASC',
-        'attachment' => 'SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id ORDER BY a.id ASC',
+        'category' => "SELECT c.id FROM sr_community_categories c WHERE c.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'category' AND m.source_id = c.id) ORDER BY c.id ASC",
+        'post' => "SELECT p.id FROM sr_community_posts p WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'post' AND m.source_id = p.id) ORDER BY p.id ASC",
+        'comment' => "SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'comment' AND m.source_id = c.id) ORDER BY c.id ASC",
+        'attachment' => "SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'attachment' AND m.source_id = a.id) ORDER BY a.id ASC",
     ];
     $options = sr_community_board_copy_job_json($job, 'options_json');
     if (!empty($options['copy_series']) && sr_community_series_supported($pdo)) {
-        $sources['series'] = 'SELECT DISTINCT s.id FROM sr_community_series s INNER JOIN sr_community_series_items si ON si.series_id = s.id INNER JOIN sr_community_posts p ON p.id = si.post_id WHERE s.board_id = :board_id AND p.board_id = s.board_id ORDER BY s.id ASC';
-        $sources['series_item'] = 'SELECT si.id FROM sr_community_series_items si INNER JOIN sr_community_posts p ON p.id = si.post_id INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id AND p.board_id = s.board_id ORDER BY si.id ASC';
+        $sources['series'] = "SELECT DISTINCT s.id FROM sr_community_series s INNER JOIN sr_community_series_items si ON si.series_id = s.id INNER JOIN sr_community_posts p ON p.id = si.post_id WHERE s.board_id = :board_id AND p.board_id = s.board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'series' AND m.source_id = s.id) ORDER BY s.id ASC";
+        $sources['series_item'] = "SELECT si.id FROM sr_community_series_items si INNER JOIN sr_community_posts p ON p.id = si.post_id INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id AND p.board_id = s.board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'series_item' AND m.source_id = si.id) ORDER BY si.id ASC";
     }
+    $done = true;
     foreach ($sources as $type => $sql) {
         sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['board_id' => $boardId]);
-        foreach ($stmt->fetchAll() as $row) {
+        $stmt = $pdo->prepare($sql . ' LIMIT ' . (string) $limit);
+        $stmt->execute(['board_id' => $boardId, 'job_id' => $jobId]);
+        $rows = $stmt->fetchAll();
+        if (count($rows) >= $limit) {
+            $done = false;
+        }
+        foreach ($rows as $row) {
             sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
             $insert->execute([
                 'job_id' => $jobId,
@@ -321,6 +333,8 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockT
             ]);
         }
     }
+
+    return $done;
 }
 
 function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job, string $lockToken): void
@@ -894,14 +908,16 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
     }
 }
 
-function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockToken): int
+function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockToken, int $limit = 100): array
 {
     $jobId = (int) $job['id'];
     sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+    $limit = max(1, min(500, $limit));
     $failed = 0;
-    $stmt = $pdo->prepare("SELECT * FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' AND status <> 'cleaned' ORDER BY id DESC");
+    $stmt = $pdo->prepare("SELECT * FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' AND status <> 'cleaned' ORDER BY id DESC LIMIT " . (string) $limit);
     $stmt->execute(['job_id' => $jobId]);
-    foreach ($stmt->fetchAll() as $map) {
+    $maps = $stmt->fetchAll();
+    foreach ($maps as $map) {
         sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         if (sr_storage_delete((string) $map['created_storage_driver'], (string) $map['created_storage_key'])) {
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned', '', '', '', $jobId, $lockToken);
@@ -911,7 +927,13 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
         }
     }
     if ($failed > 0) {
-        return $failed;
+        return ['failed' => $failed, 'remaining' => 0, 'processed' => count($maps)];
+    }
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' AND status <> 'cleaned'");
+    $stmt->execute(['job_id' => $jobId]);
+    $remainingFiles = (int) $stmt->fetchColumn();
+    if ($remainingFiles > 0) {
+        return ['failed' => 0, 'remaining' => $remainingFiles, 'processed' => count($maps)];
     }
 
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
@@ -936,5 +958,5 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
         sr_community_cleanup_body_files_for_deleted_posts($pdo, $postIds);
     }
 
-    return 0;
+    return ['failed' => 0, 'remaining' => 0, 'processed' => count($maps)];
 }

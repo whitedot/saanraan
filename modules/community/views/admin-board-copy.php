@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label"><?php echo sr_e('기록 위치'); ?></span>
             <div class="form-field">
-                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('동기 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 배치 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('설정만 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 게시글 포함 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></p>
             </div>
         </div>
         <?php if ($limitErrors !== []) { ?>
@@ -73,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p><?php echo sr_e($limitError); ?></p>
                 <?php } ?>
                 <?php if ($batchAvailable) { ?>
-                    <p><?php echo sr_e('상한 초과 게시판은 배치 복사 작업으로 나누어 처리할 수 있습니다.'); ?></p>
+                    <p><?php echo sr_e('게시글 포함 복사는 상한과 관계없이 게시판 복사 작업으로 나누어 처리합니다.'); ?></p>
                 <?php } else { ?>
                     <p><?php echo sr_e('위 차단 사유를 먼저 정리한 뒤 다시 시도하세요.'); ?></p>
                 <?php } ?>
@@ -105,7 +105,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html($modeLabel); ?>
                     </label>
                 <?php } ?>
-                <p class="form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 아래 용량 안내를 확인하세요.'); ?></p>
+                <p class="form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 규모와 관계없이 게시판 복사 작업으로 만들고, 작업 화면에서 묶음 단위로 이어서 처리합니다. 첨부파일이 있으면 아래 용량 안내를 확인하세요.'); ?></p>
             </div>
         </div>
         <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
@@ -137,9 +137,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="form-sticky-actions form-actions form-actions-split admin-community-board-copy-actions">
         <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
         <div class="admin-community-board-copy-submit-actions">
-        <?php if ($batchAvailable) { ?>
-            <button type="submit" name="intent" value="start_batch" class="btn btn-solid-light"><?php echo sr_e('배치 복사 작업 만들기'); ?></button>
-        <?php } ?>
             <button type="submit" class="btn btn-solid-primary admin-community-board-copy-primary"><?php echo sr_e('복사본 만들기'); ?></button>
         </div>
     </div>

@@ -239,15 +239,7 @@ function sr_community_board_copy_batch_block_errors(array $counts): array
 
 function sr_community_board_copy_batch_errors(array $counts): array
 {
-    $errors = sr_community_board_copy_batch_block_errors($counts);
-    if ($errors !== []) {
-        return $errors;
-    }
-    if (sr_community_board_copy_batch_threshold_errors($counts) === []) {
-        $errors[] = '배치 복사가 필요한 상한 초과 항목이 없습니다.';
-    }
-
-    return $errors;
+    return sr_community_board_copy_batch_block_errors($counts);
 }
 
 function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, int $accountId): int
@@ -260,6 +252,9 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
     $mode = (string) ($values['mode'] ?? 'settings');
     if (!isset(sr_community_board_copy_modes()[$mode])) {
         throw new InvalidArgumentException('복사 범위가 올바르지 않습니다.');
+    }
+    if ($mode === 'full') {
+        throw new InvalidArgumentException('게시글/댓글/첨부파일 포함 복사는 게시판 복사 작업 경로로만 실행할 수 있습니다.');
     }
     $boardKey = strtolower(trim((string) ($values['board_key'] ?? '')));
     $title = sr_community_clean_single_line((string) ($values['title'] ?? ''), 120);

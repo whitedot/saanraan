@@ -50,7 +50,7 @@ $errors = [];
 
 if (sr_request_method() === 'POST') {
     try {
-        if (sr_post_string('intent', 30) === 'start_batch') {
+        if ((string) ($values['mode'] ?? '') === 'full') {
             if ($batchErrors !== []) {
                 throw new InvalidArgumentException(implode("\n", $batchErrors));
             }
@@ -74,6 +74,9 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
             sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);
+        }
+        if (sr_post_string('intent', 30) === 'start_batch') {
+            throw new InvalidArgumentException('게시글/댓글/첨부파일 포함 복사를 선택한 뒤 작업을 만드세요.');
         }
         $newBoardId = sr_community_copy_board($pdo, $boardId, $values, (int) $account['id']);
         sr_audit_log($pdo, [

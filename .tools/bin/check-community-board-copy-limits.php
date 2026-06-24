@@ -105,8 +105,8 @@ sr_board_copy_limit_assert($messages === [], 'Board copy batch should be availab
 
 $messages = sr_community_board_copy_batch_errors(sr_board_copy_limit_counts());
 sr_board_copy_limit_assert(
-    $messages === ['배치 복사가 필요한 상한 초과 항목이 없습니다.'],
-    'Board copy batch should reject small jobs that do not need batching.'
+    $messages === [],
+    'Board copy job path should be available for small full-copy jobs.'
 );
 
 $messages = sr_community_board_copy_batch_errors(sr_board_copy_limit_counts([
