@@ -167,6 +167,206 @@ function sr_coupon_refundable_policies(): array
     ];
 }
 
+function sr_coupon_claim_campaign_statuses(): array
+{
+    return ['draft', 'active', 'paused', 'ended'];
+}
+
+function sr_coupon_claim_campaign_status_label(string $status): string
+{
+    return match ($status) {
+        'draft' => '초안',
+        'active' => '진행',
+        'paused' => '중지',
+        'ended' => '종료',
+        default => $status,
+    };
+}
+
+function sr_coupon_claim_types(): array
+{
+    return ['free', 'paid'];
+}
+
+function sr_coupon_claim_surfaces(): array
+{
+    return ['coupon_zone', 'direct_link', 'popup_layer', 'content_embed'];
+}
+
+function sr_coupon_claim_log_statuses(): array
+{
+    return ['reserved', 'pending_payment', 'issued', 'failed', 'cancelled', 'expired'];
+}
+
+function sr_coupon_claim_status_occupies(string $status): bool
+{
+    return in_array($status, ['reserved', 'pending_payment', 'issued'], true);
+}
+
+function sr_coupon_claim_tables_available(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM sr_coupon_claim_campaigns LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_coupon_claim_logs LIMIT 1');
+        return true;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function sr_coupon_claim_dedupe_hash(string $dedupeKey): string
+{
+    return hash('sha256', $dedupeKey);
+}
+
+function sr_coupon_claim_surfaces_json(array $surfaces): string
+{
+    $allowed = array_fill_keys(sr_coupon_claim_surfaces(), true);
+    $values = [];
+    foreach ($surfaces as $surface) {
+        $surface = (string) $surface;
+        if (isset($allowed[$surface])) {
+            $values[$surface] = true;
+        }
+    }
+
+    return json_encode(array_keys($values), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_coupon_claim_surfaces_from_value(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = is_array($decoded) ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $allowed = array_fill_keys(sr_coupon_claim_surfaces(), true);
+    $surfaces = [];
+    foreach ($value as $surface) {
+        $surface = (string) $surface;
+        if (isset($allowed[$surface])) {
+            $surfaces[$surface] = true;
+        }
+    }
+
+    return array_keys($surfaces);
+}
+
+function sr_coupon_claim_datetime_or_null(string $value): ?string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return null;
+    }
+
+    $normalized = str_replace('T', ' ', substr($value, 0, 19));
+    $date = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', strlen($normalized) === 16 ? $normalized . ':00' : $normalized);
+    if (!$date instanceof DateTimeImmutable) {
+        throw new InvalidArgumentException('날짜와 시간 형식이 올바르지 않습니다.');
+    }
+
+    return $date->format('Y-m-d H:i:s');
+}
+
+function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey): ?array
+{
+    $campaignKey = sr_coupon_clean_key($campaignKey);
+    if (!sr_coupon_key_is_valid($campaignKey) || !sr_coupon_claim_tables_available($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.*, d.coupon_key, d.title AS coupon_title, d.description AS coupon_description, d.status AS coupon_status, d.target_type, d.target_id, d.max_uses_per_issue
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         WHERE c.campaign_key = :campaign_key
+         LIMIT 1'
+    );
+    $stmt->execute(['campaign_key' => $campaignKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_coupon_create_claim_campaign(PDO $pdo, array $data): int
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        throw new InvalidArgumentException('쿠폰 발급 캠페인 업데이트를 먼저 적용하세요.');
+    }
+
+    $campaignKey = sr_coupon_clean_key((string) ($data['campaign_key'] ?? ''));
+    if (!sr_coupon_key_is_valid($campaignKey)) {
+        throw new InvalidArgumentException('캠페인 키는 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용할 수 있습니다.');
+    }
+
+    $definitionId = (int) ($data['coupon_definition_id'] ?? 0);
+    $definition = sr_coupon_definition_by_id($pdo, $definitionId);
+    if (!is_array($definition)) {
+        throw new InvalidArgumentException('연결할 쿠폰을 선택하세요.');
+    }
+
+    $title = sr_coupon_clean_text((string) ($data['title'] ?? ''), 120);
+    if ($title === '') {
+        throw new InvalidArgumentException('캠페인 제목을 입력하세요.');
+    }
+
+    $status = (string) ($data['status'] ?? 'draft');
+    if (!in_array($status, sr_coupon_claim_campaign_statuses(), true)) {
+        $status = 'draft';
+    }
+    $claimType = (string) ($data['claim_type'] ?? 'free');
+    if (!in_array($claimType, sr_coupon_claim_types(), true)) {
+        $claimType = 'free';
+    }
+
+    $perAccountLimit = max(1, min(1000, (int) ($data['per_account_limit'] ?? 1)));
+    $totalClaimLimit = trim((string) ($data['total_claim_limit'] ?? '')) === '' ? null : max(1, (int) $data['total_claim_limit']);
+    $startsAt = sr_coupon_claim_datetime_or_null((string) ($data['starts_at'] ?? ''));
+    $endsAt = sr_coupon_claim_datetime_or_null((string) ($data['ends_at'] ?? ''));
+    if ($startsAt !== null && $endsAt !== null && strcmp($startsAt, $endsAt) > 0) {
+        throw new InvalidArgumentException('발급 종료 시각은 시작 시각 이후여야 합니다.');
+    }
+
+    $surfaces = sr_coupon_claim_surfaces_from_value($data['exposure_surfaces'] ?? ['coupon_zone']);
+    if ($surfaces === []) {
+        $surfaces = ['coupon_zone'];
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_coupon_claim_campaigns
+            (campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
+         VALUES
+            (:campaign_key, :coupon_definition_id, :title, :description, :status, :claim_type, :price_amount, :price_currency_code, :starts_at, :ends_at, :issue_expires_in_days, :issue_expires_at, :total_claim_limit, :per_account_limit, :visibility, :exposure_surfaces_json, :login_required, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'campaign_key' => $campaignKey,
+        'coupon_definition_id' => $definitionId,
+        'title' => $title,
+        'description' => sr_coupon_clean_text((string) ($data['description'] ?? ''), 1000),
+        'status' => $status,
+        'claim_type' => $claimType,
+        'price_amount' => $claimType === 'paid' ? max(0, (int) ($data['price_amount'] ?? 0)) : null,
+        'price_currency_code' => strtoupper(sr_coupon_clean_key((string) ($data['price_currency_code'] ?? 'KRW'), 3)),
+        'starts_at' => $startsAt,
+        'ends_at' => $endsAt,
+        'issue_expires_in_days' => trim((string) ($data['issue_expires_in_days'] ?? '')) === '' ? null : max(1, (int) $data['issue_expires_in_days']),
+        'issue_expires_at' => sr_coupon_claim_datetime_or_null((string) ($data['issue_expires_at'] ?? '')),
+        'total_claim_limit' => $totalClaimLimit,
+        'per_account_limit' => $perAccountLimit,
+        'visibility' => (string) ($data['visibility'] ?? 'hidden') === 'public' ? 'public' : 'hidden',
+        'exposure_surfaces_json' => sr_coupon_claim_surfaces_json($surfaces),
+        'login_required' => !empty($data['login_required']) ? 1 : 0,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
 function sr_coupon_target_contract_helper_path(string $moduleKey, array $target): string
 {
     $helpers = (string) ($target['helpers'] ?? '');
@@ -945,6 +1145,311 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
     sr_coupon_notify_issue_event($pdo, $issueId, 'issue.created', $issuedByAccountId);
 
     return $issueId;
+}
+
+function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $limit = 50): array
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(100, $limit));
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "SELECT c.*, d.coupon_key, d.title AS coupon_title, d.description AS coupon_description, d.status AS coupon_status, d.target_type, d.target_id, d.max_uses_per_issue
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         WHERE c.status = 'active'
+           AND c.visibility = 'public'
+           AND c.exposure_surfaces_json LIKE :surface_like
+           AND (c.starts_at IS NULL OR c.starts_at <= :now_value)
+           AND (c.ends_at IS NULL OR c.ends_at >= :now_value)
+           AND d.status = 'active'
+         ORDER BY c.id DESC
+         LIMIT " . $limit
+    );
+    $stmt->execute([
+        'surface_like' => '%"coupon_zone"%',
+        'now_value' => $now,
+    ]);
+
+    $campaigns = [];
+    foreach ($stmt->fetchAll() as $campaign) {
+        $campaign['claim_state'] = sr_coupon_claim_campaign_state($pdo, $campaign, $accountId);
+        $campaigns[] = $campaign;
+    }
+
+    return $campaigns;
+}
+
+function sr_coupon_claim_campaign_state(PDO $pdo, array $campaign, int $accountId = 0): array
+{
+    $campaignId = (int) ($campaign['id'] ?? 0);
+    if ($campaignId <= 0 || !sr_coupon_claim_tables_available($pdo)) {
+        return ['claimable' => false, 'remaining' => null, 'claimed_count' => 0, 'message' => ''];
+    }
+
+    $now = sr_now();
+    $occupiedCondition = "status = 'issued' OR (status IN ('reserved', 'pending_payment') AND (reserved_until IS NULL OR reserved_until >= :now_value))";
+    $params = ['campaign_id' => $campaignId, 'now_value' => $now];
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_coupon_claim_logs
+         WHERE campaign_id = :campaign_id
+           AND (' . $occupiedCondition . ')'
+    );
+    $stmt->execute($params);
+    $occupiedCount = (int) $stmt->fetchColumn();
+    $totalLimit = (int) ($campaign['total_claim_limit'] ?? 0);
+    $remaining = $totalLimit > 0 ? max(0, $totalLimit - $occupiedCount) : null;
+
+    $claimedCount = 0;
+    if ($accountId > 0) {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS count_value
+             FROM sr_coupon_claim_logs
+             WHERE campaign_id = :campaign_id
+               AND account_id = :account_id
+               AND (' . $occupiedCondition . ')'
+        );
+        $stmt->execute([
+            'campaign_id' => $campaignId,
+            'account_id' => $accountId,
+            'now_value' => $now,
+        ]);
+        $claimedCount = (int) $stmt->fetchColumn();
+    }
+
+    $perLimit = max(1, (int) ($campaign['per_account_limit'] ?? 1));
+    $claimable = ($remaining === null || $remaining > 0) && ($accountId <= 0 || $claimedCount < $perLimit);
+    $message = '';
+    if ($remaining !== null && $remaining <= 0) {
+        $message = '준비된 쿠폰이 모두 발급되었습니다.';
+    } elseif ($accountId > 0 && $claimedCount >= $perLimit) {
+        $message = '이미 받을 수 있는 수량을 모두 받았습니다.';
+    }
+
+    return [
+        'claimable' => $claimable,
+        'remaining' => $remaining,
+        'occupied_count' => $occupiedCount,
+        'claimed_count' => $claimedCount,
+        'message' => $message,
+    ];
+}
+
+function sr_coupon_claim_issue_expires_at(array $campaign): ?string
+{
+    $issueExpiresAt = (string) ($campaign['issue_expires_at'] ?? '');
+    if ($issueExpiresAt !== '') {
+        return $issueExpiresAt;
+    }
+
+    $days = (int) ($campaign['issue_expires_in_days'] ?? 0);
+    if ($days < 1) {
+        return null;
+    }
+
+    return (new DateTimeImmutable(sr_now()))->modify('+' . (string) $days . ' days')->format('Y-m-d H:i:s');
+}
+
+function sr_coupon_self_expire_claims(PDO $pdo, int $campaignId, int $accountId): int
+{
+    if ($campaignId <= 0 || $accountId <= 0) {
+        return 0;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_coupon_claim_logs
+         SET status = 'expired',
+             occupying_account_id = NULL,
+             updated_at = :updated_at
+         WHERE campaign_id = :campaign_id
+           AND account_id = :account_id
+           AND status IN ('reserved', 'pending_payment')
+           AND reserved_until IS NOT NULL
+           AND reserved_until < :now_value"
+    );
+    $stmt->execute([
+        'updated_at' => $now,
+        'campaign_id' => $campaignId,
+        'account_id' => $accountId,
+        'now_value' => $now,
+    ]);
+
+    return $stmt->rowCount();
+}
+
+function sr_coupon_claim_free_campaign(PDO $pdo, string $campaignKey, int $accountId, string $intentToken, string $claimSource = 'coupon_zone', array $sourceContext = []): array
+{
+    if ($accountId <= 0) {
+        throw new InvalidArgumentException('로그인이 필요한 쿠폰입니다.');
+    }
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        throw new InvalidArgumentException('쿠폰 발급 캠페인 업데이트를 먼저 적용하세요.');
+    }
+
+    $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+    if (!is_array($campaign)) {
+        throw new InvalidArgumentException('쿠폰 캠페인을 찾을 수 없습니다.');
+    }
+    if ((string) ($campaign['claim_type'] ?? '') !== 'free') {
+        throw new InvalidArgumentException('무료 발급 캠페인만 바로 받을 수 있습니다.');
+    }
+
+    $intentToken = sr_coupon_clean_text($intentToken, 120);
+    if ($intentToken === '') {
+        throw new InvalidArgumentException('쿠폰 발급 요청 토큰이 올바르지 않습니다.');
+    }
+    $dedupeKey = 'coupon_claim:' . (string) (int) $campaign['id'] . ':' . (string) $accountId . ':' . $intentToken;
+    $dedupeHash = sr_coupon_claim_dedupe_hash($dedupeKey);
+    $claimSource = in_array($claimSource, sr_coupon_claim_surfaces(), true) ? $claimSource : 'coupon_zone';
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+        if (!is_array($campaign)) {
+            throw new InvalidArgumentException('쿠폰 캠페인을 찾을 수 없습니다.');
+        }
+
+        sr_coupon_validate_claim_campaign($campaign, $claimSource);
+        sr_coupon_self_expire_claims($pdo, (int) $campaign['id'], $accountId);
+
+        $existing = sr_coupon_claim_log_by_dedupe_hash($pdo, (int) $campaign['id'], $dedupeHash);
+        if (is_array($existing) && (string) ($existing['status'] ?? '') === 'issued') {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'claimed' => true,
+                'already_claimed' => true,
+                'coupon_issue_id' => (int) ($existing['coupon_issue_id'] ?? 0),
+                'claim_log_id' => (int) ($existing['id'] ?? 0),
+            ];
+        }
+        if (is_array($existing)) {
+            throw new InvalidArgumentException('이전 발급 요청이 아직 처리 중입니다.');
+        }
+
+        sr_coupon_assert_claim_limits($pdo, $campaign, $accountId);
+
+        $now = sr_now();
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_coupon_claim_logs
+                (campaign_id, coupon_definition_id, account_id, coupon_issue_id, claim_source, source_context_json, dedupe_key, dedupe_hash, occupying_account_id, status, reserved_until, failure_code, failure_message, created_at, issued_at, updated_at)
+             VALUES
+                (:campaign_id, :coupon_definition_id, :account_id, NULL, :claim_source, :source_context_json, :dedupe_key, :dedupe_hash, :occupying_account_id, :status, NULL, \'\', \'\', :created_at, NULL, :updated_at)'
+        );
+        $stmt->execute([
+            'campaign_id' => (int) $campaign['id'],
+            'coupon_definition_id' => (int) $campaign['coupon_definition_id'],
+            'account_id' => $accountId,
+            'claim_source' => $claimSource,
+            'source_context_json' => json_encode($sourceContext, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'dedupe_key' => $dedupeKey,
+            'dedupe_hash' => $dedupeHash,
+            'occupying_account_id' => (int) ($campaign['per_account_limit'] ?? 1) === 1 ? $accountId : null,
+            'status' => 'reserved',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $claimLogId = (int) $pdo->lastInsertId();
+
+        $issueId = sr_coupon_issue_to_account(
+            $pdo,
+            (int) $campaign['coupon_definition_id'],
+            $accountId,
+            'claim_campaign:' . (string) ($campaign['campaign_key'] ?? ''),
+            null,
+            sr_coupon_claim_issue_expires_at($campaign)
+        );
+
+        $stmt = $pdo->prepare(
+            "UPDATE sr_coupon_claim_logs
+             SET coupon_issue_id = :coupon_issue_id,
+                 status = 'issued',
+                 issued_at = :issued_at,
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'coupon_issue_id' => $issueId,
+            'issued_at' => $now,
+            'updated_at' => $now,
+            'id' => $claimLogId,
+        ]);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return [
+            'claimed' => true,
+            'already_claimed' => false,
+            'coupon_issue_id' => $issueId,
+            'claim_log_id' => $claimLogId,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function sr_coupon_validate_claim_campaign(array $campaign, string $surface): void
+{
+    $now = sr_now();
+    if ((string) ($campaign['status'] ?? '') !== 'active') {
+        throw new InvalidArgumentException('현재 발급 중인 쿠폰이 아닙니다.');
+    }
+    if ((string) ($campaign['visibility'] ?? '') !== 'public') {
+        throw new InvalidArgumentException('공개 발급 쿠폰이 아닙니다.');
+    }
+    if ((string) ($campaign['coupon_status'] ?? '') !== 'active') {
+        throw new InvalidArgumentException('연결된 쿠폰이 사용 상태가 아닙니다.');
+    }
+    if ((string) ($campaign['starts_at'] ?? '') !== '' && strcmp((string) $campaign['starts_at'], $now) > 0) {
+        throw new InvalidArgumentException('아직 발급 시작 전입니다.');
+    }
+    if ((string) ($campaign['ends_at'] ?? '') !== '' && strcmp((string) $campaign['ends_at'], $now) < 0) {
+        throw new InvalidArgumentException('발급 기간이 종료되었습니다.');
+    }
+    if (!in_array($surface, sr_coupon_claim_surfaces_from_value($campaign['exposure_surfaces_json'] ?? ''), true)) {
+        throw new InvalidArgumentException('이 화면에서는 발급할 수 없는 쿠폰입니다.');
+    }
+}
+
+function sr_coupon_claim_log_by_dedupe_hash(PDO $pdo, int $campaignId, string $dedupeHash): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_coupon_claim_logs
+         WHERE campaign_id = :campaign_id
+           AND dedupe_hash = :dedupe_hash
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'campaign_id' => $campaignId,
+        'dedupe_hash' => $dedupeHash,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_coupon_assert_claim_limits(PDO $pdo, array $campaign, int $accountId): void
+{
+    $state = sr_coupon_claim_campaign_state($pdo, $campaign, $accountId);
+    if (!$state['claimable']) {
+        $message = (string) ($state['message'] ?? '');
+        throw new InvalidArgumentException($message !== '' ? $message : '쿠폰을 발급할 수 없습니다.');
+    }
 }
 
 function sr_coupon_update_issue_status(PDO $pdo, int $issueId, string $status, ?int $updatedByAccountId = null): void
