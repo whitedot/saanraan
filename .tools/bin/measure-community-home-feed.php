@@ -44,6 +44,78 @@ function sr_measure_community_home_feed_sql(PDO $pdo, string $sort, array $board
     return sr_community_feed_cache_post_feed_query($pdo, $boardIds, $limit, $sort, 'board_id_');
 }
 
+function sr_measure_community_home_feed_variant_sql(PDO $pdo, string $sort, array $boardIds, int $limit, string $variant): array
+{
+    if ($variant !== 'limited_posts_first') {
+        return sr_measure_community_home_feed_sql($pdo, $sort, $boardIds, $limit);
+    }
+
+    $ids = [];
+    foreach ($boardIds as $boardId) {
+        $id = (int) $boardId;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+    ksort($ids, SORT_NUMERIC);
+    if ($ids === []) {
+        return ['', []];
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($ids) as $index => $boardId) {
+        $paramKey = 'variant_board_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $boardId;
+    }
+
+    $limit = sr_community_feed_cache_count($limit, 20);
+    $orderSql = sr_community_feed_cache_sort_key($sort) === 'views'
+        ? 'p.view_count DESC, p.id DESC'
+        : 'p.id DESC';
+    $innerOrderSql = sr_community_feed_cache_sort_key($sort) === 'views'
+        ? 'p0.view_count DESC, p0.id DESC'
+        : 'p0.id DESC';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $params['limit_value'] = $limit;
+
+    return [
+        'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
+                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
+                list_image.id AS list_image_attachment_id,
+                list_image.storage_driver AS list_image_storage_driver,
+                list_image.storage_key AS list_image_storage_key,
+                list_image.mime_type AS list_image_mime_type,
+                list_image.size_bytes AS list_image_size_bytes,
+                list_image.checksum_sha256 AS list_image_checksum_sha256,
+                list_image.width AS list_image_width,
+                list_image.height AS list_image_height
+         FROM (
+             SELECT p0.id
+             FROM sr_community_posts p0
+             WHERE p0.status = \'published\'
+               AND p0.board_id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY ' . $innerOrderSql . '
+             LIMIT :limit_value
+         ) picked
+         INNER JOIN sr_community_posts p ON p.id = picked.id
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = (
+             SELECT MIN(att_img.id)
+             FROM sr_community_attachments att_img
+             WHERE att_img.post_id = p.id
+               AND att_img.status = \'active\'
+               AND att_img.mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+         )
+         ORDER BY ' . $orderSql,
+        $params,
+    ];
+}
+
 function sr_measure_community_home_feed_query(PDO $pdo, string $sort, array $boardIds, int $limit): array
 {
     [$sql, $params] = sr_measure_community_home_feed_sql($pdo, $sort, $boardIds, $limit);
@@ -60,9 +132,42 @@ function sr_measure_community_home_feed_query(PDO $pdo, string $sort, array $boa
     return $stmt->fetchAll();
 }
 
+function sr_measure_community_home_feed_variant_query(PDO $pdo, string $sort, array $boardIds, int $limit, string $variant): array
+{
+    [$sql, $params] = sr_measure_community_home_feed_variant_sql($pdo, $sort, $boardIds, $limit, $variant);
+    if ($sql === '') {
+        return [];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, (int) $value, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_measure_community_home_feed_query_plan(PDO $pdo, string $sort, array $boardIds, int $limit): array
 {
     [$sql, $params] = sr_measure_community_home_feed_sql($pdo, $sort, $boardIds, $limit);
+    if ($sql === '') {
+        return [];
+    }
+
+    $prefix = str_starts_with((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME), 'sqlite') ? 'EXPLAIN QUERY PLAN ' : 'EXPLAIN ';
+    $stmt = $pdo->prepare($prefix . $sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, (int) $value, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return array_map(static fn (array $row): string => implode('|', array_map(static fn ($value): string => (string) $value, $row)), $stmt->fetchAll());
+}
+
+function sr_measure_community_home_feed_variant_query_plan(PDO $pdo, string $sort, array $boardIds, int $limit, string $variant): array
+{
+    [$sql, $params] = sr_measure_community_home_feed_variant_sql($pdo, $sort, $boardIds, $limit, $variant);
     if ($sql === '') {
         return [];
     }
@@ -193,6 +298,81 @@ function sr_measure_community_home_feed_run(PDO $pdo, array $boardIds, string $f
     }
     echo "decision: " . $decision . "\n";
     echo "follow-up: compare against #369 cache-table threshold before persistent cache work\n";
+}
+
+function sr_measure_community_home_feed_variant_result(PDO $pdo, array $boardIds, string $label, string $variant): void
+{
+    $latestColdStart = microtime(true);
+    $latestCold = sr_measure_community_home_feed_variant_query($pdo, 'latest', $boardIds, 10, $variant);
+    $latestColdMs = sr_measure_community_home_feed_ms($latestColdStart);
+    $latestWarmStart = microtime(true);
+    $latestWarm = sr_measure_community_home_feed_variant_query($pdo, 'latest', $boardIds, 10, $variant);
+    $latestWarmMs = sr_measure_community_home_feed_ms($latestWarmStart);
+
+    $popularColdStart = microtime(true);
+    $popularCold = sr_measure_community_home_feed_variant_query($pdo, 'views', $boardIds, 5, $variant);
+    $popularColdMs = sr_measure_community_home_feed_ms($popularColdStart);
+    $popularWarmStart = microtime(true);
+    $popularWarm = sr_measure_community_home_feed_variant_query($pdo, 'views', $boardIds, 5, $variant);
+    $popularWarmMs = sr_measure_community_home_feed_ms($popularWarmStart);
+
+    echo "candidate-label: " . $label . "\n";
+    echo "candidate-variant: " . $variant . "\n";
+    echo "query-id: community.home.latest\n";
+    echo "explain:\n";
+    foreach (sr_measure_community_home_feed_variant_query_plan($pdo, 'latest', $boardIds, 10, $variant) as $line) {
+        echo "  " . $line . "\n";
+    }
+    echo "response-ms-cold: " . (string) $latestColdMs . "\n";
+    echo "response-ms-warm: " . (string) $latestWarmMs . "\n";
+    echo "returned-rows: cold=" . (string) count($latestCold) . " warm=" . (string) count($latestWarm) . "\n";
+    echo "query-id: community.home.popular\n";
+    echo "explain:\n";
+    foreach (sr_measure_community_home_feed_variant_query_plan($pdo, 'views', $boardIds, 5, $variant) as $line) {
+        echo "  " . $line . "\n";
+    }
+    echo "response-ms-cold: " . (string) $popularColdMs . "\n";
+    echo "response-ms-warm: " . (string) $popularWarmMs . "\n";
+    echo "returned-rows: cold=" . (string) count($popularCold) . " warm=" . (string) count($popularWarm) . "\n";
+}
+
+function sr_measure_community_home_feed_compare(PDO $pdo, array $boardIds, string $fixtureSize, string $dbVersion): void
+{
+    $indexName = 'idx_sr_community_posts_status_view_id_candidate';
+    $allowMutation = sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_COMPARE_MUTATION');
+
+    echo "community-home-feed-candidate-comparison\n";
+    echo "fixture-size: " . $fixtureSize . "\n";
+    echo "db-version: " . $dbVersion . "\n";
+    echo "board_ids: " . (string) count($boardIds) . "\n";
+    echo "mutation-enabled: " . ($allowMutation ? 'yes' : 'no') . "\n";
+
+    if ($allowMutation) {
+        $pdo->exec('DROP INDEX IF EXISTS ' . $indexName . ' ON sr_community_posts');
+    }
+
+    sr_measure_community_home_feed_variant_result($pdo, $boardIds, 'baseline-no-candidate-index', 'baseline');
+    sr_measure_community_home_feed_variant_result($pdo, $boardIds, 'limited-posts-first-no-candidate-index', 'limited_posts_first');
+
+    if (!$allowMutation) {
+        echo "candidate-index-skipped: set SR_COMMUNITY_FEED_MEASURE_COMPARE_MUTATION=1 on local/staging disposable data to create/drop " . $indexName . "\n";
+        return;
+    }
+
+    $indexStart = microtime(true);
+    $pdo->exec('CREATE INDEX ' . $indexName . ' ON sr_community_posts (status, view_count, id)');
+    echo "candidate-index-created: " . $indexName . "\n";
+    echo "candidate-index-create-ms: " . (string) sr_measure_community_home_feed_ms($indexStart) . "\n";
+
+    try {
+        sr_measure_community_home_feed_variant_result($pdo, $boardIds, 'baseline-with-status-view-index', 'baseline');
+        sr_measure_community_home_feed_variant_result($pdo, $boardIds, 'limited-posts-first-with-status-view-index', 'limited_posts_first');
+    } finally {
+        $dropStart = microtime(true);
+        $pdo->exec('DROP INDEX IF EXISTS ' . $indexName . ' ON sr_community_posts');
+        echo "candidate-index-dropped: " . $indexName . "\n";
+        echo "candidate-index-drop-ms: " . (string) sr_measure_community_home_feed_ms($dropStart) . "\n";
+    }
 }
 
 function sr_measure_community_home_feed_create_fixture(PDO $pdo, int $postCount, int $boardCount): array
@@ -373,6 +553,16 @@ if ($targetPdo instanceof PDO) {
 
     $driver = (string) $targetPdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $version = (string) $targetPdo->query('SELECT VERSION()')->fetchColumn();
+    if (sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_COMPARE')) {
+        sr_measure_community_home_feed_compare(
+            $targetPdo,
+            $boardIds,
+            $targetFixture ? 'posts=' . (string) $postCount . ' boards=' . (string) $boardCount : 'board_ids=' . (string) count($boardIds),
+            $driver . ' ' . $version
+        );
+        exit(0);
+    }
+
     $targetMode = sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_CONFIG') ? 'config DB' : 'explicit DSN';
     sr_measure_community_home_feed_run(
         $targetPdo,

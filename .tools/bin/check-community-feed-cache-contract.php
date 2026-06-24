@@ -225,9 +225,21 @@ sr_check_community_feed_cache_contract_home_feed_fixture();
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
     'function sr_community_feed_cache_post_feed_query',
+    'SELECT p0.id',
+    'INNER JOIN sr_community_posts p ON p.id = picked.id',
+    'SELECT MIN(att_img.id)',
     'author_account_id',
     'published_comment_count',
     'sr_community_feed_cache_snapshot_forbidden_keys',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/install.sql', [
+    'idx_sr_community_posts_status_view_id (status, view_count, id)',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.035.sql', [
+    'idx_sr_community_posts_status_view_id',
+    'ALTER TABLE {{SR_TABLE_PREFIX}}community_posts ADD KEY idx_sr_community_posts_status_view_id (status, view_count, id)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [

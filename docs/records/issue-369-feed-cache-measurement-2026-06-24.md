@@ -129,14 +129,63 @@ response-ms-warm: 90.401
 returned-rows: cold=5 warm=5
 ```
 
+## 쿼리 개선 후보 비교
+
+같은 `sr_dev` fixture에서 기존 쿼리, 후보 게시글을 먼저 `LIMIT`한 뒤 첨부를 붙이는 쿼리, 임시 `(status, view_count, id)` 인덱스 조합을 비교했다. 임시 인덱스는 비교 중 생성한 뒤 삭제했다.
+
+```text
+baseline-no-candidate-index
+latest: cold=5.861ms warm=2.286ms
+popular: cold=90.236ms warm=87.903ms
+
+limited-posts-first-no-candidate-index
+latest: cold=1.802ms warm=1.151ms
+popular: cold=16.792ms warm=83.211ms
+
+baseline-with-status-view-index
+latest: cold=2.885ms warm=2.287ms
+popular: cold=3.696ms warm=3.488ms
+
+limited-posts-first-with-status-view-index
+latest: cold=1.072ms warm=0.948ms
+popular: cold=2.712ms warm=1.902ms
+```
+
+비교 결과 인기글 병목은 영속 feed cache table보다 먼저 좁은 쿼리 개선으로 처리할 수 있다고 판단했다. `sr_community_posts(status, view_count, id)` 인덱스를 추가하고, 홈 feed 공통 query helper는 게시글 후보를 먼저 제한한 뒤 author, comment count, attachment marker를 붙이도록 변경한다.
+
+## 개선 적용 후 MariaDB target 결과
+
+`sr_community_posts(status, view_count, id)` 인덱스와 후보 게시글 선제 `LIMIT` query helper 변경을 적용한 뒤 같은 `sr_dev` fixture로 다시 측정했다. 측정 후 `sr369_local` fixture는 삭제했다.
+
+```text
+seed-summary: posts=10000 comments=3189 attachments=1196 boards=20 board_groups=1 elapsed_ms=8715.977
+cleanup-summary: posts=10000 comments=3189 attachments=1196 boards=20 board_groups=1
+fixture-step: target-readonly
+fixture-size: board_ids=21
+db-version: mysql 10.6.23-MariaDB-0ubuntu0.22.04.1
+
+query-id: community.home.latest
+explain-summary: picked post ids first, then joins post/author/attachment; p0 scans PRIMARY for latest order
+response-ms-cold: 3.445
+response-ms-warm: 1.188
+returned-rows: cold=10 warm=10
+
+query-id: community.home.popular
+explain-summary: picked post ids first with idx_sr_community_posts_status_view_id; attachment lookup is per picked post
+response-ms-cold: 1.707
+response-ms-warm: 1.412
+returned-rows: cold=5 warm=5
+```
+
 ## 판정
 
 - SQLite in-memory fixture 결과는 하니스 동작 증거로만 사용한다.
 - MariaDB fixture 결과는 MySQL/MariaDB 문법과 실행계획 smoke 증거로만 사용한다.
 - MariaDB target 결과는 반환 row가 있는 로컬 개발 DB 측정이므로 #369의 대표성 부족 상태는 해소했다.
-- 인기글 쿼리는 10,000개 fixture에서 warm 90.401ms와 filesort가 관찰됐지만, 최신글 쿼리는 warm 2.057ms였다. 이 수치만으로 홈 피드 영속 cache table, DB row lock/refresh, write path generation bump, 홈 이전, 관리자 설정까지 바로 착수하지 않는다.
-- 다음 구현 판단은 인기글 정렬/index 개선 또는 attachment 대표 이미지 derived table 축소처럼 좁은 쿼리 개선 후보를 먼저 비교한 뒤 결정한다.
+- 인기글 쿼리는 10,000개 fixture에서 warm 90.401ms와 filesort가 관찰됐지만, 좁은 쿼리 개선 적용 후 popular warm 1.412ms까지 낮췄다.
+- 이 결과만으로 홈 피드 영속 cache table, DB row lock/refresh, write path generation bump, 홈 이전, 관리자 설정까지 바로 착수하지 않는다.
+- #369는 통합 쿼리 측정, 좁은 쿼리 개선, 영속 캐시 착수 보류 결정까지로 닫는다.
 
 ## 후속
 
-인기글 정렬과 대표 이미지 attachment join 비용을 별도 후보로 나눠 측정한다. 영속 cache table은 좁은 쿼리 개선 뒤에도 홈 피드 병목이 남는 경우에 다시 판단한다.
+영속 cache table은 좁은 쿼리 개선 뒤에도 실제 홈/위젯 경로에서 병목이 남는 경우에 다시 판단한다.

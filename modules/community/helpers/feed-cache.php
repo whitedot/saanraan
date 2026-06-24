@@ -144,6 +144,9 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
     $orderSql = sr_community_feed_cache_sort_key($sort) === 'views'
         ? 'p.view_count DESC, p.id DESC'
         : 'p.id DESC';
+    $innerOrderSql = sr_community_feed_cache_sort_key($sort) === 'views'
+        ? 'p0.view_count DESC, p0.id DESC'
+        : 'p0.id DESC';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $params['limit_value'] = $limit;
@@ -161,20 +164,24 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
                 list_image.checksum_sha256 AS list_image_checksum_sha256,
                 list_image.width AS list_image_width,
                 list_image.height AS list_image_height
-         FROM sr_community_posts p
+         FROM (
+             SELECT p0.id
+             FROM sr_community_posts p0
+             WHERE p0.status = \'published\'
+               AND p0.board_id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY ' . $innerOrderSql . '
+             LIMIT :limit_value
+         ) picked
+         INNER JOIN sr_community_posts p ON p.id = picked.id
          LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
-         LEFT JOIN (
-             SELECT post_id, MIN(id) AS attachment_id
-             FROM sr_community_attachments
-             WHERE status = \'active\'
-               AND mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
-             GROUP BY post_id
-         ) list_image_pick ON list_image_pick.post_id = p.id
-         LEFT JOIN sr_community_attachments list_image ON list_image.id = list_image_pick.attachment_id
-         WHERE p.status = \'published\'
-           AND p.board_id IN (' . implode(', ', $placeholders) . ')
-         ORDER BY ' . $orderSql . '
-         LIMIT :limit_value',
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = (
+             SELECT MIN(att_img.id)
+             FROM sr_community_attachments att_img
+             WHERE att_img.post_id = p.id
+               AND att_img.status = \'active\'
+               AND att_img.mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+         )
+         ORDER BY ' . $orderSql,
         $params,
     ];
 }
