@@ -80,7 +80,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields">
             <div class="filtering-field">
                 <label for="reaction_record_account_id" class="filtering-label">회원</label>
-                <input id="reaction_record_account_id" type="number" name="account_id" class="form-input filtering-input" min="1" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $reactionRecordFilters['account_id']) : ''; ?>">
+                <input id="reaction_record_account_id" type="text" name="account_id" class="form-input filtering-input" maxlength="80" autocomplete="off" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e(sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), (int) $reactionRecordFilters['account_id'])) : ''; ?>">
             </div>
             <div class="filtering-field filtering-field-fill">
                 <label for="reaction_record_key" class="filtering-label">리액션 key</label>

@@ -49,7 +49,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_account_id">
                     <span class="filtering-label">회원</span>
-                    <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input filtering-input">
+                    <input id="content_file_download_filter_account_id" type="text" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e(sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), (int) $filters['account_id'])) : ''; ?>" class="form-input filtering-input" maxlength="80" autocomplete="off">
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_date_from">
                     <span class="filtering-label">시작일</span>

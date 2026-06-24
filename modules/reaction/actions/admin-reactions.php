@@ -175,7 +175,7 @@ $reactionRecordTargets = [];
 $reactionRecordTargetGroups = [];
 if ($reactionAdminPage === 'records') {
     $reactionRecordFilters = sr_reaction_admin_record_filters([
-        'account_id' => sr_get_string('account_id', 20),
+        'account_id' => sr_admin_member_account_id_from_identifier($pdo, sr_runtime_config(), sr_get_string('account_id', 80)),
         'target_module' => sr_get_string('target_module', 60),
         'target_type' => sr_get_string('target_type', 60),
         'target_id' => sr_get_string('target_id', 60),
