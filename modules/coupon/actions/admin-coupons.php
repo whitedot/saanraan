@@ -400,6 +400,7 @@ $memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_grou
 $issues = [];
 $redemptions = [];
 $claimCampaigns = [];
+$claimLogs = [];
 if ($couponAdminPage === 'issues') {
     $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
     $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
@@ -408,6 +409,7 @@ if ($couponAdminPage === 'issues') {
     $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, (int) $redemptionPagination['per_page'], $redemptionFilters, $redemptionSort, sr_admin_pagination_offset($redemptionPagination));
 } elseif ($couponAdminPage === 'campaigns') {
     $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
+    $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';

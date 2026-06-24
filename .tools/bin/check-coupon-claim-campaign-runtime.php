@@ -39,6 +39,16 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         status TEXT NOT NULL
     )");
     $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled')");
+    $pdo->exec("CREATE TABLE sr_member_accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL DEFAULT '',
+        login_id TEXT NOT NULL DEFAULT '',
+        display_name TEXT NOT NULL DEFAULT ''
+    )");
+    $pdo->exec("INSERT INTO sr_member_accounts (id, email, login_id, display_name) VALUES
+        (7, 'member7@example.test', 'member7', '회원7'),
+        (8, 'member8@example.test', 'member8', '회원8'),
+        (10, 'member10@example.test', 'member10', '회원10')");
     $pdo->exec("CREATE TABLE sr_coupon_definitions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         coupon_key TEXT NOT NULL UNIQUE,
@@ -230,6 +240,42 @@ function sr_coupon_claim_runtime_fixture(): void
     sr_coupon_claim_runtime_assert(!empty($pending['claimed']), 'claim should self-expire old pending rows before applying per-account unique occupancy.');
     $expired = sr_coupon_claim_runtime_row($pdo, "SELECT status, occupying_account_id FROM sr_coupon_claim_logs WHERE dedupe_key = 'old'");
     sr_coupon_claim_runtime_assert((string) ($expired['status'] ?? '') === 'expired' && $expired['occupying_account_id'] === null, 'self-expired row should release occupying account id.');
+
+    $lazyDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_lazy');
+    $lazyCampaignId = sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_lazy',
+        'coupon_definition_id' => $lazyDefinitionId,
+        'title' => 'Lazy claim',
+        'status' => 'active',
+        'claim_type' => 'free',
+        'total_claim_limit' => 1,
+        'per_account_limit' => 1,
+        'visibility' => 'public',
+        'exposure_surfaces' => ['coupon_zone'],
+        'login_required' => 1,
+    ]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_claim_logs
+            (campaign_id, coupon_definition_id, account_id, coupon_issue_id, claim_source, source_context_json, dedupe_key, dedupe_hash, occupying_account_id, status, reserved_until, failure_code, failure_message, created_at, issued_at, updated_at)
+         VALUES
+            (:campaign_id, :definition_id, 10, NULL, 'coupon_zone', '{}', 'lazy-old', :dedupe_hash, 10, 'reserved', :reserved_until, '', '', :created_at, NULL, :updated_at)"
+    )->execute([
+        'campaign_id' => $lazyCampaignId,
+        'definition_id' => $lazyDefinitionId,
+        'dedupe_hash' => sr_coupon_claim_dedupe_hash('lazy-old'),
+        'reserved_until' => $expiredTime,
+        'created_at' => $expiredTime,
+        'updated_at' => $expiredTime,
+    ]);
+    $adminLogs = sr_coupon_admin_claim_logs($pdo, 20);
+    $lazyLog = [];
+    foreach ($adminLogs as $adminLog) {
+        if ((string) ($adminLog['dedupe_key'] ?? '') === 'lazy-old') {
+            $lazyLog = $adminLog;
+            break;
+        }
+    }
+    sr_coupon_claim_runtime_assert((string) ($lazyLog['display_status'] ?? '') === 'expired_unmaterialized', 'admin claim logs should show lazy-expired reservations as unmaterialized expiry.');
 }
 
 sr_coupon_claim_runtime_fixture();

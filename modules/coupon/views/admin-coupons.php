@@ -52,6 +52,15 @@ $redemptionStatusClasses = [
     'redeemed' => 'is-normal',
     'refunded' => 'is-normal',
 ];
+$claimLogStatusClasses = [
+    'reserved' => 'is-blocked',
+    'pending_payment' => 'is-blocked',
+    'issued' => 'is-normal',
+    'failed' => 'is-left',
+    'cancelled' => 'is-left',
+    'expired' => 'is-left',
+    'expired_unmaterialized' => 'is-left',
+];
 $definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => [], 'target_type' => [], 'q' => ''];
 $issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => [], 'target_type' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
 $redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ? $redemptionFilters : ['status' => [], 'target_type' => [], 'refundable_policy' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
@@ -62,6 +71,7 @@ $definitionPagination = isset($definitionPagination) && is_array($definitionPagi
 $issuePagination = isset($issuePagination) && is_array($issuePagination) ? $issuePagination : [];
 $redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagination) ? $redemptionPagination : [];
 $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCampaigns : [];
+$claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $selectedDefinitionStatuses = is_array($definitionFilters['status'] ?? null) ? $definitionFilters['status'] : [];
@@ -224,6 +234,70 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e((string) ($campaign['visibility'] ?? '') === 'public' ? '공개' : '숨김'); ?></td>
                                 <td><?php echo (int) ($campaign['total_claim_limit'] ?? 0) > 0 ? sr_e(number_format((int) $campaign['total_claim_limit'])) : sr_e('제한 없음'); ?> / <?php echo sr_e('회원당 ' . number_format((int) ($campaign['per_account_limit'] ?? 1))); ?></td>
                                 <td><span class="text-muted">후속 슬라이스</span></td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php } ?>
+    </div>
+</section>
+
+<section class="admin-card">
+    <div class="admin-card-header">
+        <h2>최근 발급 로그</h2>
+    </div>
+    <div class="admin-card-body">
+        <?php if ($claimLogs === []) { ?>
+            <p>아직 발급 로그가 없습니다.</p>
+        <?php } else { ?>
+            <div class="table-wrapper">
+                <table class="table table-list">
+                    <thead>
+                        <tr>
+                            <th>캠페인</th>
+                            <th>쿠폰</th>
+                            <th>회원</th>
+                            <th>상태</th>
+                            <th>발급 표면</th>
+                            <th>발급본</th>
+                            <th>예약 만료</th>
+                            <th>생성</th>
+                            <th>실패 사유</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($claimLogs as $log) { ?>
+                            <?php
+                            $displayStatus = (string) ($log['display_status'] ?? $log['status'] ?? '');
+                            $accountLabel = (string) ($log['account_display_name'] ?? '');
+                            if ($accountLabel === '') {
+                                $accountLabel = (string) ($log['account_login_id'] ?? '');
+                            }
+                            if ($accountLabel === '') {
+                                $accountLabel = (string) ($log['account_email'] ?? '');
+                            }
+                            if ($accountLabel === '') {
+                                $accountLabel = '#' . (string) (int) ($log['account_id'] ?? 0);
+                            }
+                            $failureText = trim((string) ($log['failure_code'] ?? '') . ' ' . (string) ($log['failure_message'] ?? ''));
+                            ?>
+                            <tr>
+                                <td>
+                                    <?php echo sr_e((string) ($log['campaign_title'] ?? '')); ?>
+                                    <br><small><?php echo sr_e((string) ($log['campaign_key'] ?? '')); ?></small>
+                                </td>
+                                <td>
+                                    <?php echo sr_e((string) ($log['coupon_title'] ?? '')); ?>
+                                    <br><small><?php echo sr_e((string) ($log['coupon_key'] ?? '')); ?></small>
+                                </td>
+                                <td><?php echo sr_e($accountLabel); ?></td>
+                                <td><span class="coupon-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? '')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
+                                <td><?php echo sr_e(sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
+                                <td><?php echo (int) ($log['coupon_issue_id'] ?? 0) > 0 ? '#' . sr_e((string) (int) $log['coupon_issue_id']) : sr_e('-'); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['reserved_until'] ?? ''), '-'); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['created_at'] ?? ''), '-'); ?></td>
+                                <td><?php echo $failureText !== '' ? sr_e($failureText) : sr_e('-'); ?></td>
                             </tr>
                         <?php } ?>
                     </tbody>

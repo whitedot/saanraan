@@ -198,6 +198,32 @@ function sr_coupon_claim_log_statuses(): array
     return ['reserved', 'pending_payment', 'issued', 'failed', 'cancelled', 'expired'];
 }
 
+function sr_coupon_claim_log_status_label(string $status): string
+{
+    return match ($status) {
+        'reserved' => '예약',
+        'pending_payment' => '결제 대기',
+        'issued' => '발급 완료',
+        'failed' => '실패',
+        'cancelled' => '취소',
+        'expired' => '만료',
+        'expired_unmaterialized' => '만료(미정리)',
+        default => $status,
+    };
+}
+
+function sr_coupon_claim_source_label(string $source): string
+{
+    return match ($source) {
+        'coupon_zone' => '쿠폰존',
+        'direct_link' => '직접 링크',
+        'popup_layer' => '팝업레이어',
+        'content_embed' => '본문 임베드',
+        'admin' => '관리자',
+        default => $source,
+    };
+}
+
 function sr_coupon_claim_status_occupies(string $status): bool
 {
     return in_array($status, ['reserved', 'pending_payment', 'issued'], true);
@@ -1104,6 +1130,45 @@ function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100): array
     );
 
     return $stmt->fetchAll();
+}
+
+function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100): array
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(300, $limit));
+    $now = sr_now();
+    $stmt = $pdo->query(
+        'SELECT l.*, c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title,
+                a.email AS account_email, a.login_id AS account_login_id, a.display_name AS account_display_name
+         FROM sr_coupon_claim_logs l
+         INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
+         INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
+         LEFT JOIN sr_member_accounts a ON a.id = l.account_id
+         ORDER BY l.id DESC
+         LIMIT ' . $limit
+    );
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $reservedUntil = (string) ($row['reserved_until'] ?? '');
+        $row['display_status'] = $status;
+        $row['is_lazy_expired'] = false;
+        if (
+            in_array($status, ['reserved', 'pending_payment'], true)
+            && $reservedUntil !== ''
+            && strcmp($reservedUntil, $now) < 0
+        ) {
+            $row['display_status'] = 'expired_unmaterialized';
+            $row['is_lazy_expired'] = true;
+        }
+        $rows[] = $row;
+    }
+
+    return $rows;
 }
 
 function sr_coupon_create_definition(PDO $pdo, array $data): int
