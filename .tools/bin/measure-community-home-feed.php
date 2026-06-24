@@ -34,54 +34,14 @@ function sr_measure_community_home_feed_ms(float $start): float
     return round((microtime(true) - $start) * 1000, 3);
 }
 
-function sr_measure_community_home_feed_sql(string $sort, array $boardIds, int $limit): array
+function sr_measure_community_home_feed_sql(PDO $pdo, string $sort, array $boardIds, int $limit): array
 {
-    $placeholders = [];
-    $params = [];
-    foreach (array_values($boardIds) as $index => $boardId) {
-        $key = 'board_id_' . (string) $index;
-        $placeholders[] = ':' . $key;
-        $params[$key] = (int) $boardId;
-    }
-    if ($placeholders === []) {
-        return ['', []];
-    }
-
-    $orderSql = $sort === 'views' ? 'p.view_count DESC, p.id DESC' : 'p.id DESC';
-    return [
-        'SELECT p.id, p.board_id, p.author_account_id, p.title, p.body_text, p.body_format,
-                p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
-                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
-                list_image.id AS list_image_attachment_id,
-                list_image.storage_driver AS list_image_storage_driver,
-                list_image.storage_key AS list_image_storage_key,
-                list_image.mime_type AS list_image_mime_type,
-                list_image.size_bytes AS list_image_size_bytes,
-                list_image.checksum_sha256 AS list_image_checksum_sha256,
-                list_image.width AS list_image_width,
-                list_image.height AS list_image_height
-         FROM sr_community_posts p
-         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
-         LEFT JOIN (
-             SELECT post_id, MIN(id) AS attachment_id
-             FROM sr_community_attachments
-             WHERE status = \'active\'
-               AND mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
-             GROUP BY post_id
-         ) list_image_pick ON list_image_pick.post_id = p.id
-         LEFT JOIN sr_community_attachments list_image ON list_image.id = list_image_pick.attachment_id
-         WHERE p.status = \'published\'
-           AND p.board_id IN (' . implode(', ', $placeholders) . ')
-         ORDER BY ' . $orderSql . '
-         LIMIT :limit_value',
-        $params + ['limit_value' => $limit],
-    ];
+    return sr_community_feed_cache_post_feed_query($pdo, $boardIds, $limit, $sort, 'board_id_');
 }
 
 function sr_measure_community_home_feed_query(PDO $pdo, string $sort, array $boardIds, int $limit): array
 {
-    [$sql, $params] = sr_measure_community_home_feed_sql($sort, $boardIds, $limit);
+    [$sql, $params] = sr_measure_community_home_feed_sql($pdo, $sort, $boardIds, $limit);
     if ($sql === '') {
         return [];
     }
@@ -97,7 +57,7 @@ function sr_measure_community_home_feed_query(PDO $pdo, string $sort, array $boa
 
 function sr_measure_community_home_feed_query_plan(PDO $pdo, string $sort, array $boardIds, int $limit): array
 {
-    [$sql, $params] = sr_measure_community_home_feed_sql($sort, $boardIds, $limit);
+    [$sql, $params] = sr_measure_community_home_feed_sql($pdo, $sort, $boardIds, $limit);
     if ($sql === '') {
         return [];
     }

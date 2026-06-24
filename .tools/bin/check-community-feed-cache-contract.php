@@ -125,9 +125,18 @@ sr_check_community_feed_cache_contract_assert(!str_contains($json, 'csrf_token')
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
+    'function sr_community_feed_cache_post_feed_query',
     'author_account_id',
     'published_comment_count',
     'sr_community_feed_cache_snapshot_forbidden_keys',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
+    'sr_community_feed_cache_post_feed_query($pdo',
+]);
+
+sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [
+    'sr_community_feed_cache_post_feed_query($pdo',
 ]);
 
 sr_check_community_feed_cache_contract_contains('docs/records/milestone-32-community-query-measurement-plan-2026-06-24.md', [

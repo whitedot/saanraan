@@ -6,7 +6,7 @@
 
 ## 목적
 
-영속 feed cache table을 만들기 전에 현재 통합 홈 피드 쿼리의 비용을 fixture/EXPLAIN 형식으로 기록할 수 있는 하니스를 추가했다. 이 기록은 SQLite fixture 결과이며, MySQL/MariaDB 로컬 또는 staging 측정을 대체하지 않는다.
+영속 feed cache table을 만들기 전에 현재 통합 홈 피드 쿼리의 비용을 fixture/EXPLAIN 형식으로 기록할 수 있는 하니스를 추가했다. 하니스는 실제 홈 최신글/인기글 조회와 같은 feed query helper를 사용한다. 이 기록은 SQLite fixture 결과이며, MySQL/MariaDB 로컬 또는 staging 측정을 대체하지 않는다.
 
 ## 실행 명령
 

@@ -116,6 +116,69 @@ function sr_community_feed_cache_context_hash(array $context): string
     return hash('sha256', $json);
 }
 
+function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int $limit, string $sort, string $paramPrefix = 'feed_board_id_'): array
+{
+    $ids = [];
+    foreach ($boardIds as $boardId) {
+        $id = (int) $boardId;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+    ksort($ids, SORT_NUMERIC);
+    if ($ids === []) {
+        return ['', []];
+    }
+
+    $placeholders = [];
+    $params = [];
+    $index = 0;
+    foreach (array_values($ids) as $boardId) {
+        $paramKey = $paramPrefix . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $boardId;
+        $index++;
+    }
+
+    $limit = sr_community_feed_cache_count($limit, 20);
+    $orderSql = sr_community_feed_cache_sort_key($sort) === 'views'
+        ? 'p.view_count DESC, p.id DESC'
+        : 'p.id DESC';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $params['limit_value'] = $limit;
+
+    return [
+        'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
+                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
+                list_image.id AS list_image_attachment_id,
+                list_image.storage_driver AS list_image_storage_driver,
+                list_image.storage_key AS list_image_storage_key,
+                list_image.mime_type AS list_image_mime_type,
+                list_image.size_bytes AS list_image_size_bytes,
+                list_image.checksum_sha256 AS list_image_checksum_sha256,
+                list_image.width AS list_image_width,
+                list_image.height AS list_image_height
+         FROM sr_community_posts p
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
+         LEFT JOIN (
+             SELECT post_id, MIN(id) AS attachment_id
+             FROM sr_community_attachments
+             WHERE status = \'active\'
+               AND mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+             GROUP BY post_id
+         ) list_image_pick ON list_image_pick.post_id = p.id
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = list_image_pick.attachment_id
+         WHERE p.status = \'published\'
+           AND p.board_id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY ' . $orderSql . '
+         LIMIT :limit_value',
+        $params,
+    ];
+}
+
 function sr_community_feed_cache_thumbnail_source_marker(array $post): array
 {
     $attachmentId = (int) ($post['list_image_attachment_id'] ?? $post['thumbnail_attachment_id'] ?? 0);
