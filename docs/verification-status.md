@@ -139,6 +139,7 @@ php .tools/bin/smoke-http.php
 - `.tools/bin/check-community-privacy-consent.php`는 커뮤니티 개인정보 수집 및 이용동의의 전역 기본값 normalization, 게시판 설정 override, 미동의 서버 거부, 비회원 `account_id = NULL` 동의 snapshot, 제목/버전/IP hash 저장을 SQLite fixture로 확인한다. 정적 마커는 환경설정, 게시판 개별 설정 UI와 저장 action, 공개 게시글/수정/댓글/첨부 업로드 검증 연결, 게시글/댓글 관리자 목록 동의 증적 표시를 함께 확인한다.
 - `.tools/bin/check-community-board-settings.php`는 게시판 그룹/게시판 운영 설정 key, 관리자 저장 action, 공개 목록 페이지당 글 수/기본 정렬/본문 요약 적용, 게시글·댓글 본문 길이 검증, 댓글 수 기반 게시글 수정·삭제 잠금 marker, 커뮤니티 전체검색 helper 계약을 확인한다. 런타임 fixture는 정렬 key normalization, HTML 본문 plain length 계산, 본문 요약 자르기 helper, 전체검색의 제목/본문 검색 범위와 비밀글 본문 제외가 기대값을 유지하는지 확인한다.
 - `.tools/bin/check-community-feed-cache-contract.php`는 #369 v1 feed cache 사전 helper 계약을 확인한다. everyone-discoverable 공개 게시판 baseline, viewer class 없는 context hash, fetch/display count 분리, `author_account_id` 기반 card snapshot, `published_comment_count` 보류, thumbnail source marker, author label/본문/CSRF/계정별 권한/유료 접근권/thumbnail URL 금지 필드가 snapshot에 들어가지 않는지를 fixture로 확인한다.
+- `.tools/bin/measure-community-home-feed.php`는 커뮤니티 홈 최신글/인기글 통합 쿼리를 SQLite fixture에서 실행해 #361 형식의 EXPLAIN, cold/warm 응답 시간, 반환 row 수를 출력하는 측정 하니스다. 이 하니스 결과는 target MySQL/MariaDB 측정을 대체하지 않으며, 영속 feed cache table 착수 근거로 쓰려면 대표 로컬 또는 staging DB에서 별도 기록을 남긴다.
 - 공유호스팅에서 실시간 실행을 보장하지 않는다는 한계는 README와 운영 문서에서 함께 설명해야 한다.
 
 ### 자작 보안 컴포넌트
