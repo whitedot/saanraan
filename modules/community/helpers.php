@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/community/helpers/boards.php';
 require_once SR_ROOT . '/modules/community/helpers/body-files.php';
 require_once SR_ROOT . '/modules/community/helpers/categories.php';
+require_once SR_ROOT . '/modules/community/helpers/feed-cache.php';
 require_once SR_ROOT . '/modules/community/helpers/members.php';
 require_once SR_ROOT . '/modules/community/helpers/posts.php';
 require_once SR_ROOT . '/modules/community/helpers/attachments.php';
