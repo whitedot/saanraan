@@ -38,6 +38,103 @@ function sr_check_community_feed_cache_contract_contains(string $path, array $ne
     }
 }
 
+function sr_check_community_feed_cache_contract_home_feed_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec('CREATE TABLE sr_community_posts (
+        id INTEGER PRIMARY KEY,
+        board_id INTEGER NOT NULL,
+        author_account_id INTEGER NULL,
+        author_public_name_snapshot TEXT NOT NULL DEFAULT "",
+        guest_author_name TEXT NOT NULL DEFAULT "",
+        guest_password_hash TEXT NULL,
+        guest_ip_hash TEXT NULL,
+        guest_user_agent_hash TEXT NULL,
+        title TEXT NOT NULL,
+        body_text TEXT NOT NULL DEFAULT "",
+        body_format TEXT NOT NULL DEFAULT "plain",
+        is_secret INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL,
+        view_count INTEGER NOT NULL DEFAULT 0,
+        last_commented_at TEXT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_comments (
+        id INTEGER PRIMARY KEY,
+        post_id INTEGER NOT NULL,
+        status TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_attachments (
+        id INTEGER PRIMARY KEY,
+        post_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        storage_driver TEXT NOT NULL DEFAULT "local",
+        storage_key TEXT NOT NULL DEFAULT "",
+        size_bytes INTEGER NOT NULL DEFAULT 0,
+        checksum_sha256 TEXT NOT NULL DEFAULT "",
+        width INTEGER NULL,
+        height INTEGER NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_member_accounts (
+        id INTEGER PRIMARY KEY,
+        status TEXT NOT NULL
+    )');
+
+    foreach ([1, 2, 3] as $accountId) {
+        $pdo->prepare('INSERT INTO sr_member_accounts (id, status) VALUES (:id, "active")')->execute(['id' => $accountId]);
+    }
+
+    $insertPost = $pdo->prepare(
+        'INSERT INTO sr_community_posts
+            (id, board_id, author_account_id, title, body_text, status, view_count, created_at, updated_at)
+         VALUES
+            (:id, :board_id, :author_account_id, :title, "", :status, :view_count, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['id' => 1, 'board_id' => 1, 'view_count' => 50, 'status' => 'published'],
+        ['id' => 2, 'board_id' => 1, 'view_count' => 10, 'status' => 'published'],
+        ['id' => 3, 'board_id' => 3, 'view_count' => 90, 'status' => 'published'],
+        ['id' => 4, 'board_id' => 5, 'view_count' => 80, 'status' => 'published'],
+        ['id' => 5, 'board_id' => 1, 'view_count' => 999, 'status' => 'hidden'],
+    ] as $row) {
+        $insertPost->execute([
+            'id' => $row['id'],
+            'board_id' => $row['board_id'],
+            'author_account_id' => (($row['id'] - 1) % 3) + 1,
+            'title' => 'Post ' . (string) $row['id'],
+            'status' => $row['status'],
+            'view_count' => $row['view_count'],
+            'created_at' => '2026-06-24 12:00:00',
+            'updated_at' => '2026-06-24 12:00:00',
+        ]);
+    }
+
+    $boards = [
+        ['id' => 1, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
+        ['id' => 3, 'status' => 'enabled', 'read_policy' => 'member', 'effective_read_policy' => 'member'],
+        ['id' => 5, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
+    ];
+    $baselineBoards = sr_community_feed_cache_public_baseline_boards($boards);
+    $homeExcerptAllowed = array_fill_keys(sr_community_feed_cache_public_baseline_board_ids($baselineBoards), true);
+    $settings = sr_community_default_settings();
+
+    $latest = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
+    $popular = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'views');
+
+    sr_check_community_feed_cache_contract_assert(
+        array_map(static fn (array $post): int => (int) $post['id'], $latest) === [4, 2, 1],
+        'home latest feed fixture must use public baseline boards and published id desc order.'
+    );
+    sr_check_community_feed_cache_contract_assert(
+        array_map(static fn (array $post): int => (int) $post['id'], $popular) === [4, 1, 2],
+        'home popular feed fixture must use public baseline boards and snapshot view_count order.'
+    );
+}
+
 $boards = [
     ['id' => 3, 'status' => 'enabled', 'read_policy' => 'member', 'effective_read_policy' => 'member'],
     ['id' => 1, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
@@ -122,6 +219,8 @@ $json = sr_community_feed_cache_card_snapshot_json([
 ]);
 sr_check_community_feed_cache_contract_assert(!str_contains($json, 'body_text'), 'snapshot JSON must not contain body_text key.');
 sr_check_community_feed_cache_contract_assert(!str_contains($json, 'csrf_token'), 'snapshot JSON must not contain csrf token key.');
+
+sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
