@@ -18,6 +18,7 @@
 - `sr_community_copy_board()`는 `full` 모드 동기 실행을 거부한다.
 - `prepare` 단계는 source type별로 아직 map에 없는 원본 ID를 요청당 최대 500개씩 추가한다.
 - `posts`, `comments`, `attachments` 단계는 기존처럼 요청당 처리 상한을 사용한다.
+- `verify` 단계는 복사된 attachment map을 요청당 최대 100개씩 storage head로 확인하고 `verified` 상태로 넘긴다.
 - `cleanup` 단계는 생성된 storage map을 요청당 최대 100개씩 정리하고, 남은 파일이 있으면 cleanup 단계에 머문다.
 - 작업 처리 중에는 `lock_token`을 매 단계와 map update에 확인한다.
 

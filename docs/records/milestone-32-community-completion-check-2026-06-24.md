@@ -46,3 +46,7 @@ GitHub issue 상태는 별도 명시 없이 변경하지 않는 저장소 운영
 - #362 타깃 검사: `php .tools/bin/check-community-board-copy-limits.php`, `php .tools/bin/check-community-board-copy-job-lock.php`
 
 마지막 전체 점검에서도 `php .tools/bin/check.php`와 HTTP smoke가 통과했다.
+
+## 리뷰 후속
+
+정밀 리뷰에서 게시판 full copy job 경로의 선택 스키마 호환성과 verify 단계 처리 상한 누락을 발견했다. 후속 커밋에서 category table guard와 verify batch marker를 추가했다.

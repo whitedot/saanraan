@@ -52,7 +52,7 @@ function sr_community_board_copy_job_state_label(string $status, string $stage):
 
 function sr_community_board_copy_map_statuses(): array
 {
-    return ['pending', 'copied', 'failed', 'skipped', 'cleaned', 'cleanup_failed'];
+    return ['pending', 'copied', 'verified', 'failed', 'skipped', 'cleaned', 'cleanup_failed'];
 }
 
 function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array $values, int $accountId): int
@@ -264,7 +264,10 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     }
     if ($stage === 'verify') {
         sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
-        sr_community_board_copy_job_verify($pdo, $job);
+        $verify = sr_community_board_copy_job_verify($pdo, $job, (int) ($limits['verify'] ?? 100), $lockToken);
+        if ((int) ($verify['remaining'] ?? 0) > 0) {
+            return ['done' => false, 'stage' => 'verify', 'status' => 'running', 'message' => '복사 결과를 묶음으로 확인했습니다.'];
+        }
         return ['done' => false, 'stage' => 'complete', 'status' => 'running', 'message' => '복사 결과를 확인했습니다.'];
     }
     if ($stage === 'complete') {
@@ -301,8 +304,11 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockT
         'INSERT IGNORE INTO sr_community_board_copy_job_maps (job_id, entity_type, source_id, status, created_at, updated_at)
          VALUES (:job_id, :entity_type, :source_id, :status, :created_at, :updated_at)'
     );
-    $sources = [
-        'category' => "SELECT c.id FROM sr_community_categories c WHERE c.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'category' AND m.source_id = c.id) ORDER BY c.id ASC",
+    $sources = [];
+    if (sr_community_categories_supported($pdo)) {
+        $sources['category'] = "SELECT c.id FROM sr_community_categories c WHERE c.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'category' AND m.source_id = c.id) ORDER BY c.id ASC";
+    }
+    $sources += [
         'post' => "SELECT p.id FROM sr_community_posts p WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'post' AND m.source_id = p.id) ORDER BY p.id ASC",
         'comment' => "SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'comment' AND m.source_id = c.id) ORDER BY c.id ASC",
         'attachment' => "SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'attachment' AND m.source_id = a.id) ORDER BY a.id ASC",
@@ -400,31 +406,33 @@ function sr_community_board_copy_job_create_board(PDO $pdo, array $job, string $
         ]);
         sr_community_copy_board_settings($pdo, (int) $job['source_board_id'], $newBoardId, $now);
 
-        $stmt = $pdo->prepare('SELECT * FROM sr_community_categories WHERE board_id = :board_id ORDER BY id ASC');
-        $stmt->execute(['board_id' => (int) $job['source_board_id']]);
-        $insert = $pdo->prepare(
-            'INSERT INTO sr_community_categories (board_id, category_key, title, description, status, sort_order, created_at, updated_at)
-             VALUES (:board_id, :category_key, :title, :description, :status, :sort_order, :created_at, :updated_at)'
-        );
-        $updateMap = $pdo->prepare("UPDATE sr_community_board_copy_job_maps SET target_id = :target_id, status = 'copied', updated_at = :updated_at WHERE job_id = :job_id AND entity_type = 'category' AND source_id = :source_id");
-        foreach ($stmt->fetchAll() as $category) {
-            sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
-            $insert->execute([
-                'board_id' => $newBoardId,
-                'category_key' => (string) $category['category_key'],
-                'title' => (string) $category['title'],
-                'description' => (string) ($category['description'] ?? ''),
-                'status' => (string) $category['status'],
-                'sort_order' => (int) $category['sort_order'],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-            $updateMap->execute([
-                'target_id' => (int) $pdo->lastInsertId(),
-                'updated_at' => $now,
-                'job_id' => (int) $job['id'],
-                'source_id' => (int) $category['id'],
-            ]);
+        if (sr_community_categories_supported($pdo)) {
+            $stmt = $pdo->prepare('SELECT * FROM sr_community_categories WHERE board_id = :board_id ORDER BY id ASC');
+            $stmt->execute(['board_id' => (int) $job['source_board_id']]);
+            $insert = $pdo->prepare(
+                'INSERT INTO sr_community_categories (board_id, category_key, title, description, status, sort_order, created_at, updated_at)
+                 VALUES (:board_id, :category_key, :title, :description, :status, :sort_order, :created_at, :updated_at)'
+            );
+            $updateMap = $pdo->prepare("UPDATE sr_community_board_copy_job_maps SET target_id = :target_id, status = 'copied', updated_at = :updated_at WHERE job_id = :job_id AND entity_type = 'category' AND source_id = :source_id");
+            foreach ($stmt->fetchAll() as $category) {
+                sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
+                $insert->execute([
+                    'board_id' => $newBoardId,
+                    'category_key' => (string) $category['category_key'],
+                    'title' => (string) $category['title'],
+                    'description' => (string) ($category['description'] ?? ''),
+                    'status' => (string) $category['status'],
+                    'sort_order' => (int) $category['sort_order'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $updateMap->execute([
+                    'target_id' => (int) $pdo->lastInsertId(),
+                    'updated_at' => $now,
+                    'job_id' => (int) $job['id'],
+                    'source_id' => (int) $category['id'],
+                ]);
+            }
         }
         sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         $pdo->prepare('UPDATE sr_community_board_copy_jobs SET target_board_id = :target_board_id, updated_at = :updated_at WHERE id = :id')
@@ -853,9 +861,12 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
     }
 }
 
-function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
+function sr_community_board_copy_job_verify(PDO $pdo, array $job, int $limit = 100, string $lockToken = ''): array
 {
     $jobId = (int) $job['id'];
+    if ($lockToken !== '') {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+    }
     foreach (['post', 'comment', 'attachment', 'series', 'series_item'] as $type) {
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND entity_type = :entity_type AND status IN ('pending', 'failed')");
         $stmt->execute(['job_id' => $jobId, 'entity_type' => $type]);
@@ -884,16 +895,23 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
         }
     }
 
+    $limit = max(1, min(500, $limit));
     $stmt = $pdo->prepare(
         "SELECT m.*, a.size_bytes, a.checksum_sha256
          FROM sr_community_board_copy_job_maps m
          INNER JOIN sr_community_attachments a ON a.id = m.source_id
          WHERE m.job_id = :job_id
            AND m.entity_type = 'attachment'
-           AND m.status = 'copied'"
+           AND m.status = 'copied'
+         ORDER BY m.id ASC
+         LIMIT " . (string) $limit
     );
     $stmt->execute(['job_id' => $jobId]);
-    foreach ($stmt->fetchAll() as $map) {
+    $maps = $stmt->fetchAll();
+    foreach ($maps as $map) {
+        if ($lockToken !== '') {
+            sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+        }
         $head = sr_storage_head((string) $map['created_storage_driver'], (string) $map['created_storage_key']);
         if (!is_array($head)) {
             throw new RuntimeException('복사된 첨부파일을 확인할 수 없습니다.');
@@ -905,7 +923,13 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
         if ((string) ($metadata['sha256'] ?? '') !== '' && (string) $metadata['sha256'] !== (string) $map['checksum_sha256']) {
             throw new RuntimeException('복사된 첨부파일 checksum이 일치하지 않습니다.');
         }
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'verified', '', (string) $map['created_storage_driver'], (string) $map['created_storage_key'], $jobId, $lockToken);
     }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND entity_type = 'attachment' AND status = 'copied'");
+    $stmt->execute(['job_id' => $jobId]);
+
+    return ['remaining' => (int) $stmt->fetchColumn(), 'processed' => count($maps)];
 }
 
 function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockToken, int $limit = 100): array
@@ -948,12 +972,14 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
             'DELETE FROM sr_community_series WHERE board_id = :board_id',
             'DELETE c FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id',
             'DELETE FROM sr_community_posts WHERE board_id = :board_id',
-            'DELETE FROM sr_community_categories WHERE board_id = :board_id',
             'DELETE FROM sr_community_board_settings WHERE board_id = :board_id',
             'DELETE FROM sr_community_board_setting_sources WHERE board_id = :board_id',
             'DELETE FROM sr_community_boards WHERE id = :board_id',
         ] as $sql) {
             $pdo->prepare($sql)->execute(['board_id' => $targetBoardId]);
+        }
+        if (sr_community_categories_supported($pdo)) {
+            $pdo->prepare('DELETE FROM sr_community_categories WHERE board_id = :board_id')->execute(['board_id' => $targetBoardId]);
         }
         sr_community_cleanup_body_files_for_deleted_posts($pdo, $postIds);
     }
