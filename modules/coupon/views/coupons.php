@@ -1,9 +1,13 @@
 <?php
 
-$pageTitle = '쿠폰존';
+$singleCampaign = isset($singleCampaign) && is_array($singleCampaign) ? $singleCampaign : null;
+$pageTitle = is_array($singleCampaign) ? (string) ($singleCampaign['title'] ?? '쿠폰존') : '쿠폰존';
+$canonicalPath = is_array($singleCampaign)
+    ? '/coupons?campaign=' . rawurlencode((string) ($singleCampaign['campaign_key'] ?? ''))
+    : '/coupons';
 $seo = [
     'title' => $pageTitle,
-    'canonical' => sr_canonical_url($site, '/coupons'),
+    'canonical' => sr_canonical_url($site, $canonicalPath),
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
@@ -25,6 +29,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     $remaining = $state['remaining'] ?? null;
                     $canClaim = !empty($state['claimable']) && $accountId > 0;
                     $intentToken = sr_coupon_public_claim_intent_token($campaignId);
+                    $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
+                    $claimSource = (string) ($campaign['claim_source'] ?? 'coupon_zone');
                     ?>
                     <article class="card coupon-zone-card">
                         <div class="card-body ui-card-body-stack">
@@ -51,12 +57,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 </div>
                             </dl>
                             <?php if ($accountId <= 0) { ?>
-                                <a class="btn btn-primary" href="<?php echo sr_e(sr_url('/login?return_to=' . rawurlencode('/coupons'))); ?>">로그인하고 받기</a>
+                                <a class="btn btn-primary" href="<?php echo sr_e(sr_url('/login?return_to=' . rawurlencode($campaignUrl))); ?>">로그인하고 받기</a>
                             <?php } elseif ($canClaim) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/coupons')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="campaign_key" value="<?php echo sr_e((string) ($campaign['campaign_key'] ?? '')); ?>">
+                                    <input type="hidden" name="claim_source" value="<?php echo sr_e($claimSource); ?>">
                                     <input type="hidden" name="claim_intent_token" value="<?php echo sr_e($intentToken); ?>">
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e($campaignUrl); ?>">
                                     <button type="submit" class="btn btn-primary">쿠폰 받기</button>
                                 </form>
                             <?php } else { ?>

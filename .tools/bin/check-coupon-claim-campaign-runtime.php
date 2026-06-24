@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
 }
 
 require_once $root . '/core/helpers.php';
+require_once $root . '/modules/embed_manager/helpers.php';
 require_once $root . '/modules/coupon/helpers.php';
 
 $errors = [];
@@ -276,6 +277,33 @@ function sr_coupon_claim_runtime_fixture(): void
         }
     }
     sr_coupon_claim_runtime_assert((string) ($lazyLog['display_status'] ?? '') === 'expired_unmaterialized', 'admin claim logs should show lazy-expired reservations as unmaterialized expiry.');
+
+    $embedDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_embed');
+    $embedCampaignId = sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_embed',
+        'coupon_definition_id' => $embedDefinitionId,
+        'title' => 'Embed claim',
+        'description' => 'Embedded coupon campaign',
+        'status' => 'active',
+        'claim_type' => 'free',
+        'per_account_limit' => 1,
+        'visibility' => 'public',
+        'exposure_surfaces' => ['content_embed'],
+        'login_required' => 1,
+    ]);
+    sr_coupon_claim_runtime_assert($embedCampaignId > 0, 'content embed campaign fixture should create campaign.');
+    $contract = require SR_ROOT . '/modules/coupon/embed-manager-url-targets.php';
+    $target = $contract['targets'][0] ?? [];
+    $resolved = is_array($target) && is_callable($target['resolve_url'] ?? null)
+        ? $target['resolve_url']($pdo, ['url' => '/coupons?campaign=claim_embed'])
+        : null;
+    sr_coupon_claim_runtime_assert(is_array($resolved) && (string) ($resolved['target_id'] ?? '') === (string) $embedCampaignId, 'coupon embed URL contract should resolve campaign detail URLs.');
+    $rendered = is_array($resolved) && is_callable($target['render_embed'] ?? null)
+        ? $target['render_embed']($pdo, $resolved, ['viewer_account_id' => 10])
+        : [];
+    $sanitized = sr_embed_manager_sanitize_rendered_fragment((string) ($rendered['html'] ?? ''));
+    sr_coupon_claim_runtime_assert(str_contains($sanitized, 'data-coupon-embed="claim"'), 'coupon embed rendered fragment should keep coupon embed namespace.');
+    sr_coupon_claim_runtime_assert(str_contains($sanitized, '/coupons?campaign=claim_embed'), 'coupon embed rendered fragment should link to the campaign detail page.');
 }
 
 sr_coupon_claim_runtime_fixture();

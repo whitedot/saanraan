@@ -317,6 +317,25 @@ function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_coupon_claim_campaign_by_id(PDO $pdo, int $campaignId): ?array
+{
+    if ($campaignId <= 0 || !sr_coupon_claim_tables_available($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.*, d.coupon_key, d.title AS coupon_title, d.description AS coupon_description, d.status AS coupon_status, d.target_type, d.target_id, d.max_uses_per_issue
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         WHERE c.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $campaignId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_coupon_public_flash_result(array $result): void
 {
     $_SESSION['sr_coupon_public_flash'] = [
@@ -1320,6 +1339,46 @@ function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $lim
     }
 
     return $campaigns;
+}
+
+function sr_coupon_public_claim_campaign(PDO $pdo, string $campaignKey, int $accountId = 0, array $allowedSurfaces = ['coupon_zone', 'direct_link', 'content_embed']): ?array
+{
+    $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+    if (!is_array($campaign)) {
+        return null;
+    }
+    if ((string) ($campaign['status'] ?? '') !== 'active' || (string) ($campaign['visibility'] ?? '') !== 'public') {
+        return null;
+    }
+    if ((string) ($campaign['coupon_status'] ?? '') !== 'active') {
+        return null;
+    }
+
+    $now = sr_now();
+    if ((string) ($campaign['starts_at'] ?? '') !== '' && strcmp((string) $campaign['starts_at'], $now) > 0) {
+        return null;
+    }
+    if ((string) ($campaign['ends_at'] ?? '') !== '' && strcmp((string) $campaign['ends_at'], $now) < 0) {
+        return null;
+    }
+
+    $surfaces = array_fill_keys(sr_coupon_claim_surfaces_from_value($campaign['exposure_surfaces_json'] ?? ''), true);
+    $claimSource = '';
+    foreach ($allowedSurfaces as $surface) {
+        $surface = (string) $surface;
+        if (isset($surfaces[$surface])) {
+            $claimSource = $surface;
+            break;
+        }
+    }
+    if ($claimSource === '') {
+        return null;
+    }
+
+    $campaign['claim_source'] = $claimSource;
+    $campaign['claim_state'] = sr_coupon_claim_campaign_state($pdo, $campaign, $accountId);
+
+    return $campaign;
 }
 
 function sr_coupon_claim_campaign_state(PDO $pdo, array $campaign, int $accountId = 0): array

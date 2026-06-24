@@ -1332,7 +1332,7 @@ function sr_embed_manager_sanitize_rendered_fragment(string $html): string
         return '';
     }
     $allowedTags = ['div', 'aside', 'a', 'img', 'strong', 'p', 'span'];
-    $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-quiz-embed', 'data-survey-embed'];
+    $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-coupon-embed', 'data-quiz-embed', 'data-survey-embed'];
     $nodes = [];
     foreach ($dom->getElementsByTagName('*') as $node) {
         $nodes[] = $node;
