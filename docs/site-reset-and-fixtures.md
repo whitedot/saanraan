@@ -93,4 +93,4 @@ php .tools/bin/seed-dummy-http.php
 - `php .tools/bin/check.php` 결과
 - 가능한 경우 HTTP smoke 결과
 
-GitHub Wiki는 1.0 배포 전 정리 이슈에서 한 번에 맞춘다. 이 문서 기준을 바꾸는 코드 변경이 있으면 저장소 문서를 먼저 갱신하고 Wiki 동기화 필요성을 작업 기록에 남긴다.
+이 문서 기준을 바꾸는 코드 변경이 있으면 저장소 문서를 같은 작업에서 갱신한다. GitHub Wiki는 현재 운영 문서의 정본으로 사용하지 않는다.

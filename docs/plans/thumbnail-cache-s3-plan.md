@@ -5,7 +5,7 @@
 문서 수명:
 
 - S3 원본 썸네일 생성과 캐시 정책 보강을 구현하기 전까지 계획 문서로 보관한다.
-- 구현이 완료되면 현재 기준은 `docs/performance-policy.md`, `docs/deployment-protection.md`, `docs/module-guide.md`, 관련 모듈 README 또는 Wiki로 옮긴다.
+- 구현이 완료되면 현재 기준은 `docs/performance-policy.md`, `docs/deployment-protection.md`, `docs/module-guide.md` 또는 관련 모듈 README로 옮긴다.
 - S3 캐시 저장소 자체 지원은 1차 구현과 분리한 후속 계획으로 남긴다.
 
 ## 기본 판단

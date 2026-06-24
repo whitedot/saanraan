@@ -343,7 +343,7 @@ GitHub 이슈 기준도 함께 맞춘다.
 - `.tools/bin/check-read-reference-contracts.php`가 통합 점검에 포함되어 통과한다.
 - destructive/admin-sensitive POST는 최신 참조 현황을 서버에서 다시 확인하고, 계약 로드/검증 오류가 있으면 저장을 중단한다.
 - 소유 모듈이 소비 모듈 정책을 직접 update/delete/자동 치환하지 않는다.
-- 관련 저장소 문서와 Wiki 반영 필요성이 함께 정리되어 있다.
+- 관련 저장소 문서 반영 필요성이 함께 정리되어 있다.
 - `php .tools/bin/check.php`와 가능한 HTTP 스모크 결과가 완료 보고에 포함되어 있다.
 
 현재 확인 상태:

@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '운영 상태';
+$adminPageTitle = '운영 지연/실패 점검';
 $adminPageSubtitle = [
     '지연되었거나 실패한 항목은 해당 관리 화면에서 처리해 주세요.',
 ];
@@ -40,17 +40,19 @@ $statusClass = static function (string $status): string {
                     <th>건수</th>
                     <th>허용 지연</th>
                     <th>가장 오래된 시각</th>
+                    <th>대상</th>
                     <th>후속 확인</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($operationStatusRows === []) { ?>
-                    <tr><td colspan="7" class="admin-empty-state">운영 상태 점검 항목이 없습니다.</td></tr>
+                    <tr><td colspan="8" class="admin-empty-state">운영 지연/실패 점검 항목이 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($operationStatusRows as $row) { ?>
                     <?php
                     $rowStatus = (string) ($row['status'] ?? 'error');
                     $rowMessage = trim((string) ($row['message'] ?? ''));
+                    $rowTargets = isset($row['targets']) && is_array($row['targets']) ? $row['targets'] : [];
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">
@@ -70,6 +72,17 @@ $statusClass = static function (string $status): string {
                         <td class="admin-table-nowrap">
                             <?php if ((string) ($row['oldest_at'] ?? '') !== '') { ?>
                                 <?php echo sr_admin_time_html((string) $row['oldest_at']); ?>
+                            <?php } else { ?>
+                                -
+                            <?php } ?>
+                        </td>
+                        <td class="admin-table-break">
+                            <?php if ($rowTargets !== []) { ?>
+                                <ul class="admin-operations-target-list">
+                                    <?php foreach ($rowTargets as $target) { ?>
+                                        <li><?php echo sr_e((string) $target); ?></li>
+                                    <?php } ?>
+                                </ul>
                             <?php } else { ?>
                                 -
                             <?php } ?>

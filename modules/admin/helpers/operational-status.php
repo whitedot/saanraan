@@ -6,6 +6,100 @@ function sr_admin_operational_status_checks(): array
 {
     return [
         [
+            'label' => 'policy_documents.mail_jobs.queued',
+            'title' => '정책 문서 안내메일 대기',
+            'module' => 'policy_documents',
+            'table' => 'sr_policy_document_mail_jobs',
+            'where' => "status = 'queued'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '1시간',
+            'warn_after_seconds' => 3600,
+            'target_sql' => "SELECT d.document_key, v.version_key, j.job_key AS target_fallback
+                FROM sr_policy_document_mail_jobs j
+                INNER JOIN sr_policy_documents d ON d.id = j.document_id
+                INNER JOIN sr_policy_document_versions v ON v.id = j.version_id
+                WHERE j.status = 'queued'
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5",
+            'target_format' => '{document_key} / {version_key}',
+            'target_fallback_prefix' => '작업',
+            'followup' => '/admin/policy-documents에서 안내메일 발송 배치를 실행하거나 delivery 실패를 확인합니다.',
+        ],
+        [
+            'label' => 'policy_documents.mail_jobs.failed',
+            'title' => '정책 문서 안내메일 실패',
+            'module' => 'policy_documents',
+            'table' => 'sr_policy_document_mail_jobs',
+            'where' => "status = 'failed'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '즉시',
+            'warn_after_seconds' => 0,
+            'target_sql' => "SELECT d.document_key, v.version_key, j.job_key AS target_fallback
+                FROM sr_policy_document_mail_jobs j
+                INNER JOIN sr_policy_documents d ON d.id = j.document_id
+                INNER JOIN sr_policy_document_versions v ON v.id = j.version_id
+                WHERE j.status = 'failed'
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5",
+            'target_format' => '{document_key} / {version_key}',
+            'target_fallback_prefix' => '작업',
+            'followup' => '/admin/policy-documents에서 실패 delivery와 메일 설정을 확인합니다.',
+        ],
+        [
+            'label' => 'asset_recovery.open',
+            'title' => '포인트/금액 미회수',
+            'module' => 'asset_ledger',
+            'table' => 'sr_asset_recovery_failures',
+            'where' => "status = 'open'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '즉시',
+            'warn_after_seconds' => 0,
+            'target_sql' => "SELECT source_module, subject_type, subject_id, account_id, id AS target_fallback
+                FROM sr_asset_recovery_failures
+                WHERE status = 'open'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '{source_module} {subject_type}#{subject_id} / 계정 #{account_id}',
+            'target_fallback_prefix' => '미회수',
+            'followup' => '/admin/assets/recovery-failures에서 재회수, 수동 해소, 취소 기준을 적용합니다.',
+        ],
+        [
+            'label' => 'community.publisher_rewards.pending',
+            'title' => '커뮤니티 게시자 보상 대기',
+            'module' => 'community',
+            'table' => 'sr_community_publisher_reward_logs',
+            'where' => "status = 'pending'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '15분',
+            'warn_after_seconds' => 900,
+            'target_sql' => "SELECT post_id, attachment_id, publisher_account_id, id AS target_fallback
+                FROM sr_community_publisher_reward_logs
+                WHERE status = 'pending'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '게시글 #{post_id} / 첨부 #{attachment_id} / 게시자 #{publisher_account_id}',
+            'target_fallback_prefix' => '로그',
+            'followup' => '/admin/community/publisher-rewards에서 대기 로그와 자산 지급 상태를 확인합니다.',
+        ],
+        [
+            'label' => 'community.publisher_rewards.failed',
+            'title' => '커뮤니티 게시자 보상 실패',
+            'module' => 'community',
+            'table' => 'sr_community_publisher_reward_logs',
+            'where' => "status = 'failed'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '즉시',
+            'warn_after_seconds' => 0,
+            'target_sql' => "SELECT post_id, attachment_id, publisher_account_id, id AS target_fallback
+                FROM sr_community_publisher_reward_logs
+                WHERE status = 'failed'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '게시글 #{post_id} / 첨부 #{attachment_id} / 게시자 #{publisher_account_id}',
+            'target_fallback_prefix' => '로그',
+            'followup' => '/admin/community/publisher-rewards에서 실패 사유와 중복 지급 가능성을 확인합니다.',
+        ],
+        [
             'label' => 'notification.deliveries.queued',
             'title' => '알림 delivery 대기',
             'module' => 'notification',
@@ -14,6 +108,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'created_at',
             'delay_tolerance' => '1시간',
             'warn_after_seconds' => 3600,
+            'target_sql' => "SELECT n.title AS target_label, d.id AS target_fallback
+                FROM sr_notification_deliveries d
+                LEFT JOIN sr_notifications n ON n.id = d.notification_id
+                WHERE d.status IN ('queued', 'processing')
+                ORDER BY d.created_at ASC, d.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => 'delivery',
             'followup' => '알림 발송 provider 설정과 delivery queue를 확인합니다.',
         ],
         [
@@ -25,6 +126,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
+            'target_sql' => "SELECT n.title AS target_label, d.id AS target_fallback
+                FROM sr_notification_deliveries d
+                LEFT JOIN sr_notifications n ON n.id = d.notification_id
+                WHERE d.status IN ('failed', 'dead')
+                ORDER BY d.updated_at ASC, d.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => 'delivery',
             'followup' => '실패 사유를 확인하고 재발송 또는 취소 기준을 적용합니다.',
         ],
         [
@@ -36,6 +144,11 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '24시간',
             'warn_after_seconds' => 86400,
+            'target_sql' => "SELECT storage_key AS target_label, source_id AS target_fallback
+                FROM sr_content_storage_cleanup_failures
+                WHERE status = 'pending'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
             'followup' => '콘텐츠 저장소 정리 실패 목록과 파일 권한을 확인합니다.',
         ],
         [
@@ -47,6 +160,11 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '24시간',
             'warn_after_seconds' => 86400,
+            'target_sql' => "SELECT storage_key AS target_label, source_id AS target_fallback
+                FROM sr_community_storage_cleanup_failures
+                WHERE status = 'pending'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
             'followup' => '커뮤니티 저장소 정리 실패 목록과 파일 권한을 확인합니다.',
         ],
         [
@@ -58,6 +176,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '15분',
             'warn_after_seconds' => 900,
+            'target_sql' => "SELECT b.title AS target_label, j.id AS target_fallback
+                FROM sr_community_board_copy_jobs j
+                LEFT JOIN sr_community_boards b ON b.id = j.source_board_id
+                WHERE j.status IN ('pending', 'running')
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '작업',
             'followup' => '진행 상태와 lock 만료, takeover 필요 여부를 확인합니다.',
         ],
         [
@@ -69,6 +194,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
+            'target_sql' => "SELECT b.title AS target_label, j.id AS target_fallback
+                FROM sr_community_board_copy_jobs j
+                LEFT JOIN sr_community_boards b ON b.id = j.source_board_id
+                WHERE j.status IN ('failed', 'canceled')
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '작업',
             'followup' => '실패 단계와 부분 생성물 정리 필요 여부를 확인합니다.',
         ],
         [
@@ -80,6 +212,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '15분',
             'warn_after_seconds' => 900,
+            'target_sql' => "SELECT q.title AS target_label, g.quiz_id AS target_fallback
+                FROM sr_quiz_reward_grants g
+                LEFT JOIN sr_quiz_sets q ON q.id = g.quiz_id
+                WHERE g.status = 'pending'
+                ORDER BY g.updated_at ASC, g.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '퀴즈',
             'followup' => '보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
         ],
         [
@@ -91,6 +230,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'failed_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
+            'target_sql' => "SELECT q.title AS target_label, g.quiz_id AS target_fallback
+                FROM sr_quiz_reward_grants g
+                LEFT JOIN sr_quiz_sets q ON q.id = g.quiz_id
+                WHERE g.status = 'failed'
+                ORDER BY g.failed_at ASC, g.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '퀴즈',
             'followup' => '중복 지급 없이 복구할 수 있는지 보상 로그를 확인합니다.',
         ],
         [
@@ -102,6 +248,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'updated_at',
             'delay_tolerance' => '15분',
             'warn_after_seconds' => 900,
+            'target_sql' => "SELECT s.title AS target_label, g.survey_id AS target_fallback
+                FROM sr_survey_reward_grants g
+                LEFT JOIN sr_survey_forms s ON s.id = g.survey_id
+                WHERE g.status = 'pending'
+                ORDER BY g.updated_at ASC, g.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '설문',
             'followup' => '보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
         ],
         [
@@ -113,6 +266,13 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'failed_at',
             'delay_tolerance' => '즉시',
             'warn_after_seconds' => 0,
+            'target_sql' => "SELECT s.title AS target_label, g.survey_id AS target_fallback
+                FROM sr_survey_reward_grants g
+                LEFT JOIN sr_survey_forms s ON s.id = g.survey_id
+                WHERE g.status = 'failed'
+                ORDER BY g.failed_at ASC, g.id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '설문',
             'followup' => '중복 지급 없이 복구할 수 있는지 보상 로그를 확인합니다.',
         ],
         [
@@ -124,6 +284,12 @@ function sr_admin_operational_status_checks(): array
             'age_column' => 'expires_at',
             'delay_tolerance' => '24시간',
             'warn_after_seconds' => 86400,
+            'target_sql' => "SELECT '' AS target_label, account_id AS target_fallback
+                FROM sr_point_transactions
+                WHERE expires_at IS NOT NULL AND expires_at <= NOW() AND expires_remaining > 0
+                ORDER BY expires_at ASC, id ASC
+                LIMIT 5",
+            'target_fallback_prefix' => '계정',
             'followup' => '포인트 만료 CLI 또는 다음 포인트 거래 처리 흐름을 확인합니다.',
         ],
     ];
@@ -160,6 +326,7 @@ function sr_admin_operational_status_row(PDO $pdo, array $check): array
         'status' => 'ok',
         'status_label' => '정상',
         'message' => '',
+        'targets' => [],
         'followup' => (string) ($check['followup'] ?? ''),
     ];
 
@@ -199,6 +366,7 @@ function sr_admin_operational_status_row(PDO $pdo, array $check): array
             $row['status_label'] = '확인 필요';
             $row['message'] = '처리되지 않은 항목이 있습니다.';
             $row['age_seconds'] = sr_admin_operational_status_age_seconds((string) $row['oldest_at']);
+            $row['targets'] = sr_admin_operational_status_targets($pdo, $check);
             if ((int) $row['warn_after_seconds'] === 0 || (is_int($row['age_seconds']) && $row['age_seconds'] >= (int) $row['warn_after_seconds'])) {
                 $row['status'] = 'overdue';
                 $row['status_label'] = '지연 초과';
@@ -212,6 +380,62 @@ function sr_admin_operational_status_row(PDO $pdo, array $check): array
     }
 
     return $row;
+}
+
+function sr_admin_operational_status_targets(PDO $pdo, array $check): array
+{
+    $sql = trim((string) ($check['target_sql'] ?? ''));
+    if ($sql === '' || !sr_admin_operational_status_safe_select($sql)) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->query(sr_admin_operational_status_where_sql($pdo, $sql));
+        if (!$stmt) {
+            return [];
+        }
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable) {
+        return [];
+    }
+
+    $targets = [];
+    $fallbackPrefix = trim((string) ($check['target_fallback_prefix'] ?? ''));
+    $format = trim((string) ($check['target_format'] ?? ''));
+    foreach ($rows as $row) {
+        $label = $format !== ''
+            ? sr_admin_operational_status_format_target($row, $format)
+            : sr_admin_operational_status_single_line((string) ($row['target_label'] ?? ''));
+        $fallback = sr_admin_operational_status_single_line((string) ($row['target_fallback'] ?? ''));
+        if ($label === '' && $fallback !== '') {
+            $label = ($fallbackPrefix !== '' ? $fallbackPrefix . ' #' : '#') . $fallback;
+        }
+        if ($label !== '' && !in_array($label, $targets, true)) {
+            $targets[] = $label;
+        }
+    }
+
+    return $targets;
+}
+
+function sr_admin_operational_status_format_target(array $row, string $format): string
+{
+    $hasValue = false;
+    $label = preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', static function (array $matches) use ($row, &$hasValue): string {
+        $key = (string) ($matches[1] ?? '');
+        $value = sr_admin_operational_status_single_line((string) ($row[$key] ?? ''));
+        if ($value !== '') {
+            $hasValue = true;
+        }
+
+        return $value;
+    }, $format);
+
+    if (!$hasValue) {
+        return '';
+    }
+
+    return sr_admin_operational_status_single_line((string) $label);
 }
 
 function sr_admin_operational_status_age_seconds(string $value): ?int
@@ -253,6 +477,20 @@ function sr_admin_operational_status_safe_where(string $value): bool
 {
     $value = trim($value);
     if ($value === '') {
+        return false;
+    }
+
+    if (preg_match('/(?:;|--|\/\*|\*\/)/', $value) === 1) {
+        return false;
+    }
+
+    return preg_match('/\b(?:ALTER|CREATE|DELETE|DROP|GRANT|INSERT|LOAD|OUTFILE|REPLACE|REVOKE|TRUNCATE|UPDATE)\b/i', $value) !== 1;
+}
+
+function sr_admin_operational_status_safe_select(string $value): bool
+{
+    $value = trim($value);
+    if ($value === '' || preg_match('/\ASELECT\b/i', $value) !== 1) {
         return false;
     }
 

@@ -166,7 +166,7 @@ $riskGateMarkers = [
     'R-06 커스텀 요청/보안 contract' => ['security baseline', 'admin action security', '인증/권한 smoke', '보안 헤더'],
     'R-07 외부 의존성/vendored asset' => ['dependency policy', 'modules/htmlpurifier/DEPENDENCY.md', 'vendor integrity', 'release package dry-run', 'dry-run manifest', 'Purifier 로드 상태', 'fallback sanitizer fixture'],
     'R-08 배포 보호' => ['deployment protection', 'HTTP 보호 경로 smoke', 'Apache/nginx 확인'],
-    'R-09 문서/Wiki 지연' => ['README', '구현 스냅샷', '릴리스 절차', 'Wiki 갱신 여부'],
+    'R-09 저장소 문서 정합성' => ['README', '구현 스냅샷', '릴리스 절차', '문서 링크 검사'],
     'R-10 국내 CMS 대비 신뢰 증거' => ['positioning', '릴리스 검증 기록 누적', '사용 판단 기준'],
     'R-11 성능/캐시 기준' => ['performance baseline', '느린 화면 수동 점검', '실행 계획/인덱스 검토'],
 ];
@@ -269,7 +269,7 @@ if (is_string($improvementRecord)) {
         'R-06 커스텀 요청/보안 contract',
         'R-07 외부 의존성/vendored asset',
         'R-08 배포 보호',
-        'R-09 문서/Wiki 지연',
+        'R-09 저장소 문서 정합성',
         'R-10 국내 CMS 대비 신뢰 증거',
         'R-11 성능/캐시 기준',
         '조건부',

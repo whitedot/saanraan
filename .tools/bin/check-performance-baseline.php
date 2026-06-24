@@ -424,6 +424,9 @@ $iterator = new RecursiveIteratorIterator(
         static function (SplFileInfo $current): bool {
             $path = str_replace('\\', '/', $current->getPathname());
             if ($current->isDir()) {
+                if ($path !== '.' && is_dir($path . '/.git')) {
+                    return false;
+                }
                 return !str_contains($path, '/.git')
                     && !str_contains($path, '/config')
                     && !str_contains($path, '/modules/htmlpurifier/vendor')

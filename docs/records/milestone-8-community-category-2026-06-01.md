@@ -40,4 +40,4 @@
 
 - 카테고리 필터와 시리즈 내비게이션의 `EXPLAIN`, 브라우저 수동 점검은 실제 DB 적용 환경에서 기록해야 한다.
 - 알림 모듈 활성/비활성 상태의 댓글 멘션 알림 생성과 `/admin/audit-logs` 상세 모달은 실제 계정 데이터가 있는 로컬 또는 스테이징 환경에서 브라우저로 확인해야 한다.
-- GitHub Wiki는 이 작업 트리에 체크아웃되어 있지 않아 저장소 문서(`docs/implementation-snapshot.md`, `docs/smoke-test.md`)만 함께 갱신했다. Wiki 동기화가 필요한 배포 절차에서는 이 기록을 기준으로 반영한다.
+- 저장소 문서(`docs/implementation-snapshot.md`, `docs/smoke-test.md`)를 함께 갱신했다. 현재 운영 문서 기준은 저장소 `docs/`다.

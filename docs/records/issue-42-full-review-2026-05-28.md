@@ -12,7 +12,7 @@
 - 관리자 key 입력, 조건부 필수 입력, 숫자 입력의 브라우저/서버 검증 정합성
 - 개인정보 export/cleanup 계약 소비 흐름과 모듈 enable/loadable 기준
 - DB table prefix와 모듈 install/update 버전 정합성
-- repository docs, Wiki, smoke/manual 검증 항목 정합성
+- repository docs, smoke/manual 검증 항목 정합성
 
 ## 발견사항
 
@@ -52,8 +52,8 @@
 - `docs/smoke-test.md`: 환전 로그 `deposit_amount`가 수수료 차감 후 최종 증가액임을 명시했다.
 - `docs/smoke-test.md`: 유료 다운로드/첨부의 전달 준비 실패 시 무차감 기준, 쿠폰 key/사용 가능 횟수 서버 검증 기준을 추가했다.
 - `manual-check.md`: 환전 확정 수동 점검 항목에 최종 증가액 표시 기준을 추가하고, 유료 다운로드 전달 준비 실패 및 쿠폰 서버 검증 항목을 추가했다.
-- Wiki `DB-명세서.md`: 환전 로그 `deposit_amount` 의미를 최종 증가액으로 갱신했다.
-- Wiki `테스트와-검증.md`, `관리자-화면별-항목-설명서.md`: 유료 다운로드/첨부 차감 순서와 쿠폰 관리자 검증 기준을 추가했다.
+- 저장소 DB 문서: 환전 로그 `deposit_amount` 의미를 최종 증가액으로 갱신했다.
+- 저장소 테스트/검증 문서와 관리자 화면 항목 문서: 유료 다운로드/첨부 차감 순서와 쿠폰 관리자 검증 기준을 추가했다.
 
 ## 검증
 

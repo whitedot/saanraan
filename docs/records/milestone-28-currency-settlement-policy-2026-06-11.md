@@ -52,6 +52,6 @@
 
 ## 검증 기록
 
-- #312 기본 통화 설치 선택/잠금은 코드와 Wiki에 반영하고 `php .tools/bin/check.php`를 통과했다.
+- #312 기본 통화 설치 선택/잠금은 코드와 저장소 문서에 반영하고 `php .tools/bin/check.php`를 통과했다.
 - #115/#315 settlement snapshot 보강으로 content/community 로그에 `settlement_kind`, `snapshot_schema_version`, `rounding_policy_version`을 추가하고 privacy export 요약에 포함했다.
 - HTTP smoke는 로컬 `config/config.php` 권한 문제로 500 응답이 발생해 완료하지 못했다. 실패 원인은 include 권한 오류이며, 이번 정책/스키마 변경의 HTTP 동작 회귀로 판단하지 않는다.

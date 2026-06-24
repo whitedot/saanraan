@@ -129,6 +129,8 @@ modules/sample/
 
 관리자 목록에 선택 기반 일괄 작업을 추가할 때는 모듈 action이 작업 정책을 소유한다. view는 첫 열 체크박스, 현재 페이지 전체 선택, 선택 수 표시, 작업 바를 제공할 수 있지만, action은 CSRF, 권한, `intent` allowlist, `operation_key`, 대상 ID 배열, 대상 존재 여부, 현재 처리 가능 상태를 다시 검증해야 한다. 일괄 작업 컨트롤은 목록 요약 행 안에서 항상 보이게 두고, 상태 변경은 select 대신 상태별 작은 submit 버튼으로 제공하며, 선택 해제 버튼과 선택 수 숫자는 선택 항목이 있을 때만 표시한다. 처리 메모, 사유, 대상 조치처럼 실행 전 추가 입력이 필요한 작업은 목록 행이나 요약 행에 입력칸을 노출하지 않고 처리 버튼에서 모달을 열어 입력받는다. 클라이언트가 보낸 선택 수나 진행 수는 감사 로그와 완료 판정의 근거로 쓰지 않는다. 고부하 가능 작업은 모듈별 작업 테이블과 공통 상태 contract를 따르고, 작업 contract는 `{module_key}.{operation}` 형식의 operation key, 권한 path/action, 실행 모델, snapshot 모드, 위험도, handler를 명시한다.
 
+운영 지연/실패 점검에 노출할 고부하 작업은 job row를 첫 영속 작업으로 만든 뒤에만 도메인 데이터나 파일 변경을 시작한다. job row에는 운영자가 대상을 식별할 수 있는 값, `status`, `stage` 또는 처리 위치, `updated_at`, 완료/실패 시각, 실패 사유를 남긴다. row 생성 전 실패하고 부작용도 없는 경우는 작업 시작 실패로 즉시 안내하고, 운영 점검 대상에 넣지 않는다. row 생성 전 이미 부작용이 생기는 흐름은 운영 점검 추가보다 작업 순서 수정이 우선이다.
+
 공개 레이아웃의 회원 요약 영역에 계정별 행동 row를 노출해야 하는 모듈은 `member-action-rows.php` 계약을 둘 수 있다. 이 파일은 callable 또는 `rows_function` callable을 반환하고, callable은 `PDO $pdo, int $accountId`를 받아 `label`, `value`, `url`을 가진 row 배열을 반환한다. 코어는 활성 모듈의 계약을 순회하고 relative URL만 허용해 출력한다. 적립금 출금, 예치금 환불, 환전 가능 여부처럼 row의 의미와 노출 조건은 각 모듈 helper가 판단한다.
 
 사이트 회원전용 모드에서 모듈 공개 화면을 로그인 대상으로 돌려야 하면 `member-only-routes.php` 계약을 둔다. 이 파일은 `protected_routes`, `public_routes`, `public_path_prefixes` 배열을 반환한다. `protected_routes`는 비로그인 사용자에게 redirect 대신 403을 반환할 method/path 목록이고, `public_routes`는 `paths.php`의 route key 또는 실제 method/path key이며, `public_path_prefixes`는 모듈 공개 prefix 목록이다. 코어는 이 shape만 알고, 어떤 공개 화면이 회원전용 모드에서 막혀야 하는지는 화면 소유 모듈이 선언한다.
@@ -1560,7 +1562,7 @@ return function (PDO $pdo, ?array $site): array {
 
 Git을 사용할 수 없는 운영 환경을 기본 지원 대상으로 본다. 따라서 운영 설치는 zip 배포물 또는 FTP/파일 관리자 배치를 기준으로 설명한다. 관리자 화면에서 zip을 업로드하려면 소유자가 `/admin/modules`에서 모듈 파일 반영을 일시 허용한 뒤 업로드한다. `ZipArchive`가 없는 서버에서는 FTP나 파일 관리자로 모듈 파일을 배치한 뒤 같은 일시 허용 상태에서 파일 전용 업데이트 반영을 실행한다.
 
-모듈 단독 배포물은 같은 모듈 key를 유지하는 한 해당 모듈 폴더만 포함한다. 산란은 `modules/{module_key}/module.php`, `install.sql`, `updates/`, `paths.php`와 `module.php`에 선언된 계약 파일을 현재 폴더에서 읽는다. 관리자 zip 업로드는 배치 전에 `module.php`가 문자열, 숫자, bool, null, 배열 리터럴만 포함한 정적 return 배열인지 확인하고, `paths.php`를 실행하지 않고 정적 문자열 배열로 해석해 라우트 형식과 선언된 `actions/*.php` 파일 존재를 확인한다. 본체 파일, 다른 모듈 파일, 저장소 문서, Wiki 문서, 로컬 점검 스크립트, 서버 설정/비밀 파일, 저장소 메타 파일/디렉터리, 패키지 레지스트리 인증 파일, SSH key/key store 파일, DB 파일, 백업 파일, 우회 실행 확장자는 모듈 zip에 포함하지 않고 본체 릴리스나 별도 문서 작업으로 관리한다. 공개 URL로 제공되는 `assets/`에는 정적 자산만 포함하며 PHP 실행 파일과 SQL 파일은 zip 업로드에서 거부된다.
+모듈 단독 배포물은 같은 모듈 key를 유지하는 한 해당 모듈 폴더만 포함한다. 산란은 `modules/{module_key}/module.php`, `install.sql`, `updates/`, `paths.php`와 `module.php`에 선언된 계약 파일을 현재 폴더에서 읽는다. 관리자 zip 업로드는 배치 전에 `module.php`가 문자열, 숫자, bool, null, 배열 리터럴만 포함한 정적 return 배열인지 확인하고, `paths.php`를 실행하지 않고 정적 문자열 배열로 해석해 라우트 형식과 선언된 `actions/*.php` 파일 존재를 확인한다. 본체 파일, 다른 모듈 파일, 저장소 문서, 로컬 점검 스크립트, 서버 설정/비밀 파일, 저장소 메타 파일/디렉터리, 패키지 레지스트리 인증 파일, SSH key/key store 파일, DB 파일, 백업 파일, 우회 실행 확장자는 모듈 zip에 포함하지 않고 본체 릴리스나 별도 문서 작업으로 관리한다. 공개 URL로 제공되는 `assets/`에는 정적 자산만 포함하며 PHP 실행 파일과 SQL 파일은 zip 업로드에서 거부된다.
 
 모듈 배포 흐름:
 

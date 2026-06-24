@@ -1344,7 +1344,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
 $gates[] = sr_release_gate_status_admin_readonly_gate(
     '/admin/operations',
     '/admin/operations',
-    '운영 상태',
+    '운영 지연/실패 점검',
     $baseUrl,
     $adminSmokeCredentialStatus,
     $runAdminReadonly,

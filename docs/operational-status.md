@@ -26,6 +26,11 @@ php .tools/bin/ops-status.php
 
 | 항목 | 의미 | 허용 지연 | 후속 확인 |
 | --- | --- | --- | --- |
+| `policy_documents.mail_jobs.queued` | 정책 문서 안내메일 발송 작업이 대기 중 | 1시간 | `/admin/policy-documents` 발송 배치와 delivery 상태 |
+| `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | 실패 delivery, 메일 설정, 재발송 기준 |
+| `asset_recovery.open` | 포인트/금액 회수 실패가 미해소 상태로 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 재회수, 수동 해소, 취소 기준 |
+| `community.publisher_rewards.pending` | 커뮤니티 첨부 다운로드 게시자 보상 로그가 대기 중 | 15분 | `/admin/community/publisher-rewards` 보상 로그와 자산 지급 상태 |
+| `community.publisher_rewards.failed` | 커뮤니티 첨부 다운로드 게시자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
 | `notification.deliveries.queued` | 이메일 등 외부 delivery가 대기 또는 처리 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정, runner 실행 상태 |
 | `notification.deliveries.failed` | delivery 실패 또는 dead-letter가 남아 있음 | 즉시 | 실패 사유, 설정 수정, 재발송 또는 취소 기준 |
 | `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | 콘텐츠 관리자 정리 실패 목록과 재시도 |
@@ -40,9 +45,11 @@ php .tools/bin/ops-status.php
 
 미설치 환경에서는 명령이 `saanraan is not installed.`를 출력하고 종료한다. 모듈이 비활성화되어 있으면 해당 항목은 `skipped`로 표시한다.
 
-관리자 화면에서는 `/admin/operations`의 `운영 상태` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 후속 확인 위치를 보여준다. 화면은 데이터를 바꾸지 않으므로 재시도나 정정은 각 소유 모듈의 관리자 action에서 처리한다.
+관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시한다. 화면은 데이터를 바꾸지 않으므로 재시도나 정정은 각 소유 모듈의 관리자 action에서 처리한다.
 
 운영 상태 점검 정의는 코드 내부 목록으로만 관리한다. `table`과 `age_column`은 단일 SQL 식별자만 허용하고, `where` 조건은 세미콜론, SQL 주석, DDL/DML 키워드가 있으면 오류로 처리한다. `.tools/bin/check-operational-status.php`는 안전한 조건, 위험한 식별자, 위험한 `where` 조건, CLI row/summary 출력 형식, 번들 신호 일부의 실제 count/overdue 계산을 SQLite fixture로 확인해 read-only 점검 경계를 유지한다.
+
+현재 코드베이스에서 같은 방식으로 감지할 수 있는 후보와 후속 처리 순서는 [운영 지연/실패 점검 전수 조사와 처리 계획](plans/operational-delay-failure-coverage-plan.md)에 정리한다.
 
 ### 알림 delivery 재시도/취소 기준
 
@@ -96,7 +103,7 @@ php .tools/bin/ops-status.php
 php .tools/bin/run-notification-deliveries.php
 ```
 
-`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 운영 상태 화면에서 대상 규모를 먼저 확인한다.
+`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 `운영 지연/실패 점검` 화면에서 대상 규모를 먼저 확인한다.
 
 ## 기록 기준
 

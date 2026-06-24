@@ -86,11 +86,11 @@
 
 ## 문서화
 
-- 동작, 기능, 데이터베이스 스키마, 관리자 화면, 모듈 계약, 요청 흐름, 보안/개인정보 정책, 배포 가정, 운영 절차를 변경하면 같은 작업 항목에서 관련 GitHub Wiki 페이지를 업데이트합니다.
+- 동작, 기능, 데이터베이스 스키마, 관리자 화면, 모듈 계약, 요청 흐름, 보안/개인정보 정책, 배포 가정, 운영 절차를 변경하면 같은 작업 항목에서 관련 저장소 문서를 업데이트합니다.
 - 최소한 DB specification, administrator screen field guide, developer guides, request flow, module development guide, security/privacy guide, testing guide, deployment guide, troubleshooting guide에 영향이 있는지 확인합니다.
-- 관련 Wiki 원본이 workspace나 명시적으로 사용 가능한 도구에 없다면 Wiki 업데이트를 수행할 수 없었다고 보고하고, 필요한 업데이트 내용을 최종 응답이나 커밋 본문에 요약합니다.
-- 시각적 변경, CSS-only 변경, 내부 구현 변경은 운영자 동작, public contract, configuration, schema, request flow, deployment assumptions를 바꾸지 않는다면 Wiki 업데이트가 필요하지 않습니다. 유용할 때 최종 응답이나 커밋 본문에 Wiki 생략 판단을 언급합니다.
-- repository docs와 Wiki docs는 초기 계획이 아니라 현재 구현과 맞춥니다.
+- 현재는 GitHub Wiki를 운영 문서의 정본으로 사용하지 않습니다. 1.0 배포 전 문서 기준은 저장소 `docs/`와 루트 안내 문서입니다.
+- 시각적 변경, CSS-only 변경, 내부 구현 변경은 운영자 동작, public contract, configuration, schema, request flow, deployment assumptions를 바꾸지 않는다면 문서 업데이트가 필요하지 않습니다. 유용할 때 최종 응답이나 커밋 본문에 문서 생략 판단을 언급합니다.
+- repository docs는 초기 계획이 아니라 현재 구현과 맞춥니다.
 
 ## 검증과 스모크 테스트
 

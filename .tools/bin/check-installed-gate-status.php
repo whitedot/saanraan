@@ -186,7 +186,7 @@ if ($path === '/admin/operations' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         return;
     }
     header('Content-Type: text/html; charset=UTF-8');
-    echo '<main><h1>운영 상태</h1><p>read-only fixture</p></main>';
+    echo '<main><h1>운영 지연/실패 점검</h1><p>read-only fixture</p></main>';
     return;
 }
 

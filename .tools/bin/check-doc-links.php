@@ -23,6 +23,9 @@ function sr_doc_links_markdown_files(string $root): array
             static function (SplFileInfo $entry): bool {
                 $path = str_replace('\\', '/', $entry->getPathname());
                 if ($entry->isDir()) {
+                    if ($path !== '.' && is_dir($path . '/.git')) {
+                        return false;
+                    }
                     foreach ([
                         './.git',
                         './.tools',

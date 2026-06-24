@@ -229,7 +229,7 @@ $expectedRows = [
         'README.md',
         'implementation-snapshot.md',
         'release-process.md',
-        'Wiki DB/관리자/요청 흐름',
+        '저장소 DB/관리자/요청 흐름',
     ]],
     'R-10' => ['mitigating', [
         'positioning.md',

@@ -115,7 +115,7 @@ php .tools/bin/check.php
 | 검증과 리스크 | [모듈 상태표](docs/module-status.md), [검증 상태와 증거 기준](docs/verification-status.md), [프로젝트 리스크 레지스터](docs/risk-register.md), [릴리스 검증 기록 템플릿](docs/release-verification-template.md) |
 | 예제 | [sample_module](examples/sample_module/README.md) |
 
-구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 주요 문서 안내는 프로젝트 소개, 사용 방법, 기여 방법, 배포와 보안 기준 중심으로 유지합니다.
+구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드도 현재는 저장소 `docs/`를 기준으로 관리합니다. 1.0 배포 전에는 GitHub Wiki를 운영 문서의 정본으로 사용하지 않습니다.
 
 ## 보안 제보
 

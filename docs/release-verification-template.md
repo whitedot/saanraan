@@ -173,7 +173,7 @@ php .tools/bin/ops-status.php
 | R-06 커스텀 요청/보안 contract | security baseline, request contract runtime, admin action security, 인증/권한 smoke, 보안 헤더 | TODO | TODO |
 | R-07 외부 의존성/vendored asset | dependency policy, `modules/htmlpurifier/DEPENDENCY.md`, vendor integrity, release package dry-run, dry-run manifest, Purifier 로드 상태, CKEditor self-hosted asset, fallback sanitizer fixture | TODO | TODO |
 | R-08 배포 보호 | deployment protection, HTTP 보호 경로 smoke, Apache/nginx 확인 | TODO | TODO |
-| R-09 문서/Wiki 지연 | README, 구현 스냅샷, 릴리스 절차, Wiki 갱신 여부 | TODO | TODO |
+| R-09 저장소 문서 정합성 | README, 구현 스냅샷, 릴리스 절차, 문서 링크 검사 | TODO | TODO |
 | R-10 국내 CMS 대비 신뢰 증거 | positioning, 릴리스 검증 기록 누적, 사용 판단 기준 | TODO | TODO |
 | R-11 성능/캐시 기준 | performance baseline, pagination fixture, board copy limit fixture, 느린 화면 수동 점검, 실행 계획/인덱스 검토 | TODO | TODO |
 

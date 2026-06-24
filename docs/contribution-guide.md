@@ -87,7 +87,7 @@ php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved
 - 배포 가정, 운영 절차, 외부 의존성
 - 검증 명령, smoke 기대값, 릴리스 판정 기준
 
-Wiki 구현 명세가 아직 늦을 수 있는 1.0 전 작업에서는 저장소 `docs/`를 먼저 맞추고, Wiki 정리 필요성은 작업 기록이나 최종 보고에 남긴다.
+1.0 전 작업에서는 저장소 `docs/`를 현재 구현 기준으로 맞춘다. GitHub Wiki는 현재 운영 문서의 정본으로 사용하지 않는다.
 
 ## 리뷰 관점
 

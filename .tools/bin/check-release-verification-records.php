@@ -85,7 +85,7 @@ function sr_release_verification_record_risk_labels(): array
         'R-06 커스텀 요청/보안 contract',
         'R-07 외부 의존성/vendored asset',
         'R-08 배포 보호',
-        'R-09 문서/Wiki 지연',
+        'R-09 저장소 문서 정합성',
         'R-10 국내 CMS 대비 신뢰 증거',
         'R-11 성능/캐시 기준',
     ];
@@ -415,7 +415,7 @@ function sr_release_verification_record_fixture(string $requiredGateResult, stri
 | R-06 커스텀 요청/보안 contract | fixture | 조건부 | fixture |
 | R-07 외부 의존성/vendored asset | fixture | 조건부 | fixture |
 | R-08 배포 보호 | fixture | 조건부 | fixture |
-| R-09 문서/Wiki 지연 | fixture | 조건부 | fixture |
+| R-09 저장소 문서 정합성 | fixture | 조건부 | fixture |
 | R-10 국내 CMS 대비 신뢰 증거 | fixture | 조건부 | fixture |
 | R-11 성능/캐시 기준 | fixture | 조건부 | fixture |
 
