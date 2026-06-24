@@ -90,10 +90,42 @@ sr_site_reset_check_command(
     'Dummy HTTP seed mutation guard'
 );
 
+sr_site_reset_check_contains('.tools/bin/seed-community-feed-fixture.php', [
+    'SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1',
+    'SR_COMMUNITY_FEED_FIXTURE_RUN_KEY',
+    'SR_COMMUNITY_FEED_FIXTURE_REPLACE',
+    'sr_community_feed_fixture_cleanup',
+    'sr_community_feed_fixture_seed',
+]);
+
+sr_site_reset_check_contains('.tools/bin/measure-community-home-feed.php', [
+    'SR_COMMUNITY_FEED_MEASURE_CONFIG',
+    'sr_load_config()',
+    'target-readonly',
+]);
+
+sr_site_reset_check_command(
+    [
+        PHP_BINARY,
+        '.tools/bin/seed-community-feed-fixture.php',
+        'seed',
+        'sr369_guard',
+    ],
+    2,
+    [
+        'Refused: this tool creates or deletes fixture rows.',
+        'SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1',
+    ],
+    'Community feed fixture mutation guard'
+);
+
 sr_site_reset_check_contains('docs/site-reset-and-fixtures.md', [
     '운영 DB에서 실행하는 절차가 아니다',
     'SR_SEED_ALLOW_MUTATION=1',
     'seed-dummy-http.php',
+    'seed-community-feed-fixture.php',
+    'SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1',
+    'SR_COMMUNITY_FEED_MEASURE_CONFIG=1',
     '현재 DB가 로컬 또는 스테이징인지 확인한다',
 ]);
 

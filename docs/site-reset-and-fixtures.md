@@ -82,6 +82,36 @@ php .tools/bin/seed-dummy-http.php
 
 자산 거래, 환전, 출금/환불 신청처럼 돈성 상태가 생기는 데이터는 별도 테스트 목적이 있을 때만 만든다. 금액성 더미 데이터는 환불/회수/정산 상태를 검증할 필요가 있는 QA 기록에 실행 목적과 cleanup 기준을 함께 남긴다.
 
+## 성능 측정 fixture
+
+대량 read query의 실행계획과 응답 시간을 확인해야 하는 경우에는 HTTP 등록 경로로 수만 건을 만들지 않는다. write flow 검증이 아니라 대표 row 수가 필요한 성능 측정이면 전용 fixture 도구로 run key가 붙은 데이터를 직접 만들고, 측정 뒤 같은 run key로 삭제한다.
+
+커뮤니티 홈 피드 측정용 fixture는 공개 baseline 게시판과 게시글, 일부 댓글/이미지 첨부 marker를 만든다. 기본 실행은 거부되며 로컬 또는 스테이징 disposable DB에서만 mutation 플래그를 명시한다.
+
+```sh
+SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1 \
+SR_COMMUNITY_FEED_FIXTURE_RUN_KEY=sr369_local \
+SR_COMMUNITY_FEED_FIXTURE_POSTS=10000 \
+SR_COMMUNITY_FEED_FIXTURE_BOARDS=20 \
+php .tools/bin/seed-community-feed-fixture.php seed
+```
+
+측정한다.
+
+```sh
+SR_COMMUNITY_FEED_MEASURE_CONFIG=1 \
+php .tools/bin/measure-community-home-feed.php
+```
+
+정리한다.
+
+```sh
+SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1 \
+php .tools/bin/seed-community-feed-fixture.php cleanup sr369_local
+```
+
+같은 run key가 이미 있으면 기본 seed는 중단한다. 반복 측정에서 교체가 필요할 때만 `SR_COMMUNITY_FEED_FIXTURE_REPLACE=1`을 사용한다.
+
 ## 완료 기록
 
 더미 등록 작업을 완료하면 다음을 남긴다.

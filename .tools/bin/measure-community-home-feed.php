@@ -79,6 +79,13 @@ function sr_measure_community_home_feed_query_plan(PDO $pdo, string $sort, array
 
 function sr_measure_community_home_feed_connect_target(): ?PDO
 {
+    if (sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_CONFIG')) {
+        $config = sr_load_config();
+        sr_set_runtime_config($config);
+
+        return sr_db($config);
+    }
+
     $dsn = sr_measure_community_home_feed_string_env('SR_COMMUNITY_FEED_MEASURE_DSN');
     if ($dsn === '') {
         return null;
@@ -366,6 +373,7 @@ if ($targetPdo instanceof PDO) {
 
     $driver = (string) $targetPdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $version = (string) $targetPdo->query('SELECT VERSION()')->fetchColumn();
+    $targetMode = sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_CONFIG') ? 'config DB' : 'explicit DSN';
     sr_measure_community_home_feed_run(
         $targetPdo,
         $boardIds,
@@ -373,7 +381,7 @@ if ($targetPdo instanceof PDO) {
         $targetFixture ? 'posts=' . (string) $postCount . ' boards=' . (string) $boardCount : 'board_ids=' . (string) count($boardIds),
         $fixtureMs,
         $driver . ' ' . $version,
-        $targetFixture ? 'explicit DSN fixture measurement on MySQL/MariaDB syntax' : 'explicit DSN read-only measurement; production data is not required or recommended',
+        $targetFixture ? 'explicit DSN fixture measurement on MySQL/MariaDB syntax' : $targetMode . ' read-only measurement; production data is not required or recommended',
         $targetFixture ? 'MySQL/MariaDB fixture evidence only; target data is still required before persistent cache work' : 'target DB evidence; persistent cache work still needs repository decision using this record'
     );
     exit(0);
