@@ -217,7 +217,106 @@ function sr_community_home_member_summary(PDO $pdo, ?array $account, array $sett
     ];
 }
 
-function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null): array
+function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, array $settings, bool $homeExcerptAllowed): string
+{
+    if (!$homeExcerptAllowed || (int) ($post['is_secret'] ?? 0) === 1) {
+        return '';
+    }
+
+    $attachmentUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $settings);
+    if ($attachmentUrl !== '') {
+        return $attachmentUrl;
+    }
+
+    $postId = (int) ($post['id'] ?? 0);
+    if ($postId < 1 || (string) ($post['body_format'] ?? 'plain') !== 'html') {
+        return '';
+    }
+
+    foreach (sr_community_body_file_refs_from_html((string) ($post['body_text'] ?? '')) as $ref) {
+        if ((string) ($ref['type'] ?? '') === 'post' && (int) ($ref['post_id'] ?? 0) === $postId) {
+            return sr_community_body_file_post_proxy_url($postId, (string) ($ref['file'] ?? ''));
+        }
+    }
+
+    return '';
+}
+
+function sr_community_home_post_feed(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId, int $limit, string $sort): array
+{
+    $boardById = [];
+    $boardPlaceholders = [];
+    $params = [];
+    foreach ($boards as $index => $board) {
+        $boardId = (int) ($board['id'] ?? 0);
+        if ($boardId < 1) {
+            continue;
+        }
+
+        $boardById[$boardId] = $board;
+        $paramKey = 'home_board_id_' . (string) $index;
+        $boardPlaceholders[] = ':' . $paramKey;
+        $params[$paramKey] = $boardId;
+    }
+    if ($boardPlaceholders === []) {
+        return [];
+    }
+
+    $limit = max(1, min(20, $limit));
+    $orderSql = $sort === 'views' ? 'p.view_count DESC, p.id DESC' : 'p.id DESC';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
+                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
+                list_image.id AS list_image_attachment_id,
+                list_image.storage_driver AS list_image_storage_driver,
+                list_image.storage_key AS list_image_storage_key,
+                list_image.mime_type AS list_image_mime_type,
+                list_image.size_bytes AS list_image_size_bytes,
+                list_image.checksum_sha256 AS list_image_checksum_sha256,
+                list_image.width AS list_image_width,
+                list_image.height AS list_image_height
+         FROM sr_community_posts p
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
+         LEFT JOIN (
+             SELECT post_id, MIN(id) AS attachment_id
+             FROM sr_community_attachments
+             WHERE status = \'active\'
+               AND mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+             GROUP BY post_id
+         ) list_image_pick ON list_image_pick.post_id = p.id
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = list_image_pick.attachment_id
+         WHERE p.status = \'published\'
+           AND p.board_id IN (' . implode(', ', $boardPlaceholders) . ')
+         ORDER BY ' . $orderSql . '
+         LIMIT :limit_value'
+    );
+    foreach ($params as $paramKey => $boardId) {
+        $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $posts = [];
+    foreach ($stmt->fetchAll() as $post) {
+        $boardId = (int) ($post['board_id'] ?? 0);
+        if (!isset($boardById[$boardId])) {
+            continue;
+        }
+
+        $homeExcerptAllowed = !empty($homeExcerptAllowedByBoardId[$boardId]);
+        $post['home_excerpt_allowed'] = $homeExcerptAllowed;
+        $post['home_image_url'] = sr_community_home_post_image_url($pdo, $post, $boardById[$boardId], $settings, $homeExcerptAllowed);
+        $posts[] = $post;
+    }
+
+    return $posts;
+}
+
+function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
     $boards = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
@@ -232,56 +331,16 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $latestComments = [];
     $recentSeries = [];
     $homeSidebarMenuHtml = '';
-    $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings);
+    $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings, $memberSettings);
     $homeExcerptAllowedByBoardId = [];
     $communitySeriesSupported = sr_community_series_supported($pdo);
-    $homePostImageUrl = static function (array $post, array $board, bool $homeExcerptAllowed) use ($pdo, $settings): string {
-        if (!$homeExcerptAllowed || (int) ($post['is_secret'] ?? 0) === 1) {
-            return '';
-        }
-
-        $attachmentUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $settings);
-        if ($attachmentUrl !== '') {
-            return $attachmentUrl;
-        }
-
-        $postId = (int) ($post['id'] ?? 0);
-        if ($postId < 1 || (string) ($post['body_format'] ?? 'plain') !== 'html') {
-            return '';
-        }
-
-        foreach (sr_community_body_file_refs_from_html((string) ($post['body_text'] ?? '')) as $ref) {
-            if ((string) ($ref['type'] ?? '') === 'post' && (int) ($ref['post_id'] ?? 0) === $postId) {
-                return sr_community_body_file_post_proxy_url($postId, (string) ($ref['file'] ?? ''));
-            }
-        }
-
-        return '';
-    };
     foreach ($boards as $board) {
         $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
         $homeExcerptAllowed = !sr_community_asset_event_required($paidReadConfig);
         $homeExcerptAllowedByBoardId[(int) ($board['id'] ?? 0)] = $homeExcerptAllowed;
-        foreach (sr_community_board_posts($pdo, (int) $board['id'], 5, 0, '', 0, 'latest') as $post) {
-            $post['home_excerpt_allowed'] = $homeExcerptAllowed;
-            $post['home_image_url'] = $homePostImageUrl($post, $board, $homeExcerptAllowed);
-            $latestPosts[] = $post;
-        }
-        foreach (sr_community_board_posts($pdo, (int) $board['id'], 5, 0, '', 0, 'views') as $post) {
-            $post['home_excerpt_allowed'] = $homeExcerptAllowed;
-            $post['home_image_url'] = $homePostImageUrl($post, $board, $homeExcerptAllowed);
-            $popularPosts[] = $post;
-        }
     }
-    usort($latestPosts, static function (array $a, array $b): int {
-        return (int) ($b['id'] ?? 0) <=> (int) ($a['id'] ?? 0);
-    });
-    $latestPosts = array_slice($latestPosts, 0, 10);
-    usort($popularPosts, static function (array $a, array $b): int {
-        $viewCompare = (int) ($b['view_count'] ?? 0) <=> (int) ($a['view_count'] ?? 0);
-        return $viewCompare !== 0 ? $viewCompare : ((int) ($b['id'] ?? 0) <=> (int) ($a['id'] ?? 0));
-    });
-    $popularPosts = array_slice($popularPosts, 0, 5);
+    $latestPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
+    $popularPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
     if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
