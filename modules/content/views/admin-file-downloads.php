@@ -48,7 +48,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_account_id">
-                    <span class="filtering-label">회원 번호</span>
+                    <span class="filtering-label">회원</span>
                     <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
                 <label class="filtering-field" for="content_file_download_filter_date_from">

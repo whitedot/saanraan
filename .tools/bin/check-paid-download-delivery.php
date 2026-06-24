@@ -89,10 +89,11 @@ if (!is_string($contentDownload)) {
 
 $contentAssetsBase = file_get_contents($root . '/modules/content/helpers/assets.php');
 $contentAssetsAccess = file_get_contents($root . '/modules/content/helpers/asset-access.php');
+$contentFiles = file_get_contents($root . '/modules/content/helpers/files.php');
 $contentAssets = (is_string($contentAssetsBase) ? $contentAssetsBase : '')
     . "\n"
     . (is_string($contentAssetsAccess) ? $contentAssetsAccess : '');
-if (!is_string($contentAssetsBase) || !is_string($contentAssetsAccess)) {
+if (!is_string($contentAssetsBase) || !is_string($contentAssetsAccess) || !is_string($contentFiles)) {
     $errors[] = 'Content asset helper cannot be read.';
 } else {
     if (strpos($contentAssets, "return in_array(\$chargePolicy, ['once', 'every_view', 'every_download'], true);") === false) {
@@ -100,6 +101,18 @@ if (!is_string($contentAssetsBase) || !is_string($contentAssetsAccess)) {
     }
     if (strpos($contentAssets, "log_status = :log_status") === false || strpos($contentAssets, 'sr_content_asset_log_status_pending()') === false) {
         $errors[] = 'Content asset logs must distinguish pending placeholders from completed zero-amount logs.';
+    }
+    if (strpos($contentFiles, 'function sr_content_admin_file_download_logs_with_access_summaries(PDO $pdo, array $downloadLogs): array') === false
+        || strpos($contentFiles, 'WHERE id IN (') === false
+        || strpos($contentFiles, "(int) (\$accessLog['reference_id'] ?? 0) !== (int) (\$downloadLog['file_id'] ?? 0)") === false
+    ) {
+        $errors[] = 'Content admin file download log summary must load access logs by numeric id and validate references in PHP for collation compatibility.';
+    }
+    if (strpos($contentFiles, 'GROUP_CONCAT(CONCAT(al.asset_module') !== false || strpos($contentFiles, 'CAST(d.file_id AS CHAR)') !== false) {
+        $errors[] = 'Content admin file download log summary must not compare stringified file ids in SQL.';
+    }
+    if (strpos($contentFiles, 'GROUP BY d.id') !== false) {
+        $errors[] = 'Content admin file download log list must avoid GROUP BY d.id so ONLY_FULL_GROUP_BY SQL mode stays compatible.';
     }
 }
 

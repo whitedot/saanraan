@@ -240,7 +240,10 @@ sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
 ]);
 
 sr_asset_settlement_check_contains('modules/content/helpers/files.php', [
-    'al.settlement_amount, ":", al.settlement_currency, ":", al.settlement_kind, ":", al.snapshot_schema_version, ":", al.rounding_policy_version',
+    "'legacy_unknown' AS settlement_kind",
+    "'asset_settlement_snapshot_v1' AS snapshot_schema_version",
+    "'asset_settlement_rounding_v1' AS rounding_policy_version",
+    "\$accessLog['settlement_amount']",
 ]);
 
 foreach (['modules/content/privacy-export.php', 'modules/community/privacy-export.php'] as $privacyExportFile) {

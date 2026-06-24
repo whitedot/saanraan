@@ -656,44 +656,144 @@ function sr_content_file_download_logs_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_content_file_download_log_columns(PDO $pdo): array
+{
+    static $columnsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (isset($columnsByPdo[$cacheKey])) {
+        return $columnsByPdo[$cacheKey];
+    }
+
+    $columns = [];
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $rows = $pdo->query('PRAGMA table_info(sr_content_file_download_logs)')->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $row) {
+                $columnName = (string) ($row['name'] ?? '');
+                if ($columnName !== '') {
+                    $columns[$columnName] = true;
+                }
+            }
+            $columnsByPdo[$cacheKey] = $columns;
+            return $columns;
+        }
+
+        $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+        $stmt = $pdo->prepare(
+            'SELECT COLUMN_NAME
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name'
+        );
+        $stmt->execute(['table_name' => $prefix . 'content_file_download_logs']);
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $columnName) {
+            $columnName = (string) $columnName;
+            if ($columnName !== '') {
+                $columns[$columnName] = true;
+            }
+        }
+    } catch (Throwable $exception) {
+        $columns = [];
+    }
+
+    $columnsByPdo[$cacheKey] = $columns;
+    return $columns;
+}
+
+function sr_content_file_download_log_has_columns(PDO $pdo, array $columnNames): bool
+{
+    $columns = sr_content_file_download_log_columns($pdo);
+    foreach ($columnNames as $columnName) {
+        if (!isset($columns[(string) $columnName])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function sr_content_file_download_log_snapshot_columns_exist(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    return sr_content_file_download_log_has_columns($pdo, [
+        'content_title_snapshot',
+        'content_slug_snapshot',
+        'file_title_snapshot',
+        'file_original_name_snapshot',
+    ]);
+}
+
+function sr_content_file_download_log_refund_columns_exist(PDO $pdo): bool
+{
+    return sr_content_file_download_log_has_columns($pdo, [
+        'refund_status',
+        'refund_transaction_ids_json',
+        'refund_note',
+        'refunded_by_account_id',
+        'refunded_at',
+        'access_revoked_at',
+    ]);
+}
+
+function sr_content_asset_access_logs_table_exists(PDO $pdo): bool
+{
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (isset($existsByPdo[$cacheKey])) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
-        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $columns = $pdo->query('PRAGMA table_info(sr_content_file_download_logs)')->fetchAll(PDO::FETCH_ASSOC);
-            $columnMap = [];
-            foreach ($columns as $column) {
-                $columnMap[(string) ($column['name'] ?? '')] = true;
-            }
-            $exists = isset(
-                $columnMap['content_title_snapshot'],
-                $columnMap['content_slug_snapshot'],
-                $columnMap['file_title_snapshot'],
-                $columnMap['file_original_name_snapshot']
-            );
-            return $exists;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*) AS column_count
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME IN (\'content_title_snapshot\', \'content_slug_snapshot\', \'file_title_snapshot\', \'file_original_name_snapshot\')'
-        );
-        $stmt->execute(['table_name' => 'sr_content_file_download_logs']);
-        $row = $stmt->fetch();
-        $exists = is_array($row) && (int) ($row['column_count'] ?? 0) === 4;
+        $stmt = $pdo->query('SELECT 1 FROM sr_content_asset_access_logs LIMIT 1');
+        $existsByPdo[$cacheKey] = $stmt !== false;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
+}
+
+function sr_content_asset_access_log_columns(PDO $pdo): array
+{
+    static $columnsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (isset($columnsByPdo[$cacheKey])) {
+        return $columnsByPdo[$cacheKey];
+    }
+
+    $columns = [];
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $rows = $pdo->query('PRAGMA table_info(sr_content_asset_access_logs)')->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $row) {
+                $columnName = (string) ($row['name'] ?? '');
+                if ($columnName !== '') {
+                    $columns[$columnName] = true;
+                }
+            }
+            $columnsByPdo[$cacheKey] = $columns;
+            return $columns;
+        }
+
+        $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+        $stmt = $pdo->prepare(
+            'SELECT COLUMN_NAME
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name'
+        );
+        $stmt->execute(['table_name' => $prefix . 'content_asset_access_logs']);
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $columnName) {
+            $columnName = (string) $columnName;
+            if ($columnName !== '') {
+                $columns[$columnName] = true;
+            }
+        }
+    } catch (Throwable $exception) {
+        $columns = [];
+    }
+
+    $columnsByPdo[$cacheKey] = $columns;
+    return $columns;
 }
 
 function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId, array $accessResult = []): void
@@ -748,9 +848,9 @@ function sr_content_admin_file_download_log_sort_options(): array
         'created_at' => ['label' => '다운로드 시각', 'columns' => ['d.created_at', 'd.id']],
         'content_title' => ['label' => '콘텐츠', 'columns' => ['content_title', 'd.id']],
         'file_title' => ['label' => '파일', 'columns' => ['file_title', 'd.id']],
-        'account_id' => ['label' => '회원', 'columns' => ['d.account_id', 'd.id']],
-        'download_type' => ['label' => '구분', 'columns' => ['d.download_type', 'd.id']],
-        'amount' => ['label' => '금액', 'columns' => ['d.amount', 'd.id']],
+        'account_id' => ['label' => '회원', 'columns' => ['account_id', 'd.id']],
+        'download_type' => ['label' => '구분', 'columns' => ['download_type', 'd.id']],
+        'amount' => ['label' => '금액', 'columns' => ['amount', 'd.id']],
     ];
 }
 
@@ -763,6 +863,10 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
 {
     $conditions = [];
     $params = [];
+    $columns = sr_content_file_download_log_columns($pdo);
+    $hasAccount = isset($columns['account_id']);
+    $hasDownloadType = isset($columns['download_type']);
+    $hasRefundColumns = sr_content_file_download_log_refund_columns_exist($pdo);
 
     $contentId = (int) ($filters['content_id'] ?? 0);
     if ($contentId > 0) {
@@ -778,35 +882,47 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
 
     $accountId = (int) ($filters['account_id'] ?? 0);
     if ($accountId > 0) {
-        $conditions[] = 'd.account_id = :account_id';
-        $params['account_id'] = $accountId;
+        if ($hasAccount) {
+            $conditions[] = 'd.account_id = :account_id';
+            $params['account_id'] = $accountId;
+        } else {
+            $conditions[] = '1 = 0';
+        }
     }
 
     $downloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
     if ($downloadTypes !== []) {
-        $placeholders = [];
-        foreach (array_values($downloadTypes) as $index => $downloadType) {
-            $paramKey = 'download_type_' . (string) $index;
-            $placeholders[] = ':' . $paramKey;
-            $params[$paramKey] = (string) $downloadType;
+        if ($hasDownloadType) {
+            $placeholders = [];
+            foreach (array_values($downloadTypes) as $index => $downloadType) {
+                $paramKey = 'download_type_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = (string) $downloadType;
+            }
+            $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
+        } elseif (!in_array('free', array_map('strval', $downloadTypes), true)) {
+            $conditions[] = '1 = 0';
         }
-        $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
     }
 
     $refundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
     if ($refundStatuses !== []) {
-        $refundConditions = [];
-        foreach (array_values($refundStatuses) as $index => $refundStatus) {
-            if ((string) $refundStatus === 'none') {
-                $refundConditions[] = "d.refund_status = ''";
-                continue;
+        if ($hasRefundColumns) {
+            $refundConditions = [];
+            foreach (array_values($refundStatuses) as $index => $refundStatus) {
+                if ((string) $refundStatus === 'none') {
+                    $refundConditions[] = "d.refund_status = ''";
+                    continue;
+                }
+                $paramKey = 'refund_status_' . (string) $index;
+                $refundConditions[] = 'd.refund_status = :' . $paramKey;
+                $params[$paramKey] = (string) $refundStatus;
             }
-            $paramKey = 'refund_status_' . (string) $index;
-            $refundConditions[] = 'd.refund_status = :' . $paramKey;
-            $params[$paramKey] = (string) $refundStatus;
-        }
-        if ($refundConditions !== []) {
-            $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
+            if ($refundConditions !== []) {
+                $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
+            }
+        } elseif (!in_array('none', array_map('strval', $refundStatuses), true)) {
+            $conditions[] = '1 = 0';
         }
     }
 
@@ -827,7 +943,8 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
         $snapshotSearchSql = sr_content_file_download_log_snapshot_columns_exist($pdo)
             ? ' OR d.content_title_snapshot LIKE :q OR d.content_slug_snapshot LIKE :q OR d.file_title_snapshot LIKE :q OR d.file_original_name_snapshot LIKE :q'
             : '';
-        $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q' . $snapshotSearchSql . ' OR a.email LIKE :q OR a.display_name LIKE :q)';
+        $memberSearchSql = $hasAccount ? ' OR a.email LIKE :q OR a.display_name LIKE :q' : '';
+        $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q' . $snapshotSearchSql . $memberSearchSql . ')';
         $params['q'] = '%' . $q . '%';
     }
 
@@ -844,12 +961,14 @@ function sr_content_admin_file_download_log_count(PDO $pdo, array $filters): int
     }
 
     $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
+    $columns = sr_content_file_download_log_columns($pdo);
+    $memberJoinSql = isset($columns['account_id']) ? 'LEFT JOIN sr_member_accounts a ON a.id = d.account_id' : '';
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
-         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
+         ' . $memberJoinSql . '
          ' . $where['sql']
     );
     $stmt->execute($where['params']);
@@ -865,46 +984,67 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     }
 
     $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
+    $columns = sr_content_file_download_log_columns($pdo);
+    $hasAccount = isset($columns['account_id']);
+    $hasDownloadType = isset($columns['download_type']);
+    $hasChargePolicy = isset($columns['charge_policy']);
+    $hasAssetModule = isset($columns['asset_module']);
+    $hasAmount = isset($columns['amount']);
+    $hasAssetAccessLogIds = isset($columns['asset_access_log_ids_json']);
+    $hasRefundColumns = sr_content_file_download_log_refund_columns_exist($pdo);
     $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
     $contentTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(p.title, ''), NULLIF(d.content_title_snapshot, ''))" : 'p.title';
     $contentSlugSelect = $hasSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
     $fileTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(f.title, ''), NULLIF(d.file_title_snapshot, ''))" : 'f.title';
     $fileOriginalNameSelect = $hasSnapshots ? "COALESCE(NULLIF(f.original_name, ''), NULLIF(d.file_original_name_snapshot, ''))" : 'f.original_name';
-    $hasSettlementMetadata = function_exists('sr_content_asset_access_log_settlement_metadata_columns_exist') && sr_content_asset_access_log_settlement_metadata_columns_exist($pdo);
-    $accessLogSettlementSummarySelect = $hasSettlementMetadata
-        ? 'al.settlement_amount, ":", al.settlement_currency, ":", al.settlement_kind, ":", al.snapshot_schema_version, ":", al.rounding_policy_version'
-        : 'al.settlement_amount, ":", al.settlement_currency, ":", "legacy_unknown", ":", "asset_settlement_snapshot_v1", ":", "asset_settlement_rounding_v1"';
+    $accountIdSelect = $hasAccount ? 'd.account_id' : 'NULL';
+    $downloadTypeSelect = $hasDownloadType ? 'd.download_type' : "'free'";
+    $chargePolicySelect = $hasChargePolicy ? 'd.charge_policy' : "'once'";
+    $assetModuleSelect = $hasAssetModule ? 'd.asset_module' : "''";
+    $amountSelect = $hasAmount ? 'd.amount' : '0';
+    $assetAccessLogIdsSelect = $hasAssetAccessLogIds ? 'd.asset_access_log_ids_json' : "'[]'";
+    $refundStatusSelect = $hasRefundColumns ? 'd.refund_status' : "'schema_unavailable'";
+    $refundTransactionIdsSelect = $hasRefundColumns ? 'd.refund_transaction_ids_json' : "'[]'";
+    $refundNoteSelect = $hasRefundColumns ? 'd.refund_note' : "''";
+    $refundedByAccountIdSelect = $hasRefundColumns ? 'd.refunded_by_account_id' : 'NULL';
+    $refundedAtSelect = $hasRefundColumns ? 'd.refunded_at' : 'NULL';
+    $accessRevokedAtSelect = $hasRefundColumns ? 'd.access_revoked_at' : 'NULL';
+    $memberJoinSql = $hasAccount ? 'LEFT JOIN sr_member_accounts a ON a.id = d.account_id' : '';
+    $refundedByJoinSql = $hasRefundColumns ? 'LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id' : '';
+    $refundedByDisplayNameSelect = $hasRefundColumns ? 'rb.display_name' : "''";
     $stmt = $pdo->prepare(
-        'SELECT d.*,
+        'SELECT d.id,
+                d.content_id,
+                d.file_id,
+                ' . $accountIdSelect . ' AS account_id,
+                ' . $downloadTypeSelect . ' AS download_type,
+                ' . $chargePolicySelect . ' AS charge_policy,
+                ' . $assetModuleSelect . ' AS asset_module,
+                ' . $amountSelect . ' AS amount,
+                ' . $assetAccessLogIdsSelect . ' AS asset_access_log_ids_json,
+                ' . $refundStatusSelect . ' AS refund_status,
+                ' . $refundTransactionIdsSelect . ' AS refund_transaction_ids_json,
+                ' . $refundNoteSelect . ' AS refund_note,
+                ' . $refundedByAccountIdSelect . ' AS refunded_by_account_id,
+                ' . $refundedAtSelect . ' AS refunded_at,
+                ' . $accessRevokedAtSelect . ' AS access_revoked_at,
+                d.created_at,
                 ' . $contentTitleSelect . ' AS content_title,
                 ' . $contentSlugSelect . ' AS content_slug,
                 p.status AS content_status,
                 ' . $fileTitleSelect . ' AS file_title,
                 ' . $fileOriginalNameSelect . ' AS original_name,
                 f.status AS file_status,
-                a.email,
-                a.display_name,
-                rb.display_name AS refunded_by_display_name,
-                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", ' . $accessLogSettlementSummarySelect . ', ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
+                ' . ($hasAccount ? 'a.email' : "''") . ' AS email,
+                ' . ($hasAccount ? 'a.display_name' : "''") . ' AS display_name,
+                ' . $refundedByDisplayNameSelect . ' AS refunded_by_display_name,
+                \'\' AS access_log_summary
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
-         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
-         LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id
-         LEFT JOIN sr_content_asset_access_logs al
-           ON al.access_kind = \'download\'
-          AND al.reference_type = \'content.download\'
-          AND al.reference_id = CAST(d.file_id AS CHAR)
-          AND al.account_id = d.account_id
-          AND al.content_id = d.content_id
-          AND (
-                d.asset_access_log_ids_json = CONCAT(\'[\', al.id, \']\')
-             OR d.asset_access_log_ids_json LIKE CONCAT(\'[\', al.id, \',%\')
-             OR d.asset_access_log_ids_json LIKE CONCAT(\'%,\', al.id, \',%\')
-             OR d.asset_access_log_ids_json LIKE CONCAT(\'%,\', al.id, \']\')
-          )
+         ' . $memberJoinSql . '
+         ' . $refundedByJoinSql . '
          ' . $where['sql'] . '
-         GROUP BY d.id
          ' . sr_admin_sort_order_sql(sr_content_admin_file_download_log_sort_options(), $sort, sr_content_admin_file_download_log_default_sort()) . '
          LIMIT :limit_value OFFSET :offset_value'
     );
@@ -915,7 +1055,104 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    return sr_content_admin_file_download_logs_with_access_summaries($pdo, $stmt->fetchAll());
+}
+
+function sr_content_admin_file_download_logs_with_access_summaries(PDO $pdo, array $downloadLogs): array
+{
+    if ($downloadLogs === [] || !sr_content_asset_access_logs_table_exists($pdo)) {
+        return $downloadLogs;
+    }
+
+    $idsByLogIndex = [];
+    $allIds = [];
+    foreach ($downloadLogs as $index => $downloadLog) {
+        $ids = sr_content_file_download_log_access_log_ids($downloadLog);
+        if ($ids === []) {
+            continue;
+        }
+        $idsByLogIndex[(int) $index] = $ids;
+        foreach ($ids as $id) {
+            $allIds[$id] = $id;
+        }
+    }
+    if ($allIds === []) {
+        return $downloadLogs;
+    }
+
+    $columns = sr_content_asset_access_log_columns($pdo);
+    foreach (['id', 'content_id', 'account_id', 'asset_module', 'transaction_id', 'reference_type', 'reference_id', 'access_kind', 'amount'] as $requiredColumn) {
+        if (!isset($columns[$requiredColumn])) {
+            return $downloadLogs;
+        }
+    }
+
+    $settlementAmountSelect = isset($columns['settlement_amount']) ? 'settlement_amount' : '0 AS settlement_amount';
+    $settlementCurrencySelect = isset($columns['settlement_currency']) ? 'settlement_currency' : "'KRW' AS settlement_currency";
+    $settlementKindSelect = isset($columns['settlement_kind']) ? 'settlement_kind' : "'legacy_unknown' AS settlement_kind";
+    $snapshotSchemaVersionSelect = isset($columns['snapshot_schema_version']) ? 'snapshot_schema_version' : "'asset_settlement_snapshot_v1' AS snapshot_schema_version";
+    $roundingPolicyVersionSelect = isset($columns['rounding_policy_version']) ? 'rounding_policy_version' : "'asset_settlement_rounding_v1' AS rounding_policy_version";
+    $groupPolicySnapshotSelect = isset($columns['group_policy_snapshot_json']) ? 'group_policy_snapshot_json' : "'' AS group_policy_snapshot_json";
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($allIds) as $index => $id) {
+        $key = 'id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = (int) $id;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, amount,
+                ' . $settlementAmountSelect . ',
+                ' . $settlementCurrencySelect . ',
+                ' . $settlementKindSelect . ',
+                ' . $snapshotSchemaVersionSelect . ',
+                ' . $roundingPolicyVersionSelect . ',
+                ' . $groupPolicySnapshotSelect . '
+         FROM sr_content_asset_access_logs
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY id ASC'
+    );
+    $stmt->execute($params);
+
+    $accessLogsById = [];
+    foreach ($stmt->fetchAll() as $accessLog) {
+        $accessLogsById[(int) ($accessLog['id'] ?? 0)] = $accessLog;
+    }
+
+    foreach ($idsByLogIndex as $index => $ids) {
+        $summaryLines = [];
+        $downloadLog = $downloadLogs[$index];
+        foreach ($ids as $id) {
+            $accessLog = $accessLogsById[$id] ?? null;
+            if (!is_array($accessLog)) {
+                continue;
+            }
+            if ((int) ($accessLog['content_id'] ?? 0) !== (int) ($downloadLog['content_id'] ?? 0)
+                || (int) ($accessLog['account_id'] ?? 0) !== (int) ($downloadLog['account_id'] ?? 0)
+                || (string) ($accessLog['reference_type'] ?? '') !== 'content.download'
+                || (int) ($accessLog['reference_id'] ?? 0) !== (int) ($downloadLog['file_id'] ?? 0)
+                || (string) ($accessLog['access_kind'] ?? '') !== 'download'
+            ) {
+                continue;
+            }
+            $summaryLines[] = implode(':', [
+                (string) ($accessLog['asset_module'] ?? ''),
+                (string) (int) ($accessLog['transaction_id'] ?? 0),
+                (string) (int) ($accessLog['amount'] ?? 0),
+                (string) (int) ($accessLog['settlement_amount'] ?? 0),
+                (string) ($accessLog['settlement_currency'] ?? 'KRW'),
+                (string) ($accessLog['settlement_kind'] ?? 'legacy_unknown'),
+                (string) ($accessLog['snapshot_schema_version'] ?? 'asset_settlement_snapshot_v1'),
+                (string) ($accessLog['rounding_policy_version'] ?? 'asset_settlement_rounding_v1'),
+                (string) ($accessLog['group_policy_snapshot_json'] ?? ''),
+            ]);
+        }
+        $downloadLogs[$index]['access_log_summary'] = implode("\n", $summaryLines);
+    }
+
+    return $downloadLogs;
 }
 
 function sr_content_admin_file_download_log_by_id_for_update(PDO $pdo, int $downloadLogId): ?array
@@ -997,6 +1234,9 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
     }
     if ($refundNote === '') {
         return ['ok' => false, 'message' => '환불 사유를 입력하세요.'];
+    }
+    if (!sr_content_file_download_log_refund_columns_exist($pdo)) {
+        return ['ok' => false, 'message' => '다운로드 환불 기록 컬럼이 아직 준비되지 않았습니다. 대기 중인 업데이트를 먼저 적용하세요.'];
     }
 
     $startedTransaction = !$pdo->inTransaction();

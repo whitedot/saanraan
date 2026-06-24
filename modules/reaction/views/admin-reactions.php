@@ -79,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="filtering filtering-card<?php echo $reactionRecordFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
         <div class="filtering-fields">
             <div class="filtering-field">
-                <label for="reaction_record_account_id" class="filtering-label">회원 번호</label>
+                <label for="reaction_record_account_id" class="filtering-label">회원</label>
                 <input id="reaction_record_account_id" type="number" name="account_id" class="form-input filtering-input" min="1" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $reactionRecordFilters['account_id']) : ''; ?>">
             </div>
             <div class="filtering-field filtering-field-fill">
