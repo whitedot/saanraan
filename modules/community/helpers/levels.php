@@ -568,6 +568,171 @@ function sr_community_level_tables_exist(PDO $pdo): bool
     return $exists;
 }
 
+function sr_community_level_recalculate_jobs_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    if (function_exists('sr_community_optional_table_exists')) {
+        $exists = sr_community_optional_table_exists($pdo, 'sr_community_level_recalculate_jobs');
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_level_recalculate_jobs LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_level_recalculate_job_create(PDO $pdo, int $accountId, int $total, int $batchSize): array
+{
+    if (!sr_community_level_recalculate_jobs_table_exists($pdo)) {
+        return ['id' => 0, 'lock_token' => '', 'cursor_value' => 0, 'processed_total' => 0, 'total_count' => $total, 'batch_size' => $batchSize];
+    }
+
+    $now = sr_now();
+    $lockToken = bin2hex(random_bytes(16));
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_level_recalculate_jobs
+            (requested_by, status, stage, cursor_value, processed_total, total_count, batch_size, lock_token, created_at, updated_at, started_at)
+         VALUES
+            (:requested_by, \'running\', \'accounts\', 0, 0, :total_count, :batch_size, :lock_token, :created_at, :updated_at, :started_at)'
+    );
+    $stmt->execute([
+        'requested_by' => $accountId > 0 ? $accountId : null,
+        'total_count' => max(0, $total),
+        'batch_size' => max(1, min(100, $batchSize)),
+        'lock_token' => $lockToken,
+        'created_at' => $now,
+        'updated_at' => $now,
+        'started_at' => $now,
+    ]);
+
+    return [
+        'id' => (int) $pdo->lastInsertId(),
+        'lock_token' => $lockToken,
+        'cursor_value' => 0,
+        'processed_total' => 0,
+        'total_count' => max(0, $total),
+        'batch_size' => max(1, min(100, $batchSize)),
+    ];
+}
+
+function sr_community_level_recalculate_job_by_id(PDO $pdo, int $jobId): ?array
+{
+    if ($jobId < 1 || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_community_level_recalculate_jobs WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $jobId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_level_recalculate_job_require_running(array $job, string $lockToken): void
+{
+    if ((int) ($job['id'] ?? 0) < 1 || (string) ($job['status'] ?? '') !== 'running' || $lockToken === '' || !hash_equals((string) ($job['lock_token'] ?? ''), $lockToken)) {
+        throw new RuntimeException('레벨 재계산 작업 상태가 만료되었습니다. 화면을 새로고침한 뒤 다시 실행하세요.');
+    }
+}
+
+function sr_community_level_recalculate_job_progress(PDO $pdo, int $jobId, string $lockToken, int $cursor, int $processedTotal, int $total): void
+{
+    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_level_recalculate_jobs
+         SET cursor_value = :cursor_value,
+             processed_total = :processed_total,
+             total_count = :total_count,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = 'running'
+           AND lock_token = :lock_token"
+    );
+    $stmt->execute([
+        'cursor_value' => max(0, $cursor),
+        'processed_total' => max(0, $processedTotal),
+        'total_count' => max(0, $total),
+        'updated_at' => sr_now(),
+        'id' => $jobId,
+        'lock_token' => $lockToken,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('레벨 재계산 작업 잠금이 만료되었습니다.');
+    }
+}
+
+function sr_community_level_recalculate_job_complete(PDO $pdo, int $jobId, string $lockToken, int $cursor, int $processedTotal, int $total): void
+{
+    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_level_recalculate_jobs
+         SET status = 'completed',
+             stage = 'complete',
+             cursor_value = :cursor_value,
+             processed_total = :processed_total,
+             total_count = :total_count,
+             updated_at = :updated_at,
+             completed_at = :completed_at
+         WHERE id = :id
+           AND status = 'running'
+           AND lock_token = :lock_token"
+    );
+    $stmt->execute([
+        'cursor_value' => max(0, $cursor),
+        'processed_total' => max(0, $processedTotal),
+        'total_count' => max(0, $total),
+        'updated_at' => $now,
+        'completed_at' => $now,
+        'id' => $jobId,
+        'lock_token' => $lockToken,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('레벨 재계산 작업 완료 상태를 저장하지 못했습니다.');
+    }
+}
+
+function sr_community_level_recalculate_job_fail(PDO $pdo, int $jobId, string $lockToken, Throwable $exception): void
+{
+    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_level_recalculate_jobs
+         SET status = 'failed',
+             failure_message = :failure_message,
+             updated_at = :updated_at,
+             failed_at = :failed_at
+         WHERE id = :id
+           AND status = 'running'
+           AND lock_token = :lock_token"
+    );
+    $stmt->execute([
+        'failure_message' => mb_substr($exception->getMessage(), 0, 2000),
+        'updated_at' => $now,
+        'failed_at' => $now,
+        'id' => $jobId,
+        'lock_token' => $lockToken,
+    ]);
+}
+
 function sr_community_levels(PDO $pdo, ?array $settings = null): array
 {
     if (!sr_community_level_tables_exist($pdo)) {
@@ -1038,7 +1203,11 @@ function sr_community_recalculate_recent_account_levels(PDO $pdo, int $limit = 1
     $limit = max(1, min(500, $limit));
     $summary = sr_community_recalculate_account_levels_batch($pdo, 0, $limit);
 
-    return ['accounts' => (int) ($summary['accounts'] ?? 0)];
+    return [
+        'accounts' => (int) ($summary['accounts'] ?? 0),
+        'next_cursor' => (int) ($summary['next_cursor'] ?? 0),
+        'done' => !empty($summary['done']),
+    ];
 }
 
 function sr_community_recalculate_target_account_count(PDO $pdo): int

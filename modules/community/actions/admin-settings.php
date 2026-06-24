@@ -768,13 +768,29 @@ if (sr_request_method() === 'POST') {
             ]);
             $errors[] = sr_t('community::action.admin.level_recalculate_confirmation_required');
         } else {
-            $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
             $total = sr_community_recalculate_target_account_count($pdo);
+            $job = sr_community_level_recalculate_job_create($pdo, (int) $account['id'], $total, 200);
+            $jobId = (int) ($job['id'] ?? 0);
+            $lockToken = (string) ($job['lock_token'] ?? '');
             $loadAssessment = sr_admin_high_load_assessment([
                 'target_records' => $total,
                 'table_count' => 4,
                 'batch_available' => true,
             ]);
+            try {
+                $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
+                sr_community_level_recalculate_job_complete($pdo, $jobId, $lockToken, (int) ($summary['next_cursor'] ?? 0), (int) ($summary['accounts'] ?? 0), $total);
+            } catch (Throwable $exception) {
+                sr_community_level_recalculate_job_fail($pdo, $jobId, $lockToken, $exception);
+                sr_log_exception($exception, 'community_level_recalculate_job_failed');
+                $errors[] = $exception->getMessage();
+                $summary = ['accounts' => 0, 'next_cursor' => 0, 'done' => false];
+            }
+            if ($errors !== []) {
+                $levels = sr_community_levels($pdo, $settings);
+                include SR_ROOT . '/modules/community/views/admin-settings.php';
+                return;
+            }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -785,6 +801,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Community levels recalculated.',
                 'metadata' => array_merge($summary, [
                     'total' => $total,
+                    'job_id' => $jobId,
                     'failed_count' => 0,
                     'batch' => false,
                     'load_grade' => (string) $loadAssessment['grade'],

@@ -258,6 +258,42 @@ function sr_admin_operational_status_checks(): array
             'followup' => '실패 단계와 부분 생성물 정리 필요 여부를 확인합니다.',
         ],
         [
+            'label' => 'community.level_recalculate.running',
+            'title' => '커뮤니티 레벨 재계산 진행 중',
+            'module' => 'community',
+            'table' => 'sr_community_level_recalculate_jobs',
+            'where' => "status = 'running'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '15분',
+            'warn_after_seconds' => 900,
+            'target_sql' => "SELECT id AS target_fallback, requested_by, processed_total, total_count
+                FROM sr_community_level_recalculate_jobs
+                WHERE status = 'running'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '작업 #{target_fallback} / 요청자 #{requested_by} / {processed_total}/{total_count}',
+            'target_fallback_prefix' => '작업',
+            'followup' => '/admin/community/levels에서 재계산 진행 상태를 확인하고 필요하면 새 재계산을 실행합니다.',
+        ],
+        [
+            'label' => 'community.level_recalculate.failed',
+            'title' => '커뮤니티 레벨 재계산 실패',
+            'module' => 'community',
+            'table' => 'sr_community_level_recalculate_jobs',
+            'where' => "status = 'failed'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '즉시',
+            'warn_after_seconds' => 0,
+            'target_sql' => "SELECT id AS target_fallback, requested_by, processed_total, total_count
+                FROM sr_community_level_recalculate_jobs
+                WHERE status = 'failed'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '작업 #{target_fallback} / 요청자 #{requested_by} / {processed_total}/{total_count}',
+            'target_fallback_prefix' => '작업',
+            'followup' => '/admin/community/levels에서 실패 사유를 확인하고 재계산을 다시 실행합니다.',
+        ],
+        [
             'label' => 'quiz.reward_grants.pending',
             'title' => '퀴즈 보상 지급 대기',
             'module' => 'quiz',

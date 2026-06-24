@@ -1235,6 +1235,8 @@ $communitySettingsSectionNavItems = [
         var cursor = 0;
         var processed = 0;
         var total = 0;
+        var jobId = 0;
+        var lockToken = '';
 
         if (openButton) {
             openButton.disabled = true;
@@ -1251,6 +1253,8 @@ $communitySettingsSectionNavItems = [
             body.set('cursor', String(cursor));
             body.set('batch_size', String(batchSize));
             body.set('processed_total', String(processed));
+            body.set('job_id', String(jobId));
+            body.set('lock_token', lockToken);
 
             return window.fetch(url, {
                 method: 'POST',
@@ -1271,6 +1275,8 @@ $communitySettingsSectionNavItems = [
                 processed = Number(payload.processed_total || processed);
                 total = Number(payload.total || total);
                 cursor = Number(payload.next_cursor || cursor);
+                jobId = Number(payload.job_id || jobId);
+                lockToken = String(payload.lock_token || lockToken);
                 updateProgress(processed, total, !!payload.done);
 
                 if (payload.done) {

@@ -43,6 +43,8 @@
 | 커뮤니티 저장소 정리 대기 | `sr_community_storage_cleanup_failures.status = 'pending'` | 24시간 초과 시 지연 | storage key | 커뮤니티 저장소 정리 실패 목록 |
 | 게시판 복사 진행 중 | `sr_community_board_copy_jobs.status IN ('pending', 'running')` | 15분 초과 시 지연 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
 | 게시판 복사 실패 | `sr_community_board_copy_jobs.status IN ('failed', 'canceled')` | 즉시 지연 초과 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
+| 커뮤니티 레벨 재계산 진행 중 | `sr_community_level_recalculate_jobs.status = 'running'` | 15분 초과 시 지연 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
+| 커뮤니티 레벨 재계산 실패 | `sr_community_level_recalculate_jobs.status = 'failed'` | 즉시 지연 초과 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
 | 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 보상/응시 관리 |
 | 퀴즈 보상 지급 실패 | `sr_quiz_reward_grants.status = 'failed'` | 즉시 지연 초과 | 퀴즈 제목 또는 ID | 퀴즈 보상/응시 관리 |
 | 설문 보상 지급 대기 | `sr_survey_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 설문 제목 또는 ID | 설문 응답/보상 관리 |
@@ -57,7 +59,6 @@
 
 | 항목 | 현재 상태 | 판정 |
 | --- | --- | --- |
-| 커뮤니티 레벨 재계산 | AJAX batch가 cursor와 processed_total을 클라이언트가 들고 이어서 호출한다. 별도 job row가 없다. | 현재 처리: 운영 점검 제외. 선행 작업: `sr_community_level_recalculate_jobs` 같은 작업 row, stage, cursor, lock token, `updated_at`, `completed`/`failed` 상태를 먼저 도입한다. |
 | 저장소 캐시 정리, 보관 정책 정리 | bounded 단일 요청이며 결과가 즉시 화면/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 실행 결과 토스트, 감사 로그, 필요한 경우 요약 화면을 정본으로 둔다. |
 | 콘텐츠/게시판 동기 복사 | 단일 요청으로 완료되고 실패 시 action 오류/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 대량이면 게시판 배치 복사 job을 사용하고, 콘텐츠 복사는 별도 job row가 생기기 전까지 운영 지연 점검 대상이 아니다. |
 | 설문 CSV export, 개인정보 export | 요청 시 생성되는 read-only 출력이며 영속 job이 없다. | 현재 처리: 운영 점검 제외. 장기 export queue를 도입하기 전까지는 운영 지연/실패 점검 대상이 아니다. |
@@ -136,8 +137,8 @@
 
 ### 4차: job row 없는 고부하 작업의 설계 보완
 
-- 커뮤니티 레벨 재계산처럼 클라이언트 cursor 기반 batch는 중단 감지가 어렵다.
-- 운영 점검 대상이 되어야 한다면 작업 row, stage, cursor, lock token, updated_at, completed/failed 상태를 먼저 도입한다.
+- 커뮤니티 레벨 재계산은 `sr_community_level_recalculate_jobs`를 도입해 클라이언트 cursor 기반 batch의 중단 감지 한계를 보완했다.
+- 운영 점검은 `running` job이 15분 이상 갱신되지 않거나 `failed` 상태로 끝난 경우를 보여준다.
 - job row 생성 전에는 부작용을 만들지 않는 원칙을 적용한다.
 
 ## 검증 계획

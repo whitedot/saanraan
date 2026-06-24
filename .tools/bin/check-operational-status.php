@@ -180,6 +180,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, asset_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_notification_deliveries (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_board_copy_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_level_recalculate_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, requested_by INTEGER NOT NULL, processed_total INTEGER NOT NULL, total_count INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, attachment_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_content_author_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, submission_id INTEGER NOT NULL, content_id INTEGER NOT NULL, author_account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_point_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, expires_at TEXT NULL, expires_remaining INTEGER NOT NULL DEFAULT 0)');
@@ -208,6 +209,10 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $stmt = $pdo->prepare('INSERT INTO sr_community_board_copy_jobs (status, updated_at) VALUES (:status, :updated_at)');
     $stmt->execute(['status' => 'running', 'updated_at' => $oldAt]);
     $stmt->execute(['status' => 'failed', 'updated_at' => $recentAt]);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_community_level_recalculate_jobs (requested_by, processed_total, total_count, status, updated_at) VALUES (:requested_by, :processed_total, :total_count, :status, :updated_at)');
+    $stmt->execute(['requested_by' => 901, 'processed_total' => 25, 'total_count' => 100, 'status' => 'running', 'updated_at' => $oldAt]);
+    $stmt->execute(['requested_by' => 902, 'processed_total' => 30, 'total_count' => 120, 'status' => 'failed', 'updated_at' => $recentAt]);
 
     $stmt = $pdo->prepare('INSERT INTO sr_community_publisher_reward_logs (post_id, attachment_id, publisher_account_id, status, updated_at) VALUES (:post_id, :attachment_id, :publisher_account_id, :status, :updated_at)');
     $stmt->execute(['post_id' => 101, 'attachment_id' => 201, 'publisher_account_id' => 301, 'status' => 'pending', 'updated_at' => $oldAt]);
@@ -264,6 +269,15 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if ((string) ($byLabel['community.board_copy.failed']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture failed board copy job should be overdue immediately.');
     }
+    if ((string) ($byLabel['community.level_recalculate.running']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture running community level recalculate job should be overdue.');
+    }
+    if (($byLabel['community.level_recalculate.running']['targets'] ?? []) !== ['작업 #1 / 요청자 #901 / 25/100']) {
+        sr_operational_status_error('Bundle fixture running community level recalculate job should include job, requester, and progress target.');
+    }
+    if ((string) ($byLabel['community.level_recalculate.failed']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture failed community level recalculate job should be overdue immediately.');
+    }
     if ((string) ($byLabel['community.publisher_rewards.pending']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture pending publisher reward should be overdue.');
     }
@@ -287,7 +301,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     }
 
     $summary = sr_admin_operational_status_summary($rows);
-    if ((int) ($summary['overdue'] ?? 0) < 13 || (int) ($summary['total_count'] ?? 0) !== 13) {
+    if ((int) ($summary['overdue'] ?? 0) < 15 || (int) ($summary['total_count'] ?? 0) !== 15) {
         sr_operational_status_error('Bundle fixture operational summary should include overdue signal counts.');
     }
 }
@@ -444,6 +458,8 @@ $signals = [
     'community.publisher_rewards.failed',
     'content.author_rewards.pending',
     'content.author_rewards.failed',
+    'community.level_recalculate.running',
+    'community.level_recalculate.failed',
     'notification.deliveries.queued',
     'notification.deliveries.failed',
     'content.storage_cleanup.pending',

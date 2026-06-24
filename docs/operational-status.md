@@ -40,6 +40,8 @@ php .tools/bin/ops-status.php
 | `community.storage_cleanup.pending` | 커뮤니티 삭제 후 저장소 파일 정리 실패 | 24시간 | 게시판 관리자 정리 실패 목록과 재시도 |
 | `community.board_copy.active` | 게시판 복사 작업이 대기 또는 실행 중 | 15분 | 복사 작업 진행 상태와 lock 만료 |
 | `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | 실패 단계, 부분 생성물 정리 |
+| `community.level_recalculate.running` | 커뮤니티 레벨 재계산 작업이 실행 중 | 15분 | `/admin/community/levels` 재계산 진행 상태와 재실행 필요 여부 |
+| `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | 실패 사유, 재실행 가능 여부 |
 | `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | 보상 정책, 자산/쿠폰 provider 상태 |
 | `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | 관리자 복구 또는 수동 완료 |
 | `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | 보상 정책, 자산/쿠폰 provider 상태 |
@@ -93,6 +95,7 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 | 포인트 만료 | 중간, 24시간 | 만료 예정 잔여분이 누적되면 수동 만료 실행 |
 | 저장소 파일 정리 | 중간, 24시간 | 실패 항목이 계속 남으면 파일 유실/권한 문제 확인 |
 | 게시판 복사 | 낮음, 15분 | `running` lock이 오래 유지되면 takeover 또는 실패 처리 기준 확인 |
+| 커뮤니티 레벨 재계산 | 낮음, 15분 | `running` job이 오래 남거나 `failed`가 생기면 재계산 재실행 필요 여부 확인 |
 | 콘텐츠/커뮤니티/퀴즈/설문 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
 
 ## Cron 후보

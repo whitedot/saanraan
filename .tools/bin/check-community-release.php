@@ -611,6 +611,7 @@ $requiredTables = [
     'sr_community_levels',
     'sr_community_account_levels',
     'sr_community_level_logs',
+    'sr_community_level_recalculate_jobs',
     'sr_community_asset_logs',
     'sr_community_access_entitlements',
 ];
