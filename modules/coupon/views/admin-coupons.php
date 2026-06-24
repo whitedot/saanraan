@@ -72,6 +72,26 @@ $issuePagination = isset($issuePagination) && is_array($issuePagination) ? $issu
 $redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagination) ? $redemptionPagination : [];
 $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCampaigns : [];
 $claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
+$claimCampaignDefinitionOptions = isset($claimCampaignDefinitionOptions) && is_array($claimCampaignDefinitionOptions) ? $claimCampaignDefinitionOptions : [];
+$editClaimCampaign = isset($editClaimCampaign) && is_array($editClaimCampaign) ? $editClaimCampaign : null;
+$editingClaimCampaign = $editClaimCampaign !== null;
+$claimCampaignForm = $editingClaimCampaign ? $editClaimCampaign : [];
+$claimCampaignFormSurfaces = sr_coupon_claim_surfaces_from_value($claimCampaignForm['exposure_surfaces_json'] ?? ['coupon_zone']);
+if ($claimCampaignFormSurfaces === []) {
+    $claimCampaignFormSurfaces = ['coupon_zone'];
+}
+$claimCampaignFormDateTime = static function (?string $value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return '';
+    }
+
+    return date('Y-m-d\TH:i', $timestamp);
+};
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $selectedDefinitionStatuses = is_array($definitionFilters['status'] ?? null) ? $definitionFilters['status'] : [];
@@ -123,82 +143,95 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'campaigns') { ?>
 <section class="admin-card">
     <div class="admin-card-header">
-        <h2>발급 캠페인 추가</h2>
+        <h2><?php echo $editingClaimCampaign ? '발급 캠페인 수정' : '발급 캠페인 추가'; ?></h2>
     </div>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form admin-card-body">
         <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="create_campaign">
+        <input type="hidden" name="intent" value="<?php echo $editingClaimCampaign ? 'update_campaign' : 'create_campaign'; ?>">
+        <?php if ($editingClaimCampaign) { ?>
+            <input type="hidden" name="campaign_id" value="<?php echo sr_e((string) (int) ($claimCampaignForm['id'] ?? 0)); ?>">
+            <input type="hidden" name="return_to" value="<?php echo sr_e('/admin/coupons/campaigns?edit_campaign_id=' . (string) (int) ($claimCampaignForm['id'] ?? 0)); ?>">
+        <?php } ?>
         <div class="admin-form-grid">
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_key">캠페인 key <span class="sr-required-label">(필수)</span></label>
-                <input id="coupon_claim_campaign_key" type="text" name="campaign_key" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocomplete="off" data-admin-key-input required>
+                <input id="coupon_claim_campaign_key" type="text" name="campaign_key" value="<?php echo sr_e((string) ($claimCampaignForm['campaign_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocomplete="off" data-admin-key-input required>
+                <?php if ($editingClaimCampaign) { ?>
+                    <p class="form-help">발급 로그가 생긴 캠페인의 key는 변경할 수 없습니다.</p>
+                <?php } ?>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_definition_id">연결 쿠폰 <span class="sr-required-label">(필수)</span></label>
                 <select id="coupon_claim_campaign_definition_id" name="coupon_definition_id" class="form-select" required>
                     <option value="">선택</option>
-                    <?php foreach ($definitions as $definition) { ?>
-                        <option value="<?php echo sr_e((string) (int) ($definition['id'] ?? 0)); ?>"><?php echo sr_e((string) ($definition['title'] ?? '')); ?> (<?php echo sr_e((string) ($definition['coupon_key'] ?? '')); ?>)</option>
+                    <?php foreach ($claimCampaignDefinitionOptions as $definition) { ?>
+                        <?php $definitionId = (int) ($definition['id'] ?? 0); ?>
+                        <option value="<?php echo sr_e((string) $definitionId); ?>"<?php echo (int) ($claimCampaignForm['coupon_definition_id'] ?? 0) === $definitionId ? ' selected' : ''; ?>><?php echo sr_e((string) ($definition['title'] ?? '')); ?> (<?php echo sr_e((string) ($definition['coupon_key'] ?? '')); ?>)</option>
                     <?php } ?>
                 </select>
+                <?php if ($editingClaimCampaign) { ?>
+                    <p class="form-help">발급 로그가 생긴 캠페인의 연결 쿠폰은 변경할 수 없습니다.</p>
+                <?php } ?>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_title">제목 <span class="sr-required-label">(필수)</span></label>
-                <input id="coupon_claim_campaign_title" type="text" name="title" class="form-input" maxlength="120" required>
+                <input id="coupon_claim_campaign_title" type="text" name="title" value="<?php echo sr_e((string) ($claimCampaignForm['title'] ?? '')); ?>" class="form-input" maxlength="120" required>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_status">상태 <span class="sr-required-label">(필수)</span></label>
                 <select id="coupon_claim_campaign_status" name="status" class="form-select" required>
-                    <option value="draft">초안</option>
-                    <option value="active">진행</option>
-                    <option value="paused">중지</option>
-                    <option value="ended">종료</option>
+                    <?php foreach (sr_coupon_claim_campaign_statuses() as $statusOption) { ?>
+                        <option value="<?php echo sr_e($statusOption); ?>"<?php echo (string) ($claimCampaignForm['status'] ?? 'draft') === $statusOption ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_claim_campaign_status_label($statusOption)); ?></option>
+                    <?php } ?>
                 </select>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_visibility">공개 여부 <span class="sr-required-label">(필수)</span></label>
                 <select id="coupon_claim_campaign_visibility" name="visibility" class="form-select" required>
-                    <option value="hidden">숨김</option>
-                    <option value="public">공개</option>
+                    <option value="hidden"<?php echo (string) ($claimCampaignForm['visibility'] ?? 'hidden') === 'hidden' ? ' selected' : ''; ?>>숨김</option>
+                    <option value="public"<?php echo (string) ($claimCampaignForm['visibility'] ?? 'hidden') === 'public' ? ' selected' : ''; ?>>공개</option>
                 </select>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_total_limit">총 발급 한도</label>
-                <input id="coupon_claim_campaign_total_limit" type="number" name="total_claim_limit" class="form-input" min="1" max="999999999" step="1">
+                <input id="coupon_claim_campaign_total_limit" type="number" name="total_claim_limit" value="<?php echo isset($claimCampaignForm['total_claim_limit']) && $claimCampaignForm['total_claim_limit'] !== null ? sr_e((string) (int) $claimCampaignForm['total_claim_limit']) : ''; ?>" class="form-input" min="1" max="999999999" step="1">
                 <p class="form-help">비워 두면 수량 제한 없이 발급합니다.</p>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_per_account_limit">회원당 발급 한도 <span class="sr-required-label">(필수)</span></label>
-                <input id="coupon_claim_campaign_per_account_limit" type="number" name="per_account_limit" class="form-input" min="1" max="1000" step="1" value="1" required>
+                <input id="coupon_claim_campaign_per_account_limit" type="number" name="per_account_limit" class="form-input" min="1" max="1000" step="1" value="<?php echo sr_e((string) (int) ($claimCampaignForm['per_account_limit'] ?? 1)); ?>" required>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_issue_expires_in_days">발급본 만료일수</label>
-                <input id="coupon_claim_campaign_issue_expires_in_days" type="number" name="issue_expires_in_days" class="form-input" min="1" max="3650" step="1">
+                <input id="coupon_claim_campaign_issue_expires_in_days" type="number" name="issue_expires_in_days" value="<?php echo isset($claimCampaignForm['issue_expires_in_days']) && $claimCampaignForm['issue_expires_in_days'] !== null ? sr_e((string) (int) $claimCampaignForm['issue_expires_in_days']) : ''; ?>" class="form-input" min="1" max="3650" step="1">
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_starts_at">발급 시작</label>
-                <input id="coupon_claim_campaign_starts_at" type="datetime-local" name="starts_at" class="form-input">
+                <input id="coupon_claim_campaign_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e($claimCampaignFormDateTime((string) ($claimCampaignForm['starts_at'] ?? ''))); ?>" class="form-input">
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_ends_at">발급 종료</label>
-                <input id="coupon_claim_campaign_ends_at" type="datetime-local" name="ends_at" class="form-input">
+                <input id="coupon_claim_campaign_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e($claimCampaignFormDateTime((string) ($claimCampaignForm['ends_at'] ?? ''))); ?>" class="form-input">
             </div>
         </div>
         <div class="admin-form-field">
             <span class="form-label">노출 위치 <span class="sr-required-label">(필수)</span></span>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="coupon_zone" checked> 쿠폰존</label>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="content_embed"> 본문 임베드</label>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="popup_layer"> 팝업레이어</label>
+            <label><input type="checkbox" name="exposure_surfaces[]" value="coupon_zone"<?php echo in_array('coupon_zone', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 쿠폰존</label>
+            <label><input type="checkbox" name="exposure_surfaces[]" value="content_embed"<?php echo in_array('content_embed', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 본문 임베드</label>
+            <label><input type="checkbox" name="exposure_surfaces[]" value="popup_layer"<?php echo in_array('popup_layer', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 팝업레이어</label>
         </div>
         <div class="admin-form-field">
-            <label><input type="checkbox" name="login_required" value="1" checked> 로그인 필요</label>
+            <label><input type="checkbox" name="login_required" value="1"<?php echo $editingClaimCampaign ? ((int) ($claimCampaignForm['login_required'] ?? 1) === 1 ? ' checked' : '') : ' checked'; ?>> 로그인 필요</label>
         </div>
         <div class="admin-form-field">
             <label class="form-label" for="coupon_claim_campaign_description">설명</label>
-            <textarea id="coupon_claim_campaign_description" name="description" class="form-textarea" rows="3" maxlength="1000"></textarea>
+            <textarea id="coupon_claim_campaign_description" name="description" class="form-textarea" rows="3" maxlength="1000"><?php echo sr_e((string) ($claimCampaignForm['description'] ?? '')); ?></textarea>
         </div>
         <div class="admin-form-actions">
-            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="submit" class="btn btn-primary"><?php echo $editingClaimCampaign ? '수정 저장' : '저장'; ?></button>
+            <?php if ($editingClaimCampaign) { ?>
+                <a class="btn btn-secondary" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">취소</a>
+            <?php } ?>
         </div>
     </form>
 </section>
@@ -233,7 +266,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e(sr_coupon_claim_campaign_status_label((string) ($campaign['status'] ?? ''))); ?></td>
                                 <td><?php echo sr_e((string) ($campaign['visibility'] ?? '') === 'public' ? '공개' : '숨김'); ?></td>
                                 <td><?php echo (int) ($campaign['total_claim_limit'] ?? 0) > 0 ? sr_e(number_format((int) $campaign['total_claim_limit'])) : sr_e('제한 없음'); ?> / <?php echo sr_e('회원당 ' . number_format((int) ($campaign['per_account_limit'] ?? 1))); ?></td>
-                                <td><span class="text-muted">후속 슬라이스</span></td>
+                                <td><a class="btn btn-secondary btn-sm" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns?edit_campaign_id=' . (string) (int) ($campaign['id'] ?? 0))); ?>">수정</a></td>
                             </tr>
                         <?php } ?>
                     </tbody>

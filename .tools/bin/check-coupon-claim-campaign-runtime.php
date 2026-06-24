@@ -304,6 +304,72 @@ function sr_coupon_claim_runtime_fixture(): void
     $sanitized = sr_embed_manager_sanitize_rendered_fragment((string) ($rendered['html'] ?? ''));
     sr_coupon_claim_runtime_assert(str_contains($sanitized, 'data-coupon-embed="claim"'), 'coupon embed rendered fragment should keep coupon embed namespace.');
     sr_coupon_claim_runtime_assert(str_contains($sanitized, '/coupons?campaign=claim_embed'), 'coupon embed rendered fragment should link to the campaign detail page.');
+
+    $editDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_edit');
+    $editCampaignId = sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_edit',
+        'coupon_definition_id' => $editDefinitionId,
+        'title' => 'Editable claim',
+        'status' => 'draft',
+        'claim_type' => 'free',
+        'total_claim_limit' => 5,
+        'per_account_limit' => 2,
+        'visibility' => 'hidden',
+        'exposure_surfaces' => ['coupon_zone'],
+        'login_required' => 1,
+    ]);
+    sr_coupon_update_claim_campaign($pdo, $editCampaignId, [
+        'campaign_key' => 'claim_edit_renamed',
+        'coupon_definition_id' => $editDefinitionId,
+        'title' => 'Edited claim',
+        'status' => 'active',
+        'claim_type' => 'free',
+        'total_claim_limit' => 3,
+        'per_account_limit' => 2,
+        'visibility' => 'public',
+        'exposure_surfaces' => ['coupon_zone', 'popup_layer'],
+        'login_required' => 1,
+    ]);
+    $edited = sr_coupon_claim_campaign_by_id($pdo, $editCampaignId);
+    sr_coupon_claim_runtime_assert(is_array($edited) && (string) ($edited['campaign_key'] ?? '') === 'claim_edit_renamed', 'claim campaign edit should update key before claims exist.');
+    sr_coupon_claim_runtime_assert(is_array($edited) && in_array('popup_layer', sr_coupon_claim_surfaces_from_value($edited['exposure_surfaces_json'] ?? ''), true), 'claim campaign edit should update exposure surfaces.');
+
+    $editClaim = sr_coupon_claim_free_campaign($pdo, 'claim_edit_renamed', 10, 'edit-intent');
+    sr_coupon_claim_runtime_assert(!empty($editClaim['claimed']), 'edited claim campaign should remain claimable.');
+    try {
+        sr_coupon_update_claim_campaign($pdo, $editCampaignId, [
+            'campaign_key' => 'claim_edit_changed_after_log',
+            'coupon_definition_id' => $editDefinitionId,
+            'title' => 'Edited claim',
+            'status' => 'active',
+            'claim_type' => 'free',
+            'total_claim_limit' => 3,
+            'per_account_limit' => 2,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'claim campaign key should not change after claim logs exist.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), 'key'), 'claim campaign key immutability failure should be user-facing.');
+    }
+    try {
+        sr_coupon_update_claim_campaign($pdo, $editCampaignId, [
+            'campaign_key' => 'claim_edit_renamed',
+            'coupon_definition_id' => $editDefinitionId,
+            'title' => 'Edited claim',
+            'status' => 'active',
+            'claim_type' => 'free',
+            'total_claim_limit' => '',
+            'per_account_limit' => 0,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'claim campaign per-account limit should reject invalid numbers.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '회원당 발급 한도'), 'per-account limit validation should be user-facing.');
+    }
 }
 
 sr_coupon_claim_runtime_fixture();

@@ -92,6 +92,35 @@ if (sr_request_method() === 'POST') {
             ]);
             sr_admin_flash_result(sr_admin_action_result([], '쿠폰 발급 캠페인을 만들었습니다.'));
             sr_redirect('/admin/coupons/campaigns');
+        } elseif ($intent === 'update_campaign' && $couponAdminPage === 'campaigns') {
+            $campaignId = sr_admin_post_positive_int('campaign_id');
+            sr_coupon_update_claim_campaign($pdo, $campaignId, [
+                'campaign_key' => sr_post_string('campaign_key', 60),
+                'coupon_definition_id' => sr_admin_post_positive_int('coupon_definition_id'),
+                'title' => sr_post_string('title', 120),
+                'description' => sr_post_string('description', 1000),
+                'status' => sr_post_string('status', 30),
+                'claim_type' => 'free',
+                'starts_at' => sr_post_string('starts_at', 30),
+                'ends_at' => sr_post_string('ends_at', 30),
+                'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
+                'total_claim_limit' => sr_post_string('total_claim_limit', 10),
+                'per_account_limit' => sr_post_string('per_account_limit', 10),
+                'visibility' => sr_post_string('visibility', 20),
+                'exposure_surfaces' => $_POST['exposure_surfaces'] ?? ['coupon_zone'],
+                'login_required' => sr_post_string('login_required', 1) === '1',
+            ]);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'coupon.claim_campaign.updated',
+                'target_type' => 'coupon_claim_campaign',
+                'target_id' => (string) $campaignId,
+                'result' => 'success',
+                'message' => 'Coupon claim campaign updated.',
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], '쿠폰 발급 캠페인을 수정했습니다.'));
+            sr_redirect('/admin/coupons/campaigns');
         } elseif ($intent === 'issue_coupon' && $couponAdminPage === 'definitions') {
             $definitionId = sr_admin_post_positive_int('coupon_definition_id');
             if ($definitionId < 1) {
@@ -410,6 +439,17 @@ if ($couponAdminPage === 'issues') {
 } elseif ($couponAdminPage === 'campaigns') {
     $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
     $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
+}
+$claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300) : [];
+$editClaimCampaign = null;
+if ($couponAdminPage === 'campaigns') {
+    $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);
+    if ($editClaimCampaignId > 0) {
+        $editClaimCampaign = sr_coupon_claim_campaign_by_id($pdo, $editClaimCampaignId);
+        if (!is_array($editClaimCampaign)) {
+            $errors[] = '수정할 발급 캠페인을 찾을 수 없습니다.';
+        }
+    }
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';
