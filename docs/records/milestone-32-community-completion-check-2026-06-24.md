@@ -50,3 +50,5 @@ GitHub issue 상태는 별도 명시 없이 변경하지 않는 저장소 운영
 ## 리뷰 후속
 
 정밀 리뷰에서 게시판 full copy job 경로의 선택 스키마 호환성과 verify 단계 처리 상한 누락을 발견했다. 후속 커밋에서 category table guard와 verify batch marker를 추가했다.
+
+추가 리뷰에서 cleanup 실패 map이 storage 참조를 잃으면 정리 재시도가 같은 파일을 다시 찾을 수 없는 문제를 발견했다. 후속 커밋에서 실패 상태의 storage driver/key 보존과 회귀 marker를 추가했다.

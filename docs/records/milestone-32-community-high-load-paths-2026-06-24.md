@@ -20,6 +20,7 @@
 - `posts`, `comments`, `attachments` 단계는 기존처럼 요청당 처리 상한을 사용한다.
 - `verify` 단계는 복사된 attachment map을 요청당 최대 100개씩 storage head로 확인하고 `verified` 상태로 넘긴다.
 - `cleanup` 단계는 생성된 storage map을 요청당 최대 100개씩 정리하고, 남은 파일이 있으면 cleanup 단계에 머문다.
+- `cleanup` 실패 map은 생성 storage driver/key를 보존해 같은 대상 파일을 다시 정리할 수 있어야 한다.
 - 작업 처리 중에는 `lock_token`을 매 단계와 map update에 확인한다.
 
 ## View Count
@@ -41,5 +42,5 @@
 ## 검증
 
 - `.tools/bin/check-community-board-copy-limits.php`는 작은 full-copy도 작업 경로를 만들 수 있음을 확인한다.
-- `.tools/bin/check-community-board-copy-job-lock.php`는 `prepare`와 `cleanup`의 limit-aware 시그니처와 lock token map update marker를 확인한다.
+- `.tools/bin/check-community-board-copy-job-lock.php`는 `prepare`와 `cleanup`의 limit-aware 시그니처, lock token map update marker, cleanup 실패 시 storage 참조 보존 marker를 확인한다.
 - `php .tools/bin/check.php`와 HTTP smoke에서 관리자 복사 화면, 작업 화면, 운영 점검 fixture를 함께 확인한다.

@@ -947,7 +947,17 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned', '', '', '', $jobId, $lockToken);
         } else {
             $failed++;
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleanup_failed', '파일 삭제 실패', '', '', $jobId, $lockToken);
+            sr_community_board_copy_job_mark_map(
+                $pdo,
+                (int) $map['id'],
+                (int) $map['target_id'],
+                'cleanup_failed',
+                '파일 삭제 실패',
+                (string) $map['created_storage_driver'],
+                (string) $map['created_storage_key'],
+                $jobId,
+                $lockToken
+            );
         }
     }
     if ($failed > 0) {
