@@ -32,6 +32,7 @@
 | 정책 문서 안내메일 대기 | `sr_policy_document_mail_jobs.status = 'queued'` | 1시간 초과 시 지연 | 문서 key / version key | `/admin/policy-documents` |
 | 정책 문서 안내메일 실패 | `sr_policy_document_mail_jobs.status = 'failed'` | 즉시 지연 초과 | 문서 key / version key | `/admin/policy-documents` |
 | 공통 자산 미회수 | `sr_asset_recovery_failures.status = 'open'` | 즉시 지연 초과 | 출처 모듈 + 대상 유형/ID + 계정 ID | `/admin/assets/recovery-failures` |
+| 커뮤니티 legacy 자산 미회수 | `sr_community_asset_recovery_failures.status = 'open'` | 즉시 지연 초과 | 자산 모듈 + 대상 유형/ID + 계정 ID | `/admin/assets/recovery-failures` |
 | 커뮤니티 게시자 보상 대기 | `sr_community_publisher_reward_logs.status = 'pending'` | 15분 초과 시 지연 | 게시글/첨부/게시자 ID | `/admin/community/publisher-rewards` |
 | 커뮤니티 게시자 보상 실패 | `sr_community_publisher_reward_logs.status = 'failed'` | 즉시 지연 초과 | 게시글/첨부/게시자 ID | `/admin/community/publisher-rewards` |
 | 알림 delivery 대기 | `sr_notification_deliveries.status IN ('queued', 'processing')` | 1시간 초과 시 지연 | 알림 제목 또는 delivery ID | 알림 delivery 관리 |
@@ -48,19 +49,17 @@
 
 ## 추가 권장
 
-| 우선 | 신호 | 기준 row | 권장 판정 | 대상 표시 | 후속 화면 | 이유 |
-| --- | --- | --- | --- | --- | --- | --- |
-| 2 | 커뮤니티 legacy 자산 미회수 | `sr_community_asset_recovery_failures.status = 'open'` | 즉시 확인 필요 | 대상 유형/ID + 계정 ID | `/admin/community/recovery-failures` 또는 공통 미회수 화면 통합 | 공통 `asset_ledger` 이전/병행 테이블이 남아 있으면 운영 점검이 놓칠 수 있다. |
+현재 추가 권장으로 남겨둘 신호는 없다. 새 후보는 감지 가능 조건을 모두 만족하고, 후속 처리 화면이 있는지 확인한 뒤 이 문서에 추가한다.
 
 ## 별도 설계가 먼저 필요한 항목
 
 | 항목 | 현재 상태 | 판정 |
 | --- | --- | --- |
-| 커뮤니티 레벨 재계산 | AJAX batch가 cursor와 processed_total을 클라이언트가 들고 이어서 호출한다. 별도 job row가 없다. | 중단 감지를 하려면 `sr_community_level_recalculate_jobs` 같은 작업 row가 먼저 필요하다. 지금 구조에서는 중간 중단을 운영 점검으로 안정적으로 감지할 수 없다. |
-| 콘텐츠 작가 보상 로그 | `sr_content_author_reward_logs.status`에 `pending`/`failed`가 남지만 전용 보상 로그/복구 화면이 없다. | 운영 점검에 올리기 전에 `/admin/content/submissions` 또는 별도 보상 로그 화면에서 대상, 실패 사유, 처리 기준을 먼저 노출한다. |
-| 저장소 캐시 정리, 보관 정책 정리 | bounded 단일 요청이며 결과가 즉시 화면/감사 로그로 남는다. | 운영 점검보다 실행 결과 토스트, 감사 로그, 필요한 경우 요약 화면이 적합하다. |
-| 콘텐츠/게시판 동기 복사 | 단일 요청으로 완료되고 실패 시 action 오류/감사 로그로 남는다. | 대량이면 이미 게시판 배치 복사로 전환한다. 콘텐츠 복사는 별도 job row가 없으므로 운영 지연 점검 대상이 아니다. |
-| 설문 CSV export, 개인정보 export | 요청 시 생성되는 read-only 출력이며 영속 job이 없다. | 장기 export queue를 도입하기 전까지는 운영 지연/실패 점검 대상이 아니다. |
+| 커뮤니티 레벨 재계산 | AJAX batch가 cursor와 processed_total을 클라이언트가 들고 이어서 호출한다. 별도 job row가 없다. | 현재 처리: 운영 점검 제외. 선행 작업: `sr_community_level_recalculate_jobs` 같은 작업 row, stage, cursor, lock token, `updated_at`, `completed`/`failed` 상태를 먼저 도입한다. |
+| 콘텐츠 작가 보상 로그 | `sr_content_author_reward_logs.status`에 `pending`/`failed`가 남지만 전용 보상 로그/복구 화면이 없다. | 현재 처리: 운영 점검 제외. 선행 작업: `/admin/content/submissions` 또는 별도 보상 로그 화면에서 대상, 실패 사유, 처리 기준을 먼저 노출한다. |
+| 저장소 캐시 정리, 보관 정책 정리 | bounded 단일 요청이며 결과가 즉시 화면/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 실행 결과 토스트, 감사 로그, 필요한 경우 요약 화면을 정본으로 둔다. |
+| 콘텐츠/게시판 동기 복사 | 단일 요청으로 완료되고 실패 시 action 오류/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 대량이면 게시판 배치 복사 job을 사용하고, 콘텐츠 복사는 별도 job row가 생기기 전까지 운영 지연 점검 대상이 아니다. |
+| 설문 CSV export, 개인정보 export | 요청 시 생성되는 read-only 출력이며 영속 job이 없다. | 현재 처리: 운영 점검 제외. 장기 export queue를 도입하기 전까지는 운영 지연/실패 점검 대상이 아니다. |
 
 ## 제외 항목
 
@@ -104,6 +103,16 @@
 - `content.author_rewards.failed`
 
 먼저 콘텐츠 제출/작성자 관리 화면 또는 별도 보상 로그 화면에 보상 로그, 실패 사유, 처리 기준을 노출한 뒤 운영 점검에 연결한다.
+
+### 2.1차: legacy 자산 미회수 호환 신호 연결
+
+- `community.asset_recovery_legacy.open`
+
+처리 상태: 완료.
+
+- 신규 기준은 `asset_recovery.open`이며, legacy 신호는 공통 자산 원장 이전/병행 기간의 잔여 row 누락 방지용이다.
+- `/admin/community/recovery-failures` legacy route는 공통 미회수 화면으로 이동하므로 후속 확인 위치는 `/admin/assets/recovery-failures`로 통일한다.
+- 대상 목록은 자산 모듈, 대상 유형/ID, 계정 ID를 최대 5개 표시한다.
 
 ### 3차: 업무 SLA 성격의 대기 항목은 운영 지연/실패 점검에서 제외
 

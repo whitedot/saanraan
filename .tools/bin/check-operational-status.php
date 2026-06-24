@@ -177,6 +177,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $pdo->exec('CREATE TABLE sr_policy_document_versions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL, version_key TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_policy_document_mail_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL, version_id INTEGER NOT NULL, job_key TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, source_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, asset_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_notification_deliveries (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_board_copy_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, attachment_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
@@ -195,6 +196,9 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
 
     $stmt = $pdo->prepare('INSERT INTO sr_asset_recovery_failures (source_module, subject_type, subject_id, account_id, status, updated_at) VALUES (:source_module, :subject_type, :subject_id, :account_id, :status, :updated_at)');
     $stmt->execute(['source_module' => 'community', 'subject_type' => 'post', 'subject_id' => 10, 'account_id' => 7, 'status' => 'open', 'updated_at' => $recentAt]);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_community_asset_recovery_failures (asset_module, subject_type, subject_id, account_id, status, updated_at) VALUES (:asset_module, :subject_type, :subject_id, :account_id, :status, :updated_at)');
+    $stmt->execute(['asset_module' => 'point', 'subject_type' => 'community.comment', 'subject_id' => 11, 'account_id' => 8, 'status' => 'open', 'updated_at' => $recentAt]);
 
     $stmt = $pdo->prepare('INSERT INTO sr_notification_deliveries (status, created_at, updated_at) VALUES (:status, :created_at, :updated_at)');
     $stmt->execute(['status' => 'queued', 'created_at' => $oldAt, 'updated_at' => $oldAt]);
@@ -237,6 +241,12 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if (($byLabel['asset_recovery.open']['targets'] ?? []) !== ['community post#10 / 계정 #7']) {
         sr_operational_status_error('Bundle fixture open asset recovery should include source, subject, and account target.');
     }
+    if ((string) ($byLabel['community.asset_recovery_legacy.open']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture open legacy community asset recovery should be overdue immediately.');
+    }
+    if (($byLabel['community.asset_recovery_legacy.open']['targets'] ?? []) !== ['point community.comment#11 / 계정 #8']) {
+        sr_operational_status_error('Bundle fixture open legacy community asset recovery should include asset module, subject, and account target.');
+    }
     if ((int) ($byLabel['notification.deliveries.queued']['count'] ?? 0) !== 1) {
         sr_operational_status_error('Bundle fixture queued notifications count mismatch.');
     }
@@ -263,7 +273,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     }
 
     $summary = sr_admin_operational_status_summary($rows);
-    if ((int) ($summary['overdue'] ?? 0) < 10 || (int) ($summary['total_count'] ?? 0) !== 10) {
+    if ((int) ($summary['overdue'] ?? 0) < 11 || (int) ($summary['total_count'] ?? 0) !== 11) {
         sr_operational_status_error('Bundle fixture operational summary should include overdue signal counts.');
     }
 }
@@ -415,6 +425,7 @@ $signals = [
     'policy_documents.mail_jobs.queued',
     'policy_documents.mail_jobs.failed',
     'asset_recovery.open',
+    'community.asset_recovery_legacy.open',
     'community.publisher_rewards.pending',
     'community.publisher_rewards.failed',
     'notification.deliveries.queued',

@@ -64,6 +64,24 @@ function sr_admin_operational_status_checks(): array
             'followup' => '/admin/assets/recovery-failures에서 재회수, 수동 해소, 취소 기준을 적용합니다.',
         ],
         [
+            'label' => 'community.asset_recovery_legacy.open',
+            'title' => '커뮤니티 legacy 자산 미회수',
+            'module' => 'community',
+            'table' => 'sr_community_asset_recovery_failures',
+            'where' => "status = 'open'",
+            'age_column' => 'updated_at',
+            'delay_tolerance' => '즉시',
+            'warn_after_seconds' => 0,
+            'target_sql' => "SELECT asset_module, subject_type, subject_id, account_id, id AS target_fallback
+                FROM sr_community_asset_recovery_failures
+                WHERE status = 'open'
+                ORDER BY updated_at ASC, id ASC
+                LIMIT 5",
+            'target_format' => '{asset_module} {subject_type}#{subject_id} / 계정 #{account_id}',
+            'target_fallback_prefix' => 'legacy 미회수',
+            'followup' => '/admin/assets/recovery-failures에서 공통 미회수 큐를 우선 확인하고 legacy 잔여 row를 해소합니다.',
+        ],
+        [
             'label' => 'community.publisher_rewards.pending',
             'title' => '커뮤니티 게시자 보상 대기',
             'module' => 'community',

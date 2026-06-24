@@ -29,6 +29,7 @@ php .tools/bin/ops-status.php
 | `policy_documents.mail_jobs.queued` | 정책 문서 안내메일 발송 작업이 대기 중 | 1시간 | `/admin/policy-documents` 발송 배치와 delivery 상태 |
 | `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | 실패 delivery, 메일 설정, 재발송 기준 |
 | `asset_recovery.open` | 포인트/금액 회수 실패가 미해소 상태로 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 재회수, 수동 해소, 취소 기준 |
+| `community.asset_recovery_legacy.open` | 커뮤니티 legacy 자산 미회수 row가 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 공통 미회수 큐와 legacy 잔여 row |
 | `community.publisher_rewards.pending` | 커뮤니티 첨부 다운로드 게시자 보상 로그가 대기 중 | 15분 | `/admin/community/publisher-rewards` 보상 로그와 자산 지급 상태 |
 | `community.publisher_rewards.failed` | 커뮤니티 첨부 다운로드 게시자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
 | `notification.deliveries.queued` | 이메일 등 외부 delivery가 대기 또는 처리 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정, runner 실행 상태 |
