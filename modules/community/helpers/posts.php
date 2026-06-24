@@ -851,10 +851,8 @@ function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
 {
     $queryParts = sr_community_admin_post_query_parts($filters, sr_community_categories_supported($pdo));
     $sql = 'SELECT COUNT(*) AS count_value
-            FROM sr_community_posts p
-            INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
-            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            FROM sr_community_posts p'
+            . sr_community_admin_post_count_join_sql($filters);
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -864,6 +862,29 @@ function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_post_count_join_sql(array $filters): string
+{
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword === '') {
+        return '';
+    }
+
+    $field = (string) ($filters['field'] ?? 'all');
+    $usesExtraOnly = $field === 'extra'
+        && (!empty($filters['extra_field_values_supported']) || !empty($filters['extra_values_supported']));
+    $usesAll = !in_array($field, ['title', 'author', 'board'], true) && !$usesExtraOnly;
+    $joins = [];
+    if ($field === 'board' || $usesAll) {
+        $joins[] = 'INNER JOIN sr_community_boards b ON b.id = p.board_id';
+    }
+    if ($field === 'author' || $usesAll) {
+        $joins[] = 'LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id';
+        $joins[] = 'LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+    }
+
+    return $joins === [] ? '' : "\n            " . implode("\n            ", $joins);
 }
 
 function sr_community_admin_post_sort_options(): array

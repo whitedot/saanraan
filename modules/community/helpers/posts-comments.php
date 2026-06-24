@@ -250,11 +250,8 @@ function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
 {
     $queryParts = sr_community_admin_comment_query_parts($filters);
     $sql = 'SELECT COUNT(*) AS count_value
-            FROM sr_community_comments c
-            INNER JOIN sr_community_posts p ON p.id = c.post_id
-            INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
-            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            FROM sr_community_comments c'
+            . sr_community_admin_comment_count_join_sql($filters);
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -264,6 +261,32 @@ function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_comment_count_join_sql(array $filters): string
+{
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    $field = (string) ($filters['field'] ?? 'all');
+    $usesAll = !in_array($field, ['body', 'author', 'post', 'board'], true);
+    $needsPost = (int) ($filters['board_id'] ?? 0) > 0
+        || ($keyword !== '' && ($field === 'post' || $field === 'board' || $usesAll));
+    $needsBoard = (int) ($filters['board_id'] ?? 0) > 0
+        || ($keyword !== '' && ($field === 'board' || $usesAll));
+    $needsAuthor = $keyword !== '' && ($field === 'author' || $usesAll);
+    $joins = [];
+
+    if ($needsPost || $needsBoard) {
+        $joins[] = 'INNER JOIN sr_community_posts p ON p.id = c.post_id';
+    }
+    if ($needsBoard) {
+        $joins[] = 'INNER JOIN sr_community_boards b ON b.id = p.board_id';
+    }
+    if ($needsAuthor) {
+        $joins[] = 'LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id';
+        $joins[] = 'LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+    }
+
+    return $joins === [] ? '' : "\n            " . implode("\n            ", $joins);
 }
 
 function sr_community_admin_comment_sort_options(): array

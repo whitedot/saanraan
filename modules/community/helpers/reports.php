@@ -435,13 +435,8 @@ function sr_community_report_count(PDO $pdo, array $filters = []): int
 {
     $queryParts = sr_community_report_query_parts($filters);
     $sql = 'SELECT COUNT(*) AS count_value
-            FROM sr_community_reports r
-            LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
-            LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
-            LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
-            LEFT JOIN sr_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
-            LEFT JOIN sr_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
-            LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
+            FROM sr_community_reports r'
+            . sr_community_report_count_join_sql($filters);
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -451,6 +446,36 @@ function sr_community_report_count(PDO $pdo, array $filters = []): int
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_report_count_join_sql(array $filters): string
+{
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword === '') {
+        return '';
+    }
+
+    $field = (string) ($filters['field'] ?? 'all');
+    $usesAll = !in_array($field, ['target', 'reporter', 'reported', 'reviewer', 'memo'], true);
+    $usesReporter = $field === 'reporter' || $usesAll;
+    $usesReported = $field === 'reported' || $usesAll;
+    $usesReviewer = $field === 'reviewer' || $usesAll;
+    $joins = [];
+
+    if ($usesReporter) {
+        $joins[] = 'LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id';
+        $joins[] = 'LEFT JOIN sr_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id';
+    }
+    if ($usesReported) {
+        $joins[] = 'LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id';
+        $joins[] = 'LEFT JOIN sr_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id';
+    }
+    if ($usesReviewer) {
+        $joins[] = 'LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id';
+        $joins[] = 'LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
+    }
+
+    return $joins === [] ? '' : "\n            " . implode("\n            ", $joins);
 }
 
 function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array

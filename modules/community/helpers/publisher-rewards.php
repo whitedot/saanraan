@@ -65,14 +65,24 @@ function sr_community_publisher_reward_count(PDO $pdo, array $filters = []): int
     $whereSql = sr_community_publisher_reward_where_sql($filters, $params);
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
-         FROM sr_community_publisher_reward_logs r
-         LEFT JOIN sr_community_posts p ON p.id = r.post_id
-         LEFT JOIN sr_community_attachments a ON a.id = r.attachment_id'
+         FROM sr_community_publisher_reward_logs r'
+        . sr_community_publisher_reward_count_join_sql($filters)
         . $whereSql
     );
     $stmt->execute($params);
 
     return (int) $stmt->fetchColumn();
+}
+
+function sr_community_publisher_reward_count_join_sql(array $filters): string
+{
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q === '' || preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
+        return '';
+    }
+
+    return "\n         LEFT JOIN sr_community_posts p ON p.id = r.post_id"
+        . "\n         LEFT JOIN sr_community_attachments a ON a.id = r.attachment_id";
 }
 
 function sr_community_publisher_reward_logs(PDO $pdo, int $limit = 50, int $offset = 0, array $filters = []): array

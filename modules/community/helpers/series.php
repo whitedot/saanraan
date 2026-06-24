@@ -308,9 +308,8 @@ function sr_community_admin_series_count(PDO $pdo, array $filters): int
 
     $queryParts = sr_community_admin_series_query_parts($filters);
     $sql = 'SELECT COUNT(*) AS count_value
-            FROM sr_community_series s
-            INNER JOIN sr_community_boards b ON b.id = s.board_id
-            LEFT JOIN sr_member_accounts a ON a.id = s.owner_account_id';
+            FROM sr_community_series s'
+            . sr_community_admin_series_count_join_sql($filters);
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -320,6 +319,26 @@ function sr_community_admin_series_count(PDO $pdo, array $filters): int
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_series_count_join_sql(array $filters): string
+{
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword === '') {
+        return '';
+    }
+
+    $field = (string) ($filters['field'] ?? 'all');
+    $usesAll = !in_array($field, ['title', 'board', 'owner', 'note'], true);
+    $joins = [];
+    if ($field === 'board' || $usesAll) {
+        $joins[] = 'INNER JOIN sr_community_boards b ON b.id = s.board_id';
+    }
+    if ($field === 'owner' || $usesAll) {
+        $joins[] = 'LEFT JOIN sr_member_accounts a ON a.id = s.owner_account_id';
+    }
+
+    return $joins === [] ? '' : "\n            " . implode("\n            ", $joins);
 }
 
 function sr_community_admin_series_status_counts(PDO $pdo): array
