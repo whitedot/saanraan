@@ -26,6 +26,11 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon issue queries and redemption must transition expired active issues.';
     }
+    if (strpos($helper, 'sr_coupon_redemption_pricing_columns_available($pdo)') === false
+        || strpos($helper, 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at') === false
+    ) {
+        $errors[] = 'Coupon admin redemption queries must include pricing snapshot columns with a legacy fallback.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');
@@ -47,6 +52,14 @@ if (!is_string($view)) {
     || strpos($view, 'spellcheck="false"') === false
 ) {
     $errors[] = 'Coupon admin view must align coupon_key browser validation with admin key input rules.';
+}
+if (is_string($view)
+    && (
+        strpos($view, '<th>가격 스냅샷</th>') === false
+        || strpos($view, '$redemptionHasPriceSnapshot') === false
+    )
+) {
+    $errors[] = 'Coupon admin redemption view must expose the stored pricing snapshot.';
 }
 
 $module = file_get_contents($root . '/modules/coupon/module.php');

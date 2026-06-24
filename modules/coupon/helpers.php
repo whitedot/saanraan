@@ -2097,6 +2097,9 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
     $refundColumns = sr_coupon_redemption_refund_columns_available($pdo)
         ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
         : 'NULL AS refunded_at, NULL AS refunded_by_account_id, \'\' AS refund_note';
+    $pricingColumns = sr_coupon_redemption_pricing_columns_available($pdo)
+        ? 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at'
+        : '0 AS amount, \'\' AS currency_code, \'\' AS asset_unit, \'\' AS policy_summary, NULL AS priced_at';
     $where = [];
     $params = [];
     $sortOptions = sr_coupon_admin_redemption_sort_options();
@@ -2141,7 +2144,7 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
 
     $sql = 'SELECT r.id, r.coupon_issue_id, r.coupon_definition_id, r.account_id,
                    r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
-                   r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ',
+                   r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ', ' . $pricingColumns . ',
                    d.coupon_key, d.title, d.refundable_policy, i.status AS issue_status, i.used_count,
                    a.display_name, a.email, a.status AS account_status
             FROM sr_coupon_redemptions r

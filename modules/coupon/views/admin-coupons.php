@@ -1002,6 +1002,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th<?php echo sr_admin_sort_aria('member', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('회원', 'member', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('coupon', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰', 'coupon', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('target_type', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('사용 대상', 'target_type', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
+                <th>가격 스냅샷</th>
                 <th<?php echo sr_admin_sort_aria('status', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('redeemed_at', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('사용일', 'redeemed_at', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('refunded_at', $redemptionSort); ?>><?php echo sr_admin_sort_header_html('환불일', 'refunded_at', $redemptionSort, sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()); ?></th>
@@ -1011,7 +1012,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if (($redemptions ?? []) === []) { ?>
                 <tr>
-                    <td colspan="7" class="admin-empty-state">최근 사용 내역이 없습니다.</td>
+                    <td colspan="8" class="admin-empty-state">최근 사용 내역이 없습니다.</td>
                 </tr>
             <?php } else { ?>
                 <?php foreach (($redemptions ?? []) as $redemption) { ?>
@@ -1021,6 +1022,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $refundModalId = 'coupon-redemption-refund-modal-' . (string) $redemptionId;
                     $canRefund = $redemptionStatus === 'redeemed'
                         && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
+                    $redemptionPriceUnit = (string) ($redemption['currency_code'] ?? '') !== ''
+                        ? (string) ($redemption['currency_code'] ?? '')
+                        : (string) ($redemption['asset_unit'] ?? '');
+                    $redemptionHasPriceSnapshot = $redemptionPriceUnit !== ''
+                        || (string) ($redemption['policy_summary'] ?? '') !== ''
+                        || (string) ($redemption['priced_at'] ?? '') !== '';
                     ?>
                     <tr>
                         <td><?php echo sr_e(sr_admin_member_display_name_preview($redemption)); ?><br><?php echo sr_e(sr_admin_member_email_display($redemption)); ?></td>
@@ -1031,6 +1038,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td>
                             <?php echo sr_e(sr_coupon_target_display((string) ($redemption['target_type'] ?? ''), (string) ($redemption['target_id'] ?? ''), $pdo)); ?><br>
                             <?php echo sr_e(sr_coupon_reference_display((string) ($redemption['reference_module'] ?? ''), (string) ($redemption['reference_type'] ?? ''), (string) ($redemption['reference_id'] ?? ''))); ?>
+                        </td>
+                        <td>
+                            <?php if ($redemptionHasPriceSnapshot) { ?>
+                                <?php if ($redemptionPriceUnit !== '') { ?>
+                                    <?php echo sr_e(number_format(max(0, (int) ($redemption['amount'] ?? 0))) . ' ' . $redemptionPriceUnit); ?>
+                                <?php } ?>
+                                <?php if ((string) ($redemption['policy_summary'] ?? '') !== '') { ?>
+                                    <?php if ($redemptionPriceUnit !== '') { ?><br><?php } ?><span class="text-muted"><?php echo sr_e((string) ($redemption['policy_summary'] ?? '')); ?></span>
+                                <?php } ?>
+                                <?php if ((string) ($redemption['priced_at'] ?? '') !== '') { ?>
+                                    <br><?php echo sr_coupon_time_html((string) ($redemption['priced_at'] ?? '')); ?>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <span class="text-muted">-</span>
+                            <?php } ?>
                         </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($redemption['redeemed_at'] ?? '')); ?></td>
