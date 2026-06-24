@@ -162,6 +162,7 @@ $paginationPairs = [
     ['modules/content/actions/admin-series.php', 'modules/content/views/admin-series.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/content/actions/admin-download-files.php', 'modules/content/views/admin-download-files.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/content/actions/admin-file-downloads.php', 'modules/content/views/admin-file-downloads.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
+    ['modules/content/actions/admin-content-author-rewards.php', 'modules/content/views/admin-content-author-rewards.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/community/actions/admin-posts.php', 'modules/community/views/admin-posts.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/community/actions/admin-boards.php', 'modules/community/views/admin-boards.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/community/actions/admin-board-groups.php', 'modules/community/views/admin-board-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],

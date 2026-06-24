@@ -35,6 +35,8 @@
 | 커뮤니티 legacy 자산 미회수 | `sr_community_asset_recovery_failures.status = 'open'` | 즉시 지연 초과 | 자산 모듈 + 대상 유형/ID + 계정 ID | `/admin/assets/recovery-failures` |
 | 커뮤니티 게시자 보상 대기 | `sr_community_publisher_reward_logs.status = 'pending'` | 15분 초과 시 지연 | 게시글/첨부/게시자 ID | `/admin/community/publisher-rewards` |
 | 커뮤니티 게시자 보상 실패 | `sr_community_publisher_reward_logs.status = 'failed'` | 즉시 지연 초과 | 게시글/첨부/게시자 ID | `/admin/community/publisher-rewards` |
+| 콘텐츠 작성자 보상 대기 | `sr_content_author_reward_logs.status = 'pending'` | 15분 초과 시 지연 | 제출본/콘텐츠/작성자 ID | `/admin/content/author-rewards` |
+| 콘텐츠 작성자 보상 실패 | `sr_content_author_reward_logs.status = 'failed'` | 즉시 지연 초과 | 제출본/콘텐츠/작성자 ID | `/admin/content/author-rewards` |
 | 알림 delivery 대기 | `sr_notification_deliveries.status IN ('queued', 'processing')` | 1시간 초과 시 지연 | 알림 제목 또는 delivery ID | 알림 delivery 관리 |
 | 알림 delivery 실패 | `sr_notification_deliveries.status IN ('failed', 'dead')` | 즉시 지연 초과 | 알림 제목 또는 delivery ID | 알림 delivery 관리 |
 | 콘텐츠 저장소 정리 대기 | `sr_content_storage_cleanup_failures.status = 'pending'` | 24시간 초과 시 지연 | storage key | 콘텐츠 저장소 정리 실패 목록 |
@@ -56,7 +58,6 @@
 | 항목 | 현재 상태 | 판정 |
 | --- | --- | --- |
 | 커뮤니티 레벨 재계산 | AJAX batch가 cursor와 processed_total을 클라이언트가 들고 이어서 호출한다. 별도 job row가 없다. | 현재 처리: 운영 점검 제외. 선행 작업: `sr_community_level_recalculate_jobs` 같은 작업 row, stage, cursor, lock token, `updated_at`, `completed`/`failed` 상태를 먼저 도입한다. |
-| 콘텐츠 작가 보상 로그 | `sr_content_author_reward_logs.status`에 `pending`/`failed`가 남지만 전용 보상 로그/복구 화면이 없다. | 현재 처리: 운영 점검 제외. 선행 작업: `/admin/content/submissions` 또는 별도 보상 로그 화면에서 대상, 실패 사유, 처리 기준을 먼저 노출한다. |
 | 저장소 캐시 정리, 보관 정책 정리 | bounded 단일 요청이며 결과가 즉시 화면/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 실행 결과 토스트, 감사 로그, 필요한 경우 요약 화면을 정본으로 둔다. |
 | 콘텐츠/게시판 동기 복사 | 단일 요청으로 완료되고 실패 시 action 오류/감사 로그로 남는다. | 현재 처리: 운영 점검 제외. 대량이면 게시판 배치 복사 job을 사용하고, 콘텐츠 복사는 별도 job row가 생기기 전까지 운영 지연 점검 대상이 아니다. |
 | 설문 CSV export, 개인정보 export | 요청 시 생성되는 read-only 출력이며 영속 job이 없다. | 현재 처리: 운영 점검 제외. 장기 export queue를 도입하기 전까지는 운영 지연/실패 점검 대상이 아니다. |
@@ -97,12 +98,16 @@
 - `/admin/community/publisher-rewards`가 실패 사유와 대상 식별값을 충분히 보여주는지 확인한다.
 - pending이 정상적으로 오래 남을 수 있는 정책이 있는지 확인하고 허용 지연을 확정한다.
 
-콘텐츠 작성자 보상은 별도 2.5차로 분리한다.
+콘텐츠 작성자 보상은 별도 2.5차로 분리해 처리했다.
 
 - `content.author_rewards.pending`
 - `content.author_rewards.failed`
 
-먼저 콘텐츠 제출/작성자 관리 화면 또는 별도 보상 로그 화면에 보상 로그, 실패 사유, 처리 기준을 노출한 뒤 운영 점검에 연결한다.
+처리 상태: 완료.
+
+- `/admin/content/author-rewards`에 보상 로그, 실패 사유, 지급 거래 ID, 대상 제출본/콘텐츠/작성자 ID를 노출한다.
+- 운영 점검 대상 목록은 제출본 ID, 콘텐츠 ID, 작성자 ID를 최대 5개 표시한다.
+- pending 허용 지연은 커뮤니티 게시자 보상과 같은 15분으로 둔다.
 
 ### 2.1차: legacy 자산 미회수 호환 신호 연결
 

@@ -32,6 +32,8 @@ php .tools/bin/ops-status.php
 | `community.asset_recovery_legacy.open` | 커뮤니티 legacy 자산 미회수 row가 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 공통 미회수 큐와 legacy 잔여 row |
 | `community.publisher_rewards.pending` | 커뮤니티 첨부 다운로드 게시자 보상 로그가 대기 중 | 15분 | `/admin/community/publisher-rewards` 보상 로그와 자산 지급 상태 |
 | `community.publisher_rewards.failed` | 커뮤니티 첨부 다운로드 게시자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
+| `content.author_rewards.pending` | 회원 제출 콘텐츠 작성자 보상 로그가 대기 중 | 15분 | `/admin/content/author-rewards` 보상 로그와 자산 지급 상태 |
+| `content.author_rewards.failed` | 회원 제출 콘텐츠 작성자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
 | `notification.deliveries.queued` | 이메일 등 외부 delivery가 대기 또는 처리 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정, runner 실행 상태 |
 | `notification.deliveries.failed` | delivery 실패 또는 dead-letter가 남아 있음 | 즉시 | 실패 사유, 설정 수정, 재발송 또는 취소 기준 |
 | `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | 콘텐츠 관리자 정리 실패 목록과 재시도 |
@@ -91,7 +93,7 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 | 포인트 만료 | 중간, 24시간 | 만료 예정 잔여분이 누적되면 수동 만료 실행 |
 | 저장소 파일 정리 | 중간, 24시간 | 실패 항목이 계속 남으면 파일 유실/권한 문제 확인 |
 | 게시판 복사 | 낮음, 15분 | `running` lock이 오래 유지되면 takeover 또는 실패 처리 기준 확인 |
-| 퀴즈/설문 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
+| 콘텐츠/커뮤니티/퀴즈/설문 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
 
 ## Cron 후보
 

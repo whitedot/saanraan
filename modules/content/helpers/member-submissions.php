@@ -794,6 +794,100 @@ function sr_content_author_reward_statuses(): array
     return ['pending', 'granted', 'failed'];
 }
 
+function sr_content_author_reward_status_label(string $status): string
+{
+    return match ($status) {
+        'pending' => '대기',
+        'granted' => '지급',
+        'failed' => '실패',
+        default => $status,
+    };
+}
+
+function sr_content_author_reward_filters_from_request(): array
+{
+    $status = sr_get_string('status', 20);
+    return [
+        'status' => in_array($status, sr_content_author_reward_statuses(), true) ? $status : '',
+        'q' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_content_author_reward_where_sql(array $filters, array &$params): string
+{
+    $where = [];
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
+            $where[] = '(r.id = :q_id OR r.submission_id = :q_id OR r.content_id = :q_id OR r.author_account_id = :q_id OR r.transaction_id = :q_id)';
+            $params['q_id'] = (int) $q;
+        } else {
+            $where[] = '(c.title LIKE :q_like OR s.title LIKE :q_like OR author.email LIKE :q_like OR author.display_name LIKE :q_like)';
+            $params['q_like'] = '%' . $q . '%';
+        }
+    }
+
+    return $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
+}
+
+function sr_content_author_reward_count(PDO $pdo, array $filters = []): int
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+        return 0;
+    }
+
+    $params = [];
+    $whereSql = sr_content_author_reward_where_sql($filters, $params);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_content_author_reward_logs r
+         LEFT JOIN sr_content_items c ON c.id = r.content_id
+         LEFT JOIN sr_content_submissions s ON s.id = r.submission_id
+         LEFT JOIN sr_member_accounts author ON author.id = r.author_account_id'
+        . $whereSql
+    );
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_content_author_reward_logs(PDO $pdo, int $limit = 50, int $offset = 0, array $filters = []): array
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+        return [];
+    }
+
+    $params = [];
+    $whereSql = sr_content_author_reward_where_sql($filters, $params);
+    $params['limit_value'] = max(1, min(200, $limit));
+    $params['offset_value'] = max(0, $offset);
+    $stmt = $pdo->prepare(
+        'SELECT r.*, c.title AS content_title, c.slug AS content_slug, s.title AS submission_title,
+                author.email AS author_email, author.display_name AS author_display_name,
+                reviewer.email AS reviewer_email, reviewer.display_name AS reviewer_display_name
+         FROM sr_content_author_reward_logs r
+         LEFT JOIN sr_content_items c ON c.id = r.content_id
+         LEFT JOIN sr_content_submissions s ON s.id = r.submission_id
+         LEFT JOIN sr_member_accounts author ON author.id = r.author_account_id
+         LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.created_by_account_id'
+        . $whereSql .
+        ' ORDER BY r.id DESC
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value, in_array($key, ['limit_value', 'offset_value', 'q_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_content_author_reward_log_by_dedupe_key(PDO $pdo, string $dedupeKey): ?array
 {
     if ($dedupeKey === '' || !sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {

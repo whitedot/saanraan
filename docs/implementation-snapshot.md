@@ -54,7 +54,7 @@
 | 공개 홈 | `/`, `/ui-kit` |
 | 회원 | `/login`, `/register`, `/mypage`, `/mypage/account`, `/mypage/profile`, `/mypage/security`, `/mypage/privacy`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout`, `/oauth/start`, `/oauth/callback`, `/oauth/complete`, `/account/oauth/unlink` |
 | 관리자 공통 | `/admin`, `/admin/settings`, `/admin/homepage`, `/admin/menu`, `/admin/modules`, `/admin/updates`, `/admin/roles`, `/admin/audit-logs`, `/admin/retention` |
-| 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
+| 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content/submissions`, `/admin/content/author-rewards`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-copy-jobs`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
 | 퀴즈 | `/quiz`, `GET/POST /quiz/*`, `/quiz/comment`, `/quiz/comment/edit`, `/quiz/comment/delete`, `GET/POST /admin/quiz`, `/admin/quiz/settings`, `/admin/quiz/manual`, `GET/POST /admin/quiz/attempts`, `/admin/quiz/comments` |

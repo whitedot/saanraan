@@ -112,6 +112,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin content author rewards entry',
+        'path' => '/admin/content/author-rewards',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin content link card targets entry',
         'path' => '/admin/content/link-card-targets?target=community_post&q=test',
         'allowed_statuses' => [200, 302, 403, 404],

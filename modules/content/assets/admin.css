@@ -171,3 +171,96 @@
         padding-top: calc(var(--spacing) * 4);
     }
 }
+
+.admin-page-content-author-rewards .admin-content-author-reward-filter {
+    width: 100%;
+    max-width: 100%;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-filter.filtering-plain > .admin-content-author-reward-search-grid {
+    align-items: end;
+    grid-template-columns: max-content minmax(14rem, 1fr) max-content;
+    justify-content: stretch;
+    width: 100%;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-search-grid > .filtering-field,
+.admin-page-content-author-rewards .admin-content-author-reward-filter-keyword,
+.admin-page-content-author-rewards .admin-content-author-reward-filter-keyword .filtering-input {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-table {
+    table-layout: auto;
+    min-width: 68rem;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-table th,
+.admin-page-content-author-rewards .admin-content-author-reward-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-table th:nth-child(1),
+.admin-page-content-author-rewards .admin-content-author-reward-table th:nth-child(2),
+.admin-page-content-author-rewards .admin-content-author-reward-table th:nth-child(5),
+.admin-page-content-author-rewards .admin-content-author-reward-table th:nth-child(8) {
+    width: 1%;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-subject-cell,
+.admin-page-content-author-rewards .admin-content-author-reward-account-cell,
+.admin-page-content-author-rewards .admin-content-author-reward-transaction-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-subject-cell {
+    min-width: 18rem;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-subject-cell strong,
+.admin-page-content-author-rewards .admin-content-author-reward-account-cell strong,
+.admin-page-content-author-rewards .admin-content-author-reward-transaction-cell span,
+.admin-page-content-author-rewards .admin-content-author-reward-transaction-cell small {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-page-content-author-rewards .admin-content-author-reward-date-cell {
+    white-space: nowrap;
+}
+
+@media (max-width: 1023px) {
+    .admin-page-content-author-rewards .admin-content-author-reward-filter.filtering-plain > .admin-content-author-reward-search-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .admin-page-content-author-rewards .admin-content-author-reward-filter .filtering-submit {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .admin-page-content-author-rewards .admin-content-author-reward-filter.filtering-plain > .admin-content-author-reward-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-page-content-author-rewards .admin-content-author-reward-filter .filtering-submit {
+        grid-column: auto;
+    }
+
+    .admin-page-content-author-rewards .admin-content-author-reward-table :is(th, td:not(.admin-empty-state)):nth-child(1),
+    .admin-page-content-author-rewards .admin-content-author-reward-table :is(th, td):nth-child(6),
+    .admin-page-content-author-rewards .admin-content-author-reward-table :is(th, td):nth-child(7) {
+        display: none;
+    }
+
+    .admin-page-content-author-rewards .admin-content-author-reward-subject-cell {
+        min-width: 14rem;
+    }
+}

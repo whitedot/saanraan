@@ -27,6 +27,7 @@ return [
     'POST /admin/content/settings' => 'actions/admin-settings.php',
     'GET /admin/content/submissions' => 'actions/admin-content-submissions.php',
     'POST /admin/content/submissions' => 'actions/admin-content-submissions.php',
+    'GET /admin/content/author-rewards' => 'actions/admin-content-author-rewards.php',
     'GET /admin/content/author-applications' => 'actions/admin-content-author-applications.php',
     'POST /admin/content/author-applications' => 'actions/admin-content-author-applications.php',
     'GET /admin/content/authors' => 'actions/admin-content-authors.php',

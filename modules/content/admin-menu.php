@@ -35,6 +35,11 @@ return [
             'order' => 28,
         ],
         [
+            'label' => '작성자 리워드 로그',
+            'path' => '/admin/content/author-rewards',
+            'order' => 28.5,
+        ],
+        [
             'label' => '콘텐츠 등록자 신청',
             'path' => '/admin/content/author-applications',
             'order' => 29,

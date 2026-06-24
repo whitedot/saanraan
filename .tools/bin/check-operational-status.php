@@ -169,7 +169,7 @@ function sr_operational_status_fixture_check(PDO $pdo): void
 function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
-    foreach (['policy_documents', 'asset_ledger', 'notification', 'community', 'point'] as $moduleKey) {
+    foreach (['policy_documents', 'asset_ledger', 'notification', 'community', 'content', 'point'] as $moduleKey) {
         $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
         $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
     }
@@ -181,6 +181,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $pdo->exec('CREATE TABLE sr_notification_deliveries (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_board_copy_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, attachment_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_author_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, submission_id INTEGER NOT NULL, content_id INTEGER NOT NULL, author_account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_point_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, expires_at TEXT NULL, expires_remaining INTEGER NOT NULL DEFAULT 0)');
 
     $oldAt = date('Y-m-d H:i:s', time() - 7200);
@@ -211,6 +212,10 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $stmt = $pdo->prepare('INSERT INTO sr_community_publisher_reward_logs (post_id, attachment_id, publisher_account_id, status, updated_at) VALUES (:post_id, :attachment_id, :publisher_account_id, :status, :updated_at)');
     $stmt->execute(['post_id' => 101, 'attachment_id' => 201, 'publisher_account_id' => 301, 'status' => 'pending', 'updated_at' => $oldAt]);
     $stmt->execute(['post_id' => 102, 'attachment_id' => 202, 'publisher_account_id' => 302, 'status' => 'failed', 'updated_at' => $recentAt]);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_content_author_reward_logs (submission_id, content_id, author_account_id, status, updated_at) VALUES (:submission_id, :content_id, :author_account_id, :status, :updated_at)');
+    $stmt->execute(['submission_id' => 401, 'content_id' => 501, 'author_account_id' => 601, 'status' => 'pending', 'updated_at' => $oldAt]);
+    $stmt->execute(['submission_id' => 402, 'content_id' => 502, 'author_account_id' => 602, 'status' => 'failed', 'updated_at' => $recentAt]);
 
     $stmt = $pdo->prepare('INSERT INTO sr_point_transactions (expires_at, expires_remaining) VALUES (:expires_at, :expires_remaining)');
     $stmt->execute(['expires_at' => $dueAt, 'expires_remaining' => 10]);
@@ -268,12 +273,21 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if ((string) ($byLabel['community.publisher_rewards.failed']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture failed publisher reward should be overdue immediately.');
     }
+    if ((string) ($byLabel['content.author_rewards.pending']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture pending content author reward should be overdue.');
+    }
+    if (($byLabel['content.author_rewards.pending']['targets'] ?? []) !== ['제출본 #401 / 콘텐츠 #501 / 작성자 #601']) {
+        sr_operational_status_error('Bundle fixture pending content author reward should include submission, content, and author target.');
+    }
+    if ((string) ($byLabel['content.author_rewards.failed']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture failed content author reward should be overdue immediately.');
+    }
     if ((string) ($byLabel['point.expiration.due']['status'] ?? '') !== 'overdue' || (int) ($byLabel['point.expiration.due']['count'] ?? 0) !== 1) {
         sr_operational_status_error('Bundle fixture point expiration due signal should count only expired remaining points.');
     }
 
     $summary = sr_admin_operational_status_summary($rows);
-    if ((int) ($summary['overdue'] ?? 0) < 11 || (int) ($summary['total_count'] ?? 0) !== 11) {
+    if ((int) ($summary['overdue'] ?? 0) < 13 || (int) ($summary['total_count'] ?? 0) !== 13) {
         sr_operational_status_error('Bundle fixture operational summary should include overdue signal counts.');
     }
 }
@@ -428,6 +442,8 @@ $signals = [
     'community.asset_recovery_legacy.open',
     'community.publisher_rewards.pending',
     'community.publisher_rewards.failed',
+    'content.author_rewards.pending',
+    'content.author_rewards.failed',
     'notification.deliveries.queued',
     'notification.deliveries.failed',
     'content.storage_cleanup.pending',
