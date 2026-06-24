@@ -700,6 +700,30 @@ function sr_coupon_target_contract_has_capability(array $target, string $capabil
     return in_array($capability, array_map('strval', $target['capabilities'] ?? []), true);
 }
 
+function sr_coupon_target_capability_labels(): array
+{
+    return [
+        'search' => '검색',
+        'health' => '상태 확인',
+        'admin_url' => '관리자 링크',
+        'pricing' => '가격 조회',
+        'redeem' => '사용 처리',
+        'revoke_access' => '접근권 회수',
+    ];
+}
+
+function sr_coupon_target_capability_summary(array $capabilities): string
+{
+    $labels = sr_coupon_target_capability_labels();
+    $summary = [];
+    foreach ($capabilities as $capability) {
+        $capability = (string) $capability;
+        $summary[] = (string) ($labels[$capability] ?? $capability);
+    }
+
+    return implode(', ', array_values(array_unique(array_filter($summary))));
+}
+
 function sr_coupon_target_contracts_with_capabilities(PDO $pdo, array $requiredCapabilities): array
 {
     $requiredCapabilities = array_values(array_filter(array_map('strval', $requiredCapabilities)));
@@ -746,6 +770,29 @@ function sr_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId
     }
 
     return sr_coupon_normalize_target_pricing($pricing, $targetType, $targetId);
+}
+
+function sr_coupon_target_pricing_admin_label(array $pricing): string
+{
+    if (empty($pricing['ok'])) {
+        $message = sr_coupon_clean_text((string) ($pricing['failure_message'] ?? '가격 조회를 지원하지 않습니다.'), 120);
+        return '가격 조회: ' . ($message !== '' ? $message : '지원하지 않음');
+    }
+
+    $amount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    $unit = (string) ($pricing['currency_code'] ?? '');
+    if ($unit === '') {
+        $unit = (string) ($pricing['asset_unit'] ?? '');
+    }
+    if ($unit === '') {
+        $unit = '단위 없음';
+    }
+
+    if (!empty($pricing['is_free']) || $amount === 0) {
+        return '현재 가격: 무료';
+    }
+
+    return '현재 가격: ' . number_format($amount) . $unit;
 }
 
 function sr_coupon_normalize_target_pricing(mixed $pricing, string $targetType, string $targetId): array
@@ -877,7 +924,36 @@ function sr_coupon_target_search(PDO $pdo, string $targetType, string $keyword, 
 
     try {
         $results = $searchFunction($pdo, $targetType, $keyword, $limit);
-        return is_array($results) ? $results : [];
+        if (!is_array($results)) {
+            return [];
+        }
+
+        $capabilities = is_array($target) ? array_map('strval', $target['capabilities'] ?? []) : [];
+        $capabilitySummary = sr_coupon_target_capability_summary($capabilities);
+        foreach ($results as $index => $result) {
+            if (!is_array($result)) {
+                unset($results[$index]);
+                continue;
+            }
+
+            $result['capabilities'] = $capabilities;
+            $result['capability_label'] = $capabilitySummary !== '' ? '기능: ' . $capabilitySummary : '';
+            $referenceId = (string) ($result['reference_id'] ?? '');
+            if ($referenceId !== '' && sr_coupon_target_contract_has_capability($target, 'pricing')) {
+                $pricing = sr_coupon_target_pricing($pdo, $targetType, $referenceId, 0, ['source' => 'admin_lookup']);
+                $result['pricing_label'] = sr_coupon_target_pricing_admin_label($pricing);
+                if (!empty($pricing['ok'])) {
+                    $snapshot = sr_coupon_redemption_pricing_snapshot_from_result($pricing, $targetType, $referenceId);
+                    $result['policy_summary'] = (string) ($snapshot['policy_summary'] ?? '');
+                    $result['priced_at'] = (string) ($snapshot['priced_at'] ?? '');
+                }
+            } elseif ($referenceId !== '') {
+                $result['pricing_label'] = '가격 조회: 지원하지 않음';
+            }
+            $results[$index] = $result;
+        }
+
+        return array_values($results);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'coupon_target_search_' . $targetType);
         return [];

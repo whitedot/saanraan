@@ -190,6 +190,9 @@
             button.appendChild(title);
             appendMeta(button, [
                 item.reason || '',
+                item.capability_label || '',
+                item.pricing_label || '',
+                item.policy_summary || '',
                 item.member_name || '',
                 item.member_email || '',
                 item.created_at || ''
@@ -197,6 +200,8 @@
             button.setAttribute('data-reference-summary', [
                 title.textContent,
                 item.reason || '',
+                item.pricing_label || '',
+                item.policy_summary || '',
                 item.member_name || '',
                 item.member_email || '',
                 item.created_at || ''

@@ -31,6 +31,13 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon admin redemption queries must include pricing snapshot columns with a legacy fallback.';
     }
+    if (strpos($helper, 'function sr_coupon_target_capability_summary(array $capabilities): string') === false
+        || strpos($helper, "'capability_label'") === false
+        || strpos($helper, "'pricing_label'") === false
+        || strpos($helper, "['source' => 'admin_lookup']") === false
+    ) {
+        $errors[] = 'Coupon target lookup results must expose capability and pricing summaries for admin selection.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');
@@ -60,6 +67,15 @@ if (is_string($view)
     )
 ) {
     $errors[] = 'Coupon admin redemption view must expose the stored pricing snapshot.';
+}
+
+$assetAdjustJs = file_get_contents($root . '/modules/admin/assets/asset-adjust.js');
+if (!is_string($assetAdjustJs)
+    || strpos($assetAdjustJs, 'item.capability_label ||') === false
+    || strpos($assetAdjustJs, 'item.pricing_label ||') === false
+    || strpos($assetAdjustJs, 'item.policy_summary ||') === false
+) {
+    $errors[] = 'Admin reference lookup rendering must display coupon capability and pricing metadata when supplied.';
 }
 
 $module = file_get_contents($root . '/modules/coupon/module.php');

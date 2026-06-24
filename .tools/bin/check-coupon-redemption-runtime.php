@@ -625,6 +625,11 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(isset($targetTypes['content_file']), 'content coupon target contract should expose content_file targets.');
     $fileTargets = sr_content_coupon_target_search($pdo, 'content_file', 'Paid file', 5);
     sr_coupon_runtime_assert(isset($fileTargets[0]) && (string) ($fileTargets[0]['reference_id'] ?? '') === '501', 'content_file coupon target search should return matching download files.');
+    $adminFileTargets = sr_coupon_target_search($pdo, 'content_file', 'Paid file', 5);
+    sr_coupon_runtime_assert(isset($adminFileTargets[0]) && (string) ($adminFileTargets[0]['reference_id'] ?? '') === '501', 'coupon admin target search should return matching download files.');
+    sr_coupon_runtime_assert(strpos((string) ($adminFileTargets[0]['capability_label'] ?? ''), '가격 조회') !== false, 'coupon admin target search should expose target capabilities.');
+    sr_coupon_runtime_assert((string) ($adminFileTargets[0]['pricing_label'] ?? '') === '현재 가격: 120KRW', 'coupon admin target search should expose current pricing.');
+    sr_coupon_runtime_assert((string) ($adminFileTargets[0]['policy_summary'] ?? '') === '콘텐츠 다운로드 120KRW', 'coupon admin target search should expose pricing policy summary.');
     $fileHealth = sr_content_coupon_target_health($pdo, 'content_file', '501');
     sr_coupon_runtime_assert((string) ($fileHealth['status'] ?? '') === 'ok', 'content_file coupon target health should accept active download files.');
     sr_coupon_runtime_assert(sr_content_coupon_target_admin_url('content_file', '501') === '/admin/content/files?id=501', 'content_file coupon target admin URL should point to the download file editor.');
