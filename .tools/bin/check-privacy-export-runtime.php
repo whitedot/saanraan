@@ -630,6 +630,9 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_series_items (id, series_id, post_id, active_post_id, episode_label, item_status, sort_order, created_at, updated_at) VALUES (1, 1, 10, 10, 'E1', 'active', 0, '', ''), (2, 2, 20, 20, 'E2', 'active', 0, '', '')");
     $pdo->exec("INSERT INTO sr_community_account_levels (account_id, level_value, score_value, post_count, comment_count, evaluated_at, created_at, updated_at) VALUES (7, 3, 100, 1, 1, '', '', ''), (8, 4, 200, 1, 1, '', '', '')");
     $pdo->exec("INSERT INTO sr_community_level_logs (id, account_id, old_level_value, new_level_value, old_score_value, new_score_value, reason_key, created_at) VALUES (1, 7, 2, 3, 80, 100, 'post', ''), (2, 8, 3, 4, 150, 200, 'post', '')");
+    for ($levelLogId = 3; $levelLogId <= 1002; $levelLogId++) {
+        $pdo->exec("INSERT INTO sr_community_level_logs (id, account_id, old_level_value, new_level_value, old_score_value, new_score_value, reason_key, created_at) VALUES (" . (string) $levelLogId . ", 7, 3, 3, 100, 100, 'fixture', '')");
+    }
     $pdo->exec("INSERT INTO sr_community_access_entitlements (id, account_id, subject_type, subject_id, event_key, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at) VALUES (1, 7, 'post', 10, 'view', 'asset', 'point', 'once', 'ref7', '', ''), (2, 8, 'post', 20, 'view', 'asset', 'point', 'once', 'ref8', '', '')");
     $pdo->exec("INSERT INTO sr_community_asset_logs (id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at) VALUES (1, 7, 'point', 101, 'post', '10', 'post', 10, 'view', 'debit', 'once', 100, 100, 'KRW', '{\"asset_units\":100,\"settlement_units\":100,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', ''), (2, 8, 'point', 102, 'post', '20', 'post', 20, 'view', 'debit', 'once', 200, 200, 'KRW', '{}', '{}', '')");
     $pdo->exec("INSERT INTO sr_community_asset_recovery_failures (id, account_id, asset_module, original_asset_log_id, original_transaction_id, subject_type, subject_id, grant_event_key, reversal_event_key, operation_event_key, attempted_amount, recovered_amount, unrecovered_amount, failure_reason, status, actor_account_id, actor_type, operation_context_json, attempt_count, created_at, updated_at, last_attempted_at, resolved_at) VALUES (1, 7, 'point', 1, 101, 'community.post', 10, 'post_reward', 'post_reward_reversal', 'community.post.deleted_by_admin', 100, 40, 60, 'balance_low', 'open', NULL, 'admin', '{\"route_context\":\"admin.community.posts\"}', 2, '', '', '', NULL), (2, 8, 'point', 2, 102, 'community.post', 20, 'post_reward', 'post_reward_reversal', 'community.post.deleted_by_admin', 200, 0, 200, 'balance_low', 'open', NULL, 'admin', '{}', 1, '', '', '', NULL)");
@@ -642,9 +645,13 @@ function sr_privacy_export_runtime_check_community(): void
     }
 
     $result = $export($pdo, 7);
-    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'reports', 'scraps', 'series_scraps', 'series', 'series_items', 'level_logs', 'access_entitlements', 'asset_logs', 'asset_recovery_failures', 'submission_consents'] as $key) {
+    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'reports', 'scraps', 'series_scraps', 'series', 'series_items', 'access_entitlements', 'asset_logs', 'asset_recovery_failures', 'submission_consents'] as $key) {
         sr_privacy_export_runtime_assert(count($result[$key] ?? []) === 1, 'community export must include one target row for: ' . $key);
     }
+    sr_privacy_export_runtime_assert(count($result['level_logs'] ?? []) === 1000, 'community export must cap a section at the documented row limit.');
+    sr_privacy_export_runtime_assert(($result['_limits']['level_logs']['has_more'] ?? null) === true, 'community export must report when a section has more rows than the returned limit.');
+    sr_privacy_export_runtime_assert(($result['_limits']['level_logs']['limit'] ?? null) === 1000, 'community export must report the per-section row limit.');
+    sr_privacy_export_runtime_assert(($result['_limits']['messages']['has_more'] ?? null) === false, 'community export must report complete sections when they fit under the row limit.');
     sr_privacy_export_runtime_assert(count($result['messages'] ?? []) === 2, 'community export must include sent and received messages for target account.');
     $messageDirections = [];
     $messageCounterpartyRoles = [];

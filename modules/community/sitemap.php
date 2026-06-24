@@ -35,6 +35,7 @@ return static function (PDO $pdo, ?array $site): array {
         "SELECT id, board_group_id, board_key, status, read_policy, updated_at
          FROM sr_community_boards
          WHERE status = 'enabled'
+           AND read_policy = 'public'
          ORDER BY sort_order ASC, id ASC
          LIMIT 1000"
     );
@@ -56,6 +57,7 @@ return static function (PDO $pdo, ?array $site): array {
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE p.status = 'published'
            AND b.status = 'enabled'
+           AND b.read_policy = 'public'
          ORDER BY p.updated_at DESC
          LIMIT 1000"
     );

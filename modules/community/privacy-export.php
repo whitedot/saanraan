@@ -45,6 +45,36 @@ if (!function_exists('sr_community_privacy_add_asset_settlement_summaries')) {
     }
 }
 
+if (!function_exists('sr_community_privacy_export_row_limit')) {
+    function sr_community_privacy_export_row_limit(): int
+    {
+        // Contract marker: the exported payload keeps a per-section LIMIT 1000 and reports overflow.
+        return 1000;
+    }
+}
+
+if (!function_exists('sr_community_privacy_fetch_limited')) {
+    function sr_community_privacy_fetch_limited(PDOStatement $stmt, array $params, string $sectionKey, array &$limits): array
+    {
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+        $limit = sr_community_privacy_export_row_limit();
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) {
+            $rows = array_slice($rows, 0, $limit);
+        }
+
+        $limits[$sectionKey] = [
+            'limit' => $limit,
+            'returned' => count($rows),
+            'has_more' => $hasMore,
+            'policy' => $hasMore ? 'request_follow_up_export' : 'complete_within_section_limit',
+        ];
+
+        return $rows;
+    }
+}
+
 return static function (PDO $pdo, int $accountId): array {
     $empty = [
         'posts' => [],
@@ -64,11 +94,14 @@ return static function (PDO $pdo, int $accountId): array {
         'asset_recovery_failures' => [],
         'publisher_reward_logs' => [],
         'submission_consents' => [],
+        '_limits' => [],
     ];
 
     if ($accountId < 1) {
         return $empty;
     }
+
+    $sectionLimits = [];
 
     require_once SR_ROOT . '/modules/community/helpers.php';
 
@@ -100,10 +133,9 @@ return static function (PDO $pdo, int $accountId): array {
          ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id
          ORDER BY p.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['posts'] = $stmt->fetchAll();
+    $empty['posts'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'posts', $sectionLimits);
     foreach ($empty['posts'] as &$post) {
         if (is_array($post) && array_key_exists('extra_values_json', $post)) {
             $post['extra_values_json'] = sr_community_extra_field_values_export_json((string) ($post['extra_values_json'] ?? ''));
@@ -122,10 +154,9 @@ return static function (PDO $pdo, int $accountId): array {
              WHERE p.author_account_id = :account_id
                AND v.export_policy_snapshot = \'include\'
              ORDER BY v.post_id ASC, v.id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['post_field_values'] = $stmt->fetchAll();
+        $empty['post_field_values'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'post_field_values', $sectionLimits);
     }
 
     $stmt = $pdo->prepare(
@@ -134,20 +165,18 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['comments'] = $stmt->fetchAll();
+    $empty['comments'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'comments', $sectionLimits);
 
     $stmt = $pdo->prepare(
         'SELECT id, post_id, original_name, mime_type, size_bytes, width, height, status, created_at
          FROM sr_community_attachments
          WHERE uploader_account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['attachments'] = $stmt->fetchAll();
+    $empty['attachments'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'attachments', $sectionLimits);
 
     $stmt = $pdo->prepare(
         'SELECT id, target_type, target_id,
@@ -157,14 +186,13 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_community_reports
          WHERE reporter_account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute([
+    $empty['reports'] = sr_community_privacy_fetch_limited($stmt, [
         'account_id' => $accountId,
         'reported_account_id' => $accountId,
         'reported_role_account_id' => $accountId,
-    ]);
-    $empty['reports'] = $stmt->fetchAll();
+    ], 'reports', $sectionLimits);
 
     $stmt = $pdo->prepare(
         'SELECT id,
@@ -174,25 +202,23 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_community_messages
          WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute([
+    $empty['messages'] = sr_community_privacy_fetch_limited($stmt, [
         'sender_direction_account_id' => $accountId,
         'sender_counterparty_account_id' => $accountId,
         'sender_account_id' => $accountId,
         'recipient_account_id' => $accountId,
-    ]);
-    $empty['messages'] = $stmt->fetchAll();
+    ], 'messages', $sectionLimits);
 
     $stmt = $pdo->prepare(
         'SELECT id, post_id, created_at
          FROM sr_community_scraps
          WHERE account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['scraps'] = $stmt->fetchAll();
+    $empty['scraps'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'scraps', $sectionLimits);
 
     if (sr_community_series_scraps_supported($pdo)) {
         $stmt = $pdo->prepare(
@@ -200,10 +226,9 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_community_series_scraps
              WHERE account_id = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['series_scraps'] = $stmt->fetchAll();
+        $empty['series_scraps'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'series_scraps', $sectionLimits);
     }
 
     if (sr_community_series_supported($pdo)) {
@@ -212,10 +237,9 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_community_series
              WHERE owner_account_id = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['series'] = $stmt->fetchAll();
+        $empty['series'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'series', $sectionLimits);
 
         $stmt = $pdo->prepare(
             'SELECT si.id, si.series_id, si.post_id, si.active_post_id, si.episode_label, si.item_status, si.sort_order, si.created_at, si.updated_at
@@ -223,10 +247,9 @@ return static function (PDO $pdo, int $accountId): array {
              INNER JOIN sr_community_posts p ON p.id = si.post_id
              WHERE p.author_account_id = :account_id
              ORDER BY si.id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['series_items'] = $stmt->fetchAll();
+        $empty['series_items'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'series_items', $sectionLimits);
     }
 
     try {
@@ -245,10 +268,9 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_community_level_logs
              WHERE account_id = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['level_logs'] = $stmt->fetchAll();
+        $empty['level_logs'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'level_logs', $sectionLimits);
 
         if (!function_exists('sr_community_access_entitlements_table_exists')) {
             require_once SR_ROOT . '/modules/community/helpers/assets.php';
@@ -260,10 +282,9 @@ return static function (PDO $pdo, int $accountId): array {
                  FROM sr_community_access_entitlements
                  WHERE account_id = :account_id
                  ORDER BY id ASC
-                 LIMIT 1000'
+                 LIMIT 1001'
             );
-            $stmt->execute(['account_id' => $accountId]);
-            $empty['access_entitlements'] = $stmt->fetchAll();
+            $empty['access_entitlements'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'access_entitlements', $sectionLimits);
         }
 
         $assetLogSettlementMetadataSelect = sr_community_asset_log_settlement_metadata_columns_exist($pdo)
@@ -274,10 +295,11 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute(['account_id' => $accountId]);
-        $empty['asset_logs'] = sr_community_privacy_add_asset_settlement_summaries($stmt->fetchAll());
+        $empty['asset_logs'] = sr_community_privacy_add_asset_settlement_summaries(
+            sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'asset_logs', $sectionLimits)
+        );
 
         try {
             $pdo->query('SELECT 1 FROM sr_community_asset_recovery_failures LIMIT 1');
@@ -290,13 +312,12 @@ return static function (PDO $pdo, int $accountId): array {
                  FROM sr_community_asset_recovery_failures
                  WHERE account_id = :account_id OR actor_account_id = :actor_account_id
                  ORDER BY id ASC
-                 LIMIT 1000'
+                 LIMIT 1001'
             );
-            $stmt->execute([
+            $empty['asset_recovery_failures'] = sr_community_privacy_fetch_limited($stmt, [
                 'account_id' => $accountId,
                 'actor_account_id' => $accountId,
-            ]);
-            $empty['asset_recovery_failures'] = $stmt->fetchAll();
+            ], 'asset_recovery_failures', $sectionLimits);
         } catch (Throwable $exception) {
             $empty['asset_recovery_failures'] = [];
         }
@@ -311,15 +332,14 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_community_publisher_reward_logs
              WHERE downloader_account_id = :account_id OR publisher_account_id = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
-        $stmt->execute([
+        $empty['publisher_reward_logs'] = sr_community_privacy_fetch_limited($stmt, [
             'account_id' => $accountId,
             'downloader_account_id' => $accountId,
             'publisher_account_id' => $accountId,
             'downloader_role_account_id' => $accountId,
-        ]);
-        $empty['publisher_reward_logs'] = $stmt->fetchAll();
+        ], 'publisher_reward_logs', $sectionLimits);
 
         if (function_exists('sr_community_submission_consents_table_exists') && sr_community_submission_consents_table_exists($pdo)) {
             $stmt = $pdo->prepare(
@@ -327,10 +347,9 @@ return static function (PDO $pdo, int $accountId): array {
                  FROM sr_community_submission_consents
                  WHERE account_id = :account_id
                  ORDER BY id ASC
-                 LIMIT 1000'
+                 LIMIT 1001'
             );
-            $stmt->execute(['account_id' => $accountId]);
-            $empty['submission_consents'] = $stmt->fetchAll();
+            $empty['submission_consents'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'submission_consents', $sectionLimits);
         }
     } catch (Throwable $exception) {
         $empty['level'] = [];
@@ -341,6 +360,8 @@ return static function (PDO $pdo, int $accountId): array {
         $empty['publisher_reward_logs'] = [];
         $empty['submission_consents'] = [];
     }
+
+    $empty['_limits'] = $sectionLimits;
 
     return $empty;
 };
