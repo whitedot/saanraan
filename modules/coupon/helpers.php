@@ -291,6 +291,63 @@ function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_coupon_public_flash_result(array $result): void
+{
+    $_SESSION['sr_coupon_public_flash'] = [
+        'errors' => array_values(array_map('strval', $result['errors'] ?? [])),
+        'notice' => (string) ($result['notice'] ?? ''),
+    ];
+}
+
+function sr_coupon_public_pop_flash_result(): array
+{
+    $result = is_array($_SESSION['sr_coupon_public_flash'] ?? null)
+        ? $_SESSION['sr_coupon_public_flash']
+        : ['errors' => [], 'notice' => ''];
+    unset($_SESSION['sr_coupon_public_flash']);
+
+    return [
+        'errors' => array_values(array_map('strval', $result['errors'] ?? [])),
+        'notice' => (string) ($result['notice'] ?? ''),
+    ];
+}
+
+function sr_coupon_public_claim_intent_token(int $campaignId): string
+{
+    if ($campaignId <= 0) {
+        return '';
+    }
+
+    if (!isset($_SESSION['sr_coupon_claim_intents']) || !is_array($_SESSION['sr_coupon_claim_intents'])) {
+        $_SESSION['sr_coupon_claim_intents'] = [];
+    }
+
+    $key = (string) $campaignId;
+    $token = (string) ($_SESSION['sr_coupon_claim_intents'][$key] ?? '');
+    if ($token === '') {
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['sr_coupon_claim_intents'][$key] = $token;
+    }
+
+    return $token;
+}
+
+function sr_coupon_public_rotate_claim_intent_token(int $campaignId): string
+{
+    if ($campaignId <= 0) {
+        return '';
+    }
+
+    if (!isset($_SESSION['sr_coupon_claim_intents']) || !is_array($_SESSION['sr_coupon_claim_intents'])) {
+        $_SESSION['sr_coupon_claim_intents'] = [];
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $_SESSION['sr_coupon_claim_intents'][(string) $campaignId] = $token;
+
+    return $token;
+}
+
 function sr_coupon_create_claim_campaign(PDO $pdo, array $data): int
 {
     if (!sr_coupon_claim_tables_available($pdo)) {
