@@ -7,6 +7,7 @@ return static function (PDO $pdo, int $accountId): array {
         return [
             'coupon_issues' => [],
             'coupon_redemptions' => [],
+            'coupon_claim_logs' => [],
         ];
     }
 
@@ -37,9 +38,28 @@ return static function (PDO $pdo, int $accountId): array {
          LIMIT 1000'
     );
     $stmt->execute(['account_id' => $accountId]);
+    $redemptions = $stmt->fetchAll();
+
+    $claimLogs = [];
+    if (sr_coupon_claim_tables_available($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT l.id, l.claim_source, l.payment_reference_module, l.payment_reference_type, l.payment_reference_id,
+                    l.status, l.reserved_until, l.failure_code, l.failure_message, l.created_at, l.issued_at,
+                    c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title
+             FROM sr_coupon_claim_logs l
+             INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
+             INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
+             WHERE l.account_id = :account_id
+             ORDER BY l.id DESC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $claimLogs = $stmt->fetchAll();
+    }
 
     return [
         'coupon_issues' => $issues,
-        'coupon_redemptions' => $stmt->fetchAll(),
+        'coupon_redemptions' => $redemptions,
+        'coupon_claim_logs' => $claimLogs,
     ];
 };
