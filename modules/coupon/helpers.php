@@ -2000,7 +2000,11 @@ function sr_coupon_redemption_pricing_columns_available(PDO $pdo): bool
 
 function sr_coupon_redemption_pricing_snapshot(PDO $pdo, string $targetType, string $targetId, int $accountId, array $context): array
 {
-    $pricing = sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context);
+    return sr_coupon_redemption_pricing_snapshot_from_result(sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context), $targetType, $targetId);
+}
+
+function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, string $targetType, string $targetId): array
+{
     if (empty($pricing['ok'])) {
         return [
             'amount' => 0,
@@ -2359,6 +2363,20 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             return ['allowed' => false, 'processed' => false, 'message' => ''];
         }
 
+        $pricing = sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context);
+        if (!empty($pricing['ok']) && !empty($pricing['already_entitled'])) {
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->commit();
+            }
+
+            return [
+                'allowed' => true,
+                'processed' => false,
+                'already_entitled' => true,
+                'message' => '',
+            ];
+        }
+
         $now = sr_now();
         $redemptionColumns = [
             'coupon_issue_id',
@@ -2389,7 +2407,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             'created_at' => $now,
         ];
         if (sr_coupon_redemption_pricing_columns_available($pdo)) {
-            $pricingSnapshot = sr_coupon_redemption_pricing_snapshot($pdo, $targetType, $targetId, $accountId, $context);
+            $pricingSnapshot = sr_coupon_redemption_pricing_snapshot_from_result($pricing, $targetType, $targetId);
             foreach (['amount', 'currency_code', 'asset_unit', 'policy_summary', 'priced_at', 'target_snapshot_json'] as $column) {
                 $redemptionColumns[] = $column;
                 $redemptionValues[$column] = $pricingSnapshot[$column];

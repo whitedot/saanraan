@@ -630,19 +630,21 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     if ($startedTransaction) {
         $pdo->beginTransaction();
     }
-    try {
-        $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy);
-        if (!empty($couponResult['allowed'])) {
-            sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
-            if ($startedTransaction) {
-                $pdo->commit();
-            }
+        try {
+            $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy);
+            if (!empty($couponResult['allowed'])) {
+                if (empty($couponResult['already_entitled'])) {
+                    sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+                }
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
 
             return [
                 'allowed' => true,
                 'charged' => false,
                 'coupon_used' => !empty($couponResult['processed']),
-                'already_paid' => !empty($couponResult['already_redeemed']),
+                'already_paid' => !empty($couponResult['already_redeemed']) || !empty($couponResult['already_entitled']),
                 'coupon_title' => (string) ($couponResult['coupon_title'] ?? ''),
                 'asset_module' => $assetModuleValue,
                 'asset_label' => '쿠폰',
@@ -889,19 +891,21 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     if ($startedTransaction) {
         $pdo->beginTransaction();
     }
-    try {
-        $couponResult = sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy);
-        if (!empty($couponResult['allowed'])) {
-            sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
-            if ($startedTransaction) {
-                $pdo->commit();
-            }
+        try {
+            $couponResult = sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy);
+            if (!empty($couponResult['allowed'])) {
+                if (empty($couponResult['already_entitled'])) {
+                    sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+                }
+                if ($startedTransaction) {
+                    $pdo->commit();
+                }
 
             return [
                 'allowed' => true,
                 'charged' => false,
                 'coupon_used' => !empty($couponResult['processed']),
-                'already_paid' => !empty($couponResult['already_redeemed']),
+                'already_paid' => !empty($couponResult['already_redeemed']) || !empty($couponResult['already_entitled']),
                 'coupon_title' => (string) ($couponResult['coupon_title'] ?? ''),
                 'asset_module' => $assetModuleValue,
                 'asset_label' => '쿠폰',

@@ -408,7 +408,9 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
         try {
             $couponResult = sr_coupon_redeem_for_target($pdo, $accountId, (string) $target[0], (string) $target[1], $couponContext);
             if (!empty($couponResult['allowed'])) {
-                sr_community_grant_access_entitlement($pdo, $accountId, 'community.post', $postId, 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+                if (empty($couponResult['already_entitled'])) {
+                    sr_community_grant_access_entitlement($pdo, $accountId, 'community.post', $postId, 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+                }
                 if ($startedTransaction) {
                     $pdo->commit();
                 }

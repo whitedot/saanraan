@@ -697,6 +697,17 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(!empty($downloadRepeat['allowed']) && empty($downloadRepeat['charged']) && !empty($downloadRepeat['already_paid']), 'content paid download fixture should reuse existing coupon entitlement without another charge.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'content' AND reference_type = 'content.download' AND reference_id = '501'")->fetchColumn() === 1, 'content paid download fixture should not create another coupon redemption for once download access.');
 
+    $alreadyEntitledDownloadIssueId = sr_coupon_runtime_issue($pdo, 'download_already_entitled', 'content_file', '501', 7);
+    $alreadyEntitledDownload = sr_coupon_redeem_for_target($pdo, 7, 'content_file', '501', [
+        'dedupe_key' => 'content.download:coupon:7:501:already-entitled',
+        'reference_module' => 'content',
+        'reference_type' => 'content.download',
+        'reference_id' => '501',
+    ]);
+    sr_coupon_runtime_assert(!empty($alreadyEntitledDownload['allowed']) && empty($alreadyEntitledDownload['processed']) && !empty($alreadyEntitledDownload['already_entitled']), 'content already-entitled coupon attempt should return already_entitled without consuming a coupon.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'content.download:coupon:7:501:already-entitled'")->fetchColumn() === 0, 'content already-entitled coupon attempt should not create a redemption row.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $alreadyEntitledDownloadIssueId, 'content already-entitled coupon attempt');
+
     $downloadLogId = (int) $pdo->query('SELECT id FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1')->fetchColumn();
     $revokeResult = sr_content_refund_file_download($pdo, $downloadLogId, 1, 'coupon access revoke');
     sr_coupon_runtime_assert(!empty($revokeResult['ok']), 'content paid download fixture should revoke coupon-backed download access through refund helper.');
@@ -791,6 +802,17 @@ function sr_coupon_runtime_fixture(): void
     $communityRepeat = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
     sr_coupon_runtime_assert(!empty($communityRepeat['allowed']) && empty($communityRepeat['processed']) && !empty($communityRepeat['already_redeemed']), 'community paid read fixture should reuse existing coupon entitlement without another redemption.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9901'")->fetchColumn() === 1, 'community paid read fixture should not create another coupon redemption for once access.');
+
+    $alreadyEntitledCommunityIssueId = sr_coupon_runtime_issue($pdo, 'community_already_entitled', 'community_post', '9901', 7);
+    $alreadyEntitledCommunity = sr_coupon_redeem_for_target($pdo, 7, 'community_post', '9901', [
+        'dedupe_key' => 'community.post:coupon:7:9901:already-entitled',
+        'reference_module' => 'community',
+        'reference_type' => 'community.post',
+        'reference_id' => '9901',
+    ]);
+    sr_coupon_runtime_assert(!empty($alreadyEntitledCommunity['allowed']) && empty($alreadyEntitledCommunity['processed']) && !empty($alreadyEntitledCommunity['already_entitled']), 'community already-entitled coupon attempt should return already_entitled without consuming a coupon.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'community.post:coupon:7:9901:already-entitled'")->fetchColumn() === 0, 'community already-entitled coupon attempt should not create a redemption row.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $alreadyEntitledCommunityIssueId, 'community already-entitled coupon attempt');
 
     $communityRedemptionId = (int) $pdo->query("SELECT id FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9901' LIMIT 1")->fetchColumn();
     $communityRefund = sr_coupon_refund_redemption($pdo, $communityRedemptionId, 1, 'community coupon access revoke');
