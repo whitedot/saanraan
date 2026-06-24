@@ -14,6 +14,19 @@
 SR_COMMUNITY_FEED_MEASURE_POSTS=10000 SR_COMMUNITY_FEED_MEASURE_BOARDS=20 php .tools/bin/measure-community-home-feed.php
 ```
 
+대표 MySQL/MariaDB 로컬 또는 staging DB에서는 읽기 전용 계정과 명시 DSN으로 같은 출력 형식을 남긴다.
+
+```bash
+SR_COMMUNITY_FEED_MEASURE_DSN='mysql:host=127.0.0.1;dbname=saanraan;charset=utf8mb4' \
+SR_COMMUNITY_FEED_MEASURE_USER='readonly_user' \
+SR_COMMUNITY_FEED_MEASURE_PASSWORD='readonly_password' \
+SR_COMMUNITY_FEED_MEASURE_TABLE_PREFIX='sr_' \
+SR_COMMUNITY_FEED_MEASURE_BOARD_IDS='1,2,3' \
+php .tools/bin/measure-community-home-feed.php
+```
+
+`SR_COMMUNITY_FEED_MEASURE_BOARD_IDS`를 생략하면 `status = enabled`이고 `read_policy = public`인 게시판을 `SR_COMMUNITY_FEED_MEASURE_BOARD_LIMIT`만큼 자동 선택한다.
+
 ## 결과 요약
 
 ```text
@@ -41,4 +54,4 @@ returned-rows: cold=5 warm=5
 
 ## 후속
 
-대표 MySQL/MariaDB 환경에서 같은 하니스를 확장하거나 동등 SQL로 #361 기록 형식의 `EXPLAIN`, cold/warm 응답 시간, 반환 row 수를 남긴다.
+대표 MySQL/MariaDB 환경에서 같은 하니스의 명시 DSN 모드 또는 동등 SQL로 #361 기록 형식의 `EXPLAIN`, cold/warm 응답 시간, 반환 row 수를 남긴다.
