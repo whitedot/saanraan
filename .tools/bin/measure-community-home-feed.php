@@ -29,6 +29,11 @@ function sr_measure_community_home_feed_string_env(string $key, string $default 
     return is_string($value) ? trim($value) : $default;
 }
 
+function sr_measure_community_home_feed_bool_env(string $key): bool
+{
+    return in_array(strtolower(sr_measure_community_home_feed_string_env($key)), ['1', 'true', 'yes', 'on'], true);
+}
+
 function sr_measure_community_home_feed_ms(float $start): float
 {
     return round((microtime(true) - $start) * 1000, 3);
@@ -181,67 +186,80 @@ function sr_measure_community_home_feed_create_fixture(PDO $pdo, int $postCount,
 {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    $pdo->exec('PRAGMA journal_mode = MEMORY');
-    $pdo->exec('PRAGMA synchronous = OFF');
+    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    if ($driver === 'sqlite') {
+        $pdo->exec('PRAGMA journal_mode = MEMORY');
+        $pdo->exec('PRAGMA synchronous = OFF');
+    }
+    foreach ([
+        'sr_community_board_group_settings',
+        'sr_community_board_settings',
+        'sr_community_attachments',
+        'sr_community_comments',
+        'sr_community_posts',
+        'sr_member_accounts',
+    ] as $tableName) {
+        $pdo->exec('DROP TABLE IF EXISTS ' . $tableName);
+    }
     $pdo->exec('CREATE TABLE sr_community_posts (
-        id INTEGER PRIMARY KEY,
-        board_id INTEGER NOT NULL,
-        author_account_id INTEGER NOT NULL DEFAULT 0,
-        author_public_name_snapshot TEXT NOT NULL DEFAULT "",
-        guest_author_name TEXT NOT NULL DEFAULT "",
+        id BIGINT PRIMARY KEY,
+        board_id BIGINT NOT NULL,
+        author_account_id BIGINT NOT NULL DEFAULT 0,
+        author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT "",
+        guest_author_name VARCHAR(120) NOT NULL DEFAULT "",
         extra_values_json TEXT NULL,
-        title TEXT NOT NULL,
+        title VARCHAR(255) NOT NULL,
         body_text TEXT NOT NULL,
-        body_format TEXT NOT NULL DEFAULT "plain",
-        is_secret INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL,
-        view_count INTEGER NOT NULL DEFAULT 0,
-        last_commented_at TEXT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        body_format VARCHAR(20) NOT NULL DEFAULT "plain",
+        is_secret TINYINT NOT NULL DEFAULT 0,
+        status VARCHAR(20) NOT NULL,
+        view_count BIGINT NOT NULL DEFAULT 0,
+        last_commented_at DATETIME NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_community_comments (
-        id INTEGER PRIMARY KEY,
-        post_id INTEGER NOT NULL,
-        status TEXT NOT NULL
+        id BIGINT PRIMARY KEY,
+        post_id BIGINT NOT NULL,
+        status VARCHAR(20) NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_community_attachments (
-        id INTEGER PRIMARY KEY,
-        post_id INTEGER NOT NULL,
-        uploader_account_id INTEGER NOT NULL DEFAULT 0,
-        original_name TEXT NOT NULL DEFAULT "",
-        stored_name TEXT NOT NULL DEFAULT "",
-        storage_path TEXT NOT NULL DEFAULT "",
-        status TEXT NOT NULL,
-        mime_type TEXT NOT NULL,
-        storage_driver TEXT NOT NULL DEFAULT "",
-        storage_key TEXT NOT NULL DEFAULT "",
-        size_bytes INTEGER NOT NULL DEFAULT 0,
-        checksum_sha256 TEXT NOT NULL DEFAULT "",
-        width INTEGER NULL,
-        height INTEGER NULL,
-        created_at TEXT NOT NULL DEFAULT ""
+        id BIGINT PRIMARY KEY,
+        post_id BIGINT NOT NULL,
+        uploader_account_id BIGINT NOT NULL DEFAULT 0,
+        original_name VARCHAR(255) NOT NULL DEFAULT "",
+        stored_name VARCHAR(255) NOT NULL DEFAULT "",
+        storage_path VARCHAR(255) NOT NULL DEFAULT "",
+        status VARCHAR(20) NOT NULL,
+        mime_type VARCHAR(80) NOT NULL,
+        storage_driver VARCHAR(20) NOT NULL DEFAULT "",
+        storage_key VARCHAR(255) NOT NULL DEFAULT "",
+        size_bytes BIGINT NOT NULL DEFAULT 0,
+        checksum_sha256 VARCHAR(64) NOT NULL DEFAULT "",
+        width INT NULL,
+        height INT NULL,
+        created_at DATETIME NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_member_accounts (
-        id INTEGER PRIMARY KEY,
-        status TEXT NOT NULL
+        id BIGINT PRIMARY KEY,
+        status VARCHAR(20) NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_community_board_settings (
-        board_id INTEGER NOT NULL,
-        setting_key TEXT NOT NULL,
+        board_id BIGINT NOT NULL,
+        setting_key VARCHAR(120) NOT NULL,
         setting_value TEXT NOT NULL,
-        value_type TEXT NOT NULL DEFAULT "string",
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
+        value_type VARCHAR(20) NOT NULL DEFAULT "string",
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
         PRIMARY KEY (board_id, setting_key)
     )');
     $pdo->exec('CREATE TABLE sr_community_board_group_settings (
-        group_id INTEGER NOT NULL,
-        setting_key TEXT NOT NULL,
+        group_id BIGINT NOT NULL,
+        setting_key VARCHAR(120) NOT NULL,
         setting_value TEXT NOT NULL,
-        value_type TEXT NOT NULL DEFAULT "string",
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
+        value_type VARCHAR(20) NOT NULL DEFAULT "string",
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
         PRIMARY KEY (group_id, setting_key)
     )');
     $pdo->exec('CREATE INDEX idx_sr_community_posts_board_status_id ON sr_community_posts (board_id, status, id)');
@@ -325,7 +343,16 @@ $postCount = sr_measure_community_home_feed_int_env('SR_COMMUNITY_FEED_MEASURE_P
 $boardCount = sr_measure_community_home_feed_int_env('SR_COMMUNITY_FEED_MEASURE_BOARDS', 20, 1, 200);
 $targetPdo = sr_measure_community_home_feed_connect_target();
 if ($targetPdo instanceof PDO) {
-    $boardIds = sr_measure_community_home_feed_target_board_ids($targetPdo);
+    $targetFixture = sr_measure_community_home_feed_bool_env('SR_COMMUNITY_FEED_MEASURE_FIXTURE');
+    $fixtureMs = 0.0;
+    if ($targetFixture) {
+        $fixtureStart = microtime(true);
+        $boards = sr_measure_community_home_feed_create_fixture($targetPdo, $postCount, $boardCount);
+        $fixtureMs = sr_measure_community_home_feed_ms($fixtureStart);
+        $boardIds = sr_community_feed_cache_public_baseline_board_ids($boards);
+    } else {
+        $boardIds = sr_measure_community_home_feed_target_board_ids($targetPdo);
+    }
     if ($boardIds === []) {
         fwrite(STDERR, "No public baseline board ids found. Set SR_COMMUNITY_FEED_MEASURE_BOARD_IDS for explicit read-only measurement.\n");
         exit(2);
@@ -336,12 +363,12 @@ if ($targetPdo instanceof PDO) {
     sr_measure_community_home_feed_run(
         $targetPdo,
         $boardIds,
-        'target-readonly',
-        'board_ids=' . (string) count($boardIds),
-        0.0,
+        $targetFixture ? 'mariadb-fixture' : 'target-readonly',
+        $targetFixture ? 'posts=' . (string) $postCount . ' boards=' . (string) $boardCount : 'board_ids=' . (string) count($boardIds),
+        $fixtureMs,
         $driver . ' ' . $version,
-        'explicit DSN read-only measurement; production data is not required or recommended',
-        'target DB evidence; persistent cache work still needs repository decision using this record'
+        $targetFixture ? 'explicit DSN fixture measurement on MySQL/MariaDB syntax' : 'explicit DSN read-only measurement; production data is not required or recommended',
+        $targetFixture ? 'MySQL/MariaDB fixture evidence only; target data is still required before persistent cache work' : 'target DB evidence; persistent cache work still needs repository decision using this record'
     );
     exit(0);
 }
