@@ -89,6 +89,11 @@
 - 동작, 기능, 데이터베이스 스키마, 관리자 화면, 모듈 계약, 요청 흐름, 보안/개인정보 정책, 배포 가정, 운영 절차를 변경하면 같은 작업 항목에서 관련 저장소 문서를 업데이트합니다.
 - 최소한 DB specification, administrator screen field guide, developer guides, request flow, module development guide, security/privacy guide, testing guide, deployment guide, troubleshooting guide에 영향이 있는지 확인합니다.
 - 현재는 GitHub Wiki를 운영 문서의 정본으로 사용하지 않습니다. 1.0 배포 전 문서 기준은 저장소 `docs/`와 루트 안내 문서입니다.
+- GitHub issue는 작업 현황판으로 사용하고, `docs/`는 닫힌 뒤에도 남아야 하는 구현 기준, 운영 기준, 의사결정 기록의 정본으로 사용합니다.
+- 이슈에서 확정된 동작, 정책, 절차, 완료 기준이 장기 기준으로 남아야 한다면 같은 작업에서 관련 `docs/` 문서로 승격하고, 이슈와 문서가 서로를 참조하게 합니다.
+- 공개 저장소의 `docs/`는 공개 이슈와 같은 노출 범위로 취급합니다. 아직 패치되지 않은 취약점의 구체적 재현 절차, exploit payload, 운영 서버 정보, 실제 credential, 실제 사용자/운영 로그 원문은 `docs/`에 기록하지 않습니다.
+- 보안 또는 운영상 민감하지만 추적이 필요한 항목은 공개 이슈와 `docs/`에는 넓은 요약과 후속 작업 기준만 남기고, 구체적 재현 정보와 비밀값은 GitHub Security Advisory 또는 커밋되지 않는 local/staging 전용 노트에서 관리합니다.
+- 공개 저장소에 쓰기 어려운 민감 세부 기록은 가능하면 저장소 밖 로컬 전용 노트 디렉터리에서 관리합니다. 공개 이슈와 `docs/`에는 로컬 노트 식별자, 공개 가능한 요약, 공개 가능한 완료 기준만 남깁니다.
 - 시각적 변경, CSS-only 변경, 내부 구현 변경은 운영자 동작, public contract, configuration, schema, request flow, deployment assumptions를 바꾸지 않는다면 문서 업데이트가 필요하지 않습니다. 유용할 때 최종 응답이나 커밋 본문에 문서 생략 판단을 언급합니다.
 - repository docs는 초기 계획이 아니라 현재 구현과 맞춥니다.
 
@@ -114,6 +119,9 @@
 - 사용자가 명시적으로 comment 또는 issue update를 요청하지 않는 한 GitHub issue comment를 추가하지 않습니다.
 - GitHub issue나 issue comment를 만들 때는 본문에 명확한 Markdown 줄바꿈과 문단/목록/섹션 사이 빈 줄을 사용합니다. 여러 생각이 포함된 본문을 빽빽한 한 줄로 제출하지 않습니다.
 - GitHub issue comment가 한 문장보다 길다면 inline shell string 대신 body file 등 여러 줄을 안전하게 보존하는 방식을 사용합니다.
+- 공개 가능한 작업 추적은 GitHub issue를 우선 사용합니다. issue에는 진행 상태, 체크리스트, 토론, 하위 작업, 완료 기준, 관련 PR/커밋 링크를 둡니다.
+- 이슈가 단순 작업 메모를 넘어 장기 운영 기준이나 개발 규칙을 확정하면 관련 `docs/` 문서에 정리본을 남기고, issue 본문 또는 comment에 해당 문서 경로를 링크합니다.
+- 반대로 `docs/` 문서가 특정 이슈의 결정이나 구현 결과를 정리한다면 문서 안에 관련 issue 번호를 남겨 추적성을 유지합니다.
 - 사용자가 코드 구현이나 수정을 요청하면 working tree 변경과 검증 요청으로 취급합니다. 커밋, push, issue 상태 변경은 별도 명시 요청을 묻거나 기다립니다.
 
 ## 커밋 메시지
