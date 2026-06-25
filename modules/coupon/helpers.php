@@ -2137,6 +2137,12 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
         if ((string) ($campaign['claim_type'] ?? '') !== 'paid') {
             throw new InvalidArgumentException('유료 발급 캠페인이 아닙니다.');
         }
+        $lockedAllowedAssetModules = sr_coupon_asset_module_keys_from_value($pdo, $campaign['allowed_asset_modules_json'] ?? '');
+        foreach ($selectedAssetModules as $assetModule) {
+            if (!in_array($assetModule, $lockedAllowedAssetModules, true)) {
+                throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 다시 선택하세요.');
+            }
+        }
         sr_coupon_validate_claim_campaign($campaign, $claimSource);
         sr_coupon_self_expire_claims($pdo, (int) $campaign['id'], $accountId);
 
