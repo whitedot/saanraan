@@ -68,6 +68,17 @@ if (is_string($view)
 ) {
     $errors[] = 'Coupon admin redemption view must expose the stored pricing snapshot.';
 }
+if (is_string($view)
+    && (
+        strpos($view, 'data-coupon-claim-campaign-form') === false
+        || strpos($view, 'data-coupon-paid-required-input') === false
+        || strpos($view, 'data-coupon-paid-asset-checkbox') === false
+        || strpos($view, 'function syncClaimCampaignPaidFields(form)') === false
+        || strpos($view, 'assetCheckboxes[0].setCustomValidity') === false
+    )
+) {
+    $errors[] = 'Coupon paid claim campaign form must align conditional required UI, browser validation, and paid asset selection.';
+}
 
 $assetAdjustJs = file_get_contents($root . '/modules/admin/assets/asset-adjust.js');
 if (!is_string($assetAdjustJs)

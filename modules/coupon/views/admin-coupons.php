@@ -79,6 +79,7 @@ $claimCampaignForm = $editingClaimCampaign ? $editClaimCampaign : [];
 $claimCampaignFormSurfaces = sr_coupon_claim_surfaces_from_value($claimCampaignForm['exposure_surfaces_json'] ?? ['coupon_zone']);
 $claimCampaignAssetOptions = isset($claimCampaignAssetOptions) && is_array($claimCampaignAssetOptions) ? $claimCampaignAssetOptions : [];
 $claimCampaignAllowedAssets = sr_coupon_asset_module_keys_from_value($pdo, $claimCampaignForm['allowed_asset_modules_json'] ?? []);
+$claimCampaignIsPaid = (string) ($claimCampaignForm['claim_type'] ?? 'free') === 'paid';
 if ($claimCampaignFormSurfaces === []) {
     $claimCampaignFormSurfaces = ['coupon_zone'];
 }
@@ -147,7 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-card-header">
         <h2><?php echo $editingClaimCampaign ? '발급 캠페인 수정' : '발급 캠페인 추가'; ?></h2>
     </div>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form admin-card-body">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form admin-card-body" data-sr-validate-form data-coupon-claim-campaign-form>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="<?php echo $editingClaimCampaign ? 'update_campaign' : 'create_campaign'; ?>">
         <?php if ($editingClaimCampaign) { ?>
@@ -199,13 +200,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </div>
             <div class="admin-form-field">
-                <label class="form-label" for="coupon_claim_campaign_price_amount">유료 발급 가격</label>
-                <input id="coupon_claim_campaign_price_amount" type="number" name="price_amount" value="<?php echo isset($claimCampaignForm['price_amount']) && $claimCampaignForm['price_amount'] !== null ? sr_e((string) (int) $claimCampaignForm['price_amount']) : ''; ?>" class="form-input" min="1" max="999999999" step="1">
+                <label class="form-label" for="coupon_claim_campaign_price_amount">유료 발급 가격 <span class="sr-required-label"<?php echo $claimCampaignIsPaid ? '' : ' hidden'; ?> data-coupon-paid-required-label>(필수)</span></label>
+                <input id="coupon_claim_campaign_price_amount" type="number" name="price_amount" value="<?php echo isset($claimCampaignForm['price_amount']) && $claimCampaignForm['price_amount'] !== null ? sr_e((string) (int) $claimCampaignForm['price_amount']) : ''; ?>" class="form-input" min="1" max="999999999" step="1" data-coupon-paid-required-input data-validation-message="유료 발급 가격은 1 이상으로 입력해 주세요."<?php echo $claimCampaignIsPaid ? ' required' : ''; ?>>
                 <p class="form-help">발급 유형이 유료일 때 필수입니다.</p>
             </div>
             <div class="admin-form-field">
-                <label class="form-label" for="coupon_claim_campaign_price_currency_code">유료 발급 통화</label>
-                <input id="coupon_claim_campaign_price_currency_code" type="text" name="price_currency_code" value="<?php echo sr_e((string) ($claimCampaignForm['price_currency_code'] ?? 'KRW')); ?>" class="form-input" maxlength="3" pattern="[A-Za-z]{3}" inputmode="latin" autocomplete="off">
+                <label class="form-label" for="coupon_claim_campaign_price_currency_code">유료 발급 통화 <span class="sr-required-label"<?php echo $claimCampaignIsPaid ? '' : ' hidden'; ?> data-coupon-paid-required-label>(필수)</span></label>
+                <input id="coupon_claim_campaign_price_currency_code" type="text" name="price_currency_code" value="<?php echo sr_e((string) ($claimCampaignForm['price_currency_code'] ?? 'KRW')); ?>" class="form-input" maxlength="3" pattern="[A-Za-z]{3}" inputmode="latin" autocomplete="off" data-coupon-paid-required-input data-validation-message="유료 발급 통화는 영문 3자리로 입력해 주세요."<?php echo $claimCampaignIsPaid ? ' required' : ''; ?>>
             </div>
             <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_visibility">공개 여부 <span class="sr-required-label">(필수)</span></label>
@@ -236,13 +237,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input id="coupon_claim_campaign_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e($claimCampaignFormDateTime((string) ($claimCampaignForm['ends_at'] ?? ''))); ?>" class="form-input">
             </div>
         </div>
-        <div class="admin-form-field">
-            <span class="form-label">유료 발급 허용 포인트/금액 항목</span>
+        <div class="admin-form-field" data-coupon-paid-asset-field>
+            <span class="form-label">유료 발급 허용 포인트/금액 항목 <span class="sr-required-label"<?php echo $claimCampaignIsPaid ? '' : ' hidden'; ?> data-coupon-paid-required-label>(필수)</span></span>
             <?php if ($claimCampaignAssetOptions === []) { ?>
                 <p class="form-help">사용 가능한 포인트/금액 항목이 없습니다.</p>
             <?php } else { ?>
                 <?php foreach ($claimCampaignAssetOptions as $assetModule => $assetOption) { ?>
-                    <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $claimCampaignAllowedAssets, true) ? ' checked' : ''; ?>> <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?></label>
+                    <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $claimCampaignAllowedAssets, true) ? ' checked' : ''; ?> data-coupon-paid-asset-checkbox data-validation-message="유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택해 주세요."> <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?></label>
                 <?php } ?>
                 <p class="form-help">회원 선택은 강제 제약으로 처리합니다. 선택한 항목으로 부족하면 발급 전 실패합니다.</p>
             <?php } ?>
@@ -819,6 +820,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         targetType.addEventListener('change', syncTargetSearchButton);
     }
     syncTargetSearchButton();
+
+    function syncClaimCampaignPaidFields(form) {
+        var claimType = form.querySelector('select[name="claim_type"]');
+        var isPaid = claimType && claimType.value === 'paid';
+        var paidInputs = form.querySelectorAll('[data-coupon-paid-required-input]');
+        var requiredLabels = form.querySelectorAll('[data-coupon-paid-required-label]');
+        var assetCheckboxes = form.querySelectorAll('[data-coupon-paid-asset-checkbox]');
+        var assetSelected = false;
+
+        paidInputs.forEach(function (input) {
+            input.required = !!isPaid;
+            if (!isPaid && typeof input.setCustomValidity === 'function') {
+                input.setCustomValidity('');
+            }
+        });
+        requiredLabels.forEach(function (label) {
+            label.hidden = !isPaid;
+        });
+        assetCheckboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                assetSelected = true;
+            }
+            if (!isPaid && typeof checkbox.setCustomValidity === 'function') {
+                checkbox.setCustomValidity('');
+            }
+        });
+        if (assetCheckboxes[0] && typeof assetCheckboxes[0].setCustomValidity === 'function') {
+            assetCheckboxes[0].setCustomValidity(isPaid && !assetSelected ? '유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택해 주세요.' : '');
+        }
+    }
+
+    document.querySelectorAll('[data-coupon-claim-campaign-form]').forEach(function (form) {
+        var claimType = form.querySelector('select[name="claim_type"]');
+        form.querySelectorAll('[data-coupon-paid-asset-checkbox]').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                syncClaimCampaignPaidFields(form);
+            });
+        });
+        if (claimType) {
+            claimType.addEventListener('change', function () {
+                syncClaimCampaignPaidFields(form);
+            });
+        }
+        syncClaimCampaignPaidFields(form);
+    });
 
     function syncIssueTargetMode(select) {
         var modal = select.closest('.modal-content');
