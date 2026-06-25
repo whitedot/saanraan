@@ -613,6 +613,50 @@ function sr_coupon_runtime_fixture(): void
         "INSERT INTO sr_coupon_definitions
             (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
          VALUES
+            ('content_missing_access', 'Content missing access', '', 'active', 'access', 'content', '88', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $missingAccessDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'used', 'fixture', NULL, :issued_at, NULL, 1, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $missingAccessDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $missingAccessIssueId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_redemptions
+            (coupon_issue_id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, dedupe_key, status, redeemed_at, created_at)
+         VALUES
+            (:issue_id, :definition_id, 7, 'content', '88', 'content', 'content.view', '88', 'content:view:88:account:7:intent:missing-access', 'redeemed', :redeemed_at, :created_at)"
+    )->execute([
+        'issue_id' => $missingAccessIssueId,
+        'definition_id' => $missingAccessDefinitionId,
+        'redeemed_at' => $now,
+        'created_at' => $now,
+    ]);
+    $missingAccessRedemptionId = (int) $pdo->lastInsertId();
+    try {
+        sr_coupon_refund_redemption($pdo, $missingAccessRedemptionId, 1, 'missing access refund');
+        sr_coupon_runtime_assert(false, 'coupon refund should fail when the target revoke contract revokes no access rows.');
+    } catch (RuntimeException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '접근권 회수'), 'coupon refund missing access failure should be user-facing.');
+    }
+    $missingAccessRedemption = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => $missingAccessRedemptionId]);
+    $missingAccessIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $missingAccessIssueId]);
+    sr_coupon_runtime_assert((string) ($missingAccessRedemption['status'] ?? '') === 'redeemed', 'missing access refund should keep redemption active.');
+    sr_coupon_runtime_assert((string) ($missingAccessRedemption['dedupe_key'] ?? '') === 'content:view:88:account:7:intent:missing-access', 'missing access refund should keep original dedupe key.');
+    sr_coupon_runtime_assert((string) ($missingAccessRedemption['refund_note'] ?? '') === '', 'missing access refund should not persist refund note.');
+    sr_coupon_runtime_assert((string) ($missingAccessIssue['status'] ?? '') === 'used' && (int) ($missingAccessIssue['used_count'] ?? -1) === 1, 'missing access refund should roll back issue status and used_count.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
             ('content_priority', 'Content priority coupon', '', 'active', 'access', 'content', '77', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
     )->execute(['created_at' => $now, 'updated_at' => $now]);
     $priorityDefinitionId = (int) $pdo->lastInsertId();

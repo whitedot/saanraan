@@ -3074,11 +3074,17 @@ function sr_coupon_revoke_target_access_or_fail(PDO $pdo, string $targetType, in
     }
 
     try {
-        return max(0, (int) $revokeFunction($pdo, $accountId, $dedupeKey));
+        $revoked = max(0, (int) $revokeFunction($pdo, $accountId, $dedupeKey));
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'coupon_revoke_target_access');
         throw new RuntimeException('쿠폰 사용처 접근권 회수에 실패했습니다.', 0, $exception);
     }
+
+    if ($revoked < 1) {
+        throw new RuntimeException('쿠폰 사용처 접근권 회수 대상이 없습니다.');
+    }
+
+    return $revoked;
 }
 
 function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetType, string $targetId, array $context = []): array
