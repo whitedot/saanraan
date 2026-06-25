@@ -52,7 +52,7 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         setting_value TEXT NOT NULL,
         value_type TEXT NOT NULL DEFAULT 'string'
     )");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('point', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('point', 'enabled'), ('reward', 'enabled')");
     $pdo->exec("CREATE TABLE sr_member_accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL DEFAULT '',
@@ -482,6 +482,14 @@ function sr_coupon_claim_runtime_fixture(): void
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    $claimLogsBeforeStrictFailure = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn();
+    try {
+        sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-disallowed-asset', ['point', 'reward']);
+        sr_coupon_claim_runtime_assert(false, 'paid claim should reject selected asset modules outside the campaign allowlist.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '다시 선택'), 'paid claim disallowed selected asset failure should be user-facing.');
+    }
+    sr_coupon_claim_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn() === $claimLogsBeforeStrictFailure, 'paid claim disallowed selected asset failure should not leave a durable claim log.');
     $paidClaim = sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-a', ['point']);
     sr_coupon_claim_runtime_assert(!empty($paidClaim['claimed']) && (int) ($paidClaim['coupon_issue_id'] ?? 0) > 0, 'paid claim should issue a coupon.');
     $paidPointRow = sr_coupon_claim_runtime_row($pdo, 'SELECT amount, balance_after, reference_type, reference_id FROM sr_point_transactions WHERE account_id = 7 ORDER BY id DESC LIMIT 1');

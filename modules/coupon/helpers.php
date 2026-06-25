@@ -2110,14 +2110,13 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
 
     $allowedAssetModules = sr_coupon_asset_module_keys_from_value($pdo, $campaign['allowed_asset_modules_json'] ?? '');
     $selectedAssetModules = sr_coupon_asset_module_keys_from_value($pdo, $assetModules);
-    $selectedAllowedAssetModules = [];
-    foreach ($selectedAssetModules as $assetModule) {
-        if (in_array($assetModule, $allowedAssetModules, true)) {
-            $selectedAllowedAssetModules[] = $assetModule;
-        }
-    }
-    if ($selectedAllowedAssetModules === []) {
+    if ($selectedAssetModules === []) {
         throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 선택하세요.');
+    }
+    foreach ($selectedAssetModules as $assetModule) {
+        if (!in_array($assetModule, $allowedAssetModules, true)) {
+            throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 다시 선택하세요.');
+        }
     }
 
     $dedupeKey = 'coupon_paid_claim:' . (string) (int) $campaign['id'] . ':' . (string) $accountId . ':' . $intentToken;
@@ -2190,7 +2189,7 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
             static function (PDO $pdo, string $assetModule) use ($accountId): int {
                 return sr_coupon_asset_balance($pdo, $assetModule, $accountId);
             },
-            $selectedAllowedAssetModules,
+            $selectedAssetModules,
             $priceAmount,
             $priceCurrencyCode
         );
