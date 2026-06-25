@@ -167,6 +167,37 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         UNIQUE(coupon_issue_id),
         UNIQUE(campaign_id, occupying_account_id)
     )");
+    $pdo->exec("CREATE TABLE sr_point_balances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL UNIQUE,
+        balance INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_point_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        balance_after INTEGER NOT NULL,
+        transaction_type TEXT NOT NULL,
+        reason TEXT NOT NULL DEFAULT '',
+        reference_type TEXT NOT NULL DEFAULT '',
+        reference_id TEXT NOT NULL DEFAULT '',
+        created_by_account_id INTEGER,
+        expires_at TEXT,
+        expires_remaining INTEGER NOT NULL DEFAULT 0,
+        expired_at TEXT,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_point_expiration_consumptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        consume_transaction_id INTEGER NOT NULL,
+        source_transaction_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        source_expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )");
 }
 
 function sr_coupon_claim_runtime_definition(PDO $pdo, string $couponKey): int
@@ -344,11 +375,11 @@ function sr_coupon_claim_runtime_fixture(): void
         'campaign_key' => 'claim_edit',
         'coupon_definition_id' => $editDefinitionId,
         'title' => 'Editable claim',
-        'status' => 'draft',
+        'status' => 'active',
         'claim_type' => 'free',
         'total_claim_limit' => 5,
         'per_account_limit' => 2,
-        'visibility' => 'hidden',
+        'visibility' => 'public',
         'exposure_surfaces' => ['coupon_zone'],
         'login_required' => 1,
     ]);
@@ -373,14 +404,14 @@ function sr_coupon_claim_runtime_fixture(): void
         'campaign_key' => 'claim_paid_policy',
         'coupon_definition_id' => $paidDefinitionId,
         'title' => 'Paid policy',
-        'status' => 'draft',
+        'status' => 'active',
         'claim_type' => 'paid',
         'price_amount' => '120',
         'price_currency_code' => 'krw',
         'allowed_asset_modules' => ['point'],
         'total_claim_limit' => 3,
         'per_account_limit' => 2,
-        'visibility' => 'hidden',
+        'visibility' => 'public',
         'exposure_surfaces' => ['coupon_zone'],
         'login_required' => 1,
     ]);
@@ -388,6 +419,31 @@ function sr_coupon_claim_runtime_fixture(): void
     sr_coupon_claim_runtime_assert(is_array($paidCampaign) && (string) ($paidCampaign['claim_type'] ?? '') === 'paid', 'paid claim campaign should persist claim type.');
     sr_coupon_claim_runtime_assert((int) ($paidCampaign['price_amount'] ?? 0) === 120 && (string) ($paidCampaign['price_currency_code'] ?? '') === 'KRW', 'paid claim campaign should persist normalized price.');
     sr_coupon_claim_runtime_assert(in_array('point', sr_coupon_asset_module_keys_from_value($pdo, $paidCampaign['allowed_asset_modules_json'] ?? ''), true), 'paid claim campaign should persist allowed asset modules.');
+    $now = sr_now();
+    $pdo->prepare('INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at) VALUES (7, 500, :created_at, :updated_at)')->execute([
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $paidClaim = sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-a', ['point']);
+    sr_coupon_claim_runtime_assert(!empty($paidClaim['claimed']) && (int) ($paidClaim['coupon_issue_id'] ?? 0) > 0, 'paid claim should issue a coupon.');
+    $paidPointRow = sr_coupon_claim_runtime_row($pdo, 'SELECT amount, balance_after, reference_type, reference_id FROM sr_point_transactions WHERE account_id = 7 ORDER BY id DESC LIMIT 1');
+    sr_coupon_claim_runtime_assert((int) ($paidPointRow['amount'] ?? 0) === -120 && (int) ($paidPointRow['balance_after'] ?? 0) === 380, 'paid claim should deduct the selected asset in the same flow.');
+    sr_coupon_claim_runtime_assert((string) ($paidPointRow['reference_type'] ?? '') === 'coupon_claim' && (int) ($paidPointRow['reference_id'] ?? 0) === (int) ($paidClaim['claim_log_id'] ?? 0), 'paid claim asset transaction should reference claim log.');
+    $paidAgain = sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-a', ['point']);
+    sr_coupon_claim_runtime_assert(!empty($paidAgain['already_claimed']) && (int) ($paidAgain['coupon_issue_id'] ?? 0) === (int) ($paidClaim['coupon_issue_id'] ?? 0), 'same paid nonce should converge to existing issue.');
+    sr_coupon_claim_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_point_transactions WHERE reference_type = 'coupon_claim'")->fetchColumn() === 1, 'same paid nonce must not deduct twice.');
+    $paidIssue = sr_coupon_claim_runtime_row($pdo, 'SELECT claim_type, nominal_price_amount, nominal_price_currency_code, claim_snapshot_json FROM sr_coupon_issues WHERE id = :id', ['id' => $paidClaim['coupon_issue_id']]);
+    $paidSnapshot = json_decode((string) ($paidIssue['claim_snapshot_json'] ?? ''), true);
+    sr_coupon_claim_runtime_assert((string) ($paidIssue['claim_type'] ?? '') === 'paid' && (int) ($paidIssue['nominal_price_amount'] ?? 0) === 120 && (string) ($paidIssue['nominal_price_currency_code'] ?? '') === 'KRW', 'paid claim issue should freeze nominal price.');
+    sr_coupon_claim_runtime_assert(is_array($paidSnapshot) && ($paidSnapshot['settlement_kind'] ?? '') === 'asset' && count((array) ($paidSnapshot['charged_allocations'] ?? [])) === 1, 'paid claim issue should freeze charged allocation snapshot.');
+    $claimLogsBeforeFailure = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn();
+    try {
+        sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 8, 'paid-insufficient', ['point']);
+        sr_coupon_claim_runtime_assert(false, 'paid claim should fail before durable claim row when balance is insufficient.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '잔액'), 'paid claim insufficient balance failure should be user-facing.');
+    }
+    sr_coupon_claim_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn() === $claimLogsBeforeFailure, 'paid pre-deduction failure should not leave a durable claim log.');
     try {
         sr_coupon_create_claim_campaign($pdo, [
             'campaign_key' => 'claim_paid_without_asset',
