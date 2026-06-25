@@ -144,11 +144,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($couponAdminPage === 'campaigns') { ?>
-<section class="admin-card">
-    <div class="admin-card-header">
-        <h2><?php echo $editingClaimCampaign ? '발급 캠페인 수정' : '발급 캠페인 추가'; ?></h2>
+<section class="card admin-list-card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title"><?php echo $editingClaimCampaign ? '발급 캠페인 수정' : '발급 캠페인 추가'; ?></h2>
     </div>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form admin-card-body" data-sr-validate-form data-coupon-claim-campaign-form>
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form card-body ui-form-theme admin-coupon-campaign-form" data-sr-validate-form data-coupon-claim-campaign-form>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="<?php echo $editingClaimCampaign ? 'update_campaign' : 'create_campaign'; ?>">
         <?php if ($editingClaimCampaign) { ?>
@@ -243,38 +243,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="form-help">사용 가능한 포인트/금액 항목이 없습니다.</p>
             <?php } else { ?>
                 <?php foreach ($claimCampaignAssetOptions as $assetModule => $assetOption) { ?>
-                    <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $claimCampaignAllowedAssets, true) ? ' checked' : ''; ?> data-coupon-paid-asset-checkbox data-validation-message="유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택해 주세요."> <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?></label>
+                    <label class="form-check form-label"><input type="checkbox" class="form-checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $claimCampaignAllowedAssets, true) ? ' checked' : ''; ?> data-coupon-paid-asset-checkbox data-validation-message="유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택해 주세요."> <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?></label>
                 <?php } ?>
                 <p class="form-help">회원 선택은 강제 제약으로 처리합니다. 선택한 항목으로 부족하면 발급 전 실패합니다.</p>
             <?php } ?>
         </div>
         <div class="admin-form-field">
             <span class="form-label">노출 위치 <span class="sr-required-label">(필수)</span></span>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="coupon_zone"<?php echo in_array('coupon_zone', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 쿠폰존</label>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="content_embed"<?php echo in_array('content_embed', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 본문 임베드</label>
-            <label><input type="checkbox" name="exposure_surfaces[]" value="popup_layer"<?php echo in_array('popup_layer', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 팝업레이어</label>
+            <div class="admin-coupon-campaign-check-list">
+                <label class="form-check form-label"><input type="checkbox" class="form-checkbox" name="exposure_surfaces[]" value="coupon_zone"<?php echo in_array('coupon_zone', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 쿠폰존</label>
+                <label class="form-check form-label"><input type="checkbox" class="form-checkbox" name="exposure_surfaces[]" value="content_embed"<?php echo in_array('content_embed', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 본문 임베드</label>
+                <label class="form-check form-label"><input type="checkbox" class="form-checkbox" name="exposure_surfaces[]" value="popup_layer"<?php echo in_array('popup_layer', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>> 팝업레이어</label>
+            </div>
         </div>
         <div class="admin-form-field">
-            <label><input type="checkbox" name="login_required" value="1"<?php echo $editingClaimCampaign ? ((int) ($claimCampaignForm['login_required'] ?? 1) === 1 ? ' checked' : '') : ' checked'; ?>> 로그인 필요</label>
+            <label class="form-check form-label"><input type="checkbox" class="form-switch form-switch-light" name="login_required" value="1"<?php echo $editingClaimCampaign ? ((int) ($claimCampaignForm['login_required'] ?? 1) === 1 ? ' checked' : '') : ' checked'; ?>> 로그인 필요</label>
         </div>
         <div class="admin-form-field">
             <label class="form-label" for="coupon_claim_campaign_description">설명</label>
             <textarea id="coupon_claim_campaign_description" name="description" class="form-textarea" rows="3" maxlength="1000"><?php echo sr_e((string) ($claimCampaignForm['description'] ?? '')); ?></textarea>
         </div>
         <div class="admin-form-actions">
-            <button type="submit" class="btn btn-primary"><?php echo $editingClaimCampaign ? '수정 저장' : '저장'; ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo $editingClaimCampaign ? '수정 저장' : '저장'; ?></button>
             <?php if ($editingClaimCampaign) { ?>
-                <a class="btn btn-secondary" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">취소</a>
+                <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">취소</a>
             <?php } ?>
         </div>
     </form>
 </section>
 
-<section class="admin-card">
-    <div class="admin-card-header">
-        <h2>발급 캠페인 목록</h2>
+<section class="card admin-list-card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title">발급 캠페인 목록</h2>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body">
         <?php if ($claimCampaigns === []) { ?>
             <p>등록된 발급 캠페인이 없습니다.</p>
         <?php } else { ?>
@@ -307,7 +309,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e(sr_coupon_claim_campaign_status_label((string) ($campaign['status'] ?? ''))); ?></td>
                                 <td><?php echo sr_e((string) ($campaign['visibility'] ?? '') === 'public' ? '공개' : '숨김'); ?></td>
                                 <td><?php echo (int) ($campaign['total_claim_limit'] ?? 0) > 0 ? sr_e(number_format((int) $campaign['total_claim_limit'])) : sr_e('제한 없음'); ?> / <?php echo sr_e('회원당 ' . number_format((int) ($campaign['per_account_limit'] ?? 1))); ?></td>
-                                <td><a class="btn btn-secondary btn-sm" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns?edit_campaign_id=' . (string) (int) ($campaign['id'] ?? 0))); ?>">수정</a></td>
+                                <td><a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns?edit_campaign_id=' . (string) (int) ($campaign['id'] ?? 0))); ?>">수정</a></td>
                             </tr>
                         <?php } ?>
                     </tbody>
@@ -317,11 +319,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<section class="admin-card">
-    <div class="admin-card-header">
-        <h2>최근 발급 로그</h2>
+<section class="card admin-list-card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title">최근 발급 로그</h2>
     </div>
-    <div class="admin-card-body">
+    <div class="card-body">
         <?php if ($claimLogs === []) { ?>
             <p>아직 발급 로그가 없습니다.</p>
         <?php } else { ?>

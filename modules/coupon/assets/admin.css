@@ -29,6 +29,27 @@
     width: 1%;
 }
 
+.admin-coupon-campaign-form .admin-form-field {
+    min-width: 0;
+}
+
+.admin-coupon-campaign-form [data-coupon-paid-asset-field],
+.admin-coupon-campaign-check-list {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+}
+
+.admin-coupon-campaign-form [data-coupon-paid-asset-field] > .form-label,
+.admin-coupon-campaign-form [data-coupon-paid-asset-field] > .form-help {
+    flex: 1 0 100%;
+}
+
+.admin-coupon-campaign-form .form-check {
+    margin: 0;
+}
+
 .admin-coupon-definition-bulk-row {
     padding-block: calc(var(--spacing) * 2);
 }
@@ -86,6 +107,12 @@
     .admin-coupon-filter .filtering-input,
     .admin-coupon-filter .filtering-submit {
         width: 100%;
+    }
+
+    .admin-coupon-campaign-form [data-coupon-paid-asset-field],
+    .admin-coupon-campaign-check-list {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .admin-coupon-definition-bulk-row {
