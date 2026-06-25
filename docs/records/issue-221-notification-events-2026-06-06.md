@@ -9,7 +9,7 @@
 | `point` | `transaction.grant`, `transaction.refund`, `transaction.use`, `transaction.expire`, `transaction.adjustment.increase`, `transaction.adjustment.decrease` | 회원 | `site` | 포인트 지급/복원/사용/만료/조정 알림 |
 | `reward` | `transaction.grant`, `transaction.refund`, `transaction.use`, `transaction.expire`, `transaction.reclaim`, `transaction.adjustment.increase`, `transaction.adjustment.decrease` | 회원 | `site` | 적립금 지급/복원/사용/만료/회수/조정 알림 |
 | `deposit` | `transaction.deposit`, `transaction.refund`, `transaction.use`, `transaction.withdraw`, `transaction.adjustment.increase`, `transaction.adjustment.decrease` | 회원 | `site` | 예치금 입금/복원/사용/출금/조정 알림 |
-| `coupon` | `issue.created`, `issue.status_updated`, `redemption.redeemed`, `redemption.refunded` | 회원 | `site` | 쿠폰·이용권 발급/상태 변경/사용/환불 알림 |
+| `coupon` | `issue.created`, `issue.status_updated`, `issue.refunded`, `redemption.redeemed`, `redemption.refunded` | 회원 | `site` | 쿠폰·이용권 발급/상태 변경/사용/환불 알림 |
 | `content` | `comment.created`, `comment.mention` | 콘텐츠 작성자, 멘션 회원 | `site` | 콘텐츠 댓글 작성자 알림, 콘텐츠 댓글 멘션 알림 |
 | `community` | `comment.created`, `comment.mention` | 게시글 작성자, 멘션 회원 | `site` | 게시글 댓글 작성자 알림, 커뮤니티 댓글 멘션 알림 |
 | `quiz` | `comment.mention` | 멘션 회원 | `site` | 퀴즈 댓글 멘션 알림 |
