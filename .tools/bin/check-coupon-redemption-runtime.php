@@ -516,6 +516,38 @@ function sr_coupon_runtime_fixture(): void
         'created_at' => sr_now(),
     ]);
 
+    $previousErrorLog = ini_get('error_log');
+    $temporaryErrorLog = tempnam(sys_get_temp_dir(), 'sr_coupon_revoke_error_log_');
+    if (is_string($temporaryErrorLog) && $temporaryErrorLog !== '') {
+        ini_set('error_log', $temporaryErrorLog);
+    }
+    $pdo->exec("CREATE TRIGGER sr_fixture_coupon_revoke_failure
+        BEFORE DELETE ON sr_content_access_entitlements
+        BEGIN
+            SELECT RAISE(ABORT, 'fixture coupon revoke failure');
+        END");
+    try {
+        sr_coupon_refund_redemption($pdo, (int) ($firstRedemption['id'] ?? 0), 1, 'fixture refund failure');
+        sr_coupon_runtime_assert(false, 'coupon refund should fail when access revoke fails.');
+    } catch (RuntimeException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '접근권 회수'), 'coupon refund revoke failure should be user-facing.');
+    }
+    $pdo->exec('DROP TRIGGER sr_fixture_coupon_revoke_failure');
+    if (is_string($previousErrorLog)) {
+        ini_set('error_log', $previousErrorLog);
+    }
+    if (is_string($temporaryErrorLog) && is_file($temporaryErrorLog)) {
+        unlink($temporaryErrorLog);
+    }
+    $afterFailedRefundRedemption = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => (int) ($firstRedemption['id'] ?? 0)]);
+    $afterFailedRefundIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $issueId]);
+    sr_coupon_runtime_assert((string) ($afterFailedRefundRedemption['status'] ?? '') === 'redeemed', 'coupon refund revoke failure should keep redemption active.');
+    sr_coupon_runtime_assert((string) ($afterFailedRefundRedemption['dedupe_key'] ?? '') === 'content:view:42:account:7:intent:abc', 'coupon refund revoke failure should keep original dedupe key.');
+    sr_coupon_runtime_assert((string) ($afterFailedRefundRedemption['refund_note'] ?? '') === '', 'coupon refund revoke failure should not persist refund note.');
+    sr_coupon_runtime_assert((string) ($afterFailedRefundIssue['status'] ?? '') === 'used' && (int) ($afterFailedRefundIssue['used_count'] ?? -1) === 2, 'coupon refund revoke failure should roll back issue status and used_count.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_access_entitlements')->fetchColumn() === 1, 'coupon refund revoke failure should leave content entitlement in place.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_access_entitlements')->fetchColumn() === 1, 'coupon refund revoke failure should leave community entitlement in place.');
+
     $refund = sr_coupon_refund_redemption($pdo, (int) ($firstRedemption['id'] ?? 0), 1, 'fixture refund');
     sr_coupon_runtime_assert((int) ($refund['used_count'] ?? -1) === 1, 'refund should decrement issue used_count.');
     sr_coupon_runtime_assert((string) ($refund['issue_status'] ?? '') === 'active', 'refund should reactivate an issue that was used only because max uses was reached.');

@@ -2803,7 +2803,7 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
             'id' => (int) $redemption['coupon_issue_id'],
         ]);
 
-        $revokedAccess = sr_coupon_revoke_consumer_access($pdo, (int) $redemption['account_id'], $originalDedupeKey);
+        $revokedAccess = sr_coupon_revoke_consumer_access_or_fail($pdo, (int) $redemption['account_id'], $originalDedupeKey);
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -3040,6 +3040,30 @@ function sr_coupon_revoke_consumer_access(PDO $pdo, int $accountId, string $dedu
             $revoked += max(0, (int) $revokeFunction($pdo, $accountId, $dedupeKey));
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'coupon_revoke_consumer_access');
+        }
+    }
+
+    return $revoked;
+}
+
+function sr_coupon_revoke_consumer_access_or_fail(PDO $pdo, int $accountId, string $dedupeKey): int
+{
+    if ($accountId <= 0 || $dedupeKey === '') {
+        return 0;
+    }
+
+    $revoked = 0;
+    foreach (sr_coupon_target_contracts($pdo) as $target) {
+        $revokeFunction = (string) ($target['revoke_access_function'] ?? '');
+        if ($revokeFunction === '' || !function_exists($revokeFunction)) {
+            continue;
+        }
+
+        try {
+            $revoked += max(0, (int) $revokeFunction($pdo, $accountId, $dedupeKey));
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'coupon_revoke_consumer_access');
+            throw new RuntimeException('쿠폰 사용처 접근권 회수에 실패했습니다.', 0, $exception);
         }
     }
 
