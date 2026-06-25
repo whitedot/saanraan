@@ -45,6 +45,31 @@ foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
 }
 $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));
 $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr_url('/');
+$optionalModuleSections = [
+    'module' => [
+        'title' => '선택 모듈',
+        'label' => '모듈',
+        'help' => '관리 화면, 공개 화면, 데이터 흐름을 직접 제공하는 기능 단위입니다.',
+        'select_all' => '모듈 전체 선택',
+        'empty' => '설치 가능한 선택 모듈을 찾지 못했습니다.',
+        'rows' => [],
+    ],
+    'plugin' => [
+        'title' => '플러그인',
+        'label' => '플러그인',
+        'help' => '다른 모듈에 에디터, 인증 제공자, CAPTCHA 제공자 같은 확장 기능을 붙입니다.',
+        'select_all' => '플러그인 전체 선택',
+        'empty' => '설치 가능한 플러그인을 찾지 못했습니다.',
+        'rows' => [],
+    ],
+];
+foreach ($optionalModules as $moduleKey => $module) {
+    $moduleType = (string) ($module['type'] ?? 'module');
+    if (!isset($optionalModuleSections[$moduleType])) {
+        $moduleType = 'module';
+    }
+    $optionalModuleSections[$moduleType]['rows'][$moduleKey] = $module;
+}
 ?>
 <!doctype html>
 <html lang="ko" data-color-scheme="system">
@@ -416,76 +441,84 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                         <?php } ?>
                     </div>
 
-                    <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
-                    <p class="sr-install-subsection-help">필요한 기능만 선택해 설치할 수 있습니다. 의존 모듈은 자동으로 함께 설치됩니다.</p>
-                    <?php if ($optionalModules === []) { ?>
-                        <p>설치 가능한 추가 모듈을 찾지 못했습니다. 모듈 폴더와 설정 파일을 확인하세요.</p>
-                    <?php } else { ?>
-                        <label class="sr-install-module-select-all" for="optional_modules_select_all">
-                            <input id="optional_modules_select_all" type="checkbox" class="form-checkbox" data-install-module-select-all>
-                            <span>
-                                <strong>전체 선택</strong>
-                                <small>선택 가능한 모듈과 플러그인을 모두 설치 대상으로 표시합니다.</small>
-                            </span>
-                        </label>
-                        <div class="sr-install-module-grid">
-                            <?php foreach ($optionalModules as $moduleKey => $module) { ?>
-                                <?php $moduleOwnErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                                <?php $moduleFoundationErrors = isset($module['foundation_dependency_errors']) && is_array($module['foundation_dependency_errors']) ? $module['foundation_dependency_errors'] : []; ?>
-                                <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleFoundationErrors)))); ?>
-                                <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
-                                <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
-                                <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
-                                <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
-                                <div class="sr-install-module sr-install-module-option">
-                                    <span class="sr-install-module-title">
-                                        <input
-                                            id="<?php echo sr_e($moduleCheckboxId); ?>"
-                                            type="checkbox"
-                                            name="optional_modules[]"
-                                            value="<?php echo sr_e((string) $moduleKey); ?>"
-                                            class="form-checkbox"
-                                            data-install-module-option
-                                            data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
-                                            data-install-foundation-labels="<?php echo sr_e(sr_js_json_encode($moduleFoundationLabels)); ?>"
-                                            <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
-                                            <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
-                                        >
-                                        <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
+                    <?php foreach ($optionalModuleSections as $sectionType => $section) { ?>
+                        <?php $sectionRows = $section['rows']; ?>
+                        <div class="sr-install-module-section" data-install-module-section="<?php echo sr_e((string) $sectionType); ?>">
+                            <h3><?php echo sr_e((string) $section['title']); ?></h3>
+                            <p class="sr-install-subsection-help"><?php echo sr_e((string) $section['help']); ?></p>
+                            <?php if ($sectionRows === []) { ?>
+                                <p class="sr-install-help"><?php echo sr_e((string) $section['empty']); ?></p>
+                            <?php } else { ?>
+                                <?php $sectionSelectAllId = 'optional_' . (string) $sectionType . '_select_all'; ?>
+                                <label class="sr-install-module-select-all" for="<?php echo sr_e($sectionSelectAllId); ?>">
+                                    <input id="<?php echo sr_e($sectionSelectAllId); ?>" type="checkbox" class="form-checkbox" data-install-module-select-all data-install-module-select-all-type="<?php echo sr_e((string) $sectionType); ?>">
+                                    <span>
+                                        <strong><?php echo sr_e((string) $section['select_all']); ?></strong>
+                                        <small><?php echo sr_e((string) $section['label']); ?> 항목만 설치 대상으로 표시합니다.</small>
                                     </span>
-                                    <?php if ($moduleErrors !== []) { ?>
-                                        <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
-                                    <?php } ?>
-                                    <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
-                                    <p><?php echo sr_e((string) $module['description']); ?></p>
-                                    <?php if ($moduleFoundationLabels !== []) { ?>
-                                        <p class="sr-install-help">함께 설치됨: <?php echo sr_e(implode(', ', $moduleFoundationLabels)); ?></p>
-                                    <?php } ?>
-                                    <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
-                                        <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
-                                            <input
-                                                id="<?php echo sr_e($moduleHomeCheckboxId); ?>"
-                                                type="checkbox"
-                                                name="main_page_candidate_path"
-                                                value="<?php echo sr_e((string) $moduleMainPageOption['path']); ?>"
-                                                class="form-checkbox"
-                                                data-sr-install-main-page
-                                                data-sr-install-main-page-label="<?php echo sr_e((string) $moduleMainPageOption['label']); ?>"
-                                                data-sr-install-module-checkbox="<?php echo sr_e($moduleCheckboxId); ?>"
-                                                <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
-                                            >
-                                            <span>
-                                                <?php echo sr_e(sr_t('ui.settings.a81574ca')); ?>
-                                                <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
+                                </label>
+                                <div class="sr-install-module-grid">
+                                    <?php foreach ($sectionRows as $moduleKey => $module) { ?>
+                                        <?php $moduleOwnErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                        <?php $moduleFoundationErrors = isset($module['foundation_dependency_errors']) && is_array($module['foundation_dependency_errors']) ? $module['foundation_dependency_errors'] : []; ?>
+                                        <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleFoundationErrors)))); ?>
+                                        <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
+                                        <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
+                                        <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                                        <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                                        <div class="sr-install-module sr-install-module-option">
+                                            <span class="sr-install-module-title">
+                                                <input
+                                                    id="<?php echo sr_e($moduleCheckboxId); ?>"
+                                                    type="checkbox"
+                                                    name="optional_modules[]"
+                                                    value="<?php echo sr_e((string) $moduleKey); ?>"
+                                                    class="form-checkbox"
+                                                    data-install-module-option
+                                                    data-install-module-type="<?php echo sr_e((string) $sectionType); ?>"
+                                                    data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
+                                                    data-install-foundation-labels="<?php echo sr_e(sr_js_json_encode($moduleFoundationLabels)); ?>"
+                                                    <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
+                                                    <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
+                                                >
+                                                <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
                                             </span>
-                                        </label>
-                                    <?php } ?>
-                                    <?php if ($moduleErrors !== []) { ?>
-                                        <ul>
-                                            <?php foreach ($moduleErrors as $moduleError) { ?>
-                                                <li><?php echo sr_e((string) $moduleError); ?></li>
+                                            <span class="sr-install-type-badge"><?php echo sr_e((string) $section['label']); ?></span>
+                                            <?php if ($moduleErrors !== []) { ?>
+                                                <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
                                             <?php } ?>
-                                        </ul>
+                                            <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
+                                            <p><?php echo sr_e((string) $module['description']); ?></p>
+                                            <?php if ($moduleFoundationLabels !== []) { ?>
+                                                <p class="sr-install-help">함께 설치됨: <?php echo sr_e(implode(', ', $moduleFoundationLabels)); ?></p>
+                                            <?php } ?>
+                                            <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
+                                                <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
+                                                    <input
+                                                        id="<?php echo sr_e($moduleHomeCheckboxId); ?>"
+                                                        type="checkbox"
+                                                        name="main_page_candidate_path"
+                                                        value="<?php echo sr_e((string) $moduleMainPageOption['path']); ?>"
+                                                        class="form-checkbox"
+                                                        data-sr-install-main-page
+                                                        data-sr-install-main-page-label="<?php echo sr_e((string) $moduleMainPageOption['label']); ?>"
+                                                        data-sr-install-module-checkbox="<?php echo sr_e($moduleCheckboxId); ?>"
+                                                        <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
+                                                    >
+                                                    <span>
+                                                        <?php echo sr_e(sr_t('ui.settings.a81574ca')); ?>
+                                                        <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
+                                                    </span>
+                                                </label>
+                                            <?php } ?>
+                                            <?php if ($moduleErrors !== []) { ?>
+                                                <ul>
+                                                    <?php foreach ($moduleErrors as $moduleError) { ?>
+                                                        <li><?php echo sr_e((string) $moduleError); ?></li>
+                                                    <?php } ?>
+                                                </ul>
+                                            <?php } ?>
+                                        </div>
                                     <?php } ?>
                                 </div>
                             <?php } ?>
@@ -911,26 +944,31 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
             });
 
             var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
-            var moduleSelectAllInput = document.querySelector('[data-install-module-select-all]');
+            var moduleSelectAllInputs = Array.prototype.slice.call(document.querySelectorAll('[data-install-module-select-all]'));
 
             function moduleOptionInputs() {
                 return Array.prototype.slice.call(document.querySelectorAll('[data-install-module-option]'));
             }
 
-            function syncModuleSelectAll() {
-                if (!moduleSelectAllInput) {
-                    return;
-                }
+            function moduleOptionInputsByType(moduleType) {
+                return moduleOptionInputs().filter(function (input) {
+                    return !moduleType || input.getAttribute('data-install-module-type') === moduleType;
+                });
+            }
 
-                var enabledInputs = moduleOptionInputs().filter(function (input) {
-                    return !input.disabled;
+            function syncModuleSelectAll() {
+                moduleSelectAllInputs.forEach(function (selectAllInput) {
+                    var moduleType = selectAllInput.getAttribute('data-install-module-select-all-type') || '';
+                    var enabledInputs = moduleOptionInputsByType(moduleType).filter(function (input) {
+                        return !input.disabled;
+                    });
+                    var checkedInputs = enabledInputs.filter(function (input) {
+                        return input.checked;
+                    });
+                    selectAllInput.checked = enabledInputs.length > 0 && checkedInputs.length === enabledInputs.length;
+                    selectAllInput.indeterminate = checkedInputs.length > 0 && checkedInputs.length < enabledInputs.length;
+                    selectAllInput.disabled = enabledInputs.length === 0;
                 });
-                var checkedInputs = enabledInputs.filter(function (input) {
-                    return input.checked;
-                });
-                moduleSelectAllInput.checked = enabledInputs.length > 0 && checkedInputs.length === enabledInputs.length;
-                moduleSelectAllInput.indeterminate = checkedInputs.length > 0 && checkedInputs.length < enabledInputs.length;
-                moduleSelectAllInput.disabled = enabledInputs.length === 0;
             }
 
             mainPageInputs.forEach(function (input) {
@@ -969,10 +1007,11 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                 });
             });
 
-            if (moduleSelectAllInput) {
-                moduleSelectAllInput.addEventListener('change', function () {
-                    var checked = moduleSelectAllInput.checked;
-                    moduleOptionInputs().forEach(function (input) {
+            moduleSelectAllInputs.forEach(function (selectAllInput) {
+                selectAllInput.addEventListener('change', function () {
+                    var checked = selectAllInput.checked;
+                    var moduleType = selectAllInput.getAttribute('data-install-module-select-all-type') || '';
+                    moduleOptionInputsByType(moduleType).forEach(function (input) {
                         if (!input.disabled) {
                             input.checked = checked;
                             input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -981,7 +1020,7 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                     syncModuleSelectAll();
                     updateSummary();
                 });
-            }
+            });
 
             moduleOptionInputs().forEach(function (input) {
                 input.addEventListener('change', function () {

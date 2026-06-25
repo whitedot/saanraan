@@ -223,9 +223,13 @@ function sr_install_module_definition(string $moduleKey, array $defaults): array
     $version = is_string($metadata['version'] ?? null) && preg_match('/\A\d{4}\.\d{2}\.\d{3}\z/', (string) $metadata['version']) === 1
         ? (string) $metadata['version']
         : (string) ($defaults['version'] ?? '2026.04.001');
+    $type = is_string($metadata['type'] ?? null) && in_array((string) $metadata['type'], ['module', 'plugin'], true)
+        ? (string) $metadata['type']
+        : (string) ($defaults['type'] ?? 'module');
 
     $defaults['name'] = $name;
     $defaults['version'] = $version;
+    $defaults['type'] = in_array($type, ['module', 'plugin'], true) ? $type : 'module';
     if (!isset($defaults['label']) || (string) $defaults['label'] === '') {
         $defaults['label'] = $name;
     }

@@ -515,6 +515,26 @@ code {
     margin-bottom: 18px;
 }
 
+.sr-install-module-section + .sr-install-module-section {
+    margin-top: 34px;
+}
+
+.sr-install-type-badge {
+    display: inline-block;
+    margin: 4px 0 0;
+    color: var(--sr-muted);
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-line-height);
+}
+
+.sr-install-type-badge::before {
+    content: "[ ";
+}
+
+.sr-install-type-badge::after {
+    content: " ]";
+}
+
 .sr-install-module-select-all {
     display: flex;
     gap: 10px;
