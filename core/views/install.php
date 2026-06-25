@@ -613,8 +613,8 @@ foreach ($optionalModules as $moduleKey => $module) {
                 </div>
 
                 <div class="sr-install-progress" data-install-progress role="status" aria-live="polite" hidden>
-                    <strong>설치 중입니다</strong>
-                    <span class="sr-install-progress-message">설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.</span>
+                    <strong data-install-progress-title>설치 중입니다</strong>
+                    <span class="sr-install-progress-message" data-install-progress-message>설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.</span>
                     <span class="sr-install-progress-bar" aria-hidden="true"><span></span></span>
                     <ol>
                         <li>설정 파일 작성 준비</li>
@@ -632,6 +632,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                     <p><?php echo $installPreviewMode ? '미리보기 모드에서는 설치가 실행되지 않습니다.' : sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
                     <div class="sr-install-final-actions">
                         <button type="button" class="sr-install-secondary-button sr-install-step-action-js" data-install-prev>이전</button>
+                        <button type="button" class="sr-install-secondary-button" data-install-run-preview>설치 진행 미리보기</button>
                         <button type="submit" data-install-submit<?php echo $installPreviewMode ? ' disabled' : ''; ?>><?php echo $installPreviewMode ? '미리보기 중' : sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
                     </div>
                 </div>
@@ -1090,6 +1091,27 @@ foreach ($optionalModules as $moduleKey => $module) {
 
             if (form) {
                 var installSubmitting = false;
+                var runPreviewButton = form.querySelector('[data-install-run-preview]');
+                var progress = form.querySelector('[data-install-progress]');
+                var progressTitle = form.querySelector('[data-install-progress-title]');
+                var progressMessage = form.querySelector('[data-install-progress-message]');
+
+                if (runPreviewButton && progress) {
+                    runPreviewButton.addEventListener('click', function () {
+                        progress.hidden = false;
+                        progress.setAttribute('data-install-progress-mode', 'preview');
+                        if (progressTitle) {
+                            progressTitle.textContent = '설치 진행 미리보기';
+                        }
+                        if (progressMessage) {
+                            progressMessage.textContent = '아래 순서대로 설치가 진행됩니다. 이 미리보기는 설정 파일, DB, lock 파일을 변경하지 않습니다.';
+                        }
+                        runPreviewButton.textContent = '미리보기 표시 중';
+                        runPreviewButton.setAttribute('aria-expanded', 'true');
+                        progress.scrollIntoView({block: 'nearest'});
+                    });
+                }
+
                 form.addEventListener('submit', function (event) {
                     if (installPreviewMode) {
                         event.preventDefault();
@@ -1111,13 +1133,19 @@ foreach ($optionalModules as $moduleKey => $module) {
                     setStep('confirm', false);
 
                     var submitButton = form.querySelector('[data-install-submit]');
-                    var progress = form.querySelector('[data-install-progress]');
                     if (submitButton) {
                         submitButton.disabled = true;
                         submitButton.textContent = '설치 중';
                         submitButton.setAttribute('aria-busy', 'true');
                     }
                     if (progress) {
+                        progress.removeAttribute('data-install-progress-mode');
+                        if (progressTitle) {
+                            progressTitle.textContent = '설치 중입니다';
+                        }
+                        if (progressMessage) {
+                            progressMessage.textContent = '설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.';
+                        }
                         progress.hidden = false;
                         progress.scrollIntoView({block: 'nearest'});
                     }
