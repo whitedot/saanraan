@@ -200,6 +200,19 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
     )");
 }
 
+function sr_coupon_claim_runtime_static_contract(): void
+{
+    $helpers = (string) file_get_contents('modules/coupon/helpers.php');
+    $moduleGuide = (string) file_get_contents('docs/module-guide.md');
+    $verificationStatus = (string) file_get_contents('docs/verification-status.md');
+
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey, bool $forUpdate = false)'), 'claim campaign lookup must expose an explicit FOR UPDATE option.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, "LIMIT 1' . (\$forUpdate ? sr_coupon_for_update_clause(\$pdo) : '')"), 'claim campaign lookup must append FOR UPDATE when requested.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'sr_coupon_claim_campaign_by_key($pdo, $campaignKey, true)'), 'claim helpers must lock the campaign row before claim limit checks.');
+    sr_coupon_claim_runtime_assert(str_contains($moduleGuide, 'campaign row를 `FOR UPDATE`로 잠근 뒤 발급 한도 검증'), 'module guide must document campaign row locking for coupon claims.');
+    sr_coupon_claim_runtime_assert(str_contains($verificationStatus, 'campaign row `FOR UPDATE` 잠금 아래에서 한도 검증과 점유'), 'verification status must describe the claim campaign lock contract check.');
+}
+
 function sr_coupon_claim_runtime_definition(PDO $pdo, string $couponKey): int
 {
     $now = sr_now();
@@ -519,6 +532,7 @@ function sr_coupon_claim_runtime_fixture(): void
     }
 }
 
+sr_coupon_claim_runtime_static_contract();
 sr_coupon_claim_runtime_fixture();
 
 if ($errors !== []) {

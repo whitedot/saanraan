@@ -358,7 +358,7 @@ function sr_coupon_claim_datetime_or_null(string $value): ?string
     return $date->format('Y-m-d H:i:s');
 }
 
-function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey): ?array
+function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey, bool $forUpdate = false): ?array
 {
     $campaignKey = sr_coupon_clean_key($campaignKey);
     if (!sr_coupon_key_is_valid($campaignKey) || !sr_coupon_claim_tables_available($pdo)) {
@@ -370,7 +370,7 @@ function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey): ?array
          FROM sr_coupon_claim_campaigns c
          INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
          WHERE c.campaign_key = :campaign_key
-         LIMIT 1'
+         LIMIT 1' . ($forUpdate ? sr_coupon_for_update_clause($pdo) : '')
     );
     $stmt->execute(['campaign_key' => $campaignKey]);
     $row = $stmt->fetch();
@@ -1861,7 +1861,7 @@ function sr_coupon_claim_free_campaign(PDO $pdo, string $campaignKey, int $accou
     }
 
     try {
-        $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+        $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey, true);
         if (!is_array($campaign)) {
             throw new InvalidArgumentException('쿠폰 캠페인을 찾을 수 없습니다.');
         }
@@ -2038,7 +2038,7 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
     }
 
     try {
-        $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+        $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey, true);
         if (!is_array($campaign)) {
             throw new InvalidArgumentException('발급 캠페인을 찾을 수 없습니다.');
         }
