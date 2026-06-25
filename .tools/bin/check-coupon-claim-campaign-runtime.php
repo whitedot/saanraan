@@ -209,8 +209,30 @@ function sr_coupon_claim_runtime_static_contract(): void
     sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey, bool $forUpdate = false)'), 'claim campaign lookup must expose an explicit FOR UPDATE option.');
     sr_coupon_claim_runtime_assert(str_contains($helpers, "LIMIT 1' . (\$forUpdate ? sr_coupon_for_update_clause(\$pdo) : '')"), 'claim campaign lookup must append FOR UPDATE when requested.');
     sr_coupon_claim_runtime_assert(str_contains($helpers, 'sr_coupon_claim_campaign_by_key($pdo, $campaignKey, true)'), 'claim helpers must lock the campaign row before claim limit checks.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_public_claim_intent_token_matches(int $campaignId, int $accountId, string $token): bool'), 'public claim must expose a session-bound intent token verifier.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'sr_coupon_public_claim_intent_key($campaignId, $accountId)'), 'public claim intent token storage must be bound to the current account and campaign.');
+    sr_coupon_claim_runtime_assert(str_contains((string) file_get_contents('modules/coupon/actions/coupons.php'), 'sr_coupon_public_claim_intent_token_matches'), 'public coupon claim POST must validate the session-bound intent token.');
     sr_coupon_claim_runtime_assert(str_contains($moduleGuide, 'campaign row를 `FOR UPDATE`로 잠근 뒤 발급 한도 검증'), 'module guide must document campaign row locking for coupon claims.');
     sr_coupon_claim_runtime_assert(str_contains($verificationStatus, 'campaign row `FOR UPDATE` 잠금 아래에서 한도 검증과 점유'), 'verification status must describe the claim campaign lock contract check.');
+}
+
+function sr_coupon_claim_runtime_intent_token_fixture(): void
+{
+    $_SESSION['sr_coupon_claim_intents'] = [];
+    $first = sr_coupon_public_claim_intent_token(11, 7);
+    $same = sr_coupon_public_claim_intent_token(11, 7);
+    $otherAccount = sr_coupon_public_claim_intent_token(11, 8);
+
+    sr_coupon_claim_runtime_assert($first !== '' && $first === $same, 'public claim intent token should be stable for the same account and campaign.');
+    sr_coupon_claim_runtime_assert($otherAccount !== '' && $otherAccount !== $first, 'public claim intent token should be account-bound.');
+    sr_coupon_claim_runtime_assert(sr_coupon_public_claim_intent_token_matches(11, 7, $first), 'public claim intent verifier should accept the current account token.');
+    sr_coupon_claim_runtime_assert(!sr_coupon_public_claim_intent_token_matches(11, 8, $first), 'public claim intent verifier should reject another account token.');
+
+    $rotated = sr_coupon_public_rotate_claim_intent_token(11, 7);
+    sr_coupon_claim_runtime_assert($rotated !== '' && $rotated !== $first, 'public claim intent token should rotate after successful claim.');
+    sr_coupon_claim_runtime_assert(!sr_coupon_public_claim_intent_token_matches(11, 7, $first), 'public claim intent verifier should reject a rotated old token.');
+    sr_coupon_claim_runtime_assert(sr_coupon_public_claim_intent_token_matches(11, 7, $rotated), 'public claim intent verifier should accept the rotated token.');
+    unset($_SESSION['sr_coupon_claim_intents']);
 }
 
 function sr_coupon_claim_runtime_definition(PDO $pdo, string $couponKey): int
@@ -533,6 +555,7 @@ function sr_coupon_claim_runtime_fixture(): void
 }
 
 sr_coupon_claim_runtime_static_contract();
+sr_coupon_claim_runtime_intent_token_fixture();
 sr_coupon_claim_runtime_fixture();
 
 if ($errors !== []) {

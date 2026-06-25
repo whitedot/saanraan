@@ -418,7 +418,12 @@ function sr_coupon_public_pop_flash_result(): array
     ];
 }
 
-function sr_coupon_public_claim_intent_token(int $campaignId): string
+function sr_coupon_public_claim_intent_key(int $campaignId, int $accountId): string
+{
+    return (string) max(0, $accountId) . ':' . (string) $campaignId;
+}
+
+function sr_coupon_public_claim_intent_token(int $campaignId, int $accountId = 0): string
 {
     if ($campaignId <= 0) {
         return '';
@@ -428,7 +433,7 @@ function sr_coupon_public_claim_intent_token(int $campaignId): string
         $_SESSION['sr_coupon_claim_intents'] = [];
     }
 
-    $key = (string) $campaignId;
+    $key = sr_coupon_public_claim_intent_key($campaignId, $accountId);
     $token = (string) ($_SESSION['sr_coupon_claim_intents'][$key] ?? '');
     if ($token === '') {
         $token = bin2hex(random_bytes(16));
@@ -438,7 +443,22 @@ function sr_coupon_public_claim_intent_token(int $campaignId): string
     return $token;
 }
 
-function sr_coupon_public_rotate_claim_intent_token(int $campaignId): string
+function sr_coupon_public_claim_intent_token_matches(int $campaignId, int $accountId, string $token): bool
+{
+    $token = trim($token);
+    if ($campaignId <= 0 || $accountId <= 0 || $token === '') {
+        return false;
+    }
+    if (!isset($_SESSION['sr_coupon_claim_intents']) || !is_array($_SESSION['sr_coupon_claim_intents'])) {
+        return false;
+    }
+
+    $current = (string) ($_SESSION['sr_coupon_claim_intents'][sr_coupon_public_claim_intent_key($campaignId, $accountId)] ?? '');
+
+    return $current !== '' && hash_equals($current, $token);
+}
+
+function sr_coupon_public_rotate_claim_intent_token(int $campaignId, int $accountId = 0): string
 {
     if ($campaignId <= 0) {
         return '';
@@ -449,7 +469,7 @@ function sr_coupon_public_rotate_claim_intent_token(int $campaignId): string
     }
 
     $token = bin2hex(random_bytes(16));
-    $_SESSION['sr_coupon_claim_intents'][(string) $campaignId] = $token;
+    $_SESSION['sr_coupon_claim_intents'][sr_coupon_public_claim_intent_key($campaignId, $accountId)] = $token;
 
     return $token;
 }

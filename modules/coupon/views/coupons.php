@@ -28,7 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     $state = is_array($campaign['claim_state'] ?? null) ? $campaign['claim_state'] : [];
                     $remaining = $state['remaining'] ?? null;
                     $canClaim = !empty($state['claimable']) && $accountId > 0;
-                    $intentToken = sr_coupon_public_claim_intent_token($campaignId);
+                    $intentToken = sr_coupon_public_claim_intent_token($campaignId, $accountId);
                     $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
                     $claimSource = (string) ($campaign['claim_source'] ?? 'coupon_zone');
                     $claimType = (string) ($campaign['claim_type'] ?? 'free');

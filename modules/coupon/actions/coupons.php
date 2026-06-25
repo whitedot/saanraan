@@ -29,6 +29,9 @@ if (sr_request_method() === 'POST') {
         if (!is_array($campaign)) {
             throw new InvalidArgumentException('발급 캠페인을 찾을 수 없습니다.');
         }
+        if (!sr_coupon_public_claim_intent_token_matches((int) ($campaign['id'] ?? 0), $accountId, $intentToken)) {
+            throw new InvalidArgumentException('쿠폰 발급 요청 토큰이 올바르지 않습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.');
+        }
         if ((string) ($campaign['claim_type'] ?? 'free') === 'paid') {
             $result = sr_coupon_claim_paid_campaign_with_asset(
                 $pdo,
@@ -42,7 +45,7 @@ if (sr_request_method() === 'POST') {
             $result = sr_coupon_claim_free_campaign($pdo, $campaignKey, $accountId, $intentToken, $claimSource !== '' ? $claimSource : 'coupon_zone');
         }
         if (is_array($campaign)) {
-            sr_coupon_public_rotate_claim_intent_token((int) ($campaign['id'] ?? 0));
+            sr_coupon_public_rotate_claim_intent_token((int) ($campaign['id'] ?? 0), $accountId);
         }
         $notice = !empty($result['already_claimed']) ? '이미 발급된 쿠폰을 확인했습니다.' : '쿠폰을 발급했습니다.';
         sr_coupon_public_flash_result(['errors' => [], 'notice' => $notice]);
