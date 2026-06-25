@@ -238,6 +238,38 @@ function sr_coupon_asset_modules_json(array $assetModules): string
     return is_string($encoded) ? $encoded : '[]';
 }
 
+function sr_coupon_assert_paid_claim_asset_purchase_power(PDO $pdo, array $assetModules, string $priceCurrencyCode): void
+{
+    $assetOptions = sr_coupon_asset_options($pdo);
+    $priceCurrencyCode = function_exists('sr_normalize_currency_code')
+        ? sr_normalize_currency_code($priceCurrencyCode)
+        : strtoupper(trim($priceCurrencyCode));
+    $priceMinUnit = function_exists('sr_currency_min_unit') ? sr_currency_min_unit($priceCurrencyCode) : 1;
+    if ($priceCurrencyCode === '' || $priceMinUnit < 1) {
+        throw new InvalidArgumentException('유료 발급 통화가 지원되지 않습니다.');
+    }
+
+    foreach ($assetModules as $assetModule) {
+        $assetModule = (string) $assetModule;
+        if (!isset($assetOptions[$assetModule])) {
+            throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 다시 선택하세요.');
+        }
+
+        $purchasePower = function_exists('sr_member_asset_purchase_power_from_contract')
+            ? sr_member_asset_purchase_power_from_contract($pdo, $assetOptions[$assetModule])
+            : (is_array($assetOptions[$assetModule]['purchase_power'] ?? null) ? $assetOptions[$assetModule]['purchase_power'] : []);
+        $assetUnits = (int) ($purchasePower['asset_units'] ?? 0);
+        $settlementUnits = (int) ($purchasePower['settlement_units'] ?? 0);
+        $settlementCurrency = function_exists('sr_normalize_currency_code')
+            ? sr_normalize_currency_code((string) ($purchasePower['settlement_currency'] ?? ''))
+            : strtoupper(trim((string) ($purchasePower['settlement_currency'] ?? '')));
+
+        if ($assetUnits < 1 || $settlementUnits < 1 || $settlementCurrency !== $priceCurrencyCode) {
+            throw new InvalidArgumentException('유료 발급 통화와 허용 포인트/금액 항목의 환산 통화가 일치해야 합니다.');
+        }
+    }
+}
+
 function sr_coupon_asset_module_labels(PDO $pdo, mixed $value): string
 {
     $assetOptions = sr_coupon_asset_options($pdo);
@@ -628,6 +660,9 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
         $allowedAssetModules = sr_coupon_asset_module_keys_from_value($pdo, $data['allowed_asset_modules'] ?? []);
         if ($allowedAssetModules === []) {
             throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택하세요.');
+        }
+        if ($status === 'active') {
+            sr_coupon_assert_paid_claim_asset_purchase_power($pdo, $allowedAssetModules, $priceCurrencyCode);
         }
         $allowedAssetModulesJson = sr_coupon_asset_modules_json($allowedAssetModules);
     }
