@@ -25,8 +25,22 @@ if (sr_request_method() === 'POST') {
             throw new InvalidArgumentException('로그인 후 쿠폰을 받을 수 있습니다.');
         }
 
-        $result = sr_coupon_claim_free_campaign($pdo, $campaignKey, $accountId, $intentToken, $claimSource !== '' ? $claimSource : 'coupon_zone');
         $campaign = sr_coupon_claim_campaign_by_key($pdo, $campaignKey);
+        if (!is_array($campaign)) {
+            throw new InvalidArgumentException('발급 캠페인을 찾을 수 없습니다.');
+        }
+        if ((string) ($campaign['claim_type'] ?? 'free') === 'paid') {
+            $result = sr_coupon_claim_paid_campaign_with_asset(
+                $pdo,
+                $campaignKey,
+                $accountId,
+                $intentToken,
+                $_POST['allowed_asset_modules'] ?? [],
+                $claimSource !== '' ? $claimSource : 'coupon_zone'
+            );
+        } else {
+            $result = sr_coupon_claim_free_campaign($pdo, $campaignKey, $accountId, $intentToken, $claimSource !== '' ? $claimSource : 'coupon_zone');
+        }
         if (is_array($campaign)) {
             sr_coupon_public_rotate_claim_intent_token((int) ($campaign['id'] ?? 0));
         }

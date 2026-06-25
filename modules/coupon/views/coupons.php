@@ -31,6 +31,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     $intentToken = sr_coupon_public_claim_intent_token($campaignId);
                     $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
                     $claimSource = (string) ($campaign['claim_source'] ?? 'coupon_zone');
+                    $claimType = (string) ($campaign['claim_type'] ?? 'free');
+                    $allowedAssetModules = $claimType === 'paid' ? sr_coupon_asset_module_keys_from_value($pdo, $campaign['allowed_asset_modules_json'] ?? '') : [];
                     ?>
                     <article class="card coupon-zone-card">
                         <div class="card-body ui-card-body-stack">
@@ -44,6 +46,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 <div>
                                     <dt>쿠폰</dt>
                                     <dd><?php echo sr_e((string) ($campaign['coupon_title'] ?? '')); ?></dd>
+                                </div>
+                                <div>
+                                    <dt>발급 유형</dt>
+                                    <dd>
+                                        <?php echo sr_e(sr_coupon_claim_type_label($claimType)); ?>
+                                        <?php if ($claimType === 'paid') { ?>
+                                            · <?php echo sr_e(number_format((int) ($campaign['price_amount'] ?? 0)) . ' ' . (string) ($campaign['price_currency_code'] ?? '')); ?>
+                                        <?php } ?>
+                                    </dd>
                                 </div>
                                 <div>
                                     <dt>남은 수량</dt>
@@ -65,6 +76,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                     <input type="hidden" name="claim_source" value="<?php echo sr_e($claimSource); ?>">
                                     <input type="hidden" name="claim_intent_token" value="<?php echo sr_e($intentToken); ?>">
                                     <input type="hidden" name="return_to" value="<?php echo sr_e($campaignUrl); ?>">
+                                    <?php if ($claimType === 'paid' && $allowedAssetModules !== []) { ?>
+                                        <div class="form-field">
+                                            <span class="form-label">사용할 항목</span>
+                                            <?php foreach ($allowedAssetModules as $assetModule) { ?>
+                                                <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e($assetModule); ?>" checked> <?php echo sr_e(sr_coupon_asset_module_labels($pdo, [$assetModule])); ?></label>
+                                            <?php } ?>
+                                        </div>
+                                    <?php } ?>
                                     <button type="submit" class="btn btn-primary">쿠폰 받기</button>
                                 </form>
                             <?php } else { ?>
