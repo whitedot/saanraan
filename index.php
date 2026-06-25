@@ -17,9 +17,6 @@ sr_request_bootstrap_error_handlers();
 $method = sr_request_method();
 $path = sr_request_path();
 $isFaviconRequest = in_array($method, ['GET', 'HEAD'], true) && $path === '/favicon.ico';
-$isInstallPreviewRequest = in_array($method, ['GET', 'HEAD'], true)
-    && $path === '/'
-    && sr_get_string('sr_install_preview', 1) === '1';
 
 if ($isFaviconRequest && !sr_is_installed()) {
     header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -30,9 +27,8 @@ if ($isFaviconRequest && !sr_is_installed()) {
     exit;
 }
 
-if (!sr_is_installed() || $isInstallPreviewRequest) {
+if (!sr_is_installed()) {
     sr_start_session();
-    $srInstallPreviewMode = sr_is_installed() && $isInstallPreviewRequest;
     include SR_ROOT . '/core/actions/install.php';
     exit;
 }

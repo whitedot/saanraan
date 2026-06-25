@@ -1003,12 +1003,6 @@ code {
     animation: sr-install-progress-bar 1.1s ease-in-out infinite;
 }
 
-.sr-install-progress[data-install-progress-mode="preview"] .sr-install-progress-bar span {
-    width: 100%;
-    animation: none;
-    opacity: 0.72;
-}
-
 .sr-install-progress ol {
     display: grid;
     gap: 6px;

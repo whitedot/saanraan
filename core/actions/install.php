@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
-$installPreviewMode = !empty($srInstallPreviewMode);
 $errors = [];
 $installErrorSteps = [];
 $addInstallError = function (string $message, string $stepKey) use (&$errors, &$installErrorSteps): void {
@@ -534,7 +533,7 @@ $localeOptions = sr_available_locale_options([
     'supported_locales' => $values['default_locale'],
 ]);
 
-if (sr_request_method() === 'POST' && !$installPreviewMode) {
+if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     foreach ($values as $key => $default) {

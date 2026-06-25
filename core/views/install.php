@@ -44,7 +44,7 @@ foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
     }
 }
 $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));
-$installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr_url('/');
+$installFormAction = sr_url('/');
 $optionalModuleSections = [
     'module' => [
         'title' => '선택 모듈',
@@ -136,13 +136,6 @@ foreach ($optionalModules as $moduleKey => $module) {
             </section>
         <?php } ?>
 
-        <?php if ($installPreviewMode) { ?>
-            <section class="sr-install-alert sr-install-alert-info">
-                <h2>설치 화면 미리보기</h2>
-                <p>현재 사이트는 이미 설치되어 있어 이 화면은 UI 확인용으로만 열렸습니다. 재설치 실행은 비활성화되어 있습니다.</p>
-            </section>
-        <?php } ?>
-
         <?php if ($errors !== []) { ?>
             <section class="sr-install-alert sr-install-alert-error" data-install-error-summary>
                 <h2><?php echo sr_e(sr_t('ui.text.84dd6e38')); ?></h2>
@@ -165,7 +158,7 @@ foreach ($optionalModules as $moduleKey => $module) {
             </section>
         <?php } ?>
 
-        <form method="post" action="<?php echo sr_e($installFormAction); ?>" class="sr-install-form" data-install-form data-install-preview="<?php echo $installPreviewMode ? '1' : '0'; ?>">
+        <form method="post" action="<?php echo sr_e($installFormAction); ?>" class="sr-install-form" data-install-form>
             <?php echo sr_csrf_field(); ?>
 
             <section class="sr-install-panel sr-install-step" data-install-step="environment" data-install-step-blocked="<?php echo $hasEnvironmentBlockingError ? '1' : '0'; ?>">
@@ -613,8 +606,8 @@ foreach ($optionalModules as $moduleKey => $module) {
                 </div>
 
                 <div class="sr-install-progress" data-install-progress role="status" aria-live="polite" hidden>
-                    <strong data-install-progress-title>설치 중입니다</strong>
-                    <span class="sr-install-progress-message" data-install-progress-message>설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.</span>
+                    <strong>설치 중입니다</strong>
+                    <span class="sr-install-progress-message">설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.</span>
                     <span class="sr-install-progress-bar" aria-hidden="true"><span></span></span>
                     <ol>
                         <li>설정 파일 작성 준비</li>
@@ -629,11 +622,10 @@ foreach ($optionalModules as $moduleKey => $module) {
                 </div>
 
                 <div class="sr-install-actions">
-                    <p><?php echo $installPreviewMode ? '미리보기 모드에서는 설치가 실행되지 않습니다.' : sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
+                    <p><?php echo sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
                     <div class="sr-install-final-actions">
                         <button type="button" class="sr-install-secondary-button sr-install-step-action-js" data-install-prev>이전</button>
-                        <button type="button" class="sr-install-secondary-button" data-install-run-preview>설치 진행 미리보기</button>
-                        <button type="submit" data-install-submit<?php echo $installPreviewMode ? ' disabled' : ''; ?>><?php echo $installPreviewMode ? '미리보기 중' : sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
+                        <button type="submit" data-install-submit><?php echo sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
                     </div>
                 </div>
             </section>
@@ -718,7 +710,6 @@ foreach ($optionalModules as $moduleKey => $module) {
             var installMetaTitleBase = <?php echo sr_js_json_encode($installMetaTitleBase); ?>;
             var shell = document.querySelector('[data-install-current-step]');
             var form = document.querySelector('[data-install-form]');
-            var installPreviewMode = form && form.getAttribute('data-install-preview') === '1';
             var promptMirror = document.querySelector('[data-install-prompt-mirror]');
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
 
@@ -1091,34 +1082,8 @@ foreach ($optionalModules as $moduleKey => $module) {
 
             if (form) {
                 var installSubmitting = false;
-                var runPreviewButton = form.querySelector('[data-install-run-preview]');
-                var progress = form.querySelector('[data-install-progress]');
-                var progressTitle = form.querySelector('[data-install-progress-title]');
-                var progressMessage = form.querySelector('[data-install-progress-message]');
-
-                if (runPreviewButton && progress) {
-                    runPreviewButton.addEventListener('click', function () {
-                        progress.hidden = false;
-                        progress.setAttribute('data-install-progress-mode', 'preview');
-                        if (progressTitle) {
-                            progressTitle.textContent = '설치 진행 미리보기';
-                        }
-                        if (progressMessage) {
-                            progressMessage.textContent = '아래 순서대로 설치가 진행됩니다. 이 미리보기는 설정 파일, DB, lock 파일을 변경하지 않습니다.';
-                        }
-                        runPreviewButton.textContent = '미리보기 표시 중';
-                        runPreviewButton.setAttribute('aria-expanded', 'true');
-                        progress.scrollIntoView({block: 'nearest'});
-                    });
-                }
 
                 form.addEventListener('submit', function (event) {
-                    if (installPreviewMode) {
-                        event.preventDefault();
-                        setStep('confirm', true);
-                        return;
-                    }
-
                     if (installSubmitting) {
                         return;
                     }
@@ -1133,19 +1098,13 @@ foreach ($optionalModules as $moduleKey => $module) {
                     setStep('confirm', false);
 
                     var submitButton = form.querySelector('[data-install-submit]');
+                    var progress = form.querySelector('[data-install-progress]');
                     if (submitButton) {
                         submitButton.disabled = true;
                         submitButton.textContent = '설치 중';
                         submitButton.setAttribute('aria-busy', 'true');
                     }
                     if (progress) {
-                        progress.removeAttribute('data-install-progress-mode');
-                        if (progressTitle) {
-                            progressTitle.textContent = '설치 중입니다';
-                        }
-                        if (progressMessage) {
-                            progressMessage.textContent = '설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.';
-                        }
                         progress.hidden = false;
                         progress.scrollIntoView({block: 'nearest'});
                     }
