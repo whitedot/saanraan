@@ -19,6 +19,8 @@ if ($requestPath === '/admin/coupons/issues') {
     $couponAdminPage = 'redemptions';
 } elseif ($requestPath === '/admin/coupons/campaigns') {
     $couponAdminPage = 'campaigns';
+} elseif ($requestPath === '/admin/coupons/campaigns/new') {
+    $couponAdminPage = 'campaigns';
 }
 $account = sr_member_require_login($pdo);
 $couponPermissionPath = '/admin/coupons';
@@ -460,6 +462,7 @@ $redemptions = [];
 $claimCampaigns = [];
 $claimLogs = [];
 $claimCampaignAssetOptions = [];
+$claimCampaignScreen = 'list';
 if ($couponAdminPage === 'issues') {
     $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
     $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
@@ -467,15 +470,19 @@ if ($couponAdminPage === 'issues') {
     $redemptionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_redemption_count($pdo, $runtimeConfig, $redemptionFilters));
     $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, (int) $redemptionPagination['per_page'], $redemptionFilters, $redemptionSort, sr_admin_pagination_offset($redemptionPagination));
 } elseif ($couponAdminPage === 'campaigns') {
-    $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
-    $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
+    $claimCampaignScreen = $requestPath === '/admin/coupons/campaigns/new' ? 'new' : 'list';
     $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
+    if ($claimCampaignScreen === 'list') {
+        $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
+        $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
+    }
 }
 $claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300) : [];
 $editClaimCampaign = null;
 if ($couponAdminPage === 'campaigns') {
     $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);
     if ($editClaimCampaignId > 0) {
+        $claimCampaignScreen = 'edit';
         $editClaimCampaign = sr_coupon_claim_campaign_by_id($pdo, $editClaimCampaignId);
         if (!is_array($editClaimCampaign)) {
             $errors[] = '수정할 발급 캠페인을 찾을 수 없습니다.';

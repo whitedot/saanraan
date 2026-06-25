@@ -73,6 +73,7 @@ $redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagi
 $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCampaigns : [];
 $claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
 $claimCampaignDefinitionOptions = isset($claimCampaignDefinitionOptions) && is_array($claimCampaignDefinitionOptions) ? $claimCampaignDefinitionOptions : [];
+$claimCampaignScreen = isset($claimCampaignScreen) && in_array((string) $claimCampaignScreen, ['list', 'new', 'edit'], true) ? (string) $claimCampaignScreen : 'list';
 $editClaimCampaign = isset($editClaimCampaign) && is_array($editClaimCampaign) ? $editClaimCampaign : null;
 $editingClaimCampaign = $editClaimCampaign !== null;
 $claimCampaignForm = $editingClaimCampaign ? $editClaimCampaign : [];
@@ -138,17 +139,23 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url($couponAdminPage === 'definit
     . sr_admin_page_title_reset_url($couponAdminPage === 'issues', '/admin/coupons/issues')
     . sr_admin_page_title_reset_url($couponAdminPage === 'redemptions', '/admin/coupons/redemptions')
     . sr_admin_page_title_reset_url($couponAdminPage === 'campaigns', '/admin/coupons/campaigns');
+if ($couponAdminPage === 'campaigns' && $claimCampaignScreen === 'new') {
+    $adminPageTitle = '발급 캠페인 추가';
+} elseif ($couponAdminPage === 'campaigns' && $claimCampaignScreen === 'edit') {
+    $adminPageTitle = '발급 캠페인 수정';
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($couponAdminPage === 'campaigns') { ?>
+<?php if ($claimCampaignScreen !== 'list') { ?>
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo $editingClaimCampaign ? '발급 캠페인 수정' : '발급 캠페인 추가'; ?></h2>
     </div>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="admin-form card-body ui-form-theme admin-coupon-campaign-form" data-sr-validate-form data-coupon-claim-campaign-form>
+    <form method="post" action="<?php echo sr_e(sr_url($editingClaimCampaign ? '/admin/coupons/campaigns' : '/admin/coupons/campaigns/new')); ?>" class="admin-form card-body ui-form-theme admin-coupon-campaign-form" data-sr-validate-form data-coupon-claim-campaign-form>
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="<?php echo $editingClaimCampaign ? 'update_campaign' : 'create_campaign'; ?>">
         <?php if ($editingClaimCampaign) { ?>
@@ -265,16 +272,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-form-actions">
             <button type="submit" class="btn btn-solid-primary"><?php echo $editingClaimCampaign ? '수정 저장' : '저장'; ?></button>
-            <?php if ($editingClaimCampaign) { ?>
-                <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">취소</a>
-            <?php } ?>
+            <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">목록</a>
         </div>
     </form>
 </section>
+<?php } else { ?>
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">발급 캠페인 목록</h2>
+        <div class="card-actions">
+            <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns/new')); ?>">캠페인 추가</a>
+        </div>
     </div>
     <div class="card-body">
         <?php if ($claimCampaigns === []) { ?>
@@ -379,6 +388,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </div>
 </section>
+<?php } ?>
 <?php } elseif ($couponAdminPage === 'definitions') { ?>
 <?php $couponDefinitionDetailFilterOpen = $selectedDefinitionStatuses !== [] || $selectedDefinitionTargetTypes !== []; ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="filtering-form admin-coupon-filter ui-form-theme">
