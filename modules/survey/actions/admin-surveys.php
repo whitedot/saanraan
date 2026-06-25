@@ -929,12 +929,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $newQuestionIndex = count($questionSlots);
     $questionModalSlots = $questionSlots;
     $questionModalSlots[$newQuestionIndex] = $emptyQuestionSlot;
+    $surveySectionNavItems = [
+        'survey-section-basic' => '기본 정보',
+        'survey-section-disclosure' => '분석/윤리',
+        'survey-section-qa' => 'QA/버전',
+        'survey-section-consent' => '참여 동의',
+        'survey-section-reward' => '보상',
+        'survey-section-questions' => '문항',
+    ];
     ?>
+    <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="설문 설정 섹션">
+        <?php $surveySectionNavIndex = 0; ?>
+        <?php foreach ($surveySectionNavItems as $surveySectionId => $surveySectionLabel): ?>
+            <a href="#<?php echo sr_e((string) $surveySectionId); ?>" class="tab-trigger-underline-justified<?php echo $surveySectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $surveySectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+                <?php echo sr_e((string) $surveySectionLabel); ?>
+            </a>
+            <?php $surveySectionNavIndex++; ?>
+        <?php endforeach; ?>
+    </nav>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme" enctype="multipart/form-data">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save">
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
-        <section class="card admin-list-card admin-list-form">
+        <section id="survey-section-basic" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
             <div class="card-body">
                 <div class="form-grid admin-survey-primary-grid">
@@ -1159,7 +1176,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         </section>
-        <section class="card admin-list-card admin-list-form">
+        <section id="survey-section-disclosure" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">분석·공표·윤리</h2></div>
         <div class="card-body">
             <div class="form-grid">
@@ -1218,7 +1235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         </section>
-        <section class="card admin-list-card admin-list-form">
+        <section id="survey-section-qa" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">QA·버전</h2></div>
         <div class="card-body">
             <div class="form-grid">
@@ -1247,7 +1264,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         </section>
-        <section class="card admin-list-card admin-list-form">
+        <section id="survey-section-consent" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
         <div class="card-body">
             <div class="form-field">
@@ -1267,7 +1284,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         </section>
-        <section class="card admin-list-card admin-list-form">
+        <section id="survey-section-reward" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">보상</h2></div>
         <div class="card-body">
             <div class="form-field">
@@ -1319,7 +1336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         </section>
-        <section class="card admin-list-card admin-list-form admin-survey-question-list-card">
+        <section id="survey-section-questions" class="card admin-list-card admin-list-form admin-survey-question-list-card" data-admin-section-anchor>
             <div class="card-header">
                 <h2 class="card-title form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span>문항</span></h2>
                 <div class="card-actions">
