@@ -6,7 +6,8 @@ $selectedMainPageOption = $mainPageOptions[$values['main_page_path']] ?? $mainPa
 $installStepLabels = [
     'environment' => '환경 확인',
     'basic' => '기본 정보',
-    'account_modules' => '관리자와 모듈',
+    'admin' => '관리자 정보',
+    'modules' => '모듈 선택',
     'confirm' => '확인 및 설치',
 ];
 $firstErrorStepKey = 'environment';
@@ -43,6 +44,7 @@ foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
     }
 }
 $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));
+$installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr_url('/');
 ?>
 <!doctype html>
 <html lang="ko" data-color-scheme="system">
@@ -57,6 +59,12 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
     <main class="sr-install-shell" data-install-current-step="<?php echo sr_e($initialInstallStepKey); ?>">
         <section class="sr-install-intro">
             <div>
+                <pre class="sr-install-ascii" aria-hidden="true">+------------------------------------------------------------------------------+
+|                                                                              |
+|                        *** SAANRAAN 설치 유틸리티 ***                        |
+|                           버전 1.0.0 / 터미널 모드                           |
+|                                                                              |
++------------------------------------------------------------------------------+</pre>
                 <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.settings.7abc12e1')); ?></p>
                 <h1><?php echo sr_e($pageTitle); ?></h1>
                 <p><?php echo sr_e(sr_t('ui.saanraan.db.admin.settings.c039e13f')); ?></p>
@@ -103,6 +111,13 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
             </section>
         <?php } ?>
 
+        <?php if ($installPreviewMode) { ?>
+            <section class="sr-install-alert sr-install-alert-info">
+                <h2>설치 화면 미리보기</h2>
+                <p>현재 사이트는 이미 설치되어 있어 이 화면은 UI 확인용으로만 열렸습니다. 재설치 실행은 비활성화되어 있습니다.</p>
+            </section>
+        <?php } ?>
+
         <?php if ($errors !== []) { ?>
             <section class="sr-install-alert sr-install-alert-error" data-install-error-summary>
                 <h2><?php echo sr_e(sr_t('ui.text.84dd6e38')); ?></h2>
@@ -125,7 +140,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
             </section>
         <?php } ?>
 
-        <form method="post" action="<?php echo sr_e(sr_url('/')); ?>" class="sr-install-form" data-install-form>
+        <form method="post" action="<?php echo sr_e($installFormAction); ?>" class="sr-install-form" data-install-form data-install-preview="<?php echo $installPreviewMode ? '1' : '0'; ?>">
             <?php echo sr_csrf_field(); ?>
 
             <section class="sr-install-panel sr-install-step" data-install-step="environment" data-install-step-blocked="<?php echo $hasEnvironmentBlockingError ? '1' : '0'; ?>">
@@ -294,20 +309,20 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                 </div>
             </section>
 
-            <section class="sr-install-panel sr-install-step" data-install-step="account_modules">
+            <section class="sr-install-panel sr-install-step" data-install-step="admin">
                 <div class="sr-install-panel-head">
                     <div>
                         <p class="sr-install-kicker">3단계</p>
-                        <h2>관리자와 모듈</h2>
+                        <h2>관리자 정보</h2>
                     </div>
-                    <p>최초 매니저 계정과 설치할 기본 모듈 구성을 정합니다.</p>
+                    <p>설치 직후 사이트를 관리할 최초 매니저 계정을 만듭니다.</p>
                 </div>
 
-                <?php if (!empty($installErrorSteps['account_modules'])) { ?>
+                <?php if (!empty($installErrorSteps['admin'])) { ?>
                     <div class="sr-install-step-errors">
                         <strong>이 단계에서 확인할 항목</strong>
                         <ul>
-                            <?php foreach ($installErrorSteps['account_modules'] as $error) { ?>
+                            <?php foreach ($installErrorSteps['admin'] as $error) { ?>
                                 <li><?php echo sr_e($error); ?></li>
                             <?php } ?>
                         </ul>
@@ -317,6 +332,10 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                 <div class="sr-install-subsection">
                     <h3><?php echo sr_e(sr_t('ui.admin.7954926f')); ?></h3>
                     <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.text.f039b723')); ?></p>
+                    <div class="sr-install-note-box">
+                        <strong>로그인 정책</strong>
+                        <p>이메일 로그인은 항상 허용됩니다. 로그인 아이디를 입력하면 아이디로도 로그인할 수 있습니다.</p>
+                    </div>
                     <div class="sr-install-field-grid">
                         <p>
                             <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.login.2a15bdbd')); ?></span>
@@ -349,8 +368,35 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                     </div>
                 </div>
 
+                <div class="sr-install-step-actions sr-install-step-action-js">
+                    <button type="button" class="sr-install-secondary-button" data-install-prev>이전</button>
+                    <button type="button" data-install-next>다음</button>
+                </div>
+            </section>
+
+            <section class="sr-install-panel sr-install-step" data-install-step="modules">
+                <div class="sr-install-panel-head">
+                    <div>
+                        <p class="sr-install-kicker">4단계</p>
+                        <h2>모듈 선택</h2>
+                    </div>
+                    <p>필수 모듈을 확인하고, 함께 설치할 선택 모듈과 초기화면 후보를 정합니다.</p>
+                </div>
+
+                <?php if (!empty($installErrorSteps['modules'])) { ?>
+                    <div class="sr-install-step-errors">
+                        <strong>이 단계에서 확인할 항목</strong>
+                        <ul>
+                            <?php foreach ($installErrorSteps['modules'] as $error) { ?>
+                                <li><?php echo sr_e($error); ?></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
+
                 <div class="sr-install-subsection">
                     <h3><?php echo sr_e(sr_t('ui.required.9b1c157b')); ?></h3>
+                    <p class="sr-install-subsection-help">이 항목은 사이트 실행 기반이므로 항상 설치됩니다.</p>
                     <div class="sr-install-module-grid">
                         <?php foreach ($requiredModules as $moduleKey => $module) { ?>
                             <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
@@ -371,6 +417,7 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                     </div>
 
                     <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
+                    <p class="sr-install-subsection-help">필요한 기능만 선택해 설치할 수 있습니다. 의존 모듈은 자동으로 함께 설치됩니다.</p>
                     <?php if ($optionalModules === []) { ?>
                         <p>설치 가능한 추가 모듈을 찾지 못했습니다. 모듈 폴더와 설정 파일을 확인하세요.</p>
                     <?php } else { ?>
@@ -455,10 +502,10 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
             <section class="sr-install-panel sr-install-step" data-install-step="confirm">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker">4단계</p>
+                        <p class="sr-install-kicker">5단계</p>
                         <h2>확인 및 설치</h2>
                     </div>
-                    <p>입력값과 선택 모듈을 확인한 뒤 설치를 시작합니다.</p>
+                    <p>입력값, 관리자 계정, 모듈 구성을 마지막으로 확인한 뒤 설치를 시작합니다.</p>
                 </div>
 
                 <?php if (!empty($installErrorSteps['confirm'])) { ?>
@@ -471,6 +518,11 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                         </ul>
                     </div>
                 <?php } ?>
+
+                <div class="sr-install-confirm-lead">
+                    <strong>실행 전 최종 확인</strong>
+                    <p>설치가 시작되면 설정 파일 작성, DB 스키마 생성, 모듈 등록, 관리자 계정 생성, 설치 lock 작성이 순서대로 진행됩니다.</p>
+                </div>
 
                 <div class="sr-install-summary-grid">
                     <div>
@@ -542,14 +594,15 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                 </div>
 
                 <div class="sr-install-actions">
-                    <p><?php echo sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
+                    <p><?php echo $installPreviewMode ? '미리보기 모드에서는 설치가 실행되지 않습니다.' : sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
                     <div class="sr-install-final-actions">
                         <button type="button" class="sr-install-secondary-button sr-install-step-action-js" data-install-prev>이전</button>
-                        <button type="submit" data-install-submit><?php echo sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
+                        <button type="submit" data-install-submit<?php echo $installPreviewMode ? ' disabled' : ''; ?>><?php echo $installPreviewMode ? '미리보기 중' : sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
                     </div>
                 </div>
             </section>
         </form>
+        <div class="sr-install-prompt" aria-hidden="true"><span></span></div>
     </main>
     <script>
         (function () {
@@ -625,10 +678,11 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                 return nextValue + (hasTrailingUnderscore ? '_' : '');
             }
 
-            var stepOrder = ['environment', 'basic', 'account_modules', 'confirm'];
+            var stepOrder = ['environment', 'basic', 'admin', 'modules', 'confirm'];
             var installMetaTitleBase = <?php echo sr_js_json_encode($installMetaTitleBase); ?>;
             var shell = document.querySelector('[data-install-current-step]');
             var form = document.querySelector('[data-install-form]');
+            var installPreviewMode = form && form.getAttribute('data-install-preview') === '1';
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
 
             function stepPanel(stepKey) {
@@ -896,6 +950,12 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
             if (form) {
                 var installSubmitting = false;
                 form.addEventListener('submit', function (event) {
+                    if (installPreviewMode) {
+                        event.preventDefault();
+                        setStep('confirm', true);
+                        return;
+                    }
+
                     if (installSubmitting) {
                         return;
                     }

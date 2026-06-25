@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
+$installPreviewMode = !empty($srInstallPreviewMode);
 $errors = [];
 $installErrorSteps = [];
 $addInstallError = function (string $message, string $stepKey) use (&$errors, &$installErrorSteps): void {
@@ -526,7 +527,7 @@ $localeOptions = sr_available_locale_options([
     'supported_locales' => $values['default_locale'],
 ]);
 
-if (sr_request_method() === 'POST') {
+if (sr_request_method() === 'POST' && !$installPreviewMode) {
     sr_require_csrf();
 
     foreach ($values as $key => $default) {
@@ -542,12 +543,12 @@ if (sr_request_method() === 'POST') {
     $postedOptionalModules = $_POST['optional_modules'] ?? [];
     $selectedOptionalModuleKeys = [];
     if (!is_array($postedOptionalModules)) {
-        $addInstallError('선택 모듈 값이 올바르지 않습니다.', 'account_modules');
+        $addInstallError('선택 모듈 값이 올바르지 않습니다.', 'modules');
     } else {
         foreach ($postedOptionalModules as $moduleKey) {
             $moduleKey = is_string($moduleKey) ? $moduleKey : '';
             if (!array_key_exists($moduleKey, $optionalModules)) {
-                $addInstallError('선택할 수 없는 모듈이 포함되어 있습니다.', 'account_modules');
+                $addInstallError('선택할 수 없는 모듈이 포함되어 있습니다.', 'modules');
                 continue;
             }
 
@@ -565,7 +566,7 @@ if (sr_request_method() === 'POST') {
 
         $dependencyModule = sr_install_module_definition_lookup((string) $dependencyModuleKey, $requiredModules, $foundationModules, $optionalModules);
         if (!is_array($dependencyModule)) {
-            $addInstallError((string) $dependencyModuleKey . ' 필요 모듈을 찾을 수 없습니다.', 'account_modules');
+            $addInstallError((string) $dependencyModuleKey . ' 필요 모듈을 찾을 수 없습니다.', 'modules');
             continue;
         }
 
@@ -577,7 +578,7 @@ if (sr_request_method() === 'POST') {
     foreach ($requiredModules as $moduleKey => $module) {
         $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $addInstallError((string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
+            $addInstallError((string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'modules');
         }
     }
 
@@ -585,7 +586,7 @@ if (sr_request_method() === 'POST') {
         $module = sr_install_module_definition_lookup((string) $moduleKey, $requiredModules, $foundationModules, $optionalModules);
         $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 기반 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
+            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 기반 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'modules');
         }
     }
 
@@ -593,7 +594,7 @@ if (sr_request_method() === 'POST') {
         $module = $optionalModules[$moduleKey] ?? null;
         $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
+            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'modules');
         }
     }
 
@@ -635,17 +636,17 @@ if (sr_request_method() === 'POST') {
     }
 
     if (!filter_var($values['admin_email'], FILTER_VALIDATE_EMAIL)) {
-        $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'account_modules');
+        $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'admin');
     }
 
     if ($values['admin_display_name'] === '') {
-        $addInstallError('관리자 이름을 입력하세요.', 'account_modules');
+        $addInstallError('관리자 이름을 입력하세요.', 'admin');
     }
 
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
     $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
     if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
-        $addInstallError('관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.', 'account_modules');
+        $addInstallError('관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.', 'admin');
     }
 
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
@@ -677,22 +678,22 @@ if (sr_request_method() === 'POST') {
             && !array_key_exists($mainPageModuleKey, $requiredModules)
             && empty($selectedOptionalModuleMap[$mainPageModuleKey])
         ) {
-            $addInstallError('메인 페이지로 사용할 모듈을 설치할 기능에서 함께 선택하세요.', 'account_modules');
+            $addInstallError('메인 페이지로 사용할 모듈을 설치할 기능에서 함께 선택하세요.', 'modules');
         }
     }
 
     if ($adminPassword === null || $adminPasswordConfirm === null) {
-        $addInstallError('관리자 비밀번호는 255자 이하로 입력하세요.', 'account_modules');
+        $addInstallError('관리자 비밀번호는 255자 이하로 입력하세요.', 'admin');
         $adminPassword = '';
         $adminPasswordConfirm = '';
     }
 
     if (strlen($adminPassword) < 8) {
-        $addInstallError('관리자 비밀번호는 8자 이상이어야 합니다.', 'account_modules');
+        $addInstallError('관리자 비밀번호는 8자 이상이어야 합니다.', 'admin');
     }
 
     if ($adminPassword !== $adminPasswordConfirm) {
-        $addInstallError('관리자 비밀번호 확인이 일치하지 않습니다.', 'account_modules');
+        $addInstallError('관리자 비밀번호 확인이 일치하지 않습니다.', 'admin');
     }
 
     if ($errors === []) {
