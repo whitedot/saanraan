@@ -1620,6 +1620,6 @@ banner-2026.05.001.zip
 
 유료 쿠폰 발급 캠페인은 `sr_coupon_claim_campaigns`에 무료/유료 발급 유형, 유료 가격/통화, 허용 포인트/금액 항목을 저장한다. 허용 포인트/금액 항목은 회원 선택의 강제 제약이며, 선택한 항목으로 부족하면 발급 전 실패한다. 공개 claim form의 발급 의도 token은 현재 계정 ID와 campaign ID를 함께 사용한 세션 key에 저장하고, POST에서 같은 계정 세션의 현재 token인지 검증한다. 성공한 claim만 token을 회전시키며, 잔액 부족이나 validation 실패는 같은 token을 유지해 같은 발급 의도 재시도를 같은 dedupe key로 수렴시킨다. 무료/유료 claim helper는 transaction 안에서 campaign row를 `FOR UPDATE`로 잠근 뒤 발급 한도 검증, claim row 점유, 자산 차감, 발급본 생성을 진행해 서로 다른 nonce의 동시 발급도 같은 캠페인 한도 아래에서 직렬화한다.
 
-발급 로그가 생긴 캠페인은 발급 유형, 가격, 통화, 허용 포인트/금액 항목을 변경할 수 없다. 발급본은 `sr_coupon_issues`의 claim snapshot과 asset reference를 canonical 근거로 사용한다.
+발급 로그가 생긴 캠페인은 발급 유형, 가격, 통화, 허용 포인트/금액 항목을 변경할 수 없다. 발급본은 `sr_coupon_issues`의 claim snapshot과 asset reference를 canonical 근거로 사용한다. 유료 claim snapshot은 `settlement_kind=paid`, `snapshot_schema_version`, `rounding_policy_version`, 명목 가격, 실제 차감 allocation, 각 allocation의 purchase power snapshot을 동결해 환불 복원 기준으로 삼는다.
 
 유료 발급본 환불은 사용 이력이 없는 발급본에만 적용한다. 환불 helper는 발급본과 claim log 점유 row를 먼저 잠근 뒤 claim snapshot의 charged allocation에 들어 있는 원 자산 거래를 `refund` 거래로 되돌리고, 발급본을 `refunded`, claim log를 `cancelled`로 전이해 총 한도와 회원당 한도 점유를 반환한다.

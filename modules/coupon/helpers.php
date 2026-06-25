@@ -2147,6 +2147,20 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
         if ($priceAmount > 0 && $chargedAllocations === []) {
             throw new InvalidArgumentException('차감할 포인트/금액 항목을 찾을 수 없습니다.');
         }
+        $roundingPolicyVersion = '';
+        foreach ($chargedAllocations as $allocation) {
+            if (!is_array($allocation)) {
+                continue;
+            }
+            $purchasePowerSnapshot = is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : [];
+            $roundingPolicyVersion = (string) ($purchasePowerSnapshot['rounding_policy_version'] ?? '');
+            if ($roundingPolicyVersion !== '') {
+                break;
+            }
+        }
+        if ($roundingPolicyVersion === '') {
+            $roundingPolicyVersion = 'asset_settlement_rounding_v1';
+        }
 
         $issueId = sr_coupon_issue_to_account(
             $pdo,
@@ -2167,6 +2181,9 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
                 'claim_snapshot' => [
                     'schema_version' => 'coupon_claim_snapshot_v1',
                     'claim_type' => 'paid',
+                    'settlement_kind' => 'paid',
+                    'snapshot_schema_version' => 'asset_settlement_snapshot_v1',
+                    'rounding_policy_version' => $roundingPolicyVersion,
                     'campaign_id' => (int) $campaign['id'],
                     'campaign_key' => (string) ($campaign['campaign_key'] ?? ''),
                     'claim_log_id' => $claimLogId,
@@ -2175,7 +2192,6 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
                         'currency_code' => $priceCurrencyCode,
                     ],
                     'charged_allocations' => $chargedAllocations,
-                    'settlement_kind' => 'asset',
                 ],
             ]
         );

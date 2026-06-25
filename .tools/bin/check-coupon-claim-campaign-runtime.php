@@ -470,7 +470,12 @@ function sr_coupon_claim_runtime_fixture(): void
     $paidIssue = sr_coupon_claim_runtime_row($pdo, 'SELECT claim_type, nominal_price_amount, nominal_price_currency_code, claim_snapshot_json FROM sr_coupon_issues WHERE id = :id', ['id' => $paidClaim['coupon_issue_id']]);
     $paidSnapshot = json_decode((string) ($paidIssue['claim_snapshot_json'] ?? ''), true);
     sr_coupon_claim_runtime_assert((string) ($paidIssue['claim_type'] ?? '') === 'paid' && (int) ($paidIssue['nominal_price_amount'] ?? 0) === 120 && (string) ($paidIssue['nominal_price_currency_code'] ?? '') === 'KRW', 'paid claim issue should freeze nominal price.');
-    sr_coupon_claim_runtime_assert(is_array($paidSnapshot) && ($paidSnapshot['settlement_kind'] ?? '') === 'asset' && count((array) ($paidSnapshot['charged_allocations'] ?? [])) === 1, 'paid claim issue should freeze charged allocation snapshot.');
+    $paidAllocations = is_array($paidSnapshot) ? (array) ($paidSnapshot['charged_allocations'] ?? []) : [];
+    $paidAllocationSnapshot = is_array($paidAllocations[0]['purchase_power_snapshot'] ?? null) ? $paidAllocations[0]['purchase_power_snapshot'] : [];
+    sr_coupon_claim_runtime_assert(is_array($paidSnapshot) && ($paidSnapshot['settlement_kind'] ?? '') === 'paid' && count($paidAllocations) === 1, 'paid claim issue should freeze charged allocation snapshot.');
+    sr_coupon_claim_runtime_assert((string) ($paidSnapshot['snapshot_schema_version'] ?? '') === 'asset_settlement_snapshot_v1', 'paid claim issue snapshot should freeze the settlement snapshot schema version.');
+    sr_coupon_claim_runtime_assert((string) ($paidSnapshot['rounding_policy_version'] ?? '') === 'asset_settlement_rounding_v1', 'paid claim issue snapshot should freeze the settlement rounding policy version.');
+    sr_coupon_claim_runtime_assert((string) ($paidAllocationSnapshot['rounding_policy_version'] ?? '') === 'asset_settlement_rounding_v1' && (int) ($paidAllocationSnapshot['currency_min_unit'] ?? 0) > 0, 'paid claim charged allocation should include purchase power metadata from the settlement plan.');
     $refundResult = sr_coupon_refund_paid_issue_assets($pdo, (int) $paidClaim['coupon_issue_id'], 99, 'paid issue refund');
     sr_coupon_claim_runtime_assert(count($refundResult['refund_transactions'] ?? []) === 1, 'paid issue refund should create one asset refund transaction.');
     $paidRefundPointRow = sr_coupon_claim_runtime_row($pdo, 'SELECT amount, balance_after, transaction_type, reference_type, reference_id FROM sr_point_transactions WHERE account_id = 7 ORDER BY id DESC LIMIT 1');
