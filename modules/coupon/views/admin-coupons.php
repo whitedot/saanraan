@@ -64,6 +64,8 @@ $claimLogStatusClasses = [
 $definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => [], 'target_type' => [], 'q' => ''];
 $issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => [], 'target_type' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
 $redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ? $redemptionFilters : ['status' => [], 'target_type' => [], 'refundable_policy' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
+$claimCampaignFilters = isset($claimCampaignFilters) && is_array($claimCampaignFilters) ? $claimCampaignFilters : ['status' => [], 'claim_type' => [], 'visibility' => [], 'q' => ''];
+$claimLogFilters = isset($claimLogFilters) && is_array($claimLogFilters) ? $claimLogFilters : ['status' => [], 'claim_source' => [], 'campaign_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
 $definitionSort = isset($definitionSort) && is_array($definitionSort) ? $definitionSort : (sr_coupon_admin_definition_default_sort() + ['is_default' => true]);
 $issueSort = isset($issueSort) && is_array($issueSort) ? $issueSort : (sr_coupon_admin_issue_default_sort() + ['is_default' => true]);
 $redemptionSort = isset($redemptionSort) && is_array($redemptionSort) ? $redemptionSort : (sr_coupon_admin_redemption_default_sort() + ['is_default' => true]);
@@ -74,13 +76,16 @@ $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCa
 $claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
 $claimCampaignDefinitionOptions = isset($claimCampaignDefinitionOptions) && is_array($claimCampaignDefinitionOptions) ? $claimCampaignDefinitionOptions : [];
 $claimCampaignCanCreate = $claimCampaignDefinitionOptions !== [];
-$claimCampaignScreen = isset($claimCampaignScreen) && in_array((string) $claimCampaignScreen, ['list', 'new', 'edit'], true) ? (string) $claimCampaignScreen : 'list';
+$claimCampaignScreen = isset($claimCampaignScreen) && in_array((string) $claimCampaignScreen, ['list', 'new', 'edit', 'logs'], true) ? (string) $claimCampaignScreen : 'list';
 $editClaimCampaign = isset($editClaimCampaign) && is_array($editClaimCampaign) ? $editClaimCampaign : null;
 $editingClaimCampaign = $editClaimCampaign !== null;
 $claimCampaignForm = $editingClaimCampaign ? $editClaimCampaign : [];
 $claimCampaignFormSurfaces = sr_coupon_claim_surfaces_from_value($claimCampaignForm['exposure_surfaces_json'] ?? ['coupon_zone']);
 $claimCampaignAssetOptions = isset($claimCampaignAssetOptions) && is_array($claimCampaignAssetOptions) ? $claimCampaignAssetOptions : [];
-$claimCampaignAllowedAssets = sr_coupon_asset_module_keys_from_value($pdo, $claimCampaignForm['allowed_asset_modules_json'] ?? []);
+$claimCampaignAllowedAssets = [];
+if ($claimCampaignScreen === 'new' || $claimCampaignScreen === 'edit') {
+    $claimCampaignAllowedAssets = sr_coupon_asset_module_keys_from_value($pdo, $claimCampaignForm['allowed_asset_modules_json'] ?? []);
+}
 $claimCampaignIsPaid = (string) ($claimCampaignForm['claim_type'] ?? 'free') === 'paid';
 if ($claimCampaignFormSurfaces === []) {
     $claimCampaignFormSurfaces = ['coupon_zone'];
@@ -103,9 +108,30 @@ $claimCampaignStatusClasses = [
     'paused' => 'is-blocked',
     'ended' => 'is-left',
 ];
+$claimCampaignStatusLabels = [];
+foreach (sr_coupon_claim_campaign_statuses() as $campaignStatusOption) {
+    $claimCampaignStatusLabels[(string) $campaignStatusOption] = sr_coupon_claim_campaign_status_label((string) $campaignStatusOption);
+}
+$claimCampaignTypeLabels = [];
+foreach (sr_coupon_claim_types() as $claimTypeOption) {
+    $claimCampaignTypeLabels[(string) $claimTypeOption] = sr_coupon_claim_type_label((string) $claimTypeOption);
+}
+$claimCampaignVisibilityLabels = [
+    'hidden' => '숨김',
+    'public' => '공개',
+];
+$claimLogStatusLabels = [];
+foreach (array_merge(sr_coupon_claim_log_statuses(), ['expired_unmaterialized']) as $claimLogStatusOption) {
+    $claimLogStatusLabels[(string) $claimLogStatusOption] = sr_coupon_claim_log_status_label((string) $claimLogStatusOption);
+}
+$claimLogSourceLabels = [];
+foreach (array_merge(sr_coupon_claim_surfaces(), ['admin']) as $claimSourceOption) {
+    $claimLogSourceLabels[(string) $claimSourceOption] = sr_coupon_claim_source_label((string) $claimSourceOption);
+}
 $claimCampaignDefinitionRequiredMessage = '발급 캠페인을 추가하려면 먼저 쿠폰을 등록해야 합니다.';
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
+$claimLogAccountFilter = is_array($claimLogFilters['account'] ?? null) ? $claimLogFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $selectedDefinitionStatuses = is_array($definitionFilters['status'] ?? null) ? $definitionFilters['status'] : [];
 $selectedDefinitionTargetTypes = is_array($definitionFilters['target_type'] ?? null) ? $definitionFilters['target_type'] : [];
 $selectedIssueStatuses = is_array($issueFilters['status'] ?? null) ? $issueFilters['status'] : [];
@@ -113,6 +139,11 @@ $selectedIssueTargetTypes = is_array($issueFilters['target_type'] ?? null) ? $is
 $selectedRedemptionStatuses = is_array($redemptionFilters['status'] ?? null) ? $redemptionFilters['status'] : [];
 $selectedRedemptionPolicies = is_array($redemptionFilters['refundable_policy'] ?? null) ? $redemptionFilters['refundable_policy'] : [];
 $selectedRedemptionTargetTypes = is_array($redemptionFilters['target_type'] ?? null) ? $redemptionFilters['target_type'] : [];
+$selectedClaimCampaignStatuses = is_array($claimCampaignFilters['status'] ?? null) ? $claimCampaignFilters['status'] : [];
+$selectedClaimCampaignTypes = is_array($claimCampaignFilters['claim_type'] ?? null) ? $claimCampaignFilters['claim_type'] : [];
+$selectedClaimCampaignVisibility = is_array($claimCampaignFilters['visibility'] ?? null) ? $claimCampaignFilters['visibility'] : [];
+$selectedClaimLogStatuses = is_array($claimLogFilters['status'] ?? null) ? $claimLogFilters['status'] : [];
+$selectedClaimLogSources = is_array($claimLogFilters['claim_source'] ?? null) ? $claimLogFilters['claim_source'] : [];
 $couponAccountSearchFields = [
     'all' => '전체',
     'hash' => '공개 해시',
@@ -151,6 +182,8 @@ if ($couponAdminPage === 'campaigns' && $claimCampaignScreen === 'new') {
     $adminPageTitle = '발급 캠페인 추가';
 } elseif ($couponAdminPage === 'campaigns' && $claimCampaignScreen === 'edit') {
     $adminPageTitle = '발급 캠페인 수정';
+} elseif ($couponAdminPage === 'campaigns' && $claimCampaignScreen === 'logs') {
+    $adminPageTitle = '발급 로그';
 }
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -158,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($couponAdminPage === 'campaigns') { ?>
-<?php if ($claimCampaignScreen !== 'list') { ?>
+<?php if ($claimCampaignScreen === 'new' || $claimCampaignScreen === 'edit') { ?>
 <?php if (!$editingClaimCampaign && !$claimCampaignCanCreate) { ?>
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
@@ -409,7 +442,142 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 <?php } ?>
+<?php } elseif ($claimCampaignScreen === 'logs') { ?>
+<?php $claimLogDetailFilterOpen = $selectedClaimLogStatuses !== [] || $selectedClaimLogSources !== [] || trim((string) ($claimLogFilters['campaign_q'] ?? '')) !== ''; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns/logs')); ?>" class="filtering-form admin-coupon-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $claimLogDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-coupon-history-filter-grid">
+            <div class="filtering-field">
+                <label for="coupon_claim_log_member_field_filter" class="filtering-label">회원 검색</label>
+                <select id="coupon_claim_log_member_field_filter" name="field" class="form-select filtering-input">
+                    <?php foreach ($couponAccountSearchFields as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e((string) $fieldValue); ?>"<?php echo (string) ($claimLogAccountFilter['field'] ?? 'all') === (string) $fieldValue ? ' selected' : ''; ?>><?php echo sr_e((string) $fieldLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="filtering-field filtering-field-fill admin-coupon-filter-keyword">
+                <label for="coupon_claim_log_member_keyword_filter" class="filtering-label">회원 검색어</label>
+                <input id="coupon_claim_log_member_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($claimLogAccountFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="공개 해시, 이메일, 로그인 ID, 이름">
+            </div>
+        </div>
+        <div id="coupon_claim_log_detail_filters" class="filtering-body" data-filtering-body<?php echo $claimLogDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-field">
+                <span class="filtering-label">상태</span>
+                <?php echo sr_admin_filter_toggle_group_html('coupon_claim_log_status_filter', 'status', $claimLogStatusLabels, $selectedClaimLogStatuses, '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">발급 표면</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('coupon_claim_log_source_filter', 'claim_source', $claimLogSourceLabels, $selectedClaimLogSources, '전체'); ?>
+            </div>
+            <div class="filtering-field admin-coupon-filter-keyword">
+                <label for="coupon_claim_log_keyword_filter" class="filtering-label">캠페인·쿠폰 검색어</label>
+                <input id="coupon_claim_log_keyword_filter" type="text" name="campaign_q" value="<?php echo sr_e((string) ($claimLogFilters['campaign_q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="캠페인 key, 캠페인명, 쿠폰 key, 쿠폰명">
+            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $claimLogDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="coupon_claim_log_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
+    </div>
+</form>
+
+<section class="card admin-list-card admin-list-form">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">발급 로그</h2>
+        </div>
+        <div class="card-actions">
+            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">캠페인 목록</a>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="table table-list admin-coupon-campaign-log-table">
+            <thead>
+                <tr>
+                    <th>캠페인</th>
+                    <th>쿠폰</th>
+                    <th>회원</th>
+                    <th>상태</th>
+                    <th>발급 표면</th>
+                    <th>발급본</th>
+                    <th>예약 만료</th>
+                    <th>생성</th>
+                    <th>실패 사유</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($claimLogs === []) { ?>
+                    <tr>
+                        <td colspan="9" class="admin-empty-state">아직 발급 로그가 없습니다.</td>
+                    </tr>
+                <?php } else { ?>
+                    <?php foreach ($claimLogs as $log) { ?>
+                        <?php
+                        $displayStatus = (string) ($log['display_status'] ?? $log['status'] ?? '');
+                        $accountLabel = (string) ($log['account_display_name'] ?? '');
+                        if ($accountLabel === '') {
+                            $accountLabel = (string) ($log['account_email'] ?? '');
+                        }
+                        if ($accountLabel === '') {
+                            $accountLabel = '#' . (string) (int) ($log['account_id'] ?? 0);
+                        }
+                        $failureText = trim((string) ($log['failure_code'] ?? '') . ' ' . (string) ($log['failure_message'] ?? ''));
+                        ?>
+                        <tr>
+                            <td class="admin-table-break">
+                                <strong><?php echo sr_e((string) ($log['campaign_title'] ?? '')); ?></strong>
+                                <br><small><code><?php echo sr_e((string) ($log['campaign_key'] ?? '')); ?></code></small>
+                            </td>
+                            <td class="admin-table-break">
+                                <?php echo sr_e((string) ($log['coupon_title'] ?? '')); ?>
+                                <br><small><code><?php echo sr_e((string) ($log['coupon_key'] ?? '')); ?></code></small>
+                            </td>
+                            <td class="admin-table-break"><?php echo sr_e($accountLabel); ?></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? 'is-left')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo (int) ($log['coupon_issue_id'] ?? 0) > 0 ? '#' . sr_e((string) (int) $log['coupon_issue_id']) : sr_e('-'); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['reserved_until'] ?? ''), '-'); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['created_at'] ?? ''), '-'); ?></td>
+                            <td class="admin-table-break"><?php echo $failureText !== '' ? sr_e($failureText) : sr_e('-'); ?></td>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+</section>
 <?php } else { ?>
+<?php $claimCampaignDetailFilterOpen = $selectedClaimCampaignStatuses !== [] || $selectedClaimCampaignTypes !== [] || $selectedClaimCampaignVisibility !== []; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>" class="filtering-form admin-coupon-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $claimCampaignDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-coupon-definition-filter-grid">
+            <div class="filtering-field filtering-field-fill admin-coupon-filter-keyword">
+                <label for="coupon_claim_campaign_keyword_filter" class="filtering-label">검색어</label>
+                <input id="coupon_claim_campaign_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($claimCampaignFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="캠페인 key, 캠페인명, 쿠폰 key, 쿠폰명">
+            </div>
+        </div>
+        <div id="coupon_claim_campaign_detail_filters" class="filtering-body" data-filtering-body<?php echo $claimCampaignDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-field">
+                <span class="filtering-label">상태</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('coupon_claim_campaign_status_filter', 'status', $claimCampaignStatusLabels, $selectedClaimCampaignStatuses, '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">발급 유형</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('coupon_claim_campaign_type_filter', 'claim_type', $claimCampaignTypeLabels, $selectedClaimCampaignTypes, '전체'); ?>
+            </div>
+            <div class="filtering-field">
+                <span class="filtering-label">공개 여부</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('coupon_claim_campaign_visibility_filter', 'visibility', $claimCampaignVisibilityLabels, $selectedClaimCampaignVisibility, '전체'); ?>
+            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $claimCampaignDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="coupon_claim_campaign_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light filtering-reset" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
+    </div>
+</form>
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
@@ -417,6 +585,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">발급 캠페인 목록</h2>
         </div>
         <div class="card-actions">
+            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns/logs')); ?>">로그 조회</a>
             <?php if ($claimCampaignCanCreate) { ?>
                 <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns/new')); ?>">캠페인 추가</a>
             <?php } else { ?>
@@ -539,68 +708,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </script>
 <?php } ?>
 
-<section class="card admin-list-card admin-list-form">
-    <div class="card-header">
-        <div>
-            <h2 class="card-title">최근 발급 로그</h2>
-        </div>
-    </div>
-    <div class="table-wrapper">
-        <table class="table table-list admin-coupon-campaign-log-table">
-            <thead>
-                <tr>
-                    <th>캠페인</th>
-                    <th>쿠폰</th>
-                    <th>회원</th>
-                    <th>상태</th>
-                    <th>발급 표면</th>
-                    <th>발급본</th>
-                    <th>예약 만료</th>
-                    <th>생성</th>
-                    <th>실패 사유</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($claimLogs === []) { ?>
-                    <tr>
-                        <td colspan="9" class="admin-empty-state">아직 발급 로그가 없습니다.</td>
-                    </tr>
-                <?php } else { ?>
-                    <?php foreach ($claimLogs as $log) { ?>
-                        <?php
-                        $displayStatus = (string) ($log['display_status'] ?? $log['status'] ?? '');
-                        $accountLabel = (string) ($log['account_display_name'] ?? '');
-                        if ($accountLabel === '') {
-                            $accountLabel = (string) ($log['account_email'] ?? '');
-                        }
-                        if ($accountLabel === '') {
-                            $accountLabel = '#' . (string) (int) ($log['account_id'] ?? 0);
-                        }
-                        $failureText = trim((string) ($log['failure_code'] ?? '') . ' ' . (string) ($log['failure_message'] ?? ''));
-                        ?>
-                        <tr>
-                            <td class="admin-table-break">
-                                <strong><?php echo sr_e((string) ($log['campaign_title'] ?? '')); ?></strong>
-                                <br><small><code><?php echo sr_e((string) ($log['campaign_key'] ?? '')); ?></code></small>
-                            </td>
-                            <td class="admin-table-break">
-                                <?php echo sr_e((string) ($log['coupon_title'] ?? '')); ?>
-                                <br><small><code><?php echo sr_e((string) ($log['coupon_key'] ?? '')); ?></code></small>
-                            </td>
-                            <td class="admin-table-break"><?php echo sr_e($accountLabel); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? 'is-left')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e(sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
-                            <td class="admin-table-nowrap"><?php echo (int) ($log['coupon_issue_id'] ?? 0) > 0 ? '#' . sr_e((string) (int) $log['coupon_issue_id']) : sr_e('-'); ?></td>
-                            <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['reserved_until'] ?? ''), '-'); ?></td>
-                            <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['created_at'] ?? ''), '-'); ?></td>
-                            <td class="admin-table-break"><?php echo $failureText !== '' ? sr_e($failureText) : sr_e('-'); ?></td>
-                        </tr>
-                    <?php } ?>
-                <?php } ?>
-            </tbody>
-        </table>
-    </div>
-</section>
 <?php } ?>
 <?php } elseif ($couponAdminPage === 'definitions') { ?>
 <?php $couponDefinitionDetailFilterOpen = $selectedDefinitionStatuses !== [] || $selectedDefinitionTargetTypes !== []; ?>

@@ -1534,20 +1534,60 @@ function sr_coupon_admin_redemption_default_sort(): array
     return sr_admin_sort_default('redeemed_at', 'desc');
 }
 
-function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100): array
+function sr_coupon_admin_claim_campaign_filters(): array
+{
+    return [
+        'status' => sr_admin_get_allowed_single_array('status', sr_coupon_claim_campaign_statuses(), 30),
+        'claim_type' => sr_admin_get_allowed_single_array('claim_type', sr_coupon_claim_types(), 20),
+        'visibility' => sr_admin_get_allowed_single_array('visibility', ['hidden', 'public'], 20),
+        'q' => sr_coupon_clean_text(sr_get_string('q', 120), 120),
+    ];
+}
+
+function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100, array $filters = []): array
 {
     if (!sr_coupon_claim_tables_available($pdo)) {
         return [];
     }
 
     $limit = max(1, min(300, $limit));
-    $stmt = $pdo->query(
-        'SELECT c.*, d.coupon_key, d.title AS coupon_title
-         FROM sr_coupon_claim_campaigns c
-         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
-         ORDER BY c.id DESC
-         LIMIT ' . $limit
-    );
+    $where = [];
+    $params = [];
+
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('c.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+
+    if (($filters['claim_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('c.claim_type', 'claim_type', $filters['claim_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+
+    if (($filters['visibility'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('c.visibility', 'visibility', $filters['visibility']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+
+    $keyword = sr_coupon_clean_text((string) ($filters['q'] ?? ''), 120);
+    if ($keyword !== '') {
+        $where[] = "(c.campaign_key LIKE :campaign_keyword_like ESCAPE '\\\\' OR c.title LIKE :campaign_keyword_like ESCAPE '\\\\' OR d.coupon_key LIKE :campaign_keyword_like ESCAPE '\\\\' OR d.title LIKE :campaign_keyword_like ESCAPE '\\\\')";
+        $params['campaign_keyword_like'] = sr_coupon_like_keyword($keyword);
+    }
+
+    $sql = 'SELECT c.id, c.campaign_key, c.title, c.status, c.claim_type, c.price_amount, c.price_currency_code,
+                   c.allowed_asset_modules_json, c.total_claim_limit, c.per_account_limit, c.visibility,
+                   d.coupon_key, d.title AS coupon_title
+            FROM sr_coupon_claim_campaigns c
+            INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . ' ORDER BY c.id DESC
+            LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     return $stmt->fetchAll();
 }
@@ -1565,7 +1605,17 @@ function sr_coupon_admin_claim_campaign_definition_options(PDO $pdo, int $limit 
     return $stmt->fetchAll();
 }
 
-function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100): array
+function sr_coupon_admin_claim_log_filters(PDO $pdo, array $runtimeConfig): array
+{
+    return [
+        'status' => sr_admin_get_allowed_array('status', array_merge(sr_coupon_claim_log_statuses(), ['expired_unmaterialized']), 30),
+        'claim_source' => sr_admin_get_allowed_single_array('claim_source', array_merge(sr_coupon_claim_surfaces(), ['admin']), 40),
+        'campaign_q' => sr_coupon_clean_text(sr_get_string('campaign_q', 120), 120),
+        'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
+    ];
+}
+
+function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100, array $filters = []): array
 {
     if (!sr_coupon_claim_tables_available($pdo)) {
         return [];
@@ -1573,16 +1623,61 @@ function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100): array
 
     $limit = max(1, min(300, $limit));
     $now = sr_now();
-    $stmt = $pdo->query(
-        'SELECT l.*, c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title,
-                a.email AS account_email, a.display_name AS account_display_name
-         FROM sr_coupon_claim_logs l
-         INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
-         INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
-         LEFT JOIN sr_member_accounts a ON a.id = l.account_id
-         ORDER BY l.id DESC
-         LIMIT ' . $limit
-    );
+    $where = [];
+    $params = [];
+
+    $statusFilters = is_array($filters['status'] ?? null) ? array_values(array_map('strval', $filters['status'])) : [];
+    if ($statusFilters !== []) {
+        $statusConditions = [];
+        $materializedStatuses = array_values(array_filter($statusFilters, static fn (string $status): bool => $status !== 'expired_unmaterialized'));
+        if ($materializedStatuses !== []) {
+            [$condition, $conditionParams] = sr_admin_sql_in_condition('l.status', 'log_status', $materializedStatuses);
+            $statusConditions[] = $condition;
+            $params = array_merge($params, $conditionParams);
+        }
+        if (in_array('expired_unmaterialized', $statusFilters, true)) {
+            $statusConditions[] = "(l.status IN ('reserved', 'pending_payment') AND l.reserved_until IS NOT NULL AND l.reserved_until <> '' AND l.reserved_until < :claim_log_now)";
+            $params['claim_log_now'] = $now;
+        }
+        if ($statusConditions !== []) {
+            $where[] = '(' . implode(' OR ', $statusConditions) . ')';
+        }
+    }
+
+    if (($filters['claim_source'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('l.claim_source', 'claim_source', $filters['claim_source']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+
+    $keyword = sr_coupon_clean_text((string) ($filters['campaign_q'] ?? ''), 120);
+    if ($keyword !== '') {
+        $where[] = "(c.campaign_key LIKE :claim_log_keyword_like ESCAPE '\\\\' OR c.title LIKE :claim_log_keyword_like ESCAPE '\\\\' OR d.coupon_key LIKE :claim_log_keyword_like ESCAPE '\\\\' OR d.title LIKE :claim_log_keyword_like ESCAPE '\\\\')";
+        $params['claim_log_keyword_like'] = sr_coupon_like_keyword($keyword);
+    }
+
+    $accountFilter = is_array($filters['account'] ?? null) ? $filters['account'] : [];
+    $accountId = (int) ($accountFilter['account_id'] ?? 0);
+    if ($accountId > 0) {
+        $where[] = 'l.account_id = :claim_log_account_id';
+        $params['claim_log_account_id'] = $accountId;
+    } elseif (trim((string) ($accountFilter['keyword'] ?? '')) !== '') {
+        $where[] = '1 = 0';
+    }
+
+    $sql = 'SELECT l.id, l.campaign_id, l.coupon_definition_id, l.account_id, l.coupon_issue_id, l.dedupe_key,
+                   l.claim_source, l.status, l.reserved_until, l.failure_code, l.failure_message, l.created_at,
+                   c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title,
+                   a.email AS account_email, a.display_name AS account_display_name
+            FROM sr_coupon_claim_logs l
+            INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
+            INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
+            LEFT JOIN sr_member_accounts a ON a.id = l.account_id'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . ' ORDER BY l.id DESC
+            LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {

@@ -17,9 +17,7 @@ if ($requestPath === '/admin/coupons/issues') {
     $couponAdminPage = 'issues';
 } elseif ($requestPath === '/admin/coupons/redemptions') {
     $couponAdminPage = 'redemptions';
-} elseif ($requestPath === '/admin/coupons/campaigns') {
-    $couponAdminPage = 'campaigns';
-} elseif ($requestPath === '/admin/coupons/campaigns/new') {
+} elseif (in_array($requestPath, ['/admin/coupons/campaigns', '/admin/coupons/campaigns/logs', '/admin/coupons/campaigns/new'], true)) {
     $couponAdminPage = 'campaigns';
 }
 $account = sr_member_require_login($pdo);
@@ -432,6 +430,8 @@ if (sr_request_method() === 'POST') {
 $definitionFilters = $couponAdminPage === 'definitions' ? sr_coupon_admin_definition_filters($pdo) : [];
 $issueFilters = $couponAdminPage === 'issues' ? sr_coupon_admin_issue_filters($pdo, $runtimeConfig) : [];
 $redemptionFilters = $couponAdminPage === 'redemptions' ? sr_coupon_admin_redemption_filters($pdo, $runtimeConfig) : [];
+$claimCampaignFilters = $couponAdminPage === 'campaigns' && $requestPath === '/admin/coupons/campaigns' ? sr_coupon_admin_claim_campaign_filters() : [];
+$claimLogFilters = $couponAdminPage === 'campaigns' && $requestPath === '/admin/coupons/campaigns/logs' ? sr_coupon_admin_claim_log_filters($pdo, $runtimeConfig) : [];
 $definitionSort = $couponAdminPage === 'definitions' ? sr_admin_sort_from_request(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()) : sr_coupon_admin_definition_default_sort();
 $issueSort = $couponAdminPage === 'issues' ? sr_admin_sort_from_request(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()) : sr_coupon_admin_issue_default_sort();
 $redemptionSort = $couponAdminPage === 'redemptions' ? sr_admin_sort_from_request(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()) : sr_coupon_admin_redemption_default_sort();
@@ -439,7 +439,7 @@ $definitionPagination = sr_admin_pagination_meta(0, 1, 1);
 $issuePagination = sr_admin_pagination_meta(0, 1, 1);
 $redemptionPagination = sr_admin_pagination_meta(0, 1, 1);
 $definitions = [];
-if ($couponAdminPage === 'definitions' || $couponAdminPage === 'campaigns') {
+if ($couponAdminPage === 'definitions') {
     $definitionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_definition_count($pdo, $definitionFilters));
     $definitions = sr_coupon_admin_definitions($pdo, $definitionFilters, (int) $definitionPagination['per_page'], $definitionSort, sr_admin_pagination_offset($definitionPagination));
 }
@@ -473,20 +473,29 @@ if ($couponAdminPage === 'issues') {
     $redemptionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_redemption_count($pdo, $runtimeConfig, $redemptionFilters));
     $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, (int) $redemptionPagination['per_page'], $redemptionFilters, $redemptionSort, sr_admin_pagination_offset($redemptionPagination));
 } elseif ($couponAdminPage === 'campaigns') {
-    $claimCampaignScreen = $requestPath === '/admin/coupons/campaigns/new' ? 'new' : 'list';
-    $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
-    if ($claimCampaignScreen === 'list') {
-        $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
-        $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
+    if ($requestPath === '/admin/coupons/campaigns/new') {
+        $claimCampaignScreen = 'new';
+    } elseif ($requestPath === '/admin/coupons/campaigns/logs') {
+        $claimCampaignScreen = 'logs';
+    }
+    if ($claimCampaignScreen === 'new') {
+        $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
+    } elseif ($claimCampaignScreen === 'list') {
+        $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100, $claimCampaignFilters);
+    } elseif ($claimCampaignScreen === 'logs') {
+        $claimLogs = sr_coupon_admin_claim_logs($pdo, 100, $claimLogFilters);
     }
 }
-$claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300) : [];
+$claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' && $claimCampaignScreen !== 'logs'
+    ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300)
+    : [];
 $editClaimCampaign = null;
-if ($couponAdminPage === 'campaigns') {
+if ($couponAdminPage === 'campaigns' && $requestPath === '/admin/coupons/campaigns') {
     $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);
     if ($editClaimCampaignId > 0) {
         $claimCampaignScreen = 'edit';
         $editClaimCampaign = sr_coupon_claim_campaign_by_id($pdo, $editClaimCampaignId);
+        $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
         if (!is_array($editClaimCampaign)) {
             $errors[] = '수정할 발급 캠페인을 찾을 수 없습니다.';
         }
