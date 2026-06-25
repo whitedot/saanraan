@@ -397,6 +397,7 @@ foreach (array_keys($optionalModules) as $moduleKey) {
 $availableInstallModuleKeys = array_keys($requiredModules + $foundationModules + $optionalModules);
 foreach ($optionalModules as $moduleKey => $module) {
     $dependencyLabels = [];
+    $dependencyKeys = [];
     $dependencyErrors = [];
     foreach (sr_install_module_dependency_keys([(string) $moduleKey], $availableInstallModuleKeys, array_keys($requiredModules)) as $dependencyModuleKey) {
         if (isset($optionalModules[$dependencyModuleKey])) {
@@ -408,6 +409,7 @@ foreach ($optionalModules as $moduleKey => $module) {
             continue;
         }
 
+        $dependencyKeys[] = (string) $dependencyModuleKey;
         $dependencyLabels[] = (string) ($dependencyModule['label'] ?? $dependencyModuleKey);
         $dependencyModuleErrors = isset($dependencyModule['metadata_errors']) && is_array($dependencyModule['metadata_errors'])
             ? $dependencyModule['metadata_errors']
@@ -418,6 +420,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                 . (string) $dependencyModuleError;
         }
     }
+    $optionalModules[$moduleKey]['foundation_dependency_keys'] = array_values(array_unique($dependencyKeys));
     $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($dependencyLabels));
     $optionalModules[$moduleKey]['foundation_dependency_errors'] = array_values(array_unique($dependencyErrors));
 }

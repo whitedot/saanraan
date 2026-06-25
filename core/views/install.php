@@ -462,6 +462,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                                         <?php $moduleOwnErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                                         <?php $moduleFoundationErrors = isset($module['foundation_dependency_errors']) && is_array($module['foundation_dependency_errors']) ? $module['foundation_dependency_errors'] : []; ?>
                                         <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleFoundationErrors)))); ?>
+                                        <?php $moduleFoundationKeys = isset($module['foundation_dependency_keys']) && is_array($module['foundation_dependency_keys']) ? array_values(array_map('strval', $module['foundation_dependency_keys'])) : []; ?>
                                         <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
                                         <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
                                         <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
@@ -477,6 +478,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                                                     data-install-module-option
                                                     data-install-module-type="<?php echo sr_e((string) $sectionType); ?>"
                                                     data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
+                                                    data-install-required-module-keys="<?php echo sr_e(sr_js_json_encode($moduleFoundationKeys)); ?>"
                                                     data-install-foundation-labels="<?php echo sr_e(sr_js_json_encode($moduleFoundationLabels)); ?>"
                                                     <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                                     <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
@@ -956,6 +958,36 @@ foreach ($optionalModules as $moduleKey => $module) {
                 });
             }
 
+            function moduleOptionInputByKey(moduleKey) {
+                return moduleOptionInputs().find(function (input) {
+                    return input.value === moduleKey;
+                }) || null;
+            }
+
+            function requiredModuleKeys(input) {
+                try {
+                    return JSON.parse(input.getAttribute('data-install-required-module-keys') || '[]');
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function selectRequiredModules(input) {
+                if (!input || !input.checked || input.getAttribute('data-install-module-type') !== 'plugin') {
+                    return;
+                }
+
+                requiredModuleKeys(input).forEach(function (moduleKey) {
+                    var moduleInput = moduleOptionInputByKey(String(moduleKey || ''));
+                    if (!moduleInput || moduleInput.disabled || moduleInput.checked) {
+                        return;
+                    }
+
+                    moduleInput.checked = true;
+                    moduleInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }
+
             function syncModuleSelectAll() {
                 moduleSelectAllInputs.forEach(function (selectAllInput) {
                     var moduleType = selectAllInput.getAttribute('data-install-module-select-all-type') || '';
@@ -1024,10 +1056,13 @@ foreach ($optionalModules as $moduleKey => $module) {
 
             moduleOptionInputs().forEach(function (input) {
                 input.addEventListener('change', function () {
+                    selectRequiredModules(input);
                     syncModuleSelectAll();
                     updateSummary();
                 });
             });
+
+            moduleOptionInputs().forEach(selectRequiredModules);
 
             document.querySelectorAll('[data-install-step-target]').forEach(function (button) {
                 button.addEventListener('click', function () {
