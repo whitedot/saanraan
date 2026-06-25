@@ -1575,7 +1575,7 @@ function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100): array
     $now = sr_now();
     $stmt = $pdo->query(
         'SELECT l.*, c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title,
-                a.email AS account_email, a.login_id AS account_login_id, a.display_name AS account_display_name
+                a.email AS account_email, a.display_name AS account_display_name
          FROM sr_coupon_claim_logs l
          INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
          INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id

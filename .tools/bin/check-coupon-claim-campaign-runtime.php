@@ -56,13 +56,12 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
     $pdo->exec("CREATE TABLE sr_member_accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL DEFAULT '',
-        login_id TEXT NOT NULL DEFAULT '',
         display_name TEXT NOT NULL DEFAULT ''
     )");
-    $pdo->exec("INSERT INTO sr_member_accounts (id, email, login_id, display_name) VALUES
-        (7, 'member7@example.test', 'member7', '회원7'),
-        (8, 'member8@example.test', 'member8', '회원8'),
-        (10, 'member10@example.test', 'member10', '회원10')");
+    $pdo->exec("INSERT INTO sr_member_accounts (id, email, display_name) VALUES
+        (7, 'member7@example.test', '회원7'),
+        (8, 'member8@example.test', '회원8'),
+        (10, 'member10@example.test', '회원10')");
     $pdo->exec("CREATE TABLE sr_coupon_definitions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         coupon_key TEXT NOT NULL UNIQUE,

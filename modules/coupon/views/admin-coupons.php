@@ -346,9 +346,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $displayStatus = (string) ($log['display_status'] ?? $log['status'] ?? '');
                             $accountLabel = (string) ($log['account_display_name'] ?? '');
                             if ($accountLabel === '') {
-                                $accountLabel = (string) ($log['account_login_id'] ?? '');
-                            }
-                            if ($accountLabel === '') {
                                 $accountLabel = (string) ($log['account_email'] ?? '');
                             }
                             if ($accountLabel === '') {
