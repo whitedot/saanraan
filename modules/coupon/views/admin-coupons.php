@@ -938,9 +938,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tr>
             <?php } else { ?>
                 <?php foreach ($issues as $issue) { ?>
+                    <?php
+                    $issueId = (int) ($issue['id'] ?? 0);
+                    $canRefundPaidIssue = (string) ($issue['claim_type'] ?? '') === 'paid'
+                        && (string) ($issue['status'] ?? '') === 'active'
+                        && (int) ($issue['used_count'] ?? 0) === 0;
+                    $paidIssueRefundModalId = 'coupon-paid-issue-refund-modal-' . (string) $issueId;
+                    ?>
                     <tr>
                         <td><?php echo sr_e(sr_admin_member_display_name_preview($issue)); ?><br><?php echo sr_e(sr_admin_member_email_display($issue)); ?></td>
-                        <td><?php echo sr_e((string) $issue['title']); ?><br><code><?php echo sr_e((string) $issue['coupon_key']); ?></code></td>
+                        <td>
+                            <?php echo sr_e((string) $issue['title']); ?><br><code><?php echo sr_e((string) $issue['coupon_key']); ?></code>
+                            <?php if ((string) ($issue['claim_type'] ?? '') === 'paid') { ?>
+                                <br><small><?php echo sr_e('유료 발급 ' . number_format((int) ($issue['nominal_price_amount'] ?? 0)) . ' ' . (string) ($issue['nominal_price_currency_code'] ?? '')); ?></small>
+                            <?php } ?>
+                        </td>
                         <td><?php echo sr_e(sr_coupon_target_display((string) ($issue['target_type'] ?? ''), (string) ($issue['target_id'] ?? ''), $pdo)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['used_count']); ?></td>
@@ -955,6 +967,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input type="hidden" name="status" value="revoked">
                                         <button type="submit" class="btn btn-sm btn-solid-light">지급 취소</button>
                                     </form>
+                                    <?php if ($canRefundPaidIssue) { ?>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($paidIssueRefundModalId); ?>" data-overlay="#<?php echo sr_e($paidIssueRefundModalId); ?>">발급 환불</button>
+                                    <?php } ?>
                                 <?php } else { ?>
                                     <span class="text-muted">-</span>
                                 <?php } ?>
@@ -969,6 +984,58 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_status_description_list_html('coupon_issue_status', $issueStatusLabels); ?>
     <?php echo sr_admin_pagination_html($issuePagination, '쿠폰 지급 내역 목록 페이지'); ?>
 </section>
+<?php foreach (($issues ?? []) as $issue) { ?>
+    <?php
+    $issueId = (int) ($issue['id'] ?? 0);
+    $canRefundPaidIssue = (string) ($issue['claim_type'] ?? '') === 'paid'
+        && (string) ($issue['status'] ?? '') === 'active'
+        && (int) ($issue['used_count'] ?? 0) === 0;
+    if (!$canRefundPaidIssue) {
+        continue;
+    }
+    $paidIssueRefundModalId = 'coupon-paid-issue-refund-modal-' . (string) $issueId;
+    ?>
+    <div id="<?php echo sr_e($paidIssueRefundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($paidIssueRefundModalId); ?>_title" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="refund_paid_issue">
+                <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issueId); ?>">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($paidIssueRefundModalId); ?>_title" class="modal-title">유료 발급 환불</h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($paidIssueRefundModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <span class="form-label">쿠폰</span>
+                        <div class="form-field">
+                            <?php echo sr_e((string) ($issue['title'] ?? '')); ?> #<?php echo sr_e((string) $issueId); ?>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">환불 금액</span>
+                        <div class="form-field">
+                            <?php echo sr_e(number_format((int) ($issue['nominal_price_amount'] ?? 0)) . ' ' . (string) ($issue['nominal_price_currency_code'] ?? '')); ?>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="coupon_paid_issue_refund_note_<?php echo sr_e((string) $issueId); ?>">환불 사유 <span class="sr-required-label">(필수)</span></label>
+                        <div class="form-field">
+                            <input id="coupon_paid_issue_refund_note_<?php echo sr_e((string) $issueId); ?>" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-validation-message="환불 사유를 입력해 주세요." data-overlay-focus>
+                            <p class="form-help">발급본은 환급 완료 상태가 되고, 원 자산 차감 거래가 환불 거래로 복원됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($paidIssueRefundModalId); ?>">닫기</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">환불 실행</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 <?php } ?>
 
 <?php if ($couponAdminPage === 'redemptions') { ?>

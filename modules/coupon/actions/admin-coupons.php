@@ -366,6 +366,29 @@ if (sr_request_method() === 'POST') {
             $notice = '지급한 쿠폰 상태를 변경했습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons/issues');
+        } elseif ($intent === 'refund_paid_issue' && $couponAdminPage === 'issues') {
+            $issueId = sr_admin_post_positive_int('issue_id');
+            if ($issueId < 1) {
+                throw new InvalidArgumentException('환불할 지급 내역을 선택하세요.');
+            }
+            $refundNote = sr_post_string('refund_note', 255);
+            $refundResult = sr_coupon_refund_paid_issue_assets($pdo, $issueId, (int) $account['id'], $refundNote);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'coupon.issue.refunded',
+                'target_type' => 'coupon_issue',
+                'target_id' => (string) $issueId,
+                'result' => 'success',
+                'message' => 'Paid coupon issue refunded.',
+                'metadata' => [
+                    'refund_note' => $refundNote,
+                    'claim_log_id' => (int) ($refundResult['claim_log_id'] ?? 0),
+                    'refund_transactions' => $refundResult['refund_transactions'] ?? [],
+                ],
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], '유료 발급 쿠폰을 환불했습니다.'));
+            sr_redirect('/admin/coupons/issues');
         } elseif ($intent === 'refund_redemption' && $couponAdminPage === 'redemptions') {
             $redemptionId = sr_admin_post_positive_int('redemption_id');
             if ($redemptionId < 1) {

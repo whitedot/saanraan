@@ -1400,6 +1400,7 @@ function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, 
     }
 
     $sql = 'SELECT i.id, i.account_id, i.status, i.used_count, i.issued_at, i.expires_at,
+                   i.claim_type, i.nominal_price_amount, i.nominal_price_currency_code,
                    d.title, d.coupon_key, d.target_type, d.target_id,
                    a.display_name, a.email, a.status AS account_status
             FROM sr_coupon_issues i
