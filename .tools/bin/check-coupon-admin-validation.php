@@ -44,6 +44,11 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon definition save must require revoke_access capability for refundable target-specific coupons.';
     }
+    if (strpos($helper, "\$couponType !== 'access'") === false
+        || strpos($helper, '현재 쿠폰 사용 모델은 접근권 쿠폰만 지원합니다.') === false
+    ) {
+        $errors[] = 'Coupon definition save must reject unimplemented coupon use models server-side.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');

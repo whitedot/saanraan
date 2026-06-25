@@ -1609,8 +1609,15 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     $couponKey = sr_coupon_clean_key((string) ($data['coupon_key'] ?? ''));
     $title = sr_coupon_clean_text((string) ($data['title'] ?? ''), 120);
     $description = sr_coupon_clean_text((string) ($data['description'] ?? ''), 1000);
-    $status = in_array((string) ($data['status'] ?? 'active'), sr_coupon_statuses(), true) ? (string) $data['status'] : 'active';
+    $statusValue = (string) ($data['status'] ?? 'active');
+    $status = in_array($statusValue, sr_coupon_statuses(), true) ? $statusValue : 'active';
     $couponType = sr_coupon_clean_key((string) ($data['coupon_type'] ?? 'access'), 40);
+    if ($couponType === '') {
+        $couponType = 'access';
+    }
+    if ($couponType !== 'access') {
+        throw new InvalidArgumentException('현재 쿠폰 사용 모델은 접근권 쿠폰만 지원합니다.');
+    }
     $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types($pdo)) ? (string) $data['target_type'] : 'all';
     $targetId = sr_coupon_clean_text((string) ($data['target_id'] ?? ''), 80);
     $refundablePolicy = array_key_exists((string) ($data['refundable_policy'] ?? 'none'), sr_coupon_refundable_policies()) ? (string) $data['refundable_policy'] : 'none';
@@ -1654,7 +1661,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
         'title' => $title,
         'description' => $description,
         'status' => $status,
-        'coupon_type' => $couponType !== '' ? $couponType : 'access',
+        'coupon_type' => $couponType,
         'target_type' => $targetType,
         'target_id' => $targetId,
         'refundable_policy' => $refundablePolicy,

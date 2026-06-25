@@ -435,6 +435,21 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_create_schema($pdo);
 
     $now = sr_now();
+    try {
+        sr_coupon_create_definition($pdo, [
+            'coupon_key' => 'stored_value_attempt',
+            'title' => 'Stored value attempt',
+            'coupon_type' => 'stored_value',
+            'target_type' => 'all',
+            'refundable_policy' => 'none',
+            'max_uses_per_issue' => '1',
+        ]);
+        sr_coupon_runtime_assert(false, 'coupon definition save should reject unimplemented stored_value coupon model.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '접근권'), 'unimplemented coupon model failure should be user-facing.');
+    }
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'stored_value_attempt'")->fetchColumn() === 0, 'rejected coupon model should not create a coupon definition.');
+
     $pdo->prepare(
         "INSERT INTO sr_coupon_definitions
             (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
