@@ -2231,7 +2231,7 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
             }
         }
         if ($roundingPolicyVersion === '') {
-            $roundingPolicyVersion = 'asset_settlement_rounding_v1';
+            throw new RuntimeException('유료 쿠폰 발급 차감 스냅샷의 반올림 정책 버전을 확인할 수 없습니다.');
         }
 
         $issueId = sr_coupon_issue_to_account(

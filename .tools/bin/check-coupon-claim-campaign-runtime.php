@@ -214,6 +214,8 @@ function sr_coupon_claim_runtime_static_contract(): void
     sr_coupon_claim_runtime_assert(str_contains($helpers, 'sr_coupon_claim_campaign_by_key($pdo, $campaignKey, true)'), 'claim helpers must lock the campaign row before claim limit checks.');
     sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_public_claim_intent_token_matches(int $campaignId, int $accountId, string $token): bool'), 'public claim must expose a session-bound intent token verifier.');
     sr_coupon_claim_runtime_assert(str_contains($helpers, 'sr_coupon_public_claim_intent_key($campaignId, $accountId)'), 'public claim intent token storage must be bound to the current account and campaign.');
+    sr_coupon_claim_runtime_assert(!str_contains($helpers, "\$roundingPolicyVersion = 'asset_settlement_rounding_v1';"), 'paid claim helper must not hardcode settlement rounding metadata fallback.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, '반올림 정책 버전을 확인할 수 없습니다'), 'paid claim helper must fail closed when settlement allocations omit rounding metadata.');
     sr_coupon_claim_runtime_assert(str_contains((string) file_get_contents('modules/coupon/actions/coupons.php'), 'sr_coupon_public_claim_intent_token_matches'), 'public coupon claim POST must validate the session-bound intent token.');
     sr_coupon_claim_runtime_assert(str_contains($moduleGuide, 'campaign row를 `FOR UPDATE`로 잠근 뒤 발급 한도 검증'), 'module guide must document campaign row locking for coupon claims.');
     sr_coupon_claim_runtime_assert(str_contains($verificationStatus, 'campaign row `FOR UPDATE` 잠금 아래에서 한도 검증과 점유'), 'verification status must describe the claim campaign lock contract check.');
