@@ -2,8 +2,8 @@ dist/
 .claude/
 .env
 .env.*
-config/*
-storage/*
+/config/
+/storage/
 .tools/browser-qa/results/
 .tools/browser-qa/test-results/
 .tools/browser-qa/node_modules/

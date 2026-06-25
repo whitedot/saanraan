@@ -1,8 +1,0 @@
-config.php
-config.php.tmp
-config-*.tmp.php
-*.bak
-*.backup
-*.old
-*.orig
-*.tmp
