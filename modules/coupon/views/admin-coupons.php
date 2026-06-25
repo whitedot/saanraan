@@ -77,6 +77,8 @@ $editClaimCampaign = isset($editClaimCampaign) && is_array($editClaimCampaign) ?
 $editingClaimCampaign = $editClaimCampaign !== null;
 $claimCampaignForm = $editingClaimCampaign ? $editClaimCampaign : [];
 $claimCampaignFormSurfaces = sr_coupon_claim_surfaces_from_value($claimCampaignForm['exposure_surfaces_json'] ?? ['coupon_zone']);
+$claimCampaignAssetOptions = isset($claimCampaignAssetOptions) && is_array($claimCampaignAssetOptions) ? $claimCampaignAssetOptions : [];
+$claimCampaignAllowedAssets = sr_coupon_asset_module_keys_from_value($pdo, $claimCampaignForm['allowed_asset_modules_json'] ?? []);
 if ($claimCampaignFormSurfaces === []) {
     $claimCampaignFormSurfaces = ['coupon_zone'];
 }
@@ -186,6 +188,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="admin-form-field">
+                <label class="form-label" for="coupon_claim_campaign_claim_type">발급 유형 <span class="sr-required-label">(필수)</span></label>
+                <select id="coupon_claim_campaign_claim_type" name="claim_type" class="form-select" required>
+                    <?php foreach (sr_coupon_claim_types() as $claimTypeOption) { ?>
+                        <option value="<?php echo sr_e($claimTypeOption); ?>"<?php echo (string) ($claimCampaignForm['claim_type'] ?? 'free') === $claimTypeOption ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_claim_type_label($claimTypeOption)); ?></option>
+                    <?php } ?>
+                </select>
+                <?php if ($editingClaimCampaign) { ?>
+                    <p class="form-help">발급 로그가 생긴 캠페인의 발급 유형은 변경할 수 없습니다.</p>
+                <?php } ?>
+            </div>
+            <div class="admin-form-field">
+                <label class="form-label" for="coupon_claim_campaign_price_amount">유료 발급 가격</label>
+                <input id="coupon_claim_campaign_price_amount" type="number" name="price_amount" value="<?php echo isset($claimCampaignForm['price_amount']) && $claimCampaignForm['price_amount'] !== null ? sr_e((string) (int) $claimCampaignForm['price_amount']) : ''; ?>" class="form-input" min="1" max="999999999" step="1">
+                <p class="form-help">발급 유형이 유료일 때 필수입니다.</p>
+            </div>
+            <div class="admin-form-field">
+                <label class="form-label" for="coupon_claim_campaign_price_currency_code">유료 발급 통화</label>
+                <input id="coupon_claim_campaign_price_currency_code" type="text" name="price_currency_code" value="<?php echo sr_e((string) ($claimCampaignForm['price_currency_code'] ?? 'KRW')); ?>" class="form-input" maxlength="3" pattern="[A-Za-z]{3}" inputmode="latin" autocomplete="off">
+            </div>
+            <div class="admin-form-field">
                 <label class="form-label" for="coupon_claim_campaign_visibility">공개 여부 <span class="sr-required-label">(필수)</span></label>
                 <select id="coupon_claim_campaign_visibility" name="visibility" class="form-select" required>
                     <option value="hidden"<?php echo (string) ($claimCampaignForm['visibility'] ?? 'hidden') === 'hidden' ? ' selected' : ''; ?>>숨김</option>
@@ -213,6 +235,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="coupon_claim_campaign_ends_at">발급 종료</label>
                 <input id="coupon_claim_campaign_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e($claimCampaignFormDateTime((string) ($claimCampaignForm['ends_at'] ?? ''))); ?>" class="form-input">
             </div>
+        </div>
+        <div class="admin-form-field">
+            <span class="form-label">유료 발급 허용 포인트/금액 항목</span>
+            <?php if ($claimCampaignAssetOptions === []) { ?>
+                <p class="form-help">사용 가능한 포인트/금액 항목이 없습니다.</p>
+            <?php } else { ?>
+                <?php foreach ($claimCampaignAssetOptions as $assetModule => $assetOption) { ?>
+                    <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e((string) $assetModule); ?>"<?php echo in_array((string) $assetModule, $claimCampaignAllowedAssets, true) ? ' checked' : ''; ?>> <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?></label>
+                <?php } ?>
+                <p class="form-help">회원 선택은 강제 제약으로 처리합니다. 선택한 항목으로 부족하면 발급 전 실패합니다.</p>
+            <?php } ?>
         </div>
         <div class="admin-form-field">
             <span class="form-label">노출 위치 <span class="sr-required-label">(필수)</span></span>
@@ -251,6 +284,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>Key</th>
                             <th>제목</th>
                             <th>쿠폰</th>
+                            <th>유형</th>
                             <th>상태</th>
                             <th>공개</th>
                             <th>한도</th>
@@ -263,6 +297,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e((string) ($campaign['campaign_key'] ?? '')); ?></td>
                                 <td><?php echo sr_e((string) ($campaign['title'] ?? '')); ?></td>
                                 <td><?php echo sr_e((string) ($campaign['coupon_title'] ?? '')); ?></td>
+                                <td>
+                                    <?php echo sr_e(sr_coupon_claim_type_label((string) ($campaign['claim_type'] ?? 'free'))); ?>
+                                    <?php if ((string) ($campaign['claim_type'] ?? 'free') === 'paid') { ?>
+                                        <br><small><?php echo sr_e(number_format((int) ($campaign['price_amount'] ?? 0)) . ' ' . (string) ($campaign['price_currency_code'] ?? '')); ?> · <?php echo sr_e(sr_coupon_asset_module_labels($pdo, $campaign['allowed_asset_modules_json'] ?? '')); ?></small>
+                                    <?php } ?>
+                                </td>
                                 <td><?php echo sr_e(sr_coupon_claim_campaign_status_label((string) ($campaign['status'] ?? ''))); ?></td>
                                 <td><?php echo sr_e((string) ($campaign['visibility'] ?? '') === 'public' ? '공개' : '숨김'); ?></td>
                                 <td><?php echo (int) ($campaign['total_claim_limit'] ?? 0) > 0 ? sr_e(number_format((int) $campaign['total_claim_limit'])) : sr_e('제한 없음'); ?> / <?php echo sr_e('회원당 ' . number_format((int) ($campaign['per_account_limit'] ?? 1))); ?></td>

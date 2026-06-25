@@ -39,7 +39,20 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         module_key TEXT NOT NULL,
         status TEXT NOT NULL
     )");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled')");
+    $pdo->exec("CREATE TABLE sr_module_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_id INTEGER NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT NOT NULL,
+        value_type TEXT NOT NULL DEFAULT 'string'
+    )");
+    $pdo->exec("CREATE TABLE sr_site_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT NOT NULL,
+        value_type TEXT NOT NULL DEFAULT 'string'
+    )");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('point', 'enabled')");
     $pdo->exec("CREATE TABLE sr_member_accounts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL DEFAULT '',
@@ -116,6 +129,7 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         claim_type TEXT NOT NULL DEFAULT 'free',
         price_amount INTEGER,
         price_currency_code TEXT NOT NULL DEFAULT '',
+        allowed_asset_modules_json TEXT,
         starts_at TEXT,
         ends_at TEXT,
         issue_expires_in_days INTEGER,
@@ -353,6 +367,46 @@ function sr_coupon_claim_runtime_fixture(): void
     $edited = sr_coupon_claim_campaign_by_id($pdo, $editCampaignId);
     sr_coupon_claim_runtime_assert(is_array($edited) && (string) ($edited['campaign_key'] ?? '') === 'claim_edit_renamed', 'claim campaign edit should update key before claims exist.');
     sr_coupon_claim_runtime_assert(is_array($edited) && in_array('popup_layer', sr_coupon_claim_surfaces_from_value($edited['exposure_surfaces_json'] ?? ''), true), 'claim campaign edit should update exposure surfaces.');
+
+    $paidDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_paid_policy');
+    $paidCampaignId = sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_paid_policy',
+        'coupon_definition_id' => $paidDefinitionId,
+        'title' => 'Paid policy',
+        'status' => 'draft',
+        'claim_type' => 'paid',
+        'price_amount' => '120',
+        'price_currency_code' => 'krw',
+        'allowed_asset_modules' => ['point'],
+        'total_claim_limit' => 3,
+        'per_account_limit' => 2,
+        'visibility' => 'hidden',
+        'exposure_surfaces' => ['coupon_zone'],
+        'login_required' => 1,
+    ]);
+    $paidCampaign = sr_coupon_claim_campaign_by_id($pdo, $paidCampaignId);
+    sr_coupon_claim_runtime_assert(is_array($paidCampaign) && (string) ($paidCampaign['claim_type'] ?? '') === 'paid', 'paid claim campaign should persist claim type.');
+    sr_coupon_claim_runtime_assert((int) ($paidCampaign['price_amount'] ?? 0) === 120 && (string) ($paidCampaign['price_currency_code'] ?? '') === 'KRW', 'paid claim campaign should persist normalized price.');
+    sr_coupon_claim_runtime_assert(in_array('point', sr_coupon_asset_module_keys_from_value($pdo, $paidCampaign['allowed_asset_modules_json'] ?? ''), true), 'paid claim campaign should persist allowed asset modules.');
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_paid_without_asset',
+            'coupon_definition_id' => $paidDefinitionId,
+            'title' => 'Paid without asset',
+            'status' => 'draft',
+            'claim_type' => 'paid',
+            'price_amount' => '120',
+            'price_currency_code' => 'KRW',
+            'allowed_asset_modules' => [],
+            'per_account_limit' => 1,
+            'visibility' => 'hidden',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'paid claim campaign should require at least one allowed asset module.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '포인트/금액 항목'), 'paid allowed asset validation should be user-facing.');
+    }
 
     $editClaim = sr_coupon_claim_free_campaign($pdo, 'claim_edit_renamed', 10, 'edit-intent');
     sr_coupon_claim_runtime_assert(!empty($editClaim['claimed']), 'edited claim campaign should remain claimable.');

@@ -1615,3 +1615,9 @@ banner-2026.05.001.zip
 운영 액션용 wrapper는 상위 트랜잭션 안에서 호출하고, 항목별 SAVEPOINT로 회수 시도만 되돌린다. `asset_balance_low`만 비차단 미회수로 기록하며, unknown failure와 DB transaction abort 류는 상위로 전파한다. 미회수 큐는 `asset_ledger`의 공통 테이블이 소유하고, source 모듈은 원 지급 로그와 canonical reversal key를 넘기는 callback 책임을 가진다. 공통 큐는 원 지급 로그와 canonical reversal key를 기준으로 중복 row를 만들지 않는다.
 
 상위 트랜잭션 안에서 호출 가능한 자산 transaction function은 `!$pdo->inTransaction()`일 때만 자체 begin/commit을 열어야 한다. 파일 삭제, 썸네일 삭제, 외부 호출, 즉시 알림처럼 DB rollback으로 되돌릴 수 없는 부작용은 상위 트랜잭션 안에 두지 않거나, 실패 기록과 재시도 가능한 후처리로 분리한다.
+
+## 27. 쿠폰 유료 발급 캠페인
+
+유료 쿠폰 발급 캠페인은 `sr_coupon_claim_campaigns`에 무료/유료 발급 유형, 유료 가격/통화, 허용 포인트/금액 항목을 저장한다. 허용 포인트/금액 항목은 회원 선택의 강제 제약이며, 선택한 항목으로 부족하면 발급 전 실패한다.
+
+발급 로그가 생긴 캠페인은 발급 유형, 가격, 통화, 허용 포인트/금액 항목을 변경할 수 없다. 발급본은 `sr_coupon_issues`의 claim snapshot과 asset reference를 canonical 근거로 사용한다.

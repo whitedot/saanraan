@@ -71,7 +71,10 @@ if (sr_request_method() === 'POST') {
                 'title' => sr_post_string('title', 120),
                 'description' => sr_post_string('description', 1000),
                 'status' => sr_post_string('status', 30),
-                'claim_type' => 'free',
+                'claim_type' => sr_post_string('claim_type', 20),
+                'price_amount' => sr_post_string('price_amount', 20),
+                'price_currency_code' => sr_post_string('price_currency_code', 3),
+                'allowed_asset_modules' => $_POST['allowed_asset_modules'] ?? [],
                 'starts_at' => sr_post_string('starts_at', 30),
                 'ends_at' => sr_post_string('ends_at', 30),
                 'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
@@ -100,7 +103,10 @@ if (sr_request_method() === 'POST') {
                 'title' => sr_post_string('title', 120),
                 'description' => sr_post_string('description', 1000),
                 'status' => sr_post_string('status', 30),
-                'claim_type' => 'free',
+                'claim_type' => sr_post_string('claim_type', 20),
+                'price_amount' => sr_post_string('price_amount', 20),
+                'price_currency_code' => sr_post_string('price_currency_code', 3),
+                'allowed_asset_modules' => $_POST['allowed_asset_modules'] ?? [],
                 'starts_at' => sr_post_string('starts_at', 30),
                 'ends_at' => sr_post_string('ends_at', 30),
                 'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
@@ -430,6 +436,7 @@ $issues = [];
 $redemptions = [];
 $claimCampaigns = [];
 $claimLogs = [];
+$claimCampaignAssetOptions = [];
 if ($couponAdminPage === 'issues') {
     $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
     $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
@@ -439,6 +446,7 @@ if ($couponAdminPage === 'issues') {
 } elseif ($couponAdminPage === 'campaigns') {
     $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100);
     $claimLogs = sr_coupon_admin_claim_logs($pdo, 100);
+    $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
 }
 $claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300) : [];
 $editClaimCampaign = null;

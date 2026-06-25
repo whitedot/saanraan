@@ -188,6 +188,67 @@ function sr_coupon_claim_types(): array
     return ['free', 'paid'];
 }
 
+function sr_coupon_claim_type_label(string $claimType): string
+{
+    return match ($claimType) {
+        'paid' => '유료',
+        default => '무료',
+    };
+}
+
+function sr_coupon_asset_options(PDO $pdo): array
+{
+    if (!function_exists('sr_member_ledger_asset_definitions')) {
+        require_once SR_ROOT . '/modules/member/helpers/assets.php';
+    }
+
+    return sr_member_ledger_asset_definitions($pdo);
+}
+
+function sr_coupon_asset_module_keys_from_value(PDO $pdo, mixed $value): array
+{
+    $assetOptions = sr_coupon_asset_options($pdo);
+    $rawValues = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawValues)) {
+        $rawValues = preg_split('/[\s,]+/', (string) $value);
+    }
+
+    $selected = [];
+    foreach (is_array($rawValues) ? $rawValues : [] as $rawValue) {
+        $assetModule = sr_coupon_clean_key((string) $rawValue, 60);
+        if (isset($assetOptions[$assetModule])) {
+            $selected[$assetModule] = true;
+        }
+    }
+
+    $ordered = [];
+    foreach (array_keys($assetOptions) as $assetModule) {
+        if (isset($selected[$assetModule])) {
+            $ordered[] = $assetModule;
+        }
+    }
+
+    return $ordered;
+}
+
+function sr_coupon_asset_modules_json(array $assetModules): string
+{
+    $encoded = json_encode(array_values($assetModules), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return is_string($encoded) ? $encoded : '[]';
+}
+
+function sr_coupon_asset_module_labels(PDO $pdo, mixed $value): string
+{
+    $assetOptions = sr_coupon_asset_options($pdo);
+    $labels = [];
+    foreach (sr_coupon_asset_module_keys_from_value($pdo, $value) as $assetModule) {
+        $labels[] = (string) ($assetOptions[$assetModule]['label'] ?? $assetModule);
+    }
+
+    return $labels !== [] ? implode(', ', $labels) : '없음';
+}
+
 function sr_coupon_claim_surfaces(): array
 {
     return ['coupon_zone', 'direct_link', 'popup_layer', 'content_embed'];
@@ -406,9 +467,9 @@ function sr_coupon_create_claim_campaign(PDO $pdo, array $data): int
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_coupon_claim_campaigns
-            (campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
+            (campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, allowed_asset_modules_json, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
          VALUES
-            (:campaign_key, :coupon_definition_id, :title, :description, :status, :claim_type, :price_amount, :price_currency_code, :starts_at, :ends_at, :issue_expires_in_days, :issue_expires_at, :total_claim_limit, :per_account_limit, :visibility, :exposure_surfaces_json, :login_required, :created_at, :updated_at)'
+            (:campaign_key, :coupon_definition_id, :title, :description, :status, :claim_type, :price_amount, :price_currency_code, :allowed_asset_modules_json, :starts_at, :ends_at, :issue_expires_in_days, :issue_expires_at, :total_claim_limit, :per_account_limit, :visibility, :exposure_surfaces_json, :login_required, :created_at, :updated_at)'
     );
     $stmt->execute($payload);
 
@@ -428,10 +489,6 @@ function sr_coupon_update_claim_campaign(PDO $pdo, int $campaignId, array $data)
     if (!is_array($current)) {
         throw new InvalidArgumentException('수정할 발급 캠페인을 찾을 수 없습니다.');
     }
-    if ((string) ($current['claim_type'] ?? '') !== 'free') {
-        throw new InvalidArgumentException('유료 발급 캠페인 수정은 payment 계약 연동 후 처리합니다.');
-    }
-
     $payload = sr_coupon_claim_campaign_payload($pdo, $data, $current);
     $hasClaims = sr_coupon_claim_campaign_log_count($pdo, $campaignId) > 0;
     if ($hasClaims && (string) ($payload['campaign_key'] ?? '') !== (string) ($current['campaign_key'] ?? '')) {
@@ -439,6 +496,18 @@ function sr_coupon_update_claim_campaign(PDO $pdo, int $campaignId, array $data)
     }
     if ($hasClaims && (int) ($payload['coupon_definition_id'] ?? 0) !== (int) ($current['coupon_definition_id'] ?? 0)) {
         throw new InvalidArgumentException('발급 로그가 있는 캠페인의 연결 쿠폰은 변경할 수 없습니다.');
+    }
+    if ($hasClaims && (string) ($payload['claim_type'] ?? '') !== (string) ($current['claim_type'] ?? '')) {
+        throw new InvalidArgumentException('발급 로그가 있는 캠페인의 발급 유형은 변경할 수 없습니다.');
+    }
+    if ($hasClaims && (int) ($payload['price_amount'] ?? 0) !== (int) ($current['price_amount'] ?? 0)) {
+        throw new InvalidArgumentException('발급 로그가 있는 캠페인의 가격은 변경할 수 없습니다.');
+    }
+    if ($hasClaims && (string) ($payload['price_currency_code'] ?? '') !== (string) ($current['price_currency_code'] ?? '')) {
+        throw new InvalidArgumentException('발급 로그가 있는 캠페인의 통화는 변경할 수 없습니다.');
+    }
+    if ($hasClaims && (string) ($payload['allowed_asset_modules_json'] ?? '') !== (string) ($current['allowed_asset_modules_json'] ?? '')) {
+        throw new InvalidArgumentException('발급 로그가 있는 캠페인의 허용 포인트/금액 항목은 변경할 수 없습니다.');
     }
 
     $occupiedTotal = sr_coupon_claim_campaign_occupied_count($pdo, $campaignId);
@@ -462,6 +531,7 @@ function sr_coupon_update_claim_campaign(PDO $pdo, int $campaignId, array $data)
              claim_type = :claim_type,
              price_amount = :price_amount,
              price_currency_code = :price_currency_code,
+             allowed_asset_modules_json = :allowed_asset_modules_json,
              starts_at = :starts_at,
              ends_at = :ends_at,
              issue_expires_in_days = :issue_expires_in_days,
@@ -509,6 +579,21 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
     if (!in_array($claimType, sr_coupon_claim_types(), true)) {
         $claimType = 'free';
     }
+    $priceAmount = null;
+    $priceCurrencyCode = '';
+    $allowedAssetModulesJson = null;
+    if ($claimType === 'paid') {
+        $priceAmount = sr_coupon_claim_positive_int($data['price_amount'] ?? '', 999999999, '유료 발급 가격');
+        $priceCurrencyCode = strtoupper(sr_coupon_clean_key((string) ($data['price_currency_code'] ?? 'KRW'), 3));
+        if ($priceCurrencyCode === '') {
+            throw new InvalidArgumentException('유료 발급 통화를 입력하세요.');
+        }
+        $allowedAssetModules = sr_coupon_asset_module_keys_from_value($pdo, $data['allowed_asset_modules'] ?? []);
+        if ($allowedAssetModules === []) {
+            throw new InvalidArgumentException('유료 발급에 사용할 포인트/금액 항목을 하나 이상 선택하세요.');
+        }
+        $allowedAssetModulesJson = sr_coupon_asset_modules_json($allowedAssetModules);
+    }
 
     $perAccountLimit = sr_coupon_claim_positive_int($data['per_account_limit'] ?? '1', 1000, '회원당 발급 한도');
     $totalClaimLimit = sr_coupon_claim_optional_positive_int($data['total_claim_limit'] ?? '', 999999999, '총 발급 한도');
@@ -530,8 +615,9 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
         'description' => sr_coupon_clean_text((string) ($data['description'] ?? ''), 1000),
         'status' => $status,
         'claim_type' => $claimType,
-        'price_amount' => $claimType === 'paid' ? max(0, (int) ($data['price_amount'] ?? 0)) : null,
-        'price_currency_code' => strtoupper(sr_coupon_clean_key((string) ($data['price_currency_code'] ?? 'KRW'), 3)),
+        'price_amount' => $priceAmount,
+        'price_currency_code' => $priceCurrencyCode,
+        'allowed_asset_modules_json' => $allowedAssetModulesJson,
         'starts_at' => $startsAt,
         'ends_at' => $endsAt,
         'issue_expires_in_days' => sr_coupon_claim_optional_positive_int($data['issue_expires_in_days'] ?? '', 3650, '발급본 만료일수'),

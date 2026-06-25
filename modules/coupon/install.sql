@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS sr_coupon_claim_campaigns (
     claim_type VARCHAR(20) NOT NULL DEFAULT 'free',
     price_amount INT UNSIGNED NULL,
     price_currency_code VARCHAR(3) NOT NULL DEFAULT '',
+    allowed_asset_modules_json TEXT NULL,
     starts_at DATETIME NULL,
     ends_at DATETIME NULL,
     issue_expires_in_days INT UNSIGNED NULL,
