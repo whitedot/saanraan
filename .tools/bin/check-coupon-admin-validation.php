@@ -38,6 +38,12 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon target lookup results must expose capability and pricing summaries for admin selection.';
     }
+    if (strpos($helper, 'function sr_coupon_assert_refundable_target_contract(PDO $pdo, string $targetType, string $refundablePolicy): void') === false
+        || strpos($helper, 'sr_coupon_target_contract_has_capability($target, \'revoke_access\')') === false
+        || strpos($helper, '환급 가능 쿠폰은 접근권 회수를 지원하는 사용처에만 연결할 수 있습니다.') === false
+    ) {
+        $errors[] = 'Coupon definition save must require revoke_access capability for refundable target-specific coupons.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');

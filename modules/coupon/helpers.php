@@ -903,6 +903,19 @@ function sr_coupon_target_contracts_with_capabilities(PDO $pdo, array $requiredC
     );
 }
 
+function sr_coupon_assert_refundable_target_contract(PDO $pdo, string $targetType, string $refundablePolicy): void
+{
+    if ($refundablePolicy !== 'refundable' || $targetType === 'all') {
+        return;
+    }
+
+    $contracts = sr_coupon_target_contracts($pdo);
+    $target = $contracts[$targetType] ?? null;
+    if (!is_array($target) || !sr_coupon_target_contract_has_capability($target, 'revoke_access')) {
+        throw new InvalidArgumentException('환급 가능 쿠폰은 접근권 회수를 지원하는 사용처에만 연결할 수 있습니다.');
+    }
+}
+
 function sr_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
 {
     $contracts = sr_coupon_target_contracts($pdo);
@@ -1621,6 +1634,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     if ($title === '') {
         throw new InvalidArgumentException('쿠폰 키와 이름을 입력하세요.');
     }
+    sr_coupon_assert_refundable_target_contract($pdo, $targetType, $refundablePolicy);
 
     $stmt = $pdo->prepare('SELECT id FROM sr_coupon_definitions WHERE coupon_key = :coupon_key LIMIT 1');
     $stmt->execute(['coupon_key' => $couponKey]);
