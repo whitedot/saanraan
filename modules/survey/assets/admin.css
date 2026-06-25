@@ -6,52 +6,6 @@
     min-height: 7.5rem;
 }
 
-.admin-survey-form > section.card > .card-body {
-    display: grid;
-    gap: 0;
-}
-
-.admin-survey-form > section.card > .card-body > .form-grid,
-.admin-survey-form > section.card > .card-body > .form-grid.admin-survey-primary-grid {
-    display: grid;
-    gap: 0;
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.admin-survey-form > section.card > .card-body .form-field {
-    align-items: start;
-    border-bottom: 1px solid var(--sr-border-soft, var(--color-default-200));
-    column-gap: calc(var(--spacing) * 5);
-    display: grid;
-    grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr);
-    margin: 0;
-    padding-block: calc(var(--spacing) * 3);
-}
-
-.admin-survey-form > section.card > .card-body > .form-field:last-child,
-.admin-survey-form > section.card > .card-body > .form-grid:last-child > .form-field:last-child {
-    border-bottom-width: 0;
-}
-
-.admin-survey-form > section.card > .card-body .form-field > .form-label,
-.admin-survey-form > section.card > .card-body .form-field > .form-label-help {
-    align-self: center;
-    margin: 0;
-}
-
-.admin-survey-form > section.card > .card-body .form-field > .form-check.form-label {
-    grid-column: 2;
-}
-
-.admin-survey-form > section.card > .card-body .form-field > :not(.form-label):not(.form-label-help) {
-    grid-column: 2;
-}
-
-.admin-survey-form > section.card > .card-body .form-field > .form-help,
-.admin-survey-form > section.card > .card-body .form-field > .admin-checkbox-list {
-    margin-top: calc(var(--spacing) * 1.5);
-}
-
 .admin-survey-form .admin-checkbox-list {
     display: flex;
     flex-wrap: wrap;
@@ -183,14 +137,6 @@
     .admin-survey-statistics-filter-row {
         align-items: stretch;
         flex-direction: column;
-    }
-
-    .admin-survey-form > section.card > .card-body .form-field {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-survey-form > section.card > .card-body .form-field > :not(.form-label):not(.form-label-help) {
-        grid-column: 1;
     }
 
     .admin-survey-statistics-primary-filter {

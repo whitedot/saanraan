@@ -953,388 +953,474 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
         <section id="survey-section-basic" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
-            <div class="card-body">
-                <div class="form-grid admin-survey-primary-grid">
-                <div class="form-field">
+            <div class="form-grid">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('survey_key', '설문 Key', $surveyHelp['survey_key']['id'], $surveyHelpOpenLabel, true); ?>
-                    <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
+                    <div class="form-field">
+                        <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_title">제목 <span class="sr-required-label">(필수)</span></label>
-                    <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
-            </div>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_description">설명</label>
-                <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_cover_image_url">대표/OG 이미지</label>
-                <input id="survey_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
-                <p class="form-help">공개 설문 목록, 상세 화면 상단, 공유 미리보기에서 사용합니다. 비워 두면 공유 미리보기에는 사이트 기본 OG 이미지를 사용합니다.</p>
-                <input id="survey_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
-                <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_survey_cover_image_upload_max_bytes())); ?>.</p>
-                <?php if (sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
-                    <?php echo sr_admin_checkbox_toggle_html('survey_cover_image_delete', 'cover_image_delete', '1', false, '현재 대표/OG 이미지 삭제'); ?>
-                <?php } ?>
-            </div>
-            <div class="form-field">
-                <?php echo sr_admin_form_label_help_html('survey_skin_key', '스킨', $surveyHelp['display']['id'], $surveyHelpOpenLabel); ?>
-                <select id="survey_skin_key" name="skin_key" class="form-select">
-                    <option value="">환경설정 기본값 사용</option>
-                    <?php foreach (sr_survey_skin_options() as $skinKey => $skinLabel): ?>
-                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($values['skin_key'] ?? '') === (string) $skinKey ? ' selected' : ''; ?>><?php echo sr_e((string) $skinLabel); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <p class="form-help">설문 상세, 응답, 완료 화면에 사용할 출력 방식을 고릅니다.</p>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_research_purpose">연구 목적</label>
-                <textarea id="survey_research_purpose" name="research_purpose" class="form-textarea"><?php echo sr_e((string) ($values['research_purpose'] ?? '')); ?></textarea>
-                <p class="form-help">공개 화면과 응답 스냅샷에 남길 설문 목적입니다.</p>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                    <div class="form-field">
+                        <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_description">설명</label>
+                    <div class="form-field">
+                        <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_cover_image_url">대표/OG 이미지</label>
+                    <div class="form-field">
+                        <input id="survey_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                        <p class="form-help">공개 설문 목록, 상세 화면 상단, 공유 미리보기에서 사용합니다. 비워 두면 공유 미리보기에는 사이트 기본 OG 이미지를 사용합니다.</p>
+                        <input id="survey_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                        <p class="form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_survey_cover_image_upload_max_bytes())); ?>.</p>
+                        <?php if (sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
+                            <?php echo sr_admin_checkbox_toggle_html('survey_cover_image_delete', 'cover_image_delete', '1', false, '현재 대표/OG 이미지 삭제'); ?>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <?php echo sr_admin_form_label_help_html('survey_skin_key', '스킨', $surveyHelp['display']['id'], $surveyHelpOpenLabel); ?>
+                    <div class="form-field">
+                        <select id="survey_skin_key" name="skin_key" class="form-select">
+                            <option value="">환경설정 기본값 사용</option>
+                            <?php foreach (sr_survey_skin_options() as $skinKey => $skinLabel): ?>
+                                <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($values['skin_key'] ?? '') === (string) $skinKey ? ' selected' : ''; ?>><?php echo sr_e((string) $skinLabel); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="form-help">설문 상세, 응답, 완료 화면에 사용할 출력 방식을 고릅니다.</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_research_purpose">연구 목적</label>
+                    <div class="form-field">
+                        <textarea id="survey_research_purpose" name="research_purpose" class="form-textarea"><?php echo sr_e((string) ($values['research_purpose'] ?? '')); ?></textarea>
+                        <p class="form-help">공개 화면과 응답 스냅샷에 남길 설문 목적입니다.</p>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_target_population">대상자</label>
-                    <textarea id="survey_target_population" name="target_population" class="form-textarea"><?php echo sr_e((string) ($values['target_population'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_target_population" name="target_population" class="form-textarea"><?php echo sr_e((string) ($values['target_population'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_recruitment_method">모집 방법</label>
-                    <textarea id="survey_recruitment_method" name="recruitment_method" class="form-textarea"><?php echo sr_e((string) ($values['recruitment_method'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_recruitment_method" name="recruitment_method" class="form-textarea"><?php echo sr_e((string) ($values['recruitment_method'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_project_brief">프로젝트 개요</label>
-                <textarea id="survey_project_brief" name="project_brief" class="form-textarea"><?php echo sr_e((string) ($values['project_brief'] ?? '')); ?></textarea>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
+                    <label class="form-label" for="survey_project_brief">프로젝트 개요</label>
+                    <div class="form-field">
+                        <textarea id="survey_project_brief" name="project_brief" class="form-textarea"><?php echo sr_e((string) ($values['project_brief'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_sponsor_name">의뢰/후원</label>
-                    <input id="survey_sponsor_name" type="text" name="sponsor_name" value="<?php echo sr_e((string) ($values['sponsor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                    <div class="form-field">
+                        <input id="survey_sponsor_name" type="text" name="sponsor_name" value="<?php echo sr_e((string) ($values['sponsor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_research_region">조사 지역</label>
-                    <input id="survey_research_region" type="text" name="research_region" value="<?php echo sr_e((string) ($values['research_region'] ?? '')); ?>" class="form-input" maxlength="120">
+                    <div class="form-field">
+                        <input id="survey_research_region" type="text" name="research_region" value="<?php echo sr_e((string) ($values['research_region'] ?? '')); ?>" class="form-input" maxlength="120">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_research_language">조사 언어</label>
-                    <input id="survey_research_language" type="text" name="research_language" value="<?php echo sr_e((string) ($values['research_language'] ?? '')); ?>" class="form-input" maxlength="60">
+                    <div class="form-field">
+                        <input id="survey_research_language" type="text" name="research_language" value="<?php echo sr_e((string) ($values['research_language'] ?? '')); ?>" class="form-input" maxlength="60">
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_fieldwork_method">실사 방식</label>
-                    <input id="survey_fieldwork_method" type="text" name="fieldwork_method" value="<?php echo sr_e((string) ($values['fieldwork_method'] ?? '')); ?>" class="form-input" maxlength="120">
+                    <div class="form-field">
+                        <input id="survey_fieldwork_method" type="text" name="fieldwork_method" value="<?php echo sr_e((string) ($values['fieldwork_method'] ?? '')); ?>" class="form-input" maxlength="120">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_sample_method">표본 추출</label>
-                    <input id="survey_sample_method" type="text" name="sample_method" value="<?php echo sr_e((string) ($values['sample_method'] ?? '')); ?>" class="form-input" maxlength="190">
+                    <div class="form-field">
+                        <input id="survey_sample_method" type="text" name="sample_method" value="<?php echo sr_e((string) ($values['sample_method'] ?? '')); ?>" class="form-input" maxlength="190">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_target_sample_size">목표 표본 수</label>
-                    <input id="survey_target_sample_size" type="number" name="target_sample_size" value="<?php echo sr_e((string) ($values['target_sample_size'] ?? '')); ?>" class="form-input" min="0">
+                    <div class="form-field">
+                        <input id="survey_target_sample_size" type="number" name="target_sample_size" value="<?php echo sr_e((string) ($values['target_sample_size'] ?? '')); ?>" class="form-input" min="0">
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_sample_frame">표본틀</label>
-                    <textarea id="survey_sample_frame" name="sample_frame" class="form-textarea"><?php echo sr_e((string) ($values['sample_frame'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_sample_frame" name="sample_frame" class="form-textarea"><?php echo sr_e((string) ($values['sample_frame'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_quota_policy">쿼터/마감 기준</label>
-                    <textarea id="survey_quota_policy" name="quota_policy" class="form-textarea"><?php echo sr_e((string) ($values['quota_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_quota_policy" name="quota_policy" class="form-textarea"><?php echo sr_e((string) ($values['quota_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_response_rate_basis">응답률 산정 기준</label>
-                <textarea id="survey_response_rate_basis" name="response_rate_basis" class="form-textarea"><?php echo sr_e((string) ($values['response_rate_basis'] ?? '')); ?></textarea>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
+                    <label class="form-label" for="survey_response_rate_basis">응답률 산정 기준</label>
+                    <div class="form-field">
+                        <textarea id="survey_response_rate_basis" name="response_rate_basis" class="form-textarea"><?php echo sr_e((string) ($values['response_rate_basis'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_estimated_minutes">예상 소요 시간</label>
-                    <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
-                    <p class="form-help">분 단위로 입력합니다.</p>
+                    <div class="form-field">
+                        <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
+                        <p class="form-help">분 단위로 입력합니다.</p>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_organizer_name">주관자</label>
-                    <input id="survey_organizer_name" type="text" name="organizer_name" value="<?php echo sr_e((string) ($values['organizer_name'] ?? '')); ?>" class="form-input" maxlength="120">
+                    <div class="form-field">
+                        <input id="survey_organizer_name" type="text" name="organizer_name" value="<?php echo sr_e((string) ($values['organizer_name'] ?? '')); ?>" class="form-input" maxlength="120">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_contact_text">문의처</label>
-                    <input id="survey_contact_text" type="text" name="contact_text" value="<?php echo sr_e((string) ($values['contact_text'] ?? '')); ?>" class="form-input" maxlength="190">
+                    <div class="form-field">
+                        <input id="survey_contact_text" type="text" name="contact_text" value="<?php echo sr_e((string) ($values['contact_text'] ?? '')); ?>" class="form-input" maxlength="190">
+                    </div>
                 </div>
-            </div>
-            <div class="form-field">
-                <?php echo sr_admin_form_label_help_html('survey_status', '상태', $surveyHelp['status']['id'], $surveyHelpOpenLabel, true); ?>
-                <select id="survey_status" name="status" class="form-select" required>
-                    <?php foreach (sr_survey_statuses() as $status): ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
+                    <?php echo sr_admin_form_label_help_html('survey_status', '상태', $surveyHelp['status']['id'], $surveyHelpOpenLabel, true); ?>
+                    <div class="form-field">
+                        <select id="survey_status" name="status" class="form-select" required>
+                            <?php foreach (sr_survey_statuses() as $status): ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_starts_at">공개 시작일시</label>
-                    <input id="survey_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
+                    <div class="form-field">
+                        <input id="survey_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_ends_at">공개 종료일시</label>
-                    <input id="survey_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
+                    <div class="form-field">
+                        <input id="survey_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
-                    <label class="form-check form-label" for="survey_login_required">
-                        <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                        필수
-                    </label>
-                    <p class="form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
-                </div>
-                <div class="form-field">
-                    <label class="form-check form-label" for="survey_anonymous_allowed">
-                        <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        허용
-                    </label>
-                </div>
-                <div class="form-field">
-                    <label class="form-check form-label" for="survey_public_listed">
-                        <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                        노출
-                    </label>
-                </div>
-            </div>
-            <div class="form-field">
-                <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 대상 회원 그룹', $surveyHelp['member_groups']['id']); ?><span>참여 대상 회원 그룹</span></div>
-                <div class="admin-checkbox-list">
-                    <?php if ($memberGroups === []): ?>
-                        <p class="form-help">선택 가능한 회원 그룹이 없습니다.</p>
-                    <?php endif; ?>
-                    <?php foreach ($memberGroups as $memberGroup): ?>
-                        <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
-                        <label class="form-check form-label">
-                            <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
-                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
+                <div class="form-row">
+                    <span class="form-label">로그인 필요</span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_login_required">
+                            <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                            필수
                         </label>
-                    <?php endforeach; ?>
+                        <p class="form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
+                    </div>
                 </div>
-                <p class="form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
-            </div>
-            <div class="form-field">
-                <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
-                <label class="form-check form-label" for="survey_comments_enabled">
-                    <input id="survey_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    사용
-                </label>
-                <label class="form-check form-label" for="survey_secret_comments_enabled">
-                    <input id="survey_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    허용
-                </label>
-                <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
+                    <span class="form-label">익명 응답</span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_anonymous_allowed">
+                            <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            허용
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">공개 목록</span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_public_listed">
+                            <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                            노출
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 대상 회원 그룹', $surveyHelp['member_groups']['id']); ?><span>참여 대상 회원 그룹</span></div>
+                    <div class="form-field">
+                        <div class="admin-checkbox-list">
+                            <?php if ($memberGroups === []): ?>
+                                <p class="form-help">선택 가능한 회원 그룹이 없습니다.</p>
+                            <?php endif; ?>
+                            <?php foreach ($memberGroups as $memberGroup): ?>
+                                <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
+                                <label class="form-check form-label">
+                                    <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
+                                    <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_comments_enabled">
+                            <input id="survey_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            사용
+                        </label>
+                        <label class="form-check form-label" for="survey_secret_comments_enabled">
+                            <input id="survey_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            비밀 댓글 허용
+                        </label>
+                        <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_reaction_preset_key">설문 리액션 프리셋</label>
-                    <select id="survey_reaction_preset_key" name="reaction_preset_key" class="form-select">
-                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
-                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용합니다.</p>
+                    <div class="form-field">
+                        <select id="survey_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                            <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
+                                <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용합니다.</p>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_reaction_comment_preset_key">댓글 리액션 프리셋</label>
-                    <select id="survey_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
-                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
-                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
+                    <div class="form-field">
+                        <select id="survey_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                            <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
+                                <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('survey_response_limit_policy', '응답 제한', $surveyHelp['response_limit']['id'], $surveyHelpOpenLabel); ?>
-                    <select id="survey_response_limit_policy" name="response_limit_policy" class="form-select">
-                        <?php foreach (sr_survey_response_limit_policies() as $limitPolicy): ?>
-                            <option value="<?php echo sr_e($limitPolicy); ?>"<?php echo (string) ($values['response_limit_policy'] ?? 'per_survey_once') === $limitPolicy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($limitPolicy)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="form-field">
+                        <select id="survey_response_limit_policy" name="response_limit_policy" class="form-select">
+                            <?php foreach (sr_survey_response_limit_policies() as $limitPolicy): ?>
+                                <option value="<?php echo sr_e($limitPolicy); ?>"<?php echo (string) ($values['response_limit_policy'] ?? 'per_survey_once') === $limitPolicy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($limitPolicy)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_response_limit_period_seconds">제한 기간</label>
-                    <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
-                    <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                    <div class="form-field">
+                        <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
+                        <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_robots_policy">검색 로봇</label>
-                    <select id="survey_robots_policy" name="robots_policy" class="form-select">
-                        <option value="auto"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'auto' ? ' selected' : ''; ?>>자동</option>
-                        <option value="index"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'index' ? ' selected' : ''; ?>>색인 허용</option>
-                        <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
-                    </select>
+                    <div class="form-field">
+                        <select id="survey_robots_policy" name="robots_policy" class="form-select">
+                            <option value="auto"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'auto' ? ' selected' : ''; ?>>자동</option>
+                            <option value="index"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'index' ? ' selected' : ''; ?>>색인 허용</option>
+                            <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
         </section>
         <section id="survey-section-disclosure" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">분석·공표·윤리</h2></div>
-        <div class="card-body">
             <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_analysis_plan">분석 계획</label>
-                    <textarea id="survey_analysis_plan" name="analysis_plan" class="form-textarea"><?php echo sr_e((string) ($values['analysis_plan'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_analysis_plan" name="analysis_plan" class="form-textarea"><?php echo sr_e((string) ($values['analysis_plan'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_weighting_policy">가중치 기준</label>
-                    <textarea id="survey_weighting_policy" name="weighting_policy" class="form-textarea"><?php echo sr_e((string) ($values['weighting_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_weighting_policy" name="weighting_policy" class="form-textarea"><?php echo sr_e((string) ($values['weighting_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_margin_error_note">오차/한계</label>
-                    <textarea id="survey_margin_error_note" name="margin_error_note" class="form-textarea"><?php echo sr_e((string) ($values['margin_error_note'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_margin_error_note" name="margin_error_note" class="form-textarea"><?php echo sr_e((string) ($values['margin_error_note'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_methodology_disclosure">방법론 공표 문구</label>
-                    <textarea id="survey_methodology_disclosure" name="methodology_disclosure" class="form-textarea"><?php echo sr_e((string) ($values['methodology_disclosure'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_methodology_disclosure" name="methodology_disclosure" class="form-textarea"><?php echo sr_e((string) ($values['methodology_disclosure'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_ethics_note">윤리 검토</label>
-                    <textarea id="survey_ethics_note" name="ethics_note" class="form-textarea"><?php echo sr_e((string) ($values['ethics_note'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_ethics_note" name="ethics_note" class="form-textarea"><?php echo sr_e((string) ($values['ethics_note'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_sensitive_data_policy">민감정보 기준</label>
-                    <textarea id="survey_sensitive_data_policy" name="sensitive_data_policy" class="form-textarea"><?php echo sr_e((string) ($values['sensitive_data_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_sensitive_data_policy" name="sensitive_data_policy" class="form-textarea"><?php echo sr_e((string) ($values['sensitive_data_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_recontact_policy">재연락 기준</label>
-                    <textarea id="survey_recontact_policy" name="recontact_policy" class="form-textarea"><?php echo sr_e((string) ($values['recontact_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_recontact_policy" name="recontact_policy" class="form-textarea"><?php echo sr_e((string) ($values['recontact_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_withdrawal_policy">철회 기준</label>
-                    <textarea id="survey_withdrawal_policy" name="withdrawal_policy" class="form-textarea"><?php echo sr_e((string) ($values['withdrawal_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_withdrawal_policy" name="withdrawal_policy" class="form-textarea"><?php echo sr_e((string) ($values['withdrawal_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_vendor_name">외부 패널/벤더</label>
-                    <input id="survey_vendor_name" type="text" name="vendor_name" value="<?php echo sr_e((string) ($values['vendor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                    <div class="form-field">
+                        <input id="survey_vendor_name" type="text" name="vendor_name" value="<?php echo sr_e((string) ($values['vendor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_external_channel_policy">외부 채널 기준</label>
-                    <textarea id="survey_external_channel_policy" name="external_channel_policy" class="form-textarea"><?php echo sr_e((string) ($values['external_channel_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_external_channel_policy" name="external_channel_policy" class="form-textarea"><?php echo sr_e((string) ($values['external_channel_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_invite_token_policy">초대 토큰 기준</label>
-                    <textarea id="survey_invite_token_policy" name="invite_token_policy" class="form-textarea"><?php echo sr_e((string) ($values['invite_token_policy'] ?? '')); ?></textarea>
+                    <div class="form-field">
+                        <textarea id="survey_invite_token_policy" name="invite_token_policy" class="form-textarea"><?php echo sr_e((string) ($values['invite_token_policy'] ?? '')); ?></textarea>
+                    </div>
                 </div>
             </div>
-        </div>
         </section>
         <section id="survey-section-qa" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">QA·버전</h2></div>
-        <div class="card-body">
             <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_qa_status">QA 상태</label>
-                    <select id="survey_qa_status" name="qa_status" class="form-select">
-                        <?php foreach (sr_survey_qa_statuses() as $statusKey): ?>
-                            <option value="<?php echo sr_e($statusKey); ?>"<?php echo (string) ($values['qa_status'] ?? 'unchecked') === $statusKey ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_qa_status_label($statusKey)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="form-field">
+                        <select id="survey_qa_status" name="qa_status" class="form-select">
+                            <?php foreach (sr_survey_qa_statuses() as $statusKey): ?>
+                                <option value="<?php echo sr_e($statusKey); ?>"<?php echo (string) ($values['qa_status'] ?? 'unchecked') === $statusKey ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_qa_status_label($statusKey)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
-                    <label class="form-label">설문지 버전</label>
-                    <p class="form-help"><?php echo sr_e((string) (int) ($values['questionnaire_version'] ?? 1)); ?></p>
+                <div class="form-row">
+                    <span class="form-label">설문지 버전</span>
+                    <div class="form-field">
+                        <p class="form-help"><?php echo sr_e((string) (int) ($values['questionnaire_version'] ?? 1)); ?></p>
+                    </div>
                 </div>
-                <div class="form-field">
-                    <label class="form-check form-label" for="survey_revision_locked">
-                        <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        잠금
-                    </label>
+                <div class="form-row">
+                    <span class="form-label">수정 잠금</span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_revision_locked">
+                            <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            잠금
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_qa_note">QA 메모</label>
+                    <div class="form-field">
+                        <textarea id="survey_qa_note" name="qa_note" class="form-textarea"><?php echo sr_e((string) ($values['qa_note'] ?? '')); ?></textarea>
+                    </div>
                 </div>
             </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_qa_note">QA 메모</label>
-                <textarea id="survey_qa_note" name="qa_note" class="form-textarea"><?php echo sr_e((string) ($values['qa_note'] ?? '')); ?></textarea>
-            </div>
-        </div>
         </section>
         <section id="survey-section-consent" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
-        <div class="card-body">
-            <div class="form-field">
-                <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
-                <label class="form-check form-label" for="survey_consent_required">
-                    <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    필수
-                </label>
+            <div class="form-grid">
+                <div class="form-row">
+                    <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_consent_required">
+                            <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            필수
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_consent_text">동의 문구</label>
+                    <div class="form-field">
+                        <textarea id="survey_consent_text" name="consent_text" class="form-textarea"><?php echo sr_e((string) ($values['consent_text'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_privacy_notice">개인정보 안내</label>
+                    <div class="form-field">
+                        <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
+                    </div>
+                </div>
             </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_consent_text">동의 문구</label>
-                <textarea id="survey_consent_text" name="consent_text" class="form-textarea"><?php echo sr_e((string) ($values['consent_text'] ?? '')); ?></textarea>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_privacy_notice">개인정보 안내</label>
-                <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
-            </div>
-        </div>
         </section>
         <section id="survey-section-reward" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">보상</h2></div>
-        <div class="card-body">
-            <div class="form-field">
-                <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
-                <label class="form-check form-label" for="survey_reward_enabled">
-                    <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    지급
-                </label>
-            </div>
             <div class="form-grid">
-                <div class="form-field">
+                <div class="form-row">
+                    <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="survey_reward_enabled">
+                            <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            지급
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_reward_provider">보상 공급자</label>
-                    <?php $policyProvider = is_array($editPolicy) ? (string) ($editPolicy['reward_provider'] ?? 'ledger_asset') : 'ledger_asset'; ?>
-                    <select id="survey_reward_provider" name="reward_provider" class="form-select">
-                        <option value="ledger_asset"<?php echo $policyProvider === 'ledger_asset' ? ' selected' : ''; ?>>포인트/금액</option>
-                        <option value="coupon"<?php echo $policyProvider === 'coupon' ? ' selected' : ''; ?>>쿠폰</option>
-                    </select>
+                    <div class="form-field">
+                        <?php $policyProvider = is_array($editPolicy) ? (string) ($editPolicy['reward_provider'] ?? 'ledger_asset') : 'ledger_asset'; ?>
+                        <select id="survey_reward_provider" name="reward_provider" class="form-select">
+                            <option value="ledger_asset"<?php echo $policyProvider === 'ledger_asset' ? ' selected' : ''; ?>>포인트/금액</option>
+                            <option value="coupon"<?php echo $policyProvider === 'coupon' ? ' selected' : ''; ?>>쿠폰</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_reward_module">보상 자산</label>
-                    <select id="survey_reward_module" name="reward_module" class="form-select">
-                        <option value="">선택</option>
-                        <?php foreach ($assetOptions as $moduleKey => $asset): ?>
-                            <option value="<?php echo sr_e((string) $moduleKey); ?>"<?php echo is_array($editPolicy) && (string) ($editPolicy['reward_module'] ?? '') === (string) $moduleKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($asset['label'] ?? $moduleKey)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="form-field">
+                        <select id="survey_reward_module" name="reward_module" class="form-select">
+                            <option value="">선택</option>
+                            <?php foreach ($assetOptions as $moduleKey => $asset): ?>
+                                <option value="<?php echo sr_e((string) $moduleKey); ?>"<?php echo is_array($editPolicy) && (string) ($editPolicy['reward_module'] ?? '') === (string) $moduleKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($asset['label'] ?? $moduleKey)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_reward_amount">보상 금액</label>
-                    <input id="survey_reward_amount" type="number" name="reward_amount" value="<?php echo sr_e((string) (int) (is_array($editPolicy) ? ($editPolicy['reward_amount'] ?? 0) : 0)); ?>" class="form-input" min="0">
+                    <div class="form-field">
+                        <input id="survey_reward_amount" type="number" name="reward_amount" value="<?php echo sr_e((string) (int) (is_array($editPolicy) ? ($editPolicy['reward_amount'] ?? 0) : 0)); ?>" class="form-input" min="0">
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_reward_coupon_definition_id">보상 쿠폰</label>
-                    <select id="survey_reward_coupon_definition_id" name="reward_coupon_definition_id" class="form-select">
-                        <option value="">선택</option>
-                        <?php foreach ($couponDefinitions as $definition): ?>
-                            <option value="<?php echo sr_e((string) (int) $definition['id']); ?>"<?php echo is_array($editPolicy) && (string) ($editPolicy['reward_code'] ?? '') === (string) (int) $definition['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $definition['title']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="form-field">
+                        <select id="survey_reward_coupon_definition_id" name="reward_coupon_definition_id" class="form-select">
+                            <option value="">선택</option>
+                            <?php foreach ($couponDefinitions as $definition): ?>
+                                <option value="<?php echo sr_e((string) (int) $definition['id']); ?>"<?php echo is_array($editPolicy) && (string) ($editPolicy['reward_code'] ?? '') === (string) (int) $definition['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $definition['title']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-field">
+                <div class="form-row">
                     <label class="form-label" for="survey_reward_dedupe_scope">중복 지급 기준</label>
-                    <?php $policyScope = is_array($editPolicy) ? (string) ($editPolicy['dedupe_scope'] ?? 'per_survey') : 'per_survey'; ?>
-                    <select id="survey_reward_dedupe_scope" name="reward_dedupe_scope" class="form-select">
-                        <option value="per_survey"<?php echo $policyScope === 'per_survey' ? ' selected' : ''; ?>>설문당 1회</option>
-                        <option value="per_response"<?php echo $policyScope === 'per_response' ? ' selected' : ''; ?>>응답마다</option>
-                    </select>
+                    <div class="form-field">
+                        <?php $policyScope = is_array($editPolicy) ? (string) ($editPolicy['dedupe_scope'] ?? 'per_survey') : 'per_survey'; ?>
+                        <select id="survey_reward_dedupe_scope" name="reward_dedupe_scope" class="form-select">
+                            <option value="per_survey"<?php echo $policyScope === 'per_survey' ? ' selected' : ''; ?>>설문당 1회</option>
+                            <option value="per_response"<?php echo $policyScope === 'per_response' ? ' selected' : ''; ?>>응답마다</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
         </section>
         <section id="survey-section-questions" class="card admin-list-card admin-list-form admin-survey-question-list-card" data-admin-section-anchor>
             <div class="card-header">
