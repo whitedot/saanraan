@@ -2744,6 +2744,184 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
     }
 }
 
+function sr_coupon_asset_refund_reference_id(string $assetModule, int $transactionId): string
+{
+    return sr_coupon_clean_key($assetModule, 60) . '_transaction:' . (string) $transactionId;
+}
+
+function sr_coupon_refund_paid_issue_assets(PDO $pdo, int $issueId, int $adminAccountId, string $refundNote): array
+{
+    $refundNote = sr_coupon_clean_text($refundNote, 255);
+    if ($issueId <= 0) {
+        throw new InvalidArgumentException('환불할 쿠폰 발급본을 선택하세요.');
+    }
+    if ($adminAccountId <= 0) {
+        throw new InvalidArgumentException('관리자 계정을 확인할 수 없습니다.');
+    }
+    if ($refundNote === '') {
+        throw new InvalidArgumentException('환불 사유를 입력하세요.');
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT i.*, d.title AS coupon_title
+             FROM sr_coupon_issues i
+             INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+             WHERE i.id = :id
+             LIMIT 1'
+            . sr_coupon_for_update_clause($pdo)
+        );
+        $stmt->execute(['id' => $issueId]);
+        $issue = $stmt->fetch();
+        if (!is_array($issue)) {
+            throw new InvalidArgumentException('쿠폰 발급본을 찾을 수 없습니다.');
+        }
+        if ((string) ($issue['claim_type'] ?? '') !== 'paid') {
+            throw new InvalidArgumentException('유료 발급 쿠폰만 자산 환불할 수 있습니다.');
+        }
+        if ((string) ($issue['status'] ?? '') === 'refunded') {
+            throw new InvalidArgumentException('이미 환불된 쿠폰입니다.');
+        }
+        if ((int) ($issue['used_count'] ?? 0) > 0 || (string) ($issue['status'] ?? '') === 'used') {
+            throw new InvalidArgumentException('이미 사용된 쿠폰은 발급 환불할 수 없습니다.');
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT COUNT(*) AS redemption_count
+             FROM sr_coupon_redemptions
+             WHERE coupon_issue_id = :issue_id
+               AND status = 'redeemed'"
+        );
+        $stmt->execute(['issue_id' => $issueId]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            throw new InvalidArgumentException('사용 이력이 있는 쿠폰은 발급 환불할 수 없습니다.');
+        }
+
+        $claimLog = null;
+        $claimLogId = (int) ($issue['claim_log_id'] ?? 0);
+        if ($claimLogId > 0) {
+            $stmt = $pdo->prepare(
+                'SELECT *
+                 FROM sr_coupon_claim_logs
+                 WHERE id = :id
+                 LIMIT 1'
+                . sr_coupon_for_update_clause($pdo)
+            );
+            $stmt->execute(['id' => $claimLogId]);
+            $claimLogRow = $stmt->fetch();
+            $claimLog = is_array($claimLogRow) ? $claimLogRow : null;
+        }
+
+        $snapshot = json_decode((string) ($issue['claim_snapshot_json'] ?? ''), true);
+        $allocations = is_array($snapshot) ? (array) ($snapshot['charged_allocations'] ?? []) : [];
+        if ($allocations === []) {
+            throw new InvalidArgumentException('환불할 자산 차감 스냅샷이 없습니다.');
+        }
+
+        $refundTransactions = [];
+        foreach ($allocations as $allocation) {
+            if (!is_array($allocation)) {
+                continue;
+            }
+            $assetModule = sr_coupon_clean_key((string) ($allocation['asset_module'] ?? ''), 60);
+            $amount = (int) ($allocation['amount'] ?? $allocation['asset_amount'] ?? 0);
+            $sourceTransactionId = (int) ($allocation['transaction_id'] ?? 0);
+            if ($assetModule === '' || $amount <= 0 || $sourceTransactionId <= 0) {
+                throw new InvalidArgumentException('환불할 자산 차감 스냅샷이 올바르지 않습니다.');
+            }
+
+            $transactionData = [
+                'account_id' => (int) ($issue['account_id'] ?? 0),
+                'amount' => $amount,
+                'transaction_type' => 'refund',
+                'reason' => '유료 쿠폰 발급 환불: ' . (string) ($issue['coupon_title'] ?? ''),
+                'reference_type' => 'refund',
+                'reference_id' => sr_coupon_asset_refund_reference_id($assetModule, $sourceTransactionId),
+                'created_by_account_id' => $adminAccountId,
+            ];
+            if ($assetModule === 'point') {
+                $transactionData['refund_expiration_policy'] = 'original';
+            }
+
+            $refundTransactionId = sr_coupon_asset_transaction($pdo, $assetModule, $transactionData);
+            $refundTransactions[] = [
+                'asset_module' => $assetModule,
+                'source_transaction_id' => $sourceTransactionId,
+                'refund_transaction_id' => $refundTransactionId,
+                'amount' => $amount,
+            ];
+        }
+        if ($refundTransactions === []) {
+            throw new InvalidArgumentException('환불할 자산 차감 스냅샷이 없습니다.');
+        }
+
+        $now = sr_now();
+        $stmt = $pdo->prepare(
+            "UPDATE sr_coupon_issues
+             SET status = 'refunded',
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status <> 'refunded'"
+        );
+        $stmt->execute([
+            'updated_at' => $now,
+            'id' => $issueId,
+        ]);
+        if ($stmt->rowCount() !== 1) {
+            throw new InvalidArgumentException('이미 환불된 쿠폰입니다.');
+        }
+
+        if (is_array($claimLog)) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_coupon_claim_logs
+                 SET status = 'cancelled',
+                     occupying_account_id = NULL,
+                     failure_code = :failure_code,
+                     failure_message = :failure_message,
+                     updated_at = :updated_at
+                 WHERE id = :id"
+            );
+            $stmt->execute([
+                'failure_code' => 'refunded',
+                'failure_message' => $refundNote,
+                'updated_at' => $now,
+                'id' => (int) ($claimLog['id'] ?? 0),
+            ]);
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        sr_coupon_notify_issue_event($pdo, $issueId, 'issue.refunded', $adminAccountId, [
+            'refund_note' => $refundNote,
+            'refunded_at' => $now,
+            'refund_transactions' => $refundTransactions,
+            'status_label' => sr_coupon_issue_status_label('refunded'),
+        ]);
+
+        return [
+            'coupon_issue_id' => $issueId,
+            'coupon_definition_id' => (int) ($issue['coupon_definition_id'] ?? 0),
+            'account_id' => (int) ($issue['account_id'] ?? 0),
+            'claim_log_id' => $claimLogId,
+            'refunded_at' => $now,
+            'refund_transactions' => $refundTransactions,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+}
+
 function sr_coupon_refunded_dedupe_key(int $redemptionId, string $originalDedupeKey): string
 {
     return 'refunded:' . (string) $redemptionId . ':' . substr(sha1($originalDedupeKey), 0, 24);

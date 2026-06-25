@@ -1621,3 +1621,5 @@ banner-2026.05.001.zip
 유료 쿠폰 발급 캠페인은 `sr_coupon_claim_campaigns`에 무료/유료 발급 유형, 유료 가격/통화, 허용 포인트/금액 항목을 저장한다. 허용 포인트/금액 항목은 회원 선택의 강제 제약이며, 선택한 항목으로 부족하면 발급 전 실패한다.
 
 발급 로그가 생긴 캠페인은 발급 유형, 가격, 통화, 허용 포인트/금액 항목을 변경할 수 없다. 발급본은 `sr_coupon_issues`의 claim snapshot과 asset reference를 canonical 근거로 사용한다.
+
+유료 발급본 환불은 사용 이력이 없는 발급본에만 적용한다. 환불 helper는 발급본과 claim log 점유 row를 먼저 잠근 뒤 claim snapshot의 charged allocation에 들어 있는 원 자산 거래를 `refund` 거래로 되돌리고, 발급본을 `refunded`, claim log를 `cancelled`로 전이해 총 한도와 회원당 한도 점유를 반환한다.

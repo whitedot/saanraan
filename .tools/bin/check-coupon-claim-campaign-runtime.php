@@ -436,6 +436,23 @@ function sr_coupon_claim_runtime_fixture(): void
     $paidSnapshot = json_decode((string) ($paidIssue['claim_snapshot_json'] ?? ''), true);
     sr_coupon_claim_runtime_assert((string) ($paidIssue['claim_type'] ?? '') === 'paid' && (int) ($paidIssue['nominal_price_amount'] ?? 0) === 120 && (string) ($paidIssue['nominal_price_currency_code'] ?? '') === 'KRW', 'paid claim issue should freeze nominal price.');
     sr_coupon_claim_runtime_assert(is_array($paidSnapshot) && ($paidSnapshot['settlement_kind'] ?? '') === 'asset' && count((array) ($paidSnapshot['charged_allocations'] ?? [])) === 1, 'paid claim issue should freeze charged allocation snapshot.');
+    $refundResult = sr_coupon_refund_paid_issue_assets($pdo, (int) $paidClaim['coupon_issue_id'], 99, 'paid issue refund');
+    sr_coupon_claim_runtime_assert(count($refundResult['refund_transactions'] ?? []) === 1, 'paid issue refund should create one asset refund transaction.');
+    $paidRefundPointRow = sr_coupon_claim_runtime_row($pdo, 'SELECT amount, balance_after, transaction_type, reference_type, reference_id FROM sr_point_transactions WHERE account_id = 7 ORDER BY id DESC LIMIT 1');
+    sr_coupon_claim_runtime_assert((int) ($paidRefundPointRow['amount'] ?? 0) === 120 && (int) ($paidRefundPointRow['balance_after'] ?? 0) === 500 && (string) ($paidRefundPointRow['transaction_type'] ?? '') === 'refund', 'paid issue refund should restore the deducted asset.');
+    sr_coupon_claim_runtime_assert((string) ($paidRefundPointRow['reference_type'] ?? '') === 'refund' && str_starts_with((string) ($paidRefundPointRow['reference_id'] ?? ''), 'point_transaction:'), 'paid issue refund should reference the original asset transaction.');
+    $refundedIssue = sr_coupon_claim_runtime_row($pdo, 'SELECT status FROM sr_coupon_issues WHERE id = :id', ['id' => $paidClaim['coupon_issue_id']]);
+    $refundedClaimLog = sr_coupon_claim_runtime_row($pdo, 'SELECT status, occupying_account_id FROM sr_coupon_claim_logs WHERE id = :id', ['id' => $paidClaim['claim_log_id']]);
+    sr_coupon_claim_runtime_assert((string) ($refundedIssue['status'] ?? '') === 'refunded', 'paid issue refund should mark the issue refunded.');
+    sr_coupon_claim_runtime_assert((string) ($refundedClaimLog['status'] ?? '') === 'cancelled' && $refundedClaimLog['occupying_account_id'] === null, 'paid issue refund should release claim occupancy.');
+    try {
+        sr_coupon_refund_paid_issue_assets($pdo, (int) $paidClaim['coupon_issue_id'], 99, 'again');
+        sr_coupon_claim_runtime_assert(false, 'paid issue refund should reject duplicate refunds.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '이미'), 'paid issue duplicate refund failure should be user-facing.');
+    }
+    $paidReclaim = sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-b', ['point']);
+    sr_coupon_claim_runtime_assert(!empty($paidReclaim['claimed']) && (int) ($paidReclaim['coupon_issue_id'] ?? 0) !== (int) ($paidClaim['coupon_issue_id'] ?? 0), 'paid issue refund should allow a new paid claim with a new nonce after slot release.');
     $claimLogsBeforeFailure = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn();
     try {
         sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 8, 'paid-insufficient', ['point']);
