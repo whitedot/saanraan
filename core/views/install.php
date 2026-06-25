@@ -334,10 +334,10 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                     <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.text.f039b723')); ?></p>
                     <div class="sr-install-note-box">
                         <strong>로그인 정책</strong>
-                        <p>이메일 로그인은 항상 허용됩니다. 로그인 아이디를 입력하면 아이디로도 로그인할 수 있습니다.</p>
+                        <p>현재 회원 모듈은 이메일 로그인을 항상 허용하고, 로그인 아이디를 입력한 계정은 아이디 로그인도 함께 허용합니다.</p>
                     </div>
                     <div class="sr-install-field-grid">
-                        <p>
+                        <p class="sr-install-field-full">
                             <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.login.2a15bdbd')); ?></span>
                             <strong><?php echo sr_e(sr_t('ui.email.login.d1f22b60')); ?></strong>
                             <input type="hidden" name="member_login_identifier" value="both">
