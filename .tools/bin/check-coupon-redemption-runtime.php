@@ -553,12 +553,12 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($refund['issue_status'] ?? '') === 'active', 'refund should reactivate an issue that was used only because max uses was reached.');
     sr_coupon_runtime_assert((string) ($refund['original_dedupe_key'] ?? '') === 'content:view:42:account:7:intent:abc', 'refund result should preserve original dedupe key.');
     sr_coupon_runtime_assert(str_starts_with((string) ($refund['refunded_dedupe_key'] ?? ''), 'refunded:'), 'refund should move redemption to a refunded dedupe namespace.');
-    sr_coupon_runtime_assert((int) ($refund['revoked_access_count'] ?? -1) === 2, 'refund should revoke content and community coupon access entitlements through target contracts.');
+    sr_coupon_runtime_assert((int) ($refund['revoked_access_count'] ?? -1) === 1, 'refund should revoke only the redemption target access entitlement.');
 
     $refundedOriginalVisible = sr_coupon_has_redemption($pdo, 7, 'content:view:42:account:7:intent:abc');
     sr_coupon_runtime_assert(!$refundedOriginalVisible, 'refunded redemption should not satisfy active redemption lookup for original dedupe key.');
     sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_access_entitlements')->fetchColumn() === 0, 'content coupon entitlement should be removed after refund.');
-    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_access_entitlements')->fetchColumn() === 0, 'community coupon entitlement should be removed after refund.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_access_entitlements')->fetchColumn() === 1, 'content redemption refund should not revoke unrelated community entitlements with the same dedupe key.');
 
     $afterRefund = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => (int) ($firstRedemption['id'] ?? 0)]);
     sr_coupon_runtime_assert((string) ($afterRefund['status'] ?? '') === 'refunded', 'refund should mark redemption as refunded.');
