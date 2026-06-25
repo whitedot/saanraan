@@ -569,6 +569,50 @@ function sr_coupon_runtime_fixture(): void
         "INSERT INTO sr_coupon_definitions
             (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
          VALUES
+            ('missing_revoke_contract', 'Missing revoke contract', '', 'active', 'access', 'missing_revoke', '1', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $missingRevokeDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'used', 'fixture', NULL, :issued_at, NULL, 1, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $missingRevokeDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $missingRevokeIssueId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_redemptions
+            (coupon_issue_id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, dedupe_key, status, redeemed_at, created_at)
+         VALUES
+            (:issue_id, :definition_id, 7, 'missing_revoke', '1', 'legacy', 'legacy.access', '1', 'missing-revoke-dedupe', 'redeemed', :redeemed_at, :created_at)"
+    )->execute([
+        'issue_id' => $missingRevokeIssueId,
+        'definition_id' => $missingRevokeDefinitionId,
+        'redeemed_at' => $now,
+        'created_at' => $now,
+    ]);
+    $missingRevokeRedemptionId = (int) $pdo->lastInsertId();
+    try {
+        sr_coupon_refund_redemption($pdo, $missingRevokeRedemptionId, 1, 'missing revoke refund');
+        sr_coupon_runtime_assert(false, 'coupon refund should fail when the redemption target has no revoke contract.');
+    } catch (RuntimeException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '회수 계약'), 'coupon refund missing revoke contract failure should be user-facing.');
+    }
+    $missingRevokeRedemption = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => $missingRevokeRedemptionId]);
+    $missingRevokeIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $missingRevokeIssueId]);
+    sr_coupon_runtime_assert((string) ($missingRevokeRedemption['status'] ?? '') === 'redeemed', 'missing revoke contract refund should keep redemption active.');
+    sr_coupon_runtime_assert((string) ($missingRevokeRedemption['dedupe_key'] ?? '') === 'missing-revoke-dedupe', 'missing revoke contract refund should keep original dedupe key.');
+    sr_coupon_runtime_assert((string) ($missingRevokeRedemption['refund_note'] ?? '') === '', 'missing revoke contract refund should not persist refund note.');
+    sr_coupon_runtime_assert((string) ($missingRevokeIssue['status'] ?? '') === 'used' && (int) ($missingRevokeIssue['used_count'] ?? -1) === 1, 'missing revoke contract refund should roll back issue status and used_count.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
             ('content_priority', 'Content priority coupon', '', 'active', 'access', 'content', '77', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
     )->execute(['created_at' => $now, 'updated_at' => $now]);
     $priorityDefinitionId = (int) $pdo->lastInsertId();
