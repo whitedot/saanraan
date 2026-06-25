@@ -153,6 +153,9 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         payment_reference_module TEXT NOT NULL DEFAULT '',
         payment_reference_type TEXT NOT NULL DEFAULT '',
         payment_reference_id TEXT NOT NULL DEFAULT '',
+        asset_reference_module TEXT NOT NULL DEFAULT '',
+        asset_reference_type TEXT NOT NULL DEFAULT '',
+        asset_reference_id TEXT NOT NULL DEFAULT '',
         dedupe_key TEXT NOT NULL,
         dedupe_hash TEXT NOT NULL,
         occupying_account_id INTEGER,
@@ -467,6 +470,9 @@ function sr_coupon_claim_runtime_fixture(): void
     $paidAgain = sr_coupon_claim_paid_campaign_with_asset($pdo, 'claim_paid_policy', 7, 'paid-intent-a', ['point']);
     sr_coupon_claim_runtime_assert(!empty($paidAgain['already_claimed']) && (int) ($paidAgain['coupon_issue_id'] ?? 0) === (int) ($paidClaim['coupon_issue_id'] ?? 0), 'same paid nonce should converge to existing issue.');
     sr_coupon_claim_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_point_transactions WHERE reference_type = 'coupon_claim'")->fetchColumn() === 1, 'same paid nonce must not deduct twice.');
+    $paidClaimLog = sr_coupon_claim_runtime_row($pdo, 'SELECT payment_reference_module, payment_reference_type, payment_reference_id, asset_reference_module, asset_reference_type, asset_reference_id FROM sr_coupon_claim_logs WHERE id = :id', ['id' => $paidClaim['claim_log_id']]);
+    sr_coupon_claim_runtime_assert((string) ($paidClaimLog['payment_reference_module'] ?? '') === '' && (string) ($paidClaimLog['payment_reference_type'] ?? '') === '' && (string) ($paidClaimLog['payment_reference_id'] ?? '') === '', 'paid claim log must not overload payment reference fields for asset deduction.');
+    sr_coupon_claim_runtime_assert((string) ($paidClaimLog['asset_reference_module'] ?? '') === 'coupon' && (string) ($paidClaimLog['asset_reference_type'] ?? '') === 'paid_claim' && (int) ($paidClaimLog['asset_reference_id'] ?? 0) === (int) ($paidClaim['claim_log_id'] ?? 0), 'paid claim log should store asset reference fields.');
     $paidIssue = sr_coupon_claim_runtime_row($pdo, 'SELECT claim_type, nominal_price_amount, nominal_price_currency_code, claim_snapshot_json FROM sr_coupon_issues WHERE id = :id', ['id' => $paidClaim['coupon_issue_id']]);
     $paidSnapshot = json_decode((string) ($paidIssue['claim_snapshot_json'] ?? ''), true);
     sr_coupon_claim_runtime_assert((string) ($paidIssue['claim_type'] ?? '') === 'paid' && (int) ($paidIssue['nominal_price_amount'] ?? 0) === 120 && (string) ($paidIssue['nominal_price_currency_code'] ?? '') === 'KRW', 'paid claim issue should freeze nominal price.');

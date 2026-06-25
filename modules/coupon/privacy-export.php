@@ -50,8 +50,12 @@ return static function (PDO $pdo, int $accountId): array {
 
     $claimLogs = [];
     if (sr_coupon_claim_tables_available($pdo)) {
+        $claimLogAssetReferenceColumns = sr_coupon_claim_log_asset_reference_columns_available($pdo)
+            ? 'l.asset_reference_module, l.asset_reference_type, l.asset_reference_id'
+            : '\'\' AS asset_reference_module, \'\' AS asset_reference_type, \'\' AS asset_reference_id';
         $stmt = $pdo->prepare(
             'SELECT l.id, l.claim_source, l.payment_reference_module, l.payment_reference_type, l.payment_reference_id,
+                    ' . $claimLogAssetReferenceColumns . ',
                     l.status, l.reserved_until, l.failure_code, l.failure_message, l.created_at, l.issued_at,
                     c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title
              FROM sr_coupon_claim_logs l

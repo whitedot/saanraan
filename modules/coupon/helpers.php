@@ -301,6 +301,23 @@ function sr_coupon_claim_tables_available(PDO $pdo): bool
     }
 }
 
+function sr_coupon_claim_log_asset_reference_columns_available(PDO $pdo): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT asset_reference_module, asset_reference_type, asset_reference_id FROM sr_coupon_claim_logs LIMIT 1');
+        $available = $stmt !== false;
+    } catch (Throwable) {
+        $available = false;
+    }
+
+    return $available;
+}
+
 function sr_coupon_claim_dedupe_hash(string $dedupeKey): string
 {
     return hash('sha256', $dedupeKey);
@@ -2196,26 +2213,33 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
             ]
         );
 
-        $stmt = $pdo->prepare(
-            "UPDATE sr_coupon_claim_logs
+        $claimLogUpdateSql = "UPDATE sr_coupon_claim_logs
              SET coupon_issue_id = :coupon_issue_id,
-                 payment_reference_module = :payment_reference_module,
-                 payment_reference_type = :payment_reference_type,
-                 payment_reference_id = :payment_reference_id,
                  status = 'issued',
                  issued_at = :issued_at,
-                 updated_at = :updated_at
-             WHERE id = :id"
-        );
-        $stmt->execute([
+                 updated_at = :updated_at";
+        $claimLogUpdateParams = [
             'coupon_issue_id' => $issueId,
-            'payment_reference_module' => 'coupon',
-            'payment_reference_type' => 'paid_claim',
-            'payment_reference_id' => (string) $claimLogId,
             'issued_at' => sr_now(),
             'updated_at' => sr_now(),
             'id' => $claimLogId,
-        ]);
+        ];
+        if (sr_coupon_claim_log_asset_reference_columns_available($pdo)) {
+            $claimLogUpdateSql .= ",
+                 asset_reference_module = :asset_reference_module,
+                 asset_reference_type = :asset_reference_type,
+                 asset_reference_id = :asset_reference_id,
+                 payment_reference_module = '',
+                 payment_reference_type = '',
+                 payment_reference_id = ''";
+            $claimLogUpdateParams['asset_reference_module'] = 'coupon';
+            $claimLogUpdateParams['asset_reference_type'] = 'paid_claim';
+            $claimLogUpdateParams['asset_reference_id'] = (string) $claimLogId;
+        }
+        $claimLogUpdateSql .= '
+             WHERE id = :id';
+        $stmt = $pdo->prepare($claimLogUpdateSql);
+        $stmt->execute($claimLogUpdateParams);
 
         if ($startedTransaction) {
             $pdo->commit();
