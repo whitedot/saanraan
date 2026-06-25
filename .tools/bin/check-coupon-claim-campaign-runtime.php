@@ -73,6 +73,15 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         status TEXT NOT NULL DEFAULT 'active',
         issued_reason TEXT NOT NULL DEFAULT '',
         issued_by_account_id INTEGER,
+        claim_type TEXT NOT NULL DEFAULT 'manual',
+        claim_campaign_id INTEGER,
+        claim_log_id INTEGER,
+        nominal_price_amount INTEGER NOT NULL DEFAULT 0,
+        nominal_price_currency_code TEXT NOT NULL DEFAULT '',
+        asset_reference_module TEXT NOT NULL DEFAULT '',
+        asset_reference_type TEXT NOT NULL DEFAULT '',
+        asset_reference_id TEXT NOT NULL DEFAULT '',
+        claim_snapshot_json TEXT,
         issued_at TEXT NOT NULL,
         expires_at TEXT,
         used_count INTEGER NOT NULL DEFAULT 0,
@@ -193,6 +202,17 @@ function sr_coupon_claim_runtime_fixture(): void
     sr_coupon_claim_runtime_assert(!empty($again['already_claimed']) && (int) $again['coupon_issue_id'] === (int) $first['coupon_issue_id'], 'same intent token should return the existing issued coupon.');
     sr_coupon_claim_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn() === 1, 'same intent token must not create another claim log.');
     sr_coupon_claim_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_issues')->fetchColumn() === 1, 'same intent token must not create another coupon issue.');
+    $issuedRow = sr_coupon_claim_runtime_row(
+        $pdo,
+        'SELECT claim_type, claim_campaign_id, claim_log_id, nominal_price_amount, claim_snapshot_json FROM sr_coupon_issues WHERE id = :id',
+        ['id' => $first['coupon_issue_id']]
+    );
+    $claimSnapshot = json_decode((string) ($issuedRow['claim_snapshot_json'] ?? ''), true);
+    sr_coupon_claim_runtime_assert(($issuedRow['claim_type'] ?? '') === 'free', 'free campaign issue must freeze claim_type on the issue row.');
+    sr_coupon_claim_runtime_assert((int) ($issuedRow['claim_campaign_id'] ?? 0) === $campaignId, 'free campaign issue must freeze claim campaign id.');
+    sr_coupon_claim_runtime_assert((int) ($issuedRow['claim_log_id'] ?? 0) === (int) $first['claim_log_id'], 'free campaign issue must link the claim log.');
+    sr_coupon_claim_runtime_assert((int) ($issuedRow['nominal_price_amount'] ?? -1) === 0, 'free campaign issue must freeze zero nominal price.');
+    sr_coupon_claim_runtime_assert(is_array($claimSnapshot) && ($claimSnapshot['schema_version'] ?? '') === 'coupon_claim_snapshot_v1' && ($claimSnapshot['settlement_kind'] ?? '') === 'free', 'free campaign issue must store a claim snapshot.');
 
     try {
         sr_coupon_claim_free_campaign($pdo, 'claim_free', 7, 'intent-b');

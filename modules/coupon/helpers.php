@@ -1512,7 +1512,7 @@ function sr_coupon_update_definition_status(PDO $pdo, int $definitionId, string 
     ]);
 }
 
-function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId, string $reason = '', ?int $issuedByAccountId = null, ?string $expiresAt = null): int
+function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId, string $reason = '', ?int $issuedByAccountId = null, ?string $expiresAt = null, array $claimContext = []): int
 {
     if ($definitionId <= 0 || $accountId <= 0) {
         throw new InvalidArgumentException('쿠폰 종류와 지급할 회원을 선택해 주세요.');
@@ -1524,11 +1524,23 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
     }
 
     $now = sr_now();
+    $claimType = sr_coupon_clean_key((string) ($claimContext['claim_type'] ?? 'manual'), 20);
+    if (!in_array($claimType, ['manual', 'free', 'paid', 'admin'], true)) {
+        $claimType = 'manual';
+    }
+    $snapshotJson = null;
+    if (isset($claimContext['claim_snapshot_json']) && is_string($claimContext['claim_snapshot_json'])) {
+        $snapshotJson = $claimContext['claim_snapshot_json'];
+    } elseif (isset($claimContext['claim_snapshot']) && is_array($claimContext['claim_snapshot'])) {
+        $encodedSnapshot = json_encode($claimContext['claim_snapshot'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $snapshotJson = is_string($encodedSnapshot) ? $encodedSnapshot : null;
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO sr_coupon_issues
-            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, claim_type, claim_campaign_id, claim_log_id, nominal_price_amount, nominal_price_currency_code, asset_reference_module, asset_reference_type, asset_reference_id, claim_snapshot_json, issued_at, expires_at, used_count, created_at, updated_at)
          VALUES
-            (:coupon_definition_id, :account_id, :status, :issued_reason, :issued_by_account_id, :issued_at, :expires_at, 0, :created_at, :updated_at)'
+            (:coupon_definition_id, :account_id, :status, :issued_reason, :issued_by_account_id, :claim_type, :claim_campaign_id, :claim_log_id, :nominal_price_amount, :nominal_price_currency_code, :asset_reference_module, :asset_reference_type, :asset_reference_id, :claim_snapshot_json, :issued_at, :expires_at, 0, :created_at, :updated_at)'
     );
     $stmt->execute([
         'coupon_definition_id' => $definitionId,
@@ -1536,6 +1548,15 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
         'status' => 'active',
         'issued_reason' => sr_coupon_clean_text($reason, 255),
         'issued_by_account_id' => $issuedByAccountId !== null && $issuedByAccountId > 0 ? $issuedByAccountId : null,
+        'claim_type' => $claimType,
+        'claim_campaign_id' => isset($claimContext['claim_campaign_id']) && (int) $claimContext['claim_campaign_id'] > 0 ? (int) $claimContext['claim_campaign_id'] : null,
+        'claim_log_id' => isset($claimContext['claim_log_id']) && (int) $claimContext['claim_log_id'] > 0 ? (int) $claimContext['claim_log_id'] : null,
+        'nominal_price_amount' => max(0, (int) ($claimContext['nominal_price_amount'] ?? 0)),
+        'nominal_price_currency_code' => strtoupper(sr_coupon_clean_key((string) ($claimContext['nominal_price_currency_code'] ?? ''), 3)),
+        'asset_reference_module' => sr_coupon_clean_key((string) ($claimContext['asset_reference_module'] ?? ''), 60),
+        'asset_reference_type' => sr_coupon_clean_text((string) ($claimContext['asset_reference_type'] ?? ''), 80),
+        'asset_reference_id' => sr_coupon_clean_text((string) ($claimContext['asset_reference_id'] ?? ''), 120),
+        'claim_snapshot_json' => $snapshotJson,
         'issued_at' => $now,
         'expires_at' => $expiresAt,
         'created_at' => $now,
@@ -1807,7 +1828,25 @@ function sr_coupon_claim_free_campaign(PDO $pdo, string $campaignKey, int $accou
             $accountId,
             'claim_campaign:' . (string) ($campaign['campaign_key'] ?? ''),
             null,
-            sr_coupon_claim_issue_expires_at($campaign)
+            sr_coupon_claim_issue_expires_at($campaign),
+            [
+                'claim_type' => 'free',
+                'claim_campaign_id' => (int) $campaign['id'],
+                'claim_log_id' => $claimLogId,
+                'claim_snapshot' => [
+                    'schema_version' => 'coupon_claim_snapshot_v1',
+                    'claim_type' => 'free',
+                    'campaign_id' => (int) $campaign['id'],
+                    'campaign_key' => (string) ($campaign['campaign_key'] ?? ''),
+                    'claim_log_id' => $claimLogId,
+                    'nominal_price' => [
+                        'amount' => 0,
+                        'currency_code' => '',
+                    ],
+                    'charged_allocations' => [],
+                    'settlement_kind' => 'free',
+                ],
+            ]
         );
 
         $stmt = $pdo->prepare(
@@ -2066,6 +2105,23 @@ function sr_coupon_redemption_pricing_columns_available(PDO $pdo): bool
 
     try {
         $stmt = $pdo->query('SELECT amount, currency_code, asset_unit, policy_summary, priced_at, target_snapshot_json FROM sr_coupon_redemptions LIMIT 1');
+        $available = $stmt !== false;
+    } catch (Throwable) {
+        $available = false;
+    }
+
+    return $available;
+}
+
+function sr_coupon_issue_claim_columns_available(PDO $pdo): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT claim_type, claim_campaign_id, claim_log_id, nominal_price_amount, nominal_price_currency_code, asset_reference_module, asset_reference_type, asset_reference_id, claim_snapshot_json FROM sr_coupon_issues LIMIT 1');
         $available = $stmt !== false;
     } catch (Throwable) {
         $available = false;

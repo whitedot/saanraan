@@ -25,6 +25,15 @@ CREATE TABLE IF NOT EXISTS sr_coupon_issues (
     status VARCHAR(30) NOT NULL DEFAULT 'active',
     issued_reason VARCHAR(255) NOT NULL DEFAULT '',
     issued_by_account_id BIGINT UNSIGNED NULL,
+    claim_type VARCHAR(20) NOT NULL DEFAULT 'manual',
+    claim_campaign_id BIGINT UNSIGNED NULL,
+    claim_log_id BIGINT UNSIGNED NULL,
+    nominal_price_amount BIGINT NOT NULL DEFAULT 0,
+    nominal_price_currency_code VARCHAR(3) NOT NULL DEFAULT '',
+    asset_reference_module VARCHAR(60) NOT NULL DEFAULT '',
+    asset_reference_type VARCHAR(80) NOT NULL DEFAULT '',
+    asset_reference_id VARCHAR(120) NOT NULL DEFAULT '',
+    claim_snapshot_json TEXT NULL,
     issued_at DATETIME NOT NULL,
     expires_at DATETIME NULL,
     used_count INT UNSIGNED NOT NULL DEFAULT 0,
@@ -32,7 +41,8 @@ CREATE TABLE IF NOT EXISTS sr_coupon_issues (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_coupon_issues_account_status (account_id, status, expires_at, id),
-    KEY idx_sr_coupon_issues_definition (coupon_definition_id, status, id)
+    KEY idx_sr_coupon_issues_definition (coupon_definition_id, status, id),
+    KEY idx_sr_coupon_issues_claim_campaign (claim_campaign_id, claim_log_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_coupon_redemptions (

@@ -13,8 +13,13 @@ return static function (PDO $pdo, int $accountId): array {
 
     require_once SR_ROOT . '/modules/coupon/helpers.php';
 
+    $issueClaimColumns = sr_coupon_issue_claim_columns_available($pdo)
+        ? 'i.claim_type, i.claim_campaign_id, i.claim_log_id, i.nominal_price_amount, i.nominal_price_currency_code,
+           i.asset_reference_module, i.asset_reference_type, i.asset_reference_id, i.claim_snapshot_json'
+        : '\'manual\' AS claim_type, NULL AS claim_campaign_id, NULL AS claim_log_id, 0 AS nominal_price_amount, \'\' AS nominal_price_currency_code,
+           \'\' AS asset_reference_module, \'\' AS asset_reference_type, \'\' AS asset_reference_id, NULL AS claim_snapshot_json';
     $stmt = $pdo->prepare(
-        'SELECT i.id, i.status, i.issued_reason, i.issued_at, i.expires_at, i.used_count,
+        'SELECT i.id, i.status, i.issued_reason, ' . $issueClaimColumns . ', i.issued_at, i.expires_at, i.used_count,
                 d.coupon_key, d.title, d.target_type, d.target_id
          FROM sr_coupon_issues i
          INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
