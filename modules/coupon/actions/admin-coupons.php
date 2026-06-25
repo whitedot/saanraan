@@ -33,6 +33,9 @@ if ($couponAdminPage === 'issues') {
 }
 sr_admin_require_permission($pdo, (int) $account['id'], $couponPermissionPath, 'view');
 $couponCreateModalOpen = false;
+if ($couponAdminPage === 'definitions' && sr_get_string('create_coupon', 1) === '1') {
+    $couponCreateModalOpen = true;
+}
 $couponIssueModalOpenDefinitionId = 0;
 
 if (sr_request_method() === 'POST') {

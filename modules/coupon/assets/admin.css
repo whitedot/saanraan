@@ -29,60 +29,6 @@
     width: 1%;
 }
 
-.admin-coupon-campaign-form .admin-form-field {
-    min-width: 0;
-}
-
-.admin-coupon-campaign-form .admin-form-grid {
-    display: grid;
-    gap: 0;
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.admin-coupon-campaign-form .admin-form-field {
-    align-items: start;
-    border-bottom: 1px solid var(--sr-border-soft, var(--color-default-200));
-    column-gap: calc(var(--spacing) * 5);
-    display: grid;
-    grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr);
-    margin: 0;
-    padding-block: calc(var(--spacing) * 3);
-}
-
-.admin-coupon-campaign-form .admin-form-field:last-of-type,
-.admin-coupon-campaign-form .admin-form-grid:last-child > .admin-form-field:last-child {
-    border-bottom-width: 0;
-}
-
-.admin-coupon-campaign-form .admin-form-field > .form-label {
-    align-self: center;
-    margin: 0;
-}
-
-.admin-coupon-campaign-form .admin-form-field > .form-check.form-label {
-    grid-column: 2;
-}
-
-.admin-coupon-campaign-form .admin-form-field > :not(.form-label) {
-    grid-column: 2;
-}
-
-.admin-coupon-campaign-form .admin-form-field > .form-help,
-.admin-coupon-campaign-form .admin-form-field > .admin-coupon-campaign-check-list {
-    margin-top: calc(var(--spacing) * 1.5);
-}
-
-.admin-coupon-campaign-check-list {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2);
-}
-
-.admin-coupon-campaign-form [data-coupon-paid-asset-field] > .form-help {
-    width: 100%;
-}
-
 .admin-coupon-campaign-form .form-check {
     margin: 0;
 }
@@ -149,15 +95,6 @@
     .admin-coupon-campaign-check-list {
         align-items: stretch;
         flex-direction: column;
-    }
-
-    .admin-coupon-campaign-form .admin-form-field {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-coupon-campaign-form .admin-form-field > .form-check.form-label,
-    .admin-coupon-campaign-form .admin-form-field > :not(.form-label) {
-        grid-column: 1;
     }
 
     .admin-coupon-definition-bulk-row {
