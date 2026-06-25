@@ -413,6 +413,20 @@ function sr_coupon_runtime_partial_failure_fixture(): void
     }
 }
 
+function sr_coupon_runtime_check_model_decision(): void
+{
+    $installSql = (string) file_get_contents('modules/coupon/install.sql');
+    $adminView = (string) file_get_contents('modules/coupon/views/admin-coupons.php');
+    $coreDecisions = (string) file_get_contents('docs/core-decisions.md');
+    $moduleGuide = (string) file_get_contents('docs/module-guide.md');
+
+    sr_coupon_runtime_assert(str_contains($installSql, "coupon_type VARCHAR(40) NOT NULL DEFAULT 'access'"), 'coupon schema must keep access as the default coupon use model.');
+    sr_coupon_runtime_assert(!str_contains($installSql, 'sr_coupon_balance_ledger'), 'coupon v1 must not introduce a partial-use balance ledger.');
+    sr_coupon_runtime_assert(str_contains($adminView, 'name="coupon_type" value="access"'), 'coupon admin form must create access coupons in the current use model.');
+    sr_coupon_runtime_assert(str_contains($coreDecisions, '1차 사용 모델 분류는 `sr_coupon_definitions.coupon_type = access`'), 'core decisions must pin coupon_type=access as the current benefit model.');
+    sr_coupon_runtime_assert(str_contains($moduleGuide, '부분 사용 가능한 쿠폰 잔액 원장과 `stored_value` 모델은 아직 구현된 상태로 보지 않는다'), 'module guide must state that stored-value partial-use coupons are not implemented in v1.');
+}
+
 function sr_coupon_runtime_fixture(): void
 {
     $pdo = new PDO('sqlite::memory:');
@@ -826,6 +840,7 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'community paid read fixture must still have no point transactions after coupon refund.');
 }
 
+sr_coupon_runtime_check_model_decision();
 sr_coupon_runtime_fixture();
 sr_coupon_runtime_partial_failure_fixture();
 
