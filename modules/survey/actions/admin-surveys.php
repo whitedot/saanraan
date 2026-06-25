@@ -934,8 +934,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save">
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
+        <section class="card admin-list-card admin-list-form">
             <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
             <div class="card-body">
+                <div class="form-grid admin-survey-primary-grid">
                 <div class="form-field">
                     <?php echo sr_admin_form_label_help_html('survey_key', '설문 Key', $surveyHelp['survey_key']['id'], $surveyHelpOpenLabel, true); ?>
                     <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
@@ -943,6 +945,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <label class="form-label" for="survey_title">제목 <span class="sr-required-label">(필수)</span></label>
                     <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
+            </div>
             </div>
             <div class="form-field">
                 <label class="form-label" for="survey_description">설명</label>
@@ -1155,7 +1158,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <div class="card-header"><h2 class="card-title">분석·공표·윤리</h2></div>
+        </section>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header"><h2 class="card-title">분석·공표·윤리</h2></div>
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-field">
@@ -1212,7 +1217,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <div class="card-header"><h2 class="card-title">QA·버전</h2></div>
+        </section>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header"><h2 class="card-title">QA·버전</h2></div>
         <div class="card-body">
             <div class="form-grid">
                 <div class="form-field">
@@ -1239,7 +1246,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <textarea id="survey_qa_note" name="qa_note" class="form-textarea"><?php echo sr_e((string) ($values['qa_note'] ?? '')); ?></textarea>
             </div>
         </div>
-        <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
+        </section>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
         <div class="card-body">
             <div class="form-field">
                 <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
@@ -1257,7 +1266,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
             </div>
         </div>
-        <div class="card-header"><h2 class="card-title">보상</h2></div>
+        </section>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header"><h2 class="card-title">보상</h2></div>
         <div class="card-body">
             <div class="form-field">
                 <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
@@ -1307,6 +1318,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
+        </section>
         <section class="card admin-list-card admin-list-form admin-survey-question-list-card">
             <div class="card-header">
                 <h2 class="card-title form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span>문항</span></h2>

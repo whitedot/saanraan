@@ -6,6 +6,10 @@
     min-height: 7.5rem;
 }
 
+.admin-survey-primary-grid {
+    grid-template-columns: minmax(12rem, .45fr) minmax(0, 1fr);
+}
+
 .admin-survey-form .admin-checkbox-list {
     display: flex;
     flex-wrap: wrap;
@@ -15,9 +19,9 @@
 .admin-survey-form .admin-checkbox-list .form-check {
     min-height: calc(var(--spacing) * 9);
     padding: 0 calc(var(--spacing) * 3);
-    border: 1px solid var(--color-default-300);
+    border: 1px solid var(--sr-border, var(--color-default-300));
     border-radius: var(--radius-control, 8px);
-    background: var(--color-default-50);
+    background: var(--sr-surface, var(--color-default-50));
 }
 
 .admin-survey-question-row {
@@ -137,6 +141,10 @@
     .admin-survey-statistics-filter-row {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .admin-survey-primary-grid {
+        grid-template-columns: 1fr;
     }
 
     .admin-survey-statistics-primary-filter {
