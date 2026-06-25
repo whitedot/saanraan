@@ -602,7 +602,7 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                 </div>
             </section>
         </form>
-        <div class="sr-install-prompt" aria-hidden="true"><span></span></div>
+        <div class="sr-install-prompt" aria-hidden="true"><span data-install-prompt-mirror></span><span class="sr-install-prompt-cursor"></span></div>
     </main>
     <script>
         (function () {
@@ -683,7 +683,53 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
             var shell = document.querySelector('[data-install-current-step]');
             var form = document.querySelector('[data-install-form]');
             var installPreviewMode = form && form.getAttribute('data-install-preview') === '1';
+            var promptMirror = document.querySelector('[data-install-prompt-mirror]');
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
+
+            function inputLabelText(input) {
+                if (!input) {
+                    return 'READY';
+                }
+
+                var id = input.getAttribute('id') || '';
+                var label = id ? document.querySelector('label[for="' + id + '"]') : null;
+                if (!label) {
+                    var field = input.closest('p');
+                    label = field ? field.querySelector('label, .sr-install-field-label') : null;
+                }
+
+                return label ? label.textContent.replace(/\s+/g, ' ').replace('(필수)', '').trim() : (input.getAttribute('name') || 'INPUT');
+            }
+
+            function promptInputValue(input) {
+                if (!input) {
+                    return '';
+                }
+
+                if (input.tagName && input.tagName.toLowerCase() === 'select') {
+                    return input.options[input.selectedIndex] ? input.options[input.selectedIndex].text : input.value;
+                }
+
+                if ((input.getAttribute('type') || '').toLowerCase() === 'password') {
+                    return input.value ? '*'.repeat(Math.min(input.value.length, 24)) : '';
+                }
+
+                return input.value || '';
+            }
+
+            function updatePromptMirror(input) {
+                if (!promptMirror) {
+                    return;
+                }
+
+                if (!input || !input.matches('input:not([type="hidden"]), select')) {
+                    promptMirror.textContent = '';
+                    return;
+                }
+
+                var value = promptInputValue(input);
+                promptMirror.textContent = inputLabelText(input) + (value !== '' ? ' = ' + value : ' = ');
+            }
 
             function stepPanel(stepKey) {
                 return document.querySelector('[data-install-step="' + stepKey + '"]');
@@ -820,6 +866,7 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                 input.addEventListener('input', function () {
                     syncRestrictedInput(input, normalizeKeyValue, true);
                     updateSummary();
+                    updatePromptMirror(input);
                 });
             });
 
@@ -835,12 +882,32 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
                 input.addEventListener('input', function () {
                     syncRestrictedInput(input, normalizeTablePrefixValue, true);
                     updateSummary();
+                    updatePromptMirror(input);
                 });
             });
 
             document.querySelectorAll('[data-summary-source]').forEach(function (input) {
                 input.addEventListener('input', updateSummary);
                 input.addEventListener('change', updateSummary);
+            });
+
+            document.querySelectorAll('input:not([type="hidden"]), select').forEach(function (input) {
+                input.addEventListener('focus', function () {
+                    updatePromptMirror(input);
+                });
+                input.addEventListener('input', function () {
+                    updatePromptMirror(input);
+                });
+                input.addEventListener('change', function () {
+                    updatePromptMirror(input);
+                });
+                input.addEventListener('blur', function () {
+                    window.setTimeout(function () {
+                        if (!document.activeElement || !document.activeElement.matches('input:not([type="hidden"]), select')) {
+                            updatePromptMirror(null);
+                        }
+                    }, 80);
+                });
             });
 
             var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
@@ -1005,6 +1072,9 @@ $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr
 
             setStep(currentStep, false);
             syncModuleSelectAll();
+            if (document.activeElement && document.activeElement.matches('input:not([type="hidden"]), select')) {
+                updatePromptMirror(document.activeElement);
+            }
         }());
     </script>
 </body>

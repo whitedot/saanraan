@@ -1044,17 +1044,17 @@ code {
     --sr-radius: 0;
     --sr-transition: 120ms step-end;
     --sr-focus-ring: rgba(51, 255, 51, 0.18);
-    --sr-text: #33ff33;
-    --sr-muted: #008800;
-    --sr-muted-soft: #008800;
+    --sr-text: #66ff66;
+    --sr-muted: #22aa22;
+    --sr-muted-soft: #22aa22;
     --sr-muted-strong: #33ff33;
     --sr-surface: #000000;
     --sr-surface-soft: #000000;
     --sr-surface-muted: #002200;
     --sr-surface-hover: #001900;
-    --sr-border: #008800;
-    --sr-border-soft: #006600;
-    --sr-control-border: #008800;
+    --sr-border: #22aa22;
+    --sr-border-soft: #168f16;
+    --sr-control-border: #22aa22;
     --sr-control-bg: #000000;
     --sr-primary: #ffff33;
     --sr-primary-hover: #33ff33;
@@ -1082,17 +1082,17 @@ code {
 
 @media (prefers-color-scheme: dark) {
     :root[data-color-scheme="system"] {
-        --sr-text: #33ff33;
-        --sr-muted: #008800;
-        --sr-muted-soft: #008800;
+        --sr-text: #66ff66;
+        --sr-muted: #22aa22;
+        --sr-muted-soft: #22aa22;
         --sr-muted-strong: #33ff33;
         --sr-surface: #000000;
         --sr-surface-soft: #000000;
         --sr-surface-muted: #002200;
         --sr-surface-hover: #001900;
-        --sr-border: #008800;
-        --sr-border-soft: #006600;
-        --sr-control-border: #008800;
+        --sr-border: #22aa22;
+        --sr-border-soft: #168f16;
+        --sr-control-border: #22aa22;
         --sr-control-bg: #000000;
         --sr-primary: #ffff33;
         --sr-primary-hover: #33ff33;
@@ -1655,19 +1655,37 @@ code {
 }
 
 .sr-install-prompt {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
+    width: 100%;
+    min-width: 0;
+    border-top: 1px dashed var(--sr-border);
     margin-top: 40px;
+    padding: 12px 0 0;
+    background: var(--sr-install-bg);
     color: var(--sr-text);
     font-size: 1.125rem;
     font-weight: var(--font-weight-bold);
+    overflow: hidden;
 }
 
 .sr-install-prompt::before {
+    flex: 0 0 auto;
     content: "C:\\SAANRAAN> ";
 }
 
-.sr-install-prompt span {
+.sr-install-prompt [data-install-prompt-mirror] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.sr-install-prompt-cursor {
+    flex: 0 0 auto;
     width: 10px;
     height: 18px;
     margin-left: 5px;
