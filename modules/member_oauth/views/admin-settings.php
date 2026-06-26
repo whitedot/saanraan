@@ -205,7 +205,14 @@ if ($memberOauthExternalProviders === []) {
                             <?php } ?>
                         </div>
                     <?php } ?>
+                    <p class="form-help">Scope를 보내지 않는 제공자는 Scope 선택 안 함이 정상일 수 있습니다. 필요한 profile 권한은 제공자 콘솔에서 별도로 허용해야 할 수 있습니다.</p>
                     <div data-oauth-profile-sync-list="<?php echo sr_e($providerKey); ?>" data-oauth-profile-sync-name="<?php echo sr_e($profileSyncKey); ?>">
+                        <div class="member-oauth-sync-header" aria-hidden="true">
+                            <span><?php echo sr_e('회원 필드'); ?></span>
+                            <span><?php echo sr_e('Scope'); ?></span>
+                            <span><?php echo sr_e('Claim path'); ?></span>
+                            <span><?php echo sr_e('동작'); ?></span>
+                        </div>
                         <?php foreach ($profileSyncRules as $profileSyncIndex => $profileSyncRule) { ?>
                             <?php $profileSyncTarget = (string) ($profileSyncRule['target'] ?? ''); ?>
                             <?php $profileSyncLocked = in_array($profileSyncTarget, ['email', 'display_name'], true); ?>
