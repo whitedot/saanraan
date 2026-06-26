@@ -52,6 +52,7 @@ function sr_reward_withdrawal_all_members_key(): string
 function sr_reward_default_settings(): array
 {
     return [
+        'usage_enabled' => true,
         'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
     ];
@@ -61,6 +62,7 @@ function sr_reward_settings(PDO $pdo): array
 {
     $storedSettings = sr_module_settings($pdo, 'reward');
     $settings = array_merge(sr_reward_default_settings(), $storedSettings);
+    $settings['usage_enabled'] = sr_reward_truthy($settings['usage_enabled'] ?? true);
     $settings['withdrawal_allowed_group_keys'] = sr_reward_normalize_group_keys(
         sr_reward_json_array((string) ($settings['withdrawal_allowed_group_keys_json'] ?? '[]'))
     );
@@ -81,6 +83,9 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     }
 
     $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
+    $usageEnabled = array_key_exists('usage_enabled', $settings)
+        ? sr_reward_truthy($settings['usage_enabled'])
+        : sr_reward_usage_enabled($pdo);
     if (array_key_exists('withdrawal_requests_enabled', $settings)) {
         $withdrawalRequestsEnabled = sr_reward_truthy($settings['withdrawal_requests_enabled']);
     } else {
@@ -111,6 +116,14 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     );
     $stmt->execute([
         'module_id' => (int) $module['id'],
+        'setting_key' => 'usage_enabled',
+        'setting_value' => $usageEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
         'setting_key' => 'withdrawal_allowed_group_keys_json',
         'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'value_type' => 'string',
@@ -132,6 +145,17 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
 function sr_reward_truthy(mixed $value): bool
 {
     return sr_truthy($value);
+}
+
+function sr_reward_usage_enabled(PDO $pdo): bool
+{
+    try {
+        $settings = sr_reward_settings($pdo);
+    } catch (PDOException) {
+        return true;
+    }
+
+    return !empty($settings['usage_enabled']);
 }
 
 function sr_reward_json_array(string $json): array
@@ -276,6 +300,10 @@ function sr_reward_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfi
 
 function sr_reward_create_transaction(PDO $pdo, array $data): int
 {
+    if (!sr_reward_usage_enabled($pdo)) {
+        throw new RuntimeException('적립금을 사용하지 않도록 설정되어 있습니다.');
+    }
+
     $accountId = (int) ($data['account_id'] ?? 0);
     $amount = (int) ($data['amount'] ?? 0);
     $transactionType = sr_reward_clean_key((string) ($data['transaction_type'] ?? 'adjustment'), 40);

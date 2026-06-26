@@ -4,6 +4,7 @@ return [
     'helpers' => 'helpers.php',
     'label' => '적립금',
     'unit_label' => '원',
+    'available_function' => 'sr_reward_usage_enabled',
     'balance_function' => 'sr_reward_balance',
     'transaction_function' => 'sr_reward_create_transaction',
     'cash_like' => false,

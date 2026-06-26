@@ -22,6 +22,7 @@ if (sr_request_method() === 'POST') {
     if ($intent === '' || $intent === 'save_settings') {
         $defaultExpirationDaysInput = sr_post_string('default_expiration_days', 20);
         $postedSettings = [
+            'usage_enabled' => sr_post_string('usage_enabled', 1) === '1',
             'display_name' => sr_point_clean_text(sr_post_string('display_name', 80), 40),
             'unit_label' => sr_point_clean_text(sr_post_string('unit_label', 40), 20),
             'default_expiration_days' => $defaultExpirationDaysInput,
@@ -50,6 +51,7 @@ if (sr_request_method() === 'POST') {
                     'result' => 'success',
                     'message' => 'Point settings updated.',
                     'metadata' => [
+                        'usage_enabled' => !empty($settings['usage_enabled']),
                         'display_name' => (string) $settings['display_name'],
                         'unit_label' => (string) $settings['unit_label'],
                         'default_expiration_days' => (string) $settings['default_expiration_days'],

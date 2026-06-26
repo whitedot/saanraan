@@ -9,6 +9,7 @@ require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
 function sr_point_default_settings(): array
 {
     return [
+        'usage_enabled' => true,
         'display_name' => '포인트',
         'unit_label' => 'P',
         'default_expiration_days' => '0',
@@ -28,6 +29,7 @@ function sr_point_time_html(?string $value, string $emptyText = ''): string
 function sr_point_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_point_default_settings(), sr_module_settings($pdo, 'point'));
+    $settings['usage_enabled'] = sr_point_truthy($settings['usage_enabled'] ?? true);
     $settings['display_name'] = sr_point_clean_text((string) ($settings['display_name'] ?? '포인트'), 40);
     if ($settings['display_name'] === '') {
         $settings['display_name'] = '포인트';
@@ -52,6 +54,9 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     $displayName = sr_point_clean_text((string) ($settings['display_name'] ?? ''), 40);
     $unitLabel = sr_point_clean_text((string) ($settings['unit_label'] ?? 'P'), 20);
     $defaultExpirationDays = sr_point_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
+    $usageEnabled = array_key_exists('usage_enabled', $settings)
+        ? sr_point_truthy($settings['usage_enabled'])
+        : sr_point_usage_enabled($pdo);
     if ($displayName === '') {
         throw new InvalidArgumentException('Point display name is required.');
     }
@@ -71,6 +76,7 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ([
+        ['usage_enabled', $usageEnabled ? '1' : '0', 'bool'],
         ['display_name', $displayName, 'string'],
         ['unit_label', $unitLabel, 'string'],
         ['default_expiration_days', (string) $defaultExpirationDays, 'integer'],
@@ -86,6 +92,22 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     }
 
     sr_clear_module_settings_cache('point');
+}
+
+function sr_point_truthy(mixed $value): bool
+{
+    return sr_truthy($value);
+}
+
+function sr_point_usage_enabled(PDO $pdo): bool
+{
+    try {
+        $settings = sr_point_settings($pdo);
+    } catch (PDOException) {
+        return true;
+    }
+
+    return !empty($settings['usage_enabled']);
 }
 
 function sr_point_display_name(PDO $pdo): string
@@ -493,6 +515,10 @@ function sr_point_balance(PDO $pdo, int $accountId): int
 
 function sr_point_create_transaction(PDO $pdo, array $data): int
 {
+    if (!sr_point_usage_enabled($pdo)) {
+        throw new RuntimeException('포인트를 사용하지 않도록 설정되어 있습니다.');
+    }
+
     $accountId = (int) ($data['account_id'] ?? 0);
     $amount = (int) ($data['amount'] ?? 0);
     $transactionType = sr_point_clean_key((string) ($data['transaction_type'] ?? 'adjustment'), 40);

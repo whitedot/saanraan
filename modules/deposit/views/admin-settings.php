@@ -3,6 +3,7 @@
 $allowedGroupKeys = isset($settings['refund_allowed_group_keys']) && is_array($settings['refund_allowed_group_keys'])
     ? $settings['refund_allowed_group_keys']
     : [];
+$usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
 $enabledMemberGroups = [];
 foreach ($memberGroups as $memberGroup) {
@@ -68,8 +69,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/settings')); ?>" class="admin-form ui-form-theme">
     <section class="card">
-        <h2>환불 신청</h2>
+        <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
+        <div class="form-row">
+            <label class="form-label" for="deposit_usage_enabled">예치금 사용 여부</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('deposit_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
+                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 예치금을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>환불 신청</h2>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('deposit_refund_requests_enabled', '환불 신청 사용', (string) $depositSettingsHelp['refund_requests_enabled']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="form-field">

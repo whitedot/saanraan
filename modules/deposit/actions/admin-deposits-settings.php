@@ -20,6 +20,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
+    $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
@@ -45,6 +46,7 @@ if (sr_request_method() === 'POST') {
     if ($errors === []) {
         try {
             sr_deposit_save_settings($pdo, [
+                'usage_enabled' => $usageEnabled,
                 'refund_requests_enabled' => $refundRequestsEnabled,
                 'refund_allowed_group_keys' => $allowedGroupKeys,
             ]);
@@ -57,6 +59,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Deposit settings updated.',
                 'metadata' => [
+                    'usage_enabled' => $usageEnabled,
                     'refund_requests_enabled' => $refundRequestsEnabled,
                     'refund_allowed_group_keys' => $allowedGroupKeys,
                 ],

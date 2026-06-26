@@ -20,6 +20,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
+    $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
     $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_reward_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
@@ -45,6 +46,7 @@ if (sr_request_method() === 'POST') {
     if ($errors === []) {
         try {
             sr_reward_save_settings($pdo, [
+                'usage_enabled' => $usageEnabled,
                 'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                 'withdrawal_allowed_group_keys' => $allowedGroupKeys,
             ]);
@@ -57,6 +59,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Reward settings updated.',
                 'metadata' => [
+                    'usage_enabled' => $usageEnabled,
                     'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                     'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                 ],

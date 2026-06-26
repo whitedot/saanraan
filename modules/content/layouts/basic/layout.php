@@ -158,12 +158,14 @@ if (
         if (sr_module_enabled($layoutPdo, 'point') && is_file(SR_ROOT . '/modules/point/helpers.php')) {
             require_once SR_ROOT . '/modules/point/helpers.php';
             try {
-                $layoutMemberAssetRows[] = [
-                    'label' => function_exists('sr_point_display_name') ? sr_point_display_name($layoutPdo) : '포인트',
-                    'value' => number_format(function_exists('sr_point_balance') ? sr_point_balance($layoutPdo, $layoutCurrentAccountId) : 0) . (function_exists('sr_point_unit_label') ? sr_point_unit_label($layoutPdo) : 'P'),
-                    'url' => sr_url('/account/points'),
-                    'icon' => 'database',
-                ];
+                if (!function_exists('sr_point_usage_enabled') || sr_point_usage_enabled($layoutPdo)) {
+                    $layoutMemberAssetRows[] = [
+                        'label' => function_exists('sr_point_display_name') ? sr_point_display_name($layoutPdo) : '포인트',
+                        'value' => number_format(function_exists('sr_point_balance') ? sr_point_balance($layoutPdo, $layoutCurrentAccountId) : 0) . (function_exists('sr_point_unit_label') ? sr_point_unit_label($layoutPdo) : 'P'),
+                        'url' => sr_url('/account/points'),
+                        'icon' => 'database',
+                    ];
+                }
             } catch (Throwable) {
                 $layoutMemberAssetRows[] = ['label' => '포인트', 'value' => '0P', 'url' => sr_url('/account/points'), 'icon' => 'database'];
             }
@@ -171,12 +173,14 @@ if (
         if (sr_module_enabled($layoutPdo, 'reward') && is_file(SR_ROOT . '/modules/reward/helpers.php')) {
             require_once SR_ROOT . '/modules/reward/helpers.php';
             try {
-                $layoutMemberAssetRows[] = [
-                    'label' => '적립금',
-                    'value' => number_format(function_exists('sr_reward_balance') ? sr_reward_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
-                    'url' => sr_url('/account/rewards'),
-                    'icon' => 'savings',
-                ];
+                if (!function_exists('sr_reward_usage_enabled') || sr_reward_usage_enabled($layoutPdo)) {
+                    $layoutMemberAssetRows[] = [
+                        'label' => '적립금',
+                        'value' => number_format(function_exists('sr_reward_balance') ? sr_reward_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
+                        'url' => sr_url('/account/rewards'),
+                        'icon' => 'savings',
+                    ];
+                }
             } catch (Throwable) {
                 $layoutMemberAssetRows[] = ['label' => '적립금', 'value' => '0원', 'url' => sr_url('/account/rewards'), 'icon' => 'savings'];
             }
@@ -184,12 +188,14 @@ if (
         if (sr_module_enabled($layoutPdo, 'deposit') && is_file(SR_ROOT . '/modules/deposit/helpers.php')) {
             require_once SR_ROOT . '/modules/deposit/helpers.php';
             try {
-                $layoutMemberAssetRows[] = [
-                    'label' => '예치금',
-                    'value' => number_format(function_exists('sr_deposit_balance') ? sr_deposit_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
-                    'url' => sr_url('/account/deposits'),
-                    'icon' => 'payments',
-                ];
+                if (!function_exists('sr_deposit_usage_enabled') || sr_deposit_usage_enabled($layoutPdo)) {
+                    $layoutMemberAssetRows[] = [
+                        'label' => '예치금',
+                        'value' => number_format(function_exists('sr_deposit_balance') ? sr_deposit_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
+                        'url' => sr_url('/account/deposits'),
+                        'icon' => 'payments',
+                    ];
+                }
             } catch (Throwable) {
                 $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits'), 'icon' => 'payments'];
             }

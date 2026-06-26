@@ -52,6 +52,7 @@ function sr_deposit_refund_all_members_key(): string
 function sr_deposit_default_settings(): array
 {
     return [
+        'usage_enabled' => true,
         'refund_requests_enabled' => false,
         'refund_allowed_group_keys_json' => '[]',
     ];
@@ -60,6 +61,7 @@ function sr_deposit_default_settings(): array
 function sr_deposit_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_deposit_default_settings(), sr_module_settings($pdo, 'deposit'));
+    $settings['usage_enabled'] = sr_deposit_truthy($settings['usage_enabled'] ?? true);
     $settings['refund_requests_enabled'] = sr_deposit_truthy($settings['refund_requests_enabled'] ?? false);
     $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
         sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
@@ -78,6 +80,9 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
     }
 
     $allowedGroupKeys = sr_deposit_normalize_group_keys($settings['refund_allowed_group_keys'] ?? []);
+    $usageEnabled = array_key_exists('usage_enabled', $settings)
+        ? sr_deposit_truthy($settings['usage_enabled'])
+        : sr_deposit_usage_enabled($pdo);
     $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_deposit_refund_all_members_key()) {
@@ -101,6 +106,14 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
     );
     $stmt->execute([
         'module_id' => (int) $module['id'],
+        'setting_key' => 'usage_enabled',
+        'setting_value' => $usageEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
         'setting_key' => 'refund_allowed_group_keys_json',
         'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'value_type' => 'string',
@@ -122,6 +135,17 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
 function sr_deposit_truthy(mixed $value): bool
 {
     return sr_truthy($value);
+}
+
+function sr_deposit_usage_enabled(PDO $pdo): bool
+{
+    try {
+        $settings = sr_deposit_settings($pdo);
+    } catch (PDOException) {
+        return true;
+    }
+
+    return !empty($settings['usage_enabled']);
 }
 
 function sr_deposit_json_array(string $json): array
@@ -266,6 +290,10 @@ function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConf
 
 function sr_deposit_create_transaction(PDO $pdo, array $data): int
 {
+    if (!sr_deposit_usage_enabled($pdo)) {
+        throw new RuntimeException('예치금을 사용하지 않도록 설정되어 있습니다.');
+    }
+
     $accountId = (int) ($data['account_id'] ?? 0);
     $amount = (int) ($data['amount'] ?? 0);
     $transactionType = sr_deposit_clean_key((string) ($data['transaction_type'] ?? 'adjustment'), 40);

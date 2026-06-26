@@ -52,6 +52,19 @@ function sr_member_asset_contract_unit_label(PDO $pdo, array $contract): string
     return (string) ($contract['unit_label'] ?? '');
 }
 
+function sr_member_asset_contract_available(PDO $pdo, array $contract): bool
+{
+    $availableFunction = (string) ($contract['available_function'] ?? '');
+    if ($availableFunction === '') {
+        return true;
+    }
+    if (!function_exists($availableFunction)) {
+        return false;
+    }
+
+    return (bool) $availableFunction($pdo);
+}
+
 function sr_member_asset_contracts(?PDO $pdo, string $contractFile): array
 {
     $contracts = [];
@@ -65,6 +78,9 @@ function sr_member_asset_contracts(?PDO $pdo, string $contractFile): array
         $helperPath = sr_member_asset_contract_helper_path($moduleKey, $contract);
         if ($helperPath !== '') {
             require_once $helperPath;
+        }
+        if ($pdo instanceof PDO && !sr_member_asset_contract_available($pdo, $contract)) {
+            continue;
         }
 
         $contracts[$moduleKey] = $contract;

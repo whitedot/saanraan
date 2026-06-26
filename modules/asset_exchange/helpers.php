@@ -164,6 +164,12 @@ function sr_asset_exchange_assets(PDO $pdo): array
         if (!function_exists($balanceFunction) || !function_exists($transactionFunction)) {
             continue;
         }
+        $availableFunction = (string) ($contract['available_function'] ?? '');
+        if ($availableFunction !== '') {
+            if (!function_exists($availableFunction) || !$availableFunction($pdo)) {
+                continue;
+            }
+        }
 
         $labelFunction = (string) ($contract['label_function'] ?? '');
         $unitFunction = (string) ($contract['unit_function'] ?? '');

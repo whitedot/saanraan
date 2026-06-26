@@ -2,7 +2,7 @@
 
 $adminPageTitle = sr_t('point::ui.settings.title');
 $adminPageSubtitle = '';
-$settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
+$settings = isset($settings) && is_array($settings) ? $settings : ['usage_enabled' => true, 'display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -14,6 +14,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2><?php echo sr_e(sr_t('point::ui.settings.title')); ?></h2>
         <?php echo sr_csrf_field(); ?>
 
+        <div class="form-row">
+            <label class="form-label" for="point_settings_usage_enabled">포인트 사용 여부</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('point_settings_usage_enabled', 'usage_enabled', '1', !empty($settings['usage_enabled']), '사용'); ?>
+                <small class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 포인트를 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</small>
+            </div>
+        </div>
         <div class="form-row">
             <label class="form-label" for="point_settings_display_name"><?php echo sr_e(sr_t('point::ui.settings.display_name')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
             <div class="form-field">

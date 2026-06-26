@@ -3,6 +3,7 @@
 $allowedGroupKeys = isset($settings['withdrawal_allowed_group_keys']) && is_array($settings['withdrawal_allowed_group_keys'])
     ? $settings['withdrawal_allowed_group_keys']
     : [];
+$usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $withdrawalRequestsEnabled = !empty($settings['withdrawal_requests_enabled']);
 $enabledMemberGroups = [];
 foreach ($memberGroups as $memberGroup) {
@@ -68,8 +69,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/settings')); ?>" class="admin-form ui-form-theme">
     <section class="card">
-        <h2>출금 신청</h2>
+        <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
+        <div class="form-row">
+            <label class="form-label" for="reward_usage_enabled">적립금 사용 여부</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('reward_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
+                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 적립금을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>출금 신청</h2>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('reward_withdrawal_requests_enabled', '출금 신청 사용', (string) $rewardSettingsHelp['withdrawal_requests_enabled']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="form-field">

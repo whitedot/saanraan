@@ -4,6 +4,7 @@ return [
     'helpers' => 'helpers.php',
     'label' => '예치금',
     'unit_label' => '원',
+    'available_function' => 'sr_deposit_usage_enabled',
     'balance_table' => 'sr_deposit_balances',
     'transaction_table' => 'sr_deposit_transactions',
     'balance_function' => 'sr_deposit_balance',

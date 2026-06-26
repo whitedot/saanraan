@@ -6,6 +6,7 @@ return [
     'unit_label' => 'P',
     'label_function' => 'sr_point_display_name',
     'unit_function' => 'sr_point_unit_label',
+    'available_function' => 'sr_point_usage_enabled',
     'balance_table' => 'sr_point_balances',
     'transaction_table' => 'sr_point_transactions',
     'balance_function' => 'sr_point_balance',
