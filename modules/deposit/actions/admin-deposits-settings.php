@@ -15,6 +15,8 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_deposit_settings($pdo);
 $memberGroups = sr_member_groups($pdo);
+$notificationCases = sr_deposit_notification_cases();
+$notificationChannelOptions = sr_deposit_notification_channel_options($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -24,6 +26,31 @@ if (sr_request_method() === 'POST') {
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
+    $postedCases = $_POST['notification_cases'] ?? [];
+    $postedCases = is_array($postedCases) ? $postedCases : [];
+    $allowedChannels = array_fill_keys($notificationChannelOptions, true);
+    $caseSettings = [];
+    foreach ($notificationCases as $caseKey => $case) {
+        $caseKey = (string) $caseKey;
+        $casePost = isset($postedCases[$caseKey]) && is_array($postedCases[$caseKey]) ? $postedCases[$caseKey] : [];
+        $postedChannels = $casePost['channels'] ?? [];
+        $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
+        $channels = [];
+        foreach ($postedChannels as $channel) {
+            if (isset($allowedChannels[$channel])) {
+                $channels[$channel] = $channel;
+            }
+        }
+
+        $caseSettings[$caseKey] = [
+            'event_key' => (string) ($case['event_key'] ?? ''),
+            'enabled' => sr_truthy($casePost['enabled'] ?? false),
+            'channels' => array_values($channels),
+        ];
+        if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
+            $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
+        }
+    }
     if ($refundRequestsEnabled && $allowedGroupKeys === []) {
         $errors[] = '환불 신청을 사용하려면 환불 신청 허용 대상을 선택하세요.';
     }
@@ -49,7 +76,11 @@ if (sr_request_method() === 'POST') {
                 'usage_enabled' => $usageEnabled,
                 'refund_requests_enabled' => $refundRequestsEnabled,
                 'refund_allowed_group_keys' => $allowedGroupKeys,
+                'notification_cases' => $caseSettings,
             ]);
+            $settings = sr_deposit_settings($pdo);
+            $notificationCases = sr_deposit_notification_cases();
+            $notificationChannelOptions = sr_deposit_notification_channel_options($pdo);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -62,6 +93,7 @@ if (sr_request_method() === 'POST') {
                     'usage_enabled' => $usageEnabled,
                     'refund_requests_enabled' => $refundRequestsEnabled,
                     'refund_allowed_group_keys' => $allowedGroupKeys,
+                    'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                 ],
             ]);
             sr_admin_flash_result(sr_admin_action_result([], '예치금 환경설정을 저장했습니다.'));

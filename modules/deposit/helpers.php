@@ -55,7 +55,173 @@ function sr_deposit_default_settings(): array
         'usage_enabled' => true,
         'refund_requests_enabled' => false,
         'refund_allowed_group_keys_json' => '[]',
+        'notification_cases' => sr_deposit_default_notification_case_settings(),
     ];
+}
+
+function sr_deposit_notification_cases(): array
+{
+    return [
+        'transaction_deposit' => [
+            'event_key' => 'transaction.deposit',
+            'label' => '입금 알림',
+            'description' => '예치금이 입금되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_refund' => [
+            'event_key' => 'transaction.refund',
+            'label' => '복원 알림',
+            'description' => '예치금이 환불 또는 복원되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_use' => [
+            'event_key' => 'transaction.use',
+            'label' => '사용 알림',
+            'description' => '예치금이 사용되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_withdraw' => [
+            'event_key' => 'transaction.withdraw',
+            'label' => '출금 알림',
+            'description' => '예치금 출금이 처리되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_adjustment_increase' => [
+            'event_key' => 'transaction.adjustment.increase',
+            'label' => '증가 조정 알림',
+            'description' => '관리자 조정 등으로 예치금이 증가했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_adjustment_decrease' => [
+            'event_key' => 'transaction.adjustment.decrease',
+            'label' => '감소 조정 알림',
+            'description' => '관리자 조정 등으로 예치금이 감소했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+    ];
+}
+
+function sr_deposit_notification_case_key_for_event(string $eventKey): string
+{
+    foreach (sr_deposit_notification_cases() as $caseKey => $case) {
+        if ((string) ($case['event_key'] ?? '') === $eventKey) {
+            return (string) $caseKey;
+        }
+    }
+
+    return '';
+}
+
+function sr_deposit_default_notification_case_settings(): array
+{
+    $settings = [];
+    foreach (sr_deposit_notification_cases() as $caseKey => $case) {
+        $settings[(string) $caseKey] = [
+            'event_key' => (string) ($case['event_key'] ?? ''),
+            'enabled' => !empty($case['default_enabled']),
+            'channels' => ['site'],
+        ];
+    }
+
+    return $settings;
+}
+
+function sr_deposit_account_notification_channel_keys(): array
+{
+    return ['site', 'email', 'telegram_bot'];
+}
+
+function sr_deposit_notification_channels_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawValues)) {
+        $rawValues = ['site'];
+    }
+
+    $allowed = sr_deposit_account_notification_channel_keys();
+    $channels = [];
+    foreach ($rawValues as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $channels[$channel] = $channel;
+        }
+    }
+
+    return $channels === [] ? ['site'] : array_values($channels);
+}
+
+function sr_deposit_notification_channel_options(PDO $pdo): array
+{
+    $channels = ['site'];
+    if (sr_deposit_notification_event_function($pdo) !== '') {
+        if (function_exists('sr_notification_create_channels')) {
+            $channels = array_merge($channels, sr_notification_create_channels($pdo));
+        }
+        if (function_exists('sr_notification_member_external_channel_keys')
+            && function_exists('sr_notification_member_external_provider_is_ready')
+            && function_exists('sr_notification_settings')
+        ) {
+            $notificationSettings = sr_notification_settings($pdo);
+            foreach (sr_notification_member_external_channel_keys() as $channel) {
+                if (sr_notification_member_external_provider_is_ready($channel, $notificationSettings)) {
+                    $channels[] = $channel;
+                }
+            }
+        }
+    }
+
+    $allowed = sr_deposit_account_notification_channel_keys();
+    $options = [];
+    foreach ($channels as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $options[$channel] = $channel;
+        }
+    }
+
+    return $options === [] ? ['site'] : array_values($options);
+}
+
+function sr_deposit_notification_case_settings_from_value(mixed $value): array
+{
+    $rawSettings = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawSettings)) {
+        $rawSettings = [];
+    }
+
+    $caseKeyByEventKey = [];
+    foreach (sr_deposit_notification_cases() as $caseKey => $case) {
+        $caseKeyByEventKey[(string) ($case['event_key'] ?? '')] = (string) $caseKey;
+    }
+
+    $normalized = sr_deposit_default_notification_case_settings();
+    foreach ($rawSettings as $rawCaseKey => $rawCaseSettings) {
+        $caseKey = (string) $rawCaseKey;
+        if (!isset($normalized[$caseKey])) {
+            $caseKey = $caseKeyByEventKey[$caseKey] ?? '';
+        }
+        if ($caseKey === '' || !isset($normalized[$caseKey]) || !is_array($rawCaseSettings)) {
+            continue;
+        }
+
+        if (array_key_exists('enabled', $rawCaseSettings)) {
+            $normalized[$caseKey]['enabled'] = sr_truthy($rawCaseSettings['enabled']);
+        }
+        if (array_key_exists('channels', $rawCaseSettings)) {
+            $normalized[$caseKey]['channels'] = sr_deposit_notification_channels_from_value($rawCaseSettings['channels']);
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_deposit_notification_setting_for_event(array $settings, string $eventKey): ?array
+{
+    $caseKey = sr_deposit_notification_case_key_for_event($eventKey);
+    if ($caseKey === '') {
+        return null;
+    }
+
+    $caseSettings = sr_deposit_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
 
 function sr_deposit_settings(PDO $pdo): array
@@ -66,6 +232,7 @@ function sr_deposit_settings(PDO $pdo): array
     $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
         sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
     );
+    $settings['notification_cases'] = sr_deposit_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 
     return $settings;
 }
@@ -91,6 +258,13 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         if (!sr_member_group_exists($pdo, $groupKey)) {
             throw new InvalidArgumentException('Deposit refund group does not exist.');
         }
+    }
+    $notificationCases = array_key_exists('notification_cases', $settings)
+        ? sr_deposit_notification_case_settings_from_value($settings['notification_cases'])
+        : sr_deposit_notification_case_settings_from_value(sr_deposit_settings($pdo)['notification_cases'] ?? []);
+    $notificationCasesJson = json_encode($notificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($notificationCasesJson)) {
+        $notificationCasesJson = json_encode(sr_deposit_default_notification_case_settings(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     $now = sr_now();
@@ -125,6 +299,14 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         'setting_key' => 'refund_requests_enabled',
         'setting_value' => $refundRequestsEnabled ? '1' : '0',
         'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'notification_cases',
+        'setting_value' => (string) $notificationCasesJson,
+        'value_type' => 'json',
         'created_at' => $now,
         'updated_at' => $now,
     ]);
@@ -901,14 +1083,27 @@ function sr_deposit_notify_transaction_created(PDO $pdo, int $transactionId): ?i
         $eventKey = $transactionType === 'adjustment'
             ? 'transaction.adjustment.' . ($amount > 0 ? 'increase' : 'decrease')
             : 'transaction.' . $transactionType;
+        $channels = [];
+        $caseSetting = sr_deposit_notification_setting_for_event(sr_deposit_settings($pdo), $eventKey);
+        if (is_array($caseSetting)) {
+            if (empty($caseSetting['enabled'])) {
+                return null;
+            }
+            $channels = sr_deposit_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
+        }
 
-        return $createAccountEventFunction($pdo, [
+        $payload = [
             'account_id' => (int) $transaction['account_id'],
             'module_key' => 'deposit',
             'event_key' => $eventKey,
             'created_by_account_id' => (int) ($transaction['created_by_account_id'] ?? 0),
             'metadata' => sr_deposit_transaction_notification_metadata($transaction),
-        ]);
+        ];
+        if ($channels !== []) {
+            $payload['channels'] = $channels;
+        }
+
+        return $createAccountEventFunction($pdo, $payload);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'deposit_transaction_notification');
         return null;
