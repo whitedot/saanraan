@@ -3,6 +3,18 @@
 $adminPageTitle = '포인트/금액 환전 환경설정';
 $adminPageSubtitle = '';
 $settings = isset($settings) && is_array($settings) ? sr_asset_exchange_normalize_settings($settings) : sr_asset_exchange_default_settings();
+$notificationGroups = isset($notificationGroups) && is_array($notificationGroups) ? $notificationGroups : [];
+$allNotificationCasesEnabled = $notificationGroups !== [];
+foreach ($notificationGroups as $notificationGroup) {
+    foreach ((array) ($notificationGroup['cases'] ?? []) as $notificationCaseKey => $_notificationCase) {
+        $notificationCaseKey = (string) $notificationCaseKey;
+        $caseSettings = is_array($notificationGroup['all_case_settings'] ?? null) ? $notificationGroup['all_case_settings'] : [];
+        if (empty($caseSettings[$notificationCaseKey]['enabled'])) {
+            $allNotificationCasesEnabled = false;
+            break 2;
+        }
+    }
+}
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];
 $feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환금성 항목 재환전만 적용'];
@@ -222,6 +234,62 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
+    <?php if ($notificationGroups !== []) { ?>
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">회원 알림</h2>
+                <div class="type-small">
+                    <?php echo sr_admin_switch_html('asset_exchange_notification_bulk_toggle', 'asset_exchange_notification_bulk_toggle', '1', $allNotificationCasesEnabled, $allNotificationCasesEnabled ? '전체비활성' : '전체활성', '', ' data-asset-exchange-notification-bulk-toggle'); ?>
+                </div>
+            </div>
+            <p class="form-help">환전 출금, 입금, 수수료 알림의 사용 여부와 채널을 자산별로 설정합니다.</p>
+            <?php foreach ($notificationGroups as $moduleKey => $notificationGroup) { ?>
+                <?php
+                $moduleKey = (string) $moduleKey;
+                $moduleLabel = (string) ($notificationGroup['label'] ?? $moduleKey);
+                $caseSettings = is_array($notificationGroup['all_case_settings'] ?? null) ? $notificationGroup['all_case_settings'] : [];
+                $channelOptions = isset($notificationGroup['channel_options']) && is_array($notificationGroup['channel_options']) ? $notificationGroup['channel_options'] : ['site'];
+                $channelsFunction = (string) ($notificationGroup['channels_function'] ?? '');
+                ?>
+                <?php foreach ((array) ($notificationGroup['cases'] ?? []) as $caseKey => $case) { ?>
+                    <?php
+                    $caseKey = (string) $caseKey;
+                    $caseSetting = isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : ['enabled' => true, 'channels' => ['site']];
+                    $caseEnabled = !empty($caseSetting['enabled']);
+                    $caseChannels = function_exists($channelsFunction) ? $channelsFunction($caseSetting['channels'] ?? ['site']) : ['site'];
+                    $caseId = 'asset_exchange_notification_case_' . $moduleKey . '_' . $caseKey;
+                    $caseDataKey = $moduleKey . ':' . $caseKey;
+                    ?>
+                    <div class="form-row" data-asset-exchange-notification-case="<?php echo sr_e($caseDataKey); ?>">
+                        <label class="form-label" for="<?php echo sr_e($caseId); ?>"><?php echo sr_e($moduleLabel . ' ' . (string) ($case['label'] ?? '알림') . ' 사용 여부'); ?></label>
+                        <div class="form-field">
+                            <?php echo sr_admin_switch_html($caseId, 'notification_cases[' . $moduleKey . '][' . $caseKey . '][enabled]', '1', $caseEnabled, '사용', '0', ' data-asset-exchange-notification-case-toggle data-asset-exchange-notification-case-key="' . sr_e($caseDataKey) . '"'); ?>
+                            <p class="form-help"><?php echo sr_e((string) ($case['description'] ?? '')); ?></p>
+                        </div>
+                    </div>
+                    <div class="form-row" data-asset-exchange-notification-case="<?php echo sr_e($caseDataKey); ?>">
+                        <label class="form-label"><?php echo sr_e($moduleLabel . ' ' . (string) ($case['label'] ?? '알림') . ' 채널'); ?> <span class="sr-required-label" data-asset-exchange-notification-required-label data-asset-exchange-notification-case-key="<?php echo sr_e($caseDataKey); ?>">(필수)</span></label>
+                        <div class="form-field">
+                            <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="<?php echo sr_e($moduleLabel . ' ' . (string) ($case['label'] ?? '알림') . ' 채널'); ?>">
+                                <?php foreach ($channelOptions as $channelIndex => $channel) { ?>
+                                    <?php
+                                    $channel = (string) $channel;
+                                    $channelInputId = $caseId . '_channel_' . (string) $channelIndex;
+                                    $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($channelOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                                    ?>
+                                    <span class="filtering-toggle-item">
+                                        <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="notification_cases[<?php echo sr_e($moduleKey); ?>][<?php echo sr_e($caseKey); ?>][channels][]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only" data-asset-exchange-notification-channel data-asset-exchange-notification-case-key="<?php echo sr_e($caseDataKey); ?>"<?php echo in_array($channel, $caseChannels, true) ? ' checked' : ''; ?>>
+                                        <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?></label>
+                                    </span>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+        </section>
+    <?php } ?>
+
     <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="btn btn-solid-light">정책 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
@@ -277,6 +345,101 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         type.addEventListener('change', syncFeeRows);
     }
     syncFeeRows();
+})();
+
+(function () {
+    var form = document.querySelector('[data-asset-exchange-settings-form]');
+    if (!form) {
+        return;
+    }
+
+    var bulkToggle = form.querySelector('[data-asset-exchange-notification-bulk-toggle]');
+    var caseKeys = [];
+    Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-case-key]')).forEach(function (control) {
+        var caseKey = control.getAttribute('data-asset-exchange-notification-case-key') || '';
+        if (caseKey && caseKeys.indexOf(caseKey) === -1) {
+            caseKeys.push(caseKey);
+        }
+    });
+
+    function syncCase(caseKey) {
+        var toggle = form.querySelector('[data-asset-exchange-notification-case-toggle][data-asset-exchange-notification-case-key="' + caseKey + '"]');
+        var channels = Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-channel][data-asset-exchange-notification-case-key="' + caseKey + '"]'));
+        var enabled = !toggle || toggle.checked;
+        var selected = channels.some(function (channel) {
+            return channel.checked;
+        });
+        channels.forEach(function (channel) {
+            channel.disabled = !enabled;
+        });
+        Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-required-label][data-asset-exchange-notification-case-key="' + caseKey + '"]')).forEach(function (label) {
+            label.hidden = !enabled;
+        });
+        if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
+            channels[0].setCustomValidity(!enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
+        }
+    }
+
+    function setBulkLabel(text) {
+        var label = bulkToggle && bulkToggle.closest ? bulkToggle.closest('label') : null;
+        if (!label) {
+            return;
+        }
+        for (var index = label.childNodes.length - 1; index >= 0; index -= 1) {
+            if (label.childNodes[index].nodeType === 3 && label.childNodes[index].nodeValue.trim() !== '') {
+                label.childNodes[index].nodeValue = text;
+                return;
+            }
+        }
+        label.appendChild(document.createTextNode(text));
+    }
+
+    function syncBulkToggle() {
+        if (!bulkToggle) {
+            return;
+        }
+        var toggles = Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-case-toggle]'));
+        var allEnabled = toggles.length > 0 && toggles.every(function (toggle) {
+            return toggle.checked;
+        });
+        bulkToggle.checked = allEnabled;
+        setBulkLabel(allEnabled ? '전체비활성' : '전체활성');
+    }
+
+    if (bulkToggle) {
+        bulkToggle.addEventListener('change', function () {
+            Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-case-toggle]')).forEach(function (toggle) {
+                toggle.checked = bulkToggle.checked;
+            });
+            caseKeys.forEach(syncCase);
+            syncBulkToggle();
+        });
+    }
+    caseKeys.forEach(function (caseKey) {
+        Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-case-key="' + caseKey + '"]')).forEach(function (control) {
+            control.addEventListener('change', function () {
+                syncCase(caseKey);
+                syncBulkToggle();
+            });
+        });
+        syncCase(caseKey);
+    });
+    syncBulkToggle();
+    form.addEventListener('submit', function (event) {
+        var invalidChannel = null;
+        caseKeys.forEach(function (caseKey) {
+            syncCase(caseKey);
+            if (!invalidChannel) {
+                invalidChannel = Array.prototype.slice.call(form.querySelectorAll('[data-asset-exchange-notification-channel][data-asset-exchange-notification-case-key="' + caseKey + '"]')).find(function (channel) {
+                    return !channel.validity.valid;
+                }) || null;
+            }
+        });
+        if (invalidChannel) {
+            event.preventDefault();
+            invalidChannel.reportValidity();
+        }
+    });
 })();
 </script>
 

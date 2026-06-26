@@ -166,15 +166,45 @@ sr_asset_notification_settings_require_markers('modules/coupon/views/admin-setti
     '전체비활성',
 ]);
 
+sr_asset_notification_settings_require_markers('modules/asset_exchange/helpers.php', [
+    'function sr_asset_exchange_notification_event_keys(): array',
+    'function sr_asset_exchange_notification_groups(PDO $pdo): array',
+    "'transaction.exchange_out'",
+    "'transaction.exchange_in'",
+    "'transaction.exchange_fee'",
+    "'save_settings_function'",
+]);
+sr_asset_notification_settings_require_markers('modules/asset_exchange/actions/admin-asset-exchange-settings.php', [
+    '$notificationGroups = sr_asset_exchange_notification_groups($pdo);',
+    '$postedNotificationCases = $_POST[\'notification_cases\'] ?? [];',
+    '$notificationSettingsByModule',
+    '$moduleSettings[\'notification_cases\'] = $notificationSettingsByModule[$moduleKey];',
+    '\'notification_cases\' => $notificationSettingsByModule',
+]);
+sr_asset_notification_settings_require_markers('modules/asset_exchange/views/admin-asset-exchange-settings.php', [
+    '$notificationGroups',
+    '$allNotificationCasesEnabled',
+    'data-asset-exchange-notification-bulk-toggle',
+    'data-asset-exchange-notification-case-toggle',
+    'data-asset-exchange-notification-channel',
+    'data-asset-exchange-notification-required-label',
+    '전체활성',
+    '전체비활성',
+    '알림 채널을 하나 이상 선택하세요.',
+]);
+
 sr_asset_notification_settings_require_markers('docs/module-guide.md', [
     '포인트, 적립금, 예치금, 쿠폰 모듈은 각 환경설정 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 사용 여부와 채널을 저장한다.',
+    '환전 환경설정 화면은 포인트/적립금/예치금이 소유한 `transaction.exchange_out`, `transaction.exchange_in`, `transaction.exchange_fee` 케이스를 함께 편집하며 저장값은 각 자산 모듈의 알림 케이스 설정에 반영한다.',
     '포인트 모듈의 회원 알림 케이스 기본값은 사용 안 함이고, 적립금/예치금/쿠폰 모듈은 기존 동작 보존을 위해 케이스 기본값을 사용으로 둔다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/security-model.md', [
     '포인트/적립금/예치금/쿠폰 환경설정의 케이스별 알림 채널',
+    '환전 환경설정 화면에서 바꾸는 환전 알림도 각 자산 모듈의 케이스별 채널 설정으로 저장한다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/core-decisions.md', [
     '포인트/적립금/예치금/쿠폰 모듈은 자기 환경설정에서 케이스별 회원 알림 사용 여부와 채널을 저장하고',
+    '환전 환경설정 화면은 자산 모듈이 소유한 환전 출금/입금/수수료 알림 케이스를 함께 편집하고 각 자산 모듈 설정에 저장합니다.',
     '포인트 회원 알림 케이스의 기본값은 사용 안 함',
 ]);
 

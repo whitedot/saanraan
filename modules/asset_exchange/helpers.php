@@ -193,6 +193,71 @@ function sr_asset_exchange_assets(PDO $pdo): array
     return $assets;
 }
 
+function sr_asset_exchange_notification_event_keys(): array
+{
+    return [
+        'transaction.exchange_out',
+        'transaction.exchange_in',
+        'transaction.exchange_fee',
+    ];
+}
+
+function sr_asset_exchange_notification_groups(PDO $pdo): array
+{
+    $groups = [];
+    $eventKeys = array_fill_keys(sr_asset_exchange_notification_event_keys(), true);
+
+    foreach (sr_asset_exchange_assets($pdo) as $moduleKey => $asset) {
+        $moduleKey = (string) $moduleKey;
+        if (preg_match('/\A[a-z][a-z0-9_]*\z/', $moduleKey) !== 1) {
+            continue;
+        }
+
+        $prefix = 'sr_' . $moduleKey;
+        $casesFunction = $prefix . '_notification_cases';
+        $caseSettingsFunction = $prefix . '_notification_case_settings_from_value';
+        $channelsFunction = $prefix . '_notification_channels_from_value';
+        $channelOptionsFunction = $prefix . '_notification_channel_options';
+        $settingsFunction = $prefix . '_settings';
+        $saveSettingsFunction = $prefix . '_save_settings';
+        if (!function_exists($casesFunction)
+            || !function_exists($caseSettingsFunction)
+            || !function_exists($channelsFunction)
+            || !function_exists($channelOptionsFunction)
+            || !function_exists($settingsFunction)
+            || !function_exists($saveSettingsFunction)
+        ) {
+            continue;
+        }
+
+        $moduleCases = $casesFunction();
+        $exchangeCases = [];
+        foreach ($moduleCases as $caseKey => $case) {
+            $eventKey = (string) ($case['event_key'] ?? '');
+            if (isset($eventKeys[$eventKey])) {
+                $exchangeCases[(string) $caseKey] = $case;
+            }
+        }
+        if ($exchangeCases === []) {
+            continue;
+        }
+
+        $moduleSettings = $settingsFunction($pdo);
+        $groups[$moduleKey] = [
+            'module_key' => $moduleKey,
+            'label' => (string) ($asset['label'] ?? $moduleKey),
+            'cases' => $exchangeCases,
+            'all_case_settings' => $caseSettingsFunction($moduleSettings['notification_cases'] ?? []),
+            'channel_options' => $channelOptionsFunction($pdo),
+            'channels_function' => $channelsFunction,
+            'settings_function' => $settingsFunction,
+            'save_settings_function' => $saveSettingsFunction,
+        ];
+    }
+
+    return $groups;
+}
+
 function sr_asset_exchange_default_settings(): array
 {
     return [
