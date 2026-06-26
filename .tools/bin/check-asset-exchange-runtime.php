@@ -9,6 +9,7 @@ chdir($root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/asset_exchange/helpers.php';
+require_once $root . '/modules/notification/helpers.php';
 
 $errors = [];
 
@@ -45,6 +46,84 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             UNIQUE (module_id, setting_key)
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_member_accounts (
+            id INTEGER PRIMARY KEY,
+            email TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active'
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NULL,
+            audience TEXT NOT NULL DEFAULT 'account',
+            title TEXT NOT NULL,
+            body_text TEXT,
+            body_format TEXT NOT NULL DEFAULT 'plain',
+            link_url TEXT NOT NULL DEFAULT '',
+            source_module_key TEXT NOT NULL DEFAULT '',
+            event_key TEXT NOT NULL DEFAULT '',
+            metadata_json TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            read_at TEXT,
+            created_by_account_id INTEGER,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_notification_deliveries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            notification_id INTEGER NOT NULL,
+            channel TEXT NOT NULL,
+            recipient TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'queued',
+            provider_message_id TEXT NOT NULL DEFAULT '',
+            error_message TEXT NOT NULL DEFAULT '',
+            attempted_at TEXT,
+            locked_at TEXT,
+            locked_by TEXT NOT NULL DEFAULT '',
+            attempt_count INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_notification_event_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_key TEXT NOT NULL,
+            event_key TEXT NOT NULL,
+            title_template TEXT NOT NULL,
+            body_template TEXT,
+            link_template TEXT NOT NULL DEFAULT '',
+            channels_json TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(module_key, event_key)
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_notification_push_endpoints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            provider_key TEXT NOT NULL,
+            recipient_type TEXT NOT NULL DEFAULT 'personal',
+            endpoint_ciphertext TEXT NOT NULL,
+            endpoint_fingerprint TEXT NOT NULL,
+            recipient_label TEXT NOT NULL DEFAULT '',
+            recipient_masked TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            key_version TEXT NOT NULL DEFAULT 'v1',
+            verified_at TEXT,
+            disabled_at TEXT,
+            last_used_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
         )"
     );
     $pdo->exec(
@@ -125,14 +204,39 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
 function sr_asset_exchange_runtime_seed(PDO $pdo, int $accountId, int $rewardBalance): void
 {
     $now = sr_now();
-    foreach (['asset_exchange', 'point', 'reward', 'deposit'] as $moduleKey) {
+    foreach (['asset_exchange', 'point', 'reward', 'deposit', 'notification'] as $moduleKey) {
         $pdo->prepare('INSERT INTO sr_modules (module_key, version, status) VALUES (:module_key, :version, :status)')
             ->execute(['module_key' => $moduleKey, 'version' => 'fixture', 'status' => 'enabled']);
     }
+    $pdo->prepare('INSERT INTO sr_member_accounts (id, email, status) VALUES (:id, :email, :status)')
+        ->execute(['id' => $accountId, 'email' => 'asset-member@example.test', 'status' => 'active']);
     $pdo->prepare('INSERT INTO sr_reward_balances (account_id, balance, created_at, updated_at) VALUES (:account_id, :balance, :created_at, :updated_at)')
         ->execute(['account_id' => $accountId, 'balance' => $rewardBalance, 'created_at' => $now, 'updated_at' => $now]);
     $pdo->prepare('INSERT INTO sr_deposit_balances (account_id, balance, created_at, updated_at) VALUES (:account_id, 0, :created_at, :updated_at)')
         ->execute(['account_id' => $accountId, 'created_at' => $now, 'updated_at' => $now]);
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_notification_event_templates
+            (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
+         VALUES
+            (:module_key, :event_key, :title_template, :body_template, :link_template, :channels_json, \'active\', :created_at, :updated_at)'
+    );
+    foreach ([
+        ['point', 'transaction.exchange_out', '포인트 환전 출금', '{transaction_type_label}: {amount_abs}', '/account/points', '["site"]'],
+        ['reward', 'transaction.exchange_out', '적립금 환전 출금', '{transaction_type_label}: {amount_abs}', '/account/rewards', '["site"]'],
+        ['deposit', 'transaction.exchange_in', '예치금 환전 입금', '{transaction_type_label}: {amount_abs}', '/account/deposits', '["site"]'],
+        ['deposit', 'transaction.exchange_fee', '예치금 환전 수수료', '{transaction_type_label}: {amount_abs}', '/account/deposits', '["site"]'],
+    ] as $template) {
+        $stmt->execute([
+            'module_key' => $template[0],
+            'event_key' => $template[1],
+            'title_template' => $template[2],
+            'body_template' => $template[3],
+            'link_template' => $template[4],
+            'channels_json' => $template[5],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
 }
 
 function sr_asset_exchange_runtime_policy(): array
@@ -373,6 +477,64 @@ function sr_asset_exchange_runtime_notification_settings_case(): void
     sr_asset_exchange_runtime_assert(!empty($savedPointCases['transaction_exchange_fee']['enabled']), 'Asset exchange notification settings save must enable changed exchange-fee cases.');
 }
 
+function sr_asset_exchange_runtime_notification_application_case(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+    sr_asset_exchange_runtime_seed($pdo, 123, 500);
+
+    $pointCases = sr_point_default_notification_case_settings();
+    $pointCases['transaction_exchange_out']['enabled'] = true;
+    $pointCases['transaction_exchange_out']['channels'] = ['site'];
+    $pointCasesJson = json_encode($pointCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    sr_asset_exchange_runtime_set_module_setting($pdo, 'point', 'notification_cases', is_string($pointCasesJson) ? $pointCasesJson : '{}', 'json');
+
+    $depositCases = sr_deposit_default_notification_case_settings();
+    $depositCases['transaction_exchange_in']['enabled'] = false;
+    $depositCases['transaction_exchange_fee']['enabled'] = true;
+    $depositCases['transaction_exchange_fee']['channels'] = ['site', 'email'];
+    $depositCasesJson = json_encode($depositCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    sr_asset_exchange_runtime_set_module_setting($pdo, 'deposit', 'notification_cases', is_string($depositCasesJson) ? $depositCasesJson : '{}', 'json');
+
+    $logId = sr_asset_exchange_execute($pdo, sr_asset_exchange_runtime_policy(), 123, 100, 9001);
+    $stmt = $pdo->prepare('SELECT from_transaction_id, to_transaction_id, fee_transaction_id FROM sr_asset_exchange_logs WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $logId]);
+    $log = $stmt->fetch();
+    sr_asset_exchange_runtime_assert(is_array($log), 'Asset exchange notification application fixture must store transaction ids.');
+    if (is_array($log)) {
+        sr_reward_notify_transaction_created($pdo, (int) ($log['from_transaction_id'] ?? 0));
+        sr_deposit_notify_transaction_created($pdo, (int) ($log['to_transaction_id'] ?? 0));
+        sr_deposit_notify_transaction_created($pdo, (int) ($log['fee_transaction_id'] ?? 0));
+    }
+
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE source_module_key = 'reward' AND event_key = 'transaction.exchange_out'")->fetchColumn() === 1,
+        'Reward exchange-out notification setting must enable the actual reward notification event.'
+    );
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE source_module_key = 'deposit' AND event_key = 'transaction.exchange_in'")->fetchColumn() === 0,
+        'Deposit exchange-in notification setting must suppress the actual deposit notification event.'
+    );
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE source_module_key = 'deposit' AND event_key = 'transaction.exchange_fee'")->fetchColumn() === 1,
+        'Deposit exchange-fee notification setting must enable the actual deposit notification event.'
+    );
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notification_deliveries WHERE channel = 'email' AND recipient = 'asset-member@example.test'")->fetchColumn() === 1,
+        'Deposit exchange-fee notification setting must apply configured email delivery channel.'
+    );
+    $rewardNotification = $pdo->query("SELECT body_text FROM sr_notifications WHERE source_module_key = 'reward' AND event_key = 'transaction.exchange_out' LIMIT 1")->fetch();
+    sr_asset_exchange_runtime_assert(
+        is_array($rewardNotification) && str_contains((string) ($rewardNotification['body_text'] ?? ''), '환전 출금'),
+        'Reward exchange notification metadata must render the exchange transaction type label.'
+    );
+    sr_asset_exchange_runtime_assert(sr_point_transaction_type_label('exchange_in') === '환전 입금', 'Point exchange-in notification metadata label must be localized.');
+    sr_asset_exchange_runtime_assert(sr_point_transaction_type_label('exchange_out') === '환전 출금', 'Point exchange-out notification metadata label must be localized.');
+    sr_asset_exchange_runtime_assert(sr_point_transaction_type_label('exchange_fee') === '환전 수수료', 'Point exchange-fee notification metadata label must be localized.');
+}
+
 if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_error('pdo_sqlite extension is required for asset exchange runtime checks.');
 } else {
@@ -380,6 +542,7 @@ if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_rollback_case();
     sr_asset_exchange_runtime_failure_log_case();
     sr_asset_exchange_runtime_notification_settings_case();
+    sr_asset_exchange_runtime_notification_application_case();
 }
 
 if ($errors !== []) {

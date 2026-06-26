@@ -1304,6 +1304,9 @@ function sr_point_transaction_type_label(string $transactionType): string
         'use' => '사용',
         'refund' => '환불',
         'expire' => '만료',
+        'exchange_in' => '환전 입금',
+        'exchange_out' => '환전 출금',
+        'exchange_fee' => '환전 수수료',
     ];
 
     return $labels[$transactionType] ?? $transactionType;

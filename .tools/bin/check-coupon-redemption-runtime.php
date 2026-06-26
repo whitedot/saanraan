@@ -382,6 +382,7 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
     $pdo->exec("INSERT INTO sr_notification_event_templates
         (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
         VALUES
+        ('coupon', 'issue.created', '쿠폰·이용권이 발급되었습니다.', '쿠폰·이용권: {coupon_title}', '/account/coupons', '[\"site\"]', 'active', '2026-06-26 00:00:00', '2026-06-26 00:00:00'),
         ('coupon', 'issue.refunded', '쿠폰·이용권 발급이 환불되었습니다.', '쿠폰·이용권: {coupon_title}', '/account/coupons', '[\"site\"]', 'active', '2026-06-26 00:00:00', '2026-06-26 00:00:00'),
         ('coupon', 'issue.definition_disabled', '쿠폰·이용권 사용이 중지되었습니다.', '쿠폰·이용권: {coupon_title}', '/account/coupons', '[\"site\"]', 'active', '2026-06-26 00:00:00', '2026-06-26 00:00:00')");
 }
@@ -526,6 +527,71 @@ function sr_coupon_runtime_partial_failure_fixture(): void
     if (is_string($temporaryErrorLog) && is_file($temporaryErrorLog)) {
         unlink($temporaryErrorLog);
     }
+}
+
+function sr_coupon_runtime_notification_settings_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_coupon_runtime_create_schema($pdo);
+
+    $now = sr_now();
+    $definitionId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'notification_settings',
+        'title' => 'Notification settings',
+        'coupon_type' => 'access',
+        'target_type' => 'content',
+        'target_id' => '4401',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+    ]);
+    $couponModuleId = (int) $pdo->query("SELECT id FROM sr_modules WHERE module_key = 'coupon'")->fetchColumn();
+    $couponNotificationCases = sr_coupon_default_notification_case_settings();
+    $couponNotificationCases['issue_created']['enabled'] = false;
+    $couponNotificationCasesJson = json_encode($couponNotificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $pdo->prepare(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES (:module_id, 'notification_cases', :notification_cases, 'json', :created_at, :updated_at)"
+    )->execute([
+        'module_id' => $couponModuleId,
+        'notification_cases' => is_string($couponNotificationCasesJson) ? $couponNotificationCasesJson : '{}',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('coupon');
+
+    sr_coupon_issue_to_account($pdo, $definitionId, 7, 'disabled notification fixture');
+    sr_coupon_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 7 AND source_module_key = 'coupon' AND event_key = 'issue.created'")->fetchColumn() === 0,
+        'Coupon issue-created notification setting must suppress the actual issue notification event.'
+    );
+
+    $couponNotificationCases['issue_created']['enabled'] = true;
+    $couponNotificationCases['issue_created']['channels'] = ['site', 'email'];
+    $couponNotificationCasesJson = json_encode($couponNotificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $pdo->prepare(
+        "UPDATE sr_module_settings
+         SET setting_value = :notification_cases,
+             updated_at = :updated_at
+         WHERE module_id = :module_id
+           AND setting_key = 'notification_cases'"
+    )->execute([
+        'module_id' => $couponModuleId,
+        'notification_cases' => is_string($couponNotificationCasesJson) ? $couponNotificationCasesJson : '{}',
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('coupon');
+
+    sr_coupon_issue_to_account($pdo, $definitionId, 8, 'enabled notification fixture');
+    sr_coupon_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 8 AND source_module_key = 'coupon' AND event_key = 'issue.created'")->fetchColumn() === 1,
+        'Coupon issue-created notification setting must enable the actual issue notification event.'
+    );
+    sr_coupon_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_notification_deliveries WHERE channel = 'email' AND recipient = 'member8@example.test'")->fetchColumn() === 1,
+        'Coupon issue-created notification setting must apply configured email delivery channel.'
+    );
 }
 
 function sr_coupon_runtime_check_model_decision(): void
@@ -686,7 +752,13 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((int) ($disabledNotificationResult['target_issue_count'] ?? -1) === 1, 'disabled coupon definition notification should target only unused active issued coupons.');
     sr_coupon_runtime_assert((int) ($disabledNotificationResult['notification_count'] ?? -1) === 1, 'disabled coupon definition notification should create one reclaim notification.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 8 AND source_module_key = 'coupon' AND event_key = 'issue.definition_disabled'")->fetchColumn() === 1, 'disabled coupon definition notification should store a coupon account event.');
-    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notification_deliveries WHERE channel = 'email' AND recipient = 'member8@example.test'")->fetchColumn() === 1, 'disabled coupon definition notification should queue configured email delivery.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*)
+        FROM sr_notification_deliveries d
+        INNER JOIN sr_notifications n ON n.id = d.notification_id
+        WHERE d.channel = 'email'
+          AND d.recipient = 'member8@example.test'
+          AND n.source_module_key = 'coupon'
+          AND n.event_key = 'issue.definition_disabled'")->fetchColumn() === 1, 'disabled coupon definition notification should queue configured email delivery.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 7 AND event_key = 'issue.definition_disabled'")->fetchColumn() === 0, 'disabled coupon definition notification should not notify already used issue holders.');
     sr_coupon_runtime_assert(in_array($statusLifecycleUnusedIssueId, sr_coupon_unused_active_issue_ids_for_definition($pdo, $statusLifecycleId), true), 'disabled coupon definition notification should not mutate unused issue status.');
     $disabledRedemption = sr_coupon_redeem_for_target($pdo, 7, 'content', '7701', [
@@ -1224,6 +1296,7 @@ function sr_coupon_runtime_fixture(): void
 
 sr_coupon_runtime_check_model_decision();
 sr_coupon_runtime_discount_schema_detection_fixture();
+sr_coupon_runtime_notification_settings_fixture();
 sr_coupon_runtime_fixture();
 sr_coupon_runtime_partial_failure_fixture();
 
