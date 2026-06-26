@@ -603,7 +603,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         ]);
     }
 
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost && !sr_content_asset_confirmation_request_token_valid('view', $accountId, $pageId, $confirmationFingerprint, $requestToken)) {
+    if ($couponIssueId <= 0 && sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && (!$confirmedPost || !sr_content_asset_confirmation_request_token_valid('view', $accountId, $pageId, $confirmationFingerprint, $requestToken))) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
@@ -879,7 +879,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         ]);
     }
 
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost && !sr_content_asset_confirmation_request_token_valid('download', $accountId, $fileId, $confirmationFingerprint, $requestToken)) {
+    if ($couponIssueId <= 0 && sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && (!$confirmedPost || !sr_content_asset_confirmation_request_token_valid('download', $accountId, $fileId, $confirmationFingerprint, $requestToken))) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),

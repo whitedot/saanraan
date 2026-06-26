@@ -744,7 +744,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
             'message' => sr_community_asset_confirmation_required_message(),
         ];
-    } elseif ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost && !sr_community_asset_confirmation_request_token_valid($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint, $requestToken)) {
+    } elseif ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && $process && (!$confirmedPost || !sr_community_asset_confirmation_request_token_valid($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint, $requestToken))) {
         return [
             'allowed' => false,
             'processed' => false,

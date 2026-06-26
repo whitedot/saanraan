@@ -40,6 +40,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                         <?php if ($assetConfirmationId > 0) { ?>
                             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
                         <?php } ?>
+                        <input type="hidden" name="asset_confirm" value="1">
                         <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
                         <?php if ($assetConfirmationContentId > 0) { ?>
                             <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
