@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => '쿠폰·이용권',
-    'version' => '2026.06.005',
+    'name' => '쿠폰',
+    'version' => '2026.06.006',
     'type' => 'module',
-    'description' => '회원별 쿠폰·이용권 종류, 지급, 사용 내역을 관리합니다.',
+    'description' => '회원별 쿠폰 종류, 지급, 사용 내역을 관리합니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',

@@ -778,6 +778,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </th>
                 <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('Key', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('title', $definitionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰 이름', 'title', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
+                <th>혜택</th>
                 <th<?php echo sr_admin_sort_aria('target_type', $definitionSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('status', $definitionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th class="text-end">관리</th>
@@ -786,7 +787,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($definitions === []) { ?>
                 <tr>
-                    <td colspan="6" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
+                    <td colspan="7" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($definitions as $definition) { ?>
@@ -797,6 +798,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
+                        <td><?php echo sr_e(sr_coupon_definition_benefit_label($definition)); ?></td>
                         <td><?php echo sr_e(sr_coupon_target_display((string) $definition['target_type'], (string) $definition['target_id'], $pdo)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
                         <td class="admin-table-actions-cell">
@@ -1045,6 +1047,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
+                    <label class="form-label" for="coupon_admin_coupon_type">혜택 유형 <span class="sr-required-label">(필수)</span></label>
+                    <div class="form-field">
+                        <select id="coupon_admin_coupon_type" name="coupon_type" class="form-select" required data-coupon-type-select data-validation-message="혜택 유형을 선택해 주세요.">
+                            <?php foreach (sr_coupon_types() as $couponTypeOption => $couponTypeLabel) { ?>
+                                <option value="<?php echo sr_e((string) $couponTypeOption); ?>"><?php echo sr_e((string) $couponTypeLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <p class="form-help">열람/이용권은 콘텐츠나 게시글 접근권으로 사용하고, 정액/정률 할인은 금액 할인 정책으로 저장합니다.</p>
+                    </div>
+                </div>
+                <div class="form-row" data-coupon-fixed-discount-field hidden>
+                    <label class="form-label" for="coupon_admin_discount_amount">정액 할인 금액 <span class="sr-required-label" data-coupon-fixed-required-label hidden>(필수)</span></label>
+                    <div class="form-field">
+                        <div class="input-group">
+                            <input id="coupon_admin_discount_amount" type="number" name="discount_amount" class="form-control" min="1" max="999999999" step="1" aria-describedby="coupon_admin_discount_amount_unit" data-coupon-fixed-required-input data-validation-message="정액 할인 금액은 1 이상으로 입력해 주세요.">
+                            <span id="coupon_admin_discount_amount_unit" class="input-group-text">원</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" data-coupon-percent-discount-field hidden>
+                    <label class="form-label" for="coupon_admin_discount_percent">정률 할인율 <span class="sr-required-label" data-coupon-percent-required-label hidden>(필수)</span></label>
+                    <div class="form-field">
+                        <div class="input-group">
+                            <input id="coupon_admin_discount_percent" type="number" name="discount_percent" class="form-control" min="1" max="100" step="1" aria-describedby="coupon_admin_discount_percent_unit" data-coupon-percent-required-input data-validation-message="정률 할인율은 1부터 100 사이로 입력해 주세요.">
+                            <span id="coupon_admin_discount_percent_unit" class="input-group-text">%</span>
+                        </div>
+                        <p class="form-help">예: 10을 입력하면 10% 할인으로 저장합니다.</p>
+                    </div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="coupon_admin_target_type">사용처 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
                         <select id="coupon_admin_target_type" name="target_type" class="form-select" required data-validation-message="사용처를 선택해 주세요.">
@@ -1082,7 +1114,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <input type="hidden" name="status" value="active">
-                <input type="hidden" name="coupon_type" value="access">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">닫기</button>
@@ -1091,6 +1122,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    var form = document.querySelector('#<?php echo sr_e($couponCreateModalId); ?> form');
+    if (!form) {
+        return;
+    }
+    var typeSelect = form.querySelector('[data-coupon-type-select]');
+    var fixedFields = form.querySelectorAll('[data-coupon-fixed-discount-field]');
+    var percentFields = form.querySelectorAll('[data-coupon-percent-discount-field]');
+    var fixedInputs = form.querySelectorAll('[data-coupon-fixed-required-input]');
+    var percentInputs = form.querySelectorAll('[data-coupon-percent-required-input]');
+    var fixedLabels = form.querySelectorAll('[data-coupon-fixed-required-label]');
+    var percentLabels = form.querySelectorAll('[data-coupon-percent-required-label]');
+    function setHidden(nodes, hidden) {
+        Array.prototype.forEach.call(nodes, function (node) {
+            node.hidden = hidden;
+        });
+    }
+    function setRequired(nodes, required) {
+        Array.prototype.forEach.call(nodes, function (node) {
+            node.required = required;
+        });
+    }
+    function syncCouponBenefitFields() {
+        var type = typeSelect ? typeSelect.value : 'access';
+        var isFixed = type === 'fixed_discount';
+        var isPercent = type === 'percent_discount';
+        setHidden(fixedFields, !isFixed);
+        setHidden(percentFields, !isPercent);
+        setHidden(fixedLabels, !isFixed);
+        setHidden(percentLabels, !isPercent);
+        setRequired(fixedInputs, isFixed);
+        setRequired(percentInputs, isPercent);
+    }
+    if (typeSelect) {
+        typeSelect.addEventListener('change', syncCouponBenefitFields);
+        syncCouponBenefitFields();
+    }
+})();
+</script>
 
 <div id="<?php echo sr_e($couponTargetLookupModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($couponTargetLookupModalId); ?>_title" aria-hidden="true" inert data-overlay-stack="true">
     <div class="modal-dialog admin-lookup-dialog">

@@ -2,7 +2,7 @@
 
 return [
     [
-        'label' => '보유 쿠폰·이용권',
+        'label' => '보유 쿠폰',
         'url' => '/account/coupons',
     ],
 ];

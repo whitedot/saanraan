@@ -47,6 +47,58 @@ function sr_coupon_issue_statuses(): array
     return ['active', 'used', 'expired', 'revoked', 'withdrawn_expired', 'refund_requested', 'refunded'];
 }
 
+function sr_coupon_types(): array
+{
+    return [
+        'access' => '열람/이용권',
+        'fixed_discount' => '정액 할인',
+        'percent_discount' => '정률 할인',
+    ];
+}
+
+function sr_coupon_type_label(string $couponType): string
+{
+    return (string) (sr_coupon_types()[$couponType] ?? $couponType);
+}
+
+function sr_coupon_definition_discount_columns_available(PDO $pdo): bool
+{
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT discount_amount, discount_percent, discount_currency_code FROM sr_coupon_definitions LIMIT 1');
+        $available = $stmt !== false;
+    } catch (Throwable) {
+        $available = false;
+    }
+
+    return $available;
+}
+
+function sr_coupon_definition_benefit_label(array $definition): string
+{
+    $couponType = (string) ($definition['coupon_type'] ?? 'access');
+    if ($couponType === 'fixed_discount') {
+        $amount = max(0, (int) ($definition['discount_amount'] ?? 0));
+        $currencyCode = strtoupper(sr_coupon_clean_key((string) ($definition['discount_currency_code'] ?? ''), 3));
+        if ($currencyCode === '') {
+            $currencyCode = 'KRW';
+        }
+
+        return $amount > 0 ? number_format($amount) . ' ' . $currencyCode . ' 할인' : '정액 할인';
+    }
+    if ($couponType === 'percent_discount') {
+        $percent = max(0, (int) ($definition['discount_percent'] ?? 0));
+
+        return $percent > 0 ? (string) $percent . '% 할인' : '정률 할인';
+    }
+
+    return sr_coupon_type_label($couponType);
+}
+
 function sr_coupon_relative_time_label(string $dateTime): string
 {
     return sr_relative_time_label($dateTime);
@@ -1183,52 +1235,56 @@ function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $con
     ];
 
     $rows = [];
-    $stmt = $pdo->prepare(
-        'SELECT status, COUNT(*) AS reference_count, MAX(updated_at) AS updated_at
-         FROM sr_coupon_issues
-         WHERE coupon_definition_id = :definition_id
-         GROUP BY status
-         ORDER BY status ASC'
-    );
-    $stmt->execute(['definition_id' => $definitionId]);
-    foreach ($stmt->fetchAll() as $row) {
-        $status = (string) ($row['status'] ?? '');
-        $rows[] = [
-            'consumer_module_key' => 'coupon',
-            'reference_type' => 'coupon_issue',
-            'reference_id' => 'definition:' . (string) $definitionId . ':issue_status:' . $status,
-            'title' => '지급 쿠폰 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
-            'target_type' => 'coupon_definition',
-            'target_id' => (string) $definitionId,
-            'target_key' => $targetKey,
-            'policy_status' => $status,
-            'updated_at' => (string) ($row['updated_at'] ?? ''),
-            'metadata' => ['domain_target' => $domainTarget],
-        ];
+    if (sr_coupon_table_available($pdo, 'sr_coupon_issues')) {
+        $stmt = $pdo->prepare(
+            'SELECT status, COUNT(*) AS reference_count, MAX(updated_at) AS updated_at
+             FROM sr_coupon_issues
+             WHERE coupon_definition_id = :definition_id
+             GROUP BY status
+             ORDER BY status ASC'
+        );
+        $stmt->execute(['definition_id' => $definitionId]);
+        foreach ($stmt->fetchAll() as $row) {
+            $status = (string) ($row['status'] ?? '');
+            $rows[] = [
+                'consumer_module_key' => 'coupon',
+                'reference_type' => 'coupon_issue',
+                'reference_id' => 'definition:' . (string) $definitionId . ':issue_status:' . $status,
+                'title' => '지급 쿠폰 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
+                'target_type' => 'coupon_definition',
+                'target_id' => (string) $definitionId,
+                'target_key' => $targetKey,
+                'policy_status' => $status,
+                'updated_at' => (string) ($row['updated_at'] ?? ''),
+                'metadata' => ['domain_target' => $domainTarget],
+            ];
+        }
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT status, COUNT(*) AS reference_count, MAX(COALESCE(refunded_at, redeemed_at)) AS updated_at
-         FROM sr_coupon_redemptions
-         WHERE coupon_definition_id = :definition_id
-         GROUP BY status
-         ORDER BY status ASC'
-    );
-    $stmt->execute(['definition_id' => $definitionId]);
-    foreach ($stmt->fetchAll() as $row) {
-        $status = (string) ($row['status'] ?? '');
-        $rows[] = [
-            'consumer_module_key' => 'coupon',
-            'reference_type' => 'coupon_redemption',
-            'reference_id' => 'definition:' . (string) $definitionId . ':redemption_status:' . $status,
-            'title' => '쿠폰 사용 이력 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
-            'target_type' => 'coupon_definition',
-            'target_id' => (string) $definitionId,
-            'target_key' => $targetKey,
-            'policy_status' => $status,
-            'updated_at' => (string) ($row['updated_at'] ?? ''),
-            'metadata' => ['domain_target' => $domainTarget],
-        ];
+    if (sr_coupon_table_available($pdo, 'sr_coupon_redemptions')) {
+        $stmt = $pdo->prepare(
+            'SELECT status, COUNT(*) AS reference_count, MAX(COALESCE(refunded_at, redeemed_at)) AS updated_at
+             FROM sr_coupon_redemptions
+             WHERE coupon_definition_id = :definition_id
+             GROUP BY status
+             ORDER BY status ASC'
+        );
+        $stmt->execute(['definition_id' => $definitionId]);
+        foreach ($stmt->fetchAll() as $row) {
+            $status = (string) ($row['status'] ?? '');
+            $rows[] = [
+                'consumer_module_key' => 'coupon',
+                'reference_type' => 'coupon_redemption',
+                'reference_id' => 'definition:' . (string) $definitionId . ':redemption_status:' . $status,
+                'title' => '쿠폰 사용 이력 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
+                'target_type' => 'coupon_definition',
+                'target_id' => (string) $definitionId,
+                'target_key' => $targetKey,
+                'policy_status' => $status,
+                'updated_at' => (string) ($row['updated_at'] ?? ''),
+                'metadata' => ['domain_target' => $domainTarget],
+            ];
+        }
     }
 
     return $rows;
@@ -1710,8 +1766,48 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     if ($couponType === '') {
         $couponType = 'access';
     }
-    if ($couponType !== 'access') {
-        throw new InvalidArgumentException('현재 쿠폰 사용 모델은 접근권 쿠폰만 지원합니다.');
+    if (!array_key_exists($couponType, sr_coupon_types())) {
+        throw new InvalidArgumentException('쿠폰 혜택 유형이 올바르지 않습니다.');
+    }
+    $discountAmount = 0;
+    $discountPercent = 0;
+    $discountCurrencyCode = '';
+    if ($couponType === 'fixed_discount') {
+        $discountAmountValue = $data['discount_amount'] ?? '';
+        if (is_array($discountAmountValue)) {
+            throw new InvalidArgumentException('정액 할인 금액은 1 이상 정수로 입력하세요.');
+        }
+        $discountAmountString = trim((string) $discountAmountValue);
+        if ($discountAmountString === '' || preg_match('/\A[1-9][0-9]*\z/', $discountAmountString) !== 1) {
+            throw new InvalidArgumentException('정액 할인 금액은 1 이상 정수로 입력하세요.');
+        }
+        $discountAmount = (int) $discountAmountString;
+        if ($discountAmount < 1 || $discountAmount > 999999999) {
+            throw new InvalidArgumentException('정액 할인 금액은 1부터 999999999 사이로 입력하세요.');
+        }
+        $discountCurrencyCode = strtoupper(trim((string) ($data['discount_currency_code'] ?? 'KRW')));
+        if ($discountCurrencyCode === '') {
+            $discountCurrencyCode = 'KRW';
+        }
+        if (preg_match('/\A[A-Z]{3}\z/', $discountCurrencyCode) !== 1) {
+            throw new InvalidArgumentException('정액 할인 통화는 영문 3자리로 입력하세요.');
+        }
+    } elseif ($couponType === 'percent_discount') {
+        $discountPercentValue = $data['discount_percent'] ?? '';
+        if (is_array($discountPercentValue)) {
+            throw new InvalidArgumentException('정률 할인율은 1부터 100 사이의 정수로 입력하세요.');
+        }
+        $discountPercentString = trim((string) $discountPercentValue);
+        if ($discountPercentString === '' || preg_match('/\A[1-9][0-9]*\z/', $discountPercentString) !== 1) {
+            throw new InvalidArgumentException('정률 할인율은 1부터 100 사이의 정수로 입력하세요.');
+        }
+        $discountPercent = (int) $discountPercentString;
+        if ($discountPercent < 1 || $discountPercent > 100) {
+            throw new InvalidArgumentException('정률 할인율은 1부터 100 사이의 정수로 입력하세요.');
+        }
+    }
+    if ($couponType !== 'access' && !sr_coupon_definition_discount_columns_available($pdo)) {
+        throw new InvalidArgumentException('쿠폰 할인 설정 업데이트를 먼저 적용하세요.');
     }
     $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types($pdo)) ? (string) $data['target_type'] : 'all';
     $targetId = sr_coupon_clean_text((string) ($data['target_id'] ?? ''), 80);
@@ -1745,13 +1841,22 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     }
 
     $now = sr_now();
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_coupon_definitions
-            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
-         VALUES
-            (:coupon_key, :title, :description, :status, :coupon_type, :target_type, :target_id, :refundable_policy, :max_uses_per_issue, NULL, NULL, :created_at, :updated_at)'
-    );
-    $stmt->execute([
+    $insertColumns = [
+        'coupon_key',
+        'title',
+        'description',
+        'status',
+        'coupon_type',
+        'target_type',
+        'target_id',
+        'refundable_policy',
+        'max_uses_per_issue',
+        'valid_from',
+        'valid_until',
+        'created_at',
+        'updated_at',
+    ];
+    $insertValues = [
         'coupon_key' => $couponKey,
         'title' => $title,
         'description' => $description,
@@ -1761,9 +1866,25 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
         'target_id' => $targetId,
         'refundable_policy' => $refundablePolicy,
         'max_uses_per_issue' => $maxUses,
+        'valid_from' => null,
+        'valid_until' => null,
         'created_at' => $now,
         'updated_at' => $now,
-    ]);
+    ];
+    if (sr_coupon_definition_discount_columns_available($pdo)) {
+        array_splice($insertColumns, 5, 0, ['discount_amount', 'discount_percent', 'discount_currency_code']);
+        $insertValues['discount_amount'] = $discountAmount;
+        $insertValues['discount_percent'] = $discountPercent;
+        $insertValues['discount_currency_code'] = $discountCurrencyCode;
+    }
+    $placeholders = array_map(static fn (string $column): string => ':' . $column, $insertColumns);
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_coupon_definitions
+            (' . implode(', ', $insertColumns) . ')
+         VALUES
+            (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($insertValues);
 
     return (int) $pdo->lastInsertId();
 }
@@ -2529,8 +2650,11 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
     sr_coupon_expire_active_issues($pdo, $accountId);
 
     $limit = max(1, min(300, $limit));
+    $discountColumns = sr_coupon_definition_discount_columns_available($pdo)
+        ? 'd.discount_amount, d.discount_percent, d.discount_currency_code'
+        : '0 AS discount_amount, 0 AS discount_percent, \'\' AS discount_currency_code';
     $stmt = $pdo->prepare(
-        "SELECT i.*, d.coupon_key, d.title, d.description, d.coupon_type, d.target_type, d.target_id, d.refundable_policy, d.max_uses_per_issue
+        "SELECT i.*, d.coupon_key, d.title, d.description, d.coupon_type, " . $discountColumns . ", d.target_type, d.target_id, d.refundable_policy, d.max_uses_per_issue
          FROM sr_coupon_issues i
          INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
          WHERE i.account_id = :account_id
@@ -2579,6 +2703,20 @@ function sr_coupon_tables_available(PDO $pdo): bool
         $pdo->query('SELECT 1 FROM sr_coupon_issues LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_coupon_definitions LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_coupon_redemptions LIMIT 1');
+        return true;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function sr_coupon_table_available(PDO $pdo, string $tableName): bool
+{
+    if (preg_match('/\Asr_coupon_[a-z0-9_]+\z/', $tableName) !== 1) {
+        return false;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
         return true;
     } catch (Throwable) {
         return false;
@@ -3220,6 +3358,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
              WHERE i.account_id = :account_id
                AND i.status = 'active'
                AND d.status = 'active'
+               AND d.coupon_type = 'access'
                AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
             . sr_coupon_for_update_clause($pdo)
@@ -3395,7 +3534,7 @@ function sr_coupon_issue_notification_metadata(array $issue): array
         'coupon_definition_id' => (int) ($issue['coupon_definition_id'] ?? 0),
         'coupon_key' => (string) ($issue['coupon_key'] ?? ''),
         'coupon_title' => (string) ($issue['title'] ?? ''),
-        'asset_label' => '쿠폰·이용권',
+        'asset_label' => '쿠폰',
         'status' => (string) ($issue['status'] ?? ''),
         'status_label' => sr_coupon_issue_status_label((string) ($issue['status'] ?? '')),
         'issued_reason' => (string) ($issue['issued_reason'] ?? ''),
@@ -3454,7 +3593,7 @@ function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array
     }
 
     return [
-        'label' => '쿠폰·이용권',
+        'label' => '쿠폰',
         'amount' => $updatedCount,
         'process' => '소멸/환급 검토',
     ];

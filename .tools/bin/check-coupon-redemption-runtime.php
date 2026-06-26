@@ -60,6 +60,9 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         description TEXT,
         status TEXT NOT NULL DEFAULT 'active',
         coupon_type TEXT NOT NULL DEFAULT 'access',
+        discount_amount INTEGER NOT NULL DEFAULT 0,
+        discount_percent INTEGER NOT NULL DEFAULT 0,
+        discount_currency_code TEXT NOT NULL DEFAULT '',
         target_type TEXT NOT NULL DEFAULT 'all',
         target_id TEXT NOT NULL DEFAULT '',
         refundable_policy TEXT NOT NULL DEFAULT 'none',
@@ -421,10 +424,12 @@ function sr_coupon_runtime_check_model_decision(): void
     $moduleGuide = (string) file_get_contents('docs/module-guide.md');
 
     sr_coupon_runtime_assert(str_contains($installSql, "coupon_type VARCHAR(40) NOT NULL DEFAULT 'access'"), 'coupon schema must keep access as the default coupon use model.');
+    sr_coupon_runtime_assert(str_contains($installSql, 'discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0'), 'coupon schema must store fixed discount amount.');
+    sr_coupon_runtime_assert(str_contains($installSql, 'discount_percent TINYINT UNSIGNED NOT NULL DEFAULT 0'), 'coupon schema must store percent discount value.');
     sr_coupon_runtime_assert(!str_contains($installSql, 'sr_coupon_balance_ledger'), 'coupon v1 must not introduce a partial-use balance ledger.');
-    sr_coupon_runtime_assert(str_contains($adminView, 'name="coupon_type" value="access"'), 'coupon admin form must create access coupons in the current use model.');
-    sr_coupon_runtime_assert(str_contains($coreDecisions, '1차 사용 모델 분류는 `sr_coupon_definitions.coupon_type = access`'), 'core decisions must pin coupon_type=access as the current benefit model.');
-    sr_coupon_runtime_assert(str_contains($moduleGuide, '부분 사용 가능한 쿠폰 잔액 원장과 `stored_value` 모델은 아직 구현된 상태로 보지 않는다'), 'module guide must state that stored-value partial-use coupons are not implemented in v1.');
+    sr_coupon_runtime_assert(str_contains($adminView, 'data-coupon-type-select'), 'coupon admin form must expose coupon benefit type selection.');
+    sr_coupon_runtime_assert(str_contains($coreDecisions, '`access`, `fixed_discount`, `percent_discount`'), 'core decisions must pin the supported coupon benefit models.');
+    sr_coupon_runtime_assert(str_contains($moduleGuide, '`fixed_discount`와 `percent_discount`는 정의와 지급까지 저장'), 'module guide must describe stored discount coupon definitions.');
 }
 
 function sr_coupon_runtime_fixture(): void
@@ -446,9 +451,36 @@ function sr_coupon_runtime_fixture(): void
         ]);
         sr_coupon_runtime_assert(false, 'coupon definition save should reject unimplemented stored_value coupon model.');
     } catch (InvalidArgumentException $exception) {
-        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '접근권'), 'unimplemented coupon model failure should be user-facing.');
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '혜택 유형'), 'unimplemented coupon model failure should be user-facing.');
     }
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'stored_value_attempt'")->fetchColumn() === 0, 'rejected coupon model should not create a coupon definition.');
+
+    $fixedDiscountId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'fixed_discount_attempt',
+        'title' => 'Fixed discount attempt',
+        'coupon_type' => 'fixed_discount',
+        'discount_amount' => '5000',
+        'target_type' => 'all',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+    ]);
+    $fixedDiscount = sr_coupon_runtime_row($pdo, 'SELECT coupon_type, discount_amount, discount_currency_code FROM sr_coupon_definitions WHERE id = :id', ['id' => $fixedDiscountId]);
+    sr_coupon_runtime_assert((string) ($fixedDiscount['coupon_type'] ?? '') === 'fixed_discount', 'fixed discount coupon definition should be stored.');
+    sr_coupon_runtime_assert((int) ($fixedDiscount['discount_amount'] ?? 0) === 5000, 'fixed discount coupon amount should be stored.');
+    sr_coupon_runtime_assert((string) ($fixedDiscount['discount_currency_code'] ?? '') === 'KRW', 'fixed discount coupon currency should default to KRW when the admin form omits it.');
+
+    $percentDiscountId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'percent_discount_attempt',
+        'title' => 'Percent discount attempt',
+        'coupon_type' => 'percent_discount',
+        'discount_percent' => '15',
+        'target_type' => 'all',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+    ]);
+    $percentDiscount = sr_coupon_runtime_row($pdo, 'SELECT coupon_type, discount_percent FROM sr_coupon_definitions WHERE id = :id', ['id' => $percentDiscountId]);
+    sr_coupon_runtime_assert((string) ($percentDiscount['coupon_type'] ?? '') === 'percent_discount', 'percent discount coupon definition should be stored.');
+    sr_coupon_runtime_assert((int) ($percentDiscount['discount_percent'] ?? 0) === 15, 'percent discount coupon value should be stored.');
 
     $pdo->prepare(
         "INSERT INTO sr_coupon_definitions

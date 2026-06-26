@@ -44,10 +44,14 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon definition save must require revoke_access capability for refundable target-specific coupons.';
     }
-    if (strpos($helper, "\$couponType !== 'access'") === false
-        || strpos($helper, '현재 쿠폰 사용 모델은 접근권 쿠폰만 지원합니다.') === false
+    if (strpos($helper, 'function sr_coupon_types(): array') === false
+        || strpos($helper, "'fixed_discount' => '정액 할인'") === false
+        || strpos($helper, "'percent_discount' => '정률 할인'") === false
+        || strpos($helper, 'function sr_coupon_definition_discount_columns_available(PDO $pdo): bool') === false
+        || strpos($helper, '정액 할인 금액은 1 이상 정수로 입력하세요.') === false
+        || strpos($helper, '정률 할인율은 1부터 100 사이의 정수로 입력하세요.') === false
     ) {
-        $errors[] = 'Coupon definition save must reject unimplemented coupon use models server-side.';
+        $errors[] = 'Coupon definition save must validate fixed and percent discount fields server-side.';
     }
 }
 
@@ -58,6 +62,9 @@ if (!is_string($action)) {
     || strpos($action, "'max_uses_per_issue' => (int) sr_post_string('max_uses_per_issue', 10)") !== false
 ) {
     $errors[] = 'Coupon admin action must pass raw max_uses_per_issue input to server-side validation.';
+}
+if (is_string($action) && strpos($action, "'discount_currency_code' => sr_post_string('discount_currency_code', 3)") !== false) {
+    $errors[] = 'Coupon definition form must not expose a standalone discount currency field for fixed discounts.';
 }
 
 $view = file_get_contents($root . '/modules/coupon/views/admin-coupons.php');
@@ -90,6 +97,22 @@ if (is_string($view)
 ) {
     $errors[] = 'Coupon paid claim campaign form must align conditional required UI, browser validation, and paid asset selection.';
 }
+if (is_string($view)
+    && (
+        strpos($view, 'data-coupon-type-select') === false
+        || strpos($view, 'data-coupon-fixed-required-input') === false
+        || strpos($view, 'data-coupon-percent-required-input') === false
+        || strpos($view, 'coupon_admin_discount_amount_unit') === false
+        || strpos($view, '>원</span>') === false
+        || strpos($view, 'coupon_admin_discount_percent_unit') === false
+        || strpos($view, '>%</span>') === false
+        || strpos($view, 'coupon_admin_discount_currency_code') !== false
+        || strpos($view, 'syncCouponBenefitFields') === false
+        || strpos($view, 'sr_coupon_definition_benefit_label($definition)') === false
+    )
+) {
+    $errors[] = 'Coupon definition form must expose fixed and percent discount settings with units and conditional validation.';
+}
 
 $assetAdjustJs = file_get_contents($root . '/modules/admin/assets/asset-adjust.js');
 if (!is_string($assetAdjustJs)
@@ -117,6 +140,15 @@ if (!is_string($expiryUpdate)
     || strpos($expiryUpdate, "WHERE module_key = 'coupon'") === false
 ) {
     $errors[] = 'Coupon expiry update must transition existing expired active issues and bump the module version.';
+}
+$discountUpdate = file_get_contents($root . '/modules/coupon/updates/2026.06.006.sql');
+if (!is_string($discountUpdate)
+    || strpos($discountUpdate, 'discount_amount') === false
+    || strpos($discountUpdate, 'discount_percent') === false
+    || strpos($discountUpdate, 'discount_currency_code') === false
+    || strpos($discountUpdate, "WHERE module_key = 'coupon'") === false
+) {
+    $errors[] = 'Coupon discount definition update must add discount columns and bump the module version.';
 }
 
 if ($errors !== []) {

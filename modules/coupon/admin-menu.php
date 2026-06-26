@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => '쿠폰·이용권',
+    'label' => '쿠폰',
     'order' => 60,
     'items' => [
         [

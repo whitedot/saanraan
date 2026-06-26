@@ -3,7 +3,7 @@
 return [
     [
         'key' => 'coupon',
-        'title' => '쿠폰·이용권',
+        'title' => '쿠폰',
         'order' => 32,
         'layout' => 'stats',
         'items' => [

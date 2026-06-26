@@ -50,6 +50,8 @@ if (sr_request_method() === 'POST') {
                 'description' => sr_post_string('description', 1000),
                 'status' => sr_post_string('status', 30),
                 'coupon_type' => sr_post_string('coupon_type', 40),
+                'discount_amount' => sr_post_string('discount_amount', 20),
+                'discount_percent' => sr_post_string('discount_percent', 3),
                 'target_type' => sr_post_string('target_type', 60),
                 'target_id' => sr_post_string('target_id', 80),
                 'refundable_policy' => sr_post_string('refundable_policy', 30),
