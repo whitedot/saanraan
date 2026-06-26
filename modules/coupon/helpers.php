@@ -57,7 +57,6 @@ function sr_coupon_default_settings(): array
 {
     return [
         'usage_enabled' => true,
-        'notifications_enabled' => true,
         'notification_cases' => sr_coupon_default_notification_case_settings(),
         'disabled_reclaim_notifications_enabled' => true,
         'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
@@ -226,14 +225,6 @@ function sr_coupon_notification_setting_for_event(array $settings, string $event
         return null;
     }
 
-    if (array_key_exists('notifications_enabled', $settings) && !sr_truthy($settings['notifications_enabled'])) {
-        return [
-            'event_key' => $eventKey,
-            'enabled' => false,
-            'channels' => ['site'],
-        ];
-    }
-
     $caseSettings = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
@@ -272,7 +263,6 @@ function sr_coupon_settings(PDO $pdo): array
     $storedSettings = sr_module_settings($pdo, 'coupon');
     $settings = array_merge(sr_coupon_default_settings(), $storedSettings);
     $settings['usage_enabled'] = sr_truthy($settings['usage_enabled'] ?? true);
-    $settings['notifications_enabled'] = sr_truthy($settings['notifications_enabled'] ?? true);
     $notificationCases = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     if (array_key_exists('disabled_reclaim_notifications_enabled', $storedSettings)) {
         $notificationCases['definition_disabled']['enabled'] = sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false);
@@ -311,9 +301,6 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
             $notificationCases['definition_disabled']['channels'] = sr_coupon_notification_channels_from_value($settings['disabled_reclaim_notification_channels'] ?? ['site']);
         }
     }
-    $allNotificationsEnabled = array_key_exists('notifications_enabled', $settings)
-        ? sr_truthy($settings['notifications_enabled'])
-        : sr_truthy(sr_coupon_settings($pdo)['notifications_enabled'] ?? true);
     $definitionNotificationsEnabled = !empty($notificationCases['definition_disabled']['enabled']);
     $eventKey = sr_coupon_clean_text((string) ($settings['disabled_reclaim_notification_event_key'] ?? 'issue.definition_disabled'), 120);
     if (preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
@@ -346,7 +333,6 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
     );
     foreach ([
         ['usage_enabled', $usageEnabled ? '1' : '0', 'bool'],
-        ['notifications_enabled', $allNotificationsEnabled ? '1' : '0', 'bool'],
         ['notification_cases', $notificationCasesJson, 'json'],
         ['disabled_reclaim_notifications_enabled', $definitionNotificationsEnabled ? '1' : '0', 'bool'],
         ['disabled_reclaim_notification_event_key', $eventKey, 'string'],

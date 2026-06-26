@@ -7,7 +7,14 @@ $notificationCases = isset($notificationCases) && is_array($notificationCases) ?
 $notificationCaseSettings = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 $notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
-$notificationsEnabled = !isset($settings['notifications_enabled']) || !empty($settings['notifications_enabled']);
+$allNotificationCasesEnabled = $notificationCases !== [];
+foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
+    $notificationCaseKey = (string) $notificationCaseKey;
+    if (empty($notificationCaseSettings[$notificationCaseKey]['enabled'])) {
+        $allNotificationCasesEnabled = false;
+        break;
+    }
+}
 $withdrawalRequestsEnabled = !empty($settings['withdrawal_requests_enabled']);
 $enabledMemberGroups = [];
 foreach ($memberGroups as $memberGroup) {
@@ -111,9 +118,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <div class="card-header">
             <h2 class="card-title">회원 알림</h2>
-            <?php echo sr_admin_switch_html('reward_notifications_enabled', 'notifications_enabled', '1', $notificationsEnabled, '전체 사용', '0', ' data-reward-notification-master'); ?>
+            <?php echo sr_admin_switch_html('reward_notification_bulk_toggle', 'reward_notification_bulk_toggle', '1', $allNotificationCasesEnabled, $allNotificationCasesEnabled ? '전체비활성' : '전체활성', '', ' data-reward-notification-bulk-toggle'); ?>
         </div>
-        <p class="form-help">전체 사용을 끄면 아래 케이스 설정은 보존하지만 적립금 회원 알림을 만들지 않습니다.</p>
+        <p class="form-help">전체 설정 스위치는 아래 알림 항목의 사용 여부를 한 번에 켜거나 끕니다.</p>
         <?php foreach ($notificationCases as $caseKey => $case) { ?>
             <?php
             $caseKey = (string) $caseKey;
@@ -236,7 +243,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (!form) {
         return;
     }
-    var master = form.querySelector('[data-reward-notification-master]');
+    var bulkToggle = form.querySelector('[data-reward-notification-bulk-toggle]');
     var caseKeys = [];
     Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-key]')).forEach(function (control) {
         var caseKey = control.getAttribute('data-reward-notification-case-key') || '';
@@ -247,7 +254,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     function syncCase(caseKey) {
         var toggle = form.querySelector('[data-reward-notification-case-toggle][data-reward-notification-case-key="' + caseKey + '"]');
         var channels = Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-channel][data-reward-notification-case-key="' + caseKey + '"]'));
-        var masterEnabled = !master || master.checked;
         var enabled = !toggle || toggle.checked;
         var selected = channels.some(function (channel) {
             return channel.checked;
@@ -256,25 +262,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             channel.disabled = !enabled;
         });
         Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-required-label][data-reward-notification-case-key="' + caseKey + '"]')).forEach(function (label) {
-            label.hidden = !masterEnabled || !enabled;
+            label.hidden = !enabled;
         });
         if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
-            channels[0].setCustomValidity(!masterEnabled || !enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
+            channels[0].setCustomValidity(!enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
         }
     }
-    if (master) {
-        master.addEventListener('change', function () {
+    function setBulkLabel(text) {
+        var label = bulkToggle && bulkToggle.closest ? bulkToggle.closest('label') : null;
+        if (!label) {
+            return;
+        }
+        for (var index = label.childNodes.length - 1; index >= 0; index -= 1) {
+            if (label.childNodes[index].nodeType === 3 && label.childNodes[index].nodeValue.trim() !== '') {
+                label.childNodes[index].nodeValue = text;
+                return;
+            }
+        }
+        label.appendChild(document.createTextNode(text));
+    }
+    function syncBulkToggle() {
+        if (!bulkToggle) {
+            return;
+        }
+        var toggles = Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-toggle]'));
+        var allEnabled = toggles.length > 0 && toggles.every(function (toggle) {
+            return toggle.checked;
+        });
+        bulkToggle.checked = allEnabled;
+        setBulkLabel(allEnabled ? '전체비활성' : '전체활성');
+    }
+    if (bulkToggle) {
+        bulkToggle.addEventListener('change', function () {
+            Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-toggle]')).forEach(function (toggle) {
+                toggle.checked = bulkToggle.checked;
+            });
             caseKeys.forEach(syncCase);
+            syncBulkToggle();
         });
     }
     caseKeys.forEach(function (caseKey) {
         Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-key="' + caseKey + '"]')).forEach(function (control) {
             control.addEventListener('change', function () {
                 syncCase(caseKey);
+                syncBulkToggle();
             });
         });
         syncCase(caseKey);
     });
+    syncBulkToggle();
     form.addEventListener('submit', function (event) {
         var invalidChannel = null;
         caseKeys.forEach(function (caseKey) {

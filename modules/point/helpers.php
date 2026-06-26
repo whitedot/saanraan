@@ -13,7 +13,6 @@ function sr_point_default_settings(): array
         'display_name' => '포인트',
         'unit_label' => 'P',
         'default_expiration_days' => '0',
-        'notifications_enabled' => false,
         'notification_cases' => sr_point_default_notification_case_settings(),
     ];
 }
@@ -25,55 +24,55 @@ function sr_point_notification_cases(): array
             'event_key' => 'transaction.grant',
             'label' => '지급 알림',
             'description' => '포인트가 지급되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_refund' => [
             'event_key' => 'transaction.refund',
             'label' => '복원 알림',
             'description' => '포인트가 환불 또는 복원되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_exchange_in' => [
             'event_key' => 'transaction.exchange_in',
             'label' => '환전 입금 알림',
             'description' => '환전으로 포인트가 입금되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_use' => [
             'event_key' => 'transaction.use',
             'label' => '사용 알림',
             'description' => '포인트가 사용되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_exchange_out' => [
             'event_key' => 'transaction.exchange_out',
             'label' => '환전 출금 알림',
             'description' => '환전으로 포인트가 출금되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_exchange_fee' => [
             'event_key' => 'transaction.exchange_fee',
             'label' => '환전 수수료 알림',
             'description' => '환전 수수료로 포인트가 차감되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_expire' => [
             'event_key' => 'transaction.expire',
             'label' => '만료 알림',
             'description' => '포인트가 만료되었을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_adjustment_increase' => [
             'event_key' => 'transaction.adjustment.increase',
             'label' => '증가 조정 알림',
             'description' => '관리자 조정 등으로 포인트가 증가했을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
         'transaction_adjustment_decrease' => [
             'event_key' => 'transaction.adjustment.decrease',
             'label' => '감소 조정 알림',
             'description' => '관리자 조정 등으로 포인트가 감소했을 때 보냅니다.',
-            'default_enabled' => true,
+            'default_enabled' => false,
         ],
     ];
 }
@@ -197,14 +196,6 @@ function sr_point_notification_setting_for_event(array $settings, string $eventK
         return null;
     }
 
-    if (array_key_exists('notifications_enabled', $settings) && !sr_truthy($settings['notifications_enabled'])) {
-        return [
-            'event_key' => $eventKey,
-            'enabled' => false,
-            'channels' => ['site'],
-        ];
-    }
-
     $caseSettings = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
@@ -232,7 +223,6 @@ function sr_point_settings(PDO $pdo): array
         $settings['unit_label'] = 'P';
     }
     $settings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
-    $settings['notifications_enabled'] = sr_point_truthy($settings['notifications_enabled'] ?? false);
     $settings['notification_cases'] = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return $settings;
 }
@@ -252,9 +242,6 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_point_truthy($settings['usage_enabled'])
         : sr_point_usage_enabled($pdo);
-    $notificationsEnabled = array_key_exists('notifications_enabled', $settings)
-        ? sr_point_truthy($settings['notifications_enabled'])
-        : sr_point_truthy(sr_point_settings($pdo)['notifications_enabled'] ?? false);
     if ($displayName === '') {
         throw new InvalidArgumentException('Point display name is required.');
     }
@@ -285,7 +272,6 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
         ['display_name', $displayName, 'string'],
         ['unit_label', $unitLabel, 'string'],
         ['default_expiration_days', (string) $defaultExpirationDays, 'integer'],
-        ['notifications_enabled', $notificationsEnabled ? '1' : '0', 'bool'],
         ['notification_cases', (string) $notificationCasesJson, 'json'],
     ] as $row) {
         $stmt->execute([
