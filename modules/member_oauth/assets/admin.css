@@ -1,3 +1,49 @@
 .member-oauth-admin-form .form-row > .form-label {
     font-weight: var(--font-weight-normal);
 }
+
+.member-oauth-repeat-row {
+    align-items: center;
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: calc(var(--spacing) * 2);
+}
+
+.member-oauth-sync-row {
+    grid-template-columns: minmax(9rem, 13rem) minmax(8rem, 12rem) minmax(0, 1fr) auto;
+}
+
+.member-oauth-repeat-row .form-input,
+.member-oauth-repeat-row .form-select {
+    min-width: 0;
+    width: 100%;
+}
+
+.member-oauth-sync-target-static {
+    align-items: center;
+    display: flex;
+    min-height: calc(var(--spacing) * 7.5);
+    min-width: 0;
+}
+
+.member-oauth-repeat-locked {
+    opacity: .72;
+    pointer-events: none;
+}
+
+.member-oauth-secret-status {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+    margin-top: calc(var(--spacing) * 2);
+}
+
+@media (max-width: 767px) {
+    .member-oauth-repeat-row,
+    .member-oauth-sync-row {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+    }
+}

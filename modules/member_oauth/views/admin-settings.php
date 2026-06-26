@@ -5,6 +5,9 @@ $adminPageSubtitle = '';
 $callbackUrl = sr_absolute_url($site ?? [], '/oauth/callback');
 $memberOauthProfileExtraFieldDefinitions = is_array($profileExtraFieldDefinitions ?? null) ? $profileExtraFieldDefinitions : [];
 $memberOauthProfileSyncTargets = sr_member_oauth_profile_sync_targets($memberOauthProfileExtraFieldDefinitions);
+$memberOauthProfileSettingsUrl = sr_url('/admin/member-settings#member-settings-section-profile');
+$memberOauthCanEditProfileSettings = is_array($account ?? null)
+    && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/member-settings', 'edit');
 $memberOauthExternalProviders = [];
 foreach ($providers as $provider) {
     if (!empty($provider['mock'])) {
@@ -114,6 +117,7 @@ if ($memberOauthExternalProviders === []) {
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
         $providerStatus = sr_member_oauth_provider_admin_status($provider, $callbackUrl);
         $providerEnabled = !empty($provider['enabled']);
+        $providerSecretExists = sr_member_oauth_provider_value($provider, 'client_secret') !== '';
         $scopeItems = sr_member_oauth_scope_items($provider['scope'] ?? ($provider['scopes'] ?? []));
         $profileSyncRules = sr_member_oauth_profile_sync_rules($provider);
         ?>
@@ -169,6 +173,10 @@ if ($memberOauthExternalProviders === []) {
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
+                    <p class="admin-form-static member-oauth-secret-status">
+                        <span class="badge <?php echo $providerSecretExists ? 'badge-soft-success' : 'badge-soft-secondary'; ?>"><?php echo sr_e($providerSecretExists ? '저장됨' : '미입력'); ?></span>
+                        <span><?php echo sr_e($providerSecretExists ? '기존 secret이 저장되어 있습니다.' : '저장된 secret이 없습니다.'); ?></span>
+                    </p>
                     <p class="form-help">비워 두면 기존 secret을 유지합니다. 저장 후 화면에는 원문을 표시하지 않습니다.</p>
                 </div>
             </div>
@@ -177,9 +185,9 @@ if ($memberOauthExternalProviders === []) {
                 <div class="form-field">
                     <div data-oauth-scope-list="<?php echo sr_e($providerKey); ?>" data-oauth-scope-name="<?php echo sr_e($scopeKey); ?>">
                         <?php foreach ($scopeItems as $scopeIndex => $scopeItem) { ?>
-                            <div class="form-actions" data-oauth-scope-row>
-                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input form-control-full" aria-label="<?php echo sr_e('Scope 항목'); ?>">
-                                <button type="button" class="btn btn-sm btn-solid-light" data-oauth-remove-row title="<?php echo sr_e('Scope 항목 삭제'); ?>" aria-label="<?php echo sr_e('Scope 항목 삭제'); ?>">
+                            <div class="member-oauth-repeat-row" data-oauth-scope-row>
+                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input" aria-label="<?php echo sr_e('Scope 항목'); ?>">
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e('Scope 항목 삭제'); ?>" aria-label="<?php echo sr_e('Scope 항목 삭제'); ?>">
                                     <?php echo sr_material_icon_html('delete'); ?>
                                 </button>
                             </div>
@@ -197,18 +205,50 @@ if ($memberOauthExternalProviders === []) {
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
                 <span class="form-label"><?php echo sr_e('프로필 동기화'); ?></span>
                 <div class="form-field">
+                    <?php if ($memberOauthProfileExtraFieldDefinitions === []) { ?>
+                        <div class="alert alert-warning">
+                            <p><?php echo sr_e('추가 claim을 저장할 선택 프로필 항목이 아직 없습니다.'); ?></p>
+                            <?php if ($memberOauthCanEditProfileSettings) { ?>
+                                <div class="form-actions">
+                                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>">
+                                        <?php echo sr_material_icon_html('tune'); ?>
+                                        <span><?php echo sr_e('선택 프로필 항목 관리'); ?></span>
+                                    </a>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
                     <div data-oauth-profile-sync-list="<?php echo sr_e($providerKey); ?>" data-oauth-profile-sync-name="<?php echo sr_e($profileSyncKey); ?>">
                         <?php foreach ($profileSyncRules as $profileSyncIndex => $profileSyncRule) { ?>
-                            <div class="form-actions" data-oauth-profile-sync-row>
-                                <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" class="form-select" aria-label="<?php echo sr_e('회원 필드'); ?>">
-                                    <?php foreach ($memberOauthProfileSyncTargets as $syncTarget => $syncLabel) { ?>
-                                        <option value="<?php echo sr_e((string) $syncTarget); ?>"<?php echo (string) ($profileSyncRule['target'] ?? '') === (string) $syncTarget ? ' selected' : ''; ?>><?php echo sr_e((string) $syncLabel); ?></option>
+                            <?php $profileSyncTarget = (string) ($profileSyncRule['target'] ?? ''); ?>
+                            <?php $profileSyncLocked = in_array($profileSyncTarget, ['email', 'display_name'], true); ?>
+                            <div class="member-oauth-repeat-row member-oauth-sync-row" data-oauth-profile-sync-row>
+                                <?php if ($profileSyncLocked) { ?>
+                                    <input type="hidden" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" value="<?php echo sr_e($profileSyncTarget); ?>" data-oauth-profile-sync-target-hidden>
+                                    <span class="admin-form-static member-oauth-sync-target-static"><?php echo sr_e((string) ($memberOauthProfileSyncTargets[$profileSyncTarget] ?? $profileSyncTarget)); ?></span>
+                                <?php } else { ?>
+                                    <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" class="form-select" aria-label="<?php echo sr_e('회원 필드'); ?>" data-oauth-profile-sync-target-select>
+                                        <?php foreach ($memberOauthProfileSyncTargets as $syncTarget => $syncLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $syncTarget); ?>"<?php echo $profileSyncTarget === (string) $syncTarget ? ' selected' : ''; ?>><?php echo sr_e((string) $syncLabel); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                <?php } ?>
+                                <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][scope]" class="form-select" data-oauth-profile-sync-scope-select aria-label="<?php echo sr_e('Scope'); ?>">
+                                    <option value=""><?php echo sr_e('Scope 선택 안 함'); ?></option>
+                                    <?php foreach ($scopeItems as $syncScopeItem) { ?>
+                                        <option value="<?php echo sr_e($syncScopeItem); ?>"<?php echo (string) ($profileSyncRule['scope'] ?? '') === $syncScopeItem ? ' selected' : ''; ?>><?php echo sr_e($syncScopeItem); ?></option>
                                     <?php } ?>
                                 </select>
-                                <input type="text" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][claim]" maxlength="120" value="<?php echo sr_e((string) ($profileSyncRule['claim'] ?? '')); ?>" class="form-input form-control-full" aria-label="<?php echo sr_e('Claim path'); ?>">
-                                <button type="button" class="btn btn-sm btn-solid-light" data-oauth-remove-row title="<?php echo sr_e('동기화 항목 삭제'); ?>" aria-label="<?php echo sr_e('동기화 항목 삭제'); ?>">
-                                    <?php echo sr_material_icon_html('delete'); ?>
-                                </button>
+                                <input type="text" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][claim]" maxlength="120" value="<?php echo sr_e((string) ($profileSyncRule['claim'] ?? '')); ?>" class="form-input" aria-label="<?php echo sr_e('Claim path'); ?>">
+                                <?php if ($profileSyncLocked) { ?>
+                                    <span class="btn btn-sm btn-icon btn-solid-light member-oauth-repeat-locked" aria-label="<?php echo sr_e('필수 동기화 항목'); ?>" title="<?php echo sr_e('필수 동기화 항목'); ?>" aria-disabled="true">
+                                        <?php echo sr_material_icon_html('lock'); ?>
+                                    </span>
+                                <?php } else { ?>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e('동기화 항목 삭제'); ?>" aria-label="<?php echo sr_e('동기화 항목 삭제'); ?>">
+                                        <?php echo sr_material_icon_html('delete'); ?>
+                                    </button>
+                                <?php } ?>
                             </div>
                         <?php } ?>
                     </div>
@@ -217,6 +257,12 @@ if ($memberOauthExternalProviders === []) {
                             <?php echo sr_material_icon_html('add'); ?>
                             <span><?php echo sr_e('동기화 항목 추가'); ?></span>
                         </button>
+                        <?php if ($memberOauthCanEditProfileSettings) { ?>
+                            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>">
+                                <?php echo sr_material_icon_html('tune'); ?>
+                                <span><?php echo sr_e('선택 프로필 항목 관리'); ?></span>
+                            </a>
+                        <?php } ?>
                     </div>
                     <p class="form-help">이메일과 이름은 회원 기본 필드에 반영합니다. 그 외 항목은 회원 설정에 정의된 선택 프로필 항목에만 저장합니다.</p>
                 </div>
@@ -279,7 +325,7 @@ if ($memberOauthExternalProviders === []) {
 function srMemberOauthCreateButton(icon, label, action) {
     var button = document.createElement('button');
     button.type = 'button';
-    button.className = 'btn btn-sm btn-solid-light';
+    button.className = 'btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete';
     button.setAttribute(action, '');
     button.setAttribute('title', label);
     button.setAttribute('aria-label', label);
@@ -289,14 +335,58 @@ function srMemberOauthCreateButton(icon, label, action) {
 function srMemberOauthRenumberProfileSync(list) {
     var baseName = list.getAttribute('data-oauth-profile-sync-name') || '';
     list.querySelectorAll('[data-oauth-profile-sync-row]').forEach(function (row, index) {
-        var target = row.querySelector('select');
+        var target = row.querySelector('[data-oauth-profile-sync-target-select]');
+        var targetHidden = row.querySelector('[data-oauth-profile-sync-target-hidden]');
+        var scope = row.querySelector('[data-oauth-profile-sync-scope-select]');
         var claim = row.querySelector('input');
         if (target) {
             target.name = baseName + '[' + index + '][target]';
         }
+        if (targetHidden) {
+            targetHidden.name = baseName + '[' + index + '][target]';
+        }
+        if (scope) {
+            scope.name = baseName + '[' + index + '][scope]';
+        }
         if (claim) {
             claim.name = baseName + '[' + index + '][claim]';
         }
+    });
+}
+function srMemberOauthScopeItems(providerKey) {
+    var list = document.querySelector('[data-oauth-scope-list="' + providerKey + '"]');
+    var items = [];
+    if (!list) {
+        return items;
+    }
+    list.querySelectorAll('input').forEach(function (input) {
+        var value = String(input.value || '').trim();
+        if (value !== '' && items.indexOf(value) === -1) {
+            items.push(value);
+        }
+    });
+    return items;
+}
+function srMemberOauthSyncScopeSelectOptions(providerKey) {
+    var syncList = document.querySelector('[data-oauth-profile-sync-list="' + providerKey + '"]');
+    if (!syncList) {
+        return;
+    }
+    var items = srMemberOauthScopeItems(providerKey);
+    syncList.querySelectorAll('[data-oauth-profile-sync-scope-select]').forEach(function (select) {
+        var current = select.value;
+        select.innerHTML = '';
+        var empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = 'Scope 선택 안 함';
+        select.appendChild(empty);
+        items.forEach(function (item) {
+            var option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            select.appendChild(option);
+        });
+        select.value = items.indexOf(current) !== -1 ? current : '';
     });
 }
 document.querySelectorAll('[data-oauth-provider-toggle]').forEach(function (toggle) {
@@ -333,17 +423,21 @@ document.querySelectorAll('[data-oauth-add-scope]').forEach(function (button) {
         }
         var baseName = list.getAttribute('data-oauth-scope-name') || '';
         var row = document.createElement('div');
-        row.className = 'form-actions';
+        row.className = 'member-oauth-repeat-row';
         row.setAttribute('data-oauth-scope-row', '');
         var input = document.createElement('input');
         input.type = 'text';
         input.name = baseName + '[]';
         input.maxLength = 120;
-        input.className = 'form-input form-control-full';
+        input.className = 'form-input';
         input.setAttribute('aria-label', 'Scope 항목');
         row.appendChild(input);
         row.appendChild(srMemberOauthCreateButton('delete', 'Scope 항목 삭제', 'data-oauth-remove-row'));
         list.appendChild(row);
+        input.addEventListener('input', function () {
+            srMemberOauthSyncScopeSelectOptions(providerKey);
+        });
+        srMemberOauthSyncScopeSelectOptions(providerKey);
         input.focus();
     });
 });
@@ -362,7 +456,7 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
             targets = {};
         }
         var row = document.createElement('div');
-        row.className = 'form-actions';
+        row.className = 'member-oauth-repeat-row member-oauth-sync-row';
         row.setAttribute('data-oauth-profile-sync-row', '');
         var select = document.createElement('select');
         select.className = 'form-select';
@@ -373,18 +467,31 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
             option.textContent = targets[targetKey];
             select.appendChild(option);
         });
+        var scopeSelect = document.createElement('select');
+        scopeSelect.className = 'form-select';
+        scopeSelect.setAttribute('data-oauth-profile-sync-scope-select', '');
+        scopeSelect.setAttribute('aria-label', 'Scope');
         var input = document.createElement('input');
         input.type = 'text';
         input.maxLength = 120;
-        input.className = 'form-input form-control-full';
+        input.className = 'form-input';
         input.setAttribute('aria-label', 'Claim path');
         row.appendChild(select);
+        row.appendChild(scopeSelect);
         row.appendChild(input);
         row.appendChild(srMemberOauthCreateButton('delete', '동기화 항목 삭제', 'data-oauth-remove-row'));
         list.appendChild(row);
         srMemberOauthRenumberProfileSync(list);
+        srMemberOauthSyncScopeSelectOptions(providerKey);
         input.focus();
     });
+});
+document.querySelectorAll('[data-oauth-scope-list]').forEach(function (list) {
+    var providerKey = list.getAttribute('data-oauth-scope-list') || '';
+    list.addEventListener('input', function () {
+        srMemberOauthSyncScopeSelectOptions(providerKey);
+    });
+    srMemberOauthSyncScopeSelectOptions(providerKey);
 });
 document.addEventListener('click', function (event) {
     var button = event.target.closest && event.target.closest('[data-oauth-remove-row]');

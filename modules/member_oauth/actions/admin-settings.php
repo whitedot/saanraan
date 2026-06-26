@@ -61,10 +61,11 @@ if (sr_request_method() === 'POST') {
         $clientId = sr_post_string_without_truncation($clientIdKey, 255);
         $secret = sr_post_string_without_truncation($secretKey, 512);
         $scope = sr_member_oauth_scope_setting_value($_POST[$scopeKey] ?? []);
+        $providerForProfileSync = array_merge($provider, ['scope' => $scope]);
         $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input(
             $_POST[$profileSyncKey] ?? [],
             $profileExtraFieldDefinitions,
-            $provider,
+            $providerForProfileSync,
             $errors,
             $providerLabel
         );

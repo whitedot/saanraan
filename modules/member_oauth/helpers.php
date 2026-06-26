@@ -285,13 +285,19 @@ function sr_member_oauth_profile_sync_targets(array $extraDefinitions): array
 
 function sr_member_oauth_default_profile_sync_rules(array $provider): array
 {
+    $scopeItems = sr_member_oauth_scope_items($provider['scope'] ?? ($provider['scopes'] ?? []));
+    $emailScope = in_array('email', $scopeItems, true) ? 'email' : '';
+    $profileScope = in_array('profile', $scopeItems, true) ? 'profile' : '';
+
     return [
         [
             'target' => 'email',
+            'scope' => $emailScope,
             'claim' => sr_member_oauth_provider_value($provider, 'email_claim') ?: 'email',
         ],
         [
             'target' => 'display_name',
+            'scope' => $profileScope,
             'claim' => sr_member_oauth_provider_value($provider, 'display_name_claim') ?: 'name',
         ],
     ];
@@ -321,6 +327,7 @@ function sr_member_oauth_profile_sync_rules(array $provider): array
         }
         $rules[] = [
             'target' => $target,
+            'scope' => trim((string) ($item['scope'] ?? '')),
             'claim' => $claim,
         ];
         if (count($rules) >= 30) {
@@ -334,6 +341,14 @@ function sr_member_oauth_profile_sync_rules(array $provider): array
 function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $extraDefinitions, array $provider, array &$errors, string $providerLabel): string
 {
     $allowedTargets = sr_member_oauth_profile_sync_targets($extraDefinitions);
+    $allowedScopes = array_fill_keys(sr_member_oauth_scope_items($provider['scope'] ?? ($provider['scopes'] ?? [])), true);
+    $defaultRulesByTarget = [];
+    foreach (sr_member_oauth_default_profile_sync_rules($provider) as $defaultRule) {
+        $defaultTarget = (string) ($defaultRule['target'] ?? '');
+        if ($defaultTarget !== '') {
+            $defaultRulesByTarget[$defaultTarget] = $defaultRule;
+        }
+    }
     $rows = is_array($raw) ? $raw : [];
     $rules = [];
     $seen = [];
@@ -343,12 +358,17 @@ function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $e
             continue;
         }
         $target = trim((string) ($row['target'] ?? ''));
+        $scope = trim((string) ($row['scope'] ?? ''));
         $claim = trim((string) ($row['claim'] ?? ''));
         if ($target === '' && $claim === '') {
             continue;
         }
         if (!isset($allowedTargets[$target])) {
             $errors[] = $providerLabel . ' 프로필 동기화 대상이 올바르지 않습니다.';
+            continue;
+        }
+        if ($scope !== '' && !isset($allowedScopes[$scope])) {
+            $errors[] = $providerLabel . ' 프로필 동기화 scope는 위 Scope 항목 중에서 선택해 주세요.';
             continue;
         }
         if ($claim === '' || strlen($claim) > 120 || preg_match('/\A[a-zA-Z0-9_.:-]+\z/', $claim) !== 1) {
@@ -362,10 +382,17 @@ function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $e
         $seen[$target] = true;
         $rules[] = [
             'target' => $target,
+            'scope' => $scope,
             'claim' => $claim,
         ];
         if (count($rules) >= 30) {
             break;
+        }
+    }
+    foreach (['email', 'display_name'] as $requiredTarget) {
+        if (!isset($seen[$requiredTarget]) && isset($defaultRulesByTarget[$requiredTarget])) {
+            array_unshift($rules, $defaultRulesByTarget[$requiredTarget]);
+            $seen[$requiredTarget] = true;
         }
     }
 

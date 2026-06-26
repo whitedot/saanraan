@@ -227,9 +227,9 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(sr_member_oauth_claim_value($nestedUserinfo, 'kakao_account.profile.nickname') === 'Kakao User', 'OAuth provider claim helper should read nested profile paths.');
     $profileSyncErrors = [];
     $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input([
-        ['target' => 'email', 'claim' => 'response.email'],
-        ['target' => 'display_name', 'claim' => 'response.name'],
-        ['target' => 'profile:department', 'claim' => 'response.department'],
+        ['target' => 'email', 'scope' => 'email', 'claim' => 'response.email'],
+        ['target' => 'display_name', 'scope' => 'profile', 'claim' => 'response.name'],
+        ['target' => 'profile:department', 'scope' => 'profile', 'claim' => 'response.department'],
     ], [
         [
             'key' => 'department',
@@ -241,9 +241,10 @@ function sr_member_oauth_check_runtime_helpers(): void
             'export_policy' => 'include',
             'cleanup_policy' => 'anonymize',
         ],
-    ], ['email_claim' => 'email', 'display_name_claim' => 'name'], $profileSyncErrors, 'Fixture');
+    ], ['scopes' => ['openid', 'email', 'profile'], 'email_claim' => 'email', 'display_name_claim' => 'name'], $profileSyncErrors, 'Fixture');
     sr_member_oauth_check_assert($profileSyncErrors === [], 'OAuth profile sync rules should accept basic and extra profile targets.');
     sr_member_oauth_check_assert(str_contains($profileSyncJson, 'profile:department'), 'OAuth profile sync rules should preserve extra profile targets.');
+    sr_member_oauth_check_assert(str_contains($profileSyncJson, '"scope":"profile"'), 'OAuth profile sync rules should preserve selected scope metadata.');
     $completionStateToken = sr_member_oauth_create_completion_state($pdo, 'mock', $subjectHash, [
         'subject_display' => 'provider-subject',
         'email' => 'mock-user@example.test',
@@ -440,8 +441,13 @@ sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', 
     'sr_member_oauth_provider_admin_status',
     'data-oauth-scope-list',
     'data-oauth-profile-sync-list',
+    'data-oauth-profile-sync-scope-select',
     'data-oauth-add-scope',
     'data-oauth-add-profile-sync',
+    '/admin/member-settings#member-settings-section-profile',
+    '선택 프로필 항목 관리',
+    '기존 secret이 저장되어 있습니다.',
+    '저장된 secret이 없습니다.',
     '비워 두면 기존 secret을 유지합니다',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
