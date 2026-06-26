@@ -1378,6 +1378,12 @@ code {
     outline: 0;
 }
 
+.sr-install-field-grid select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 42px;
+}
+
 .sr-install-field-grid p:has(> input:not([type="hidden"]))::before,
 .sr-install-field-grid p:has(select)::before {
     content: "[";
@@ -1688,8 +1694,8 @@ code {
     position: sticky;
     bottom: 0;
     z-index: 20;
-    display: flex;
-    align-items: center;
+    display: grid;
+    gap: 4px;
     width: 100%;
     min-width: 0;
     border-top: 1px dashed var(--sr-border);
@@ -1702,9 +1708,16 @@ code {
     overflow: hidden;
 }
 
-.sr-install-prompt::before {
+.sr-install-prompt-line {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.sr-install-prompt-host {
     flex: 0 0 auto;
-    content: "C:\\SAANRAAN> ";
+    margin-right: 8px;
+    color: var(--sr-primary);
 }
 
 .sr-install-prompt [data-install-prompt-mirror] {

@@ -638,7 +638,13 @@ foreach ($optionalModules as $moduleKey => $module) {
                 </div>
             </section>
         </form>
-        <div class="sr-install-prompt" aria-hidden="true"><span data-install-prompt-mirror></span><span class="sr-install-prompt-cursor"></span></div>
+        <div class="sr-install-prompt" aria-hidden="true">
+            <span class="sr-install-prompt-line">
+                <span class="sr-install-prompt-host">install@saanraan:~/setup$</span>
+                <span data-install-prompt-mirror></span>
+                <span class="sr-install-prompt-cursor"></span>
+            </span>
+        </div>
     </main>
     <script>
         (function () {
