@@ -196,7 +196,7 @@ return [
     'help.members.email.body.2' => '기존 회원의 이메일을 바꾸면 중복 여부를 확인한 뒤 저장되며, 운영자는 실제 회원에게 변경 사실을 안내하는 것이 좋습니다.',
     'help.members.email.title' => '이메일 도움말',
     'help.members.email_verified.body.1' => '이메일 인증은 회원의 이메일 주소를 확인된 상태로 볼지 정하는 값입니다.',
-    'help.members.email_verified.body.2' => '운영자가 직접 만든 계정에서 바로 이용하게 하려면 인증 완료로 둘 수 있고, 회원 확인이 필요하면 인증되지 않은 상태로 둘 수 있습니다.',
+    'help.members.email_verified.body.2' => '운영자가 계정을 바로 이용하게 하려면 인증 완료로 둘 수 있고, 회원 확인이 필요하면 인증되지 않은 상태로 둘 수 있습니다.',
     'help.members.email_verified.title' => '이메일 인증 도움말',
     'help.members.locale.body.1' => '표시 언어는 이 회원에게 먼저 보여줄 화면 언어입니다.',
     'help.members.locale.body.2' => '사이트가 지원하는 언어 중에서 선택하며, 회원이 직접 언어를 바꾸는 기능이 있으면 이후 선택값이 달라질 수 있습니다.',

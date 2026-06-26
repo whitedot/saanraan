@@ -569,7 +569,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     if ($errors === []) {
         $stmt = $pdo->prepare(
             'SELECT a.id, a.account_identifier_hash, a.email, a.email_hash, a.login_id_hash, a.display_name, a.locale, a.status,
-                    COALESCE(n.nickname, \'\') AS nickname
+                    a.email_verified_at, COALESCE(n.nickname, \'\') AS nickname
              FROM sr_member_accounts a
              LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
              WHERE a.id = :id
@@ -673,6 +673,10 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $displayName = sr_member_normalize_display_name(sr_post_string('display_name', 120));
         $nickname = sr_member_normalize_nickname(sr_post_string('nickname', 80));
         $locale = sr_post_string('locale', 20);
+        $emailVerified = ($_POST['email_verified'] ?? '') === '1';
+        $nextEmailVerifiedAt = $emailVerified
+            ? ((string) ($targetAccount['email_verified_at'] ?? '') !== '' ? (string) $targetAccount['email_verified_at'] : sr_now())
+            : null;
         $resultExtra['edit_values'] = [
             'id' => $targetAccountId,
             'email' => $email,
@@ -680,6 +684,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             'nickname' => $nickname,
             'locale' => $locale,
             'status' => $status,
+            'email_verified' => $emailVerified ? '1' : '0',
         ];
         $resultExtra['profile_extra_values'] = $profileExtraFieldValues;
 
@@ -754,6 +759,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                          display_name = :display_name,
                          locale = :locale,
                          status = :status,
+                         email_verified_at = :email_verified_at,
                          updated_at = :updated_at
                      WHERE id = :id'
                 );
@@ -765,6 +771,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'display_name' => $displayName,
                     'locale' => $locale,
                     'status' => $status,
+                    'email_verified_at' => $nextEmailVerifiedAt,
                     'updated_at' => sr_now(),
                     'id' => $targetAccountId,
                 ]);
@@ -806,6 +813,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
                     'email_changed' => $email !== (string) $targetAccount['email'],
+                    'email_verified_changed' => (string) ($targetAccount['email_verified_at'] ?? '') !== (string) ($nextEmailVerifiedAt ?? ''),
                     'nickname_changed' => $nickname !== (string) ($targetAccount['nickname'] ?? ''),
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,

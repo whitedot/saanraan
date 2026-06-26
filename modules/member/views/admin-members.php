@@ -277,6 +277,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                 </div>
+                <div class="form-row">
+                    <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.2f905abd'), $memberAdminHelp['email_verified']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></span></span>
+                    <div class="form-field">
+                        <?php echo sr_admin_switch_html('member_admin_edit_email_verified', 'email_verified', '1', (string) ($memberEditValues['email_verified'] ?? (((string) ($editMember['email_verified_at'] ?? '') !== '') ? '1' : '0')) === '1', '완료'); ?>
+                        <?php if ((string) ($editMember['email_verified_at'] ?? '') !== '') { ?>
+                            <small class="form-help">현재 인증 완료 시각: <?php echo sr_e((string) $editMember['email_verified_at']); ?></small>
+                        <?php } ?>
+                    </div>
+                </div>
             </section>
             <?php if ($memberAdminProfileExtraFieldDefinitions !== []) { ?>
                 <section class="card">
