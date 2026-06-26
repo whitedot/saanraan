@@ -61,8 +61,10 @@ if ((string) $state['flow_type'] === 'link') {
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link_provider_exists', 'failure');
         sr_render_error(409, 'OAuth provider is already linked to this account.');
     }
+    $linkedOauthAccountId = sr_member_oauth_link_account($pdo, (int) $account['id'], $providerKey, $subjectHash, $profile);
+    $memberSettings = sr_member_settings($pdo);
+    $syncedFields = sr_member_oauth_sync_member_profile($pdo, $config, (int) $account['id'], $account, $providers[$providerKey], $profile, $memberSettings);
     if (!is_array($existingProviderAccount)) {
-        sr_member_oauth_link_account($pdo, (int) $account['id'], $providerKey, $subjectHash, $profile);
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link', 'success');
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -74,6 +76,23 @@ if ((string) $state['flow_type'] === 'link') {
             'message' => 'OAuth provider linked to member account.',
             'metadata' => [
                 'provider_key' => $providerKey,
+                'oauth_account_id' => $linkedOauthAccountId,
+                'synced_fields' => $syncedFields,
+            ],
+        ]);
+    } elseif ($syncedFields !== []) {
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.oauth.profile_synced',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'success',
+            'message' => 'OAuth provider profile synced to member account.',
+            'metadata' => [
+                'provider_key' => $providerKey,
+                'oauth_account_id' => $linkedOauthAccountId,
+                'synced_fields' => $syncedFields,
             ],
         ]);
     }
@@ -101,6 +120,8 @@ if (is_array($oauthAccount)) {
     }
     if (sr_member_login($pdo, $account)) {
         sr_member_group_evaluate_account($pdo, (int) $account['id']);
+        sr_member_oauth_update_link_snapshot($pdo, (int) $oauthAccount['id'], $profile);
+        $syncedFields = sr_member_oauth_sync_member_profile($pdo, $config, (int) $account['id'], $account, $providers[$providerKey], $profile, $memberSettings);
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_login', 'success');
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -112,6 +133,7 @@ if (is_array($oauthAccount)) {
             'message' => 'OAuth login succeeded.',
             'metadata' => [
                 'provider_key' => $providerKey,
+                'synced_fields' => $syncedFields,
             ],
         ]);
         $stmt = $pdo->prepare('UPDATE sr_member_oauth_accounts SET last_login_at = :last_login_at, updated_at = :updated_at WHERE id = :id');

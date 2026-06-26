@@ -72,7 +72,7 @@ function sr_member_oauth_apply_provider_settings(array $provider, array $setting
         return $provider;
     }
 
-    foreach (['label', 'client_id', 'client_secret', 'scope', 'sort_order'] as $settingKey) {
+    foreach (['label', 'client_id', 'client_secret', 'scope', 'profile_sync_json', 'sort_order'] as $settingKey) {
         $storedKey = sr_member_oauth_provider_setting_key($providerKey, $settingKey);
         if ($storedKey !== '' && array_key_exists($storedKey, $settings)) {
             $provider[$settingKey] = $settings[$storedKey];
@@ -199,6 +199,37 @@ function sr_member_oauth_provider_value(array $provider, string $key): string
     return trim((string) $value);
 }
 
+function sr_member_oauth_scope_items(mixed $value): array
+{
+    if (is_array($value)) {
+        $rawItems = $value;
+    } else {
+        $rawItems = preg_split('/[\s,]+/', trim((string) $value)) ?: [];
+    }
+
+    $items = [];
+    foreach ($rawItems as $rawItem) {
+        if (!is_scalar($rawItem)) {
+            continue;
+        }
+        $item = trim((string) $rawItem);
+        if ($item === '' || in_array($item, $items, true)) {
+            continue;
+        }
+        $items[] = $item;
+        if (count($items) >= 50) {
+            break;
+        }
+    }
+
+    return $items;
+}
+
+function sr_member_oauth_scope_setting_value(mixed $value): string
+{
+    return implode("\n", sr_member_oauth_scope_items($value));
+}
+
 function sr_member_oauth_claim_value(array $data, string $claim): mixed
 {
     $claim = trim($claim);
@@ -222,20 +253,127 @@ function sr_member_oauth_claim_value(array $data, string $claim): mixed
 function sr_member_oauth_provider_scopes(array $provider): string
 {
     $scopes = $provider['scopes'] ?? ($provider['scope'] ?? 'openid email profile');
-    if (is_array($scopes)) {
-        $delimiter = sr_member_oauth_provider_value($provider, 'scope_delimiter');
-        if ($delimiter === '') {
-            $delimiter = ' ';
+    $items = sr_member_oauth_scope_items($scopes);
+    if ($items === []) {
+        return '';
+    }
+
+    $delimiter = sr_member_oauth_provider_value($provider, 'scope_delimiter');
+    if ($delimiter === '') {
+        $delimiter = ' ';
+    }
+
+    return implode($delimiter, $items);
+}
+
+function sr_member_oauth_profile_sync_targets(array $extraDefinitions): array
+{
+    $targets = [
+        'email' => '이메일',
+        'display_name' => '이름',
+    ];
+    foreach ($extraDefinitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key === '') {
+            continue;
         }
-        $scopes = implode(' ', array_filter(array_map(static function ($scope): string {
-            return trim((string) $scope);
-        }, $scopes)));
-        if ($delimiter !== ' ') {
-            $scopes = str_replace(' ', $delimiter, $scopes);
+        $targets['profile:' . $key] = '선택 프로필: ' . (string) ($definition['label'] ?? $key);
+    }
+
+    return $targets;
+}
+
+function sr_member_oauth_default_profile_sync_rules(array $provider): array
+{
+    return [
+        [
+            'target' => 'email',
+            'claim' => sr_member_oauth_provider_value($provider, 'email_claim') ?: 'email',
+        ],
+        [
+            'target' => 'display_name',
+            'claim' => sr_member_oauth_provider_value($provider, 'display_name_claim') ?: 'name',
+        ],
+    ];
+}
+
+function sr_member_oauth_profile_sync_rules(array $provider): array
+{
+    $rawJson = trim((string) ($provider['profile_sync_json'] ?? ''));
+    if ($rawJson === '') {
+        return sr_member_oauth_default_profile_sync_rules($provider);
+    }
+
+    $decoded = json_decode($rawJson, true);
+    if (!is_array($decoded)) {
+        return sr_member_oauth_default_profile_sync_rules($provider);
+    }
+
+    $rules = [];
+    foreach ($decoded as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $target = trim((string) ($item['target'] ?? ''));
+        $claim = trim((string) ($item['claim'] ?? ''));
+        if ($target === '' || $claim === '') {
+            continue;
+        }
+        $rules[] = [
+            'target' => $target,
+            'claim' => $claim,
+        ];
+        if (count($rules) >= 30) {
+            break;
         }
     }
 
-    return trim((string) $scopes);
+    return $rules !== [] ? $rules : sr_member_oauth_default_profile_sync_rules($provider);
+}
+
+function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $extraDefinitions, array $provider, array &$errors, string $providerLabel): string
+{
+    $allowedTargets = sr_member_oauth_profile_sync_targets($extraDefinitions);
+    $rows = is_array($raw) ? $raw : [];
+    $rules = [];
+    $seen = [];
+    foreach ($rows as $index => $row) {
+        if (!is_array($row)) {
+            $errors[] = $providerLabel . ' 프로필 동기화 #' . (string) ((int) $index + 1) . ' 형식을 확인해 주세요.';
+            continue;
+        }
+        $target = trim((string) ($row['target'] ?? ''));
+        $claim = trim((string) ($row['claim'] ?? ''));
+        if ($target === '' && $claim === '') {
+            continue;
+        }
+        if (!isset($allowedTargets[$target])) {
+            $errors[] = $providerLabel . ' 프로필 동기화 대상이 올바르지 않습니다.';
+            continue;
+        }
+        if ($claim === '' || strlen($claim) > 120 || preg_match('/\A[a-zA-Z0-9_.:-]+\z/', $claim) !== 1) {
+            $errors[] = $providerLabel . ' 프로필 claim path를 확인해 주세요.';
+            continue;
+        }
+        if (isset($seen[$target])) {
+            $errors[] = $providerLabel . ' 프로필 동기화 대상이 중복되었습니다.';
+            continue;
+        }
+        $seen[$target] = true;
+        $rules[] = [
+            'target' => $target,
+            'claim' => $claim,
+        ];
+        if (count($rules) >= 30) {
+            break;
+        }
+    }
+
+    if ($rules === []) {
+        $rules = sr_member_oauth_default_profile_sync_rules($provider);
+    }
+
+    return json_encode($rules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
 
 function sr_member_oauth_authorization_url(array $provider, array $site, array $state): string
@@ -555,6 +693,7 @@ function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $provider
             throw new RuntimeException('OAuth provider account is already linked.');
         }
         if ($existing['revoked_at'] === null) {
+            sr_member_oauth_update_link_snapshot($pdo, (int) $existing['id'], $profile);
             return (int) $existing['id'];
         }
 
@@ -807,6 +946,16 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
     }
 
     $displayName = trim((string) (sr_member_oauth_claim_value($userinfo, $displayNameClaim) ?? sr_member_oauth_claim_value($userinfo, $fallbackNameClaim) ?? ''));
+    $mappedFields = [];
+    foreach (sr_member_oauth_profile_sync_rules($provider) as $rule) {
+        $target = (string) ($rule['target'] ?? '');
+        $claim = (string) ($rule['claim'] ?? '');
+        $claimValue = sr_member_oauth_claim_value($userinfo, $claim);
+        if ($target === '' || is_array($claimValue)) {
+            continue;
+        }
+        $mappedFields[$target] = trim((string) $claimValue);
+    }
 
     return [
         'subject' => $subject,
@@ -814,7 +963,137 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
         'email' => $email,
         'email_verified' => $emailVerified,
         'display_name' => $displayName,
+        'mapped_fields' => $mappedFields,
     ];
+}
+
+function sr_member_oauth_update_link_snapshot(PDO $pdo, int $oauthAccountId, array $profile): void
+{
+    if ($oauthAccountId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_member_oauth_accounts
+         SET email_snapshot = :email_snapshot,
+             email_verified_snapshot = :email_verified_snapshot,
+             display_name_snapshot = :display_name_snapshot,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'email_snapshot' => (string) ($profile['email'] ?? ''),
+        'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
+        'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
+        'updated_at' => sr_now(),
+        'id' => $oauthAccountId,
+    ]);
+}
+
+function sr_member_oauth_sync_member_profile(PDO $pdo, array $config, int $accountId, array $account, array $provider, array $profile, array $memberSettings): array
+{
+    if ($accountId < 1 || in_array((string) ($account['status'] ?? ''), ['withdrawn', 'anonymized'], true)) {
+        return [];
+    }
+
+    $mapped = is_array($profile['mapped_fields'] ?? null) ? $profile['mapped_fields'] : [];
+    $email = trim((string) ($mapped['email'] ?? $profile['email'] ?? ''));
+    $displayName = sr_member_normalize_display_name((string) ($mapped['display_name'] ?? $profile['display_name'] ?? ''));
+    $updates = [];
+    $changed = [];
+
+    if ($displayName !== '' && $displayName !== (string) ($account['display_name'] ?? '') && sr_member_display_name_validation_errors($displayName) === []) {
+        $updates['display_name'] = $displayName;
+        $changed[] = 'display_name';
+    }
+
+    if (!empty($profile['email_verified']) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== (string) ($account['email'] ?? '')) {
+        $emailHash = sr_hmac_hash(sr_normalize_identifier($email), $config);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash AND id <> :id LIMIT 1');
+        $stmt->execute([
+            'email_hash' => $emailHash,
+            'id' => $accountId,
+        ]);
+        if (!is_array($stmt->fetch())) {
+            $updates['email'] = sr_normalize_identifier($email);
+            $updates['email_hash'] = $emailHash;
+            $updates['email_verified_at'] = sr_now();
+            $changed[] = 'email';
+        }
+    }
+
+    if ($updates !== []) {
+        $currentIdentifierHash = (string) ($account['account_identifier_hash'] ?? '');
+        $currentEmailHash = (string) ($account['email_hash'] ?? '');
+        $nextIdentifierHash = $currentIdentifierHash;
+        if (isset($updates['email_hash']) && (string) ($account['login_id_hash'] ?? '') === '' && $currentIdentifierHash !== '' && hash_equals($currentIdentifierHash, $currentEmailHash)) {
+            $nextIdentifierHash = (string) $updates['email_hash'];
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE sr_member_accounts
+             SET account_identifier_hash = :account_identifier_hash,
+                 email = :email,
+                 email_hash = :email_hash,
+                 display_name = :display_name,
+                 email_verified_at = :email_verified_at,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'account_identifier_hash' => $nextIdentifierHash,
+            'email' => (string) ($updates['email'] ?? $account['email'] ?? ''),
+            'email_hash' => (string) ($updates['email_hash'] ?? $account['email_hash'] ?? ''),
+            'display_name' => (string) ($updates['display_name'] ?? $account['display_name'] ?? ''),
+            'email_verified_at' => (string) ($updates['email_verified_at'] ?? $account['email_verified_at'] ?? '') !== '' ? (string) ($updates['email_verified_at'] ?? $account['email_verified_at']) : null,
+            'updated_at' => sr_now(),
+            'id' => $accountId,
+        ]);
+    }
+
+    $extraDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
+    if ($extraDefinitions !== [] && sr_member_profile_field_values_table_exists($pdo)) {
+        $extraByKey = [];
+        foreach ($extraDefinitions as $definition) {
+            $key = (string) ($definition['key'] ?? '');
+            if ($key !== '') {
+                $extraByKey[$key] = $definition;
+            }
+        }
+        $plainValues = sr_member_profile_extra_field_plain_values($pdo, $accountId);
+        $extraChanged = false;
+        foreach ($mapped as $target => $value) {
+            $target = (string) $target;
+            if (!str_starts_with($target, 'profile:')) {
+                continue;
+            }
+            $fieldKey = substr($target, 8);
+            if (!isset($extraByKey[$fieldKey])) {
+                continue;
+            }
+            $definition = $extraByKey[$fieldKey];
+            $type = (string) ($definition['type'] ?? 'text');
+            $nextValue = trim((string) $value);
+            if ($type === 'checkbox') {
+                $nextValue = sr_member_oauth_truthy($nextValue) ? '1' : '0';
+            } elseif ($type === 'select' && $nextValue !== '' && !in_array($nextValue, (array) ($definition['options'] ?? []), true)) {
+                continue;
+            } else {
+                $maxLength = sr_member_profile_extra_field_value_max_length($type);
+                $nextValue = function_exists('mb_substr') ? mb_substr($nextValue, 0, $maxLength) : substr($nextValue, 0, $maxLength);
+            }
+            if (($plainValues[$fieldKey] ?? '') !== $nextValue) {
+                $plainValues[$fieldKey] = $nextValue;
+                $extraChanged = true;
+            }
+        }
+        if ($extraChanged) {
+            sr_member_save_profile_extra_field_values($pdo, $accountId, $extraDefinitions, $plainValues);
+            $changed[] = 'profile_extra';
+        }
+    }
+
+    return array_values(array_unique($changed));
 }
 
 function sr_member_oauth_create_completion_state(PDO $pdo, string $providerKey, string $subjectHash, array $profile, string $nextPath, int $ttlSeconds): string

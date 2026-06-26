@@ -106,6 +106,42 @@ function sr_member_oauth_check_pdo(): PDO
             updated_at TEXT NOT NULL
         )'
     );
+    $pdo->exec(
+        'CREATE TABLE sr_member_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_identifier_hash TEXT NOT NULL,
+            login_id_hash TEXT NULL,
+            email TEXT NOT NULL,
+            email_hash TEXT NOT NULL,
+            password_hash TEXT NOT NULL DEFAULT "",
+            display_name TEXT NOT NULL,
+            locale TEXT NOT NULL DEFAULT "ko",
+            status TEXT NOT NULL DEFAULT "active",
+            email_verified_at TEXT NULL,
+            last_login_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_member_profile_field_values (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            field_key TEXT NOT NULL,
+            label_snapshot TEXT NOT NULL DEFAULT "",
+            field_type_snapshot TEXT NOT NULL DEFAULT "text",
+            visibility_snapshot TEXT NOT NULL DEFAULT "public",
+            show_on_profile_snapshot INTEGER NOT NULL DEFAULT 1,
+            show_in_admin_snapshot INTEGER NOT NULL DEFAULT 0,
+            privacy_purpose_snapshot TEXT NOT NULL DEFAULT "",
+            export_policy_snapshot TEXT NOT NULL DEFAULT "include",
+            cleanup_policy_snapshot TEXT NOT NULL DEFAULT "anonymize",
+            value_text TEXT NULL,
+            value_json TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
 
     return $pdo;
 }
@@ -136,6 +172,7 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert((string) ($authQuery['code_challenge'] ?? '') === (string) $state['code_challenge'], 'OAuth authorization URL should include the PKCE challenge.');
     sr_member_oauth_check_assert((string) ($authQuery['redirect_uri'] ?? '') === 'https://site.example/oauth/callback', 'OAuth authorization URL should include the callback URL.');
     sr_member_oauth_check_assert((string) ($authQuery['scope'] ?? '') === 'openid email', 'OAuth authorization URL should include space-delimited scopes by default.');
+    sr_member_oauth_check_assert(sr_member_oauth_scope_setting_value(['openid', 'email', 'openid', 'profile']) === "openid\nemail\nprofile", 'OAuth scope settings should normalize repeated item inputs.');
     $emptyScopeAuthUrl = sr_member_oauth_authorization_url([
         'authorization_url' => 'https://example.com/authorize',
         'client_id' => 'client-fixture',
@@ -143,6 +180,7 @@ function sr_member_oauth_check_runtime_helpers(): void
     ], ['base_url' => 'https://site.example'], $state);
     parse_str((string) (parse_url($emptyScopeAuthUrl, PHP_URL_QUERY) ?: ''), $emptyScopeAuthQuery);
     sr_member_oauth_check_assert(!array_key_exists('scope', $emptyScopeAuthQuery), 'OAuth authorization URL should omit empty scope parameters.');
+    sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scope' => "account_email\nprofile_nickname", 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth stored scope item lists should support provider-specific delimiters.');
     sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scopes' => ['account_email', 'profile_nickname'], 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth provider scopes should support provider-specific delimiters.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('true') === true, 'OAuth truthy helper should accept true strings.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('false') === false, 'OAuth truthy helper should reject false strings.');
@@ -187,6 +225,25 @@ function sr_member_oauth_check_runtime_helpers(): void
     ];
     sr_member_oauth_check_assert(sr_member_oauth_claim_value($nestedUserinfo, 'response.id') === 'naver-subject', 'OAuth provider claim helper should read nested subject paths.');
     sr_member_oauth_check_assert(sr_member_oauth_claim_value($nestedUserinfo, 'kakao_account.profile.nickname') === 'Kakao User', 'OAuth provider claim helper should read nested profile paths.');
+    $profileSyncErrors = [];
+    $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input([
+        ['target' => 'email', 'claim' => 'response.email'],
+        ['target' => 'display_name', 'claim' => 'response.name'],
+        ['target' => 'profile:department', 'claim' => 'response.department'],
+    ], [
+        [
+            'key' => 'department',
+            'label' => 'Department',
+            'type' => 'text',
+            'visibility' => 'admin',
+            'show_on_profile' => false,
+            'show_in_admin' => true,
+            'export_policy' => 'include',
+            'cleanup_policy' => 'anonymize',
+        ],
+    ], ['email_claim' => 'email', 'display_name_claim' => 'name'], $profileSyncErrors, 'Fixture');
+    sr_member_oauth_check_assert($profileSyncErrors === [], 'OAuth profile sync rules should accept basic and extra profile targets.');
+    sr_member_oauth_check_assert(str_contains($profileSyncJson, 'profile:department'), 'OAuth profile sync rules should preserve extra profile targets.');
     $completionStateToken = sr_member_oauth_create_completion_state($pdo, 'mock', $subjectHash, [
         'subject_display' => 'provider-subject',
         'email' => 'mock-user@example.test',
@@ -210,6 +267,64 @@ function sr_member_oauth_check_runtime_helpers(): void
     $storedOauthAccount = sr_member_oauth_account_for_provider($pdo, 7, 'mock');
     sr_member_oauth_check_assert(is_array($storedOauthAccount) && (string) ($storedOauthAccount['provider_subject_display'] ?? '') === $subjectDisplay, 'Linked OAuth account must store a non-raw provider subject display.');
     sr_member_oauth_check_assert(is_array($storedOauthAccount) && (string) ($storedOauthAccount['provider_subject_display'] ?? '') !== 'mock-user', 'Linked OAuth account must not store the raw profile subject display.');
+    $now = sr_now();
+    $oldEmail = 'old@example.test';
+    $oldEmailHash = sr_hmac_hash($oldEmail, $config);
+    $pdo->prepare(
+        'INSERT INTO sr_member_accounts
+            (id, account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, created_at, updated_at)
+         VALUES
+            (7, :account_identifier_hash, NULL, :email, :email_hash, :password_hash, :display_name, :locale, :status, NULL, :created_at, :updated_at)'
+    )->execute([
+        'account_identifier_hash' => $oldEmailHash,
+        'email' => $oldEmail,
+        'email_hash' => $oldEmailHash,
+        'password_hash' => 'hash',
+        'display_name' => 'OldName',
+        'locale' => 'ko',
+        'status' => 'active',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $synced = sr_member_oauth_sync_member_profile($pdo, $config, 7, [
+        'id' => 7,
+        'account_identifier_hash' => $oldEmailHash,
+        'login_id_hash' => '',
+        'email' => $oldEmail,
+        'email_hash' => $oldEmailHash,
+        'display_name' => 'OldName',
+        'status' => 'active',
+    ], [
+        'profile_sync_json' => $profileSyncJson,
+    ], [
+        'email' => 'new@example.test',
+        'email_verified' => true,
+        'display_name' => 'NewName',
+        'mapped_fields' => [
+            'email' => 'new@example.test',
+            'display_name' => 'NewName',
+            'profile:department' => 'Engineering',
+        ],
+    ], [
+        'profile_fields_json' => json_encode([
+            [
+                'key' => 'department',
+                'label' => 'Department',
+                'type' => 'text',
+                'visibility' => 'admin',
+                'show_on_profile' => false,
+                'show_in_admin' => true,
+                'export_policy' => 'include',
+                'cleanup_policy' => 'anonymize',
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ]);
+    sr_member_oauth_check_assert(in_array('email', $synced, true) && in_array('display_name', $synced, true) && in_array('profile_extra', $synced, true), 'OAuth profile sync should update changed member basics and mapped extra profile fields.');
+    $syncedAccount = $pdo->query('SELECT * FROM sr_member_accounts WHERE id = 7')->fetch();
+    sr_member_oauth_check_assert(is_array($syncedAccount) && (string) ($syncedAccount['email'] ?? '') === 'new@example.test', 'OAuth profile sync should update verified provider email.');
+    sr_member_oauth_check_assert(is_array($syncedAccount) && (string) ($syncedAccount['display_name'] ?? '') === 'NewName', 'OAuth profile sync should update member display name.');
+    $syncedProfileField = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "department" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $syncedProfileField === 'Engineering', 'OAuth profile sync should save mapped non-basic values to extra profile fields.');
 
     $activeAccounts = sr_member_oauth_accounts_for_account($pdo, 7);
     sr_member_oauth_check_assert(count($activeAccounts) === 1, 'Active OAuth account list should include linked provider.');
@@ -261,6 +376,10 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_provider_setting_key',
     'sr_member_oauth_apply_provider_settings',
     'sr_member_oauth_provider_admin_status',
+    'sr_member_oauth_scope_items',
+    'sr_member_oauth_scope_setting_value',
+    'sr_member_oauth_profile_sync_rules_json_from_input',
+    'sr_member_oauth_sync_member_profile',
     'sr_member_oauth_claim_value',
     'sr_member_oauth_secret_display',
     'sr_member_oauth_jwt_payload',
@@ -305,6 +424,8 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/admin-settings.php'
     "sr_post_string('intent', 40)",
     'sr_admin_post_int_in_range',
     'sr_post_string_without_truncation($secretKey, 512)',
+    'sr_member_oauth_scope_setting_value',
+    'sr_member_oauth_profile_sync_rules_json_from_input',
     'sr_member_oauth_save_settings',
     'member_oauth.settings.updated',
     'sr_admin_redirect_with_result',
@@ -317,6 +438,10 @@ sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', 
     'data-oauth-required-provider',
     'data-oauth-copy-value',
     'sr_member_oauth_provider_admin_status',
+    'data-oauth-scope-list',
+    'data-oauth-profile-sync-list',
+    'data-oauth-add-scope',
+    'data-oauth-add-profile-sync',
     '비워 두면 기존 secret을 유지합니다',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
@@ -332,6 +457,8 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'member.oauth.login',
     'member.oauth.login.blocked',
     'member.oauth.linked',
+    'sr_member_oauth_sync_member_profile',
+    'sr_member_oauth_update_link_snapshot',
 ]);
 sr_member_oauth_check_forbids('modules/member_oauth/actions/callback.php', [
     'sr_member_find_by_identifier',

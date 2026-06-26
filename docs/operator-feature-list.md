@@ -115,7 +115,7 @@
 | 이메일 인증 | 이메일 인증 상태를 계정 데이터와 분리해 보관하므로 인증 전후 정책을 화면과 기능에서 구분하기 쉽다. | 이메일 인증, 이메일 인증 여부 관리 |
 | 비밀번호 관리 | 비밀번호 재설정과 변경 흐름이 준비되어 있어 계정 문제를 별도 문의 처리로만 떠안지 않아도 된다. | 비밀번호 재설정, 비밀번호 변경 |
 | OAuth 로그인 | 이메일/로그인 ID 기반 회원 흐름 위에 외부 OAuth/OIDC 로그인을 선택적으로 붙일 수 있어 회원가입과 재방문 진입 부담을 낮춘다. | `member_oauth`, OAuth 시작/콜백/완료, 계정 연결과 해제, mock provider, generic OAuth2/OIDC adapter |
-| Provider 번들 | Google, Kakao, Naver, GitHub, Apple ID 같은 provider 계약을 별도 플러그인으로 두어 사이트가 필요한 외부 로그인 후보만 설정할 수 있다. | `member_oauth_providers`, provider endpoint/claim 계약, client id/secret/scope override, secret 마스킹 |
+| Provider 번들 | Google, Kakao, Naver, GitHub, Apple ID 같은 provider 계약을 별도 플러그인으로 두어 사이트가 필요한 외부 로그인 후보만 설정할 수 있다. | `member_oauth_providers`, provider endpoint/claim 계약, client id/secret, 항목 단위 scope override, 프로필 claim 동기화 매핑, secret 마스킹 |
 | 마이페이지 | 회원이 비밀번호를 다시 확인한 뒤 기본 정보, 프로필, 비밀번호, 탈퇴 같은 자기 계정 작업을 직접 처리할 수 있어 반복적인 계정 관리 부담을 줄인다. | `/mypage`, 회원 프로필 관리, 회원 정보 수정, 정보수정 진입 재인증, 회원 탈퇴 |
 | 프로필 항목 | 생년월일, 성인여부, 아바타와 운영자가 정의한 추가 프로필 항목을 사이트 정책에 맞춰 노출하거나 필수로 만들 수 있다. | 생년월일/성인여부/아바타 표시와 필수 설정, 추가 프로필 항목 관리, 아바타 업로드 |
 | 닉네임 | 회원 공개 이름과 멘션 기준을 닉네임으로 통일할 수 있어 콘텐츠와 커뮤니티의 작성자 표시가 일관된다. | 닉네임 사용 설정, 중복 검사, 공개 이름 계약, 멘션 기준 |

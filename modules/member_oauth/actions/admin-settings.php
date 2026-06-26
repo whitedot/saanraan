@@ -10,6 +10,8 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_owner($pdo, (int) $account['id']);
 $settings = sr_member_oauth_settings($pdo);
 $providers = sr_member_oauth_providers($pdo);
+$memberSettings = sr_member_settings($pdo);
+$profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
 $notice = '';
 $errors = [];
 
@@ -52,19 +54,32 @@ if (sr_request_method() === 'POST') {
         $clientIdKey = sr_member_oauth_provider_setting_key($providerKey, 'client_id');
         $secretKey = sr_member_oauth_provider_setting_key($providerKey, 'client_secret');
         $scopeKey = sr_member_oauth_provider_setting_key($providerKey, 'scope');
+        $profileSyncKey = sr_member_oauth_provider_setting_key($providerKey, 'profile_sync_json');
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
+        $providerLabel = (string) ($provider['label'] ?? $providerKey);
         $label = trim(sr_post_string($labelKey, 80));
         $clientId = sr_post_string_without_truncation($clientIdKey, 255);
         $secret = sr_post_string_without_truncation($secretKey, 512);
-        $scope = sr_post_string_without_truncation($scopeKey, 255);
+        $scope = sr_member_oauth_scope_setting_value($_POST[$scopeKey] ?? []);
+        $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input(
+            $_POST[$profileSyncKey] ?? [],
+            $profileExtraFieldDefinitions,
+            $provider,
+            $errors,
+            $providerLabel
+        );
         $sortOrder = sr_admin_post_int_in_range($sortOrderKey, -9999, 9999, 6);
         $enabled = ($_POST[$enabledKey] ?? '') === '1';
 
-        if ($clientId === null || $secret === null || $scope === null || $sortOrder === null) {
-            $errors[] = (string) ($provider['label'] ?? $providerKey) . ' provider 설정 값을 확인해 주세요.';
+        if ($clientId === null || $secret === null || $sortOrder === null) {
+            $errors[] = $providerLabel . ' provider 설정 값을 확인해 주세요.';
             $clientId = (string) ($provider['client_id'] ?? '');
-            $scope = (string) ($provider['scope'] ?? '');
+            $scope = sr_member_oauth_scope_setting_value($provider['scope'] ?? ($provider['scopes'] ?? []));
             $sortOrder = (int) ($provider['sort_order'] ?? 0);
+        }
+        if (strlen($scope) > 1000) {
+            $errors[] = $providerLabel . ' scope 항목은 전체 1000자 이하로 입력해 주세요.';
+            $scope = sr_member_oauth_scope_setting_value($provider['scope'] ?? ($provider['scopes'] ?? []));
         }
         if ($enabled && $label === '') {
             $errors[] = $providerKey . ' provider 라벨을 입력해 주세요.';
@@ -77,6 +92,7 @@ if (sr_request_method() === 'POST') {
         $postedSettings[$labelKey] = $label !== '' ? $label : (string) ($provider['label'] ?? $providerKey);
         $postedSettings[$clientIdKey] = trim((string) $clientId);
         $postedSettings[$scopeKey] = trim((string) $scope);
+        $postedSettings[$profileSyncKey] = $profileSyncJson;
         $postedSettings[$sortOrderKey] = (int) $sortOrder;
         if (trim((string) $secret) !== '') {
             $postedSettings[$secretKey] = trim((string) $secret);
