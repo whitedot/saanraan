@@ -36,6 +36,18 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT 'string',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE (module_id, setting_key)
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_reward_balances (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             account_id INTEGER NOT NULL UNIQUE,
@@ -113,7 +125,7 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
 function sr_asset_exchange_runtime_seed(PDO $pdo, int $accountId, int $rewardBalance): void
 {
     $now = sr_now();
-    foreach (['asset_exchange', 'reward', 'deposit'] as $moduleKey) {
+    foreach (['asset_exchange', 'point', 'reward', 'deposit'] as $moduleKey) {
         $pdo->prepare('INSERT INTO sr_modules (module_key, version, status) VALUES (:module_key, :version, :status)')
             ->execute(['module_key' => $moduleKey, 'version' => 'fixture', 'status' => 'enabled']);
     }
@@ -160,6 +172,38 @@ function sr_asset_exchange_runtime_count(PDO $pdo, string $table): int
     $row = $pdo->query('SELECT COUNT(*) AS row_count FROM ' . $table)->fetch();
 
     return is_array($row) ? (int) ($row['row_count'] ?? 0) : 0;
+}
+
+function sr_asset_exchange_runtime_set_module_setting(PDO $pdo, string $moduleKey, string $settingKey, string $settingValue, string $valueType): void
+{
+    $stmt = $pdo->prepare('SELECT id FROM sr_modules WHERE module_key = :module_key LIMIT 1');
+    $stmt->execute(['module_key' => $moduleKey]);
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        sr_asset_exchange_runtime_error('Fixture module must exist before setting update: ' . $moduleKey);
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON CONFLICT(module_id, setting_key) DO UPDATE SET
+            setting_value = excluded.setting_value,
+            value_type = excluded.value_type,
+            updated_at = excluded.updated_at'
+    );
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => $settingKey,
+        'setting_value' => $settingValue,
+        'value_type' => $valueType,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache($moduleKey);
 }
 
 function sr_asset_exchange_runtime_success_case(): void
@@ -252,12 +296,90 @@ function sr_asset_exchange_runtime_failure_log_case(): void
     }
 }
 
+function sr_asset_exchange_runtime_notification_settings_case(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+    sr_asset_exchange_runtime_seed($pdo, 123, 500);
+
+    $groups = sr_asset_exchange_notification_groups($pdo);
+    foreach (['point', 'reward', 'deposit'] as $moduleKey) {
+        sr_asset_exchange_runtime_assert(isset($groups[$moduleKey]), 'Asset exchange notification settings must expose ' . $moduleKey . ' cases.');
+        if (!isset($groups[$moduleKey])) {
+            continue;
+        }
+        $cases = (array) ($groups[$moduleKey]['cases'] ?? []);
+        sr_asset_exchange_runtime_assert(count($cases) === 3, 'Asset exchange notification settings must expose only exchange cases for ' . $moduleKey . '.');
+        foreach (sr_asset_exchange_notification_event_keys() as $eventKey) {
+            $found = false;
+            foreach ($cases as $case) {
+                if ((string) ($case['event_key'] ?? '') === $eventKey) {
+                    $found = true;
+                    break;
+                }
+            }
+            sr_asset_exchange_runtime_assert($found, 'Asset exchange notification settings must expose ' . $eventKey . ' for ' . $moduleKey . '.');
+        }
+        foreach ($cases as $case) {
+            sr_asset_exchange_runtime_assert(str_starts_with((string) ($case['event_key'] ?? ''), 'transaction.exchange_'), 'Asset exchange notification settings must not expose non-exchange cases for ' . $moduleKey . '.');
+        }
+    }
+
+    $pointSettings = sr_point_settings($pdo);
+    $pointCases = sr_point_notification_case_settings_from_value($pointSettings['notification_cases'] ?? []);
+    $pointCases['transaction_grant'] = [
+        'event_key' => 'transaction.grant',
+        'enabled' => true,
+        'channels' => ['email'],
+    ];
+    $pointCasesJson = json_encode($pointCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    sr_asset_exchange_runtime_assert(is_string($pointCasesJson), 'Asset exchange notification fixture must encode point cases.');
+    sr_asset_exchange_runtime_set_module_setting($pdo, 'point', 'notification_cases', is_string($pointCasesJson) ? $pointCasesJson : '{}', 'json');
+
+    $groups = sr_asset_exchange_notification_groups($pdo);
+    $pointGroup = $groups['point'] ?? null;
+    sr_asset_exchange_runtime_assert(is_array($pointGroup), 'Asset exchange notification settings must reload point case settings.');
+    if (is_array($pointGroup)) {
+        $moduleCaseSettings = is_array($pointGroup['all_case_settings'] ?? null) ? $pointGroup['all_case_settings'] : [];
+        $moduleCaseSettings['transaction_exchange_in'] = [
+            'event_key' => 'transaction.exchange_in',
+            'enabled' => true,
+            'channels' => ['site'],
+        ];
+        $moduleCaseSettings['transaction_exchange_out'] = [
+            'event_key' => 'transaction.exchange_out',
+            'enabled' => false,
+            'channels' => ['site'],
+        ];
+        $moduleCaseSettings['transaction_exchange_fee'] = [
+            'event_key' => 'transaction.exchange_fee',
+            'enabled' => true,
+            'channels' => ['site'],
+        ];
+
+        $moduleCaseSettings = sr_point_notification_case_settings_from_value($moduleCaseSettings);
+        $moduleCaseSettingsJson = json_encode($moduleCaseSettings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        sr_asset_exchange_runtime_assert(is_string($moduleCaseSettingsJson), 'Asset exchange notification fixture must encode changed point cases.');
+        sr_asset_exchange_runtime_set_module_setting($pdo, 'point', 'notification_cases', is_string($moduleCaseSettingsJson) ? $moduleCaseSettingsJson : '{}', 'json');
+    }
+
+    $savedPointCases = sr_point_notification_case_settings_from_value(sr_point_settings($pdo)['notification_cases'] ?? []);
+    sr_asset_exchange_runtime_assert(!empty($savedPointCases['transaction_grant']['enabled']), 'Asset exchange notification settings save must preserve non-exchange point cases.');
+    sr_asset_exchange_runtime_assert((array) ($savedPointCases['transaction_grant']['channels'] ?? []) === ['email'], 'Asset exchange notification settings save must preserve non-exchange point channels.');
+    sr_asset_exchange_runtime_assert(!empty($savedPointCases['transaction_exchange_in']['enabled']), 'Asset exchange notification settings save must enable changed exchange-in cases.');
+    sr_asset_exchange_runtime_assert(empty($savedPointCases['transaction_exchange_out']['enabled']), 'Asset exchange notification settings save must disable changed exchange-out cases.');
+    sr_asset_exchange_runtime_assert(!empty($savedPointCases['transaction_exchange_fee']['enabled']), 'Asset exchange notification settings save must enable changed exchange-fee cases.');
+}
+
 if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_error('pdo_sqlite extension is required for asset exchange runtime checks.');
 } else {
     sr_asset_exchange_runtime_success_case();
     sr_asset_exchange_runtime_rollback_case();
     sr_asset_exchange_runtime_failure_log_case();
+    sr_asset_exchange_runtime_notification_settings_case();
 }
 
 if ($errors !== []) {
