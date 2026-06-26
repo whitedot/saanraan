@@ -317,7 +317,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <span class="sr-install-help">설치 후 owner 전용 위험 작업으로 변경할 수 있습니다. 기존 가격과 로그는 이 값으로 변환되지 않습니다.</span>
+                            <span class="sr-install-help">설치 후 매니저 전용 위험 작업으로 변경할 수 있습니다. 기존 가격과 로그는 이 값으로 변환되지 않습니다.</span>
                         </p>
                         <p>
                             <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.text.214b5fb8')); ?></span>
