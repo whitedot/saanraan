@@ -22,6 +22,7 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
     $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
+    $notificationsEnabled = sr_post_string('notifications_enabled', 1) === '1';
     $postedCases = $_POST['notification_cases'] ?? [];
     $postedCases = is_array($postedCases) ? $postedCases : [];
     $allowedChannels = array_fill_keys($notificationChannelOptions, true);
@@ -43,7 +44,7 @@ if (sr_request_method() === 'POST') {
             'enabled' => sr_truthy($casePost['enabled'] ?? false),
             'channels' => array_values($channels),
         ];
-        if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
+        if ($notificationsEnabled && !empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
             $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
         }
     }
@@ -51,6 +52,7 @@ if (sr_request_method() === 'POST') {
     $definitionDisabledCase = $caseSettings['definition_disabled'] ?? ['enabled' => true, 'channels' => ['site']];
     $postedSettings = [
         'usage_enabled' => $usageEnabled,
+        'notifications_enabled' => $notificationsEnabled,
         'notification_cases' => $caseSettings,
         'disabled_reclaim_notifications_enabled' => !empty($definitionDisabledCase['enabled']),
         'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
@@ -73,6 +75,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Coupon settings updated.',
                 'metadata' => [
                     'usage_enabled' => !empty($settings['usage_enabled']),
+                    'notifications_enabled' => !empty($settings['notifications_enabled']),
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                     'disabled_reclaim_notifications_enabled' => !empty($settings['disabled_reclaim_notifications_enabled']),
                     'disabled_reclaim_notification_channels' => (array) ($settings['disabled_reclaim_notification_channels'] ?? ['site']),

@@ -13,6 +13,7 @@ function sr_point_default_settings(): array
         'display_name' => '포인트',
         'unit_label' => 'P',
         'default_expiration_days' => '0',
+        'notifications_enabled' => false,
         'notification_cases' => sr_point_default_notification_case_settings(),
     ];
 }
@@ -196,6 +197,14 @@ function sr_point_notification_setting_for_event(array $settings, string $eventK
         return null;
     }
 
+    if (array_key_exists('notifications_enabled', $settings) && !sr_truthy($settings['notifications_enabled'])) {
+        return [
+            'event_key' => $eventKey,
+            'enabled' => false,
+            'channels' => ['site'],
+        ];
+    }
+
     $caseSettings = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
@@ -223,6 +232,7 @@ function sr_point_settings(PDO $pdo): array
         $settings['unit_label'] = 'P';
     }
     $settings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
+    $settings['notifications_enabled'] = sr_point_truthy($settings['notifications_enabled'] ?? false);
     $settings['notification_cases'] = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return $settings;
 }
@@ -242,6 +252,9 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_point_truthy($settings['usage_enabled'])
         : sr_point_usage_enabled($pdo);
+    $notificationsEnabled = array_key_exists('notifications_enabled', $settings)
+        ? sr_point_truthy($settings['notifications_enabled'])
+        : sr_point_truthy(sr_point_settings($pdo)['notifications_enabled'] ?? false);
     if ($displayName === '') {
         throw new InvalidArgumentException('Point display name is required.');
     }
@@ -272,6 +285,7 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
         ['display_name', $displayName, 'string'],
         ['unit_label', $unitLabel, 'string'],
         ['default_expiration_days', (string) $defaultExpirationDays, 'integer'],
+        ['notifications_enabled', $notificationsEnabled ? '1' : '0', 'bool'],
         ['notification_cases', (string) $notificationCasesJson, 'json'],
     ] as $row) {
         $stmt->execute([

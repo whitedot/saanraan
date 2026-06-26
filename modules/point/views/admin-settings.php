@@ -6,6 +6,7 @@ $settings = isset($settings) && is_array($settings) ? $settings : ['usage_enable
 $notificationCases = isset($notificationCases) && is_array($notificationCases) ? $notificationCases : sr_point_notification_cases();
 $notificationCaseSettings = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 $notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
+$notificationsEnabled = !empty($settings['notifications_enabled']);
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -51,7 +52,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="card">
-        <h2>회원 알림</h2>
+        <div class="card-header">
+            <h2 class="card-title">회원 알림</h2>
+            <?php echo sr_admin_switch_html('point_notifications_enabled', 'notifications_enabled', '1', $notificationsEnabled, '전체 사용', '0', ' data-point-notification-master'); ?>
+        </div>
+        <p class="form-help">전체 사용을 끄면 아래 케이스 설정은 보존하지만 포인트 회원 알림을 만들지 않습니다.</p>
         <?php foreach ($notificationCases as $caseKey => $case) { ?>
             <?php
             $caseKey = (string) $caseKey;
@@ -99,6 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (!form) {
         return;
     }
+    var master = form.querySelector('[data-point-notification-master]');
     var caseKeys = [];
     Array.prototype.slice.call(form.querySelectorAll('[data-point-notification-case-key]')).forEach(function (control) {
         var caseKey = control.getAttribute('data-point-notification-case-key') || '';
@@ -109,6 +115,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     function syncCase(caseKey) {
         var toggle = form.querySelector('[data-point-notification-case-toggle][data-point-notification-case-key="' + caseKey + '"]');
         var channels = Array.prototype.slice.call(form.querySelectorAll('[data-point-notification-channel][data-point-notification-case-key="' + caseKey + '"]'));
+        var masterEnabled = !master || master.checked;
         var enabled = !toggle || toggle.checked;
         var selected = channels.some(function (channel) {
             return channel.checked;
@@ -117,11 +124,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             channel.disabled = !enabled;
         });
         Array.prototype.slice.call(form.querySelectorAll('[data-point-notification-required-label][data-point-notification-case-key="' + caseKey + '"]')).forEach(function (label) {
-            label.hidden = !enabled;
+            label.hidden = !masterEnabled || !enabled;
         });
         if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
-            channels[0].setCustomValidity(!enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
+            channels[0].setCustomValidity(!masterEnabled || !enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
         }
+    }
+    if (master) {
+        master.addEventListener('change', function () {
+            caseKeys.forEach(syncCase);
+        });
     }
     caseKeys.forEach(function (caseKey) {
         Array.prototype.slice.call(form.querySelectorAll('[data-point-notification-case-key="' + caseKey + '"]')).forEach(function (control) {

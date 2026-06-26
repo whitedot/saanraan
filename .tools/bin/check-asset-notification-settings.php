@@ -43,6 +43,7 @@ foreach ([
     'point' => [
         'label' => '포인트',
         'settings_path' => '/admin/points/settings',
+        'default_notifications_enabled' => 'false',
         'events' => [
             'transaction.grant',
             'transaction.refund',
@@ -58,6 +59,7 @@ foreach ([
     'reward' => [
         'label' => '적립금',
         'settings_path' => '/admin/rewards/settings',
+        'default_notifications_enabled' => 'true',
         'events' => [
             'transaction.grant',
             'transaction.refund',
@@ -75,6 +77,7 @@ foreach ([
     'deposit' => [
         'label' => '예치금',
         'settings_path' => '/admin/deposits/settings',
+        'default_notifications_enabled' => 'true',
         'events' => [
             'transaction.deposit',
             'transaction.refund',
@@ -99,6 +102,7 @@ foreach ([
 
     sr_asset_notification_settings_require_markers($helperPath, [
         "'notification_cases' => " . $prefix . '_default_notification_case_settings()',
+        "'notifications_enabled' => " . (string) ($module['default_notifications_enabled'] ?? 'true'),
         'function ' . $prefix . '_notification_cases(): array',
         'function ' . $prefix . '_notification_case_key_for_event(string $eventKey): string',
         'function ' . $prefix . '_default_notification_case_settings(): array',
@@ -106,8 +110,11 @@ foreach ([
         'function ' . $prefix . '_notification_channel_options(PDO $pdo): array',
         'function ' . $prefix . '_notification_case_settings_from_value(mixed $value): array',
         'function ' . $prefix . '_notification_setting_for_event(array $settings, string $eventKey): ?array',
+        "array_key_exists('notifications_enabled', \$settings) && !sr_truthy(\$settings['notifications_enabled'])",
         '$settings[\'notification_cases\'] = ' . $prefix . '_notification_case_settings_from_value($settings[\'notification_cases\'] ?? []);',
+        '$settings[\'notifications_enabled\'] = ' . $prefix . '_truthy($settings[\'notifications_enabled\'] ?? ' . (string) ($module['default_notifications_enabled'] ?? 'true') . ');',
         "'notification_cases'",
+        "'notifications_enabled'",
         (string) ($module['label'] ?? ''),
         '$caseSetting = ' . $prefix . '_notification_setting_for_event(' . $prefix . '_settings($pdo), $eventKey);',
         'if (empty($caseSetting[\'enabled\'])) {' . "\n" . '                return null;',
@@ -125,9 +132,11 @@ foreach ([
     sr_asset_notification_settings_require_markers($actionPath, [
         '$notificationCases = ' . $prefix . '_notification_cases();',
         '$notificationChannelOptions = ' . $prefix . '_notification_channel_options($pdo);',
+        '$notificationsEnabled = sr_post_string(\'notifications_enabled\', 1) === \'1\';',
         '$postedCases = $_POST[\'notification_cases\'] ?? [];',
         '$allowedChannels = array_fill_keys($notificationChannelOptions, true);',
         'notification_cases',
+        'notifications_enabled',
         '$caseSettings',
         '\'notification_cases\' => (array) ($settings[\'notification_cases\'] ?? [])',
     ]);
@@ -135,7 +144,10 @@ foreach ([
     sr_asset_notification_settings_require_markers($viewPath, [
         '$notificationCases',
         '$notificationCaseSettings = ' . $prefix . '_notification_case_settings_from_value($settings[\'notification_cases\'] ?? []);',
+        '$notificationsEnabled',
         'notification_cases[',
+        'notifications_enabled',
+        'data-' . $dataPrefix . '-master',
         'data-' . $dataPrefix . '-case-toggle',
         'data-' . $dataPrefix . '-channel',
         'data-' . $dataPrefix . '-required-label',
@@ -143,14 +155,35 @@ foreach ([
     ]);
 }
 
+sr_asset_notification_settings_require_markers('modules/coupon/helpers.php', [
+    "'notifications_enabled' => true",
+    'function sr_coupon_notification_setting_for_event(array $settings, string $eventKey): ?array',
+    "array_key_exists('notifications_enabled', \$settings) && !sr_truthy(\$settings['notifications_enabled'])",
+    '$settings[\'notifications_enabled\'] = sr_truthy($settings[\'notifications_enabled\'] ?? true);',
+    "'notifications_enabled'",
+]);
+sr_asset_notification_settings_require_markers('modules/coupon/actions/admin-coupon-settings.php', [
+    '$notificationsEnabled = sr_post_string(\'notifications_enabled\', 1) === \'1\';',
+    '\'notifications_enabled\' => $notificationsEnabled',
+    '\'notifications_enabled\' => !empty($settings[\'notifications_enabled\'])',
+]);
+sr_asset_notification_settings_require_markers('modules/coupon/views/admin-settings.php', [
+    '$notificationsEnabled',
+    'notifications_enabled',
+    'data-coupon-notification-master',
+    '전체 사용',
+]);
+
 sr_asset_notification_settings_require_markers('docs/module-guide.md', [
-    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 환경설정 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 사용 여부와 채널을 저장한다.',
+    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 환경설정 화면에서 전체 회원 알림 사용 여부와 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 사용 여부 및 채널을 저장한다.',
+    '포인트 모듈의 전체 회원 알림 기본값은 사용 안 함이고, 적립금/예치금/쿠폰 모듈은 기존 동작 보존을 위해 기본값을 사용으로 둔다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/security-model.md', [
-    '포인트/적립금/예치금/쿠폰 환경설정의 케이스별 알림 채널',
+    '포인트/적립금/예치금/쿠폰 환경설정의 전체 회원 알림 사용 여부와 케이스별 알림 채널',
 ]);
 sr_asset_notification_settings_require_markers('docs/core-decisions.md', [
-    '포인트/적립금/예치금/쿠폰 모듈은 자기 환경설정에서 케이스별 회원 알림 사용 여부와 채널을 저장하고',
+    '포인트/적립금/예치금/쿠폰 모듈은 자기 환경설정에서 전체 회원 알림 사용 여부와 케이스별 회원 알림 사용 여부 및 채널을 저장하고',
+    '포인트 전체 회원 알림의 기본값은 사용 안 함',
 ]);
 
 if ($errors !== []) {

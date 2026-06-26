@@ -55,6 +55,7 @@ function sr_reward_default_settings(): array
         'usage_enabled' => true,
         'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
+        'notifications_enabled' => true,
         'notification_cases' => sr_reward_default_notification_case_settings(),
     ];
 }
@@ -250,6 +251,14 @@ function sr_reward_notification_setting_for_event(array $settings, string $event
         return null;
     }
 
+    if (array_key_exists('notifications_enabled', $settings) && !sr_truthy($settings['notifications_enabled'])) {
+        return [
+            'event_key' => $eventKey,
+            'enabled' => false,
+            'channels' => ['site'],
+        ];
+    }
+
     $caseSettings = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
@@ -265,6 +274,7 @@ function sr_reward_settings(PDO $pdo): array
     $settings['withdrawal_requests_enabled'] = array_key_exists('withdrawal_requests_enabled', $storedSettings)
         ? sr_reward_truthy($settings['withdrawal_requests_enabled'] ?? false)
         : $settings['withdrawal_allowed_group_keys'] !== [];
+    $settings['notifications_enabled'] = sr_reward_truthy($settings['notifications_enabled'] ?? true);
     $settings['notification_cases'] = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 
     return $settings;
@@ -283,6 +293,9 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_reward_truthy($settings['usage_enabled'])
         : sr_reward_usage_enabled($pdo);
+    $notificationsEnabled = array_key_exists('notifications_enabled', $settings)
+        ? sr_reward_truthy($settings['notifications_enabled'])
+        : sr_reward_truthy(sr_reward_settings($pdo)['notifications_enabled'] ?? true);
     if (array_key_exists('withdrawal_requests_enabled', $settings)) {
         $withdrawalRequestsEnabled = sr_reward_truthy($settings['withdrawal_requests_enabled']);
     } else {
@@ -338,6 +351,14 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
         'module_id' => (int) $module['id'],
         'setting_key' => 'withdrawal_requests_enabled',
         'setting_value' => $withdrawalRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'notifications_enabled',
+        'setting_value' => $notificationsEnabled ? '1' : '0',
         'value_type' => 'bool',
         'created_at' => $now,
         'updated_at' => $now,

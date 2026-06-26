@@ -7,6 +7,7 @@ $notificationCases = isset($notificationCases) && is_array($notificationCases) ?
 $notificationCaseSettings = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 $notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
+$notificationsEnabled = !isset($settings['notifications_enabled']) || !empty($settings['notifications_enabled']);
 $withdrawalRequestsEnabled = !empty($settings['withdrawal_requests_enabled']);
 $enabledMemberGroups = [];
 foreach ($memberGroups as $memberGroup) {
@@ -108,7 +109,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="card">
-        <h2>회원 알림</h2>
+        <div class="card-header">
+            <h2 class="card-title">회원 알림</h2>
+            <?php echo sr_admin_switch_html('reward_notifications_enabled', 'notifications_enabled', '1', $notificationsEnabled, '전체 사용', '0', ' data-reward-notification-master'); ?>
+        </div>
+        <p class="form-help">전체 사용을 끄면 아래 케이스 설정은 보존하지만 적립금 회원 알림을 만들지 않습니다.</p>
         <?php foreach ($notificationCases as $caseKey => $case) { ?>
             <?php
             $caseKey = (string) $caseKey;
@@ -231,6 +236,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (!form) {
         return;
     }
+    var master = form.querySelector('[data-reward-notification-master]');
     var caseKeys = [];
     Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-key]')).forEach(function (control) {
         var caseKey = control.getAttribute('data-reward-notification-case-key') || '';
@@ -241,6 +247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     function syncCase(caseKey) {
         var toggle = form.querySelector('[data-reward-notification-case-toggle][data-reward-notification-case-key="' + caseKey + '"]');
         var channels = Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-channel][data-reward-notification-case-key="' + caseKey + '"]'));
+        var masterEnabled = !master || master.checked;
         var enabled = !toggle || toggle.checked;
         var selected = channels.some(function (channel) {
             return channel.checked;
@@ -249,11 +256,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             channel.disabled = !enabled;
         });
         Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-required-label][data-reward-notification-case-key="' + caseKey + '"]')).forEach(function (label) {
-            label.hidden = !enabled;
+            label.hidden = !masterEnabled || !enabled;
         });
         if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
-            channels[0].setCustomValidity(!enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
+            channels[0].setCustomValidity(!masterEnabled || !enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
         }
+    }
+    if (master) {
+        master.addEventListener('change', function () {
+            caseKeys.forEach(syncCase);
+        });
     }
     caseKeys.forEach(function (caseKey) {
         Array.prototype.slice.call(form.querySelectorAll('[data-reward-notification-case-key="' + caseKey + '"]')).forEach(function (control) {

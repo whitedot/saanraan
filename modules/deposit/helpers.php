@@ -55,6 +55,7 @@ function sr_deposit_default_settings(): array
         'usage_enabled' => true,
         'refund_requests_enabled' => false,
         'refund_allowed_group_keys_json' => '[]',
+        'notifications_enabled' => true,
         'notification_cases' => sr_deposit_default_notification_case_settings(),
     ];
 }
@@ -238,6 +239,14 @@ function sr_deposit_notification_setting_for_event(array $settings, string $even
         return null;
     }
 
+    if (array_key_exists('notifications_enabled', $settings) && !sr_truthy($settings['notifications_enabled'])) {
+        return [
+            'event_key' => $eventKey,
+            'enabled' => false,
+            'channels' => ['site'],
+        ];
+    }
+
     $caseSettings = sr_deposit_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
@@ -250,6 +259,7 @@ function sr_deposit_settings(PDO $pdo): array
     $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
         sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
     );
+    $settings['notifications_enabled'] = sr_deposit_truthy($settings['notifications_enabled'] ?? true);
     $settings['notification_cases'] = sr_deposit_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 
     return $settings;
@@ -268,6 +278,9 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_deposit_truthy($settings['usage_enabled'])
         : sr_deposit_usage_enabled($pdo);
+    $notificationsEnabled = array_key_exists('notifications_enabled', $settings)
+        ? sr_deposit_truthy($settings['notifications_enabled'])
+        : sr_deposit_truthy(sr_deposit_settings($pdo)['notifications_enabled'] ?? true);
     $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_deposit_refund_all_members_key()) {
@@ -316,6 +329,14 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         'module_id' => (int) $module['id'],
         'setting_key' => 'refund_requests_enabled',
         'setting_value' => $refundRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'notifications_enabled',
+        'setting_value' => $notificationsEnabled ? '1' : '0',
         'value_type' => 'bool',
         'created_at' => $now,
         'updated_at' => $now,

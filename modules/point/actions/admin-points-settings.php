@@ -23,11 +23,13 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     if ($intent === '' || $intent === 'save_settings') {
         $defaultExpirationDaysInput = sr_post_string('default_expiration_days', 20);
+        $notificationsEnabled = sr_post_string('notifications_enabled', 1) === '1';
         $postedSettings = [
             'usage_enabled' => sr_post_string('usage_enabled', 1) === '1',
             'display_name' => sr_point_clean_text(sr_post_string('display_name', 80), 40),
             'unit_label' => sr_point_clean_text(sr_post_string('unit_label', 40), 20),
             'default_expiration_days' => $defaultExpirationDaysInput,
+            'notifications_enabled' => $notificationsEnabled,
         ];
         $postedCases = $_POST['notification_cases'] ?? [];
         $postedCases = is_array($postedCases) ? $postedCases : [];
@@ -50,7 +52,7 @@ if (sr_request_method() === 'POST') {
                 'enabled' => sr_truthy($casePost['enabled'] ?? false),
                 'channels' => array_values($channels),
             ];
-            if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
+            if (!empty($postedSettings['notifications_enabled']) && !empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
                 $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
             }
         }
@@ -85,6 +87,7 @@ if (sr_request_method() === 'POST') {
                         'display_name' => (string) $settings['display_name'],
                         'unit_label' => (string) $settings['unit_label'],
                         'default_expiration_days' => (string) $settings['default_expiration_days'],
+                        'notifications_enabled' => !empty($settings['notifications_enabled']),
                         'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                     ],
                 ]);
