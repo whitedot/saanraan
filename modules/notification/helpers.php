@@ -249,6 +249,12 @@ function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId
     }
 
     $now = sr_now();
+    $linkUrl = sr_notification_clean_link_url((string) ($notification['link_url'] ?? ''));
+    if ($linkUrl !== '') {
+        sr_notification_mark_matching_link_read($pdo, $linkUrl, $accountId, $now);
+        return true;
+    }
+
     if ((string) $notification['audience'] === 'all') {
         $driver = '';
         try {
@@ -289,6 +295,78 @@ function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId
     ]);
 
     return true;
+}
+
+function sr_notification_mark_matching_link_read(PDO $pdo, string $linkUrl, int $accountId, string $readAt): void
+{
+    if ($accountId <= 0 || $linkUrl === '') {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_notifications
+         SET read_at = :read_at, updated_at = :updated_at
+         WHERE account_id = :account_id
+           AND link_url = :link_url
+           AND read_at IS NULL'
+    );
+    $stmt->execute([
+        'read_at' => $readAt,
+        'updated_at' => $readAt,
+        'account_id' => $accountId,
+        'link_url' => $linkUrl,
+    ]);
+
+    $stmt = $pdo->prepare(
+        'SELECT n.id
+         FROM sr_notifications n
+         LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+         WHERE n.audience = \'all\'
+           AND n.link_url = :link_url
+           AND r.id IS NULL'
+    );
+    $stmt->execute([
+        'read_account_id' => $accountId,
+        'link_url' => $linkUrl,
+    ]);
+
+    $notificationIds = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (is_array($row)) {
+            $notificationIds[] = (int) ($row['id'] ?? 0);
+        }
+    }
+    if ($notificationIds === []) {
+        return;
+    }
+
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+
+    $upsertClause = 'ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)';
+    if ($driver === 'sqlite') {
+        $upsertClause = 'ON CONFLICT(notification_id, account_id) DO UPDATE SET read_at = excluded.read_at';
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_notification_reads (notification_id, account_id, read_at)
+         VALUES (:notification_id, :account_id, :read_at)
+         ' . $upsertClause
+    );
+    foreach ($notificationIds as $matchingNotificationId) {
+        if ($matchingNotificationId <= 0) {
+            continue;
+        }
+        $stmt->execute([
+            'notification_id' => $matchingNotificationId,
+            'account_id' => $accountId,
+            'read_at' => $readAt,
+        ]);
+    }
 }
 
 function sr_notification_mark_read_redirect_link(PDO $pdo, int $notificationId, int $accountId, string $token): string

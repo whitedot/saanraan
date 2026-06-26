@@ -367,6 +367,43 @@ $summary8 = sr_notification_public_header_summary($pdo, 8, 5);
 sr_notification_runtime_assert((int) ($summary7['unread'] ?? 0) === 0, 'notification runtime fixture must hide read all-audience notification for the reader.');
 sr_notification_runtime_assert((int) ($summary8['unread'] ?? 0) === 1, 'notification runtime fixture must keep all-audience notification unread for other accounts.');
 
+$sameLinkNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'audience' => 'account',
+    'title' => '쿠폰 이용권 알림 1',
+    'body_text' => '쿠폰이 사용되었습니다.',
+    'link_url' => '/account/coupons',
+    'channels' => ['site'],
+]);
+$sameLinkSecondNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'audience' => 'account',
+    'title' => '쿠폰 이용권 알림 2',
+    'body_text' => '쿠폰 상태가 변경되었습니다.',
+    'link_url' => '/account/coupons',
+    'channels' => ['site'],
+]);
+$sameLinkAllNotificationId = sr_notification_create($pdo, [
+    'audience' => 'all',
+    'title' => '전체 쿠폰 안내',
+    'body_text' => '쿠폰 정책이 변경되었습니다.',
+    'link_url' => '/account/coupons',
+    'channels' => ['site'],
+]);
+$differentLinkNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'audience' => 'account',
+    'title' => '다른 목적지 알림',
+    'body_text' => '포인트가 변경되었습니다.',
+    'link_url' => '/account/points',
+    'channels' => ['site'],
+]);
+sr_notification_runtime_assert(sr_notification_mark_read($pdo, $sameLinkNotificationId, 7), 'notification runtime fixture must mark a same-link notification read.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkNotificationId]) === '2026-06-11 12:00:00', 'notification runtime fixture must mark the selected same-link notification read.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkSecondNotificationId]) === '2026-06-11 12:00:00', 'notification runtime fixture must mark unread account notifications with the same link read together.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_reads WHERE notification_id = :id AND account_id = 7', ['id' => $sameLinkAllNotificationId]) === 1, 'notification runtime fixture must mark unread all-audience notifications with the same link read for the reader.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT COALESCE(read_at, \'\') FROM sr_notifications WHERE id = :id', ['id' => $differentLinkNotificationId]) === '', 'notification runtime fixture must leave notifications with different links unread.');
+
 $readAction = sr_notification_runtime_file('modules/notification/actions/account-notification-read.php');
 if ($readAction !== '') {
     sr_notification_runtime_assert(
