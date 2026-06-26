@@ -465,6 +465,22 @@ function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $e
     return json_encode($rules, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
 
+function sr_member_oauth_mapped_profile_fields(array $provider, array $userinfo): array
+{
+    $mappedFields = [];
+    foreach (sr_member_oauth_profile_sync_rules($provider) as $rule) {
+        $target = (string) ($rule['target'] ?? '');
+        $claim = (string) ($rule['claim'] ?? '');
+        $claimValue = sr_member_oauth_claim_value($userinfo, $claim);
+        if ($target === '' || !is_scalar($claimValue)) {
+            continue;
+        }
+        $mappedFields[$target] = is_string($claimValue) ? trim($claimValue) : $claimValue;
+    }
+
+    return $mappedFields;
+}
+
 function sr_member_oauth_authorization_url(array $provider, array $site, array $state): string
 {
     $authorizationUrl = sr_member_oauth_provider_value($provider, 'authorization_url');
@@ -1035,16 +1051,7 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
     }
 
     $displayName = trim((string) (sr_member_oauth_claim_value($userinfo, $displayNameClaim) ?? sr_member_oauth_claim_value($userinfo, $fallbackNameClaim) ?? ''));
-    $mappedFields = [];
-    foreach (sr_member_oauth_profile_sync_rules($provider) as $rule) {
-        $target = (string) ($rule['target'] ?? '');
-        $claim = (string) ($rule['claim'] ?? '');
-        $claimValue = sr_member_oauth_claim_value($userinfo, $claim);
-        if ($target === '' || is_array($claimValue)) {
-            continue;
-        }
-        $mappedFields[$target] = trim((string) $claimValue);
-    }
+    $mappedFields = sr_member_oauth_mapped_profile_fields($provider, $userinfo);
 
     return [
         'subject' => $subject,

@@ -249,6 +249,22 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert($profileSyncErrors === [], 'OAuth profile sync rules should accept basic and extra profile targets.');
     sr_member_oauth_check_assert(str_contains($profileSyncJson, 'profile:department'), 'OAuth profile sync rules should preserve extra profile targets.');
     sr_member_oauth_check_assert(str_contains($profileSyncJson, '"scope":"profile"'), 'OAuth profile sync rules should preserve selected scope metadata.');
+    $mappedProfileFields = sr_member_oauth_mapped_profile_fields([
+        'profile_sync_json' => json_encode([
+            ['target' => 'profile:checkbox_false', 'scope' => 'profile', 'claim' => 'response.checkbox_false'],
+            ['target' => 'profile:department', 'scope' => 'profile', 'claim' => 'response.department'],
+            ['target' => 'profile:ignored_array', 'scope' => 'profile', 'claim' => 'response.array_value'],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ], [
+        'response' => [
+            'checkbox_false' => false,
+            'department' => ' Engineering ',
+            'array_value' => ['not' => 'scalar'],
+        ],
+    ]);
+    sr_member_oauth_check_assert(array_key_exists('profile:checkbox_false', $mappedProfileFields) && $mappedProfileFields['profile:checkbox_false'] === false, 'OAuth mapped profile fields should preserve boolean false claims.');
+    sr_member_oauth_check_assert((string) ($mappedProfileFields['profile:department'] ?? '') === 'Engineering', 'OAuth mapped profile fields should trim string claims.');
+    sr_member_oauth_check_assert(!array_key_exists('profile:ignored_array', $mappedProfileFields), 'OAuth mapped profile fields should skip array claims.');
     $completionStateToken = sr_member_oauth_create_completion_state($pdo, 'mock', $subjectHash, [
         'subject_display' => 'provider-subject',
         'email' => 'mock-user@example.test',
