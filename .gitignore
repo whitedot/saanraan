@@ -2,8 +2,10 @@ dist/
 .claude/
 .env
 .env.*
-/config/
-/storage/
+/config/*
+!/config/.gitignore
+/storage/*
+!/storage/.gitignore
 .tools/browser-qa/results/
 .tools/browser-qa/test-results/
 .tools/browser-qa/node_modules/
