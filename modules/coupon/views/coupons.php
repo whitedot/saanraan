@@ -1,7 +1,8 @@
 <?php
 
 $singleCampaign = isset($singleCampaign) && is_array($singleCampaign) ? $singleCampaign : null;
-$pageTitle = is_array($singleCampaign) ? (string) ($singleCampaign['title'] ?? '쿠폰존') : '쿠폰존';
+$couponZoneLabel = isset($pdo) && $pdo instanceof PDO ? sr_coupon_zone_label($pdo) : '쿠폰존';
+$pageTitle = is_array($singleCampaign) ? (string) ($singleCampaign['title'] ?? $couponZoneLabel) : $couponZoneLabel;
 $canonicalPath = is_array($singleCampaign)
     ? '/coupons?campaign=' . rawurlencode((string) ($singleCampaign['campaign_key'] ?? ''))
     : '/coupons';

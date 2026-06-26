@@ -11,7 +11,7 @@ return static function (PDO $pdo): array {
 
     return [
         [
-            'label' => '쿠폰존',
+            'label' => sr_coupon_zone_label($pdo),
             'url' => '/coupons',
         ],
         [

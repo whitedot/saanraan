@@ -57,11 +57,19 @@ function sr_coupon_default_settings(): array
 {
     return [
         'usage_enabled' => true,
+        'coupon_zone_label' => '쿠폰존',
         'notification_cases' => sr_coupon_default_notification_case_settings(),
         'disabled_reclaim_notifications_enabled' => true,
         'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
         'disabled_reclaim_notification_channels' => ['site'],
     ];
+}
+
+function sr_coupon_normalize_zone_label(string $label): string
+{
+    $label = sr_coupon_clean_text($label, 40);
+
+    return $label !== '' ? $label : '쿠폰존';
 }
 
 function sr_coupon_notification_cases(): array
@@ -263,6 +271,7 @@ function sr_coupon_settings(PDO $pdo): array
     $storedSettings = sr_module_settings($pdo, 'coupon');
     $settings = array_merge(sr_coupon_default_settings(), $storedSettings);
     $settings['usage_enabled'] = sr_truthy($settings['usage_enabled'] ?? true);
+    $settings['coupon_zone_label'] = sr_coupon_normalize_zone_label((string) ($settings['coupon_zone_label'] ?? ''));
     $notificationCases = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     if (array_key_exists('disabled_reclaim_notifications_enabled', $storedSettings)) {
         $notificationCases['definition_disabled']['enabled'] = sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false);
@@ -319,6 +328,9 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_truthy($settings['usage_enabled'])
         : sr_coupon_usage_enabled($pdo);
+    $couponZoneLabel = array_key_exists('coupon_zone_label', $settings)
+        ? sr_coupon_normalize_zone_label((string) $settings['coupon_zone_label'])
+        : sr_coupon_normalize_zone_label((string) (sr_coupon_settings($pdo)['coupon_zone_label'] ?? ''));
 
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -333,6 +345,7 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
     );
     foreach ([
         ['usage_enabled', $usageEnabled ? '1' : '0', 'bool'],
+        ['coupon_zone_label', $couponZoneLabel, 'string'],
         ['notification_cases', $notificationCasesJson, 'json'],
         ['disabled_reclaim_notifications_enabled', $definitionNotificationsEnabled ? '1' : '0', 'bool'],
         ['disabled_reclaim_notification_event_key', $eventKey, 'string'],
@@ -349,6 +362,17 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
     }
 
     sr_clear_module_settings_cache('coupon');
+}
+
+function sr_coupon_zone_label(PDO $pdo): string
+{
+    try {
+        $settings = sr_coupon_settings($pdo);
+    } catch (PDOException) {
+        return '쿠폰존';
+    }
+
+    return sr_coupon_normalize_zone_label((string) ($settings['coupon_zone_label'] ?? ''));
 }
 
 function sr_coupon_usage_enabled(PDO $pdo): bool

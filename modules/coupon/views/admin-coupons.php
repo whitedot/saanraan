@@ -77,6 +77,7 @@ $redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagi
 $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCampaigns : [];
 $claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
 $claimCampaignDefinitionOptions = isset($claimCampaignDefinitionOptions) && is_array($claimCampaignDefinitionOptions) ? $claimCampaignDefinitionOptions : [];
+$couponZoneLabel = sr_coupon_zone_label($pdo);
 $claimCampaignCanCreate = $claimCampaignDefinitionOptions !== [];
 $claimCampaignScreen = isset($claimCampaignScreen) && in_array((string) $claimCampaignScreen, ['list', 'new', 'edit', 'logs'], true) ? (string) $claimCampaignScreen : 'list';
 $editClaimCampaign = isset($editClaimCampaign) && is_array($editClaimCampaign) ? $editClaimCampaign : null;
@@ -130,6 +131,7 @@ $claimLogSourceLabels = [];
 foreach (array_merge(sr_coupon_claim_surfaces(), ['admin']) as $claimSourceOption) {
     $claimLogSourceLabels[(string) $claimSourceOption] = sr_coupon_claim_source_label((string) $claimSourceOption);
 }
+$claimLogSourceLabels['coupon_zone'] = $couponZoneLabel;
 $claimCampaignDefinitionRequiredMessage = '발급 캠페인을 추가하려면 먼저 쿠폰을 등록해야 합니다.';
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
@@ -432,7 +434,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-toggle-group admin-checkbox-toggle-group admin-coupon-campaign-check-list" role="group" aria-label="노출 위치">
                         <span class="filtering-toggle-item">
                             <input id="coupon_claim_campaign_surface_coupon_zone" type="checkbox" class="form-choice-toggle-input sr-only" name="exposure_surfaces[]" value="coupon_zone"<?php echo in_array('coupon_zone', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>>
-                            <label for="coupon_claim_campaign_surface_coupon_zone" class="btn btn-choice-light btn-group-start">쿠폰존</label>
+                            <label for="coupon_claim_campaign_surface_coupon_zone" class="btn btn-choice-light btn-group-start"><?php echo sr_e($couponZoneLabel); ?></label>
                         </span>
                         <span class="filtering-toggle-item">
                             <input id="coupon_claim_campaign_surface_content_embed" type="checkbox" class="form-choice-toggle-input sr-only" name="exposure_surfaces[]" value="content_embed"<?php echo in_array('content_embed', $claimCampaignFormSurfaces, true) ? ' checked' : ''; ?>>
@@ -554,7 +556,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-break"><?php echo sr_e($accountLabel); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? 'is-left')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e(sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e($claimLogSourceLabels[(string) ($log['claim_source'] ?? '')] ?? sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
                             <td class="admin-table-nowrap"><?php echo (int) ($log['coupon_issue_id'] ?? 0) > 0 ? '#' . sr_e((string) (int) $log['coupon_issue_id']) : sr_e('-'); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['reserved_until'] ?? ''), '-'); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['created_at'] ?? ''), '-'); ?></td>

@@ -64,6 +64,8 @@ if (!is_string($helper)) {
         $errors[] = 'Coupon definition save must validate fixed and percent discount fields server-side without stale schema caching.';
     }
     if (strpos($helper, 'function sr_coupon_settings(PDO $pdo): array') === false
+        || strpos($helper, "'coupon_zone_label' => '쿠폰존'") === false
+        || strpos($helper, 'function sr_coupon_zone_label(PDO $pdo): string') === false
         || strpos($helper, 'function sr_coupon_notification_cases(): array') === false
         || strpos($helper, "'issue_refunded' => [") === false
         || strpos($helper, "'event_key' => 'issue.refunded'") === false
@@ -213,6 +215,7 @@ if (!is_string($settingsAction)
     || strpos($settingsAction, "\$permissionPath, 'edit'") === false
     || strpos($settingsAction, '대량 발송될 수 있으므로') === false
     || strpos($settingsAction, '$notificationCases = sr_coupon_notification_cases()') === false
+    || strpos($settingsAction, "\$couponZoneLabel = sr_coupon_normalize_zone_label(sr_post_string('coupon_zone_label', 40))") === false
     || strpos($settingsAction, '$postedCases = $_POST[\'notification_cases\'] ?? []') === false
     || strpos($settingsAction, '채널을 하나 이상 선택하세요.') === false
     || strpos($settingsAction, "'notification_cases' => \$caseSettings") === false
@@ -223,6 +226,8 @@ if (!is_string($settingsAction)
 }
 if (!is_string($settingsView)
     || strpos($settingsView, '$notificationCases') === false
+    || strpos($settingsView, 'name="coupon_zone_label"') === false
+    || strpos($settingsView, '쿠폰존 명칭') === false
     || strpos($settingsView, 'notification_cases[') === false
     || strpos($settingsView, 'form-choice-toggle-input sr-only') === false
     || strpos($settingsView, 'data-coupon-notification-case') === false
