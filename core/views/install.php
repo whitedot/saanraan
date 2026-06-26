@@ -995,6 +995,26 @@ foreach ($optionalModules as $moduleKey => $module) {
                 });
             }
 
+            function deselectDependentPlugins(input) {
+                if (!input || input.checked || input.getAttribute('data-install-module-type') !== 'module') {
+                    return;
+                }
+
+                moduleOptionInputs().forEach(function (pluginInput) {
+                    if (
+                        pluginInput === input
+                        || !pluginInput.checked
+                        || pluginInput.getAttribute('data-install-module-type') !== 'plugin'
+                        || requiredModuleKeys(pluginInput).indexOf(input.value) === -1
+                    ) {
+                        return;
+                    }
+
+                    pluginInput.checked = false;
+                    pluginInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }
+
             function syncModuleSelectAll() {
                 moduleSelectAllInputs.forEach(function (selectAllInput) {
                     var moduleType = selectAllInput.getAttribute('data-install-module-select-all-type') || '';
@@ -1064,6 +1084,7 @@ foreach ($optionalModules as $moduleKey => $module) {
             moduleOptionInputs().forEach(function (input) {
                 input.addEventListener('change', function () {
                     selectRequiredModules(input);
+                    deselectDependentPlugins(input);
                     syncModuleSelectAll();
                     updateSummary();
                 });

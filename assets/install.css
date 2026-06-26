@@ -1350,11 +1350,12 @@ code {
 }
 
 .sr-install-field-grid {
-    gap: 15px 30px;
+    display: block;
 }
 
 .sr-install-field-grid label,
 .sr-install-field-label {
+    margin: 0;
     color: var(--sr-muted);
     font-weight: var(--font-weight-medium);
 }
@@ -1365,6 +1366,26 @@ code {
 
 .sr-install-field-grid p {
     position: relative;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 4px 12px;
+    align-items: center;
+    min-width: 0;
+}
+
+.sr-install-field-grid p + p {
+    margin-top: 8px;
+}
+
+.sr-install-field-grid label::after,
+.sr-install-field-label::after {
+    content: " :";
+    color: var(--sr-muted);
+}
+
+.sr-install-field-grid .sr-install-help {
+    grid-column: 2;
+    margin-top: 0;
 }
 
 .sr-install-field-grid input,
@@ -1388,8 +1409,8 @@ code {
 .sr-install-field-grid p:has(select)::before {
     content: "[";
     position: absolute;
-    left: 0;
-    top: 1.9rem;
+    left: calc(13rem + 12px);
+    top: 0.25rem;
     color: var(--sr-muted);
 }
 
@@ -1398,7 +1419,7 @@ code {
     content: "]";
     position: absolute;
     right: 0;
-    top: 1.9rem;
+    top: 0.25rem;
     color: var(--sr-muted);
 }
 
@@ -1519,28 +1540,38 @@ code {
 }
 
 .sr-install-module-title {
+    display: grid;
+    grid-template-columns: 3ch minmax(0, 1fr);
+    gap: 1ch;
     align-items: flex-start;
 }
 
 .sr-install-module-title label {
+    min-width: 0;
     cursor: pointer;
+}
+
+.sr-install-module-title label strong {
+    display: inline;
+    overflow-wrap: anywhere;
 }
 
 .sr-install-page .form-checkbox {
     appearance: none;
     display: inline-flex;
-    width: auto;
+    width: 3ch;
     height: auto;
     border: 0;
     border-radius: 0;
     background: transparent;
     color: var(--sr-muted);
+    white-space: nowrap;
 }
 
 .sr-install-page .form-checkbox::before {
     content: "[ ]";
     color: var(--sr-muted);
-    width: auto;
+    width: 3ch;
     height: auto;
     mask: none;
     background: transparent;
@@ -1551,7 +1582,7 @@ code {
     background: transparent;
     color: var(--sr-primary);
     content: "[*]";
-    width: auto;
+    width: 3ch;
     height: auto;
     mask: none;
 }
@@ -1758,6 +1789,25 @@ code {
     .sr-install-module-grid,
     .sr-install-summary-grid {
         grid-template-columns: 1fr;
+    }
+
+    .sr-install-field-grid p {
+        display: block;
+    }
+
+    .sr-install-field-grid .sr-install-help {
+        margin-top: 4px;
+    }
+
+    .sr-install-field-grid p:has(> input:not([type="hidden"]))::before,
+    .sr-install-field-grid p:has(select)::before {
+        left: 0;
+        top: 1.9rem;
+    }
+
+    .sr-install-field-grid p:has(> input:not([type="hidden"]))::after,
+    .sr-install-field-grid p:has(select)::after {
+        top: 1.9rem;
     }
 }
 
