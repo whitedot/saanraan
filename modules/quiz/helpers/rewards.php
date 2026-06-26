@@ -602,6 +602,9 @@ function sr_quiz_reward_coupon_definitions(PDO $pdo, int $limit = 200): array
     if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
         return [];
     }
+    if (function_exists('sr_coupon_usage_enabled') && !sr_coupon_usage_enabled($pdo)) {
+        return [];
+    }
 
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -629,6 +632,9 @@ function sr_quiz_reward_coupon_definition_is_available(PDO $pdo, int $definition
 
     require_once SR_ROOT . '/modules/coupon/helpers.php';
     if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
+        return false;
+    }
+    if (function_exists('sr_coupon_usage_enabled') && !sr_coupon_usage_enabled($pdo)) {
         return false;
     }
 

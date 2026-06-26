@@ -3,6 +3,7 @@
 $notificationCases = isset($notificationCases) && is_array($notificationCases) ? $notificationCases : sr_coupon_notification_cases();
 $notificationCaseSettings = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 $notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
+$usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -10,9 +11,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/settings')); ?>" class="admin-form ui-form-theme">
+    <section class="card">
+        <h2>기본 사용</h2>
+        <?php echo sr_csrf_field(); ?>
+        <div class="form-row">
+            <label class="form-label" for="coupon_usage_enabled">쿠폰·이용권 사용 여부</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('coupon_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
+                <p class="form-help">사용하지 않으면 쿠폰존 노출, 직접 발급/보상 지급, 사용처 차감, 회원 요약에서 제외됩니다.</p>
+            </div>
+        </div>
+    </section>
+
     <section class="card admin-coupon-notification-settings">
         <h2>회원 알림</h2>
-        <?php echo sr_csrf_field(); ?>
         <?php foreach ($notificationCases as $caseKey => $case): ?>
             <?php
             $caseKey = (string) $caseKey;

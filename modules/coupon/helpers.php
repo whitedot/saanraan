@@ -56,6 +56,7 @@ function sr_coupon_definition_allows_redeem(string $status): bool
 function sr_coupon_default_settings(): array
 {
     return [
+        'usage_enabled' => true,
         'notification_cases' => sr_coupon_default_notification_case_settings(),
         'disabled_reclaim_notifications_enabled' => true,
         'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
@@ -261,6 +262,7 @@ function sr_coupon_settings(PDO $pdo): array
 {
     $storedSettings = sr_module_settings($pdo, 'coupon');
     $settings = array_merge(sr_coupon_default_settings(), $storedSettings);
+    $settings['usage_enabled'] = sr_truthy($settings['usage_enabled'] ?? true);
     $notificationCases = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     if (array_key_exists('disabled_reclaim_notifications_enabled', $storedSettings)) {
         $notificationCases['definition_disabled']['enabled'] = sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false);
@@ -314,6 +316,9 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
         $notificationCasesJson = json_encode(sr_coupon_default_notification_case_settings(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $notificationCasesJson = is_string($notificationCasesJson) ? $notificationCasesJson : '{}';
     }
+    $usageEnabled = array_key_exists('usage_enabled', $settings)
+        ? sr_truthy($settings['usage_enabled'])
+        : sr_coupon_usage_enabled($pdo);
 
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -327,6 +332,7 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ([
+        ['usage_enabled', $usageEnabled ? '1' : '0', 'bool'],
         ['notification_cases', $notificationCasesJson, 'json'],
         ['disabled_reclaim_notifications_enabled', $notificationsEnabled ? '1' : '0', 'bool'],
         ['disabled_reclaim_notification_event_key', $eventKey, 'string'],
@@ -343,6 +349,17 @@ function sr_coupon_save_settings(PDO $pdo, array $settings): void
     }
 
     sr_clear_module_settings_cache('coupon');
+}
+
+function sr_coupon_usage_enabled(PDO $pdo): bool
+{
+    try {
+        $settings = sr_coupon_settings($pdo);
+    } catch (PDOException) {
+        return true;
+    }
+
+    return !empty($settings['usage_enabled']);
 }
 
 function sr_coupon_issue_statuses(): array
@@ -2316,6 +2333,10 @@ function sr_coupon_notify_definition_disabled_unused_issue_reclaims(PDO $pdo, ar
 
 function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId, string $reason = '', ?int $issuedByAccountId = null, ?string $expiresAt = null, array $claimContext = []): int
 {
+    if (!sr_coupon_usage_enabled($pdo)) {
+        throw new RuntimeException('쿠폰·이용권을 사용하지 않도록 설정되어 있습니다.');
+    }
+
     if ($definitionId <= 0 || $accountId <= 0) {
         throw new InvalidArgumentException('쿠폰 종류와 지급할 회원을 선택해 주세요.');
     }
@@ -2373,7 +2394,7 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
 
 function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $limit = 50): array
 {
-    if (!sr_coupon_claim_tables_available($pdo)) {
+    if (!sr_coupon_usage_enabled($pdo) || !sr_coupon_claim_tables_available($pdo)) {
         return [];
     }
 
@@ -2547,6 +2568,10 @@ function sr_coupon_self_expire_claims(PDO $pdo, int $campaignId, int $accountId)
 
 function sr_coupon_claim_free_campaign(PDO $pdo, string $campaignKey, int $accountId, string $intentToken, string $claimSource = 'coupon_zone', array $sourceContext = []): array
 {
+    if (!sr_coupon_usage_enabled($pdo)) {
+        throw new InvalidArgumentException('쿠폰·이용권을 사용하지 않도록 설정되어 있습니다.');
+    }
+
     if ($accountId <= 0) {
         throw new InvalidArgumentException('로그인이 필요한 쿠폰입니다.');
     }
@@ -2714,6 +2739,10 @@ function sr_coupon_asset_transaction(PDO $pdo, string $assetModule, array $data)
 
 function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey, int $accountId, string $intentToken, array $assetModules, string $claimSource = 'coupon_zone', array $sourceContext = []): array
 {
+    if (!sr_coupon_usage_enabled($pdo)) {
+        throw new InvalidArgumentException('쿠폰·이용권을 사용하지 않도록 설정되어 있습니다.');
+    }
+
     if ($accountId <= 0) {
         throw new InvalidArgumentException('로그인 후 쿠폰을 발급받을 수 있습니다.');
     }
@@ -3049,7 +3078,7 @@ function sr_coupon_redemption_status_label(string $status): string
 
 function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 100): array
 {
-    if ($accountId <= 0) {
+    if ($accountId <= 0 || !sr_coupon_usage_enabled($pdo)) {
         return [];
     }
 
@@ -3080,7 +3109,7 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
 
 function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
 {
-    if ($accountId <= 0 || !sr_coupon_tables_available($pdo)) {
+    if ($accountId <= 0 || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
         return 0;
     }
 
@@ -3741,7 +3770,7 @@ function sr_coupon_revoke_target_access_or_fail(PDO $pdo, string $targetType, in
 function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetType, string $targetId, array $context = []): array
 {
     $dedupeKey = sr_coupon_clean_text((string) ($context['dedupe_key'] ?? ''), 160);
-    if ($accountId <= 0 || $targetType === '' || $dedupeKey === '' || !sr_coupon_tables_available($pdo)) {
+    if ($accountId <= 0 || $targetType === '' || $dedupeKey === '' || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
         return ['allowed' => false, 'processed' => false, 'message' => ''];
     }
 

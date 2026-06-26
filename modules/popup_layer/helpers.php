@@ -448,6 +448,7 @@ function sr_popup_layer_coupon_helpers_available(PDO $pdo): bool
 
     return function_exists('sr_coupon_claim_tables_available')
         && function_exists('sr_coupon_public_claim_campaign')
+        && (!function_exists('sr_coupon_usage_enabled') || sr_coupon_usage_enabled($pdo))
         && sr_coupon_claim_tables_available($pdo);
 }
 

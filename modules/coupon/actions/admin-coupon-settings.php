@@ -21,6 +21,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
+    $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
     $postedCases = $_POST['notification_cases'] ?? [];
     $postedCases = is_array($postedCases) ? $postedCases : [];
     $allowedChannels = array_fill_keys($notificationChannelOptions, true);
@@ -49,6 +50,7 @@ if (sr_request_method() === 'POST') {
 
     $definitionDisabledCase = $caseSettings['definition_disabled'] ?? ['enabled' => true, 'channels' => ['site']];
     $postedSettings = [
+        'usage_enabled' => $usageEnabled,
         'notification_cases' => $caseSettings,
         'disabled_reclaim_notifications_enabled' => !empty($definitionDisabledCase['enabled']),
         'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
@@ -70,6 +72,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Coupon settings updated.',
                 'metadata' => [
+                    'usage_enabled' => !empty($settings['usage_enabled']),
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                     'disabled_reclaim_notifications_enabled' => !empty($settings['disabled_reclaim_notifications_enabled']),
                     'disabled_reclaim_notification_channels' => (array) ($settings['disabled_reclaim_notification_channels'] ?? ['site']),

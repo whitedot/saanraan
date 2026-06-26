@@ -202,12 +202,14 @@ if (
         if (sr_module_enabled($layoutPdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
             require_once SR_ROOT . '/modules/coupon/helpers.php';
             try {
-                $layoutMemberAssetRows[] = [
-                    'label' => '쿠폰·이용권',
-                    'value' => number_format(function_exists('sr_coupon_active_account_issue_count') ? sr_coupon_active_account_issue_count($layoutPdo, $layoutCurrentAccountId) : 0) . '개',
-                    'url' => sr_url('/account/coupons'),
-                    'icon' => 'confirmation_number',
-                ];
+                if (!function_exists('sr_coupon_usage_enabled') || sr_coupon_usage_enabled($layoutPdo)) {
+                    $layoutMemberAssetRows[] = [
+                        'label' => '쿠폰·이용권',
+                        'value' => number_format(function_exists('sr_coupon_active_account_issue_count') ? sr_coupon_active_account_issue_count($layoutPdo, $layoutCurrentAccountId) : 0) . '개',
+                        'url' => sr_url('/account/coupons'),
+                        'icon' => 'confirmation_number',
+                    ];
+                }
             } catch (Throwable) {
                 $layoutMemberAssetRows[] = ['label' => '쿠폰·이용권', 'value' => '0개', 'url' => sr_url('/account/coupons'), 'icon' => 'confirmation_number'];
             }

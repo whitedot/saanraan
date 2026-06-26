@@ -108,6 +108,9 @@ function sr_survey_coupon_definition_is_available(PDO $pdo, int $definitionId): 
     if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
         return false;
     }
+    if (function_exists('sr_coupon_usage_enabled') && !sr_coupon_usage_enabled($pdo)) {
+        return false;
+    }
     $now = sr_now();
     $stmt = $pdo->prepare(
         "SELECT id FROM sr_coupon_definitions
@@ -129,6 +132,9 @@ function sr_survey_coupon_definitions(PDO $pdo): array
     }
     require_once SR_ROOT . '/modules/coupon/helpers.php';
     if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
+        return [];
+    }
+    if (function_exists('sr_coupon_usage_enabled') && !sr_coupon_usage_enabled($pdo)) {
         return [];
     }
     $stmt = $pdo->query("SELECT id, coupon_key, title FROM sr_coupon_definitions WHERE status = 'active' ORDER BY title ASC, id ASC LIMIT 200");
