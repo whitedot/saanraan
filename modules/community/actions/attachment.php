@@ -110,8 +110,9 @@ if (is_array($board)) {
             }
         }
         if (!$skipPaidReadCharge) {
+            $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
             $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
-            $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
+            $couponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
             $couponReadResult = ['allowed' => false, 'processed' => false];
             if (sr_community_asset_policy_requires_confirmation($paidReadChargePolicy) && sr_request_method() !== 'POST') {
                 $paidReadResult = sr_community_run_asset_event(
@@ -161,7 +162,7 @@ if (is_array($board)) {
                         sr_request_method() === 'POST',
                         sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                         true,
-                        sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1'
+                        $assetConfirmedPost
                     );
                 }
             }
@@ -195,8 +196,9 @@ if ($disposition === 'attachment' && is_array($board)) {
         if ((string) ($downloadConfig['charge_policy'] ?? 'once') !== 'once') {
             $downloadCouponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
+        $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
         $downloadCouponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
-        $downloadCouponIssueId = preg_match('/\A[1-9][0-9]*\z/', $downloadCouponIssueIdValue) === 1 ? (int) $downloadCouponIssueIdValue : 0;
+        $downloadCouponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $downloadCouponIssueIdValue) === 1 ? (int) $downloadCouponIssueIdValue : 0;
         $downloadCouponResult = $downloadCouponIssueId > 0
             ? sr_community_try_attachment_download_coupon_access($pdo, (int) $account['id'], $attachment, $downloadConfig, $downloadCouponDedupeKey, $downloadCouponIssueId)
             : ['allowed' => false, 'processed' => false];
@@ -233,7 +235,7 @@ if ($disposition === 'attachment' && is_array($board)) {
                 sr_request_method() === 'POST',
                 sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                 true,
-                sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1'
+                $assetConfirmedPost
             );
         }
         if (empty($downloadResult['allowed'])) {
