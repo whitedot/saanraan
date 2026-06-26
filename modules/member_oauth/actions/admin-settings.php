@@ -60,7 +60,7 @@ if (sr_request_method() === 'POST') {
         $label = trim(sr_post_string($labelKey, 80));
         $clientId = sr_post_string_without_truncation($clientIdKey, 255);
         $secret = sr_post_string_without_truncation($secretKey, 512);
-        $scope = sr_member_oauth_scope_setting_value($_POST[$scopeKey] ?? []);
+        $scope = sr_member_oauth_scope_setting_value_with_required($_POST[$scopeKey] ?? [], $provider);
         $providerForProfileSync = array_merge($provider, ['scope' => $scope]);
         $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input(
             $_POST[$profileSyncKey] ?? [],
@@ -75,12 +75,12 @@ if (sr_request_method() === 'POST') {
         if ($clientId === null || $secret === null || $sortOrder === null) {
             $errors[] = $providerLabel . ' provider 설정 값을 확인해 주세요.';
             $clientId = (string) ($provider['client_id'] ?? '');
-            $scope = sr_member_oauth_scope_setting_value($provider['scope'] ?? ($provider['scopes'] ?? []));
+            $scope = sr_member_oauth_scope_setting_value_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
             $sortOrder = (int) ($provider['sort_order'] ?? 0);
         }
         if (strlen($scope) > 1000) {
             $errors[] = $providerLabel . ' scope 항목은 전체 1000자 이하로 입력해 주세요.';
-            $scope = sr_member_oauth_scope_setting_value($provider['scope'] ?? ($provider['scopes'] ?? []));
+            $scope = sr_member_oauth_scope_setting_value_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
         }
         if ($enabled && $label === '') {
             $errors[] = $providerKey . ' provider 라벨을 입력해 주세요.';

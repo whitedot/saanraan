@@ -9,6 +9,7 @@ $memberOauthProfileSettingsUrl = sr_url('/admin/member-settings#member-settings-
 $memberOauthCanEditProfileSettings = is_array($account ?? null)
     && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/member-settings', 'edit');
 $memberOauthExternalProviders = [];
+$memberOauthClaimPathOptionsByProvider = [];
 foreach ($providers as $provider) {
     if (!empty($provider['mock'])) {
         continue;
@@ -18,6 +19,7 @@ foreach ($providers as $provider) {
         continue;
     }
     $memberOauthExternalProviders[] = $provider;
+    $memberOauthClaimPathOptionsByProvider[$providerKey] = sr_member_oauth_claim_path_options($provider);
 }
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -115,10 +117,12 @@ if ($memberOauthExternalProviders === []) {
         $scopeKey = sr_member_oauth_provider_setting_key($providerKey, 'scope');
         $profileSyncKey = sr_member_oauth_provider_setting_key($providerKey, 'profile_sync_json');
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
-        $providerStatus = sr_member_oauth_provider_admin_status($provider, $callbackUrl);
         $providerEnabled = !empty($provider['enabled']);
         $providerSecretExists = sr_member_oauth_provider_value($provider, 'client_secret') !== '';
-        $scopeItems = sr_member_oauth_scope_items($provider['scope'] ?? ($provider['scopes'] ?? []));
+        $requiredScopeItems = sr_member_oauth_required_scope_items($provider);
+        $requiredScopeItemMap = array_fill_keys($requiredScopeItems, true);
+        $scopeItems = sr_member_oauth_scope_items_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
+        $claimPathOptions = sr_member_oauth_claim_path_options($provider);
         $profileSyncRules = sr_member_oauth_profile_sync_rules($provider);
         ?>
         <section id="<?php echo sr_e('member-oauth-section-provider-' . str_replace('_', '-', $providerKey)); ?>" class="card" data-admin-section-anchor>
@@ -128,20 +132,6 @@ if ($memberOauthExternalProviders === []) {
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-switch form-switch-light"<?php echo $providerEnabled ? ' checked' : ''; ?> data-oauth-provider-toggle="<?php echo sr_e($providerKey); ?>">
                     <span class="sr-only"><?php echo sr_e($providerLabel . ' 사용'); ?></span>
                 </label>
-            </div>
-            <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('노출 진단'); ?></span>
-                <div class="form-field">
-                    <ul class="form-help">
-                        <?php foreach ($providerStatus['items'] as $statusItem) { ?>
-                            <li>
-                                <?php echo sr_e((string) $statusItem['label']); ?>:
-                                <?php echo sr_e(!empty($statusItem['ok']) ? '정상' : '필요'); ?>
-                                - <?php echo sr_e((string) $statusItem['message']); ?>
-                            </li>
-                        <?php } ?>
-                    </ul>
-                </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
                 <span class="form-label"><?php echo sr_e('Callback URL'); ?></span>
@@ -173,8 +163,8 @@ if ($memberOauthExternalProviders === []) {
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
-                    <p class="admin-form-static member-oauth-secret-status">
-                        <span class="badge <?php echo $providerSecretExists ? 'badge-soft-success' : 'badge-soft-secondary'; ?>"><?php echo sr_e($providerSecretExists ? '저장됨' : '미입력'); ?></span>
+                    <p class="admin-form-static member-oauth-secret-status<?php echo $providerSecretExists ? '' : ' is-danger'; ?>">
+                        <span class="badge <?php echo $providerSecretExists ? 'badge-soft-success' : 'badge-soft-danger'; ?>"><?php echo sr_e($providerSecretExists ? '저장됨' : '미입력'); ?></span>
                         <span><?php echo sr_e($providerSecretExists ? '기존 secret이 저장되어 있습니다.' : '저장된 secret이 없습니다.'); ?></span>
                     </p>
                     <p class="form-help">비워 두면 기존 secret을 유지합니다. 저장 후 화면에는 원문을 표시하지 않습니다.</p>
@@ -183,11 +173,12 @@ if ($memberOauthExternalProviders === []) {
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
                 <span class="form-label"><?php echo sr_e('Scope'); ?></span>
                 <div class="form-field">
-                    <div data-oauth-scope-list="<?php echo sr_e($providerKey); ?>" data-oauth-scope-name="<?php echo sr_e($scopeKey); ?>">
+                    <div data-oauth-scope-list="<?php echo sr_e($providerKey); ?>" data-oauth-scope-name="<?php echo sr_e($scopeKey); ?>" data-oauth-required-scopes="<?php echo sr_e(implode("\n", $requiredScopeItems)); ?>">
                         <?php foreach ($scopeItems as $scopeIndex => $scopeItem) { ?>
-                            <div class="member-oauth-repeat-row" data-oauth-scope-row>
-                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input" aria-label="<?php echo sr_e('Scope 항목'); ?>">
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e('Scope 항목 삭제'); ?>" aria-label="<?php echo sr_e('Scope 항목 삭제'); ?>">
+                            <?php $scopeRequired = isset($requiredScopeItemMap[$scopeItem]); ?>
+                            <div class="member-oauth-repeat-row" data-oauth-scope-row<?php echo $scopeRequired ? ' data-oauth-required-scope-row' : ''; ?>>
+                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input" aria-label="<?php echo sr_e('Scope 항목'); ?>"<?php echo $scopeRequired ? ' readonly' : ''; ?>>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e($scopeRequired ? '기본 Scope는 삭제할 수 없습니다.' : 'Scope 항목 삭제'); ?>" aria-label="<?php echo sr_e($scopeRequired ? '기본 Scope는 삭제할 수 없습니다.' : 'Scope 항목 삭제'); ?>"<?php echo $scopeRequired ? ' disabled aria-disabled="true"' : ''; ?>>
                                     <?php echo sr_material_icon_html('delete'); ?>
                                 </button>
                             </div>
@@ -199,7 +190,7 @@ if ($memberOauthExternalProviders === []) {
                             <span><?php echo sr_e('Scope 추가'); ?></span>
                         </button>
                     </div>
-                    <p class="form-help">비워 두면 scope 파라미터를 보내지 않습니다. 제공자별 구분자는 저장된 항목을 기준으로 자동 적용됩니다.</p>
+                    <p class="form-help">기본 scope는 제공자 계약에 필요한 항목이라 삭제할 수 없습니다. 추가 scope만 운영자가 더하거나 제거할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
@@ -210,7 +201,7 @@ if ($memberOauthExternalProviders === []) {
                             <p><?php echo sr_e('추가 claim을 저장할 선택 프로필 항목이 아직 없습니다.'); ?></p>
                             <?php if ($memberOauthCanEditProfileSettings) { ?>
                                 <div class="form-actions">
-                                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>">
+                                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>" target="_blank" rel="noopener noreferrer">
                                         <?php echo sr_material_icon_html('tune'); ?>
                                         <span><?php echo sr_e('선택 프로필 항목 관리'); ?></span>
                                     </a>
@@ -239,7 +230,17 @@ if ($memberOauthExternalProviders === []) {
                                         <option value="<?php echo sr_e($syncScopeItem); ?>"<?php echo (string) ($profileSyncRule['scope'] ?? '') === $syncScopeItem ? ' selected' : ''; ?>><?php echo sr_e($syncScopeItem); ?></option>
                                     <?php } ?>
                                 </select>
-                                <input type="text" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][claim]" maxlength="120" value="<?php echo sr_e((string) ($profileSyncRule['claim'] ?? '')); ?>" class="form-input" aria-label="<?php echo sr_e('Claim path'); ?>">
+                                <?php $profileSyncClaim = (string) ($profileSyncRule['claim'] ?? ''); ?>
+                                <?php $profileSyncCustomClaim = $profileSyncClaim !== '' && !in_array($profileSyncClaim, $claimPathOptions, true); ?>
+                                <select class="form-select" data-oauth-profile-sync-claim-select aria-label="<?php echo sr_e('Claim path 선택'); ?>">
+                                    <option value=""><?php echo sr_e('Claim 선택'); ?></option>
+                                    <?php foreach ($claimPathOptions as $claimPathOption) { ?>
+                                        <option value="<?php echo sr_e($claimPathOption); ?>"<?php echo $profileSyncClaim === $claimPathOption ? ' selected' : ''; ?>><?php echo sr_e($claimPathOption); ?></option>
+                                    <?php } ?>
+                                    <option value="__custom__"<?php echo $profileSyncCustomClaim ? ' selected' : ''; ?>><?php echo sr_e('직접 입력'); ?></option>
+                                </select>
+                                <input type="hidden" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][claim]" value="<?php echo sr_e($profileSyncClaim); ?>" data-oauth-profile-sync-claim-value>
+                                <input type="text" maxlength="120" value="<?php echo sr_e($profileSyncCustomClaim ? $profileSyncClaim : ''); ?>" class="form-input" aria-label="<?php echo sr_e('Claim path 직접 입력'); ?>" data-oauth-profile-sync-claim-custom<?php echo $profileSyncCustomClaim ? '' : ' hidden'; ?>>
                                 <?php if ($profileSyncLocked) { ?>
                                     <span class="btn btn-sm btn-icon btn-solid-light member-oauth-repeat-locked" aria-label="<?php echo sr_e('필수 동기화 항목'); ?>" title="<?php echo sr_e('필수 동기화 항목'); ?>" aria-disabled="true">
                                         <?php echo sr_material_icon_html('lock'); ?>
@@ -258,7 +259,7 @@ if ($memberOauthExternalProviders === []) {
                             <span><?php echo sr_e('동기화 항목 추가'); ?></span>
                         </button>
                         <?php if ($memberOauthCanEditProfileSettings) { ?>
-                            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>">
+                            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo sr_material_icon_html('tune'); ?>
                                 <span><?php echo sr_e('선택 프로필 항목 관리'); ?></span>
                             </a>
@@ -321,6 +322,7 @@ if ($memberOauthExternalProviders === []) {
     </div>
 </form>
 <script type="application/json" data-oauth-profile-sync-targets><?php echo sr_js_json_encode($memberOauthProfileSyncTargets); ?></script>
+<script type="application/json" data-oauth-profile-sync-claims><?php echo sr_js_json_encode($memberOauthClaimPathOptionsByProvider); ?></script>
 <script>
 function srMemberOauthCreateButton(icon, label, action) {
     var button = document.createElement('button');
@@ -338,7 +340,7 @@ function srMemberOauthRenumberProfileSync(list) {
         var target = row.querySelector('[data-oauth-profile-sync-target-select]');
         var targetHidden = row.querySelector('[data-oauth-profile-sync-target-hidden]');
         var scope = row.querySelector('[data-oauth-profile-sync-scope-select]');
-        var claim = row.querySelector('input');
+        var claim = row.querySelector('[data-oauth-profile-sync-claim-value]');
         if (target) {
             target.name = baseName + '[' + index + '][target]';
         }
@@ -352,6 +354,72 @@ function srMemberOauthRenumberProfileSync(list) {
             claim.name = baseName + '[' + index + '][claim]';
         }
     });
+}
+function srMemberOauthClaimOptions(providerKey) {
+    var script = document.querySelector('[data-oauth-profile-sync-claims]');
+    var map = {};
+    try {
+        map = script ? JSON.parse(script.textContent || '{}') : {};
+    } catch (error) {
+        map = {};
+    }
+    return Array.isArray(map[providerKey]) ? map[providerKey] : [];
+}
+function srMemberOauthSyncClaimControls(row) {
+    var select = row ? row.querySelector('[data-oauth-profile-sync-claim-select]') : null;
+    var hidden = row ? row.querySelector('[data-oauth-profile-sync-claim-value]') : null;
+    var custom = row ? row.querySelector('[data-oauth-profile-sync-claim-custom]') : null;
+    if (!select || !hidden || !custom) {
+        return;
+    }
+    if (select.value === '__custom__') {
+        custom.hidden = false;
+        hidden.value = String(custom.value || '').trim();
+    } else {
+        custom.hidden = true;
+        hidden.value = select.value;
+    }
+}
+function srMemberOauthCreateClaimControls(providerKey) {
+    var fragment = document.createDocumentFragment();
+    var select = document.createElement('select');
+    select.className = 'form-select';
+    select.setAttribute('data-oauth-profile-sync-claim-select', '');
+    select.setAttribute('aria-label', 'Claim path 선택');
+    var empty = document.createElement('option');
+    empty.value = '';
+    empty.textContent = 'Claim 선택';
+    select.appendChild(empty);
+    srMemberOauthClaimOptions(providerKey).forEach(function (claimPath) {
+        var option = document.createElement('option');
+        option.value = claimPath;
+        option.textContent = claimPath;
+        select.appendChild(option);
+    });
+    var customOption = document.createElement('option');
+    customOption.value = '__custom__';
+    customOption.textContent = '직접 입력';
+    select.appendChild(customOption);
+    var hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.setAttribute('data-oauth-profile-sync-claim-value', '');
+    var custom = document.createElement('input');
+    custom.type = 'text';
+    custom.maxLength = 120;
+    custom.className = 'form-input';
+    custom.hidden = true;
+    custom.setAttribute('aria-label', 'Claim path 직접 입력');
+    custom.setAttribute('data-oauth-profile-sync-claim-custom', '');
+    fragment.appendChild(select);
+    fragment.appendChild(hidden);
+    fragment.appendChild(custom);
+    select.addEventListener('change', function () {
+        srMemberOauthSyncClaimControls(select.closest('[data-oauth-profile-sync-row]'));
+    });
+    custom.addEventListener('input', function () {
+        srMemberOauthSyncClaimControls(custom.closest('[data-oauth-profile-sync-row]'));
+    });
+    return fragment;
 }
 function srMemberOauthScopeItems(providerKey) {
     var list = document.querySelector('[data-oauth-scope-list="' + providerKey + '"]');
@@ -471,20 +539,33 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
         scopeSelect.className = 'form-select';
         scopeSelect.setAttribute('data-oauth-profile-sync-scope-select', '');
         scopeSelect.setAttribute('aria-label', 'Scope');
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.maxLength = 120;
-        input.className = 'form-input';
-        input.setAttribute('aria-label', 'Claim path');
         row.appendChild(select);
         row.appendChild(scopeSelect);
-        row.appendChild(input);
+        row.appendChild(srMemberOauthCreateClaimControls(providerKey));
         row.appendChild(srMemberOauthCreateButton('delete', '동기화 항목 삭제', 'data-oauth-remove-row'));
         list.appendChild(row);
         srMemberOauthRenumberProfileSync(list);
         srMemberOauthSyncScopeSelectOptions(providerKey);
-        input.focus();
+        var claimSelect = row.querySelector('[data-oauth-profile-sync-claim-select]');
+        if (claimSelect) {
+            claimSelect.focus();
+        }
     });
+});
+document.querySelectorAll('[data-oauth-profile-sync-row]').forEach(function (row) {
+    var select = row.querySelector('[data-oauth-profile-sync-claim-select]');
+    var custom = row.querySelector('[data-oauth-profile-sync-claim-custom]');
+    if (select) {
+        select.addEventListener('change', function () {
+            srMemberOauthSyncClaimControls(row);
+        });
+    }
+    if (custom) {
+        custom.addEventListener('input', function () {
+            srMemberOauthSyncClaimControls(row);
+        });
+    }
+    srMemberOauthSyncClaimControls(row);
 });
 document.querySelectorAll('[data-oauth-scope-list]').forEach(function (list) {
     var providerKey = list.getAttribute('data-oauth-scope-list') || '';
@@ -501,6 +582,9 @@ document.addEventListener('click', function (event) {
     var row = button.closest('[data-oauth-scope-row], [data-oauth-profile-sync-row]');
     var list = row ? row.parentElement : null;
     if (!row || !list) {
+        return;
+    }
+    if (row.hasAttribute('data-oauth-required-scope-row')) {
         return;
     }
     row.remove();

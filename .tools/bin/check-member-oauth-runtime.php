@@ -173,6 +173,8 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert((string) ($authQuery['redirect_uri'] ?? '') === 'https://site.example/oauth/callback', 'OAuth authorization URL should include the callback URL.');
     sr_member_oauth_check_assert((string) ($authQuery['scope'] ?? '') === 'openid email', 'OAuth authorization URL should include space-delimited scopes by default.');
     sr_member_oauth_check_assert(sr_member_oauth_scope_setting_value(['openid', 'email', 'openid', 'profile']) === "openid\nemail\nprofile", 'OAuth scope settings should normalize repeated item inputs.');
+    sr_member_oauth_check_assert(sr_member_oauth_required_scope_items(['scopes' => ['openid', 'email']]) === ['openid', 'email'], 'OAuth required scope helper should use provider contract scopes by default.');
+    sr_member_oauth_check_assert(sr_member_oauth_scope_items_with_required(['profile'], ['scopes' => ['openid', 'email']]) === ['openid', 'email', 'profile'], 'OAuth scope settings should preserve provider-required scopes.');
     $emptyScopeAuthUrl = sr_member_oauth_authorization_url([
         'authorization_url' => 'https://example.com/authorize',
         'client_id' => 'client-fixture',
@@ -182,6 +184,7 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(!array_key_exists('scope', $emptyScopeAuthQuery), 'OAuth authorization URL should omit empty scope parameters.');
     sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scope' => "account_email\nprofile_nickname", 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth stored scope item lists should support provider-specific delimiters.');
     sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scopes' => ['account_email', 'profile_nickname'], 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth provider scopes should support provider-specific delimiters.');
+    sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scope' => ['openid', 'email', 'profile'], 'scopes' => ['openid', 'email']]) === 'openid email profile', 'OAuth stored scope settings should drive authorization requests after preserving required scopes.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('true') === true, 'OAuth truthy helper should accept true strings.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('false') === false, 'OAuth truthy helper should reject false strings.');
     $jwt = sr_member_oauth_check_base64url('{"alg":"none"}') . '.' . sr_member_oauth_check_base64url('{"sub":"apple-subject","email":"apple@example.test","email_verified":"true","nonce":"nonce-fixture"}') . '.';
@@ -379,6 +382,10 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_provider_admin_status',
     'sr_member_oauth_scope_items',
     'sr_member_oauth_scope_setting_value',
+    'sr_member_oauth_required_scope_items',
+    'sr_member_oauth_scope_items_with_required',
+    'sr_member_oauth_scope_setting_value_with_required',
+    'sr_member_oauth_claim_path_options',
     'sr_member_oauth_profile_sync_rules_json_from_input',
     'sr_member_oauth_sync_member_profile',
     'sr_member_oauth_claim_value',
@@ -425,7 +432,7 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/admin-settings.php'
     "sr_post_string('intent', 40)",
     'sr_admin_post_int_in_range',
     'sr_post_string_without_truncation($secretKey, 512)',
-    'sr_member_oauth_scope_setting_value',
+    'sr_member_oauth_scope_setting_value_with_required',
     'sr_member_oauth_profile_sync_rules_json_from_input',
     'sr_member_oauth_save_settings',
     'member_oauth.settings.updated',
@@ -438,10 +445,13 @@ sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', 
     'autocomplete="new-password"',
     'data-oauth-required-provider',
     'data-oauth-copy-value',
-    'sr_member_oauth_provider_admin_status',
     'data-oauth-scope-list',
+    'data-oauth-required-scope-row',
     'data-oauth-profile-sync-list',
     'data-oauth-profile-sync-scope-select',
+    'data-oauth-profile-sync-claim-select',
+    'data-oauth-profile-sync-claim-value',
+    'data-oauth-profile-sync-claim-custom',
     'data-oauth-add-scope',
     'data-oauth-add-profile-sync',
     '/admin/member-settings#member-settings-section-profile',
@@ -501,6 +511,9 @@ sr_member_oauth_check_contains('modules/member/views/account.php', [
     '/oauth/start?provider=',
     'flow=link',
     '/account/oauth/unlink',
+    '비밀번호를 설정하거나 다른 소셜 로그인을 연결한 뒤 해제할 수 있습니다.',
+    '$memberAccountHasPassword',
+    '비밀번호 설정',
 ]);
 
 sr_member_oauth_check_installer_options();

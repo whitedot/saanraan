@@ -230,6 +230,33 @@ function sr_member_oauth_scope_setting_value(mixed $value): string
     return implode("\n", sr_member_oauth_scope_items($value));
 }
 
+function sr_member_oauth_required_scope_items(array $provider): array
+{
+    if (array_key_exists('required_scopes', $provider)) {
+        return sr_member_oauth_scope_items($provider['required_scopes']);
+    }
+
+    return sr_member_oauth_scope_items($provider['scopes'] ?? []);
+}
+
+function sr_member_oauth_scope_items_with_required(mixed $value, array $provider): array
+{
+    $items = sr_member_oauth_scope_items($value);
+    $merged = [];
+    foreach (array_merge(sr_member_oauth_required_scope_items($provider), $items) as $item) {
+        if ($item !== '' && !in_array($item, $merged, true)) {
+            $merged[] = $item;
+        }
+    }
+
+    return $merged;
+}
+
+function sr_member_oauth_scope_setting_value_with_required(mixed $value, array $provider): string
+{
+    return implode("\n", sr_member_oauth_scope_items_with_required($value, $provider));
+}
+
 function sr_member_oauth_claim_value(array $data, string $claim): mixed
 {
     $claim = trim($claim);
@@ -252,7 +279,7 @@ function sr_member_oauth_claim_value(array $data, string $claim): mixed
 
 function sr_member_oauth_provider_scopes(array $provider): string
 {
-    $scopes = $provider['scopes'] ?? ($provider['scope'] ?? 'openid email profile');
+    $scopes = $provider['scope'] ?? ($provider['scopes'] ?? 'openid email profile');
     $items = sr_member_oauth_scope_items($scopes);
     if ($items === []) {
         return '';
@@ -281,6 +308,41 @@ function sr_member_oauth_profile_sync_targets(array $extraDefinitions): array
     }
 
     return $targets;
+}
+
+function sr_member_oauth_claim_path_options(array $provider): array
+{
+    $paths = [];
+    foreach ([
+        'subject_claim',
+        'email_claim',
+        'email_verified_claim',
+        'display_name_claim',
+        'fallback_display_name_claim',
+    ] as $key) {
+        $path = sr_member_oauth_provider_value($provider, $key);
+        if ($path !== '' && !in_array($path, $paths, true)) {
+            $paths[] = $path;
+        }
+    }
+
+    foreach (['claim_paths', 'profile_claims'] as $key) {
+        $raw = $provider[$key] ?? [];
+        if (!is_array($raw)) {
+            continue;
+        }
+        foreach ($raw as $rawKey => $rawValue) {
+            $path = is_string($rawKey) && is_array($rawValue)
+                ? (string) ($rawValue['claim'] ?? $rawValue['path'] ?? $rawKey)
+                : (is_scalar($rawValue) ? (string) $rawValue : '');
+            $path = trim($path);
+            if ($path !== '' && preg_match('/\A[a-zA-Z0-9_.:-]+\z/', $path) === 1 && !in_array($path, $paths, true)) {
+                $paths[] = $path;
+            }
+        }
+    }
+
+    return $paths;
 }
 
 function sr_member_oauth_default_profile_sync_rules(array $provider): array
