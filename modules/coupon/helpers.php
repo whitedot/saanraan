@@ -2407,15 +2407,16 @@ function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $lim
          WHERE c.status = 'active'
            AND c.visibility = 'public'
            AND c.exposure_surfaces_json LIKE :surface_like
-           AND (c.starts_at IS NULL OR c.starts_at <= :now_value)
-           AND (c.ends_at IS NULL OR c.ends_at >= :now_value)
+           AND (c.starts_at IS NULL OR c.starts_at <= :starts_now)
+           AND (c.ends_at IS NULL OR c.ends_at >= :ends_now)
            AND d.status = 'active'
          ORDER BY c.id DESC
          LIMIT " . $limit
     );
     $stmt->execute([
         'surface_like' => '%"coupon_zone"%',
-        'now_value' => $now,
+        'starts_now' => $now,
+        'ends_now' => $now,
     ]);
 
     $campaigns = [];
