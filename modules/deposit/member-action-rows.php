@@ -7,6 +7,7 @@ require_once __DIR__ . '/helpers.php';
 return static function (PDO $pdo, int $accountId): array {
     if (
         $accountId <= 0
+        || !sr_deposit_usage_enabled($pdo)
         || !sr_deposit_refund_requests_enabled($pdo)
         || !sr_deposit_account_can_request_refund($pdo, $accountId)
     ) {

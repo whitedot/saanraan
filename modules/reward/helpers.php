@@ -729,6 +729,9 @@ function sr_reward_create_withdrawal_request(PDO $pdo, int $accountId, array $da
     if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
         throw new InvalidArgumentException('Reward withdrawal bank fields are required.');
     }
+    if (!sr_reward_usage_enabled($pdo)) {
+        throw new RuntimeException('Reward usage is disabled.');
+    }
     if (!sr_reward_withdrawal_requests_enabled($pdo)) {
         throw new RuntimeException('Reward withdrawal requests are disabled.');
     }

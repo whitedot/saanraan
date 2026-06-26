@@ -7,6 +7,7 @@ require_once __DIR__ . '/helpers.php';
 return static function (PDO $pdo, int $accountId): array {
     if (
         $accountId <= 0
+        || !sr_reward_usage_enabled($pdo)
         || !sr_reward_withdrawal_requests_enabled($pdo)
         || !sr_reward_account_can_request_withdrawal($pdo, $accountId)
     ) {

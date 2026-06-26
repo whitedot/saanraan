@@ -58,6 +58,8 @@ if (sr_request_method() === 'POST') {
                     $errors[] = '신청 가능 적립금 잔액을 초과했습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal bank fields are required.') {
                     $errors[] = '은행명, 계좌번호, 예금주를 모두 입력하세요.';
+                } elseif ($exception->getMessage() === 'Reward usage is disabled.') {
+                    $errors[] = '현재 적립금을 사용하지 않습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal requests are disabled.') {
                     $errors[] = '현재 적립금 출금 신청을 받지 않습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal account is not in an allowed group.') {

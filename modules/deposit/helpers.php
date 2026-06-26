@@ -517,6 +517,9 @@ function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data)
     if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
         throw new InvalidArgumentException('Deposit refund bank fields are required.');
     }
+    if (!sr_deposit_usage_enabled($pdo)) {
+        throw new RuntimeException('Deposit usage is disabled.');
+    }
     if (!sr_deposit_refund_requests_enabled($pdo)) {
         throw new RuntimeException('Deposit refund requests are disabled.');
     }
