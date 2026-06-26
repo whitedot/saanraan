@@ -118,6 +118,8 @@ if ($memberOauthExternalProviders === []) {
         $profileSyncKey = sr_member_oauth_provider_setting_key($providerKey, 'profile_sync_json');
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
         $providerEnabled = !empty($provider['enabled']);
+        $providerHasStoredSecret = trim((string) ($provider['client_secret'] ?? '')) !== '';
+        $providerSecretRequired = $providerEnabled && !$providerHasStoredSecret;
         $requiredScopeItems = sr_member_oauth_required_scope_items($provider);
         $requiredScopeItemMap = array_fill_keys($requiredScopeItems, true);
         $scopeItems = sr_member_oauth_scope_items_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
@@ -159,9 +161,9 @@ if ($memberOauthExternalProviders === []) {
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?> <span class="sr-required-label"<?php echo $providerSecretRequired ? '' : ' hidden'; ?> data-oauth-required-secret-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
                 <div class="form-field">
-                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>"<?php echo $providerSecretRequired ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="new-password" data-oauth-secret-provider="<?php echo sr_e($providerKey); ?>" data-oauth-has-stored-secret="<?php echo $providerHasStoredSecret ? '1' : '0'; ?>">
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
@@ -517,6 +519,13 @@ document.querySelectorAll('[data-oauth-provider-toggle]').forEach(function (togg
         });
         document.querySelectorAll('[data-oauth-required-for="' + providerKey + '"]').forEach(function (label) {
             label.hidden = !toggle.checked;
+        });
+        document.querySelectorAll('[data-oauth-secret-provider="' + providerKey + '"]').forEach(function (input) {
+            var required = toggle.checked && input.getAttribute('data-oauth-has-stored-secret') !== '1';
+            input.required = required;
+            document.querySelectorAll('[data-oauth-required-secret-for="' + providerKey + '"]').forEach(function (label) {
+                label.hidden = !required;
+            });
         });
     }
     toggle.addEventListener('change', syncRequired);

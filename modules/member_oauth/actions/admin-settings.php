@@ -60,6 +60,7 @@ if (sr_request_method() === 'POST') {
         $label = trim(sr_post_string($labelKey, 80));
         $clientId = sr_post_string_without_truncation($clientIdKey, 255);
         $secret = sr_post_string_without_truncation($secretKey, 512);
+        $hasStoredSecret = trim((string) ($provider['client_secret'] ?? '')) !== '';
         $scope = sr_member_oauth_scope_setting_value_with_required($_POST[$scopeKey] ?? [], $provider);
         $providerForProfileSync = array_merge($provider, ['scope' => $scope]);
         $profileSyncJson = sr_member_oauth_profile_sync_rules_json_from_input(
@@ -87,6 +88,9 @@ if (sr_request_method() === 'POST') {
         }
         if ($enabled && trim((string) $clientId) === '') {
             $errors[] = $providerKey . ' provider client id를 입력해 주세요.';
+        }
+        if ($enabled && !$hasStoredSecret && trim((string) $secret) === '') {
+            $errors[] = $providerKey . ' provider client secret을 입력해 주세요.';
         }
 
         $postedSettings[$enabledKey] = $enabled;
