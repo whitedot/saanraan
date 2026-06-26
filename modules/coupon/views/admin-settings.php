@@ -34,7 +34,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card admin-coupon-notification-settings">
         <div class="card-header">
             <h2 class="card-title">회원 알림</h2>
-            <?php echo sr_admin_switch_html('coupon_notification_bulk_toggle', 'coupon_notification_bulk_toggle', '1', $allNotificationCasesEnabled, $allNotificationCasesEnabled ? '전체비활성' : '전체활성', '', ' data-coupon-notification-bulk-toggle'); ?>
+            <div class="type-small">
+                <?php echo sr_admin_switch_html('coupon_notification_bulk_toggle', 'coupon_notification_bulk_toggle', '1', $allNotificationCasesEnabled, $allNotificationCasesEnabled ? '전체비활성' : '전체활성', '', ' data-coupon-notification-bulk-toggle'); ?>
+            </div>
         </div>
         <p class="form-help">전체 설정 스위치는 아래 알림 항목의 사용 여부를 한 번에 켜거나 끕니다.</p>
         <?php foreach ($notificationCases as $caseKey => $case): ?>
