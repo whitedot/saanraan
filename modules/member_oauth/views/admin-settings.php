@@ -328,6 +328,61 @@ function srMemberOauthCreateButton(icon, label, action) {
     button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + icon + '</span>';
     return button;
 }
+function srMemberOauthProfileSyncUsedTargets(list) {
+    var used = {};
+    if (!list) {
+        return used;
+    }
+    list.querySelectorAll('[data-oauth-profile-sync-row]').forEach(function (row) {
+        var target = row.querySelector('[data-oauth-profile-sync-target-select]');
+        var targetHidden = row.querySelector('[data-oauth-profile-sync-target-hidden]');
+        var value = target ? target.value : (targetHidden ? targetHidden.value : '');
+        if (value) {
+            used[value] = true;
+        }
+    });
+    return used;
+}
+function srMemberOauthAvailableProfileSyncTargets(list, targets) {
+    var used = srMemberOauthProfileSyncUsedTargets(list);
+    var available = {};
+    Object.keys(targets || {}).forEach(function (targetKey) {
+        if (!used[targetKey]) {
+            available[targetKey] = targets[targetKey];
+        }
+    });
+    return available;
+}
+function srMemberOauthSyncProfileTargetOptions(list) {
+    if (!list) {
+        return;
+    }
+    var used = srMemberOauthProfileSyncUsedTargets(list);
+    list.querySelectorAll('[data-oauth-profile-sync-target-select]').forEach(function (select) {
+        Array.prototype.forEach.call(select.options, function (option) {
+            option.disabled = option.value !== select.value && !!used[option.value];
+        });
+    });
+}
+function srMemberOauthSyncAddProfileButtons() {
+    document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (button) {
+        var providerKey = button.getAttribute('data-oauth-add-profile-sync') || '';
+        var list = document.querySelector('[data-oauth-profile-sync-list="' + providerKey + '"]');
+        var targetsScript = document.querySelector('[data-oauth-profile-sync-targets]');
+        var targets = {};
+        try {
+            targets = targetsScript ? JSON.parse(targetsScript.textContent || '{}') : {};
+        } catch (error) {
+            targets = {};
+        }
+        var available = srMemberOauthAvailableProfileSyncTargets(list, targets);
+        var disabled = Object.keys(available).length === 0;
+        srMemberOauthSyncProfileTargetOptions(list);
+        button.disabled = disabled;
+        button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        button.title = disabled ? '추가할 수 있는 동기화 항목이 없습니다.' : '';
+    });
+}
 function srMemberOauthRenumberProfileSync(list) {
     var baseName = list.getAttribute('data-oauth-profile-sync-name') || '';
     list.querySelectorAll('[data-oauth-profile-sync-row]').forEach(function (row, index) {
@@ -517,12 +572,19 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
         } catch (error) {
             targets = {};
         }
+        targets = srMemberOauthAvailableProfileSyncTargets(list, targets);
+        if (Object.keys(targets).length === 0) {
+            srMemberOauthSyncAddProfileButtons();
+            return;
+        }
         var row = document.createElement('div');
         row.className = 'member-oauth-repeat-row member-oauth-sync-row';
         row.setAttribute('data-oauth-profile-sync-row', '');
         var select = document.createElement('select');
         select.className = 'form-select';
+        select.setAttribute('data-oauth-profile-sync-target-select', '');
         select.setAttribute('aria-label', '회원 필드');
+        select.addEventListener('change', srMemberOauthSyncAddProfileButtons);
         Object.keys(targets).forEach(function (targetKey) {
             var option = document.createElement('option');
             option.value = targetKey;
@@ -540,6 +602,7 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
         list.appendChild(row);
         srMemberOauthRenumberProfileSync(list);
         srMemberOauthSyncScopeSelectOptions(providerKey);
+        srMemberOauthSyncAddProfileButtons();
         var claimSelect = row.querySelector('[data-oauth-profile-sync-claim-select]');
         if (claimSelect) {
             claimSelect.focus();
@@ -584,7 +647,12 @@ document.addEventListener('click', function (event) {
     row.remove();
     if (list.hasAttribute('data-oauth-profile-sync-list')) {
         srMemberOauthRenumberProfileSync(list);
+        srMemberOauthSyncAddProfileButtons();
     }
+});
+srMemberOauthSyncAddProfileButtons();
+document.querySelectorAll('[data-oauth-profile-sync-target-select]').forEach(function (select) {
+    select.addEventListener('change', srMemberOauthSyncAddProfileButtons);
 });
 document.querySelectorAll('[data-oauth-copy-value]').forEach(function (button) {
     button.addEventListener('click', function () {
