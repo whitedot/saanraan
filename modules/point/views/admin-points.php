@@ -9,6 +9,16 @@ if ($pointAdminPage === 'transactions') {
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, $pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances');
+if ($pointAdminPage === 'balances') {
+    $adminPageTitleActionsHtml = '<form method="post" action="' . sr_e(sr_url('/admin/points/balances')) . '" class="admin-page-title-action-form" data-point-expire-form data-confirm-message="' . sr_e(sr_t('point::ui.settings.expire_due_confirm')) . '">'
+        . sr_csrf_field()
+        . '<input type="hidden" name="intent" value="expire_due">'
+        . '<input type="hidden" name="expire_confirmed" value="0" data-point-expire-confirmed>'
+        . '<button type="submit" class="btn btn-sm btn-soft-secondary" formnovalidate>'
+        . sr_e(sr_t('point::ui.settings.expire_due'))
+        . '</button>'
+        . '</form>';
+}
 $balanceSort = isset($balanceSort) && is_array($balanceSort) ? $balanceSort : sr_admin_asset_balance_default_sort();
 $transactionSort = isset($transactionSort) && is_array($transactionSort) ? $transactionSort : sr_admin_asset_transaction_default_sort();
 $pointReferenceTypeOptions = [
@@ -469,6 +479,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php foreach ($pointHelp as $pointHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $pointHelpModal['id'], (string) $pointHelpModal['title'], (string) $pointHelpModal['body_html']); ?>
+<?php } ?>
+
+<?php if ($pointAdminPage === 'balances') { ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('[data-point-expire-form]');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', function (event) {
+        var confirmed = form.querySelector('[data-point-expire-confirmed]');
+        var message = form.getAttribute('data-confirm-message') || '';
+        if (!window.confirm(message)) {
+            if (confirmed) {
+                confirmed.value = '0';
+            }
+            event.preventDefault();
+            return;
+        }
+
+        if (confirmed) {
+            confirmed.value = '1';
+        }
+    });
+});
+</script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

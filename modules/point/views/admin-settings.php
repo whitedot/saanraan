@@ -45,45 +45,4 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme" data-point-expire-form data-confirm-message="<?php echo sr_e(sr_t('point::ui.settings.expire_due_confirm')); ?>">
-    <section class="card">
-        <h2><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></h2>
-        <p><?php echo sr_e(sr_t('point::ui.settings.expire_due_help')); ?></p>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="expire_due">
-        <input type="hidden" name="expire_confirmed" value="0" data-point-expire-confirmed>
-        <div class="form-row">
-            <span class="form-label"><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></span>
-            <div class="form-field">
-                <button type="submit" class="btn btn-solid-light" formnovalidate><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></button>
-            </div>
-        </div>
-    </section>
-</form>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var form = document.querySelector('[data-point-expire-form]');
-    if (!form) {
-        return;
-    }
-
-    form.addEventListener('submit', function (event) {
-        var confirmed = form.querySelector('[data-point-expire-confirmed]');
-        var message = form.getAttribute('data-confirm-message') || '';
-        if (!window.confirm(message)) {
-            if (confirmed) {
-                confirmed.value = '0';
-            }
-            event.preventDefault();
-            return;
-        }
-
-        if (confirmed) {
-            confirmed.value = '1';
-        }
-    });
-});
-</script>
-
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
