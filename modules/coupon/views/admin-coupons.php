@@ -172,6 +172,14 @@ $couponEmailWarningHtml = static function (string $eventKey) use ($couponNotific
 
     return '<div class="alert alert-warning admin-coupon-email-warning" role="alert">' . sr_e($message) . '</div>';
 };
+$couponEmailWarningAttribute = static function (string $eventKey) use ($couponNotificationEmailWarnings): string {
+    $message = trim((string) ($couponNotificationEmailWarnings[$eventKey] ?? ''));
+    if ($message === '') {
+        return '';
+    }
+
+    return ' data-coupon-email-warning="' . sr_e($message) . '"';
+};
 $couponTargetSearchEnabled = $couponInitialTargetType !== 'all' && array_key_exists($couponInitialTargetType, $couponSearchableTargetTypes);
 $couponMemberLookupModalId = 'coupon-member-lookup-modal';
 $couponMemberLookupResultsId = 'coupon-member-lookup-results';
@@ -833,14 +841,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="status" value="active">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'active' ? ' disabled' : ''; ?>>사용 중</button>
                                 </form>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>"<?php echo isset($couponNotificationEmailWarnings['issue.definition_disabled']) ? ' data-coupon-email-warning="' . sr_e((string) $couponNotificationEmailWarnings['issue.definition_disabled']) . '"' : ''; ?>>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
                                     <input type="hidden" name="status" value="issue_stopped">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'issue_stopped' ? ' disabled' : ''; ?>>지급 중지</button>
                                 </form>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>"<?php echo $couponEmailWarningAttribute('issue.definition_disabled'); ?>>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
@@ -959,7 +967,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($issueModalId); ?>" class="<?php echo sr_e($issueModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($issueModalId); ?>_title" aria-hidden="<?php echo $issueModalOpen ? 'false' : 'true'; ?>"<?php echo $issueModalOpen ? '' : ' inert'; ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme" data-sr-validate-form<?php echo $couponEmailWarningAttribute('issue.created'); ?>>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="issue_coupon">
                 <input type="hidden" name="coupon_definition_id" value="<?php echo sr_e((string) $definitionId); ?>">
@@ -1442,7 +1450,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <?php if ((string) $issue['status'] === 'active') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>"<?php echo isset($couponNotificationEmailWarnings['issue.status_updated']) ? ' data-coupon-email-warning="' . sr_e((string) $couponNotificationEmailWarnings['issue.status_updated']) . '"' : ''; ?>>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>"<?php echo $couponEmailWarningAttribute('issue.status_updated'); ?>>
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="set_issue_status">
                                         <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issue['id']); ?>">
@@ -1479,7 +1487,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($paidIssueRefundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($paidIssueRefundModalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="modal-content ui-form-theme" data-sr-validate-form<?php echo $couponEmailWarningAttribute('issue.refunded'); ?>>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="refund_paid_issue">
                 <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issueId); ?>">
@@ -1683,7 +1691,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundModalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="modal-content ui-form-theme" data-sr-validate-form<?php echo $couponEmailWarningAttribute('redemption.refunded'); ?>>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="refund_redemption">
                 <input type="hidden" name="redemption_id" value="<?php echo sr_e((string) $redemptionId); ?>">

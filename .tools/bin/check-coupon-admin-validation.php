@@ -175,6 +175,7 @@ if (is_string($view)
 if (is_string($view)
     && (
         strpos($view, '$couponEmailWarningHtml') === false
+        || strpos($view, '$couponEmailWarningAttribute') === false
         || strpos($view, "admin-coupon-email-warning") === false
         || strpos($view, "issue.created") === false
         || strpos($view, "issue.definition_disabled") === false
@@ -185,6 +186,21 @@ if (is_string($view)
     )
 ) {
     $errors[] = 'Coupon admin action surfaces must warn operators when configured email notification channels can send mail.';
+}
+if (is_string($view)) {
+    $issueStoppedStatusPosition = strpos($view, '<input type="hidden" name="status" value="issue_stopped">');
+    $disabledStatusPosition = strpos($view, '<input type="hidden" name="status" value="disabled">');
+    $issueStoppedFormStart = is_int($issueStoppedStatusPosition) ? strrpos(substr($view, 0, $issueStoppedStatusPosition), '<form') : false;
+    $disabledFormStart = is_int($disabledStatusPosition) ? strrpos(substr($view, 0, $disabledStatusPosition), '<form') : false;
+    $issueStoppedFormPrefix = is_int($issueStoppedFormStart) && is_int($issueStoppedStatusPosition) ? substr($view, $issueStoppedFormStart, $issueStoppedStatusPosition - $issueStoppedFormStart) : '';
+    $disabledFormPrefix = is_int($disabledFormStart) && is_int($disabledStatusPosition) ? substr($view, $disabledFormStart, $disabledStatusPosition - $disabledFormStart) : '';
+    if ($issueStoppedFormPrefix === ''
+        || $disabledFormPrefix === ''
+        || strpos($issueStoppedFormPrefix, "couponEmailWarningAttribute('issue.definition_disabled')") !== false
+        || strpos($disabledFormPrefix, "couponEmailWarningAttribute('issue.definition_disabled')") === false
+    ) {
+        $errors[] = 'Coupon definition email warning must apply to full disable, not issue stop.';
+    }
 }
 
 $settingsAction = file_get_contents($root . '/modules/coupon/actions/admin-coupon-settings.php');
