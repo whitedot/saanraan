@@ -184,7 +184,7 @@ if ($memberOauthExternalProviders === []) {
                             <span><?php echo sr_e('Scope 추가'); ?></span>
                         </button>
                     </div>
-                    <p class="form-help">기본 scope는 제공자 계약에 필요한 항목이라 삭제할 수 없습니다. 추가 scope만 운영자가 더하거나 제거할 수 있습니다.</p>
+                    <p class="form-help">기본 scope는 제공자 계약에 필요한 항목이라 삭제할 수 없습니다. 추가 scope는 제공자 콘솔에서 별도 설정이 필요할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
