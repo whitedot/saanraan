@@ -46,6 +46,20 @@ function sr_quiz_reward_grant_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_quiz_reward_table_available(PDO $pdo, string $tableName): bool
+{
+    if (!in_array($tableName, ['sr_quiz_reward_policies', 'sr_quiz_sets'], true)) {
+        return false;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+        return true;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 function sr_quiz_active_reward_policy(PDO $pdo, int $quizId): ?array
 {
     if ($quizId < 1) {
@@ -648,17 +662,24 @@ function sr_quiz_coupon_definition_reference_rows(PDO $pdo, array $target, array
     if ($definitionId < 1) {
         return [];
     }
+    if (!sr_quiz_reward_table_available($pdo, 'sr_quiz_reward_policies') || !sr_quiz_reward_table_available($pdo, 'sr_quiz_sets')) {
+        return [];
+    }
 
-    $stmt = $pdo->prepare(
-        'SELECT rp.id AS reward_policy_id, rp.status AS reward_policy_status, q.id AS quiz_id, q.quiz_key, q.title, q.status AS quiz_status, q.updated_at
-         FROM sr_quiz_reward_policies rp
-         INNER JOIN sr_quiz_sets q ON q.id = rp.quiz_id
-         WHERE rp.reward_provider = \'coupon\'
-           AND rp.reward_code = :definition_id
-           AND q.deleted_at IS NULL
-         ORDER BY q.updated_at DESC, q.id DESC'
-    );
-    $stmt->execute(['definition_id' => (string) $definitionId]);
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT rp.id AS reward_policy_id, rp.status AS reward_policy_status, q.id AS quiz_id, q.quiz_key, q.title, q.status AS quiz_status, q.updated_at
+             FROM sr_quiz_reward_policies rp
+             INNER JOIN sr_quiz_sets q ON q.id = rp.quiz_id
+             WHERE rp.reward_provider = \'coupon\'
+               AND rp.reward_code = :definition_id
+               AND q.deleted_at IS NULL
+             ORDER BY q.updated_at DESC, q.id DESC'
+        );
+        $stmt->execute(['definition_id' => (string) $definitionId]);
+    } catch (Throwable) {
+        return [];
+    }
 
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
@@ -670,10 +691,13 @@ function sr_quiz_coupon_definition_reference_rows(PDO $pdo, array $target, array
             'target_type' => 'coupon_definition',
             'target_id' => (string) $definitionId,
             'title' => (string) ($row['title'] ?? ''),
-            'status' => (string) ($row['quiz_status'] ?? ''),
+            'policy_status' => (string) ($row['quiz_status'] ?? ''),
             'summary' => '퀴즈 보상: ' . (string) ($row['quiz_key'] ?? ''),
             'admin_url' => '/admin/quiz?mode=edit&id=' . rawurlencode((string) (int) ($row['quiz_id'] ?? 0)),
             'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => [
+                'reward_policy_status' => (string) ($row['reward_policy_status'] ?? ''),
+            ],
         ];
     }
 
@@ -687,7 +711,18 @@ function sr_quiz_coupon_definition_reference_health(PDO $pdo, array $target, arr
         return ['status' => 'unknown', 'message' => '퀴즈 참조를 확인할 수 없습니다.'];
     }
 
-    return ['status' => 'ok'];
+    $quizStatus = (string) ($row['policy_status'] ?? '');
+    $metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+    $rewardPolicyStatus = (string) ($metadata['reward_policy_status'] ?? '');
+    if ($quizStatus !== 'active' || $rewardPolicyStatus !== 'active') {
+        return [
+            'status' => 'disabled_target',
+            'policy_status' => $quizStatus,
+            'message' => '퀴즈 또는 보상 정책이 사용 상태가 아닙니다.',
+        ];
+    }
+
+    return ['status' => 'ok', 'policy_status' => $quizStatus];
 }
 
 function sr_quiz_coupon_definition_reference_admin_url(array $row, array $context): string

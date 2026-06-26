@@ -79,6 +79,20 @@ function sr_survey_cover_image_upload_max_bytes(): int
     return 5242880;
 }
 
+function sr_survey_reward_table_available(PDO $pdo, string $tableName): bool
+{
+    if (!in_array($tableName, ['sr_survey_reward_policies', 'sr_survey_forms'], true)) {
+        return false;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+        return true;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 function sr_survey_cover_image_upload_was_provided(mixed $file): bool
 {
     return sr_upload_was_provided($file);
@@ -601,17 +615,24 @@ function sr_survey_coupon_definition_reference_rows(PDO $pdo, array $target, arr
     if ($definitionId < 1) {
         return [];
     }
+    if (!sr_survey_reward_table_available($pdo, 'sr_survey_reward_policies') || !sr_survey_reward_table_available($pdo, 'sr_survey_forms')) {
+        return [];
+    }
 
-    $stmt = $pdo->prepare(
-        'SELECT rp.id AS reward_policy_id, rp.status AS reward_policy_status, s.id AS survey_id, s.survey_key, s.title, s.status AS survey_status, s.updated_at
-         FROM sr_survey_reward_policies rp
-         INNER JOIN sr_survey_forms s ON s.id = rp.survey_id
-         WHERE rp.reward_provider = \'coupon\'
-           AND rp.reward_code = :definition_id
-           AND s.deleted_at IS NULL
-         ORDER BY s.updated_at DESC, s.id DESC'
-    );
-    $stmt->execute(['definition_id' => (string) $definitionId]);
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT rp.id AS reward_policy_id, rp.status AS reward_policy_status, s.id AS survey_id, s.survey_key, s.title, s.status AS survey_status, s.updated_at
+             FROM sr_survey_reward_policies rp
+             INNER JOIN sr_survey_forms s ON s.id = rp.survey_id
+             WHERE rp.reward_provider = \'coupon\'
+               AND rp.reward_code = :definition_id
+               AND s.deleted_at IS NULL
+             ORDER BY s.updated_at DESC, s.id DESC'
+        );
+        $stmt->execute(['definition_id' => (string) $definitionId]);
+    } catch (Throwable) {
+        return [];
+    }
 
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
@@ -623,10 +644,13 @@ function sr_survey_coupon_definition_reference_rows(PDO $pdo, array $target, arr
             'target_type' => 'coupon_definition',
             'target_id' => (string) $definitionId,
             'title' => (string) ($row['title'] ?? ''),
-            'status' => (string) ($row['survey_status'] ?? ''),
+            'policy_status' => (string) ($row['survey_status'] ?? ''),
             'summary' => '설문 보상: ' . (string) ($row['survey_key'] ?? ''),
             'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) (int) ($row['survey_id'] ?? 0)),
             'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => [
+                'reward_policy_status' => (string) ($row['reward_policy_status'] ?? ''),
+            ],
         ];
     }
 
@@ -640,7 +664,18 @@ function sr_survey_coupon_definition_reference_health(PDO $pdo, array $target, a
         return ['status' => 'unknown', 'message' => '설문 참조를 확인할 수 없습니다.'];
     }
 
-    return ['status' => 'ok'];
+    $surveyStatus = (string) ($row['policy_status'] ?? '');
+    $metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+    $rewardPolicyStatus = (string) ($metadata['reward_policy_status'] ?? '');
+    if ($surveyStatus !== 'active' || $rewardPolicyStatus !== 'active') {
+        return [
+            'status' => 'disabled_target',
+            'policy_status' => $surveyStatus,
+            'message' => '설문 또는 보상 정책이 사용 상태가 아닙니다.',
+        ];
+    }
+
+    return ['status' => 'ok', 'policy_status' => $surveyStatus];
 }
 
 function sr_survey_coupon_definition_reference_admin_url(array $row, array $context): string

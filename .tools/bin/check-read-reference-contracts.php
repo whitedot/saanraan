@@ -684,6 +684,54 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
     if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');
     }
+    if (substr_count($contents, "'reference_type' => 'coupon_history'") < 2) {
+        sr_read_reference_check_error('read reference coupon issue and redemption rows must use the declared coupon_history reference_type');
+    }
+    if (strpos($contents, "'reference_type' => 'coupon_issue'") !== false || strpos($contents, "'reference_type' => 'coupon_redemption'") !== false) {
+        sr_read_reference_check_error('read reference coupon rows must not emit undeclared issue/redemption reference_type values');
+    }
+}
+
+function sr_read_reference_check_coupon_reward_reference_sources(string $root): void
+{
+    $checks = [
+        [
+            'path' => $root . '/modules/quiz/helpers/rewards.php',
+            'raw_status' => "'status' => (string) (\$row['quiz_status'] ?? '')",
+            'policy_status' => "'policy_status' => (string) (\$row['quiz_status'] ?? '')",
+            'health_message' => '퀴즈 또는 보상 정책이 사용 상태가 아닙니다.',
+            'table_guard' => "sr_quiz_reward_table_available(\$pdo, 'sr_quiz_reward_policies')",
+            'label' => 'quiz',
+        ],
+        [
+            'path' => $root . '/modules/survey/helpers.php',
+            'raw_status' => "'status' => (string) (\$row['survey_status'] ?? '')",
+            'policy_status' => "'policy_status' => (string) (\$row['survey_status'] ?? '')",
+            'health_message' => '설문 또는 보상 정책이 사용 상태가 아닙니다.',
+            'table_guard' => "sr_survey_reward_table_available(\$pdo, 'sr_survey_reward_policies')",
+            'label' => 'survey',
+        ],
+    ];
+
+    foreach ($checks as $check) {
+        $contents = is_file($check['path']) ? file_get_contents($check['path']) : false;
+        if (!is_string($contents)) {
+            sr_read_reference_check_error('read reference coupon reward helper is missing: ' . $check['path']);
+            continue;
+        }
+        if (strpos($contents, $check['raw_status']) !== false) {
+            sr_read_reference_check_error('read reference coupon reward rows must not put domain status in raw status: ' . $check['label']);
+        }
+        if (strpos($contents, $check['policy_status']) === false) {
+            sr_read_reference_check_error('read reference coupon reward rows must keep domain status in policy_status: ' . $check['label']);
+        }
+        if (strpos($contents, $check['health_message']) === false) {
+            sr_read_reference_check_error('read reference coupon reward health must report disabled domain targets: ' . $check['label']);
+        }
+        if (strpos($contents, $check['table_guard']) === false || strpos($contents, 'catch (Throwable)') === false) {
+            sr_read_reference_check_error('read reference coupon reward rows must tolerate missing reward schemas: ' . $check['label']);
+        }
+    }
 }
 
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
@@ -842,6 +890,7 @@ sr_read_reference_check_normalize_row_target_samples();
 sr_read_reference_check_collect_target_samples();
 sr_read_reference_check_collect_count_guard_source($root);
 sr_read_reference_check_keyed_contract_row_sources($root);
+sr_read_reference_check_coupon_reward_reference_sources($root);
 
 if ($errors !== []) {
     fwrite(STDERR, "read reference contract checks failed:\n");

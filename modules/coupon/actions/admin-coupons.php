@@ -244,7 +244,8 @@ if (sr_request_method() === 'POST') {
                         'coupon_key' => (string) ($selectedDefinition['coupon_key'] ?? ''),
                     ]);
                     if (($referenceResult['errors'] ?? []) !== []) {
-                        $errors[] = '쿠폰 정의 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다.';
+                        $referenceErrors = array_slice(array_map('strval', (array) ($referenceResult['errors'] ?? [])), 0, 2);
+                        $errors[] = '쿠폰 정의 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다: ' . implode(' / ', $referenceErrors);
                         break;
                     }
                     if (($referenceResult['rows'] ?? []) !== []) {
@@ -331,7 +332,8 @@ if (sr_request_method() === 'POST') {
                     'coupon_key' => is_array($definition) ? (string) ($definition['coupon_key'] ?? '') : '',
                 ]);
                 if (($referenceResult['errors'] ?? []) !== []) {
-                    throw new RuntimeException('쿠폰 정의 참조 계약 오류가 있어 상태를 변경할 수 없습니다.');
+                    $referenceErrors = array_slice(array_map('strval', (array) ($referenceResult['errors'] ?? [])), 0, 2);
+                    throw new RuntimeException('쿠폰 정의 참조 계약 오류가 있어 상태를 변경할 수 없습니다: ' . implode(' / ', $referenceErrors));
                 }
                 if (($referenceResult['rows'] ?? []) !== []) {
                     throw new RuntimeException('발급/사용 이력이 있는 쿠폰 정의는 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.');
