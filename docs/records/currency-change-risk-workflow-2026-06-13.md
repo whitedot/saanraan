@@ -3,14 +3,14 @@
 ## 결정
 
 - `site.default_currency`는 계속 일반 사이트 설정 저장 대상에서 제외한다.
-- 설치 초기에 통화를 잘못 선택한 경우를 복구할 수 있도록 owner에게만 관리자 사이트 설정 화면의 `위험! 기본 통화 변경` 목록 섹션을 보여주고, 해당 섹션의 모달로만 기본 통화 변경을 허용한다.
+- 설치 초기에 통화를 잘못 선택한 경우를 복구할 수 있도록 owner에게만 관리자 사이트 설정 화면 sticky submit 영역 좌측의 `통화 변경` 버튼을 보여주고, `/admin/settings/currency` 별도 페이지의 모달로만 기본 통화 변경을 허용한다.
 - 기본 통화 변경은 기존 가격, 거래 로그, 구매력 snapshot을 변환하거나 재해석하지 않는다.
 - 변경 후 영향은 이후 새 가격/정책 row의 기본값과 통화가 빠진 자산 구매력 계약의 fallback 기준에 한정한다.
 
 ## 보호 장치
 
-- `/admin/settings`의 별도 `currency_change` intent로 처리해 일반 설정 저장 form과 분리하고, 화면에서는 목록 섹션의 위험 작업 버튼이 입력 전용 모달 form을 호출한다.
-- 가격/정산 통화 row와 자산 구매력 영향 요약은 모달 안에 숨기지 않고 목록 섹션 본문에 기본 표시한다.
+- `/admin/settings/currency`의 별도 `currency_change` intent로 처리해 일반 설정 저장 form과 분리하고, 화면에서는 별도 페이지의 위험 작업 버튼이 입력 전용 모달 form을 호출한다.
+- 가격/정산 통화 row와 자산 구매력 영향 요약은 모달 안에 숨기지 않고 별도 페이지 본문에 기본 표시한다.
 - `edit` 권한, owner 권한, CSRF, reauth throttle, 현재 관리자 비밀번호, 변경 사유, 현재/대상 통화 확인 문구를 서버에서 다시 검증한다.
 - 변경 직전 가격/정산 통화 row와 자산 구매력 요약을 다시 계산해 감사 로그 metadata에 남긴다.
 - 감사 로그 event는 `site.currency.changed`, message는 `Site default currency changed.`를 사용한다.

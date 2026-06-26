@@ -4,6 +4,8 @@ return [
     'GET /admin' => 'actions/dashboard.php',
     'GET /admin/settings' => 'actions/settings.php',
     'POST /admin/settings' => 'actions/settings.php',
+    'GET /admin/settings/currency' => 'actions/settings-currency.php',
+    'POST /admin/settings/currency' => 'actions/settings-currency.php',
     'GET /admin/icon-image' => 'actions/icon-image.php',
     'POST /admin/color-scheme' => 'actions/color-scheme.php',
     'GET /admin/homepage' => 'actions/homepage.php',
