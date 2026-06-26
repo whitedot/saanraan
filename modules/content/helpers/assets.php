@@ -234,6 +234,92 @@ function sr_content_asset_confirmation_fingerprint(string $accessKind, string $c
     return hash('sha256', implode('|', [$accessKind, $chargePolicy, $assetModuleValue, (string) max(0, $amount), implode(',', $amountParts), $policySnapshotJson]));
 }
 
+function sr_content_entry_access_context(PDO $pdo, array $page, ?array $account = null, string $instanceKey = ''): array
+{
+    $slug = (string) ($page['slug'] ?? '');
+    $path = sr_content_slug_is_valid($slug) ? sr_content_path($slug) : '/content';
+    $context = [
+        'path' => $path,
+        'url' => sr_url($path),
+        'modal_id' => '',
+        'access' => [],
+        'confirmation_required' => false,
+    ];
+
+    if (!is_array($account) || !sr_content_asset_access_required($page)) {
+        return $context;
+    }
+
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return $context;
+    }
+
+    $access = sr_content_charge_view_access($pdo, $page, $accountId, false, '', 0, false);
+    if ((string) ($access['error_key'] ?? '') !== 'asset_confirmation_required') {
+        return $context;
+    }
+
+    $suffix = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $instanceKey);
+    $suffix = is_string($suffix) ? trim($suffix, '_') : '';
+    $modalId = 'content_entry_access_confirmation_' . (string) (int) ($page['id'] ?? 0);
+    if ($suffix !== '') {
+        $modalId .= '_' . $suffix;
+    }
+
+    $context['modal_id'] = $modalId;
+    $context['access'] = $access;
+    $context['confirmation_required'] = true;
+
+    return $context;
+}
+
+function sr_content_entry_link_attributes(array $context, string $class = '', string $ariaLabel = ''): string
+{
+    $attributes = ' href="' . sr_e((string) ($context['url'] ?? '/content')) . '"';
+    if ($class !== '') {
+        $attributes .= ' class="' . sr_e($class) . '"';
+    }
+    if ($ariaLabel !== '') {
+        $attributes .= ' aria-label="' . sr_e($ariaLabel) . '"';
+    }
+
+    $modalId = (string) ($context['modal_id'] ?? '');
+    if (!empty($context['confirmation_required']) && $modalId !== '') {
+        $attributes .= ' aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '"';
+    }
+
+    return $attributes;
+}
+
+function sr_content_entry_access_modal(PDO $pdo, array $page, array $context): string
+{
+    if (empty($context['confirmation_required']) || (string) ($context['modal_id'] ?? '') === '') {
+        return '';
+    }
+
+    $access = is_array($context['access'] ?? null) ? $context['access'] : [];
+    $assetConfirmationAssetLabel = (string) ($access['asset_label'] ?? '');
+    $assetConfirmationAmount = (int) ($access['amount'] ?? 0);
+    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?';
+    $assetConfirmationAction = (string) ($context['path'] ?? sr_content_path((string) ($page['slug'] ?? '')));
+    $assetConfirmationId = 0;
+    $assetConfirmationContentId = 0;
+    $assetConfirmationRequestToken = (string) ($access['confirmation_request_token'] ?? '');
+    $assetConfirmationTitle = '콘텐츠 열람 확인';
+    $assetConfirmationSubmitLabel = sr_t('content::ui.text.ac5b575f');
+    $assetConfirmationCouponIssues = is_array($access['coupon_issues'] ?? null) ? $access['coupon_issues'] : [];
+    $assetConfirmationModalId = (string) $context['modal_id'];
+    $assetConfirmationOpen = false;
+    $assetConfirmationCancelUrl = '';
+    $assetConfirmationCloseOnSubmit = false;
+
+    ob_start();
+    include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
+
+    return (string) ob_get_clean();
+}
+
 function sr_content_mark_asset_confirmation_session(string $accessKind, int $accountId, int $subjectId, string $fingerprint): void
 {
     if ($accountId < 1 || $subjectId < 1 || $fingerprint === '' || !in_array($accessKind, ['view', 'download'], true)) {

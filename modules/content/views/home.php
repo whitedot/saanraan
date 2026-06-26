@@ -14,6 +14,7 @@ $seo = [
 ];
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
+$contentHomeAccount = sr_member_current_account($pdo);
 $contentHomeContents = isset($contentHomeContents) && is_array($contentHomeContents) ? $contentHomeContents : [];
 $contentHomeFeatured = $contentHomeContents[0] ?? null;
 $contentHomeLatestList = array_slice($contentHomeContents, is_array($contentHomeFeatured) ? 1 : 0, 12);
@@ -54,8 +55,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <div class="content-home-studio-shell">
         <?php if (is_array($contentHomeFeatured)) { ?>
             <?php $contentHomeFeaturedSlug = (string) ($contentHomeFeatured['slug'] ?? ''); ?>
+            <?php $contentHomeFeaturedAccess = sr_content_entry_access_context($pdo, $contentHomeFeatured, is_array($contentHomeAccount) ? $contentHomeAccount : null, 'home_featured'); ?>
             <article class="content-home-hero">
-                <a class="content-home-hero-media" href="<?php echo sr_e(sr_url(sr_content_path($contentHomeFeaturedSlug))); ?>" aria-label="<?php echo sr_e((string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?>">
+                <a<?php echo sr_content_entry_link_attributes($contentHomeFeaturedAccess, 'content-home-hero-media', (string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?>>
                     <?php echo sr_content_cover_image_html($contentHomeFeatured, 'content-home-hero-image', (string) ($contentHomeFeatured['title'] ?? '')); ?>
                 </a>
                 <div class="content-home-hero-copy">
@@ -66,11 +68,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php } ?>
                     </p>
                     <p class="content-home-hero-group"><?php echo sr_e($contentHomeGroupText($contentHomeFeatured)); ?></p>
-                    <h1><a href="<?php echo sr_e(sr_url(sr_content_path($contentHomeFeaturedSlug))); ?>"><?php echo sr_e((string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?></a></h1>
+                    <h1><a<?php echo sr_content_entry_link_attributes($contentHomeFeaturedAccess); ?>><?php echo sr_e((string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?></a></h1>
                     <?php if ((string) ($contentHomeFeatured['summary'] ?? '') !== '') { ?>
                         <p class="content-home-hero-summary"><?php echo sr_e((string) $contentHomeFeatured['summary']); ?></p>
                     <?php } ?>
                 </div>
+                <?php echo sr_content_entry_access_modal($pdo, $contentHomeFeatured, $contentHomeFeaturedAccess); ?>
             </article>
         <?php } else { ?>
             <section class="content-home-empty-hero">
@@ -89,9 +92,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php continue; ?>
                     <?php } ?>
                     <?php $contentHomeUrl = sr_url(sr_content_path($contentHomeSlug)); ?>
+                    <?php $contentHomeAccess = sr_content_entry_access_context($pdo, $contentHomeItem, is_array($contentHomeAccount) ? $contentHomeAccount : null, 'home_latest_' . (string) (int) ($contentHomeItem['id'] ?? 0)); ?>
                     <?php $contentHomeExcerpt = $contentHomeExcerptText($contentHomeItem); ?>
                     <article class="content-home-latest-item card">
-                        <a class="content-home-latest-media" href="<?php echo sr_e($contentHomeUrl); ?>" aria-label="<?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>">
+                        <a<?php echo sr_content_entry_link_attributes($contentHomeAccess, 'content-home-latest-media', (string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>>
                             <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image card-img-top', (string) ($contentHomeItem['title'] ?? '')); ?>
                         </a>
                         <div class="content-home-latest-copy card-body">
@@ -99,7 +103,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <span><?php echo sr_e($contentPublisherName); ?></span>
                             </p>
                             <h2>
-                                <a href="<?php echo sr_e($contentHomeUrl); ?>">
+                                <a<?php echo sr_content_entry_link_attributes($contentHomeAccess); ?>>
                                     <span><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></span>
                                 </a>
                             </h2>
@@ -113,6 +117,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <?php } ?>
                             </div>
                         </div>
+                        <?php echo sr_content_entry_access_modal($pdo, $contentHomeItem, $contentHomeAccess); ?>
                     </article>
                 <?php } ?>
             <?php } ?>

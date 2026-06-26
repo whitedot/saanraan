@@ -107,6 +107,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     $assetConfirmationSubmitLabel = sr_t('content::ui.text.ac5b575f');
                     $assetConfirmationCouponIssues = is_array($pageAccess['coupon_issues'] ?? null) ? $pageAccess['coupon_issues'] : [];
                     $assetConfirmationModalId = 'content_asset_access_confirmation_modal';
+                    $assetConfirmationCloseOnSubmit = false;
                     include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
                     ?>
                 <?php } else { ?>
@@ -204,17 +205,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     }
                     ?>
                     <?php if (is_array($contentSeriesPreviousItem) || is_array($contentSeriesNextItem)) { ?>
+                        <?php
+                        $contentSeriesPreviousAccess = is_array($contentSeriesPreviousItem) ? sr_content_entry_access_context($pdo, $contentSeriesPreviousItem, is_array($account ?? null) ? $account : null, 'series_previous_' . (string) (int) ($contentSeriesPreviousItem['content_id'] ?? 0)) : [];
+                        $contentSeriesNextAccess = is_array($contentSeriesNextItem) ? sr_content_entry_access_context($pdo, $contentSeriesNextItem, is_array($account ?? null) ? $account : null, 'series_next_' . (string) (int) ($contentSeriesNextItem['content_id'] ?? 0)) : [];
+                        ?>
                         <p>
                             <?php if (is_array($contentSeriesPreviousItem)) { ?>
-                                <a href="<?php echo sr_e(sr_url(sr_content_path((string) $contentSeriesPreviousItem['slug']))); ?>"><?php echo sr_e('이전 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesPreviousItem['content_title']); ?></a>
+                                <a<?php echo sr_content_entry_link_attributes($contentSeriesPreviousAccess); ?>><?php echo sr_e('이전 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesPreviousItem['content_title']); ?></a>
                             <?php } ?>
                             <?php if (is_array($contentSeriesPreviousItem) && is_array($contentSeriesNextItem)) { ?>
                                 /
                             <?php } ?>
                             <?php if (is_array($contentSeriesNextItem)) { ?>
-                                <a href="<?php echo sr_e(sr_url(sr_content_path((string) $contentSeriesNextItem['slug']))); ?>"><?php echo sr_e('다음 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesNextItem['content_title']); ?></a>
+                                <a<?php echo sr_content_entry_link_attributes($contentSeriesNextAccess); ?>><?php echo sr_e('다음 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesNextItem['content_title']); ?></a>
                             <?php } ?>
                         </p>
+                        <?php if (is_array($contentSeriesPreviousItem)) { ?>
+                            <?php echo sr_content_entry_access_modal($pdo, $contentSeriesPreviousItem, $contentSeriesPreviousAccess); ?>
+                        <?php } ?>
+                        <?php if (is_array($contentSeriesNextItem)) { ?>
+                            <?php echo sr_content_entry_access_modal($pdo, $contentSeriesNextItem, $contentSeriesNextAccess); ?>
+                        <?php } ?>
                     <?php } ?>
                     <ol>
                         <?php foreach ($contentSeriesContext['items'] as $seriesItem) { ?>
@@ -224,9 +235,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['content_title']); ?>
                                     </strong>
                                 <?php } else { ?>
-                                    <a href="<?php echo sr_e(sr_url(sr_content_path((string) $seriesItem['slug']))); ?>">
+                                    <?php $seriesItemAccess = sr_content_entry_access_context($pdo, $seriesItem, is_array($account ?? null) ? $account : null, 'series_item_' . (string) (int) ($seriesItem['content_id'] ?? 0)); ?>
+                                    <a<?php echo sr_content_entry_link_attributes($seriesItemAccess); ?>>
                                         <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['content_title']); ?>
                                     </a>
+                                    <?php echo sr_content_entry_access_modal($pdo, $seriesItem, $seriesItemAccess); ?>
                                 <?php } ?>
                             </li>
                         <?php } ?>
@@ -258,6 +271,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         $assetConfirmationModalId = 'content_file_download_confirmation_' . (string) (int) ($contentFile['id'] ?? 0);
                                         $assetConfirmationOpen = false;
                                         $assetConfirmationCancelUrl = '';
+                                        $assetConfirmationCloseOnSubmit = true;
                                         ?>
                                         <button type="button" class="btn btn-solid-light" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">
                                             <?php echo sr_e((string) $contentFile['title']); ?>

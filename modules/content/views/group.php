@@ -12,6 +12,7 @@ $seo = [
 ];
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
+$contentGroupAccount = sr_member_current_account($pdo);
 $contentGroupLayoutContext = [];
 if (isset($pageGroupLayoutKey) && is_string($pageGroupLayoutKey) && $pageGroupLayoutKey !== '') {
     $contentGroupLayoutContext['layout_key'] = $pageGroupLayoutKey;
@@ -47,6 +48,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         $groupContentDateText = (string) ($groupContent['published_at'] ?? '') !== ''
                             ? (string) $groupContent['published_at']
                             : (string) ($groupContent['updated_at'] ?? '');
+                        $groupContentAccess = sr_content_entry_access_context($pdo, $groupContent, is_array($contentGroupAccount) ? $contentGroupAccount : null, 'group_item_' . (string) (int) ($groupContent['id'] ?? 0));
                         ?>
                         <article class="content-group-item">
                             <div class="content-group-item-main">
@@ -56,14 +58,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <span><?php echo sr_content_time_html($groupContentDateText); ?></span>
                                     <?php } ?>
                                 </p>
-                                <h2><a href="<?php echo sr_e(sr_url(sr_content_path($groupContentSlug))); ?>"><?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?></a></h2>
+                                <h2><a<?php echo sr_content_entry_link_attributes($groupContentAccess); ?>><?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?></a></h2>
                                 <?php if ((string) ($groupContent['summary'] ?? '') !== '') { ?>
                                     <p class="content-group-item-summary"><?php echo sr_e((string) $groupContent['summary']); ?></p>
                                 <?php } ?>
                             </div>
-                            <a class="content-group-item-thumb" href="<?php echo sr_e(sr_url(sr_content_path($groupContentSlug))); ?>" aria-label="<?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?>">
+                            <a<?php echo sr_content_entry_link_attributes($groupContentAccess, 'content-group-item-thumb', (string) ($groupContent['title'] ?? $groupContentSlug)); ?>>
                                 <?php echo sr_content_cover_image_html($groupContent, 'content-group-item-image', (string) ($groupContent['title'] ?? $groupContentSlug)); ?>
                             </a>
+                            <?php echo sr_content_entry_access_modal($pdo, $groupContent, $groupContentAccess); ?>
                         </article>
                     <?php } ?>
                 <?php } ?>
@@ -78,9 +81,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php if (!sr_content_slug_is_valid($pickedSlug)) { ?>
                         <?php continue; ?>
                     <?php } ?>
+                    <?php $pickedContentAccess = sr_content_entry_access_context($pdo, $pickedContent, is_array($contentGroupAccount) ? $contentGroupAccount : null, 'group_pick_' . (string) (int) ($pickedContent['id'] ?? 0)); ?>
                     <article class="content-group-pick">
                         <p><?php echo sr_e('In ' . (string) ($pageGroup['title'] ?? 'Content')); ?></p>
-                        <h3><a href="<?php echo sr_e(sr_url(sr_content_path($pickedSlug))); ?>"><?php echo sr_e((string) ($pickedContent['title'] ?? $pickedSlug)); ?></a></h3>
+                        <h3><a<?php echo sr_content_entry_link_attributes($pickedContentAccess); ?>><?php echo sr_e((string) ($pickedContent['title'] ?? $pickedSlug)); ?></a></h3>
+                        <?php echo sr_content_entry_access_modal($pdo, $pickedContent, $pickedContentAccess); ?>
                     </article>
                 <?php } ?>
             </section>

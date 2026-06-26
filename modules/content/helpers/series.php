@@ -366,7 +366,7 @@ function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = fal
         $where .= " AND si.item_status = 'active' AND c.status = 'published'";
     }
     $stmt = $pdo->prepare(
-        'SELECT si.id, si.series_id, si.content_id, si.active_content_id, si.episode_label, si.item_status, si.sort_order,
+        'SELECT c.*, si.id AS item_id, si.series_id, si.content_id, si.active_content_id, si.episode_label, si.item_status, si.sort_order,
                 c.slug, c.title AS content_title, c.status AS content_status
          FROM sr_content_series_items si
          INNER JOIN sr_content_items c ON c.id = si.content_id
@@ -374,7 +374,9 @@ function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = fal
          ORDER BY si.sort_order ASC, si.id ASC'
     );
     $stmt->execute(['series_id' => $seriesId]);
-    $items = $stmt->fetchAll();
+    $items = array_map(static function (array $row) use ($pdo): array {
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $stmt->fetchAll());
     if (!$publicOnly) {
         return $items;
     }

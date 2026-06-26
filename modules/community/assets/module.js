@@ -338,12 +338,64 @@
     });
   }
 
+  function closeSubmittedAssetConfirmationModal(form) {
+    if (!form || form.getAttribute('data-community-asset-confirmation-submitted') === '1') {
+      return;
+    }
+
+    form.setAttribute('data-community-asset-confirmation-submitted', '1');
+    Array.prototype.slice.call(form.querySelectorAll('button[type="submit"], input[type="submit"]')).forEach(function (submitButton) {
+      submitButton.disabled = true;
+    });
+
+    var overlay = form.closest ? form.closest('.community-asset-confirmation-modal.overlay') : null;
+    if (!overlay) {
+      return;
+    }
+
+    if (overlay.contains(document.activeElement) && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.setAttribute('inert', '');
+    overlay.classList.remove('overlay-open');
+    overlay.classList.remove('open');
+    overlay.classList.add('hidden');
+    overlay.classList.add('pointer-events-none');
+    overlay.classList.add('opacity-0');
+
+    if (overlay.id) {
+      Array.prototype.slice.call(document.querySelectorAll('[data-overlay="#' + overlay.id + '"], [data-overlay="' + overlay.id + '"]')).forEach(function (trigger) {
+        if (trigger.hasAttribute('aria-expanded')) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    if (!document.querySelector('.overlay.overlay-open, .overlay.open')) {
+      document.body.classList.remove('overflow-hidden');
+    }
+  }
+
+  function initAssetConfirmationSubmitClose() {
+    document.addEventListener('submit', function (event) {
+      var form = event.target && event.target.closest ? event.target.closest('[data-community-asset-confirmation-close-on-submit]') : null;
+      if (!form) {
+        return;
+      }
+
+      closeSubmittedAssetConfirmationModal(form);
+    });
+  }
+
   function init() {
     initHomeSidebarMenu();
     initImageLayer();
     initToasts();
     initCopyUrlButtons();
     initScrollTargetButtons();
+    initAssetConfirmationSubmitClose();
   }
 
   if (document.readyState === 'loading') {

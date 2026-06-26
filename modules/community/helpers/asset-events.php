@@ -747,7 +747,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
             'message' => sr_community_asset_confirmation_required_message(),
         ];
-    } elseif ($confirmationRequired && $process && (!$confirmedPost || !sr_community_asset_confirmation_request_token_valid($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint, $requestToken))) {
+    } elseif ($confirmationRequired && $process && !$confirmedPost) {
         return [
             'allowed' => false,
             'processed' => false,

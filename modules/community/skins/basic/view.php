@@ -207,6 +207,7 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                 $assetConfirmationSubmitLabel = sr_t('community::ui.text.ac5b575f');
                 $assetConfirmationCouponIssues = is_array($paidReadConfirmationCouponIssues ?? null) ? $paidReadConfirmationCouponIssues : [];
                 $assetConfirmationModalId = 'community_paid_read_confirmation_modal';
+                $assetConfirmationCloseOnSubmit = false;
                 include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';
                 ?>
             </article>
@@ -360,6 +361,7 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                                     $assetConfirmationModalId = 'community_attachment_download_confirmation_' . (string) (int) ($attachment['id'] ?? 0);
                                     $assetConfirmationOpen = false;
                                     $assetConfirmationCancelUrl = '';
+                                    $assetConfirmationCloseOnSubmit = true;
                                     ?>
                                     <button type="button" class="btn btn-solid-light" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">
                                         <?php echo sr_e((string) $attachment['original_name']); ?>

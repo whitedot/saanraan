@@ -12,6 +12,7 @@ $assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null
 $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'community_asset_confirmation_modal');
 $assetConfirmationOpen = !isset($assetConfirmationOpen) || !empty($assetConfirmationOpen);
 $assetConfirmationCancelUrl = (string) ($assetConfirmationCancelUrl ?? '/community');
+$assetConfirmationCloseOnSubmit = !empty($assetConfirmationCloseOnSubmit);
 $assetConfirmationClasses = 'modal-overlay overlay community-asset-confirmation-modal';
 $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' modal-overlay-fade hidden pointer-events-none opacity-0';
 ?>
@@ -34,7 +35,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                     </p>
                 <?php } ?>
                 <?php if ($assetConfirmationCouponIssues !== []) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="community-asset-confirmation-coupons">
+                    <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="community-asset-confirmation-coupons"<?php echo $assetConfirmationCloseOnSubmit ? ' data-community-asset-confirmation-close-on-submit' : ''; ?>>
                         <?php echo sr_csrf_field(); ?>
                         <?php if ($assetConfirmationId > 0) { ?>
                             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
@@ -74,7 +75,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                 <?php } else { ?>
                     <a class="btn btn-solid-light modal-action" href="<?php echo sr_e(sr_url($assetConfirmationCancelUrl)); ?>">취소</a>
                 <?php } ?>
-                <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="modal-action">
+                <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="modal-action"<?php echo $assetConfirmationCloseOnSubmit ? ' data-community-asset-confirmation-close-on-submit' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
                     <?php if ($assetConfirmationId > 0) { ?>
                         <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">

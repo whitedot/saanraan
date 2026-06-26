@@ -971,7 +971,7 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
     sr_content_publish_due_scheduled($pdo);
 
     $stmt = $pdo->prepare(
-        "SELECT id, slug, title, summary, cover_image_url, updated_at, published_at
+        "SELECT *
          FROM sr_content_items
          WHERE content_group_id = :group_id
            AND status = 'published'
@@ -979,7 +979,9 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
     );
     $stmt->execute(['group_id' => $groupId]);
 
-    return $stmt->fetchAll();
+    return array_map(static function (array $row) use ($pdo): array {
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $stmt->fetchAll());
 }
 
 function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
@@ -989,7 +991,7 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
     sr_content_publish_due_scheduled($pdo);
 
     $stmt = $pdo->query(
-        "SELECT p.id, p.slug, p.title, p.summary, p.cover_image_url, p.updated_at, p.published_at,
+        "SELECT p.*,
                 g.group_key AS content_group_key, g.title AS content_group_title
          FROM sr_content_items p
          LEFT JOIN sr_content_groups g ON g.id = p.content_group_id AND g.status = 'enabled'
@@ -998,7 +1000,9 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
          LIMIT " . $limit
     );
 
-    return $stmt->fetchAll();
+    return array_map(static function (array $row) use ($pdo): array {
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $stmt->fetchAll());
 }
 
 function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool
