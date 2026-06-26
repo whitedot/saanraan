@@ -17,6 +17,9 @@ sr_request_bootstrap_error_handlers();
 $method = sr_request_method();
 $path = sr_request_path();
 $isFaviconRequest = in_array($method, ['GET', 'HEAD'], true) && $path === '/favicon.ico';
+$isInstallPreviewRequest = in_array($method, ['GET', 'HEAD'], true)
+    && $path === '/'
+    && sr_get_string('sr_install_preview', 1) === '1';
 
 if ($isFaviconRequest && !sr_is_installed()) {
     header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -43,6 +46,23 @@ try {
 
 sr_request_bootstrap_retention_cleanup($pdo, $method, $path);
 sr_request_bootstrap_notification_runner($pdo, $site, $method, $path);
+
+if ($isInstallPreviewRequest) {
+    require_once SR_ROOT . '/modules/member/helpers.php';
+    require_once SR_ROOT . '/modules/admin/helpers.php';
+
+    $account = sr_member_current_account($pdo);
+    if ($account === null) {
+        sr_redirect('/login?next=' . rawurlencode('/?sr_install_preview=1'));
+    }
+    if (!sr_admin_is_owner($pdo, (int) $account['id'])) {
+        sr_render_error(403, '설치 화면 미리보기는 소유자만 접근할 수 있습니다.');
+    }
+
+    $srInstallPreviewMode = true;
+    include SR_ROOT . '/core/actions/install.php';
+    exit;
+}
 
 if ($isFaviconRequest) {
     $faviconUrl = '';
