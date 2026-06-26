@@ -675,6 +675,24 @@ function sr_survey_coupon_definition_reference_health(PDO $pdo, array $target, a
         ];
     }
 
+    $definitionId = (int) ($target['target_id'] ?? $row['target_id'] ?? 0);
+    if ($definitionId > 0 && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        require_once SR_ROOT . '/modules/coupon/helpers.php';
+        if (function_exists('sr_coupon_definition_by_id') && function_exists('sr_coupon_definition_allows_issue')) {
+            $definition = sr_coupon_definition_by_id($pdo, $definitionId);
+            if (!is_array($definition)) {
+                return ['status' => 'missing_target', 'message' => '보상 쿠폰 정의를 찾을 수 없습니다.'];
+            }
+            if (!sr_coupon_definition_allows_issue((string) ($definition['status'] ?? ''))) {
+                return [
+                    'status' => 'disabled_target',
+                    'policy_status' => $surveyStatus,
+                    'message' => '보상 쿠폰이 지급 가능한 상태가 아닙니다.',
+                ];
+            }
+        }
+    }
+
     return ['status' => 'ok', 'policy_status' => $surveyStatus];
 }
 

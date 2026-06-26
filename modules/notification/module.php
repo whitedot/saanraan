@@ -2,7 +2,7 @@
 
 return [
     'name' => '알림',
-    'version' => '2026.06.010',
+    'version' => '2026.06.011',
     'type' => 'module',
     'description' => '사이트 알림과 이메일 발송 작업을 관리합니다.',
     'admin' => [

@@ -315,6 +315,53 @@ function sr_coupon_claim_runtime_fixture(): void
         sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '모두'), 'stock failure should be user-facing.');
     }
 
+    $runtimeStoppedDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_runtime_stopped');
+    sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_runtime_stopped',
+        'coupon_definition_id' => $runtimeStoppedDefinitionId,
+        'title' => 'Runtime stopped claim',
+        'status' => 'active',
+        'claim_type' => 'free',
+        'total_claim_limit' => 1,
+        'per_account_limit' => 1,
+        'visibility' => 'public',
+        'exposure_surfaces' => ['coupon_zone'],
+        'login_required' => 1,
+    ]);
+    sr_coupon_update_definition_status($pdo, $runtimeStoppedDefinitionId, 'issue_stopped');
+    $publicStoppedCampaigns = sr_coupon_public_claim_campaigns($pdo, 7, 20);
+    $publicStoppedKeys = array_map(static fn (array $campaign): string => (string) ($campaign['campaign_key'] ?? ''), $publicStoppedCampaigns);
+    sr_coupon_claim_runtime_assert(!in_array('claim_runtime_stopped', $publicStoppedKeys, true), 'issue_stopped coupon definitions should not appear in public claim campaign listings.');
+    sr_coupon_claim_runtime_assert(sr_coupon_public_claim_campaign($pdo, 'claim_runtime_stopped', 7) === null, 'issue_stopped coupon definitions should not resolve as public claim campaigns.');
+    $claimLogsBeforeRuntimeStop = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn();
+    try {
+        sr_coupon_claim_free_campaign($pdo, 'claim_runtime_stopped', 7, 'stopped-runtime-intent');
+        sr_coupon_claim_runtime_assert(false, 'issue_stopped coupon definitions should reject existing active campaign claims.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '사용 상태'), 'issue_stopped runtime claim failure should be user-facing.');
+    }
+    sr_coupon_claim_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_claim_logs')->fetchColumn() === $claimLogsBeforeRuntimeStop, 'issue_stopped runtime claim failure should not create a durable claim log.');
+
+    $stoppedDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_issue_stopped');
+    sr_coupon_update_definition_status($pdo, $stoppedDefinitionId, 'issue_stopped');
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_issue_stopped',
+            'coupon_definition_id' => $stoppedDefinitionId,
+            'title' => 'Issue stopped claim',
+            'status' => 'active',
+            'claim_type' => 'free',
+            'total_claim_limit' => 1,
+            'per_account_limit' => 1,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'active claim campaign should reject an issue_stopped coupon definition.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '발급 가능한 쿠폰'), 'issue_stopped campaign failure should be user-facing.');
+    }
+
     $pendingDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_pending');
     $pendingCampaignId = sr_coupon_create_claim_campaign($pdo, [
         'campaign_key' => 'claim_pending',

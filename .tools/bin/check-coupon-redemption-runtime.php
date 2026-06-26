@@ -51,7 +51,78 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         module_id INTEGER NOT NULL,
         setting_key TEXT NOT NULL,
         setting_value TEXT NOT NULL,
-        value_type TEXT NOT NULL DEFAULT 'string'
+        value_type TEXT NOT NULL DEFAULT 'string',
+        created_at TEXT,
+        updated_at TEXT,
+        UNIQUE(module_id, setting_key)
+    )");
+    $pdo->exec("CREATE TABLE sr_member_accounts (
+        id INTEGER PRIMARY KEY,
+        email TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'active'
+    )");
+    $pdo->exec("CREATE TABLE sr_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NULL,
+        audience TEXT NOT NULL DEFAULT 'account',
+        title TEXT NOT NULL,
+        body_text TEXT,
+        body_format TEXT NOT NULL DEFAULT 'plain',
+        link_url TEXT NOT NULL DEFAULT '',
+        source_module_key TEXT NOT NULL DEFAULT '',
+        event_key TEXT NOT NULL DEFAULT '',
+        metadata_json TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        read_at TEXT,
+        created_by_account_id INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_notification_deliveries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        notification_id INTEGER NOT NULL,
+        channel TEXT NOT NULL,
+        recipient TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'queued',
+        provider_message_id TEXT NOT NULL DEFAULT '',
+        error_message TEXT NOT NULL DEFAULT '',
+        attempted_at TEXT,
+        locked_at TEXT,
+        locked_by TEXT NOT NULL DEFAULT '',
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        next_attempt_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_notification_push_endpoints (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        provider_key TEXT NOT NULL,
+        recipient_type TEXT NOT NULL DEFAULT 'personal',
+        endpoint_ciphertext TEXT NOT NULL,
+        endpoint_fingerprint TEXT NOT NULL,
+        recipient_label TEXT NOT NULL DEFAULT '',
+        recipient_masked TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'active',
+        key_version TEXT NOT NULL DEFAULT 'v1',
+        verified_at TEXT,
+        disabled_at TEXT,
+        last_used_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_notification_event_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL,
+        event_key TEXT NOT NULL,
+        title_template TEXT NOT NULL,
+        body_template TEXT,
+        link_template TEXT NOT NULL DEFAULT '',
+        channels_json TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(module_key, event_key)
     )");
     $pdo->exec("CREATE TABLE sr_coupon_definitions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,6 +150,15 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         status TEXT NOT NULL DEFAULT 'active',
         issued_reason TEXT NOT NULL DEFAULT '',
         issued_by_account_id INTEGER,
+        claim_type TEXT NOT NULL DEFAULT 'manual',
+        claim_campaign_id INTEGER,
+        claim_log_id INTEGER,
+        nominal_price_amount INTEGER NOT NULL DEFAULT 0,
+        nominal_price_currency_code TEXT NOT NULL DEFAULT '',
+        asset_reference_module TEXT NOT NULL DEFAULT '',
+        asset_reference_type TEXT NOT NULL DEFAULT '',
+        asset_reference_id TEXT NOT NULL DEFAULT '',
+        claim_snapshot_json TEXT,
         issued_at TEXT NOT NULL,
         expires_at TEXT,
         used_count INTEGER NOT NULL DEFAULT 0,
@@ -296,8 +376,14 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         dedupe_key TEXT NOT NULL UNIQUE,
         created_at TEXT NOT NULL
     )");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('notification', 'enabled')");
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
+    $pdo->exec("INSERT INTO sr_member_accounts (id, email, status) VALUES (7, 'member7@example.test', 'active'), (8, 'member8@example.test', 'active')");
+    $pdo->exec("INSERT INTO sr_notification_event_templates
+        (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
+        VALUES
+        ('coupon', 'issue.refunded', '쿠폰·이용권 발급이 환불되었습니다.', '쿠폰·이용권: {coupon_title}', '/account/coupons', '[\"site\"]', 'active', '2026-06-26 00:00:00', '2026-06-26 00:00:00'),
+        ('coupon', 'issue.definition_disabled', '쿠폰·이용권 사용이 중지되었습니다.', '쿠폰·이용권: {coupon_title}', '/account/coupons', '[\"site\"]', 'active', '2026-06-26 00:00:00', '2026-06-26 00:00:00')");
 }
 
 function sr_coupon_runtime_create_legacy_definition_schema(PDO $pdo): void
@@ -549,6 +635,68 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($percentDiscount['coupon_type'] ?? '') === 'percent_discount', 'percent discount coupon definition should be stored.');
     sr_coupon_runtime_assert((int) ($percentDiscount['discount_percent'] ?? 0) === 15, 'percent discount coupon value should be stored.');
 
+    $statusLifecycleId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'status_lifecycle',
+        'title' => 'Status lifecycle',
+        'coupon_type' => 'access',
+        'target_type' => 'content',
+        'target_id' => '7701',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '2',
+    ]);
+    $statusLifecycleIssueId = sr_coupon_issue_to_account($pdo, $statusLifecycleId, 7, 'status lifecycle fixture');
+    $statusLifecycleUnusedIssueId = sr_coupon_issue_to_account($pdo, $statusLifecycleId, 8, 'status lifecycle unused fixture');
+    sr_coupon_update_definition_status($pdo, $statusLifecycleId, 'issue_stopped');
+    try {
+        sr_coupon_issue_to_account($pdo, $statusLifecycleId, 8, 'stopped issue attempt');
+        sr_coupon_runtime_assert(false, 'issue_stopped coupon definition should reject new issue creation.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '사용 중인 쿠폰'), 'issue_stopped new issue failure should be user-facing.');
+    }
+    $stoppedRedemption = sr_coupon_redeem_for_target($pdo, 7, 'content', '7701', [
+        'dedupe_key' => 'content:view:7701:account:7:intent:stopped',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '7701',
+    ]);
+    sr_coupon_runtime_assert(!empty($stoppedRedemption['allowed']) && !empty($stoppedRedemption['processed']), 'issue_stopped coupon definition should allow existing issued coupons to redeem.');
+    $statusLifecycleIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $statusLifecycleIssueId]);
+    sr_coupon_runtime_assert((string) ($statusLifecycleIssue['status'] ?? '') === 'active' && (int) ($statusLifecycleIssue['used_count'] ?? 0) === 1, 'issue_stopped redemption should preserve remaining active uses.');
+    sr_coupon_update_definition_status($pdo, $statusLifecycleId, 'disabled');
+    $couponModuleId = (int) $pdo->query("SELECT id FROM sr_modules WHERE module_key = 'coupon'")->fetchColumn();
+    $couponNotificationCases = sr_coupon_default_notification_case_settings();
+    $couponNotificationCases['definition_disabled']['channels'] = ['site', 'email'];
+    $couponNotificationCasesJson = json_encode($couponNotificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $couponNotificationCasesJson = is_string($couponNotificationCasesJson) ? $couponNotificationCasesJson : '{}';
+    $pdo->prepare(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, 'notification_cases', :notification_cases, 'json', :created_at, :updated_at),
+            (:module_id, 'disabled_reclaim_notifications_enabled', '1', 'bool', :created_at, :updated_at),
+            (:module_id, 'disabled_reclaim_notification_channels', '[\"site\",\"email\"]', 'json', :created_at, :updated_at)"
+    )->execute([
+        'module_id' => $couponModuleId,
+        'notification_cases' => $couponNotificationCasesJson,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('coupon');
+    $disabledNotificationResult = sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, [$statusLifecycleId], 1);
+    sr_coupon_runtime_assert(empty($disabledNotificationResult['skipped']), 'disabled coupon definition notification should run when notification module is enabled.');
+    sr_coupon_runtime_assert((int) ($disabledNotificationResult['target_issue_count'] ?? -1) === 1, 'disabled coupon definition notification should target only unused active issued coupons.');
+    sr_coupon_runtime_assert((int) ($disabledNotificationResult['notification_count'] ?? -1) === 1, 'disabled coupon definition notification should create one reclaim notification.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 8 AND source_module_key = 'coupon' AND event_key = 'issue.definition_disabled'")->fetchColumn() === 1, 'disabled coupon definition notification should store a coupon account event.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notification_deliveries WHERE channel = 'email' AND recipient = 'member8@example.test'")->fetchColumn() === 1, 'disabled coupon definition notification should queue configured email delivery.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE account_id = 7 AND event_key = 'issue.definition_disabled'")->fetchColumn() === 0, 'disabled coupon definition notification should not notify already used issue holders.');
+    sr_coupon_runtime_assert(in_array($statusLifecycleUnusedIssueId, sr_coupon_unused_active_issue_ids_for_definition($pdo, $statusLifecycleId), true), 'disabled coupon definition notification should not mutate unused issue status.');
+    $disabledRedemption = sr_coupon_redeem_for_target($pdo, 7, 'content', '7701', [
+        'dedupe_key' => 'content:view:7701:account:7:intent:disabled',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '7701',
+    ]);
+    sr_coupon_runtime_assert(empty($disabledRedemption['allowed']) && empty($disabledRedemption['processed']), 'disabled coupon definition should block existing issued coupons from redeeming.');
+
     $pdo->prepare(
         "INSERT INTO sr_coupon_definitions
             (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
@@ -589,7 +737,7 @@ function sr_coupon_runtime_fixture(): void
         'reference_id' => '42',
     ]);
     sr_coupon_runtime_assert(!empty($duplicate['allowed']) && empty($duplicate['processed']) && !empty($duplicate['already_redeemed']), 'same dedupe key should return already_redeemed without new row.');
-    $redemptionCount = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_redemptions')->fetchColumn();
+    $redemptionCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'content:view:42:account:7:intent:abc'")->fetchColumn();
     sr_coupon_runtime_assert($redemptionCount === 1, 'duplicate redemption must not insert another redemption row.');
 
     $second = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [

@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '보유 쿠폰';
+$pageTitle = '보유 쿠폰·이용권';
 $seo = [
     'title' => $pageTitle,
     'canonical' => sr_canonical_url($site, '/account/coupons'),

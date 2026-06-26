@@ -33,6 +33,10 @@
     margin: 0;
 }
 
+.admin-coupon-notification-case-channel-row .filtering-toggle-group {
+    width: fit-content;
+}
+
 .admin-coupon-definition-bulk-row {
     padding-block: calc(var(--spacing) * 2);
 }
@@ -95,6 +99,10 @@
     .admin-coupon-campaign-check-list {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .admin-coupon-notification-case-channel-row .filtering-toggle-group {
+        width: 100%;
     }
 
     .admin-coupon-definition-bulk-row {

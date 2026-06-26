@@ -2,7 +2,7 @@
 
 return [
     'helpers' => 'helpers.php',
-    'label' => '쿠폰',
+    'label' => '쿠폰·이용권',
     'unit_label' => '개',
     'balance_function' => 'sr_coupon_active_account_issue_count',
     'process_function' => 'sr_coupon_process_account_withdrawal',

@@ -158,6 +158,7 @@ VALUES
     ('coupon', 'redemption.refunded', '쿠폰·이용권 사용이 환불되었습니다.', '쿠폰·이용권: {coupon_title}\n사용 횟수: {used_count}/{max_uses_per_issue}회\n상태: {status_label}\n환불 시각: {refunded_at}', '/account/coupons', '["site"]', 'active', NOW(), NOW()),
     ('coupon', 'issue.refunded', '쿠폰·이용권 발급이 환불되었습니다.', '쿠폰·이용권: {coupon_title}\n상태: {status_label}\n환불 시각: {refunded_at}', '/account/coupons', '["site"]', 'active', NOW(), NOW()),
     ('coupon', 'issue.status_updated', '쿠폰·이용권 상태가 변경되었습니다.', '쿠폰·이용권: {coupon_title}\n상태: {status_label}\n발급 시각: {issued_at}\n만료 시각: {expires_at}', '/account/coupons', '["site"]', 'active', NOW(), NOW()),
+    ('coupon', 'issue.definition_disabled', '쿠폰·이용권 사용이 중지되었습니다.', '쿠폰·이용권: {coupon_title}\n운영상 사유로 해당 쿠폰·이용권을 더 이상 사용할 수 없습니다.\n발급 시각: {issued_at}', '/account/coupons', '["site"]', 'active', NOW(), NOW()),
     ('content', 'comment.created', '새 콘텐츠 댓글이 등록되었습니다.', '{member_name}님이 회원님의 콘텐츠에 댓글을 남겼습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('content', 'comment.mention', '콘텐츠 댓글에서 회원님을 언급했습니다.', '{member_name}님이 콘텐츠 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'comment.created', '새 댓글이 등록되었습니다.', '{member_name}님이 회원님의 게시글에 댓글을 남겼습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),

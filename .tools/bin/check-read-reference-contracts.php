@@ -728,6 +728,12 @@ function sr_read_reference_check_coupon_reward_reference_sources(string $root): 
         if (strpos($contents, $check['health_message']) === false) {
             sr_read_reference_check_error('read reference coupon reward health must report disabled domain targets: ' . $check['label']);
         }
+        if (strpos($contents, "require_once SR_ROOT . '/modules/coupon/helpers.php'") === false
+            || strpos($contents, 'sr_coupon_definition_allows_issue') === false
+            || strpos($contents, '보상 쿠폰이 지급 가능한 상태가 아닙니다.') === false
+        ) {
+            sr_read_reference_check_error('read reference coupon reward health must report coupon definitions that cannot issue: ' . $check['label']);
+        }
         if (strpos($contents, $check['table_guard']) === false || strpos($contents, 'catch (Throwable)') === false) {
             sr_read_reference_check_error('read reference coupon reward rows must tolerate missing reward schemas: ' . $check['label']);
         }

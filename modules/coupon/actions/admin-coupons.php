@@ -227,39 +227,11 @@ if (sr_request_method() === 'POST') {
                 }
             }
 
-            $blockedReferenceIds = [];
-            if ($errors === [] && $targetStatus === 'disabled') {
-                foreach ($selectedDefinitions as $selectedDefinition) {
-                    $selectedId = (int) ($selectedDefinition['id'] ?? 0);
-                    if ($selectedId < 1 || (string) ($selectedDefinition['status'] ?? '') !== 'active') {
-                        continue;
-                    }
-                    $referenceResult = sr_read_reference_collect($pdo, 'coupon-references.php', [
-                        'owner_module_key' => 'coupon',
-                        'target_type' => 'coupon_definition',
-                        'target_id' => $selectedId,
-                        'target_key' => (string) ($selectedDefinition['coupon_key'] ?? ''),
-                    ], [
-                        'definition' => $selectedDefinition,
-                        'coupon_key' => (string) ($selectedDefinition['coupon_key'] ?? ''),
-                    ]);
-                    if (($referenceResult['errors'] ?? []) !== []) {
-                        $referenceErrors = array_slice(array_map('strval', (array) ($referenceResult['errors'] ?? [])), 0, 2);
-                        $errors[] = '쿠폰 정의 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다: ' . implode(' / ', $referenceErrors);
-                        break;
-                    }
-                    if (($referenceResult['rows'] ?? []) !== []) {
-                        $blockedReferenceIds[] = $selectedId;
-                    }
-                }
-                if ($errors === [] && $blockedReferenceIds !== []) {
-                    $errors[] = '발급/사용 이력 또는 운영 참조가 있는 쿠폰 종류가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
-                }
-            }
-
             if ($errors === []) {
                 $changedCount = 0;
                 $skippedCount = 0;
+                $beforeStatuses = [];
+                $disabledNotificationDefinitionIds = [];
                 $pdo->beginTransaction();
                 try {
                     $stmt = $pdo->prepare(
@@ -271,6 +243,7 @@ if (sr_request_method() === 'POST') {
                     );
                     $now = sr_now();
                     foreach ($selectedIds as $selectedId) {
+                        $beforeStatuses[(string) $selectedId] = (string) ($selectedDefinitions[$selectedId]['status'] ?? '');
                         $stmt->execute([
                             'status' => $targetStatus,
                             'updated_at' => $now,
@@ -278,6 +251,9 @@ if (sr_request_method() === 'POST') {
                         ]);
                         if ($stmt->rowCount() > 0) {
                             $changedCount++;
+                            if ($targetStatus === 'disabled' && $beforeStatuses[(string) $selectedId] !== 'disabled') {
+                                $disabledNotificationDefinitionIds[] = $selectedId;
+                            }
                         } else {
                             $skippedCount++;
                         }
@@ -289,6 +265,8 @@ if (sr_request_method() === 'POST') {
                     }
                     throw $exception;
                 }
+
+                $disabledNotificationResult = sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, $disabledNotificationDefinitionIds, (int) $account['id']);
 
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -302,14 +280,19 @@ if (sr_request_method() === 'POST') {
                         'operation_key' => $operationKey,
                         'target_status' => $targetStatus,
                         'selected_ids' => $selectedIds,
+                        'before_statuses' => $beforeStatuses,
                         'changed_count' => $changedCount,
                         'skipped_count' => $skippedCount,
+                        'disabled_reclaim_notification' => $disabledNotificationResult,
                     ],
                 ]);
 
                 $notice = '쿠폰 종류 ' . (string) $changedCount . '건의 상태를 변경했습니다.';
                 if ($skippedCount > 0) {
                     $notice .= ' 이미 같은 상태인 ' . (string) $skippedCount . '건은 건너뛰었습니다.';
+                }
+                if (empty($disabledNotificationResult['skipped']) && (int) ($disabledNotificationResult['target_issue_count'] ?? 0) > 0) {
+                    $notice .= ' 사용 전 지급건 ' . (string) (int) $disabledNotificationResult['notification_count'] . '건에 회수 알림을 발송했습니다.';
                 }
                 sr_admin_flash_result(sr_admin_action_result([], $notice));
                 sr_redirect($returnTo);
@@ -320,26 +303,15 @@ if (sr_request_method() === 'POST') {
                 throw new InvalidArgumentException('상태를 변경할 쿠폰 종류를 선택하세요.');
             }
             $status = sr_post_string('status', 30);
-            if ($status !== 'active') {
-                $definition = sr_coupon_definition_by_id($pdo, $definitionId);
-                $referenceResult = sr_read_reference_collect($pdo, 'coupon-references.php', [
-                    'owner_module_key' => 'coupon',
-                    'target_type' => 'coupon_definition',
-                    'target_id' => $definitionId,
-                    'target_key' => is_array($definition) ? (string) ($definition['coupon_key'] ?? '') : '',
-                ], [
-                    'definition' => is_array($definition) ? $definition : [],
-                    'coupon_key' => is_array($definition) ? (string) ($definition['coupon_key'] ?? '') : '',
-                ]);
-                if (($referenceResult['errors'] ?? []) !== []) {
-                    $referenceErrors = array_slice(array_map('strval', (array) ($referenceResult['errors'] ?? [])), 0, 2);
-                    throw new RuntimeException('쿠폰 정의 참조 계약 오류가 있어 상태를 변경할 수 없습니다: ' . implode(' / ', $referenceErrors));
-                }
-                if (($referenceResult['rows'] ?? []) !== []) {
-                    throw new RuntimeException('발급/사용 이력이 있는 쿠폰 정의는 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.');
-                }
+            $definition = sr_coupon_definition_by_id($pdo, $definitionId);
+            if (!is_array($definition)) {
+                throw new InvalidArgumentException('상태를 변경할 쿠폰 종류를 찾을 수 없습니다.');
             }
+            $beforeStatus = is_array($definition) ? (string) ($definition['status'] ?? '') : '';
             sr_coupon_update_definition_status($pdo, $definitionId, $status);
+            $disabledNotificationResult = $status === 'disabled' && $beforeStatus !== 'disabled'
+                ? sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, [$definitionId], (int) $account['id'])
+                : ['target_issue_count' => 0, 'notification_count' => 0, 'skipped' => true];
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -348,9 +320,12 @@ if (sr_request_method() === 'POST') {
                 'target_id' => (string) $definitionId,
                 'result' => 'success',
                 'message' => 'Coupon definition status updated.',
-                'metadata' => ['status' => $status],
+                'metadata' => ['before_status' => $beforeStatus, 'status' => $status, 'disabled_reclaim_notification' => $disabledNotificationResult],
             ]);
             $notice = '쿠폰 종류의 사용 상태를 변경했습니다.';
+            if (empty($disabledNotificationResult['skipped']) && (int) ($disabledNotificationResult['target_issue_count'] ?? 0) > 0) {
+                $notice .= ' 사용 전 지급건 ' . (string) (int) $disabledNotificationResult['notification_count'] . '건에 회수 알림을 발송했습니다.';
+            }
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons');
         } elseif ($intent === 'set_issue_status' && $couponAdminPage === 'issues') {

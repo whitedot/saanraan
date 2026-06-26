@@ -26,6 +26,13 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon issue queries and redemption must transition expired active issues.';
     }
+    if (strpos($helper, "return ['active', 'issue_stopped', 'disabled'];") === false
+        || strpos($helper, 'function sr_coupon_definition_allows_issue(string $status): bool') === false
+        || strpos($helper, 'function sr_coupon_definition_allows_redeem(string $status): bool') === false
+        || strpos($helper, "d.status IN ('active', 'issue_stopped')") === false
+    ) {
+        $errors[] = 'Coupon definition status semantics must distinguish active, issue_stopped, and disabled states.';
+    }
     if (strpos($helper, 'sr_coupon_redemption_pricing_columns_available($pdo)') === false
         || strpos($helper, 'r.amount, r.currency_code, r.asset_unit, r.policy_summary, r.priced_at') === false
     ) {
@@ -56,6 +63,23 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon definition save must validate fixed and percent discount fields server-side without stale schema caching.';
     }
+    if (strpos($helper, 'function sr_coupon_settings(PDO $pdo): array') === false
+        || strpos($helper, 'function sr_coupon_notification_cases(): array') === false
+        || strpos($helper, "'issue_refunded' => [") === false
+        || strpos($helper, "'event_key' => 'issue.refunded'") === false
+        || strpos($helper, "'notification_cases' => sr_coupon_default_notification_case_settings()") === false
+        || strpos($helper, 'function sr_coupon_notification_setting_for_event(array $settings, string $eventKey): ?array') === false
+        || strpos($helper, "'disabled_reclaim_notifications_enabled' => true") === false
+        || strpos($helper, "'disabled_reclaim_notification_event_key' => 'issue.definition_disabled'") === false
+        || strpos($helper, "'disabled_reclaim_notification_channels' => ['site']") === false
+        || strpos($helper, 'function sr_coupon_notification_channel_options(PDO $pdo): array') === false
+        || strpos($helper, 'function sr_coupon_notify_definition_disabled_unused_issue_reclaims(PDO $pdo, array $definitionIds, ?int $createdByAccountId = null): array') === false
+        || strpos($helper, 'sr_coupon_unused_active_issue_ids_for_definition($pdo, $definitionId)') === false
+        || strpos($helper, "'reclaim_reason' => 'coupon_definition_disabled'") === false
+        || strpos($helper, "if (empty(\$caseSetting['enabled']))") === false
+    ) {
+        $errors[] = 'Coupon notification flow must expose configurable notification cases and notify disabled definition holders through those settings.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');
@@ -68,6 +92,16 @@ if (!is_string($action)) {
 }
 if (is_string($action) && strpos($action, "'discount_currency_code' => sr_post_string('discount_currency_code', 3)") !== false) {
     $errors[] = 'Coupon definition form must not expose a standalone discount currency field for fixed discounts.';
+}
+if (is_string($action)
+    && (
+        strpos($action, '$disabledNotificationDefinitionIds') === false
+        || strpos($action, 'sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, $disabledNotificationDefinitionIds') === false
+        || strpos($action, 'sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, [$definitionId]') === false
+        || strpos($action, '사용 전 지급건') === false
+    )
+) {
+    $errors[] = 'Coupon definition disable actions must send reclaim notifications for unused active issued coupons.';
 }
 
 $view = file_get_contents($root . '/modules/coupon/views/admin-coupons.php');
@@ -116,6 +150,55 @@ if (is_string($view)
 ) {
     $errors[] = 'Coupon definition form must expose fixed and percent discount settings with units and conditional validation.';
 }
+if (is_string($view)
+    && (
+        strpos($view, "value=\"issue_stopped\"") === false
+        || strpos($view, '>지급 중지</button>') === false
+        || strpos($view, '>사용 중지</button>') === false
+    )
+) {
+    $errors[] = 'Coupon definition admin status controls must expose issue stop and full disable separately.';
+}
+
+$settingsAction = file_get_contents($root . '/modules/coupon/actions/admin-coupon-settings.php');
+$settingsView = file_get_contents($root . '/modules/coupon/views/admin-settings.php');
+$paths = file_get_contents($root . '/modules/coupon/paths.php');
+$adminMenu = file_get_contents($root . '/modules/coupon/admin-menu.php');
+if (!is_string($settingsAction)
+    || strpos($settingsAction, 'sr_admin_require_permission($pdo') === false
+    || strpos($settingsAction, "\$permissionPath, 'view'") === false
+    || strpos($settingsAction, "\$permissionPath, 'edit'") === false
+    || strpos($settingsAction, '$notificationCases = sr_coupon_notification_cases()') === false
+    || strpos($settingsAction, '$postedCases = $_POST[\'notification_cases\'] ?? []') === false
+    || strpos($settingsAction, '채널을 하나 이상 선택하세요.') === false
+    || strpos($settingsAction, "'notification_cases' => \$caseSettings") === false
+    || strpos($settingsAction, 'sr_coupon_save_settings($pdo, $postedSettings)') === false
+    || strpos($settingsAction, "event_type' => 'coupon.settings.updated'") === false
+) {
+    $errors[] = 'Coupon settings action must validate permissions, save notification case settings, and audit changes.';
+}
+if (!is_string($settingsView)
+    || strpos($settingsView, '$notificationCases') === false
+    || strpos($settingsView, 'notification_cases[') === false
+    || strpos($settingsView, 'form-choice-toggle-input sr-only') === false
+    || strpos($settingsView, 'data-coupon-notification-case') === false
+    || strpos($settingsView, 'data-coupon-notification-channel') === false
+    || strpos($settingsView, 'setCustomValidity') === false
+    || strpos($settingsView, 'disabled_reclaim_notification_event_key') !== false
+    || strpos($settingsView, 'sr_admin_feedback_toasts($notice, $errors)') === false
+) {
+    $errors[] = 'Coupon settings view must expose notification cases with checkbox toggle channel selection, browser validation, and toast feedback.';
+}
+if (!is_string($paths)
+    || strpos($paths, "'GET /admin/coupons/settings' => 'actions/admin-coupon-settings.php'") === false
+    || strpos($paths, "'POST /admin/coupons/settings' => 'actions/admin-coupon-settings.php'") === false
+    || !is_string($adminMenu)
+    || strpos($adminMenu, "'label' => '쿠폰·이용권'") === false
+    || strpos($adminMenu, "'label' => '쿠폰·이용권 관리'") === false
+    || strpos($adminMenu, "'path' => '/admin/coupons/settings'") === false
+) {
+    $errors[] = 'Coupon settings route and admin menu entry must be registered with the restored coupon/pass module label.';
+}
 
 $assetAdjustJs = file_get_contents($root . '/modules/admin/assets/asset-adjust.js');
 if (!is_string($assetAdjustJs)
@@ -152,6 +235,26 @@ if (!is_string($discountUpdate)
     || strpos($discountUpdate, "WHERE module_key = 'coupon'") === false
 ) {
     $errors[] = 'Coupon discount definition update must add discount columns and bump the module version.';
+}
+$settingsUpdate = file_get_contents($root . '/modules/coupon/updates/2026.06.007.sql');
+$notificationInstall = file_get_contents($root . '/modules/notification/install.sql');
+$notificationUpdate = file_get_contents($root . '/modules/notification/updates/2026.06.011.sql');
+if (!is_string($settingsUpdate)
+    || strpos($settingsUpdate, "'/admin/coupons/settings'") === false
+    || strpos($settingsUpdate, "SET name = '쿠폰·이용권'") === false
+    || strpos($settingsUpdate, "version = '2026.06.007'") === false
+) {
+    $errors[] = 'Coupon settings update must grant settings permissions, restore the coupon/pass module name, and bump the coupon module version.';
+}
+if (!is_string($notificationInstall)
+    || strpos($notificationInstall, "'coupon', 'issue.refunded'") === false
+    || strpos($notificationInstall, "'coupon', 'issue.definition_disabled'") === false
+    || !is_string($notificationUpdate)
+    || strpos($notificationUpdate, '{{SR_TABLE_PREFIX}}notification_event_templates') === false
+    || strpos($notificationUpdate, "'coupon', 'issue.refunded'") === false
+    || strpos($notificationUpdate, "'coupon', 'issue.definition_disabled'") === false
+) {
+    $errors[] = 'Notification templates must include coupon issue refund and definition disabled account events.';
 }
 
 if ($errors !== []) {

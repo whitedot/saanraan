@@ -15,6 +15,8 @@ return [
     'GET /admin/coupons/campaigns/logs' => 'actions/admin-coupons.php',
     'GET /admin/coupons/campaigns/new' => 'actions/admin-coupons.php',
     'POST /admin/coupons/campaigns/new' => 'actions/admin-coupons.php',
+    'GET /admin/coupons/settings' => 'actions/admin-coupon-settings.php',
+    'POST /admin/coupons/settings' => 'actions/admin-coupon-settings.php',
     'GET /admin/coupons/target-search' => 'actions/admin-coupon-target-search.php',
     'GET /admin/coupons/member-search' => 'actions/admin-coupon-member-search.php',
 ];

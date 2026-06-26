@@ -6,7 +6,7 @@ if (!in_array($couponAdminPage, ['definitions', 'issues', 'redemptions', 'campai
 }
 $couponAdminPageMeta = [
     'definitions' => [
-        'title' => '쿠폰 관리',
+        'title' => '쿠폰·이용권 관리',
         'subtitle' => '',
     ],
     'issues' => [
@@ -33,10 +33,12 @@ $couponSearchableTargetTypes = array_filter($targetTypes, static function (strin
 $refundablePolicies = sr_coupon_refundable_policies();
 $definitionStatusLabels = [
     'active' => '사용 중',
-    'disabled' => '중지',
+    'issue_stopped' => '지급 중지',
+    'disabled' => '사용 중지',
 ];
 $definitionStatusClasses = [
     'active' => 'is-normal',
+    'issue_stopped' => 'is-left',
     'disabled' => 'is-blocked',
 ];
 $issueStatusClasses = [
@@ -761,7 +763,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-coupon-definition-bulk-actions admin-row-actions" data-coupon-definition-bulk-bar>
                 <div class="admin-coupon-definition-bulk-controls admin-row-actions">
                     <button type="submit" name="target_status" value="active" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="사용 중" disabled>사용 중</button>
-                    <button type="submit" name="target_status" value="disabled" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="중지" disabled>중지</button>
+                    <button type="submit" name="target_status" value="issue_stopped" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="지급 중지" disabled>지급 중지</button>
+                    <button type="submit" name="target_status" value="disabled" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="사용 중지" disabled>사용 중지</button>
                     <button type="button" class="btn btn-sm btn-outline-light" data-coupon-definition-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-coupon-definition-selected-count>0</span></button>
                 </div>
             </div>
@@ -818,8 +821,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
-                                    <input type="hidden" name="status" value="<?php echo (string) $definition['status'] === 'active' ? 'disabled' : 'active'; ?>">
-                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e((string) $definition['status'] === 'active' ? '사용 중지' : '다시 사용'); ?></button>
+                                    <input type="hidden" name="status" value="active">
+                                    <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'active' ? ' disabled' : ''; ?>>사용 중</button>
+                                </form>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="set_definition_status">
+                                    <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
+                                    <input type="hidden" name="status" value="issue_stopped">
+                                    <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'issue_stopped' ? ' disabled' : ''; ?>>지급 중지</button>
+                                </form>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="set_definition_status">
+                                    <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
+                                    <input type="hidden" name="status" value="disabled">
+                                    <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'disabled' ? ' disabled' : ''; ?>>사용 중지</button>
                                 </form>
                             </div>
                         </td>

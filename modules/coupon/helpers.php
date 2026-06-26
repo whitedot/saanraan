@@ -30,16 +30,290 @@ function sr_coupon_like_keyword(string $keyword): string
 
 function sr_coupon_statuses(): array
 {
-    return ['active', 'disabled'];
+    return ['active', 'issue_stopped', 'disabled'];
 }
 
 function sr_coupon_status_label(string $status): string
 {
     return match ($status) {
         'active' => '사용',
-        'disabled' => '중지',
+        'issue_stopped' => '지급 중지',
+        'disabled' => '사용 중지',
         default => $status,
     };
+}
+
+function sr_coupon_definition_allows_issue(string $status): bool
+{
+    return $status === 'active';
+}
+
+function sr_coupon_definition_allows_redeem(string $status): bool
+{
+    return in_array($status, ['active', 'issue_stopped'], true);
+}
+
+function sr_coupon_default_settings(): array
+{
+    return [
+        'notification_cases' => sr_coupon_default_notification_case_settings(),
+        'disabled_reclaim_notifications_enabled' => true,
+        'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
+        'disabled_reclaim_notification_channels' => ['site'],
+    ];
+}
+
+function sr_coupon_notification_cases(): array
+{
+    return [
+        'issue_created' => [
+            'event_key' => 'issue.created',
+            'label' => '지급 알림',
+            'description' => '회원에게 쿠폰·이용권을 지급했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'redemption_redeemed' => [
+            'event_key' => 'redemption.redeemed',
+            'label' => '사용 알림',
+            'description' => '쿠폰·이용권이 사용되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'redemption_refunded' => [
+            'event_key' => 'redemption.refunded',
+            'label' => '사용 환불 알림',
+            'description' => '쿠폰·이용권 사용 내역을 수동 환불했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'issue_refunded' => [
+            'event_key' => 'issue.refunded',
+            'label' => '발급 환불 알림',
+            'description' => '유료 발급된 쿠폰·이용권의 발급 자산을 환불했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'issue_status_updated' => [
+            'event_key' => 'issue.status_updated',
+            'label' => '지급 상태 변경 알림',
+            'description' => '지급 취소, 만료, 탈퇴 처리 등 회원 지급건 상태가 바뀌었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'definition_disabled' => [
+            'event_key' => 'issue.definition_disabled',
+            'label' => '사용 중지 회수 알림',
+            'description' => '쿠폰 종류를 사용 중지로 전환하면 이미 지급받았고 아직 한 번도 사용하지 않은 활성 지급건의 회원에게 보냅니다.',
+            'default_enabled' => true,
+        ],
+    ];
+}
+
+function sr_coupon_notification_case_key_for_event(string $eventKey): string
+{
+    foreach (sr_coupon_notification_cases() as $caseKey => $case) {
+        if ((string) ($case['event_key'] ?? '') === $eventKey) {
+            return (string) $caseKey;
+        }
+    }
+
+    return '';
+}
+
+function sr_coupon_default_notification_case_settings(): array
+{
+    $settings = [];
+    foreach (sr_coupon_notification_cases() as $caseKey => $case) {
+        $settings[(string) $caseKey] = [
+            'event_key' => (string) ($case['event_key'] ?? ''),
+            'enabled' => !empty($case['default_enabled']),
+            'channels' => ['site'],
+        ];
+    }
+
+    return $settings;
+}
+
+function sr_coupon_account_notification_channel_keys(): array
+{
+    return ['site', 'email', 'telegram_bot'];
+}
+
+function sr_coupon_notification_channels_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawValues)) {
+        $rawValues = ['site'];
+    }
+
+    $allowed = sr_coupon_account_notification_channel_keys();
+    $channels = [];
+    foreach ($rawValues as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $channels[$channel] = $channel;
+        }
+    }
+
+    return $channels === [] ? ['site'] : array_values($channels);
+}
+
+function sr_coupon_notification_channel_options(PDO $pdo): array
+{
+    $channels = ['site'];
+    if (sr_coupon_notification_event_function($pdo) !== '') {
+        if (function_exists('sr_notification_create_channels')) {
+            $channels = array_merge($channels, sr_notification_create_channels($pdo));
+        }
+        if (function_exists('sr_notification_member_external_channel_keys')
+            && function_exists('sr_notification_member_external_provider_is_ready')
+            && function_exists('sr_notification_settings')
+        ) {
+            $notificationSettings = sr_notification_settings($pdo);
+            foreach (sr_notification_member_external_channel_keys() as $channel) {
+                if (sr_notification_member_external_provider_is_ready($channel, $notificationSettings)) {
+                    $channels[] = $channel;
+                }
+            }
+        }
+    }
+
+    $allowed = sr_coupon_account_notification_channel_keys();
+    $options = [];
+    foreach ($channels as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $options[$channel] = $channel;
+        }
+    }
+
+    return $options === [] ? ['site'] : array_values($options);
+}
+
+function sr_coupon_notification_case_settings_from_value(mixed $value): array
+{
+    $rawSettings = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawSettings)) {
+        $rawSettings = [];
+    }
+
+    $caseKeyByEventKey = [];
+    foreach (sr_coupon_notification_cases() as $caseKey => $case) {
+        $caseKeyByEventKey[(string) ($case['event_key'] ?? '')] = (string) $caseKey;
+    }
+
+    $normalized = sr_coupon_default_notification_case_settings();
+    foreach ($rawSettings as $rawCaseKey => $rawCaseSettings) {
+        $caseKey = (string) $rawCaseKey;
+        if (!isset($normalized[$caseKey])) {
+            $caseKey = $caseKeyByEventKey[$caseKey] ?? '';
+        }
+        if ($caseKey === '' || !isset($normalized[$caseKey]) || !is_array($rawCaseSettings)) {
+            continue;
+        }
+
+        if (array_key_exists('enabled', $rawCaseSettings)) {
+            $normalized[$caseKey]['enabled'] = sr_truthy($rawCaseSettings['enabled']);
+        }
+        if (array_key_exists('channels', $rawCaseSettings)) {
+            $normalized[$caseKey]['channels'] = sr_coupon_notification_channels_from_value($rawCaseSettings['channels']);
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_coupon_notification_setting_for_event(array $settings, string $eventKey): ?array
+{
+    $caseKey = sr_coupon_notification_case_key_for_event($eventKey);
+    if ($caseKey === '') {
+        return null;
+    }
+
+    $caseSettings = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
+}
+
+function sr_coupon_settings(PDO $pdo): array
+{
+    $storedSettings = sr_module_settings($pdo, 'coupon');
+    $settings = array_merge(sr_coupon_default_settings(), $storedSettings);
+    $notificationCases = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    if (array_key_exists('disabled_reclaim_notifications_enabled', $storedSettings)) {
+        $notificationCases['definition_disabled']['enabled'] = sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false);
+    }
+    if (array_key_exists('disabled_reclaim_notification_channels', $storedSettings)) {
+        $notificationCases['definition_disabled']['channels'] = sr_coupon_notification_channels_from_value($settings['disabled_reclaim_notification_channels'] ?? ['site']);
+    }
+    $settings['notification_cases'] = $notificationCases;
+    $settings['disabled_reclaim_notifications_enabled'] = array_key_exists('disabled_reclaim_notifications_enabled', $storedSettings)
+        ? sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false)
+        : !empty($notificationCases['definition_disabled']['enabled']);
+    $settings['disabled_reclaim_notification_channels'] = sr_coupon_notification_channels_from_value($notificationCases['definition_disabled']['channels'] ?? ['site']);
+    $eventKey = sr_coupon_clean_text((string) ($settings['disabled_reclaim_notification_event_key'] ?? ''), 120);
+    $settings['disabled_reclaim_notification_event_key'] = preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) === 1
+        ? $eventKey
+        : 'issue.definition_disabled';
+
+    return $settings;
+}
+
+function sr_coupon_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'coupon' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('쿠폰 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $notificationCases = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    if (!array_key_exists('notification_cases', $settings)) {
+        if (array_key_exists('disabled_reclaim_notifications_enabled', $settings)) {
+            $notificationCases['definition_disabled']['enabled'] = sr_truthy($settings['disabled_reclaim_notifications_enabled'] ?? false);
+        }
+        if (array_key_exists('disabled_reclaim_notification_channels', $settings)) {
+            $notificationCases['definition_disabled']['channels'] = sr_coupon_notification_channels_from_value($settings['disabled_reclaim_notification_channels'] ?? ['site']);
+        }
+    }
+    $notificationsEnabled = !empty($notificationCases['definition_disabled']['enabled']);
+    $eventKey = sr_coupon_clean_text((string) ($settings['disabled_reclaim_notification_event_key'] ?? 'issue.definition_disabled'), 120);
+    if (preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
+        throw new InvalidArgumentException('쿠폰 회수 알림 이벤트 키가 올바르지 않습니다.');
+    }
+    $channels = sr_coupon_notification_channels_from_value($notificationCases['definition_disabled']['channels'] ?? ['site']);
+    $channelsJson = json_encode($channels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($channelsJson)) {
+        $channelsJson = '["site"]';
+    }
+    $notificationCasesJson = json_encode($notificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($notificationCasesJson)) {
+        $notificationCasesJson = json_encode(sr_coupon_default_notification_case_settings(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $notificationCasesJson = is_string($notificationCasesJson) ? $notificationCasesJson : '{}';
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    foreach ([
+        ['notification_cases', $notificationCasesJson, 'json'],
+        ['disabled_reclaim_notifications_enabled', $notificationsEnabled ? '1' : '0', 'bool'],
+        ['disabled_reclaim_notification_event_key', $eventKey, 'string'],
+        ['disabled_reclaim_notification_channels', $channelsJson, 'json'],
+    ] as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_clear_module_settings_cache('coupon');
 }
 
 function sr_coupon_issue_statuses(): array
@@ -695,6 +969,9 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
     if (!in_array($status, sr_coupon_claim_campaign_statuses(), true)) {
         $status = 'draft';
     }
+    if ($status === 'active' && !sr_coupon_definition_allows_issue((string) ($definition['status'] ?? ''))) {
+        throw new InvalidArgumentException('발급 가능한 쿠폰만 활성 발급 캠페인에 연결할 수 있습니다.');
+    }
     $claimType = (string) ($data['claim_type'] ?? 'free');
     if (!in_array($claimType, sr_coupon_claim_types(), true)) {
         $claimType = 'free';
@@ -1333,8 +1610,8 @@ function sr_coupon_definition_reference_health(PDO $pdo, array $target, array $r
         return ['status' => 'missing_target', 'message' => '쿠폰 정의를 찾을 수 없습니다.'];
     }
 
-    if ((string) ($definition['status'] ?? '') !== 'active') {
-        return ['status' => 'disabled_target', 'message' => '쿠폰 정의가 비활성 상태입니다.'];
+    if (!sr_coupon_definition_allows_redeem((string) ($definition['status'] ?? ''))) {
+        return ['status' => 'disabled_target', 'message' => '쿠폰 정의가 사용 중지 상태입니다.'];
     }
 
     return ['status' => 'ok'];
@@ -1943,6 +2220,71 @@ function sr_coupon_update_definition_status(PDO $pdo, int $definitionId, string 
     ]);
 }
 
+function sr_coupon_unused_active_issue_ids_for_definition(PDO $pdo, int $definitionId): array
+{
+    if ($definitionId <= 0 || !sr_coupon_tables_available($pdo)) {
+        return [];
+    }
+
+    sr_coupon_expire_active_issues($pdo);
+    $stmt = $pdo->prepare(
+        "SELECT i.id
+         FROM sr_coupon_issues i
+         WHERE i.coupon_definition_id = :definition_id
+           AND i.status = 'active'
+           AND i.used_count = 0
+           AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
+         ORDER BY i.id ASC"
+    );
+    $stmt->execute([
+        'definition_id' => $definitionId,
+        'now_value' => sr_now(),
+    ]);
+
+    return array_map('intval', array_column($stmt->fetchAll(), 'id'));
+}
+
+function sr_coupon_notify_definition_disabled_unused_issue_reclaims(PDO $pdo, array $definitionIds, ?int $createdByAccountId = null): array
+{
+    $definitionIds = array_values(array_unique(array_filter(array_map('intval', $definitionIds), static fn (int $definitionId): bool => $definitionId > 0)));
+    if ($definitionIds === []) {
+        return ['target_issue_count' => 0, 'notification_count' => 0, 'skipped' => true];
+    }
+
+    $settings = sr_coupon_settings($pdo);
+    $caseSetting = sr_coupon_notification_setting_for_event($settings, 'issue.definition_disabled');
+    if (!is_array($caseSetting) || empty($caseSetting['enabled'])) {
+        return ['target_issue_count' => 0, 'notification_count' => 0, 'skipped' => true];
+    }
+
+    $eventKey = (string) ($settings['disabled_reclaim_notification_event_key'] ?? 'issue.definition_disabled');
+    if (preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1 || sr_coupon_notification_event_function($pdo) === '') {
+        return ['target_issue_count' => 0, 'notification_count' => 0, 'skipped' => true];
+    }
+    $channels = sr_coupon_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
+
+    $targetIssueCount = 0;
+    $notificationCount = 0;
+    foreach ($definitionIds as $definitionId) {
+        foreach (sr_coupon_unused_active_issue_ids_for_definition($pdo, $definitionId) as $issueId) {
+            $targetIssueCount++;
+            $notificationId = sr_coupon_notify_issue_event($pdo, $issueId, $eventKey, $createdByAccountId, [
+                'definition_status' => 'disabled',
+                'reclaim_reason' => 'coupon_definition_disabled',
+            ], $channels);
+            if ($notificationId !== null && $notificationId > 0) {
+                $notificationCount++;
+            }
+        }
+    }
+
+    return [
+        'target_issue_count' => $targetIssueCount,
+        'notification_count' => $notificationCount,
+        'skipped' => false,
+    ];
+}
+
 function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId, string $reason = '', ?int $issuedByAccountId = null, ?string $expiresAt = null, array $claimContext = []): int
 {
     if ($definitionId <= 0 || $accountId <= 0) {
@@ -1950,7 +2292,7 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
     }
 
     $definition = sr_coupon_definition_by_id($pdo, $definitionId);
-    if (!is_array($definition) || (string) $definition['status'] !== 'active') {
+    if (!is_array($definition) || !sr_coupon_definition_allows_issue((string) ($definition['status'] ?? ''))) {
         throw new InvalidArgumentException('사용 중인 쿠폰 종류만 지급할 수 있습니다.');
     }
 
@@ -2694,7 +3036,7 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
          INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
          WHERE i.account_id = :account_id
            AND i.status = 'active'
-           AND d.status = 'active'
+           AND d.status IN ('active', 'issue_stopped')
            AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
          ORDER BY i.id DESC
          LIMIT " . $limit
@@ -2721,7 +3063,7 @@ function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
          INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
          WHERE i.account_id = :account_id
            AND i.status = 'active'
-           AND d.status = 'active'
+           AND d.status IN ('active', 'issue_stopped')
            AND (i.expires_at IS NULL OR i.expires_at >= :now_value)"
     );
     $stmt->execute([
@@ -3392,7 +3734,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
              INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
              WHERE i.account_id = :account_id
                AND i.status = 'active'
-               AND d.status = 'active'
+               AND d.status IN ('active', 'issue_stopped')
                AND d.coupon_type = 'access'
                AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
@@ -3531,11 +3873,21 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
     }
 }
 
-function sr_coupon_notify_issue_event(PDO $pdo, int $issueId, string $eventKey, ?int $createdByAccountId = null, array $metadata = []): ?int
+function sr_coupon_notify_issue_event(PDO $pdo, int $issueId, string $eventKey, ?int $createdByAccountId = null, array $metadata = [], array $channels = []): ?int
 {
     $createAccountEventFunction = sr_coupon_notification_event_function($pdo);
     if ($createAccountEventFunction === '') {
         return null;
+    }
+
+    if ($channels === []) {
+        $caseSetting = sr_coupon_notification_setting_for_event(sr_coupon_settings($pdo), $eventKey);
+        if (is_array($caseSetting)) {
+            if (empty($caseSetting['enabled'])) {
+                return null;
+            }
+            $channels = sr_coupon_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
+        }
     }
 
     $issue = sr_coupon_issue_by_id($pdo, $issueId);
@@ -3544,13 +3896,19 @@ function sr_coupon_notify_issue_event(PDO $pdo, int $issueId, string $eventKey, 
     }
 
     try {
-        return $createAccountEventFunction($pdo, [
+        $payload = [
             'account_id' => (int) $issue['account_id'],
             'module_key' => 'coupon',
             'event_key' => $eventKey,
             'created_by_account_id' => $createdByAccountId !== null && $createdByAccountId > 0 ? $createdByAccountId : null,
             'metadata' => array_merge(sr_coupon_issue_notification_metadata($issue), $metadata),
-        ]);
+        ];
+        if ($channels !== []) {
+            $channels = sr_coupon_notification_channels_from_value($channels);
+            $payload['channels'] = $channels;
+        }
+
+        return $createAccountEventFunction($pdo, $payload);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'coupon_issue_notification');
         return null;
@@ -3569,7 +3927,7 @@ function sr_coupon_issue_notification_metadata(array $issue): array
         'coupon_definition_id' => (int) ($issue['coupon_definition_id'] ?? 0),
         'coupon_key' => (string) ($issue['coupon_key'] ?? ''),
         'coupon_title' => (string) ($issue['title'] ?? ''),
-        'asset_label' => '쿠폰',
+        'asset_label' => '쿠폰·이용권',
         'status' => (string) ($issue['status'] ?? ''),
         'status_label' => sr_coupon_issue_status_label((string) ($issue['status'] ?? '')),
         'issued_reason' => (string) ($issue['issued_reason'] ?? ''),
@@ -3628,7 +3986,7 @@ function sr_coupon_process_account_withdrawal(PDO $pdo, int $accountId): array
     }
 
     return [
-        'label' => '쿠폰',
+        'label' => '쿠폰·이용권',
         'amount' => $updatedCount,
         'process' => '소멸/환급 검토',
     ];
