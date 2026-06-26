@@ -118,7 +118,6 @@ if ($memberOauthExternalProviders === []) {
         $profileSyncKey = sr_member_oauth_provider_setting_key($providerKey, 'profile_sync_json');
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
         $providerEnabled = !empty($provider['enabled']);
-        $providerSecretExists = sr_member_oauth_provider_value($provider, 'client_secret') !== '';
         $requiredScopeItems = sr_member_oauth_required_scope_items($provider);
         $requiredScopeItemMap = array_fill_keys($requiredScopeItems, true);
         $scopeItems = sr_member_oauth_scope_items_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
@@ -163,11 +162,6 @@ if ($memberOauthExternalProviders === []) {
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
-                    <p class="admin-form-static member-oauth-secret-status<?php echo $providerSecretExists ? '' : ' is-danger'; ?>">
-                        <span class="badge <?php echo $providerSecretExists ? 'badge-soft-success' : 'badge-soft-danger'; ?>"><?php echo sr_e($providerSecretExists ? '저장됨' : '미입력'); ?></span>
-                        <span><?php echo sr_e($providerSecretExists ? '기존 secret이 저장되어 있습니다.' : '저장된 secret이 없습니다.'); ?></span>
-                    </p>
-                    <p class="form-help">비워 두면 기존 secret을 유지합니다. 저장 후 화면에는 원문을 표시하지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>

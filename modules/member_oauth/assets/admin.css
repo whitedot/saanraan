@@ -32,18 +32,6 @@
     pointer-events: none;
 }
 
-.member-oauth-secret-status {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2);
-    margin-top: calc(var(--spacing) * 2);
-}
-
-.member-oauth-secret-status.is-danger {
-    color: var(--sr-danger, var(--color-danger-700, #b42318));
-}
-
 @media (max-width: 767px) {
     .member-oauth-repeat-row,
     .member-oauth-sync-row {

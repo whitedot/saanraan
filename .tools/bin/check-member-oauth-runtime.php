@@ -456,9 +456,6 @@ sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', 
     'data-oauth-add-profile-sync',
     '/admin/member-settings#member-settings-section-profile',
     '선택 프로필 항목 관리',
-    '기존 secret이 저장되어 있습니다.',
-    '저장된 secret이 없습니다.',
-    '비워 두면 기존 secret을 유지합니다',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'sr_member_oauth_state_by_token($pdo, $stateToken, \'login\')',
