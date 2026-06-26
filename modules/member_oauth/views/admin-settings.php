@@ -267,8 +267,7 @@ if ($memberOauthExternalProviders === []) {
                             </a>
                         <?php } ?>
                     </div>
-                    <p class="form-help">이메일과 이름은 회원 기본 필드에 반영합니다. 그 외 항목은 회원 설정에 정의된 선택 프로필 항목에만 저장합니다.</p>
-                    <p class="form-help">Scope를 보내지 않는 제공자는 Scope 선택 안 함이 정상일 수 있습니다. 필요한 profile 권한은 제공자 콘솔에서 별도로 허용해야 할 수 있습니다.</p>
+                    <p class="form-help">이메일과 이름은 회원 기본 필드에 반영하고, 그 외 항목은 회원 설정에 정의된 선택 프로필 항목에만 저장합니다. Scope를 보내지 않는 제공자는 Scope 선택 안 함이 정상일 수 있으며, 필요한 profile 권한은 제공자 콘솔에서 별도로 허용해야 할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
