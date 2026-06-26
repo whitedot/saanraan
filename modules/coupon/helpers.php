@@ -63,19 +63,12 @@ function sr_coupon_type_label(string $couponType): string
 
 function sr_coupon_definition_discount_columns_available(PDO $pdo): bool
 {
-    static $available = null;
-    if ($available !== null) {
-        return $available;
-    }
-
     try {
         $stmt = $pdo->query('SELECT discount_amount, discount_percent, discount_currency_code FROM sr_coupon_definitions LIMIT 1');
-        $available = $stmt !== false;
+        return $stmt !== false;
     } catch (Throwable) {
-        $available = false;
+        return false;
     }
-
-    return $available;
 }
 
 function sr_coupon_definition_benefit_label(array $definition): string
@@ -88,7 +81,13 @@ function sr_coupon_definition_benefit_label(array $definition): string
             $currencyCode = 'KRW';
         }
 
-        return $amount > 0 ? number_format($amount) . ' ' . $currencyCode . ' 할인' : '정액 할인';
+        if ($amount <= 0) {
+            return '정액 할인';
+        }
+
+        return $currencyCode === 'KRW'
+            ? number_format($amount) . '원 할인'
+            : number_format($amount) . ' ' . $currencyCode . ' 할인';
     }
     if ($couponType === 'percent_discount') {
         $percent = max(0, (int) ($definition['discount_percent'] ?? 0));

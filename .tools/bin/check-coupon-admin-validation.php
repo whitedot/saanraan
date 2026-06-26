@@ -48,10 +48,13 @@ if (!is_string($helper)) {
         || strpos($helper, "'fixed_discount' => '정액 할인'") === false
         || strpos($helper, "'percent_discount' => '정률 할인'") === false
         || strpos($helper, 'function sr_coupon_definition_discount_columns_available(PDO $pdo): bool') === false
+        || strpos($helper, "function sr_coupon_definition_discount_columns_available(PDO \$pdo): bool\n{\n    try {") === false
+        || strpos($helper, 'number_format($amount)') === false
+        || strpos($helper, "'원 할인'") === false
         || strpos($helper, '정액 할인 금액은 1 이상 정수로 입력하세요.') === false
         || strpos($helper, '정률 할인율은 1부터 100 사이의 정수로 입력하세요.') === false
     ) {
-        $errors[] = 'Coupon definition save must validate fixed and percent discount fields server-side.';
+        $errors[] = 'Coupon definition save must validate fixed and percent discount fields server-side without stale schema caching.';
     }
 }
 
