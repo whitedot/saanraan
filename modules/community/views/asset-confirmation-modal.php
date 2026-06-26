@@ -1,16 +1,21 @@
 <?php
 
-$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_community_asset_confirmation_required_message());
+$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? '차감 내용을 확인해 주세요.');
 $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/community');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '');
 $assetConfirmationTitle = (string) ($assetConfirmationTitle ?? sr_t('community::ui.community.4a285775'));
 $assetConfirmationAssetLabel = (string) ($assetConfirmationAssetLabel ?? '');
 $assetConfirmationAmount = (int) ($assetConfirmationAmount ?? 0);
+$assetConfirmationSubmitLabel = (string) ($assetConfirmationSubmitLabel ?? sr_t('community::ui.text.ac5b575f'));
 $assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
 $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'community_asset_confirmation_modal');
+$assetConfirmationOpen = !isset($assetConfirmationOpen) || !empty($assetConfirmationOpen);
+$assetConfirmationCancelUrl = (string) ($assetConfirmationCancelUrl ?? '/community');
+$assetConfirmationClasses = 'modal-overlay overlay community-asset-confirmation-modal';
+$assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' modal-overlay-fade hidden pointer-events-none opacity-0';
 ?>
-<div id="<?php echo sr_e($assetConfirmationModalId); ?>" class="modal-overlay overlay overlay-open community-asset-confirmation-modal" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetConfirmationModalId . '_title'); ?>" aria-modal="true">
+<div id="<?php echo sr_e($assetConfirmationModalId); ?>" class="<?php echo sr_e($assetConfirmationClasses); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetConfirmationModalId . '_title'); ?>" aria-modal="true" aria-hidden="<?php echo $assetConfirmationOpen ? 'false' : 'true'; ?>"<?php echo $assetConfirmationOpen ? '' : ' inert'; ?>>
     <div class="modal-dialog-center">
         <div class="modal-content">
             <div class="modal-header">
@@ -63,14 +68,19 @@ $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'community_as
                 <?php } ?>
             </div>
             <div class="modal-footer">
-                <a class="btn btn-solid-light modal-action" href="<?php echo sr_e(sr_url('/community')); ?>">취소</a>
+                <?php if ($assetConfirmationCancelUrl === '') { ?>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">취소</button>
+                <?php } else { ?>
+                    <a class="btn btn-solid-light modal-action" href="<?php echo sr_e(sr_url($assetConfirmationCancelUrl)); ?>">취소</a>
+                <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="modal-action">
                     <?php echo sr_csrf_field(); ?>
                     <?php if ($assetConfirmationId > 0) { ?>
                         <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
                     <?php } ?>
+                    <input type="hidden" name="asset_confirm" value="1">
                     <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-                    <button type="submit" class="btn btn-solid-warning"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
+                    <button type="submit" class="btn btn-solid-warning"><?php echo sr_e($assetConfirmationSubmitLabel); ?></button>
                 </form>
             </div>
         </div>

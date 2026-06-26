@@ -18,6 +18,9 @@ $file = sr_content_published_file_by_id($pdo, $fileId, $contentId);
 if (!is_array($file)) {
     sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
 }
+$contentPath = sr_content_slug_is_valid((string) ($file['slug'] ?? ''))
+    ? sr_content_path((string) $file['slug'])
+    : '';
 
 $mimeType = (string) $file['mime_type'];
 $driver = sr_content_file_storage_driver($file);
@@ -61,21 +64,25 @@ $downloadAlreadyRecorded = false;
 if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccountId = (int) $account['id'];
-    $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 32) ?? '';
+    $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 64) ?? '';
+    $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
     $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
     $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId);
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId, true, $assetConfirmedPost);
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
-            $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
-            $assetConfirmationAction = '/content/download';
-            $assetConfirmationId = (int) $file['id'];
-            $assetConfirmationContentId = (int) ($file['content_id'] ?? 0);
-            $assetConfirmationRequestToken = (string) ($downloadAccess['confirmation_request_token'] ?? '');
-            $assetConfirmationCouponIssues = is_array($downloadAccess['coupon_issues'] ?? null) ? $downloadAccess['coupon_issues'] : [];
-            include SR_ROOT . '/modules/content/views/asset-confirmation.php';
-            return;
+            if ($contentPath !== '') {
+                $_SESSION['sr_content_action_errors'] = ['다운로드 확인이 필요합니다. 파일 버튼을 다시 눌러 확인해 주세요.'];
+                sr_redirect($contentPath);
+            }
+
+            sr_render_error(403, (string) ($downloadAccess['message'] ?? sr_t('content::action.error.download_forbidden')));
         }
+        if ($contentPath !== '') {
+            $_SESSION['sr_content_action_errors'] = [(string) ($downloadAccess['message'] ?? sr_t('content::action.error.download_forbidden'))];
+            sr_redirect($contentPath);
+        }
+
         sr_render_error(403, (string) ($downloadAccess['message'] ?? sr_t('content::action.error.download_forbidden')));
     }
     if (!empty($downloadAccess['charged'])) {

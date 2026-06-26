@@ -68,6 +68,7 @@ if ($driver === 's3') {
 }
 
 $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
+$postPath = '/community/post?id=' . rawurlencode((string) (int) ($post['id'] ?? 0));
 $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
 $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
@@ -158,21 +159,19 @@ if (is_array($board)) {
                         'use',
                         'community.post.read',
                         sr_request_method() === 'POST',
-                        sr_post_string_without_truncation('asset_request_token', 32) ?? ''
+                        sr_post_string_without_truncation('asset_request_token', 64) ?? '',
+                        true,
+                        sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1'
                     );
                 }
             }
             if (empty($paidReadResult['allowed'])) {
                 if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {
-                    $assetConfirmationMessage = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
-                    $assetConfirmationAction = '/community/attachment';
-                    $assetConfirmationId = (int) $attachment['id'];
-                    $assetConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
-                    $assetConfirmationCouponIssues = sr_community_available_paid_read_coupon_issues($pdo, (int) $account['id'], $post);
-                    include SR_ROOT . '/modules/community/views/asset-confirmation.php';
-                    return;
+                    $_SESSION['sr_community_post_notice'] = '게시글 열람 확인이 필요합니다. 보기 버튼을 다시 눌러 확인해 주세요.';
+                    sr_redirect($postPath);
                 }
-                sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed')));
+                $_SESSION['sr_community_post_notice'] = (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_attachment_failed'));
+                sr_redirect($postPath);
             }
             if (sr_request_method() === 'POST' && sr_community_asset_policy_requires_confirmation($paidReadChargePolicy)) {
                 $paidReadConfirmationFingerprint = (string) ($paidReadResult['confirmation_fingerprint'] ?? '');
@@ -232,23 +231,24 @@ if ($disposition === 'attachment' && is_array($board)) {
                 'use',
                 'community.attachment.download',
                 sr_request_method() === 'POST',
-                sr_post_string_without_truncation('asset_request_token', 32) ?? ''
+                sr_post_string_without_truncation('asset_request_token', 64) ?? '',
+                true,
+                sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1'
             );
         }
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
-                $assetConfirmationMessage = (string) ($downloadResult['message'] ?? sr_community_asset_confirmation_required_message());
-                $assetConfirmationAction = '/community/attachment';
-                $assetConfirmationId = (int) $attachment['id'];
-                $assetConfirmationRequestToken = (string) ($downloadResult['confirmation_request_token'] ?? '');
-                $assetConfirmationCouponIssues = sr_community_available_attachment_download_coupon_issues($pdo, (int) $account['id'], (int) $attachment['id']);
                 if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
                     sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
                 }
-                include SR_ROOT . '/modules/community/views/asset-confirmation.php';
-                return;
+                $_SESSION['sr_community_post_notice'] = '첨부 다운로드 확인이 필요합니다. 첨부 파일 버튼을 다시 눌러 확인해 주세요.';
+                sr_redirect($postPath);
             }
-            sr_render_error(403, (string) ($downloadResult['message'] ?? sr_t('community::action.error.download_attachment_failed')));
+            if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
+                sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
+            }
+            $_SESSION['sr_community_post_notice'] = (string) ($downloadResult['message'] ?? sr_t('community::action.error.download_attachment_failed'));
+            sr_redirect($postPath);
         }
         if (
             sr_request_method() === 'POST'

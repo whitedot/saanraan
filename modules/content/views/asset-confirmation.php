@@ -1,6 +1,6 @@
 <?php
 
-$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_content_asset_confirmation_required_message());
+$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? '차감 내용을 확인해 주세요.');
 $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/content');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationContentId = (int) ($assetConfirmationContentId ?? 0);

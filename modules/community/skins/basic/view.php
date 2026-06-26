@@ -1,7 +1,7 @@
 <?php
 
 $pageTitle = (string) $post['title'];
-$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && !empty($canViewPostBody));
+$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, is_array($postBoard ?? null) ? $postBoard : null, $communityLayoutSettings);
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
@@ -197,17 +197,21 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
             </article>
             <?php } elseif (!empty($paidReadConfirmationRequired)) { ?>
                 <?php
-                $assetConfirmationMessage = (string) ($assetReadNotices[0] ?? sr_community_asset_confirmation_required_message());
+                $assetConfirmationAssetLabel = (string) ($paidReadConfirmationResult['asset_label'] ?? '');
+                $assetConfirmationAmount = (int) ($paidReadConfirmationResult['amount'] ?? 0);
+                $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 게시글을 열람하시겠습니까?';
                 $assetConfirmationAction = '/community/post';
                 $assetConfirmationId = (int) $post['id'];
                 $assetConfirmationRequestToken = (string) ($paidReadConfirmationRequestToken ?? '');
                 $assetConfirmationTitle = '게시글 열람 확인';
-                $assetConfirmationAssetLabel = (string) ($paidReadConfirmationResult['asset_label'] ?? '');
-                $assetConfirmationAmount = (int) ($paidReadConfirmationResult['amount'] ?? 0);
+                $assetConfirmationSubmitLabel = sr_t('community::ui.text.ac5b575f');
                 $assetConfirmationCouponIssues = is_array($paidReadConfirmationCouponIssues ?? null) ? $paidReadConfirmationCouponIssues : [];
                 $assetConfirmationModalId = 'community_paid_read_confirmation_modal';
                 include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';
                 ?>
+            </article>
+            <?php } elseif (!empty($paidReadBlocked)) { ?>
+                <p class="community-post-secret"><?php echo sr_e($paidReadBlockedMessage !== '' ? $paidReadBlockedMessage : sr_t('community::action.error.paid_read_post_failed')); ?></p>
             </article>
             <?php } else { ?>
             <?php
@@ -313,9 +317,59 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                     <ul>
                         <?php foreach ($fileAttachments as $attachment) { ?>
                             <li>
-                                <a href="<?php echo sr_e(sr_url('/community/attachment?id=' . (string) $attachment['id'])); ?>">
-                                    <?php echo sr_e((string) $attachment['original_name']); ?>
-                                </a>
+                                <?php
+                                $communityAttachmentDownloadUrl = '/community/attachment?id=' . rawurlencode((string) (int) ($attachment['id'] ?? 0));
+                                $communityAttachmentDownloadAccess = [];
+                                $communityAttachmentNeedsConfirmation = false;
+                                if (is_array($account ?? null) && is_array($postBoard ?? null)) {
+                                    $communityAttachmentDownloadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_attachment_download', 'once');
+                                    $communityAttachmentIsUploader = (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+                                    $communityAttachmentIsAuthor = (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+                                    $communityAttachmentNeedsConfirmation = !$communityAttachmentIsUploader
+                                        && !$communityAttachmentIsAuthor
+                                        && sr_community_asset_event_required($communityAttachmentDownloadConfig)
+                                        && sr_community_asset_policy_requires_confirmation((string) ($communityAttachmentDownloadConfig['charge_policy'] ?? 'once'));
+                                    if ($communityAttachmentNeedsConfirmation) {
+                                        $communityAttachmentDownloadAccess = sr_community_run_asset_event(
+                                            $pdo,
+                                            $communityAttachmentDownloadConfig,
+                                            (int) $account['id'],
+                                            'attachment_download',
+                                            'community.attachment',
+                                            (int) $attachment['id'],
+                                            'use',
+                                            'community.attachment.download',
+                                            false,
+                                            '',
+                                            false
+                                        );
+                                    }
+                                }
+                                ?>
+                                <?php if ($communityAttachmentNeedsConfirmation && (string) ($communityAttachmentDownloadAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
+                                    <?php
+                                    $assetConfirmationAssetLabel = (string) ($communityAttachmentDownloadAccess['asset_label'] ?? '');
+                                    $assetConfirmationAmount = (int) ($communityAttachmentDownloadAccess['amount'] ?? 0);
+                                    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 첨부 파일을 다운로드하시겠습니까?';
+                                    $assetConfirmationAction = '/community/attachment';
+                                    $assetConfirmationId = (int) ($attachment['id'] ?? 0);
+                                    $assetConfirmationRequestToken = (string) ($communityAttachmentDownloadAccess['confirmation_request_token'] ?? '');
+                                    $assetConfirmationTitle = (string) ($attachment['original_name'] ?? sr_t('community::ui.text.0e89a5d4'));
+                                    $assetConfirmationSubmitLabel = '다운로드';
+                                    $assetConfirmationCouponIssues = sr_community_available_attachment_download_coupon_issues($pdo, (int) ($account['id'] ?? 0), (int) ($attachment['id'] ?? 0));
+                                    $assetConfirmationModalId = 'community_attachment_download_confirmation_' . (string) (int) ($attachment['id'] ?? 0);
+                                    $assetConfirmationOpen = false;
+                                    $assetConfirmationCancelUrl = '';
+                                    ?>
+                                    <button type="button" class="btn btn-solid-light" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">
+                                        <?php echo sr_e((string) $attachment['original_name']); ?>
+                                    </button>
+                                    <?php include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php'; ?>
+                                <?php } else { ?>
+                                    <a href="<?php echo sr_e(sr_url($communityAttachmentDownloadUrl)); ?>">
+                                        <?php echo sr_e((string) $attachment['original_name']); ?>
+                                    </a>
+                                <?php } ?>
                                 <?php if ((int) ($attachment['size_bytes'] ?? 0) > 0) { ?>
                                     (<?php echo sr_e(sr_community_format_bytes((int) $attachment['size_bytes'])); ?>)
                                 <?php } ?>

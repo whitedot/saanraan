@@ -293,7 +293,7 @@ sr_ckeditor_assets_require_markers('modules/content/helpers/body-files.php', [
     'sr_admin_has_permission($pdo, (int) $account[\'id\'], \'/admin/content\', \'view\')',
     '!sr_content_asset_access_required($page)',
     'if (!is_array($account))',
-    'sr_content_charge_view_access($pdo, $page, (int) $account[\'id\'], false)',
+    'sr_content_charge_view_access($pdo, $page, (int) $account[\'id\'], false, \'\', 0, false)',
     'return !empty($access[\'allowed\']);',
 ]);
 

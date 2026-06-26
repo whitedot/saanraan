@@ -270,6 +270,121 @@ function sr_member_asset_settlement_plan(PDO $pdo, array $assets, callable $bala
     ];
 }
 
+function sr_member_utf8_codepoint(string $char): int
+{
+    $bytes = array_values(unpack('C*', $char) ?: []);
+    $count = count($bytes);
+    if ($count === 0) {
+        return 0;
+    }
+    if ($bytes[0] < 0x80) {
+        return $bytes[0];
+    }
+    if ($count >= 2 && ($bytes[0] & 0xE0) === 0xC0) {
+        return (($bytes[0] & 0x1F) << 6) | ($bytes[1] & 0x3F);
+    }
+    if ($count >= 3 && ($bytes[0] & 0xF0) === 0xE0) {
+        return (($bytes[0] & 0x0F) << 12) | (($bytes[1] & 0x3F) << 6) | ($bytes[2] & 0x3F);
+    }
+    if ($count >= 4 && ($bytes[0] & 0xF8) === 0xF0) {
+        return (($bytes[0] & 0x07) << 18) | (($bytes[1] & 0x3F) << 12) | (($bytes[2] & 0x3F) << 6) | ($bytes[3] & 0x3F);
+    }
+
+    return 0;
+}
+
+function sr_member_korean_subject_particle(string $label): string
+{
+    $label = trim($label);
+    if ($label === '' || preg_match('/(.)\z/u', $label, $matches) !== 1) {
+        return '이';
+    }
+
+    $codepoint = sr_member_utf8_codepoint((string) $matches[1]);
+    if ($codepoint >= 0xAC00 && $codepoint <= 0xD7A3) {
+        return (($codepoint - 0xAC00) % 28) > 0 ? '이' : '가';
+    }
+
+    return '이';
+}
+
+function sr_member_asset_amount_text(int $amount, string $unitLabel): string
+{
+    $unitLabel = trim($unitLabel);
+    return number_format(max(0, $amount)) . $unitLabel;
+}
+
+function sr_member_asset_settlement_shortage(PDO $pdo, array $assets, callable $balanceFunction, array $assetModules, int $settlementAmount, string $settlementCurrency): array
+{
+    $settlementAmount = max(0, $settlementAmount);
+    $settlementCurrency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+    if ($settlementAmount < 1) {
+        return [];
+    }
+
+    $remaining = $settlementAmount;
+    $shortage = [];
+    foreach ($assetModules as $assetModule) {
+        $assetModule = (string) $assetModule;
+        if (!isset($assets[$assetModule])) {
+            continue;
+        }
+
+        $asset = $assets[$assetModule];
+        $purchasePower = is_array($asset['purchase_power'] ?? null) ? $asset['purchase_power'] : [];
+        $assetUnits = max(1, (int) ($purchasePower['asset_units'] ?? 1));
+        $settlementUnits = max(1, (int) ($purchasePower['settlement_units'] ?? 1));
+        $assetCurrency = function_exists('sr_normalize_currency_code')
+            ? sr_normalize_currency_code((string) ($purchasePower['settlement_currency'] ?? $settlementCurrency))
+            : strtoupper(trim((string) ($purchasePower['settlement_currency'] ?? $settlementCurrency)));
+        if ($assetCurrency !== $settlementCurrency) {
+            continue;
+        }
+
+        $balance = max(0, (int) $balanceFunction($pdo, $assetModule));
+        $maxSettlement = intdiv($balance * $settlementUnits, $assetUnits);
+        $settlementStep = sr_member_asset_settlement_step($assetUnits, $settlementUnits);
+        $settlementUse = min($remaining, $maxSettlement);
+        $settlementUse -= $settlementUse % $settlementStep;
+        if ($settlementUse < 0) {
+            $settlementUse = 0;
+        }
+
+        $uncoveredSettlement = $remaining - $settlementUse;
+        if ($uncoveredSettlement > 0) {
+            $shortageAmount = intdiv(($uncoveredSettlement * $assetUnits) + $settlementUnits - 1, $settlementUnits);
+            $shortage = [
+                'asset_module' => $assetModule,
+                'asset_label' => (string) ($asset['label'] ?? $assetModule),
+                'asset_unit_label' => (string) ($asset['unit_label'] ?? ''),
+                'amount' => max(1, $shortageAmount),
+                'balance' => $balance,
+                'settlement_amount' => $uncoveredSettlement,
+                'settlement_currency' => $settlementCurrency,
+            ];
+        }
+
+        $remaining = $uncoveredSettlement;
+        if ($remaining <= 0) {
+            return [];
+        }
+    }
+
+    return $shortage;
+}
+
+function sr_member_asset_balance_shortage_message(array $shortage, string $suffix, string $fallbackMessage): string
+{
+    $label = trim((string) ($shortage['asset_label'] ?? ''));
+    $amount = (int) ($shortage['amount'] ?? 0);
+    if ($label === '' || $amount < 1) {
+        return $fallbackMessage;
+    }
+
+    $unitLabel = (string) ($shortage['asset_unit_label'] ?? '');
+    return $label . sr_member_korean_subject_particle($label) . ' ' . sr_member_asset_amount_text($amount, $unitLabel) . ' 부족해 ' . $suffix;
+}
+
 function sr_member_withdrawal_asset_contract_definitions(PDO $pdo): array
 {
     $assets = [];

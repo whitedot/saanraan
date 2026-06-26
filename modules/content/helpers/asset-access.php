@@ -548,18 +548,18 @@ function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, str
         return sr_content_asset_access_dedupe_key($assetModule, $accountId, $subjectId, $accessKind);
     }
 
-    $requestToken = preg_match('/\A[a-f0-9]{32}\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
+    $requestToken = preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
     return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $requestToken;
 }
 
-function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
+function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken, $couponIssueId): array {
-        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken, $couponIssueId);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost);
     });
 }
 
-function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
 {
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
@@ -591,7 +591,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     }
 
     if (sr_content_asset_policy_requires_confirmation($chargePolicy) && !$process) {
-        if (sr_content_consume_asset_confirmation_session('view', $accountId, $pageId, $confirmationFingerprint)) {
+        if ($consumeConfirmationSession && sr_content_consume_asset_confirmation_session('view', $accountId, $pageId, $confirmationFingerprint)) {
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
@@ -603,7 +603,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         ]);
     }
 
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !sr_content_asset_confirmation_request_token_valid('view', $accountId, $pageId, $confirmationFingerprint, $requestToken)) {
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost && !sr_content_asset_confirmation_request_token_valid('view', $accountId, $pageId, $confirmationFingerprint, $requestToken)) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
@@ -696,7 +696,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
 
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '콘텐츠를 열람할 수 없습니다.', '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.'));
     }
 
     $dedupeKey = '';
@@ -827,14 +827,14 @@ function sr_content_file_download_required(array $file): bool
         && (int) ($file['asset_download_amount'] ?? 0) > 0;
 }
 
-function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
+function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken, $couponIssueId): array {
-        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken, $couponIssueId);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost);
     });
 }
 
-function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -867,7 +867,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     }
 
     if (sr_content_asset_policy_requires_confirmation($chargePolicy) && !$process) {
-        if (sr_content_consume_asset_confirmation_session('download', $accountId, $fileId, $confirmationFingerprint)) {
+        if ($consumeConfirmationSession && sr_content_consume_asset_confirmation_session('download', $accountId, $fileId, $confirmationFingerprint)) {
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
@@ -879,7 +879,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         ]);
     }
 
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !sr_content_asset_confirmation_request_token_valid('download', $accountId, $fileId, $confirmationFingerprint, $requestToken)) {
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost && !sr_content_asset_confirmation_request_token_valid('download', $accountId, $fileId, $confirmationFingerprint, $requestToken)) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
@@ -978,7 +978,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
 
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '파일을 다운로드할 수 없습니다.', '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.'));
     }
 
     $dedupeKey = '';

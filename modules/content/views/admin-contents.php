@@ -36,8 +36,13 @@ $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
 $adminPageTitleUrl = sr_admin_page_title_reset_url($pageAdminPage !== 'form', '/admin/content');
 $contentSort = isset($contentSort) && is_array($contentSort) ? $contentSort : sr_content_admin_default_sort();
-$contentAdminPreviewUrl = static function (string $slug): string {
-    return sr_url(sr_content_path($slug) . '?preview=admin');
+$contentAdminViewUrl = static function (string $slug, string $status = ''): string {
+    $path = sr_content_path($slug);
+    if ($status === 'published') {
+        return sr_url($path);
+    }
+
+    return sr_url($path . '?preview=admin');
 };
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
@@ -789,7 +794,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('content::ui.url.644c2e7a')); ?></span>
                     <div class="form-field">
-                        <a href="<?php echo sr_e($contentAdminPreviewUrl((string) $editPage['slug'])); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_content_path((string) $editPage['slug'])); ?></a>
+                        <a href="<?php echo sr_e($contentAdminViewUrl((string) $editPage['slug'], (string) ($editPage['status'] ?? ''))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_content_path((string) $editPage['slug'])); ?></a>
                     </div>
                 </div>
             <?php } ?>
@@ -957,7 +962,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </td>
                                 <td class="admin-table-break admin-content-title-cell">
                                     <?php if (sr_content_slug_is_valid((string) ($page['slug'] ?? ''))) { ?>
-                                        <a href="<?php echo sr_e($contentAdminPreviewUrl((string) $page['slug'])); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $page['title']); ?></a>
+                                        <a href="<?php echo sr_e($contentAdminViewUrl((string) $page['slug'], (string) ($page['status'] ?? ''))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $page['title']); ?></a>
                                     <?php } else { ?>
                                         <?php echo sr_e((string) $page['title']); ?>
                                     <?php } ?>
@@ -989,7 +994,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <?php if (in_array((string) $page['status'], ['published', 'draft', 'scheduled'], true)) { ?>
-                                            <a href="<?php echo sr_e($contentAdminPreviewUrl((string) $page['slug'])); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
+                                            <a href="<?php echo sr_e($contentAdminViewUrl((string) $page['slug'], (string) ($page['status'] ?? ''))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
                                         <?php
                                         $contentCopyModalId = 'content-copy-modal-' . (string) (int) $page['id'];

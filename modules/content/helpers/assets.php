@@ -142,10 +142,36 @@ function sr_content_asset_confirmation_session_key(string $accessKind, int $acco
     return $accessKind . ':' . (string) $accountId . ':' . (string) $subjectId;
 }
 
+function sr_content_asset_confirmation_signed_token(string $accessKind, int $accountId, int $subjectId, string $fingerprint): string
+{
+    if ($accountId < 1 || $subjectId < 1 || $fingerprint === '' || session_id() === '') {
+        return '';
+    }
+
+    $appKey = sr_app_key(sr_runtime_config());
+    if ($appKey === '') {
+        return '';
+    }
+
+    return hash_hmac('sha256', implode('|', [
+        'content.asset.confirmation.v2',
+        $accessKind,
+        (string) $accountId,
+        (string) $subjectId,
+        $fingerprint,
+        session_id(),
+    ]), $appKey);
+}
+
 function sr_content_asset_confirmation_request_token(string $accessKind, int $accountId, int $subjectId, string $fingerprint): string
 {
     if ($accountId < 1 || $subjectId < 1 || $fingerprint === '') {
         return '';
+    }
+
+    $signedToken = sr_content_asset_confirmation_signed_token($accessKind, $accountId, $subjectId, $fingerprint);
+    if ($signedToken !== '') {
+        return $signedToken;
     }
 
     if (!isset($_SESSION['sr_content_asset_confirmation_requests']) || !is_array($_SESSION['sr_content_asset_confirmation_requests'])) {
@@ -173,7 +199,16 @@ function sr_content_asset_confirmation_request_token(string $accessKind, int $ac
 
 function sr_content_asset_confirmation_request_token_valid(string $accessKind, int $accountId, int $subjectId, string $fingerprint, string $token): bool
 {
-    if ($token === '' || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+    if ($token === '' || preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $token) !== 1) {
+        return false;
+    }
+
+    $signedToken = sr_content_asset_confirmation_signed_token($accessKind, $accountId, $subjectId, $fingerprint);
+    if ($signedToken !== '' && hash_equals($signedToken, $token)) {
+        return true;
+    }
+
+    if (strlen($token) !== 32) {
         return false;
     }
 
@@ -1035,6 +1070,24 @@ function sr_content_allocate_asset_settlement_use(PDO $pdo, array $assetModules,
     );
 
     return !empty($plan['ok']) ? (array) ($plan['allocations'] ?? []) : [];
+}
+
+function sr_content_asset_balance_shortage_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix, string $fallbackMessage): string
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $shortage = sr_member_asset_settlement_shortage(
+        $pdo,
+        sr_content_asset_modules($pdo),
+        static function (PDO $pdo, string $assetModule) use ($accountId): int {
+            return sr_content_asset_balance($pdo, $assetModule, $accountId);
+        },
+        sr_content_asset_module_keys_from_value($assetModules),
+        $settlementAmount,
+        $settlementCurrency
+    );
+
+    return sr_member_asset_balance_shortage_message($shortage, $suffix, $fallbackMessage);
 }
 
 function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = true): array

@@ -441,7 +441,7 @@ foreach ([
     'modules/community/actions/attachment.php',
 ] as $assetAction) {
     sr_asset_idempotency_contains($assetAction, [
-        "sr_post_string_without_truncation('asset_request_token', 32) ?? ''",
+        "sr_post_string_without_truncation('asset_request_token', 64) ?? ''",
     ]);
     if (str_contains(sr_asset_idempotency_file($assetAction), "sr_post_string('asset_request_token'")) {
         sr_asset_idempotency_error($assetAction . ' must reject overlong asset_request_token instead of truncating it.');

@@ -94,21 +94,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php } ?>
         <?php if (empty($pageAccess['allowed'])) { ?>
             <div class="content-body">
-                <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('content::ui.content.7d2dd480'))); ?></p>
                 <?php if ((string) ($pageAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
                     <?php
-                    $assetConfirmationMessage = (string) ($pageAccess['message'] ?? sr_content_asset_confirmation_required_message());
+                    $assetConfirmationAssetLabel = (string) ($pageAccess['asset_label'] ?? '');
+                    $assetConfirmationAmount = (int) ($pageAccess['amount'] ?? 0);
+                    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?';
                     $assetConfirmationAction = sr_content_path((string) $page['slug']);
                     $assetConfirmationId = 0;
                     $assetConfirmationContentId = 0;
                     $assetConfirmationRequestToken = (string) ($pageAccess['confirmation_request_token'] ?? '');
                     $assetConfirmationTitle = '콘텐츠 열람 확인';
-                    $assetConfirmationAssetLabel = (string) ($pageAccess['asset_label'] ?? '');
-                    $assetConfirmationAmount = (int) ($pageAccess['amount'] ?? 0);
+                    $assetConfirmationSubmitLabel = sr_t('content::ui.text.ac5b575f');
                     $assetConfirmationCouponIssues = is_array($pageAccess['coupon_issues'] ?? null) ? $pageAccess['coupon_issues'] : [];
                     $assetConfirmationModalId = 'content_asset_access_confirmation_modal';
                     include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
                     ?>
+                <?php } else { ?>
+                    <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('content::ui.content.7d2dd480'))); ?></p>
                 <?php } ?>
             </div>
         <?php } else { ?>
@@ -239,17 +241,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <li>
                                 <?php if (empty($contentAdminPreview)) { ?>
                                     <?php $contentFileNeedsConfirmation = (int) ($contentFile['asset_download_enabled'] ?? 0) === 1 && sr_content_asset_policy_requires_confirmation((string) ($contentFile['asset_charge_policy'] ?? 'once')); ?>
-                                    <?php if ($contentFileNeedsConfirmation) { ?>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/content/download')); ?>">
-                                            <?php echo sr_csrf_field(); ?>
-                                            <input type="hidden" name="id" value="<?php echo sr_e((string) $contentFile['id']); ?>">
-                                            <input type="hidden" name="content_id" value="<?php echo sr_e((string) (int) ($page['id'] ?? 0)); ?>">
-                                            <button type="submit" class="btn btn-solid-light">
-                                                <?php echo sr_e((string) $contentFile['title']); ?>
-                                            </button>
-                                        </form>
+                                    <?php $contentFileDownloadUrl = '/content/download?id=' . rawurlencode((string) $contentFile['id']) . '&content_id=' . rawurlencode((string) (int) ($page['id'] ?? 0)); ?>
+                                    <?php $contentFileDownloadAccess = $contentFileNeedsConfirmation && is_array($account ?? null) ? sr_content_charge_file_download($pdo, $contentFile, (int) ($account['id'] ?? 0), false, '', 0, false) : []; ?>
+                                    <?php if ($contentFileNeedsConfirmation && is_array($account ?? null) && (string) ($contentFileDownloadAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
+                                        <?php
+                                        $assetConfirmationAssetLabel = (string) ($contentFileDownloadAccess['asset_label'] ?? '');
+                                        $assetConfirmationAmount = (int) ($contentFileDownloadAccess['amount'] ?? 0);
+                                        $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 파일을 다운로드하시겠습니까?';
+                                        $assetConfirmationAction = '/content/download';
+                                        $assetConfirmationId = (int) $contentFile['id'];
+                                        $assetConfirmationContentId = (int) ($page['id'] ?? 0);
+                                        $assetConfirmationRequestToken = (string) ($contentFileDownloadAccess['confirmation_request_token'] ?? '');
+                                        $assetConfirmationTitle = (string) ($contentFile['title'] ?? sr_t('content::ui.text.0a4ca9bc'));
+                                        $assetConfirmationSubmitLabel = sr_t('content::ui.text.0a4ca9bc');
+                                        $assetConfirmationCouponIssues = is_array($contentFileDownloadAccess['coupon_issues'] ?? null) ? $contentFileDownloadAccess['coupon_issues'] : [];
+                                        $assetConfirmationModalId = 'content_file_download_confirmation_' . (string) (int) ($contentFile['id'] ?? 0);
+                                        $assetConfirmationOpen = false;
+                                        $assetConfirmationCancelUrl = '';
+                                        ?>
+                                        <button type="button" class="btn btn-solid-light" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">
+                                            <?php echo sr_e((string) $contentFile['title']); ?>
+                                        </button>
+                                        <?php include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php'; ?>
                                     <?php } else { ?>
-                                        <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']) . '&content_id=' . rawurlencode((string) (int) ($page['id'] ?? 0)))); ?>">
+                                        <a href="<?php echo sr_e(sr_url($contentFileDownloadUrl)); ?>">
                                             <?php echo sr_e((string) $contentFile['title']); ?>
                                         </a>
                                     <?php } ?>

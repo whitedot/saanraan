@@ -104,6 +104,8 @@ $canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array
 $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
+$paidReadBlocked = false;
+$paidReadBlockedMessage = '';
 $paidReadConfirmationRequestToken = '';
 $paidReadConfirmationCouponIssues = [];
 $paidReadConfirmationResult = [];
@@ -132,6 +134,8 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                 (int) $post['id'],
                 'use',
                 'community.post.read',
+                false,
+                '',
                 false
             );
         } else {
@@ -169,7 +173,9 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                     'use',
                     'community.post.read',
                     sr_request_method() === 'POST',
-                    sr_post_string_without_truncation('asset_request_token', 32) ?? ''
+                    sr_post_string_without_truncation('asset_request_token', 64) ?? '',
+                    true,
+                    sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1'
                 );
             }
         }
@@ -179,44 +185,45 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                 $paidReadConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
                 $paidReadConfirmationCouponIssues = sr_community_available_paid_read_coupon_issues($pdo, (int) $account['id'], $post);
                 $paidReadConfirmationResult = $paidReadResult;
-                $assetReadNotices[] = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
             } else {
-                sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));
+                $paidReadBlocked = true;
+                $paidReadBlockedMessage = (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed'));
             }
         }
         if (
             !$paidReadConfirmationRequired
+            && !$paidReadBlocked
             && sr_request_method() === 'POST'
             && sr_community_asset_policy_requires_confirmation((string) ($paidReadConfig['charge_policy'] ?? 'once'))
         ) {
             sr_community_mark_asset_confirmation_session('post_read', 'community.post', (int) $account['id'], (int) $post['id'], (string) ($paidReadResult['confirmation_fingerprint'] ?? ''));
             sr_redirect('/community/post?id=' . rawurlencode((string) $post['id']));
         }
-        if (!$paidReadConfirmationRequired) {
+        if (!$paidReadConfirmationRequired && !$paidReadBlocked) {
             sr_community_mark_paid_read_session((int) $account['id'], (int) $post['id']);
         }
-        if (!$paidReadConfirmationRequired && !empty($paidReadResult['processed'])) {
+        if (!$paidReadConfirmationRequired && !$paidReadBlocked && !empty($paidReadResult['processed'])) {
             $assetReadNotices[] = sr_t('community::action.notice.asset_used', [
                 'asset' => sr_community_asset_module_labels((string) $paidReadConfig['asset_module'], $pdo),
                 'amount' => number_format((int) $paidReadConfig['amount']),
             ]);
-        } elseif (!$paidReadConfirmationRequired && !empty($paidReadResult['coupon_used'])) {
+        } elseif (!$paidReadConfirmationRequired && !$paidReadBlocked && !empty($paidReadResult['coupon_used'])) {
             $assetReadNotices[] = '쿠폰으로 열람했습니다.';
         }
     }
 }
-if (!$communityAdminPreview && !$paidReadConfirmationRequired && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
+if (!$communityAdminPreview && !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
     sr_community_increment_post_view_count($pdo, (int) $post['id']);
     $post['view_count'] = (int) $post['view_count'] + 1;
 }
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
-$comments = $paidReadConfirmationRequired || !$canViewPostBody ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
-$attachments = $paidReadConfirmationRequired || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
-$communitySeriesContext = $paidReadConfirmationRequired || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
+$comments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
+$attachments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
+$communitySeriesContext = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
 $communityQuizQuizzes = [];
-if (!$paidReadConfirmationRequired && $canViewPostBody && sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.php')) {
+if (!$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.php')) {
     require_once SR_ROOT . '/modules/quiz/helpers.php';
     $communityQuizQuizzes = sr_quiz_community_post_quizzes($pdo, (int) $post['id']);
 }
@@ -233,20 +240,21 @@ foreach ($attachments as $attachment) {
         $fileAttachments[] = $attachment;
     }
 }
-$canComment = !$paidReadConfirmationRequired && $canViewPostBody && sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null);
+$canComment = !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null);
 $commentUnavailableMessage = '';
 if (!$canComment && !is_array($account)) {
     $commentUnavailableMessage = sr_t('community::action.notice.login_required_to_comment');
 } elseif (!$canComment) {
     $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');
 }
-$isScrapped = !$paidReadConfirmationRequired && is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
+$isScrapped = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
 $isSeriesScrapped = !$paidReadConfirmationRequired
+    && !$paidReadBlocked
     && is_array($account)
     && is_array($communitySeriesContext)
     && sr_community_account_has_series_scrap($pdo, (int) $account['id'], (int) $communitySeriesContext['id']);
 $postActionUnavailableMessage = is_array($account) ? '' : sr_t('community::action.notice.login_required_to_post_actions');
-$canReportPost = !$paidReadConfirmationRequired && is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
+$canReportPost = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();
 $postNotices = $assetReadNotices;
 if (isset($_SESSION['sr_community_post_notice']) && is_string($_SESSION['sr_community_post_notice'])) {

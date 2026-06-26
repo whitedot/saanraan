@@ -389,6 +389,6 @@ function sr_content_can_access_body_file(PDO $pdo, array $page, ?array $account)
         return false;
     }
 
-    $access = sr_content_charge_view_access($pdo, $page, (int) $account['id'], false);
+    $access = sr_content_charge_view_access($pdo, $page, (int) $account['id'], false, '', 0, false);
     return !empty($access['allowed']);
 }

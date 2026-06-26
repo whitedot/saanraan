@@ -122,7 +122,7 @@ if (sr_request_method() === 'POST') {
                 $precheckChargeConfig['amounts'] = array_map(static fn (mixed $amount): int => (int) $amount * $recipientCount, (array) $messageChargeConfig['amounts']);
             }
             if (!sr_community_asset_use_balance_available($pdo, $precheckChargeConfig, (int) $account['id'])) {
-                $errors[] = sr_t('community::action.error.message_asset_balance_low');
+                $errors[] = sr_community_asset_config_balance_shortage_message($pdo, $precheckChargeConfig, (int) $account['id'], '쪽지를 보낼 수 없습니다.', sr_t('community::action.error.message_asset_balance_low'));
             }
         }
     }

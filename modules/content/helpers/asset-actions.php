@@ -238,7 +238,7 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
-            'message' => '선택한 항목의 잔액이 부족해 완료 처리할 수 없습니다.',
+            'message' => sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '완료 처리할 수 없습니다.', '선택한 항목의 잔액이 부족해 완료 처리할 수 없습니다.'),
         ];
     }
 

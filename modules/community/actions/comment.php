@@ -72,7 +72,7 @@ if ($errors === [] && sr_community_asset_event_required($commentChargeConfig)) {
     if ($errors === [] && !sr_community_asset_modules_available($pdo, $assetModules)) {
         $errors[] = sr_t('community::action.error.comment_asset_modules_unavailable');
     } elseif ($errors === [] && !sr_community_asset_use_balance_available($pdo, $commentChargeConfig, (int) $account['id'])) {
-        $errors[] = sr_t('community::action.error.comment_asset_balance_low');
+        $errors[] = sr_community_asset_config_balance_shortage_message($pdo, $commentChargeConfig, (int) $account['id'], '댓글을 작성할 수 없습니다.', sr_t('community::action.error.comment_asset_balance_low'));
     }
 }
 

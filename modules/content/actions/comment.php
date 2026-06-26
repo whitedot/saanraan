@@ -15,7 +15,7 @@ if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
     sr_render_error(404, sr_t('content::action.error.content_not_found'));
 }
 if (sr_content_asset_access_required($page)) {
-    $access = sr_content_charge_view_access($pdo, $page, (int) $account['id'], false);
+    $access = sr_content_charge_view_access($pdo, $page, (int) $account['id'], false, '', 0, false);
     if (empty($access['allowed'])) {
         sr_render_error(403, '콘텐츠 열람 권한이 있어야 댓글을 작성할 수 있습니다.');
     }

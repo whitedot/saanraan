@@ -756,10 +756,37 @@ function sr_community_asset_confirmation_session_key(string $eventKey, string $s
     return $eventKey . ':' . $subjectType . ':' . (string) $accountId . ':' . (string) $subjectId;
 }
 
+function sr_community_asset_confirmation_signed_token(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint): string
+{
+    if ($eventKey === '' || $subjectType === '' || $accountId < 1 || $subjectId < 1 || $fingerprint === '' || session_id() === '') {
+        return '';
+    }
+
+    $appKey = sr_app_key(sr_runtime_config());
+    if ($appKey === '') {
+        return '';
+    }
+
+    return hash_hmac('sha256', implode('|', [
+        'community.asset.confirmation.v2',
+        $eventKey,
+        $subjectType,
+        (string) $accountId,
+        (string) $subjectId,
+        $fingerprint,
+        session_id(),
+    ]), $appKey);
+}
+
 function sr_community_asset_confirmation_request_token(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint): string
 {
     if ($eventKey === '' || $subjectType === '' || $accountId < 1 || $subjectId < 1 || $fingerprint === '') {
         return '';
+    }
+
+    $signedToken = sr_community_asset_confirmation_signed_token($eventKey, $subjectType, $accountId, $subjectId, $fingerprint);
+    if ($signedToken !== '') {
+        return $signedToken;
     }
 
     if (!isset($_SESSION['sr_community_asset_confirmation_requests']) || !is_array($_SESSION['sr_community_asset_confirmation_requests'])) {
@@ -787,7 +814,16 @@ function sr_community_asset_confirmation_request_token(string $eventKey, string 
 
 function sr_community_asset_confirmation_request_token_valid(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint, string $token): bool
 {
-    if ($token === '' || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+    if ($token === '' || preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $token) !== 1) {
+        return false;
+    }
+
+    $signedToken = sr_community_asset_confirmation_signed_token($eventKey, $subjectType, $accountId, $subjectId, $fingerprint);
+    if ($signedToken !== '' && hash_equals($signedToken, $token)) {
+        return true;
+    }
+
+    if (strlen($token) !== 32) {
         return false;
     }
 
@@ -1357,6 +1393,34 @@ function sr_community_allocate_asset_settlement_use(PDO $pdo, array $assetModule
     );
 
     return !empty($plan['ok']) ? (array) ($plan['allocations'] ?? []) : [];
+}
+
+function sr_community_asset_balance_shortage_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix, string $fallbackMessage): string
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $shortage = sr_member_asset_settlement_shortage(
+        $pdo,
+        sr_community_asset_modules($pdo),
+        static function (PDO $pdo, string $assetModule) use ($accountId): int {
+            return sr_community_asset_balance($pdo, $assetModule, $accountId);
+        },
+        sr_community_asset_module_keys_from_value($assetModules, true),
+        $settlementAmount,
+        $settlementCurrency
+    );
+
+    return sr_member_asset_balance_shortage_message($shortage, $suffix, $fallbackMessage);
+}
+
+function sr_community_asset_config_balance_shortage_message(PDO $pdo, array $config, int $accountId, string $suffix, string $fallbackMessage): string
+{
+    $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
+    $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
+    $amount = $amounts !== [] ? sr_community_asset_amount_total($amounts) : (int) ($config['amount'] ?? 0);
+    $settlementCurrency = sr_community_asset_settlement_currency($pdo, $config);
+
+    return sr_community_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, $suffix, $fallbackMessage);
 }
 
 function sr_community_asset_use_balance_available(PDO $pdo, array $config, int $accountId): bool

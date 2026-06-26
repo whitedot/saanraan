@@ -1,6 +1,6 @@
 <?php
 
-$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_content_asset_confirmation_required_message());
+$assetConfirmationMessage = (string) ($assetConfirmationMessage ?? '차감 내용을 확인해 주세요.');
 $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/content');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationContentId = (int) ($assetConfirmationContentId ?? 0);
@@ -8,10 +8,15 @@ $assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '')
 $assetConfirmationTitle = (string) ($assetConfirmationTitle ?? sr_t('content::ui.text.0a4ca9bc'));
 $assetConfirmationAssetLabel = (string) ($assetConfirmationAssetLabel ?? '');
 $assetConfirmationAmount = (int) ($assetConfirmationAmount ?? 0);
+$assetConfirmationSubmitLabel = (string) ($assetConfirmationSubmitLabel ?? sr_t('content::ui.text.ac5b575f'));
 $assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
 $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'content_asset_confirmation_modal');
+$assetConfirmationOpen = !isset($assetConfirmationOpen) || !empty($assetConfirmationOpen);
+$assetConfirmationCancelUrl = (string) ($assetConfirmationCancelUrl ?? '/');
+$assetConfirmationClasses = 'modal-overlay overlay content-asset-confirmation-modal';
+$assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' modal-overlay-fade hidden pointer-events-none opacity-0';
 ?>
-<div id="<?php echo sr_e($assetConfirmationModalId); ?>" class="modal-overlay overlay overlay-open content-asset-confirmation-modal" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetConfirmationModalId . '_title'); ?>" aria-modal="true">
+<div id="<?php echo sr_e($assetConfirmationModalId); ?>" class="<?php echo sr_e($assetConfirmationClasses); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetConfirmationModalId . '_title'); ?>" aria-modal="true" aria-hidden="<?php echo $assetConfirmationOpen ? 'false' : 'true'; ?>"<?php echo $assetConfirmationOpen ? '' : ' inert'; ?>>
     <div class="modal-dialog-center">
         <div class="modal-content">
             <div class="modal-header">
@@ -67,17 +72,22 @@ $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'content_asse
                 <?php } ?>
             </div>
             <div class="modal-footer">
-                <a class="btn btn-solid-light modal-action" href="<?php echo sr_e(sr_url('/')); ?>">취소</a>
+                <?php if ($assetConfirmationCancelUrl === '') { ?>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($assetConfirmationModalId); ?>">취소</button>
+                <?php } else { ?>
+                    <a class="btn btn-solid-light modal-action" href="<?php echo sr_e(sr_url($assetConfirmationCancelUrl)); ?>">취소</a>
+                <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="modal-action">
                     <?php echo sr_csrf_field(); ?>
                     <?php if ($assetConfirmationId > 0) { ?>
                         <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
                     <?php } ?>
+                    <input type="hidden" name="asset_confirm" value="1">
                     <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
                     <?php if ($assetConfirmationContentId > 0) { ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
                     <?php } ?>
-                    <button type="submit" class="btn btn-solid-warning"><?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></button>
+                    <button type="submit" class="btn btn-solid-warning"><?php echo sr_e($assetConfirmationSubmitLabel); ?></button>
                 </form>
             </div>
         </div>
