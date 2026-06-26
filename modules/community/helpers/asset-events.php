@@ -719,7 +719,10 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_community_asset_settlement_currency($pdo, $config);
     $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
-    if ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && !$process) {
+    $confirmationRequired = $direction === 'use'
+        && in_array($eventKey, ['post_read', 'attachment_download'], true)
+        && sr_community_asset_policy_requires_confirmation($chargePolicy);
+    if ($confirmationRequired && !$process) {
         if ($consumeConfirmationSession && sr_community_consume_asset_confirmation_session($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint)) {
             return [
                 'allowed' => true,
@@ -744,7 +747,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
             'message' => sr_community_asset_confirmation_required_message(),
         ];
-    } elseif ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && $process && (!$confirmedPost || !sr_community_asset_confirmation_request_token_valid($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint, $requestToken))) {
+    } elseif ($confirmationRequired && $process && (!$confirmedPost || !sr_community_asset_confirmation_request_token_valid($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint, $requestToken))) {
         return [
             'allowed' => false,
             'processed' => false,
