@@ -13,7 +13,173 @@ function sr_point_default_settings(): array
         'display_name' => '포인트',
         'unit_label' => 'P',
         'default_expiration_days' => '0',
+        'notification_cases' => sr_point_default_notification_case_settings(),
     ];
+}
+
+function sr_point_notification_cases(): array
+{
+    return [
+        'transaction_grant' => [
+            'event_key' => 'transaction.grant',
+            'label' => '지급 알림',
+            'description' => '포인트가 지급되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_refund' => [
+            'event_key' => 'transaction.refund',
+            'label' => '복원 알림',
+            'description' => '포인트가 환불 또는 복원되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_use' => [
+            'event_key' => 'transaction.use',
+            'label' => '사용 알림',
+            'description' => '포인트가 사용되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_expire' => [
+            'event_key' => 'transaction.expire',
+            'label' => '만료 알림',
+            'description' => '포인트가 만료되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_adjustment_increase' => [
+            'event_key' => 'transaction.adjustment.increase',
+            'label' => '증가 조정 알림',
+            'description' => '관리자 조정 등으로 포인트가 증가했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_adjustment_decrease' => [
+            'event_key' => 'transaction.adjustment.decrease',
+            'label' => '감소 조정 알림',
+            'description' => '관리자 조정 등으로 포인트가 감소했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+    ];
+}
+
+function sr_point_notification_case_key_for_event(string $eventKey): string
+{
+    foreach (sr_point_notification_cases() as $caseKey => $case) {
+        if ((string) ($case['event_key'] ?? '') === $eventKey) {
+            return (string) $caseKey;
+        }
+    }
+
+    return '';
+}
+
+function sr_point_default_notification_case_settings(): array
+{
+    $settings = [];
+    foreach (sr_point_notification_cases() as $caseKey => $case) {
+        $settings[(string) $caseKey] = [
+            'event_key' => (string) ($case['event_key'] ?? ''),
+            'enabled' => !empty($case['default_enabled']),
+            'channels' => ['site'],
+        ];
+    }
+
+    return $settings;
+}
+
+function sr_point_account_notification_channel_keys(): array
+{
+    return ['site', 'email', 'telegram_bot'];
+}
+
+function sr_point_notification_channels_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawValues)) {
+        $rawValues = ['site'];
+    }
+
+    $allowed = sr_point_account_notification_channel_keys();
+    $channels = [];
+    foreach ($rawValues as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $channels[$channel] = $channel;
+        }
+    }
+
+    return $channels === [] ? ['site'] : array_values($channels);
+}
+
+function sr_point_notification_channel_options(PDO $pdo): array
+{
+    $channels = ['site'];
+    if (sr_point_notification_event_function($pdo) !== '') {
+        if (function_exists('sr_notification_create_channels')) {
+            $channels = array_merge($channels, sr_notification_create_channels($pdo));
+        }
+        if (function_exists('sr_notification_member_external_channel_keys')
+            && function_exists('sr_notification_member_external_provider_is_ready')
+            && function_exists('sr_notification_settings')
+        ) {
+            $notificationSettings = sr_notification_settings($pdo);
+            foreach (sr_notification_member_external_channel_keys() as $channel) {
+                if (sr_notification_member_external_provider_is_ready($channel, $notificationSettings)) {
+                    $channels[] = $channel;
+                }
+            }
+        }
+    }
+
+    $allowed = sr_point_account_notification_channel_keys();
+    $options = [];
+    foreach ($channels as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $options[$channel] = $channel;
+        }
+    }
+
+    return $options === [] ? ['site'] : array_values($options);
+}
+
+function sr_point_notification_case_settings_from_value(mixed $value): array
+{
+    $rawSettings = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawSettings)) {
+        $rawSettings = [];
+    }
+
+    $caseKeyByEventKey = [];
+    foreach (sr_point_notification_cases() as $caseKey => $case) {
+        $caseKeyByEventKey[(string) ($case['event_key'] ?? '')] = (string) $caseKey;
+    }
+
+    $normalized = sr_point_default_notification_case_settings();
+    foreach ($rawSettings as $rawCaseKey => $rawCaseSettings) {
+        $caseKey = (string) $rawCaseKey;
+        if (!isset($normalized[$caseKey])) {
+            $caseKey = $caseKeyByEventKey[$caseKey] ?? '';
+        }
+        if ($caseKey === '' || !isset($normalized[$caseKey]) || !is_array($rawCaseSettings)) {
+            continue;
+        }
+
+        if (array_key_exists('enabled', $rawCaseSettings)) {
+            $normalized[$caseKey]['enabled'] = sr_truthy($rawCaseSettings['enabled']);
+        }
+        if (array_key_exists('channels', $rawCaseSettings)) {
+            $normalized[$caseKey]['channels'] = sr_point_notification_channels_from_value($rawCaseSettings['channels']);
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_point_notification_setting_for_event(array $settings, string $eventKey): ?array
+{
+    $caseKey = sr_point_notification_case_key_for_event($eventKey);
+    if ($caseKey === '') {
+        return null;
+    }
+
+    $caseSettings = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
 
 function sr_point_relative_time_label(string $dateTime): string
@@ -39,6 +205,7 @@ function sr_point_settings(PDO $pdo): array
         $settings['unit_label'] = 'P';
     }
     $settings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
+    $settings['notification_cases'] = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     return $settings;
 }
 
@@ -63,6 +230,13 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
     if ($unitLabel === '') {
         $unitLabel = 'P';
     }
+    $notificationCases = array_key_exists('notification_cases', $settings)
+        ? sr_point_notification_case_settings_from_value($settings['notification_cases'])
+        : sr_point_notification_case_settings_from_value(sr_point_settings($pdo)['notification_cases'] ?? []);
+    $notificationCasesJson = json_encode($notificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($notificationCasesJson)) {
+        $notificationCasesJson = json_encode(sr_point_default_notification_case_settings(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
 
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -80,6 +254,7 @@ function sr_point_save_settings(PDO $pdo, array $settings): void
         ['display_name', $displayName, 'string'],
         ['unit_label', $unitLabel, 'string'],
         ['default_expiration_days', (string) $defaultExpirationDays, 'integer'],
+        ['notification_cases', (string) $notificationCasesJson, 'json'],
     ] as $row) {
         $stmt->execute([
             'module_id' => (int) $module['id'],
@@ -1264,14 +1439,27 @@ function sr_point_notify_transaction_created(PDO $pdo, int $transactionId): ?int
         $eventKey = $transactionType === 'adjustment'
             ? 'transaction.adjustment.' . ($amount > 0 ? 'increase' : 'decrease')
             : 'transaction.' . $transactionType;
+        $channels = [];
+        $caseSetting = sr_point_notification_setting_for_event(sr_point_settings($pdo), $eventKey);
+        if (is_array($caseSetting)) {
+            if (empty($caseSetting['enabled'])) {
+                return null;
+            }
+            $channels = sr_point_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
+        }
 
-        return $createAccountEventFunction($pdo, [
+        $payload = [
             'account_id' => (int) $transaction['account_id'],
             'module_key' => 'point',
             'event_key' => $eventKey,
             'created_by_account_id' => (int) ($transaction['created_by_account_id'] ?? 0),
             'metadata' => sr_point_transaction_notification_metadata($transaction, $pdo),
-        ]);
+        ];
+        if ($channels !== []) {
+            $payload['channels'] = $channels;
+        }
+
+        return $createAccountEventFunction($pdo, $payload);
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'point_transaction_notification');
         return null;

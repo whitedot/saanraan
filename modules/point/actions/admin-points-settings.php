@@ -13,6 +13,8 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_point_settings($pdo);
+$notificationCases = sr_point_notification_cases();
+$notificationChannelOptions = sr_point_notification_channel_options($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -27,6 +29,32 @@ if (sr_request_method() === 'POST') {
             'unit_label' => sr_point_clean_text(sr_post_string('unit_label', 40), 20),
             'default_expiration_days' => $defaultExpirationDaysInput,
         ];
+        $postedCases = $_POST['notification_cases'] ?? [];
+        $postedCases = is_array($postedCases) ? $postedCases : [];
+        $allowedChannels = array_fill_keys($notificationChannelOptions, true);
+        $caseSettings = [];
+        foreach ($notificationCases as $caseKey => $case) {
+            $caseKey = (string) $caseKey;
+            $casePost = isset($postedCases[$caseKey]) && is_array($postedCases[$caseKey]) ? $postedCases[$caseKey] : [];
+            $postedChannels = $casePost['channels'] ?? [];
+            $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
+            $channels = [];
+            foreach ($postedChannels as $channel) {
+                if (isset($allowedChannels[$channel])) {
+                    $channels[$channel] = $channel;
+                }
+            }
+
+            $caseSettings[$caseKey] = [
+                'event_key' => (string) ($case['event_key'] ?? ''),
+                'enabled' => sr_truthy($casePost['enabled'] ?? false),
+                'channels' => array_values($channels),
+            ];
+            if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
+                $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
+            }
+        }
+        $postedSettings['notification_cases'] = $caseSettings;
         $postedSettings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($postedSettings['default_expiration_days']);
         $settings = array_merge($settings, $postedSettings);
 
@@ -41,6 +69,8 @@ if (sr_request_method() === 'POST') {
             try {
                 sr_point_save_settings($pdo, $postedSettings);
                 $settings = sr_point_settings($pdo);
+                $notificationCases = sr_point_notification_cases();
+                $notificationChannelOptions = sr_point_notification_channel_options($pdo);
 
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -55,6 +85,7 @@ if (sr_request_method() === 'POST') {
                         'display_name' => (string) $settings['display_name'],
                         'unit_label' => (string) $settings['unit_label'],
                         'default_expiration_days' => (string) $settings['default_expiration_days'],
+                        'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                     ],
                 ]);
 
