@@ -62,7 +62,9 @@ if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccountId = (int) $account['id'];
     $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 32) ?? '';
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken);
+    $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
+    $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId);
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
@@ -70,6 +72,7 @@ if (sr_content_file_download_required($file)) {
             $assetConfirmationId = (int) $file['id'];
             $assetConfirmationContentId = (int) ($file['content_id'] ?? 0);
             $assetConfirmationRequestToken = (string) ($downloadAccess['confirmation_request_token'] ?? '');
+            $assetConfirmationCouponIssues = is_array($downloadAccess['coupon_issues'] ?? null) ? $downloadAccess['coupon_issues'] : [];
             include SR_ROOT . '/modules/content/views/asset-confirmation.php';
             return;
         }

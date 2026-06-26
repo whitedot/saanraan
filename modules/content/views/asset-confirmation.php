@@ -5,9 +5,12 @@ $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/content');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationContentId = (int) ($assetConfirmationContentId ?? 0);
 $assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '');
+$assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
 $assetConfirmationTitle = is_array($file ?? null)
     ? (string) (($file['title'] ?? '') ?: sr_t('content::ui.text.0a4ca9bc'))
     : sr_t('content::ui.text.0a4ca9bc');
+$assetConfirmationAssetLabel = (string) ($assetConfirmationAssetLabel ?? ($downloadAccess['asset_label'] ?? ''));
+$assetConfirmationAmount = (int) ($assetConfirmationAmount ?? ($downloadAccess['amount'] ?? 0));
 $seo = [
     'title' => $assetConfirmationTitle,
     'robots' => 'noindex, nofollow',
@@ -17,19 +20,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
 ?>
 <main class="content-page content-page-basic">
     <article class="content-article">
-        <header class="content-header">
-            <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
-            <p><?php echo sr_e($assetConfirmationMessage); ?></p>
-        </header>
-        <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>">
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
-            <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-            <?php if ($assetConfirmationContentId > 0) { ?>
-                <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
-            <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></button>
-        </form>
+        <?php include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php'; ?>
     </article>
 </main>
 <?php sr_public_layout_end(); ?>

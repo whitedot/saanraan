@@ -109,6 +109,8 @@ if (is_array($board)) {
             }
         }
         if (!$skipPaidReadCharge) {
+            $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
+            $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
             $couponReadResult = ['allowed' => false, 'processed' => false];
             if (sr_community_asset_policy_requires_confirmation($paidReadChargePolicy) && sr_request_method() !== 'POST') {
                 $paidReadResult = sr_community_run_asset_event(
@@ -123,7 +125,9 @@ if (is_array($board)) {
                     false
                 );
             } else {
-                $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey);
+                $couponReadResult = $couponIssueId > 0
+                    ? sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId)
+                    : ['allowed' => false, 'processed' => false];
                 $paidReadResult = !empty($couponReadResult['allowed'])
                     ? [
                         'allowed' => true,
@@ -149,6 +153,7 @@ if (is_array($board)) {
                     $assetConfirmationAction = '/community/attachment';
                     $assetConfirmationId = (int) $attachment['id'];
                     $assetConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
+                    $assetConfirmationCouponIssues = sr_community_available_paid_read_coupon_issues($pdo, (int) $account['id'], $post);
                     include SR_ROOT . '/modules/community/views/asset-confirmation.php';
                     return;
                 }

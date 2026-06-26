@@ -196,12 +196,18 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                 <p class="community-post-secret"><?php echo sr_e('비밀글입니다.'); ?></p>
             </article>
             <?php } elseif (!empty($paidReadConfirmationRequired)) { ?>
-                <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
-                    <?php echo sr_csrf_field(); ?>
-                    <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
-                    <input type="hidden" name="asset_request_token" value="<?php echo sr_e((string) ($paidReadConfirmationRequestToken ?? '')); ?>">
-                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
-                </form>
+                <?php
+                $assetConfirmationMessage = (string) ($assetReadNotices[0] ?? sr_community_asset_confirmation_required_message());
+                $assetConfirmationAction = '/community/post';
+                $assetConfirmationId = (int) $post['id'];
+                $assetConfirmationRequestToken = (string) ($paidReadConfirmationRequestToken ?? '');
+                $assetConfirmationTitle = '게시글 열람 확인';
+                $assetConfirmationAssetLabel = (string) ($paidReadConfirmationResult['asset_label'] ?? '');
+                $assetConfirmationAmount = (int) ($paidReadConfirmationResult['amount'] ?? 0);
+                $assetConfirmationCouponIssues = is_array($paidReadConfirmationCouponIssues ?? null) ? $paidReadConfirmationCouponIssues : [];
+                $assetConfirmationModalId = 'community_paid_read_confirmation_modal';
+                include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';
+                ?>
             </article>
             <?php } else { ?>
             <?php

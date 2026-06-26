@@ -3107,6 +3107,30 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
     return $stmt->fetchAll();
 }
 
+function sr_coupon_active_account_target_issues(PDO $pdo, int $accountId, string $targetType, string $targetId, int $limit = 20): array
+{
+    if ($accountId <= 0 || $targetType === '' || $targetId === '' || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
+        return [];
+    }
+
+    $matched = [];
+    foreach (sr_coupon_active_account_issues($pdo, $accountId, max(100, $limit * 5)) as $issue) {
+        if ((string) ($issue['coupon_type'] ?? '') !== 'access') {
+            continue;
+        }
+        if (!sr_coupon_issue_matches_target($issue, $targetType, $targetId)) {
+            continue;
+        }
+
+        $matched[] = $issue;
+        if (count($matched) >= $limit) {
+            break;
+        }
+    }
+
+    return $matched;
+}
+
 function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
@@ -3770,6 +3794,7 @@ function sr_coupon_revoke_target_access_or_fail(PDO $pdo, string $targetType, in
 function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetType, string $targetId, array $context = []): array
 {
     $dedupeKey = sr_coupon_clean_text((string) ($context['dedupe_key'] ?? ''), 160);
+    $requestedIssueId = max(0, (int) ($context['coupon_issue_id'] ?? 0));
     if ($accountId <= 0 || $targetType === '' || $dedupeKey === '' || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
         return ['allowed' => false, 'processed' => false, 'message' => ''];
     }
@@ -3786,6 +3811,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
     }
 
     try {
+        $issueIdCondition = $requestedIssueId > 0 ? ' AND i.id = :issue_id' : '';
         $stmt = $pdo->prepare(
             "SELECT i.*, d.coupon_key, d.title, d.target_type, d.target_id, d.max_uses_per_issue, d.refundable_policy
              FROM sr_coupon_issues i
@@ -3794,14 +3820,18 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
                AND i.status = 'active'
                AND d.status IN ('active', 'issue_stopped')
                AND d.coupon_type = 'access'
-               AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
+               AND (i.expires_at IS NULL OR i.expires_at >= :now_value)" . $issueIdCondition . "
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
             . sr_coupon_for_update_clause($pdo)
         );
-        $stmt->execute([
+        $params = [
             'account_id' => $accountId,
             'now_value' => sr_now(),
-        ]);
+        ];
+        if ($requestedIssueId > 0) {
+            $params['issue_id'] = $requestedIssueId;
+        }
+        $stmt->execute($params);
         $selectedIssue = null;
         foreach ($stmt->fetchAll() as $issue) {
             if (sr_coupon_issue_matches_target($issue, $targetType, $targetId)) {

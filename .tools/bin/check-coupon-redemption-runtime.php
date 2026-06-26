@@ -495,7 +495,7 @@ function sr_coupon_runtime_partial_failure_fixture(): void
     ];
     $confirmation = sr_content_charge_view_access($pdo, $paidPage, 7, false);
     $token = (string) ($confirmation['confirmation_request_token'] ?? '');
-    $contentResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
+    $contentResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token, $contentIssueId);
     sr_coupon_runtime_assert(empty($contentResult['allowed']), 'content coupon entitlement failure should not allow access.');
     sr_coupon_runtime_assert((string) ($contentResult['message'] ?? '') !== '', 'content coupon entitlement failure should return a user-facing failure message.');
     sr_coupon_runtime_assert_issue_unused($pdo, $contentIssueId, 'content coupon entitlement failure');
@@ -790,6 +790,68 @@ function sr_coupon_runtime_fixture(): void
     ]);
     $issueId = (int) $pdo->lastInsertId();
 
+    foreach ([
+        ['paid_access_choice_a', 'Paid access choice A', '43'],
+        ['paid_access_choice_b', 'Paid access choice B', '43'],
+        ['paid_access_choice_other', 'Paid access choice other', '44'],
+    ] as $choiceDefinitionFixture) {
+        $pdo->prepare(
+            "INSERT INTO sr_coupon_definitions
+                (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+             VALUES
+                (:coupon_key, :title, '', 'active', 'access', 'content', :target_id, 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+        )->execute([
+            'coupon_key' => $choiceDefinitionFixture[0],
+            'title' => $choiceDefinitionFixture[1],
+            'target_id' => $choiceDefinitionFixture[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $choiceDefinitionIds = $pdo->query("SELECT id, coupon_key FROM sr_coupon_definitions WHERE coupon_key IN ('paid_access_choice_a', 'paid_access_choice_b', 'paid_access_choice_other')")->fetchAll();
+    $choiceIssueIds = [];
+    foreach ($choiceDefinitionIds as $choiceDefinition) {
+        $pdo->prepare(
+            "INSERT INTO sr_coupon_issues
+                (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+             VALUES
+                (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+        )->execute([
+            'definition_id' => (int) $choiceDefinition['id'],
+            'issued_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $choiceIssueIds[(string) $choiceDefinition['coupon_key']] = (int) $pdo->lastInsertId();
+    }
+
+    $choiceIssues = sr_coupon_active_account_target_issues($pdo, 7, 'content', '43', 10);
+    $choiceIssueTitles = array_map(static fn (array $issue): string => (string) ($issue['title'] ?? ''), $choiceIssues);
+    sr_coupon_runtime_assert(in_array('Paid access choice A', $choiceIssueTitles, true), 'target coupon choices should include the first matching content coupon.');
+    sr_coupon_runtime_assert(in_array('Paid access choice B', $choiceIssueTitles, true), 'target coupon choices should include the second matching content coupon.');
+    sr_coupon_runtime_assert(!in_array('Paid access choice other', $choiceIssueTitles, true), 'target coupon choices should exclude coupons for a different target.');
+
+    $selectedChoice = sr_coupon_redeem_for_target($pdo, 7, 'content', '43', [
+        'dedupe_key' => 'content:view:43:account:7:intent:selected',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '43',
+        'coupon_issue_id' => $choiceIssueIds['paid_access_choice_b'],
+    ]);
+    sr_coupon_runtime_assert(!empty($selectedChoice['allowed']) && !empty($selectedChoice['processed']), 'selected coupon redemption should process.');
+    sr_coupon_runtime_assert((int) ($selectedChoice['coupon_issue_id'] ?? 0) === $choiceIssueIds['paid_access_choice_b'], 'selected coupon redemption should use the requested issue.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $choiceIssueIds['paid_access_choice_a'], 'unselected target coupon choice');
+    sr_coupon_runtime_assert_issue_unused($pdo, $choiceIssueIds['paid_access_choice_other'], 'different target coupon choice');
+
+    $wrongSelectedChoice = sr_coupon_redeem_for_target($pdo, 7, 'content', '43', [
+        'dedupe_key' => 'content:view:43:account:7:intent:wrong-selected',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '43',
+        'coupon_issue_id' => $choiceIssueIds['paid_access_choice_other'],
+    ]);
+    sr_coupon_runtime_assert(empty($wrongSelectedChoice['allowed']) && empty($wrongSelectedChoice['processed']), 'selected coupon redemption should reject an issue for a different target.');
+
     $first = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
         'dedupe_key' => 'content:view:42:account:7:intent:abc',
         'reference_module' => 'content',
@@ -1028,14 +1090,14 @@ function sr_coupon_runtime_fixture(): void
     $token = (string) ($confirmation['confirmation_request_token'] ?? '');
     sr_coupon_runtime_assert($token !== '', 'content paid view fixture should create a confirmation token before processing.');
 
-    $priorityResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
+    $priorityResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token, $priorityIssueId);
     sr_coupon_runtime_assert(!empty($priorityResult['allowed']), 'content paid view fixture should allow coupon-backed access.');
-    sr_coupon_runtime_assert(empty($priorityResult['charged']), 'content paid view fixture must not charge assets when coupon is available.');
-    sr_coupon_runtime_assert(!empty($priorityResult['coupon_used']), 'content paid view fixture must report coupon_used on first coupon-backed access.');
-    sr_coupon_runtime_assert((int) ($priorityResult['amount'] ?? -1) === 0, 'content paid view fixture should reduce payable amount to zero when coupon is used first.');
+    sr_coupon_runtime_assert(empty($priorityResult['charged']), 'content paid view fixture must not charge assets when selected coupon is applied.');
+    sr_coupon_runtime_assert(!empty($priorityResult['coupon_used']), 'content paid view fixture must report coupon_used on first selected coupon-backed access.');
+    sr_coupon_runtime_assert((int) ($priorityResult['amount'] ?? -1) === 0, 'content paid view fixture should reduce payable amount to zero when selected coupon is used first.');
     sr_coupon_runtime_assert((string) ($priorityResult['asset_label'] ?? '') === '쿠폰', 'content paid view fixture should label coupon-backed access as coupon.');
-    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid view fixture must not create point transactions when coupon takes priority.');
-    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid view fixture must not create asset access logs when coupon takes priority.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid view fixture must not create point transactions when selected coupon is applied.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid view fixture must not create asset access logs when selected coupon is applied.');
 
     $priorityRedemption = sr_coupon_runtime_row($pdo, "SELECT status, used_count FROM sr_coupon_issues WHERE id = :id", ['id' => $priorityIssueId]);
     sr_coupon_runtime_assert((string) ($priorityRedemption['status'] ?? '') === 'used', 'content paid view fixture should mark the priority coupon issue used.');
@@ -1120,14 +1182,14 @@ function sr_coupon_runtime_fixture(): void
     $downloadToken = (string) ($downloadConfirmation['confirmation_request_token'] ?? '');
     sr_coupon_runtime_assert($downloadToken !== '', 'content paid download fixture should create a confirmation token before processing.');
 
-    $downloadResult = sr_content_charge_file_download($pdo, $paidFile, 7, true, $downloadToken);
+    $downloadResult = sr_content_charge_file_download($pdo, $paidFile, 7, true, $downloadToken, $downloadIssueId);
     sr_coupon_runtime_assert(!empty($downloadResult['allowed']), 'content paid download fixture should allow coupon-backed access.');
-    sr_coupon_runtime_assert(empty($downloadResult['charged']), 'content paid download fixture must not charge assets when coupon is available.');
-    sr_coupon_runtime_assert(!empty($downloadResult['coupon_used']), 'content paid download fixture must report coupon_used on first coupon-backed download.');
-    sr_coupon_runtime_assert((int) ($downloadResult['amount'] ?? -1) === 0, 'content paid download fixture should reduce payable amount to zero when coupon is used first.');
+    sr_coupon_runtime_assert(empty($downloadResult['charged']), 'content paid download fixture must not charge assets when selected coupon is applied.');
+    sr_coupon_runtime_assert(!empty($downloadResult['coupon_used']), 'content paid download fixture must report coupon_used on first selected coupon-backed download.');
+    sr_coupon_runtime_assert((int) ($downloadResult['amount'] ?? -1) === 0, 'content paid download fixture should reduce payable amount to zero when selected coupon is used first.');
     sr_coupon_runtime_assert((string) ($downloadResult['asset_label'] ?? '') === '쿠폰', 'content paid download fixture should label coupon-backed download as coupon.');
-    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid download fixture must not create point transactions when coupon takes priority.');
-    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid download fixture must not create asset access logs when coupon takes priority.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid download fixture must not create point transactions when selected coupon is applied.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid download fixture must not create asset access logs when selected coupon is applied.');
 
     $downloadIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $downloadIssueId]);
     sr_coupon_runtime_assert((string) ($downloadIssue['status'] ?? '') === 'used', 'content paid download fixture should mark the priority coupon issue used.');

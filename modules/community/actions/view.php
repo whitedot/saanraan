@@ -105,6 +105,8 @@ $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_sec
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
 $paidReadConfirmationRequestToken = '';
+$paidReadConfirmationCouponIssues = [];
+$paidReadConfirmationResult = [];
 if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
@@ -117,6 +119,8 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
         if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
             $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
+        $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
+        $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
         $couponReadResult = ['allowed' => false, 'processed' => false];
         if (sr_community_asset_policy_requires_confirmation((string) ($paidReadConfig['charge_policy'] ?? 'once')) && sr_request_method() !== 'POST') {
             $paidReadResult = sr_community_run_asset_event(
@@ -131,7 +135,9 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                 false
             );
         } else {
-            $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey);
+            $couponReadResult = $couponIssueId > 0
+                ? sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId)
+                : ['allowed' => false, 'processed' => false];
             $paidReadResult = !empty($couponReadResult['allowed'])
                 ? [
                     'allowed' => true,
@@ -156,6 +162,8 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
             if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {
                 $paidReadConfirmationRequired = true;
                 $paidReadConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
+                $paidReadConfirmationCouponIssues = sr_community_available_paid_read_coupon_issues($pdo, (int) $account['id'], $post);
+                $paidReadConfirmationResult = $paidReadResult;
                 $assetReadNotices[] = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
             } else {
                 sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));

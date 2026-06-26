@@ -348,9 +348,44 @@ function sr_community_once_access_already_granted(PDO $pdo, array $config, int $
     return sr_community_has_access_entitlement($pdo, $assetModules, $accountId, $eventKey, $subjectType, $subjectId, $couponDedupeKey, $policy);
 }
 
+function sr_community_available_paid_read_coupon_issues(PDO $pdo, int $accountId, array $post, int $limit = 20): array
+{
+    $postId = (int) ($post['id'] ?? 0);
+    $boardId = (int) ($post['board_id'] ?? 0);
+    if ($accountId <= 0 || $postId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return [];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_active_account_target_issues')) {
+        return [];
+    }
+
+    $issues = sr_coupon_active_account_target_issues($pdo, $accountId, 'community_post', (string) $postId, $limit);
+    if ($boardId > 0 && count($issues) < $limit) {
+        $seen = [];
+        foreach ($issues as $issue) {
+            $seen[(int) ($issue['id'] ?? 0)] = true;
+        }
+        foreach (sr_coupon_active_account_target_issues($pdo, $accountId, 'community_board', (string) $boardId, $limit) as $issue) {
+            $issueId = (int) ($issue['id'] ?? 0);
+            if ($issueId <= 0 || isset($seen[$issueId])) {
+                continue;
+            }
+            $issues[] = $issue;
+            $seen[$issueId] = true;
+            if (count($issues) >= $limit) {
+                break;
+            }
+        }
+    }
+
+    return $issues;
+}
+
 // This helper owns its transaction boundary so fallback coupon targets cannot
 // commit partial redemption work from a previous target attempt.
-function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey): array
+function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey, int $couponIssueId = 0): array
 {
     $postId = (int) ($post['id'] ?? 0);
     $boardId = (int) ($post['board_id'] ?? 0);
@@ -394,6 +429,9 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
         'reference_type' => 'community.post',
         'reference_id' => (string) $postId,
     ];
+    if ($couponIssueId > 0) {
+        $couponContext['coupon_issue_id'] = $couponIssueId;
+    }
 
     foreach ([['community_post', (string) $postId], ['community_board', (string) $boardId]] as $target) {
         if ((string) $target[1] === '0') {

@@ -227,6 +227,80 @@
     width: 100%;
 }
 
+.content-asset-confirmation-modal {
+    color: var(--sr-text, var(--text-strong, #242424));
+}
+
+.content-asset-confirmation-message {
+    color: var(--sr-muted, var(--text-muted, #3d3d3d));
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line-height);
+    margin: 0 0 14px;
+}
+
+.content-asset-confirmation-price {
+    align-items: baseline;
+    border: 1px solid var(--content-border, var(--sr-border, #d8dde6));
+    border-radius: 8px;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+}
+
+.content-asset-confirmation-price span {
+    color: var(--sr-muted, var(--text-muted, #3d3d3d));
+}
+
+.content-asset-confirmation-price strong {
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-size: var(--type-card-title-size);
+}
+
+.content-asset-confirmation-coupons {
+    display: grid;
+    gap: 12px;
+}
+
+.content-asset-confirmation-coupons fieldset {
+    border: 1px solid var(--content-border, var(--sr-border, #d8dde6));
+    border-radius: 8px;
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 12px;
+}
+
+.content-asset-confirmation-coupons legend {
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-size: var(--type-small-size);
+    font-weight: 800;
+    padding: 0 4px;
+}
+
+.content-asset-confirmation-coupon {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+}
+
+.content-asset-confirmation-coupon span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.content-asset-confirmation-coupon strong,
+.content-asset-confirmation-coupon small {
+    overflow-wrap: anywhere;
+}
+
+.content-asset-confirmation-coupon small {
+    color: var(--sr-muted, var(--text-muted, #3d3d3d));
+    font-size: var(--type-meta-size);
+}
+
 .content-access-notice {
     color: var(--sr-muted, var(--text-muted, #6b6b6b));
     font-size: var(--type-small-size);

@@ -51,7 +51,9 @@ $pageAccess = ['allowed' => true, 'charged' => false, 'message' => ''];
 if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
     $account = sr_member_require_login($pdo);
     $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 32) ?? '';
-    $pageAccess = sr_content_charge_view_access($pdo, $page, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken);
+    $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
+    $couponIssueId = preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
+    $pageAccess = sr_content_charge_view_access($pdo, $page, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId);
     if (!empty($pageAccess['charged'])) {
         sr_content_member_group_evaluate_after_activity($pdo, (int) $account['id']);
     }

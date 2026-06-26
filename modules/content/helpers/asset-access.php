@@ -528,6 +528,20 @@ function sr_content_asset_access_result(PDO $pdo, bool $allowed, bool $charged, 
     ], $extra);
 }
 
+function sr_content_available_coupon_issues(PDO $pdo, int $accountId, string $targetType, int $targetId, int $limit = 20): array
+{
+    if ($accountId <= 0 || $targetId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return [];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_active_account_target_issues')) {
+        return [];
+    }
+
+    return sr_coupon_active_account_target_issues($pdo, $accountId, $targetType, (string) $targetId, $limit);
+}
+
 function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, string $referenceType, string $assetModule, int $accountId, int $subjectId, string $accessKind = 'view', string $requestToken = ''): string
 {
     if ($chargePolicy === 'once') {
@@ -538,14 +552,14 @@ function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, str
     return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $requestToken;
 }
 
-function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = ''): array
+function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken): array {
-        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken, $couponIssueId): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken, $couponIssueId);
     });
 }
 
-function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = ''): array
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
 {
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
@@ -585,6 +599,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
+            'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
         ]);
     }
 
@@ -593,6 +608,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
+            'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
         ]);
     }
 
@@ -631,7 +647,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         $pdo->beginTransaction();
     }
         try {
-            $couponResult = sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy);
+            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy, $couponIssueId) : ['allowed' => false, 'processed' => false];
             if (!empty($couponResult['allowed'])) {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
@@ -733,7 +749,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint]);
 }
 
-function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once'): array
+function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0): array
 {
     if ($pageId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return ['allowed' => false, 'processed' => false];
@@ -749,18 +765,23 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, str
         $dedupeKey .= ':' . bin2hex(random_bytes(8));
     }
 
-    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, [
+    $context = [
         'dedupe_key' => $dedupeKey,
         'reference_module' => 'content',
         'reference_type' => 'content.view',
         'reference_id' => (string) $pageId,
-    ]);
+    ];
+    if ($couponIssueId > 0) {
+        $context['coupon_issue_id'] = $couponIssueId;
+    }
+
+    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, $context);
     $result['dedupe_key'] = $dedupeKey;
 
     return $result;
 }
 
-function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accountId, string $chargePolicy = 'once'): array
+function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0): array
 {
     if ($fileId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return ['allowed' => false, 'processed' => false];
@@ -776,12 +797,17 @@ function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accou
         $dedupeKey .= ':' . bin2hex(random_bytes(8));
     }
 
-    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content_file', (string) $fileId, [
+    $context = [
         'dedupe_key' => $dedupeKey,
         'reference_module' => 'content',
         'reference_type' => 'content.download',
         'reference_id' => (string) $fileId,
-    ]);
+    ];
+    if ($couponIssueId > 0) {
+        $context['coupon_issue_id'] = $couponIssueId;
+    }
+
+    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content_file', (string) $fileId, $context);
     $result['dedupe_key'] = $dedupeKey;
 
     return $result;
@@ -793,14 +819,14 @@ function sr_content_file_download_required(array $file): bool
         && (int) ($file['asset_download_amount'] ?? 0) > 0;
 }
 
-function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = ''): array
+function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken): array {
-        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken, $couponIssueId): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken, $couponIssueId);
     });
 }
 
-function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = ''): array
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -841,6 +867,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
+            'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
         ]);
     }
 
@@ -849,6 +876,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
+            'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
         ]);
     }
 
@@ -892,7 +920,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         $pdo->beginTransaction();
     }
         try {
-            $couponResult = sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy);
+            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy, $couponIssueId) : ['allowed' => false, 'processed' => false];
             if (!empty($couponResult['allowed'])) {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));

@@ -96,13 +96,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-body">
                 <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('content::ui.content.7d2dd480'))); ?></p>
                 <?php if ((string) ($pageAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <input type="hidden" name="asset_request_token" value="<?php echo sr_e((string) ($pageAccess['confirmation_request_token'] ?? '')); ?>">
-                        <button type="submit" class="btn btn-solid-primary">
-                            <?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>
-                        </button>
-                    </form>
+                    <?php
+                    $assetConfirmationMessage = (string) ($pageAccess['message'] ?? sr_content_asset_confirmation_required_message());
+                    $assetConfirmationAction = sr_content_path((string) $page['slug']);
+                    $assetConfirmationId = 0;
+                    $assetConfirmationContentId = 0;
+                    $assetConfirmationRequestToken = (string) ($pageAccess['confirmation_request_token'] ?? '');
+                    $assetConfirmationTitle = '콘텐츠 열람 확인';
+                    $assetConfirmationAssetLabel = (string) ($pageAccess['asset_label'] ?? '');
+                    $assetConfirmationAmount = (int) ($pageAccess['amount'] ?? 0);
+                    $assetConfirmationCouponIssues = is_array($pageAccess['coupon_issues'] ?? null) ? $pageAccess['coupon_issues'] : [];
+                    $assetConfirmationModalId = 'content_asset_access_confirmation_modal';
+                    include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
+                    ?>
                 <?php } ?>
             </div>
         <?php } else { ?>

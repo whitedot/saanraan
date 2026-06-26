@@ -4,9 +4,12 @@ $assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_community_
 $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/community');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '');
+$assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
 $assetConfirmationTitle = is_array($post ?? null)
     ? (string) (($post['title'] ?? '') ?: sr_t('community::ui.community.4a285775'))
     : sr_t('community::ui.community.4a285775');
+$assetConfirmationAssetLabel = (string) ($assetConfirmationAssetLabel ?? ($paidReadResult['asset_label'] ?? $downloadResult['asset_label'] ?? ''));
+$assetConfirmationAmount = (int) ($assetConfirmationAmount ?? ($paidReadResult['amount'] ?? $downloadResult['amount'] ?? 0));
 $seo = [
     'title' => $assetConfirmationTitle,
     'robots' => 'noindex, nofollow',
@@ -16,14 +19,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 ?>
 <main class="community-screen">
     <article>
-        <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
-        <p><?php echo sr_e($assetConfirmationMessage); ?></p>
-        <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>">
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
-            <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
-        </form>
+        <?php include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php'; ?>
     </article>
 </main>
 <?php sr_public_layout_end(); ?>
