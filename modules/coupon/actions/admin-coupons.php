@@ -468,6 +468,7 @@ if ($couponAdminPage === 'issues') {
 $claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' && $claimCampaignScreen !== 'logs'
     ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300)
     : [];
+$couponNotificationEmailWarnings = sr_coupon_admin_notification_email_warnings($pdo);
 $editClaimCampaign = null;
 if ($couponAdminPage === 'campaigns' && $requestPath === '/admin/coupons/campaigns') {
     $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);

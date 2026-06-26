@@ -88,6 +88,9 @@ if (sr_request_method() === 'POST') {
 }
 
 $adminPageTitle = '쿠폰·이용권 환경설정';
-$adminPageSubtitle = '이메일과 외부 푸시는 알림 모듈 설정과 회원별 수신처가 준비된 경우에만 실제 발송됩니다.';
+$adminPageSubtitle = [
+    '이메일과 외부 푸시는 알림 모듈 설정과 회원별 수신처가 준비된 경우에만 실제 발송됩니다.',
+    '이메일 채널은 쿠폰 지급이나 사용 중지 처리에서 대량 발송될 수 있으므로 대상 범위와 발송 설정을 확인한 뒤 사용하세요.',
+];
 
 include SR_ROOT . '/modules/coupon/views/admin-settings.php';

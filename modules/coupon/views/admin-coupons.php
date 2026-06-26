@@ -141,6 +141,7 @@ $selectedIssueTargetTypes = is_array($issueFilters['target_type'] ?? null) ? $is
 $selectedRedemptionStatuses = is_array($redemptionFilters['status'] ?? null) ? $redemptionFilters['status'] : [];
 $selectedRedemptionPolicies = is_array($redemptionFilters['refundable_policy'] ?? null) ? $redemptionFilters['refundable_policy'] : [];
 $selectedRedemptionTargetTypes = is_array($redemptionFilters['target_type'] ?? null) ? $redemptionFilters['target_type'] : [];
+$couponNotificationEmailWarnings = isset($couponNotificationEmailWarnings) && is_array($couponNotificationEmailWarnings) ? $couponNotificationEmailWarnings : [];
 $selectedClaimCampaignStatuses = is_array($claimCampaignFilters['status'] ?? null) ? $claimCampaignFilters['status'] : [];
 $selectedClaimCampaignTypes = is_array($claimCampaignFilters['claim_type'] ?? null) ? $claimCampaignFilters['claim_type'] : [];
 $selectedClaimCampaignVisibility = is_array($claimCampaignFilters['visibility'] ?? null) ? $claimCampaignFilters['visibility'] : [];
@@ -163,6 +164,14 @@ $couponIssueModalOpenDefinitionId = isset($couponIssueModalOpenDefinitionId) ? (
 $couponTargetLookupModalId = 'coupon-target-lookup-modal';
 $couponTargetLookupResultsId = 'coupon-target-lookup-results';
 $couponInitialTargetType = (string) array_key_first($targetTypes);
+$couponEmailWarningHtml = static function (string $eventKey) use ($couponNotificationEmailWarnings): string {
+    $message = trim((string) ($couponNotificationEmailWarnings[$eventKey] ?? ''));
+    if ($message === '') {
+        return '';
+    }
+
+    return '<div class="alert alert-warning admin-coupon-email-warning" role="alert">' . sr_e($message) . '</div>';
+};
 $couponTargetSearchEnabled = $couponInitialTargetType !== 'all' && array_key_exists($couponInitialTargetType, $couponSearchableTargetTypes);
 $couponMemberLookupModalId = 'coupon-member-lookup-modal';
 $couponMemberLookupResultsId = 'coupon-member-lookup-results';
@@ -824,7 +833,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="status" value="active">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'active' ? ' disabled' : ''; ?>>사용 중</button>
                                 </form>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>"<?php echo isset($couponNotificationEmailWarnings['issue.definition_disabled']) ? ' data-coupon-email-warning="' . sr_e((string) $couponNotificationEmailWarnings['issue.definition_disabled']) . '"' : ''; ?>>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
@@ -920,10 +929,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
         var submitter = event.submitter || document.activeElement;
         var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+        var targetStatus = submitter && submitter.getAttribute ? submitter.getAttribute('value') : '';
         if (!statusLabel) {
             statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
         }
-        if (!window.confirm('선택한 쿠폰 종류 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+        var confirmMessage = '선택한 쿠폰 종류 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.';
+        if (targetStatus === 'disabled') {
+            var emailWarning = <?php echo sr_js_json_encode((string) ($couponNotificationEmailWarnings['issue.definition_disabled'] ?? '')); ?>;
+            if (emailWarning) {
+                confirmMessage += "\n\n" + emailWarning;
+            }
+        }
+        if (!window.confirm(confirmMessage)) {
             event.preventDefault();
         }
     });
@@ -953,6 +970,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </button>
                 </div>
                 <div class="modal-body">
+                    <?php echo $couponEmailWarningHtml('issue.created'); ?>
                     <div class="form-row">
                         <label class="form-label" for="coupon_admin_issue_mode_<?php echo sr_e((string) $definitionId); ?>">지급 대상 <span class="sr-required-label">(필수)</span></label>
                         <div class="form-field">
@@ -1424,7 +1442,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <?php if ((string) $issue['status'] === 'active') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>"<?php echo isset($couponNotificationEmailWarnings['issue.status_updated']) ? ' data-coupon-email-warning="' . sr_e((string) $couponNotificationEmailWarnings['issue.status_updated']) . '"' : ''; ?>>
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="set_issue_status">
                                         <input type="hidden" name="issue_id" value="<?php echo sr_e((string) $issue['id']); ?>">
@@ -1472,6 +1490,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </button>
                 </div>
                 <div class="modal-body">
+                    <?php echo $couponEmailWarningHtml('issue.refunded'); ?>
                     <div class="form-row">
                         <span class="form-label">쿠폰</span>
                         <div class="form-field">
@@ -1675,6 +1694,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </button>
                 </div>
                 <div class="modal-body">
+                    <?php echo $couponEmailWarningHtml('redemption.refunded'); ?>
                     <div class="form-row">
                         <span class="form-label">쿠폰</span>
                         <div class="form-field">
@@ -1698,5 +1718,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 <?php } ?>
+
+<script>
+(function () {
+    document.querySelectorAll('form[data-coupon-email-warning]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            var message = form.getAttribute('data-coupon-email-warning') || '';
+            if (message && !window.confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

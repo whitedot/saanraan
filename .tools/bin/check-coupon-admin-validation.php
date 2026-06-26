@@ -69,6 +69,8 @@ if (!is_string($helper)) {
         || strpos($helper, "'event_key' => 'issue.refunded'") === false
         || strpos($helper, "'notification_cases' => sr_coupon_default_notification_case_settings()") === false
         || strpos($helper, 'function sr_coupon_notification_setting_for_event(array $settings, string $eventKey): ?array') === false
+        || strpos($helper, 'function sr_coupon_notification_event_uses_email(PDO $pdo, string $eventKey): bool') === false
+        || strpos($helper, 'function sr_coupon_admin_notification_email_warnings(PDO $pdo): array') === false
         || strpos($helper, "'disabled_reclaim_notifications_enabled' => true") === false
         || strpos($helper, "'disabled_reclaim_notification_event_key' => 'issue.definition_disabled'") === false
         || strpos($helper, "'disabled_reclaim_notification_channels' => ['site']") === false
@@ -99,9 +101,20 @@ if (is_string($action)
         || strpos($action, 'sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, $disabledNotificationDefinitionIds') === false
         || strpos($action, 'sr_coupon_notify_definition_disabled_unused_issue_reclaims($pdo, [$definitionId]') === false
         || strpos($action, '사용 전 지급건') === false
+        || strpos($action, 'sr_coupon_admin_notification_email_warnings($pdo)') === false
     )
 ) {
-    $errors[] = 'Coupon definition disable actions must send reclaim notifications for unused active issued coupons.';
+    $errors[] = 'Coupon definition disable actions must send reclaim notifications and expose admin email warning context.';
+}
+if (is_string($action)
+    && (
+        strpos($action, 'sr_coupon_issue_to_account(') === false
+        || strpos($action, 'sr_coupon_update_issue_status($pdo') === false
+        || strpos($action, 'sr_coupon_refund_paid_issue_assets($pdo') === false
+        || strpos($action, 'sr_coupon_refund_redemption($pdo') === false
+    )
+) {
+    $errors[] = 'Coupon admin actions must keep notification-backed issue, status, paid refund, and redemption refund flows connected.';
 }
 
 $view = file_get_contents($root . '/modules/coupon/views/admin-coupons.php');
@@ -159,6 +172,20 @@ if (is_string($view)
 ) {
     $errors[] = 'Coupon definition admin status controls must expose issue stop and full disable separately.';
 }
+if (is_string($view)
+    && (
+        strpos($view, '$couponEmailWarningHtml') === false
+        || strpos($view, "admin-coupon-email-warning") === false
+        || strpos($view, "issue.created") === false
+        || strpos($view, "issue.definition_disabled") === false
+        || strpos($view, "issue.status_updated") === false
+        || strpos($view, "issue.refunded") === false
+        || strpos($view, "redemption.refunded") === false
+        || strpos($view, "data-coupon-email-warning") === false
+    )
+) {
+    $errors[] = 'Coupon admin action surfaces must warn operators when configured email notification channels can send mail.';
+}
 
 $settingsAction = file_get_contents($root . '/modules/coupon/actions/admin-coupon-settings.php');
 $settingsView = file_get_contents($root . '/modules/coupon/views/admin-settings.php');
@@ -168,6 +195,7 @@ if (!is_string($settingsAction)
     || strpos($settingsAction, 'sr_admin_require_permission($pdo') === false
     || strpos($settingsAction, "\$permissionPath, 'view'") === false
     || strpos($settingsAction, "\$permissionPath, 'edit'") === false
+    || strpos($settingsAction, '대량 발송될 수 있으므로') === false
     || strpos($settingsAction, '$notificationCases = sr_coupon_notification_cases()') === false
     || strpos($settingsAction, '$postedCases = $_POST[\'notification_cases\'] ?? []') === false
     || strpos($settingsAction, '채널을 하나 이상 선택하세요.') === false
