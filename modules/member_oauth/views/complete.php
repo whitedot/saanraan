@@ -28,22 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, ['title' => $pageTitle, 'rob
                     <label for="member_oauth_complete_password_confirm">비밀번호 확인 <span class="sr-required-label">(필수)</span></label>
                     <input id="member_oauth_complete_password_confirm" type="password" name="password_confirm" required class="form-input">
                 </p>
-                <?php foreach (['terms', 'privacy', 'marketing'] as $consentKey) { ?>
-                    <?php if (!empty($policyDocuments[$consentKey])) { ?>
-                        <p>
-                            <label>
-                                <input type="checkbox" name="<?php echo $consentKey === 'terms' ? 'terms_consent' : ($consentKey === 'privacy' ? 'privacy_consent' : 'marketing_consent'); ?>" value="1"<?php echo !empty($policyDocuments[$consentKey]['required']) ? ' required' : ''; ?>>
-                                <?php echo sr_e((string) $policyDocuments[$consentKey]['title']); ?><?php if (!empty($policyDocuments[$consentKey]['required'])) { ?> <span class="sr-required-label">(필수)</span><?php } ?>
-                            </label>
-                            <?php if (!empty($policyDocuments[$consentKey]['body_html'])) { ?>
-                                <details>
-                                    <summary>문서 보기</summary>
-                                    <div><?php echo (string) $policyDocuments[$consentKey]['body_html']; ?></div>
-                                </details>
-                            <?php } ?>
-                        </p>
-                    <?php } ?>
-                <?php } ?>
+                <?php echo sr_member_registration_policy_consent_section_html($policyDocuments, $registrationConsentValues ?? [], 'oauth_complete'); ?>
                 <button type="submit" class="btn btn-solid-primary">가입 완료</button>
             </form>
         </div>

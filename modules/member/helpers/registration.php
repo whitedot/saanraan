@@ -2,21 +2,25 @@
 
 declare(strict_types=1);
 
-function sr_member_registration_policy_document_specs(): array
+function sr_member_registration_policy_document_specs(array $settings = []): array
 {
+    $termsDocumentKey = sr_member_registration_policy_document_clean_key((string) ($settings['registration_terms_document_key'] ?? 'member_terms'));
+    $privacyDocumentKey = sr_member_registration_policy_document_clean_key((string) ($settings['registration_privacy_document_key'] ?? 'member_privacy_collection'));
+    $marketingDocumentKey = sr_member_registration_policy_document_clean_key((string) ($settings['registration_marketing_document_key'] ?? 'member_marketing'));
+
     return [
         'terms' => [
-            'document_key' => 'member_terms',
+            'document_key' => $termsDocumentKey !== '' ? $termsDocumentKey : 'member_terms',
             'required' => true,
             'post_key' => 'terms_consent',
         ],
         'privacy' => [
-            'document_key' => 'member_privacy_collection',
+            'document_key' => $privacyDocumentKey !== '' ? $privacyDocumentKey : 'member_privacy_collection',
             'required' => true,
             'post_key' => 'privacy_consent',
         ],
         'marketing' => [
-            'document_key' => 'member_marketing',
+            'document_key' => $marketingDocumentKey,
             'required' => false,
             'post_key' => 'marketing_consent',
         ],
@@ -27,6 +31,7 @@ function sr_member_registration_policy_documents(PDO $pdo): array
 {
     $errors = [];
     $documents = [];
+    $settings = sr_member_settings($pdo);
 
     if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         return [
@@ -43,8 +48,11 @@ function sr_member_registration_policy_documents(PDO $pdo): array
         ];
     }
 
-    foreach (sr_member_registration_policy_document_specs() as $consentKey => $spec) {
+    foreach (sr_member_registration_policy_document_specs($settings) as $consentKey => $spec) {
         $documentKey = (string) $spec['document_key'];
+        if ($documentKey === '') {
+            continue;
+        }
         $renderData = sr_policy_document_public_render_data($pdo, $documentKey);
         if (!is_array($renderData)) {
             if (!empty($spec['required'])) {
@@ -72,6 +80,188 @@ function sr_member_registration_policy_documents(PDO $pdo): array
         'documents' => $documents,
         'errors' => $errors,
     ];
+}
+
+function sr_member_registration_policy_document_options(PDO $pdo, string $currentKey = ''): array
+{
+    static $baseOptions = null;
+    $currentKey = sr_member_registration_policy_document_clean_key($currentKey);
+
+    if (is_array($baseOptions)) {
+        $options = $baseOptions;
+        if ($currentKey !== '' && !isset($options[$currentKey])) {
+            $options[$currentKey] = [
+                'title' => $currentKey,
+                'version_key' => '',
+            ];
+        }
+
+        return $options;
+    }
+
+    if (!is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        return $currentKey !== '' ? [$currentKey => ['title' => $currentKey, 'version_key' => '']] : [];
+    }
+
+    require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+    $options = [];
+    if (
+        function_exists('sr_policy_document_enabled_choices')
+        && sr_module_enabled($pdo, 'policy_documents')
+        && function_exists('sr_policy_document_module_ready')
+        && sr_policy_document_module_ready($pdo)
+    ) {
+        foreach (sr_policy_document_enabled_choices($pdo) as $policyDocumentChoice) {
+            if ((int) ($policyDocumentChoice['published_version_id'] ?? 0) < 1) {
+                continue;
+            }
+
+            $policyDocumentKey = (string) ($policyDocumentChoice['document_key'] ?? '');
+            if ($policyDocumentKey === '') {
+                continue;
+            }
+
+            $options[$policyDocumentKey] = [
+                'title' => (string) ($policyDocumentChoice['title'] ?? $policyDocumentKey),
+                'version_key' => (string) ($policyDocumentChoice['published_version_key'] ?? ''),
+            ];
+        }
+    }
+    $baseOptions = $options;
+
+    if ($currentKey !== '' && !isset($options[$currentKey])) {
+        $options[$currentKey] = [
+            'title' => $currentKey,
+            'version_key' => '',
+        ];
+    }
+
+    return $options;
+}
+
+function sr_member_registration_policy_document_snapshot(PDO $pdo, string $documentKey): ?array
+{
+    $documentKey = sr_member_registration_policy_document_clean_key($documentKey);
+    if ($documentKey === '' || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        return null;
+    }
+
+    require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+    try {
+        if (!sr_module_enabled($pdo, 'policy_documents') || !sr_policy_document_module_ready($pdo)) {
+            return null;
+        }
+
+        return sr_policy_document_snapshot($pdo, $documentKey);
+    } catch (Throwable) {
+        return null;
+    }
+}
+
+function sr_member_registration_policy_consent_values_from_post(array $documents): array
+{
+    $values = [];
+    foreach ($documents as $consentKey => $document) {
+        if (!is_array($document)) {
+            continue;
+        }
+
+        $postKey = (string) ($document['post_key'] ?? '');
+        if ($postKey === '') {
+            continue;
+        }
+
+        $values[(string) $consentKey] = (string) ($_POST[$postKey] ?? '') === '1';
+    }
+
+    return $values;
+}
+
+function sr_member_registration_policy_consent_validation_errors(array $documents, array $consentValues): array
+{
+    foreach ($documents as $consentKey => $document) {
+        if (!is_array($document) || empty($document['required'])) {
+            continue;
+        }
+
+        if (empty($consentValues[(string) $consentKey])) {
+            return [sr_t('member::action.register.required_consents_missing')];
+        }
+    }
+
+    return [];
+}
+
+function sr_member_registration_policy_consent_section_html(array $documents, array $consentValues = [], string $idSuffix = 'register'): string
+{
+    $orderedConsentKeys = ['terms', 'privacy', 'marketing'];
+    $suffix = preg_replace('/[^a-zA-Z0-9_]+/', '_', $idSuffix) ?? '';
+    $html = '<fieldset class="member-skin-basic-policy-consent">';
+    $html .= '<legend>' . sr_e(sr_t('member::ui.policy_consent.section_title')) . '</legend>';
+
+    foreach ($orderedConsentKeys as $consentKey) {
+        if (!is_array($documents[$consentKey] ?? null)) {
+            continue;
+        }
+
+        $document = $documents[$consentKey];
+        $postKey = (string) ($document['post_key'] ?? '');
+        if ($postKey === '') {
+            continue;
+        }
+
+        $inputId = 'modules_member_' . $suffix . '_' . $postKey;
+        $required = !empty($document['required']);
+        $checked = !empty($consentValues[$consentKey]);
+        $html .= '<div class="member-skin-basic-policy-consent-item">';
+        $html .= '<label class="member-skin-basic-choice-label" for="' . sr_e($inputId) . '">';
+        $html .= '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($postKey) . '" value="1" class="form-checkbox member-skin-basic-choice-input"' . ($required ? ' required' : '') . ($checked ? ' checked' : '') . '>';
+        $html .= ' ' . sr_e((string) ($document['title'] ?? ''));
+        if ($required) {
+            $html .= ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>';
+        }
+        $html .= '</label>';
+
+        if ((string) ($document['body_html'] ?? '') !== '') {
+            $html .= '<details class="member-skin-basic-policy">';
+            $html .= '<summary>' . sr_e(sr_t('member::ui.policy_document.view')) . '</summary>';
+            $html .= '<div>' . (string) $document['body_html'] . '</div>';
+            $html .= '</details>';
+        }
+
+        $versionKey = (string) ($document['version_key'] ?? '');
+        if ($versionKey !== '') {
+            $html .= '<p><small>' . sr_e(sr_t('member::ui.policy_consent.version', ['version' => $versionKey])) . '</small></p>';
+        }
+        $html .= '</div>';
+    }
+
+    $html .= '</fieldset>';
+
+    return $html;
+}
+
+function sr_member_record_registration_policy_consents(PDO $pdo, int $accountId, array $documents, array $consentValues): int
+{
+    $recorded = 0;
+    foreach (['terms', 'privacy', 'marketing'] as $consentKey) {
+        if (!is_array($documents[$consentKey] ?? null)) {
+            continue;
+        }
+
+        $document = $documents[$consentKey];
+        sr_member_record_consent(
+            $pdo,
+            $accountId,
+            $consentKey,
+            (string) ($document['version_key'] ?? ''),
+            !empty($consentValues[$consentKey]),
+            $document
+        );
+        $recorded++;
+    }
+
+    return $recorded;
 }
 
 function sr_member_registration_extension_helper_path(string $moduleKey, array $contract): string

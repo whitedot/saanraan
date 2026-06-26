@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+function sr_member_registration_policy_document_clean_key(string $documentKey): string
+{
+    $documentKey = strtolower(trim($documentKey));
+
+    return preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', $documentKey) === 1 ? $documentKey : '';
+}
+
 function sr_member_account_select_columns(): string
 {
     return 'id, account_identifier_hash, login_id_hash, email, email_hash, password_hash, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at';
@@ -27,6 +34,9 @@ function sr_member_default_settings(): array
         'email_verification_throttle_ip_limit' => (int) ($settings['email_verification_throttle_ip_limit'] ?? 20),
         'register_throttle_window_seconds' => (int) ($settings['register_throttle_window_seconds'] ?? 900),
         'register_throttle_ip_limit' => (int) ($settings['register_throttle_ip_limit'] ?? 10),
+        'registration_terms_document_key' => is_string($settings['registration_terms_document_key'] ?? null) ? (string) $settings['registration_terms_document_key'] : 'member_terms',
+        'registration_privacy_document_key' => is_string($settings['registration_privacy_document_key'] ?? null) ? (string) $settings['registration_privacy_document_key'] : 'member_privacy_collection',
+        'registration_marketing_document_key' => is_string($settings['registration_marketing_document_key'] ?? null) ? (string) $settings['registration_marketing_document_key'] : 'member_marketing',
         'member_skin_key' => is_string($settings['member_skin_key'] ?? null) ? (string) $settings['member_skin_key'] : 'basic',
         'profile_birth_date_enabled' => (bool) ($settings['profile_birth_date_enabled'] ?? true),
         'profile_birth_date_required' => (bool) ($settings['profile_birth_date_required'] ?? false),
@@ -51,6 +61,9 @@ function sr_member_settings(PDO $pdo): array
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
     $settings['member_skin_key'] = sr_member_skin_key($settings);
+    foreach (['registration_terms_document_key', 'registration_privacy_document_key', 'registration_marketing_document_key'] as $policyDocumentSettingKey) {
+        $settings[$policyDocumentSettingKey] = sr_member_registration_policy_document_clean_key((string) ($settings[$policyDocumentSettingKey] ?? ''));
+    }
     $profileFieldsSetting = $settings['profile_fields_json'] ?? '[]';
     if (is_array($profileFieldsSetting)) {
         $settings['profile_fields_json'] = json_encode($profileFieldsSetting, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';

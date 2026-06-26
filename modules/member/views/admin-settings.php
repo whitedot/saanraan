@@ -85,6 +85,24 @@ $memberProfileFieldOrderItems = sr_member_profile_field_order_items($settings, s
 $memberProfileFieldOrderJson = sr_js_json_encode(array_map(static function (array $item): string {
     return (string) ($item['kind'] ?? '') . ':' . (string) ($item['key'] ?? '');
 }, $memberProfileFieldOrderItems));
+$memberRegistrationPolicyDocumentOptions = [];
+foreach (['registration_terms_document_key', 'registration_privacy_document_key', 'registration_marketing_document_key'] as $memberRegistrationPolicyDocumentSettingKey) {
+    $memberRegistrationPolicyDocumentOptions += sr_member_registration_policy_document_options($pdo, (string) ($settings[$memberRegistrationPolicyDocumentSettingKey] ?? ''));
+}
+$memberRegistrationPolicyDocumentSelectOptionsHtml = static function (string $currentKey, bool $allowEmpty = false) use ($memberRegistrationPolicyDocumentOptions): string {
+    $currentKey = sr_member_registration_policy_document_clean_key($currentKey);
+    $html = $allowEmpty ? '<option value="">' . sr_e('선택 안 함') . '</option>' : '<option value="">' . sr_e('정책 문서 선택') . '</option>';
+    foreach ($memberRegistrationPolicyDocumentOptions as $documentKey => $documentOption) {
+        $versionKey = (string) ($documentOption['version_key'] ?? '');
+        $label = (string) ($documentOption['title'] ?? $documentKey);
+        if ($versionKey !== '') {
+            $label .= ' / ' . $versionKey;
+        }
+        $html .= '<option value="' . sr_e((string) $documentKey) . '"' . ($currentKey === (string) $documentKey ? ' selected' : '') . '>' . sr_e($label) . '</option>';
+    }
+
+    return $html;
+};
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -95,6 +113,7 @@ $memberSettingsSectionNavItems = [
     'member-settings-section-registration' => '가입/인증',
     'member-settings-section-skin' => '스킨',
     'member-settings-section-profile' => '프로필',
+    'member-settings-section-policy-consent' => '가입 약관',
     'member-settings-section-login' => '로그인 제한',
     'member-settings-section-register-limit' => '가입 제한',
     'member-settings-section-password' => '비밀번호',
@@ -195,6 +214,40 @@ $memberSettingsSectionNavItems = [
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
         <div data-member-profile-fixed-field-inputs></div>
         <script type="application/json" data-member-profile-fixed-fields-json><?php echo sr_js_json_encode($memberProfileFixedFields); ?></script>
+    </section>
+
+    <section id="member-settings-section-policy-consent" class="card" data-admin-section-anchor>
+        <h2><?php echo sr_e(sr_t('member::settings.registration_policy_documents')); ?></h2>
+        <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label" for="member_admin_settings_registration_terms_document_key"><?php echo sr_e(sr_t('member::settings.registration_terms_document')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <select id="member_admin_settings_registration_terms_document_key" name="registration_terms_document_key" class="form-select" required>
+                        <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_terms_document_key'] ?? 'member_terms'), false); ?>
+                    </select>
+                    <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_terms_document.help')); ?></p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="member_admin_settings_registration_privacy_document_key"><?php echo sr_e(sr_t('member::settings.registration_privacy_document')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <select id="member_admin_settings_registration_privacy_document_key" name="registration_privacy_document_key" class="form-select" required>
+                        <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_privacy_document_key'] ?? 'member_privacy_collection'), false); ?>
+                    </select>
+                    <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_privacy_document.help')); ?></p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="member_admin_settings_registration_marketing_document_key"><?php echo sr_e(sr_t('member::settings.registration_marketing_document')); ?></label>
+                <div class="form-field">
+                    <select id="member_admin_settings_registration_marketing_document_key" name="registration_marketing_document_key" class="form-select">
+                        <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_marketing_document_key'] ?? 'member_marketing'), true); ?>
+                    </select>
+                    <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_marketing_document.help')); ?></p>
+                </div>
+            </div>
+        </div>
+        <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_policy_documents.help')); ?></p>
     </section>
 
     <section id="member-settings-section-login" class="card" data-admin-section-anchor>

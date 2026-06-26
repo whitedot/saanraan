@@ -31,7 +31,7 @@
 | 콘텐츠 생성/수정 | `modules/content/views/admin-contents.php` | 기본 정보, 본문/이미지, 공개 설정, SEO, 유료 열람, 완료 버튼, 배너/팝업, 파일 |
 | 콘텐츠 그룹 생성/수정 | `modules/content/views/admin-content-groups.php` | 기본 정보, 작성 기본값, 배너/팝업, 유료 열람, 완료 버튼, 파일, 회원 제출, 위험 작업 |
 | 퀴즈 생성/수정 | `modules/quiz/actions/admin-quiz.php` | 기본 정보, 채점/결과, 결과 규칙, 공개/응시, 문제 목록, 보상 정책, 연결 대상 |
-| 회원 설정 | `modules/member/views/admin-settings.php` | 가입/인증, 스킨, 프로필, 로그인 제한, 가입 제한, 비밀번호, 이메일 |
+| 회원 설정 | `modules/member/views/admin-settings.php` | 가입/인증, 스킨, 프로필, 가입 약관, 로그인 제한, 가입 제한, 비밀번호, 이메일 |
 | 커뮤니티 설정 | `modules/community/views/admin-settings.php` | 레벨 기본값, 쪽지 정책, 자산/과금, 공개 화면 |
 | 퀴즈 설정 | `modules/quiz/views/admin-settings.php` | 공개 화면, 새 퀴즈, 기본 보상, 목록/연결 |
 | 알림 설정 | `modules/notification/views/admin-notification-settings.php` | 메일 환경, SMTP, HTTP API |

@@ -24,6 +24,35 @@ if (sr_request_method() === 'POST') {
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
     $settings['nickname_enabled'] = ($_POST['nickname_enabled'] ?? '') === '1';
     $settings['nickname_required'] = $settings['nickname_enabled'];
+    $settings['registration_terms_document_key'] = sr_member_registration_policy_document_clean_key(sr_post_string('registration_terms_document_key', 80));
+    $settings['registration_privacy_document_key'] = sr_member_registration_policy_document_clean_key(sr_post_string('registration_privacy_document_key', 80));
+    $settings['registration_marketing_document_key'] = sr_member_registration_policy_document_clean_key(sr_post_string('registration_marketing_document_key', 80));
+    $registrationPolicyDocumentLabels = [
+        'registration_terms_document_key' => sr_t('member::settings.registration_terms_document'),
+        'registration_privacy_document_key' => sr_t('member::settings.registration_privacy_document'),
+        'registration_marketing_document_key' => sr_t('member::settings.registration_marketing_document'),
+    ];
+    foreach (['registration_terms_document_key', 'registration_privacy_document_key'] as $registrationPolicyDocumentSettingKey) {
+        if ((string) $settings[$registrationPolicyDocumentSettingKey] === '') {
+            $errors[] = sr_t('member::action.admin_settings.policy_document_required', [
+                'label' => $registrationPolicyDocumentLabels[$registrationPolicyDocumentSettingKey],
+            ]);
+            continue;
+        }
+        if (!is_array(sr_member_registration_policy_document_snapshot($pdo, (string) $settings[$registrationPolicyDocumentSettingKey]))) {
+            $errors[] = sr_t('member::action.admin_settings.policy_document_invalid', [
+                'label' => $registrationPolicyDocumentLabels[$registrationPolicyDocumentSettingKey],
+            ]);
+        }
+    }
+    if (
+        (string) $settings['registration_marketing_document_key'] !== ''
+        && !is_array(sr_member_registration_policy_document_snapshot($pdo, (string) $settings['registration_marketing_document_key']))
+    ) {
+        $errors[] = sr_t('member::action.admin_settings.policy_document_invalid', [
+            'label' => $registrationPolicyDocumentLabels['registration_marketing_document_key'],
+        ]);
+    }
     $memberSkinKey = sr_post_string('member_skin_key', 40);
     if (!isset(sr_member_skin_options()[$memberSkinKey])) {
         $errors[] = sr_t('member::action.admin_settings.skin_invalid');
@@ -97,6 +126,9 @@ if (sr_request_method() === 'POST') {
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
             ['nickname_enabled', $settings['nickname_enabled'] ? '1' : '0', 'bool'],
             ['nickname_required', $settings['nickname_required'] ? '1' : '0', 'bool'],
+            ['registration_terms_document_key', (string) $settings['registration_terms_document_key'], 'string'],
+            ['registration_privacy_document_key', (string) $settings['registration_privacy_document_key'], 'string'],
+            ['registration_marketing_document_key', (string) $settings['registration_marketing_document_key'], 'string'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
             ['profile_fields_json', (string) ($settings['profile_fields_json'] ?? '[]'), 'json'],
             ['profile_field_order_json', (string) ($settings['profile_field_order_json'] ?? '[]'), 'json'],
@@ -137,6 +169,11 @@ if (sr_request_method() === 'POST') {
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
                 'nickname_enabled' => (bool) $settings['nickname_enabled'],
                 'nickname_required' => (bool) $settings['nickname_required'],
+                'registration_policy_documents' => [
+                    'terms' => (string) $settings['registration_terms_document_key'],
+                    'privacy' => (string) $settings['registration_privacy_document_key'],
+                    'marketing' => (string) $settings['registration_marketing_document_key'],
+                ],
                 'login_identifier' => (string) $settings['login_identifier'],
                 'member_skin_key' => (string) $settings['member_skin_key'],
                 'profile_fields' => sr_member_profile_field_policies($settings),

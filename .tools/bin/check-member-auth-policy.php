@@ -706,6 +706,7 @@ if ($adminPrivacyRequestExportAction !== '') {
 }
 
 $registerAction = sr_member_auth_policy_read('modules/member/actions/register.php');
+$registrationHelper = sr_member_auth_policy_read('modules/member/helpers/registration.php');
 if ($registerAction !== '') {
     sr_member_auth_policy_assert(
         strpos($registerAction, "sr_post_string_without_truncation('email', 255)") !== false
@@ -760,7 +761,7 @@ if ($registerAction !== '') {
         'Register action should clear stale debug email verification URLs outside localhost debug mode.'
     );
     $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
-    $registerConsent = strpos($registerAction, "sr_member_record_consent(\$pdo, \$accountId, 'privacy'");
+    $registerConsent = strpos($registerAction, 'sr_member_record_registration_policy_consents($pdo, $accountId, $transactionPolicyDocuments, $registrationConsentValues);');
     $registerCommit = strpos($registerAction, '$pdo->commit();');
     $registerMail = strpos($registerAction, '$verificationMailSent = sr_send_mail');
     sr_member_auth_policy_assert(
@@ -778,9 +779,10 @@ if ($registerAction !== '') {
         'Register action should send email only after the account transaction commits.'
     );
     sr_member_auth_policy_assert(
-        strpos($registerAction, "\$marketingConsent = (\$_POST['marketing_consent'] ?? '') === '1';") !== false
-            && strpos($registerAction, "isset(\$transactionPolicyDocuments['marketing'])") !== false
-            && strpos($registerAction, "sr_member_record_consent(\$pdo, \$accountId, 'marketing', (string) \$transactionPolicyDocuments['marketing']['version_key'], \$marketingConsent, \$transactionPolicyDocuments['marketing'])") !== false,
+        strpos($registerAction, '$registrationConsentValues = sr_member_registration_policy_consent_values_from_post($registrationPolicyDocuments);') !== false
+            && strpos($registerAction, 'sr_member_record_registration_policy_consents($pdo, $accountId, $transactionPolicyDocuments, $registrationConsentValues);') !== false
+            && strpos($registrationHelper, "foreach (['terms', 'privacy', 'marketing'] as \$consentKey)") !== false
+            && strpos($registrationHelper, 'if (!is_array($documents[$consentKey] ?? null))') !== false,
         'Register action should record optional marketing consent history only when the optional policy document is available.'
     );
     sr_member_auth_policy_assert(
@@ -808,8 +810,9 @@ if ($registerView !== '') {
         'Register view should render optional login_id input for email and login_id parallel login.'
     );
     sr_member_auth_policy_assert(
-        strpos($registerView, 'name="marketing_consent"') !== false
-            && strpos($registerView, '$marketingConsent ? \' checked\' : \'\'') !== false,
+        strpos($registerView, 'sr_member_registration_policy_consent_section_html($registrationPolicyDocuments, $registrationConsentValues ?? [], \'register\')') !== false
+            && strpos($registrationHelper, 'name="' . "' . sr_e(\$postKey) . '" . '"') !== false
+            && strpos($registrationHelper, '$checked = !empty($consentValues[$consentKey]);') !== false,
         'Register view should render optional marketing consent and preserve submitted state.'
     );
 }

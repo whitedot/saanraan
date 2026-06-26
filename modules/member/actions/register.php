@@ -28,7 +28,7 @@ $registrationPolicyDocuments = $registrationPolicyDocumentState['documents'];
 $registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
 $registrationReady = $registrationAllowed && $registrationPolicyErrors === [];
 $errors = [];
-$marketingConsent = false;
+$registrationConsentValues = [];
 $values = [
     'email' => '',
     'login_id' => '',
@@ -75,9 +75,7 @@ if (sr_request_method() === 'POST') {
     $registrationExtensionValues = sr_member_registration_extension_values_from_post($registrationExtensionFields, $errors);
     $password = sr_post_string_without_truncation('password', 255);
     $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
-    $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
-    $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
-    $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
+    $registrationConsentValues = sr_member_registration_policy_consent_values_from_post($registrationPolicyDocuments);
     if ($profileFieldsEnabled) {
         $profileValues = sr_member_profile_values_from_post($profilePolicies, sr_member_empty_profile());
         $profileExtraValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
@@ -118,9 +116,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('member::action.register.password_confirm_mismatch');
     }
 
-    if (!$termsConsent || !$privacyConsent) {
-        $errors[] = sr_t('member::action.register.required_consents_missing');
-    }
+    $errors = array_merge($errors, sr_member_registration_policy_consent_validation_errors($registrationPolicyDocuments, $registrationConsentValues));
 
     if ($profileFieldsEnabled) {
         foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
@@ -211,11 +207,7 @@ if (sr_request_method() === 'POST') {
                 throw new RuntimeException(implode(' ', $transactionPolicyDocumentState['errors']));
             }
             $transactionPolicyDocuments = $transactionPolicyDocumentState['documents'];
-            sr_member_record_consent($pdo, $accountId, 'terms', (string) $transactionPolicyDocuments['terms']['version_key'], true, $transactionPolicyDocuments['terms']);
-            sr_member_record_consent($pdo, $accountId, 'privacy', (string) $transactionPolicyDocuments['privacy']['version_key'], true, $transactionPolicyDocuments['privacy']);
-            if (isset($transactionPolicyDocuments['marketing'])) {
-                sr_member_record_consent($pdo, $accountId, 'marketing', (string) $transactionPolicyDocuments['marketing']['version_key'], $marketingConsent, $transactionPolicyDocuments['marketing']);
-            }
+            sr_member_record_registration_policy_consents($pdo, $accountId, $transactionPolicyDocuments, $registrationConsentValues);
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
                 sr_member_save_profile_extra_field_values($pdo, $accountId, $profileExtraFieldDefinitions, $profileExtraValues);

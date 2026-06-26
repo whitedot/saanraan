@@ -21,7 +21,7 @@ $values = [
     'email' => (string) ($completionState['email_snapshot'] ?? ''),
     'display_name' => (string) ($completionState['display_name_snapshot'] ?? ''),
 ];
-$marketingConsent = false;
+$registrationConsentValues = [];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -29,9 +29,7 @@ if (sr_request_method() === 'POST') {
     $values['display_name'] = sr_member_normalize_display_name(sr_post_string('display_name', 120));
     $password = sr_post_string_without_truncation('password', 255) ?? '';
     $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255) ?? '';
-    $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
-    $privacyConsent = ($_POST['privacy_consent'] ?? '') === '1';
-    $marketingConsent = ($_POST['marketing_consent'] ?? '') === '1';
+    $registrationConsentValues = sr_member_registration_policy_consent_values_from_post($policyDocuments);
 
     if (empty($memberSettings['allow_registration'])) {
         $errors[] = sr_t('member::action.register.disabled');
@@ -48,9 +46,7 @@ if (sr_request_method() === 'POST') {
     if ($password !== $passwordConfirm) {
         $errors[] = sr_t('member::action.register.password_confirm_mismatch');
     }
-    if (!$termsConsent || !$privacyConsent) {
-        $errors[] = sr_t('member::action.register.required_consents_missing');
-    }
+    $errors = array_merge($errors, sr_member_registration_policy_consent_validation_errors($policyDocuments, $registrationConsentValues));
 
     if ($errors === []) {
         $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
@@ -80,11 +76,7 @@ if (sr_request_method() === 'POST') {
                 $verificationToken = sr_member_create_email_verification($pdo, $config, $accountId, $values['email']);
                 $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
             }
-            sr_member_record_consent($pdo, $accountId, 'terms', (string) $policyDocuments['terms']['version_key'], true, $policyDocuments['terms']);
-            sr_member_record_consent($pdo, $accountId, 'privacy', (string) $policyDocuments['privacy']['version_key'], true, $policyDocuments['privacy']);
-            if (isset($policyDocuments['marketing'])) {
-                sr_member_record_consent($pdo, $accountId, 'marketing', (string) $policyDocuments['marketing']['version_key'], $marketingConsent, $policyDocuments['marketing']);
-            }
+            sr_member_record_registration_policy_consents($pdo, $accountId, $policyDocuments, $registrationConsentValues);
             sr_member_oauth_link_account($pdo, $accountId, (string) $usedState['provider_key'], (string) $usedState['provider_subject_hash'], [
                 'subject_display' => (string) $usedState['provider_subject_display'],
                 'email' => (string) $usedState['email_snapshot'],
