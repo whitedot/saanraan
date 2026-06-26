@@ -46,6 +46,7 @@ $attemptAccess = $canPreviewAsAdmin
 $submitResult = null;
 $submitErrors = [];
 $quizResultScreenRequested = sr_get_string('result', 5) === '1';
+$quizEmbedded = sr_get_string('embed', 5) === '1';
 $returnTo = sr_quiz_internal_return_path(sr_get_string('return_to', 255));
 $sourceModule = sr_quiz_clean_key(sr_get_string('source_module', 40), 40);
 $sourceType = sr_quiz_clean_key(sr_get_string('source_type', 40), 40);
@@ -60,6 +61,9 @@ if ($sourceModule !== '' && $sourceType !== '' && $sourceId > 0) {
     $quizQuery['source_module'] = $sourceModule;
     $quizQuery['source_type'] = $sourceType;
     $quizQuery['source_id'] = (string) $sourceId;
+}
+if ($quizEmbedded) {
+    $quizQuery['embed'] = '1';
 }
 if ($quizQuery !== []) {
     $quizNextUrl .= '?' . http_build_query($quizQuery);
@@ -163,10 +167,35 @@ if ($canPreviewAsAdmin) {
 }
 $quizShareUrl = sr_absolute_url($site ?? null, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')));
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
-    'body_class' => 'sr-quiz-page',
+$quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
+    'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
     'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
-]));
+]);
+
+if ($quizEmbedded) {
+    $quizEmbedStylesheets = is_array($quizLayoutContext['stylesheets'] ?? null) ? $quizLayoutContext['stylesheets'] : [];
+    $quizEmbedScripts = array_merge(['/assets/common-ui.js'], is_array($quizLayoutContext['scripts'] ?? null) ? $quizLayoutContext['scripts'] : []);
+    $quizEmbedBodyClass = sr_ui_icon_class_attr((string) ($quizLayoutContext['body_class'] ?? 'sr-quiz-page sr-quiz-embed-page'));
+    $quizEmbedSeo = array_merge($seo, ['robots' => 'noindex, nofollow']);
+    if ($pdo instanceof PDO) {
+        $quizEmbedSeo = sr_site_apply_public_meta_defaults($pdo, $quizEmbedSeo);
+    }
+    ?>
+<!doctype html>
+<html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_color_scheme(is_array($site ?? null) ? $site : null)); ?>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php echo sr_seo_tags($quizEmbedSeo, is_array($site ?? null) ? $site : null); ?>
+    <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
+    <?php echo sr_stylesheet_tag($quizEmbedStylesheets, $pdo, ['style_profile' => (string) ($quizLayoutContext['style_profile'] ?? 'minimal')]); ?>
+    <?php echo sr_icon_bootstrap_script(); ?>
+</head>
+<body class="<?php echo sr_e($quizEmbedBodyClass); ?>">
+    <?php
+} else {
+    sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $quizLayoutContext);
+}
 ?>
 <?php echo sr_render_output_slot($pdo, [
     'module_key' => 'quiz',
@@ -228,7 +257,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                 <?php elseif (empty($attemptAccess['allowed'])): ?>
                     <p><?php echo sr_e((string) ($attemptAccess['message'] ?? '현재 응시할 수 없는 퀴즈입니다.')); ?></p>
                 <?php else: ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/quiz/' . (string) $quiz['quiz_key'])); ?>" class="sr-quiz-form">
+                    <form method="post" action="<?php echo sr_e(sr_url($quizNextUrl)); ?>" class="sr-quiz-form">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                         <input type="hidden" name="source_module" value="<?php echo sr_e($sourceModule); ?>">
@@ -471,4 +500,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
 if (function_exists('sr_reaction_public_script_html')) {
     echo sr_reaction_public_script_html();
 }
-sr_public_layout_end();
+if ($quizEmbedded) {
+    echo sr_script_tags($quizEmbedScripts ?? []);
+    ?>
+</body>
+</html>
+    <?php
+} else {
+    sr_public_layout_end();
+}

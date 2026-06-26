@@ -60,6 +60,16 @@
     padding: clamp(28px, 5vw, 72px) 16px 78px;
 }
 
+.sr-quiz-embed-page {
+    min-height: 100vh;
+    background: var(--sr-surface, var(--color-default-0, #fff));
+}
+
+.sr-quiz-embed-page .quiz-page-main {
+    min-height: auto;
+    padding: 28px;
+}
+
 .sr-quiz-page .quiz-page-section {
     width: min(1360px, 100%);
     margin: 0 auto;
@@ -68,6 +78,10 @@
 .sr-quiz-page .quiz-page-container {
     display: grid;
     gap: 24px;
+}
+
+.sr-quiz-embed-page .quiz-page-container {
+    gap: 20px;
 }
 
 .sr-quiz-page .quiz-page-main h1 {

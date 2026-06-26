@@ -12,13 +12,15 @@ if ($sourceQuizzes === [] || $sourceModule === '' || $sourceType === '' || $sour
 <section class="sr-quiz-source-links">
     <?php foreach ($sourceQuizzes as $sourceQuizIndex => $sourceQuiz) { ?>
         <?php
-        $quizUrl = '/quiz/' . rawurlencode((string) ($sourceQuiz['quiz_key'] ?? ''));
-        $quizUrl .= '?' . http_build_query([
+        $quizPath = '/quiz/' . rawurlencode((string) ($sourceQuiz['quiz_key'] ?? ''));
+        $quizQuery = [
             'return_to' => $returnTo,
             'source_module' => $sourceModule,
             'source_type' => $sourceType,
             'source_id' => (string) $sourceId,
-        ]);
+        ];
+        $quizUrl = $quizPath . '?' . http_build_query($quizQuery);
+        $quizFrameUrl = $quizPath . '?' . http_build_query(array_merge($quizQuery, ['embed' => '1']));
         $dialogId = 'sr_quiz_source_dialog_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $sourceModule . '_' . $sourceType . '_' . (string) $sourceId . '_' . (string) $sourceQuizIndex);
         $frameTitle = '퀴즈: ' . (string) ($sourceQuiz['title'] ?? '');
         ?>
@@ -35,7 +37,7 @@ if ($sourceQuizzes === [] || $sourceModule === '' || $sourceType === '' || $sour
                 <form method="dialog" class="sr-quiz-dialog-toolbar">
                     <button type="submit" class="btn btn-solid-light">닫기</button>
                 </form>
-                <iframe src="<?php echo sr_e(sr_url($quizUrl)); ?>" title="<?php echo sr_e($frameTitle); ?>"></iframe>
+                <iframe src="<?php echo sr_e(sr_url($quizFrameUrl)); ?>" title="<?php echo sr_e($frameTitle); ?>"></iframe>
             </dialog>
         </article>
     <?php } ?>

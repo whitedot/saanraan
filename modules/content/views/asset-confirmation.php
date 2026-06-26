@@ -15,6 +15,12 @@ $seo = [
     'title' => $assetConfirmationTitle,
     'robots' => 'noindex, nofollow',
 ];
+$assetConfirmationStandaloneLayout = !empty($assetConfirmationStandaloneLayout);
+if (!$assetConfirmationStandaloneLayout) {
+    include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
+    return;
+}
+
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings));
 ?>

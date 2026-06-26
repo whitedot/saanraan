@@ -22,6 +22,15 @@
     color: #d6deef;
 }
 
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main h1,
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main h2 {
+    color: var(--sr-text, var(--text-strong, #172033));
+}
+
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main p {
+    color: var(--sr-muted, var(--text-muted, #4d5b73));
+}
+
 .sr-quiz-skin-focus .sr-quiz-result h2 {
     color: var(--sr-text, #172033);
 }

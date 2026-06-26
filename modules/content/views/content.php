@@ -137,13 +137,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php foreach ($contentQuizLinks as $contentQuizIndex => $contentQuiz) { ?>
                         <?php
                         $contentQuizReturnTo = sr_content_path((string) $page['slug']);
-                        $contentQuizQuery = http_build_query([
+                        $contentQuizQueryArgs = [
                             'return_to' => $contentQuizReturnTo,
                             'source_module' => 'content',
                             'source_type' => 'content_item',
                             'source_id' => (string) (int) ($page['id'] ?? 0),
-                        ]);
-                        $contentQuizUrl = '/quiz/' . rawurlencode((string) ($contentQuiz['quiz_key'] ?? '')) . '?' . $contentQuizQuery;
+                        ];
+                        $contentQuizPath = '/quiz/' . rawurlencode((string) ($contentQuiz['quiz_key'] ?? ''));
+                        $contentQuizUrl = $contentQuizPath . '?' . http_build_query($contentQuizQueryArgs);
+                        $contentQuizFrameUrl = $contentQuizPath . '?' . http_build_query(array_merge($contentQuizQueryArgs, ['embed' => '1']));
                         $contentQuizDialogId = 'content_quiz_dialog_' . (string) $contentQuizIndex;
                         $contentQuizFrameTitle = (string) ($contentQuiz['title'] ?? '퀴즈');
                         ?>
@@ -158,7 +160,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <form method="dialog" class="content-quiz-dialog-toolbar">
                                     <button type="submit" class="btn btn-sm btn-solid-light">닫기</button>
                                 </form>
-                                <iframe title="<?php echo sr_e($contentQuizFrameTitle); ?>" src="<?php echo sr_e(sr_url($contentQuizUrl)); ?>" loading="lazy"></iframe>
+                                <iframe title="<?php echo sr_e($contentQuizFrameTitle); ?>" src="<?php echo sr_e(sr_url($contentQuizFrameUrl)); ?>" loading="lazy"></iframe>
                             </dialog>
                         </div>
                     <?php } ?>

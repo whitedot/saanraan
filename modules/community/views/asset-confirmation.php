@@ -14,6 +14,12 @@ $seo = [
     'title' => $assetConfirmationTitle,
     'robots' => 'noindex, nofollow',
 ];
+$assetConfirmationStandaloneLayout = !empty($assetConfirmationStandaloneLayout);
+if (!$assetConfirmationStandaloneLayout) {
+    include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';
+    return;
+}
+
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
 ?>
