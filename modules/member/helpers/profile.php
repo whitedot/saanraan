@@ -624,6 +624,84 @@ function sr_member_save_profile_extra_field_values(PDO $pdo, int $accountId, arr
     }
 }
 
+function sr_member_save_profile_extra_field_value(PDO $pdo, int $accountId, array $definition, string $value): bool
+{
+    if ($accountId < 1 || !sr_member_profile_field_values_table_exists($pdo)) {
+        return false;
+    }
+
+    $key = (string) ($definition['key'] ?? '');
+    if ($key === '') {
+        return false;
+    }
+
+    $now = sr_now();
+    $upsertSql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
+        ? 'INSERT INTO sr_member_profile_field_values
+            (account_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_profile_snapshot, show_in_admin_snapshot,
+             privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at)
+         VALUES
+            (:account_id, :field_key, :label_snapshot, :field_type_snapshot, :visibility_snapshot, :show_on_profile_snapshot, :show_in_admin_snapshot,
+             :privacy_purpose_snapshot, :export_policy_snapshot, :cleanup_policy_snapshot, :value_text, :value_json, :created_at, :updated_at)
+         ON CONFLICT(account_id, field_key) DO UPDATE SET
+            label_snapshot = excluded.label_snapshot,
+            field_type_snapshot = excluded.field_type_snapshot,
+            visibility_snapshot = excluded.visibility_snapshot,
+            show_on_profile_snapshot = excluded.show_on_profile_snapshot,
+            show_in_admin_snapshot = excluded.show_in_admin_snapshot,
+            privacy_purpose_snapshot = excluded.privacy_purpose_snapshot,
+            export_policy_snapshot = excluded.export_policy_snapshot,
+            cleanup_policy_snapshot = excluded.cleanup_policy_snapshot,
+            value_text = excluded.value_text,
+            value_json = excluded.value_json,
+            updated_at = excluded.updated_at'
+        : 'INSERT INTO sr_member_profile_field_values
+            (account_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_profile_snapshot, show_in_admin_snapshot,
+             privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at)
+         VALUES
+            (:account_id, :field_key, :label_snapshot, :field_type_snapshot, :visibility_snapshot, :show_on_profile_snapshot, :show_in_admin_snapshot,
+             :privacy_purpose_snapshot, :export_policy_snapshot, :cleanup_policy_snapshot, :value_text, :value_json, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            label_snapshot = VALUES(label_snapshot),
+            field_type_snapshot = VALUES(field_type_snapshot),
+            visibility_snapshot = VALUES(visibility_snapshot),
+            show_on_profile_snapshot = VALUES(show_on_profile_snapshot),
+            show_in_admin_snapshot = VALUES(show_in_admin_snapshot),
+            privacy_purpose_snapshot = VALUES(privacy_purpose_snapshot),
+            export_policy_snapshot = VALUES(export_policy_snapshot),
+            cleanup_policy_snapshot = VALUES(cleanup_policy_snapshot),
+            value_text = VALUES(value_text),
+            value_json = VALUES(value_json),
+            updated_at = VALUES(updated_at)';
+    $stmt = $pdo->prepare($upsertSql);
+    $stmt->execute([
+        'account_id' => $accountId,
+        'field_key' => $key,
+        'label_snapshot' => (string) ($definition['label'] ?? $key),
+        'field_type_snapshot' => (string) ($definition['type'] ?? 'text'),
+        'visibility_snapshot' => (string) ($definition['visibility'] ?? 'public'),
+        'show_on_profile_snapshot' => !empty($definition['show_on_profile']) ? 1 : 0,
+        'show_in_admin_snapshot' => !empty($definition['show_in_admin']) ? 1 : 0,
+        'privacy_purpose_snapshot' => (string) ($definition['privacy_purpose'] ?? ''),
+        'export_policy_snapshot' => (string) ($definition['export_policy'] ?? 'include'),
+        'cleanup_policy_snapshot' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
+        'value_text' => $value,
+        'value_json' => json_encode([
+            'value' => $value,
+            'visibility' => (string) ($definition['visibility'] ?? 'public'),
+            'show_on_profile' => !empty($definition['show_on_profile']),
+            'show_in_admin' => !empty($definition['show_in_admin']),
+            'privacy_purpose' => (string) ($definition['privacy_purpose'] ?? ''),
+            'export_policy' => (string) ($definition['export_policy'] ?? 'include'),
+            'cleanup_policy' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return $stmt->rowCount() > 0;
+}
+
 function sr_member_delete_profile_field_values(PDO $pdo, int $accountId): void
 {
     if ($accountId < 1 || !sr_member_profile_field_values_table_exists($pdo)) {

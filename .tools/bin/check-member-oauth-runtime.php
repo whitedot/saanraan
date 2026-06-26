@@ -139,7 +139,8 @@ function sr_member_oauth_check_pdo(): PDO
             value_text TEXT NULL,
             value_json TEXT NULL,
             created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
+            updated_at TEXT NOT NULL,
+            UNIQUE(account_id, field_key)
         )'
     );
 
@@ -290,6 +291,50 @@ function sr_member_oauth_check_runtime_helpers(): void
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    $departmentDefinition = [
+        'key' => 'department',
+        'label' => 'Department',
+        'type' => 'text',
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
+    $teamDefinition = [
+        'key' => 'team',
+        'label' => 'Team',
+        'type' => 'select',
+        'options' => ['Alpha', 'Beta'],
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
+    $emptyKeepDefinition = [
+        'key' => 'empty_keep',
+        'label' => 'Empty Keep',
+        'type' => 'text',
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
+    $orphanDefinition = [
+        'key' => 'legacy_orphan',
+        'label' => 'Legacy Orphan',
+        'type' => 'text',
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
+    sr_member_save_profile_extra_field_value($pdo, 7, $teamDefinition, 'Alpha');
+    sr_member_save_profile_extra_field_value($pdo, 7, $emptyKeepDefinition, 'Still here');
+    sr_member_save_profile_extra_field_value($pdo, 7, $orphanDefinition, 'Keep orphan');
     $synced = sr_member_oauth_sync_member_profile($pdo, $config, 7, [
         'id' => 7,
         'account_identifier_hash' => $oldEmailHash,
@@ -308,19 +353,14 @@ function sr_member_oauth_check_runtime_helpers(): void
             'email' => 'new@example.test',
             'display_name' => 'NewName',
             'profile:department' => 'Engineering',
+            'profile:team' => 'Gamma',
+            'profile:empty_keep' => '',
         ],
     ], [
         'profile_fields_json' => json_encode([
-            [
-                'key' => 'department',
-                'label' => 'Department',
-                'type' => 'text',
-                'visibility' => 'admin',
-                'show_on_profile' => false,
-                'show_in_admin' => true,
-                'export_policy' => 'include',
-                'cleanup_policy' => 'anonymize',
-            ],
+            $departmentDefinition,
+            $teamDefinition,
+            $emptyKeepDefinition,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
     ]);
     sr_member_oauth_check_assert(in_array('email', $synced, true) && in_array('display_name', $synced, true) && in_array('profile_extra', $synced, true), 'OAuth profile sync should update changed member basics and mapped extra profile fields.');
@@ -329,6 +369,12 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(is_array($syncedAccount) && (string) ($syncedAccount['display_name'] ?? '') === 'NewName', 'OAuth profile sync should update member display name.');
     $syncedProfileField = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "department" LIMIT 1')->fetchColumn();
     sr_member_oauth_check_assert((string) $syncedProfileField === 'Engineering', 'OAuth profile sync should save mapped non-basic values to extra profile fields.');
+    $keptInvalidSelectValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "team" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $keptInvalidSelectValue === 'Alpha', 'OAuth profile sync should preserve existing select profile value when provider value is outside configured options.');
+    $keptEmptyValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "empty_keep" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $keptEmptyValue === 'Still here', 'OAuth profile sync should preserve existing profile value when provider claim is empty.');
+    $keptOrphanValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "legacy_orphan" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $keptOrphanValue === 'Keep orphan', 'OAuth profile sync should not delete profile values outside current OAuth field mappings.');
 
     $activeAccounts = sr_member_oauth_accounts_for_account($pdo, 7);
     sr_member_oauth_check_assert(count($activeAccounts) === 1, 'Active OAuth account list should include linked provider.');

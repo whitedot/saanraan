@@ -1162,7 +1162,13 @@ function sr_member_oauth_sync_member_profile(PDO $pdo, array $config, int $accou
             }
             $definition = $extraByKey[$fieldKey];
             $type = (string) ($definition['type'] ?? 'text');
+            if (!is_scalar($value)) {
+                continue;
+            }
             $nextValue = trim((string) $value);
+            if ($nextValue === '') {
+                continue;
+            }
             if ($type === 'checkbox') {
                 $nextValue = sr_member_oauth_truthy($nextValue) ? '1' : '0';
             } elseif ($type === 'select' && $nextValue !== '' && !in_array($nextValue, (array) ($definition['options'] ?? []), true)) {
@@ -1171,13 +1177,14 @@ function sr_member_oauth_sync_member_profile(PDO $pdo, array $config, int $accou
                 $maxLength = sr_member_profile_extra_field_value_max_length($type);
                 $nextValue = function_exists('mb_substr') ? mb_substr($nextValue, 0, $maxLength) : substr($nextValue, 0, $maxLength);
             }
-            if (($plainValues[$fieldKey] ?? '') !== $nextValue) {
+            $storedValue = $plainValues[$fieldKey] ?? '';
+            if ($storedValue !== $nextValue) {
+                sr_member_save_profile_extra_field_value($pdo, $accountId, $definition, $nextValue);
                 $plainValues[$fieldKey] = $nextValue;
                 $extraChanged = true;
             }
         }
         if ($extraChanged) {
-            sr_member_save_profile_extra_field_values($pdo, $accountId, $extraDefinitions, $plainValues);
             $changed[] = 'profile_extra';
         }
     }
