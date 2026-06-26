@@ -348,8 +348,10 @@ function sr_member_oauth_claim_path_options(array $provider): array
 function sr_member_oauth_default_profile_sync_rules(array $provider): array
 {
     $scopeItems = sr_member_oauth_scope_items($provider['scope'] ?? ($provider['scopes'] ?? []));
-    $emailScope = in_array('email', $scopeItems, true) ? 'email' : '';
-    $profileScope = in_array('profile', $scopeItems, true) ? 'profile' : '';
+    $emailScope = sr_member_oauth_provider_value($provider, 'email_scope');
+    $displayNameScope = sr_member_oauth_provider_value($provider, 'display_name_scope');
+    $emailScope = $emailScope !== '' && in_array($emailScope, $scopeItems, true) ? $emailScope : (in_array('email', $scopeItems, true) ? 'email' : '');
+    $displayNameScope = $displayNameScope !== '' && in_array($displayNameScope, $scopeItems, true) ? $displayNameScope : (in_array('profile', $scopeItems, true) ? 'profile' : '');
 
     return [
         [
@@ -359,7 +361,7 @@ function sr_member_oauth_default_profile_sync_rules(array $provider): array
         ],
         [
             'target' => 'display_name',
-            'scope' => $profileScope,
+            'scope' => $displayNameScope,
             'claim' => sr_member_oauth_provider_value($provider, 'display_name_claim') ?: 'name',
         ],
     ];
@@ -377,6 +379,13 @@ function sr_member_oauth_profile_sync_rules(array $provider): array
         return sr_member_oauth_default_profile_sync_rules($provider);
     }
 
+    $defaultRulesByTarget = [];
+    foreach (sr_member_oauth_default_profile_sync_rules($provider) as $defaultRule) {
+        $defaultTarget = (string) ($defaultRule['target'] ?? '');
+        if ($defaultTarget !== '') {
+            $defaultRulesByTarget[$defaultTarget] = $defaultRule;
+        }
+    }
     $rules = [];
     foreach ($decoded as $item) {
         if (!is_array($item)) {
@@ -387,9 +396,13 @@ function sr_member_oauth_profile_sync_rules(array $provider): array
         if ($target === '' || $claim === '') {
             continue;
         }
+        $scope = trim((string) ($item['scope'] ?? ''));
+        if ($scope === '' && isset($defaultRulesByTarget[$target])) {
+            $scope = (string) ($defaultRulesByTarget[$target]['scope'] ?? '');
+        }
         $rules[] = [
             'target' => $target,
-            'scope' => trim((string) ($item['scope'] ?? '')),
+            'scope' => $scope,
             'claim' => $claim,
         ];
         if (count($rules) >= 30) {

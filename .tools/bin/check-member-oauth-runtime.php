@@ -176,6 +176,28 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(sr_member_oauth_scope_setting_value(['openid', 'email', 'openid', 'profile']) === "openid\nemail\nprofile", 'OAuth scope settings should normalize repeated item inputs.');
     sr_member_oauth_check_assert(sr_member_oauth_required_scope_items(['scopes' => ['openid', 'email']]) === ['openid', 'email'], 'OAuth required scope helper should use provider contract scopes by default.');
     sr_member_oauth_check_assert(sr_member_oauth_scope_items_with_required(['profile'], ['scopes' => ['openid', 'email']]) === ['openid', 'email', 'profile'], 'OAuth scope settings should preserve provider-required scopes.');
+    $kakaoDefaultRules = sr_member_oauth_default_profile_sync_rules([
+        'scopes' => ['profile_nickname', 'account_email'],
+        'email_claim' => 'kakao_account.email',
+        'email_scope' => 'account_email',
+        'display_name_claim' => 'kakao_account.profile.nickname',
+        'display_name_scope' => 'profile_nickname',
+    ]);
+    sr_member_oauth_check_assert(($kakaoDefaultRules[0]['scope'] ?? '') === 'account_email', 'OAuth default profile sync should use provider-specific email scope metadata.');
+    sr_member_oauth_check_assert(($kakaoDefaultRules[1]['scope'] ?? '') === 'profile_nickname', 'OAuth default profile sync should use provider-specific display name scope metadata.');
+    $kakaoStoredBlankScopeRules = sr_member_oauth_profile_sync_rules([
+        'scopes' => ['profile_nickname', 'account_email'],
+        'email_claim' => 'kakao_account.email',
+        'email_scope' => 'account_email',
+        'display_name_claim' => 'kakao_account.profile.nickname',
+        'display_name_scope' => 'profile_nickname',
+        'profile_sync_json' => json_encode([
+            ['target' => 'email', 'scope' => '', 'claim' => 'kakao_account.email'],
+            ['target' => 'display_name', 'scope' => '', 'claim' => 'kakao_account.profile.nickname'],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ]);
+    sr_member_oauth_check_assert(($kakaoStoredBlankScopeRules[0]['scope'] ?? '') === 'account_email', 'OAuth stored basic profile sync rules should fill blank email scope from provider metadata.');
+    sr_member_oauth_check_assert(($kakaoStoredBlankScopeRules[1]['scope'] ?? '') === 'profile_nickname', 'OAuth stored basic profile sync rules should fill blank display name scope from provider metadata.');
     $emptyScopeAuthUrl = sr_member_oauth_authorization_url([
         'authorization_url' => 'https://example.com/authorize',
         'client_id' => 'client-fixture',
