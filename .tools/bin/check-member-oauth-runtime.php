@@ -322,6 +322,26 @@ function sr_member_oauth_check_runtime_helpers(): void
         'export_policy' => 'include',
         'cleanup_policy' => 'anonymize',
     ];
+    $checkboxFalseDefinition = [
+        'key' => 'checkbox_false',
+        'label' => 'Checkbox False',
+        'type' => 'checkbox',
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
+    $checkboxEmptyDefinition = [
+        'key' => 'checkbox_empty',
+        'label' => 'Checkbox Empty',
+        'type' => 'checkbox',
+        'visibility' => 'admin',
+        'show_on_profile' => false,
+        'show_in_admin' => true,
+        'export_policy' => 'include',
+        'cleanup_policy' => 'anonymize',
+    ];
     $orphanDefinition = [
         'key' => 'legacy_orphan',
         'label' => 'Legacy Orphan',
@@ -334,6 +354,8 @@ function sr_member_oauth_check_runtime_helpers(): void
     ];
     sr_member_save_profile_extra_field_value($pdo, 7, $teamDefinition, 'Alpha');
     sr_member_save_profile_extra_field_value($pdo, 7, $emptyKeepDefinition, 'Still here');
+    sr_member_save_profile_extra_field_value($pdo, 7, $checkboxFalseDefinition, '1');
+    sr_member_save_profile_extra_field_value($pdo, 7, $checkboxEmptyDefinition, '1');
     sr_member_save_profile_extra_field_value($pdo, 7, $orphanDefinition, 'Keep orphan');
     $synced = sr_member_oauth_sync_member_profile($pdo, $config, 7, [
         'id' => 7,
@@ -355,12 +377,16 @@ function sr_member_oauth_check_runtime_helpers(): void
             'profile:department' => 'Engineering',
             'profile:team' => 'Gamma',
             'profile:empty_keep' => '',
+            'profile:checkbox_false' => false,
+            'profile:checkbox_empty' => '',
         ],
     ], [
         'profile_fields_json' => json_encode([
             $departmentDefinition,
             $teamDefinition,
             $emptyKeepDefinition,
+            $checkboxFalseDefinition,
+            $checkboxEmptyDefinition,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
     ]);
     sr_member_oauth_check_assert(in_array('email', $synced, true) && in_array('display_name', $synced, true) && in_array('profile_extra', $synced, true), 'OAuth profile sync should update changed member basics and mapped extra profile fields.');
@@ -373,6 +399,10 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert((string) $keptInvalidSelectValue === 'Alpha', 'OAuth profile sync should preserve existing select profile value when provider value is outside configured options.');
     $keptEmptyValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "empty_keep" LIMIT 1')->fetchColumn();
     sr_member_oauth_check_assert((string) $keptEmptyValue === 'Still here', 'OAuth profile sync should preserve existing profile value when provider claim is empty.');
+    $syncedCheckboxFalseValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "checkbox_false" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $syncedCheckboxFalseValue === '0', 'OAuth profile sync should save boolean false claims to checkbox extra profile fields.');
+    $keptCheckboxEmptyValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "checkbox_empty" LIMIT 1')->fetchColumn();
+    sr_member_oauth_check_assert((string) $keptCheckboxEmptyValue === '1', 'OAuth profile sync should preserve existing checkbox profile value when provider claim is empty.');
     $keptOrphanValue = $pdo->query('SELECT value_text FROM sr_member_profile_field_values WHERE account_id = 7 AND field_key = "legacy_orphan" LIMIT 1')->fetchColumn();
     sr_member_oauth_check_assert((string) $keptOrphanValue === 'Keep orphan', 'OAuth profile sync should not delete profile values outside current OAuth field mappings.');
 

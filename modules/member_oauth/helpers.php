@@ -1165,15 +1165,24 @@ function sr_member_oauth_sync_member_profile(PDO $pdo, array $config, int $accou
             if (!is_scalar($value)) {
                 continue;
             }
-            $nextValue = trim((string) $value);
-            if ($nextValue === '') {
-                continue;
-            }
             if ($type === 'checkbox') {
-                $nextValue = sr_member_oauth_truthy($nextValue) ? '1' : '0';
-            } elseif ($type === 'select' && $nextValue !== '' && !in_array($nextValue, (array) ($definition['options'] ?? []), true)) {
-                continue;
+                if (is_bool($value)) {
+                    $nextValue = $value ? '1' : '0';
+                } else {
+                    $nextValue = trim((string) $value);
+                    if ($nextValue === '') {
+                        continue;
+                    }
+                    $nextValue = sr_member_oauth_truthy($nextValue) ? '1' : '0';
+                }
             } else {
+                $nextValue = trim((string) $value);
+                if ($nextValue === '') {
+                    continue;
+                }
+                if ($type === 'select' && !in_array($nextValue, (array) ($definition['options'] ?? []), true)) {
+                    continue;
+                }
                 $maxLength = sr_member_profile_extra_field_value_max_length($type);
                 $nextValue = function_exists('mb_substr') ? mb_substr($nextValue, 0, $maxLength) : substr($nextValue, 0, $maxLength);
             }

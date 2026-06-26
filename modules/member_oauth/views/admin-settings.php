@@ -648,6 +648,8 @@ document.addEventListener('click', function (event) {
     if (list.hasAttribute('data-oauth-profile-sync-list')) {
         srMemberOauthRenumberProfileSync(list);
         srMemberOauthSyncAddProfileButtons();
+    } else if (list.hasAttribute('data-oauth-scope-list')) {
+        srMemberOauthSyncScopeSelectOptions(list.getAttribute('data-oauth-scope-list') || '');
     }
 });
 srMemberOauthSyncAddProfileButtons();
