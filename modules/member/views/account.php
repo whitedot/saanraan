@@ -3,6 +3,7 @@
 $pageTitle = sr_t('member::ui.text.13b28045');
 $memberAccountBasePath = isset($memberAccountBasePath) && is_string($memberAccountBasePath) ? $memberAccountBasePath : '/mypage';
 $memberAccountPage = isset($memberAccountPage) && is_string($memberAccountPage) ? $memberAccountPage : 'overview';
+$memberAccountHasPassword = trim((string) ($account['password_hash'] ?? '')) !== '';
 $memberAccountPages = [
     'overview' => [
         'label' => '요약',
@@ -148,6 +149,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                                 <input type="hidden" name="oauth_account_id" value="<?php echo sr_e((string) $oauthAccount['id']); ?>">
                                                 <button class="btn btn-solid-primary" type="submit"<?php echo $oauthCanUnlink ? '' : ' disabled'; ?>>연결 해제</button>
                                             </form>
+                                            <?php if (!$oauthCanUnlink) { ?>
+                                                <small>비밀번호를 설정하거나 다른 소셜 로그인을 연결한 뒤 해제할 수 있습니다.</small>
+                                            <?php } ?>
                                         </dd>
                                     <?php } ?>
                                 </dl>
@@ -235,12 +239,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="password">
-                            <p>
-                                <label for="modules_member_account_current_password">
-                                <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_current_password" type="password" name="current_password" required>
-                                </label>
-                            </p>
+                            <?php if ($memberAccountHasPassword) { ?>
+                                <p>
+                                    <label for="modules_member_account_current_password">
+                                    <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                        <input class="form-input" id="modules_member_account_current_password" type="password" name="current_password" required>
+                                    </label>
+                                </p>
+                            <?php } else { ?>
+                                <p>현재 비밀번호가 없습니다. 새 비밀번호를 설정하면 소셜 로그인 연결 상태와 관계없이 이메일과 비밀번호로 로그인할 수 있습니다.</p>
+                            <?php } ?>
                             <p>
                                 <label for="modules_member_account_new_password">
                                 <span><?php echo sr_e(sr_t('member::ui.password.04ea6283')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
@@ -253,7 +261,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <input class="form-input" id="modules_member_account_new_password_confirm" type="password" name="new_password_confirm" required>
                                 </label>
                             </p>
-                            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.password.bf1d4719')); ?></button>
+                            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberAccountHasPassword ? sr_t('member::ui.password.bf1d4719') : '비밀번호 설정'); ?></button>
                         </form>
                     </section>
                 <?php } elseif ($memberAccountPage === 'privacy') { ?>

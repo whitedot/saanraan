@@ -20,6 +20,17 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/member-settings', 'edit');
 
+    $previousProfileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($settings);
+    $previousProfileExtraFieldKeys = [];
+    foreach ($previousProfileExtraFieldDefinitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key !== '') {
+            $previousProfileExtraFieldKeys[$key] = true;
+        }
+    }
+    $removedProfileExtraFieldKeys = [];
+    $removedProfileExtraFieldValueCount = 0;
+
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
     $settings['nickname_enabled'] = ($_POST['nickname_enabled'] ?? '') === '1';
@@ -78,6 +89,22 @@ if (sr_request_method() === 'POST') {
             $errors[] = '프로필 추가 항목 설정을 저장할 수 없습니다.';
         } else {
             $settings['profile_fields_json'] = $profileFieldsJson;
+        }
+    }
+    $nextProfileExtraFieldKeys = [];
+    foreach (sr_member_profile_extra_field_definitions($settings) as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key !== '') {
+            $nextProfileExtraFieldKeys[$key] = true;
+        }
+    }
+    $removedProfileExtraFieldKeys = array_values(array_diff(array_keys($previousProfileExtraFieldKeys), array_keys($nextProfileExtraFieldKeys)));
+    if ($removedProfileExtraFieldKeys !== []) {
+        $removedProfileExtraFieldValueCount = sr_member_profile_extra_field_value_count_by_keys($pdo, $removedProfileExtraFieldKeys);
+        if (($_POST['profile_removed_field_values_confirmed'] ?? '') !== '1') {
+            $errors[] = '선택 프로필 항목을 삭제하면 전체 회원의 해당 저장값 '
+                . number_format($removedProfileExtraFieldValueCount)
+                . '건이 삭제됩니다. 경고를 확인한 뒤 다시 저장하세요.';
         }
     }
     $profileFieldOrderInput = sr_post_string_without_truncation('profile_field_order_json', 20000);
@@ -154,6 +181,9 @@ if (sr_request_method() === 'POST') {
                 'updated_at' => sr_now(),
             ]);
         }
+        $deletedProfileExtraFieldValues = $removedProfileExtraFieldKeys !== []
+            ? sr_member_delete_profile_extra_field_values_by_keys($pdo, $removedProfileExtraFieldKeys)
+            : 0;
         sr_clear_module_settings_cache('member');
 
         sr_audit_log($pdo, [
@@ -179,6 +209,9 @@ if (sr_request_method() === 'POST') {
                 'profile_fields' => sr_member_profile_field_policies($settings),
                 'profile_extra_fields' => sr_member_profile_extra_field_definitions($settings),
                 'profile_field_order' => sr_member_profile_field_order_items($settings, sr_member_profile_extra_field_definitions($settings)),
+                'removed_profile_extra_field_keys' => $removedProfileExtraFieldKeys,
+                'removed_profile_extra_field_value_count' => $deletedProfileExtraFieldValues,
+                'removed_profile_extra_field_value_count_estimate' => $removedProfileExtraFieldValueCount,
             ],
         ]);
 

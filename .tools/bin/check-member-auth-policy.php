@@ -442,6 +442,13 @@ if ($accountAction !== '') {
         'Password change should throttle current-password reauth failures.'
     );
     sr_member_auth_policy_assert(
+        strpos($accountAction, '$hasPasswordLogin') !== false
+            && strpos($accountAction, 'password_set') !== false
+            && strpos($accountAction, 'member.password.set') !== false
+            && strpos($accountAction, '$hasPasswordLogin && !password_verify') !== false,
+        'Password action should allow password setup for accounts without an existing password while keeping current-password verification for password changes.'
+    );
+    sr_member_auth_policy_assert(
         strpos($accountAction, "sr_post_string_without_truncation('new_password', 255)") !== false
             && strpos($accountAction, "sr_post_string_without_truncation('new_password_confirm', 255)") !== false
             && strpos($accountAction, '$newPassword === null || $newPasswordConfirm === null') !== false,
@@ -829,8 +836,10 @@ if ($adminSettingsAction !== '') {
         strpos($adminSettingsAction, 'sr_member_profile_field_definitions()') !== false
             && strpos($adminSettingsAction, "\$settings[\$requiredKey] = (\$_POST[\$requiredKey] ?? '') === '1';") !== false
             && strpos($adminSettingsAction, 'sr_member_profile_extra_field_definitions_json_from_input($profileFieldsInput)') !== false
+            && strpos($adminSettingsAction, 'profile_removed_field_values_confirmed') !== false
+            && strpos($adminSettingsAction, 'sr_member_delete_profile_extra_field_values_by_keys($pdo, $removedProfileExtraFieldKeys)') !== false
             && strpos($adminSettingsAction, "'profile_fields' => sr_member_profile_field_policies(\$settings)") !== false,
-        'Member settings action should save avatar visibility/required settings, dynamic profile fields, and audit them.'
+        'Member settings action should save avatar visibility/required settings, dynamic profile fields, confirm removed extra field cleanup, and audit them.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_admin_post_int_in_range($key, (int) $limits[\'min\'], (int) $limits[\'max\'])') !== false
@@ -870,8 +879,10 @@ if ($adminSettingsView !== '') {
             && strpos($adminSettingsView, '$enabledKey') !== false
             && strpos($adminSettingsView, '$requiredKey') !== false
             && strpos($adminSettingsView, 'data-member-profile-extra-fields-builder') !== false
-            && strpos($adminSettingsView, 'data-member-profile-extra-field-modal') !== false,
-        'Member settings view should expose avatar visibility/required settings and the dynamic profile field builder.'
+            && strpos($adminSettingsView, 'data-member-profile-extra-field-modal') !== false
+            && strpos($adminSettingsView, 'data-member-profile-original-extra-field-keys-json') !== false
+            && strpos($adminSettingsView, 'data-member-profile-removed-field-values-confirmed') !== false,
+        'Member settings view should expose avatar visibility/required settings, dynamic profile field builder, and removed field value cleanup confirmation.'
     );
 }
 
@@ -885,8 +896,10 @@ if ($accountView !== '') {
             && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") === false
             && strpos($accountView, "if (!empty(\$profilePolicies['profile_text']['visible']))") === false
             && strpos($accountView, 'sr_member_profile_extra_fields_form_html') !== false
-            && strpos($accountView, 'name="avatar_file"') !== false,
-        'Account view should render birth date, adult status, avatar, and dynamic profile fields without legacy phone/introduction inputs.'
+            && strpos($accountView, 'name="avatar_file"') !== false
+            && strpos($accountView, '$memberAccountHasPassword') !== false
+            && strpos($accountView, '비밀번호 설정') !== false,
+        'Account view should render birth date, adult status, avatar, dynamic profile fields, and password setup without legacy phone/introduction inputs.'
     );
 }
 

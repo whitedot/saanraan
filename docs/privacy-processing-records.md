@@ -76,7 +76,7 @@
 
 | 표면 | 기본 기준 | 후속 구현 기준 |
 | --- | --- | --- |
-| 회원 선택 프로필 | `member`의 `birth_date`와 `is_adult`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. 추가 프로필 항목은 `sr_member_profile_field_values`에 snapshot과 값으로 저장하고 `export_policy=include`인 항목만 사본 제공에 포함한다. | 성인 인증이나 법정대리인 확인이 필요하면 birth date 또는 adult flag 원문 재사용이 아니라 별도 선택 플러그인의 최소 결과 snapshot 기준을 따른다. |
+| 회원 선택 프로필 | `member`의 `birth_date`와 `is_adult`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. 추가 프로필 항목은 `sr_member_profile_field_values`에 snapshot과 값으로 저장하고 `export_policy=include`인 항목만 사본 제공에 포함한다. 운영자가 추가 프로필 항목을 삭제하면 저장 전 경고 확인을 요구하고, 저장 시 해당 `field_key`의 전체 회원 저장값을 함께 삭제한다. | 성인 인증이나 법정대리인 확인이 필요하면 birth date 또는 adult flag 원문 재사용이 아니라 별도 선택 플러그인의 최소 결과 snapshot 기준을 따른다. |
 | 본인확인/성인 인증 | 번들 기본 모듈은 원문 신원정보를 저장하지 않는다. | 선택 플러그인은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문 저장을 금지하고 HMAC hash 또는 최소 결과 snapshot만 저장한다. |
 | OAuth/OIDC profile | `member_oauth`는 provider subject 원문이 아니라 HMAC hash와 최소 email snapshot만 보관한다. 화면·export용 subject 표시값도 원문 `sub`가 아니라 HMAC hash prefix로 저장한다. OAuth 로그인/연결 때 verified email과 이름은 회원 기본 필드에 갱신할 수 있고, 추가 claim은 운영자가 매핑한 회원 선택 프로필 항목에만 저장한다. | scope를 추가하거나 claim 매핑을 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
 | CAPTCHA 검증 | `antispam`은 기본 DB 개인정보를 저장하지 않는다. | remote IP 전달을 켜거나 외부 provider script를 로딩하면 processor/국외이전 후보와 쿠키 동의 inventory에 포함한다. |

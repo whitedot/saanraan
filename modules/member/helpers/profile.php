@@ -634,6 +634,79 @@ function sr_member_delete_profile_field_values(PDO $pdo, int $accountId): void
     $stmt->execute(['account_id' => $accountId]);
 }
 
+function sr_member_delete_profile_extra_field_values_by_keys(PDO $pdo, array $fieldKeys): int
+{
+    if (!sr_member_profile_field_values_table_exists($pdo)) {
+        return 0;
+    }
+
+    $keys = [];
+    foreach ($fieldKeys as $fieldKey) {
+        $key = strtolower(trim((string) $fieldKey));
+        if ($key !== '' && preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) === 1) {
+            $keys[$key] = true;
+        }
+    }
+    $keys = array_keys($keys);
+    if ($keys === []) {
+        return 0;
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach ($keys as $index => $key) {
+        $paramKey = 'field_key_' . $index;
+        $placeholder = ':' . $paramKey;
+        $placeholders[] = $placeholder;
+        $params[$paramKey] = $key;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_member_profile_field_values
+         WHERE field_key IN (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
+
+    return $stmt->rowCount();
+}
+
+function sr_member_profile_extra_field_value_count_by_keys(PDO $pdo, array $fieldKeys): int
+{
+    if (!sr_member_profile_field_values_table_exists($pdo)) {
+        return 0;
+    }
+
+    $keys = [];
+    foreach ($fieldKeys as $fieldKey) {
+        $key = strtolower(trim((string) $fieldKey));
+        if ($key !== '' && preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) === 1) {
+            $keys[$key] = true;
+        }
+    }
+    $keys = array_keys($keys);
+    if ($keys === []) {
+        return 0;
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach ($keys as $index => $key) {
+        $paramKey = 'field_key_' . $index;
+        $placeholder = ':' . $paramKey;
+        $placeholders[] = $placeholder;
+        $params[$paramKey] = $key;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_member_profile_field_values
+         WHERE field_key IN (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
 function sr_member_profile_extra_field_form_html(array $definition, array $values = [], string $idPrefix = 'modules_member_profile_extra'): string
 {
     $key = (string) ($definition['key'] ?? '');

@@ -81,7 +81,13 @@ foreach (sr_member_profile_field_definitions() as $memberProfileFixedFieldKey =>
         'required' => !empty($settings[$requiredKey]),
     ];
 }
-$memberProfileFieldOrderItems = sr_member_profile_field_order_items($settings, sr_member_profile_extra_field_definitions($settings));
+$memberProfileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($settings);
+$memberProfileOriginalExtraFieldKeys = array_values(array_filter(array_map(static function (array $definition): string {
+    return (string) ($definition['key'] ?? '');
+}, $memberProfileExtraFieldDefinitions), static function (string $key): bool {
+    return $key !== '';
+}));
+$memberProfileFieldOrderItems = sr_member_profile_field_order_items($settings, $memberProfileExtraFieldDefinitions);
 $memberProfileFieldOrderJson = sr_js_json_encode(array_map(static function (array $item): string {
     return (string) ($item['kind'] ?? '') . ':' . (string) ($item['key'] ?? '');
 }, $memberProfileFieldOrderItems));
@@ -206,14 +212,16 @@ $memberSettingsSectionNavItems = [
         <p class="form-help">
             항목을 추가하거나 숨기거나 필수로 바꾸면 회원가입, 내 프로필 수정, 관리자 회원 수정 화면이 바로 달라집니다.<br>
             필수로 바꾸기 전에는 기존 회원에게 빈 값이 있어도 괜찮은지 확인하세요. 값이 없는 회원은 다음 저장 때 입력이 필요할 수 있습니다.<br>
-            항목을 삭제하거나 개인정보 정책을 바꾸면 개인정보 내보내기와 정리 기준도 달라질 수 있습니다.<br>
+            항목을 삭제하면 전체 회원의 해당 저장값도 저장 시 함께 삭제됩니다. 삭제 전 경고를 확인해야 저장할 수 있습니다.<br>
             기본 항목은 삭제할 수 없습니다. 사용 여부와 순서만 바꿀 수 있습니다.
         </p>
         <p class="admin-empty-state" data-member-profile-extra-field-empty hidden>추가 프로필 항목이 없습니다.</p>
         <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e((string) ($settings['profile_fields_json'] ?? '[]')); ?></textarea>
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
+        <input type="hidden" name="profile_removed_field_values_confirmed" value="0" data-member-profile-removed-field-values-confirmed>
         <div data-member-profile-fixed-field-inputs></div>
         <script type="application/json" data-member-profile-fixed-fields-json><?php echo sr_js_json_encode($memberProfileFixedFields); ?></script>
+        <script type="application/json" data-member-profile-original-extra-field-keys-json><?php echo sr_js_json_encode($memberProfileOriginalExtraFieldKeys); ?></script>
     </section>
 
     <section id="member-settings-section-policy-consent" class="card" data-admin-section-anchor>
@@ -668,6 +676,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }), null, 2);
     }
 
+    function memberProfileOriginalExtraFieldKeys(root) {
+        var script = root ? root.querySelector('[data-member-profile-original-extra-field-keys-json]') : null;
+        return (script ? memberProfileExtraFieldParseJson(script.textContent || '[]') : []).map(function (key) {
+            return String(key || '');
+        }).filter(function (key, index, keys) {
+            return key !== '' && keys.indexOf(key) === index;
+        });
+    }
+
+    function memberProfileRemovedExtraFieldKeys(root) {
+        var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
+        var current = {};
+        memberProfileExtraFieldParse(textarea).forEach(function (field) {
+            if (field.key) {
+                current[field.key] = true;
+            }
+        });
+        return memberProfileOriginalExtraFieldKeys(root).filter(function (key) {
+            return !current[key];
+        });
+    }
+
     function memberProfileFixedFieldWrite(root, fixedFields) {
         var holder = root ? root.querySelector('[data-member-profile-fixed-field-inputs]') : null;
         var script = root ? root.querySelector('[data-member-profile-fixed-fields-json]') : null;
@@ -1015,6 +1045,29 @@ document.addEventListener('DOMContentLoaded', function () {
             enabled.addEventListener('change', function () {
                 if (!enabled.checked) {
                     required.checked = false;
+                }
+            });
+        }
+        var form = root.closest('form');
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                var confirmed = root.querySelector('[data-member-profile-removed-field-values-confirmed]');
+                if (confirmed) {
+                    confirmed.value = '0';
+                }
+                var removedKeys = memberProfileRemovedExtraFieldKeys(root);
+                if (removedKeys.length === 0) {
+                    return;
+                }
+                var message = '선택 프로필 항목 ' + removedKeys.join(', ')
+                    + ' 을(를) 삭제하면 전체 회원의 해당 저장값도 DB에서 삭제됩니다.\n\n'
+                    + '삭제된 저장값은 복구할 수 없습니다. 계속 저장할까요?';
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+                if (confirmed) {
+                    confirmed.value = '1';
                 }
             });
         }

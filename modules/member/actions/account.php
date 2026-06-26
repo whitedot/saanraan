@@ -214,17 +214,21 @@ if (sr_request_method() === 'POST') {
         }
     } elseif ($errors === [] && $intent === 'password') {
         $memberAccountPage = 'security';
+        $hasPasswordLogin = trim((string) ($account['password_hash'] ?? '')) !== '';
         $currentPassword = sr_post_string('current_password', 255);
         $newPassword = sr_post_string_without_truncation('new_password', 255);
         $newPasswordConfirm = sr_post_string_without_truncation('new_password_confirm', 255);
         $reauthFailureLogged = false;
+        $passwordAuthEvent = $hasPasswordLogin ? 'password_change' : 'password_set';
+        $passwordAuditEvent = $hasPasswordLogin ? 'member.password.changed' : 'member.password.set';
+        $passwordAuditMessage = $hasPasswordLogin ? 'Member password changed.' : 'Member password set.';
 
         $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
-        if (!empty($reauthThrottle['limited'])) {
+        if ($hasPasswordLogin && !empty($reauthThrottle['limited'])) {
             $errors[] = sr_t('member::action.reauth.throttled');
             sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
             $reauthFailureLogged = true;
-        } elseif (!password_verify($currentPassword, (string) $account['password_hash'])) {
+        } elseif ($hasPasswordLogin && !password_verify($currentPassword, (string) $account['password_hash'])) {
             $errors[] = sr_t('member::action.account.current_password_invalid');
             sr_member_log_auth($pdo, (int) $account['id'], 'password_change_reauth', 'failure');
             $reauthFailureLogged = true;
@@ -281,15 +285,15 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/login');
             }
 
-            sr_member_log_auth($pdo, (int) $account['id'], 'password_change', 'success');
+            sr_member_log_auth($pdo, (int) $account['id'], $passwordAuthEvent, 'success');
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'member',
-                'event_type' => 'member.password.changed',
+                'event_type' => $passwordAuditEvent,
                 'target_type' => 'member_account',
                 'target_id' => (string) $account['id'],
                 'result' => 'success',
-                'message' => 'Member password changed.',
+                'message' => $passwordAuditMessage,
                 'metadata' => [
                     'revoked_sessions' => $revokedSessions,
                     'rotated_session' => $rotatedSession,
@@ -299,7 +303,7 @@ if (sr_request_method() === 'POST') {
             $account = sr_member_current_account($pdo);
             $notice = sr_t('member::action.account.password_changed');
         } elseif (!$reauthFailureLogged) {
-            sr_member_log_auth($pdo, (int) $account['id'], 'password_change', 'failure');
+            sr_member_log_auth($pdo, (int) $account['id'], $passwordAuthEvent, 'failure');
         }
     }
 }
