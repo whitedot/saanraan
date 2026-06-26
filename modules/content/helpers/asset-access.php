@@ -672,6 +672,14 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        if ($couponIssueId > 0) {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 쿠폰을 사용할 수 없습니다.', [
+                'error_key' => 'asset_confirmation_required',
+                'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
+            ]);
+        }
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
@@ -945,6 +953,14 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         }
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
+        }
+        if ($couponIssueId > 0) {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 쿠폰을 사용할 수 없습니다.', [
+                'error_key' => 'asset_confirmation_required',
+                'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
+            ]);
         }
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {

@@ -128,13 +128,27 @@ if (is_array($board)) {
                 $couponReadResult = $couponIssueId > 0
                     ? sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId)
                     : ['allowed' => false, 'processed' => false];
-                $paidReadResult = !empty($couponReadResult['allowed'])
-                    ? [
+                if (!empty($couponReadResult['allowed'])) {
+                    $paidReadResult = [
                         'allowed' => true,
                         'processed' => false,
                         'confirmation_fingerprint' => (string) ($couponReadResult['confirmation_fingerprint'] ?? ''),
-                    ]
-                    : sr_community_run_asset_event(
+                    ];
+                } elseif ($couponIssueId > 0) {
+                    $paidReadResult = sr_community_run_asset_event(
+                        $pdo,
+                        $paidReadConfig,
+                        (int) $account['id'],
+                        'post_read',
+                        'community.post',
+                        (int) $post['id'],
+                        'use',
+                        'community.post.read',
+                        false
+                    );
+                    $paidReadResult['message'] = '선택한 쿠폰을 사용할 수 없습니다.';
+                } else {
+                    $paidReadResult = sr_community_run_asset_event(
                         $pdo,
                         $paidReadConfig,
                         (int) $account['id'],
@@ -146,6 +160,7 @@ if (is_array($board)) {
                         sr_request_method() === 'POST',
                         sr_post_string_without_truncation('asset_request_token', 32) ?? ''
                     );
+                }
             }
             if (empty($paidReadResult['allowed'])) {
                 if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {
@@ -177,24 +192,56 @@ if ($disposition === 'attachment' && is_array($board)) {
             $account = sr_member_require_login($pdo);
         }
 
-        $downloadResult = sr_community_run_asset_event(
-            $pdo,
-            $downloadConfig,
-            (int) $account['id'],
-            'attachment_download',
-            'community.attachment',
-            (int) $attachment['id'],
-            'use',
-            'community.attachment.download',
-            sr_request_method() === 'POST',
-            sr_post_string_without_truncation('asset_request_token', 32) ?? ''
-        );
+        $downloadCouponDedupeKey = 'community.attachment.download:coupon:' . (string) $account['id'] . ':' . (string) $attachment['id'];
+        if ((string) ($downloadConfig['charge_policy'] ?? 'once') !== 'once') {
+            $downloadCouponDedupeKey .= ':' . bin2hex(random_bytes(8));
+        }
+        $downloadCouponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
+        $downloadCouponIssueId = preg_match('/\A[1-9][0-9]*\z/', $downloadCouponIssueIdValue) === 1 ? (int) $downloadCouponIssueIdValue : 0;
+        $downloadCouponResult = $downloadCouponIssueId > 0
+            ? sr_community_try_attachment_download_coupon_access($pdo, (int) $account['id'], $attachment, $downloadConfig, $downloadCouponDedupeKey, $downloadCouponIssueId)
+            : ['allowed' => false, 'processed' => false];
+        if (!empty($downloadCouponResult['allowed'])) {
+            $downloadResult = [
+                'allowed' => true,
+                'processed' => false,
+                'coupon_used' => !empty($downloadCouponResult['processed']),
+                'confirmation_fingerprint' => (string) ($downloadCouponResult['confirmation_fingerprint'] ?? ''),
+            ];
+        } elseif ($downloadCouponIssueId > 0) {
+            $downloadResult = sr_community_run_asset_event(
+                $pdo,
+                $downloadConfig,
+                (int) $account['id'],
+                'attachment_download',
+                'community.attachment',
+                (int) $attachment['id'],
+                'use',
+                'community.attachment.download',
+                false
+            );
+            $downloadResult['message'] = '선택한 쿠폰을 사용할 수 없습니다.';
+        } else {
+            $downloadResult = sr_community_run_asset_event(
+                $pdo,
+                $downloadConfig,
+                (int) $account['id'],
+                'attachment_download',
+                'community.attachment',
+                (int) $attachment['id'],
+                'use',
+                'community.attachment.download',
+                sr_request_method() === 'POST',
+                sr_post_string_without_truncation('asset_request_token', 32) ?? ''
+            );
+        }
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
                 $assetConfirmationMessage = (string) ($downloadResult['message'] ?? sr_community_asset_confirmation_required_message());
                 $assetConfirmationAction = '/community/attachment';
                 $assetConfirmationId = (int) $attachment['id'];
                 $assetConfirmationRequestToken = (string) ($downloadResult['confirmation_request_token'] ?? '');
+                $assetConfirmationCouponIssues = sr_community_available_attachment_download_coupon_issues($pdo, (int) $account['id'], (int) $attachment['id']);
                 if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
                     sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
                 }

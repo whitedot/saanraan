@@ -138,14 +138,28 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
             $couponReadResult = $couponIssueId > 0
                 ? sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId)
                 : ['allowed' => false, 'processed' => false];
-            $paidReadResult = !empty($couponReadResult['allowed'])
-                ? [
+            if (!empty($couponReadResult['allowed'])) {
+                $paidReadResult = [
                     'allowed' => true,
                     'processed' => false,
                     'coupon_used' => !empty($couponReadResult['processed']),
                     'confirmation_fingerprint' => (string) ($couponReadResult['confirmation_fingerprint'] ?? ''),
-                ]
-                : sr_community_run_asset_event(
+                ];
+            } elseif ($couponIssueId > 0) {
+                $paidReadResult = sr_community_run_asset_event(
+                    $pdo,
+                    $paidReadConfig,
+                    (int) $account['id'],
+                    'post_read',
+                    'community.post',
+                    (int) $post['id'],
+                    'use',
+                    'community.post.read',
+                    false
+                );
+                $paidReadResult['message'] = '선택한 쿠폰을 사용할 수 없습니다.';
+            } else {
+                $paidReadResult = sr_community_run_asset_event(
                     $pdo,
                     $paidReadConfig,
                     (int) $account['id'],
@@ -157,6 +171,7 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                     sr_request_method() === 'POST',
                     sr_post_string_without_truncation('asset_request_token', 32) ?? ''
                 );
+            }
         }
         if (empty($paidReadResult['allowed'])) {
             if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {

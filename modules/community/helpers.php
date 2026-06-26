@@ -95,6 +95,41 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
         }, $stmt->fetchAll());
     }
 
+    if ($targetType === 'community_attachment') {
+        if ($keyword !== '' && preg_match('/\A[1-9][0-9]*\z/', $keyword) !== 1) {
+            $textLength = function_exists('mb_strlen') ? mb_strlen($keyword) : strlen($keyword);
+            if ($textLength < 2) {
+                return [];
+            }
+        }
+
+        $where = $keyword === ''
+            ? "a.status = 'active' AND p.status IN ('published', 'hidden', 'pending')"
+            : "(a.id = :id OR (a.status = 'active' AND p.status IN ('published', 'hidden', 'pending') AND a.original_name LIKE :keyword_like ESCAPE '\\') OR (a.status = 'active' AND p.status IN ('published', 'hidden', 'pending') AND p.title LIKE :keyword_like ESCAPE '\\') OR (a.status = 'active' AND p.status IN ('published', 'hidden', 'pending') AND b.title LIKE :keyword_like ESCAPE '\\'))";
+        $stmt = $pdo->prepare(
+            'SELECT a.id, a.original_name, a.status, a.created_at, p.id AS post_id, p.title AS post_title, p.status AS post_status, b.title AS board_title, b.board_key
+             FROM sr_community_attachments a
+             INNER JOIN sr_community_posts p ON p.id = a.post_id
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE ' . $where . '
+             ORDER BY a.id DESC
+             LIMIT ' . $limit
+        );
+        $stmt->execute($keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike]);
+
+        return array_map(static function (array $row): array {
+            return [
+                'reference_type' => 'community_attachment',
+                'reference_id' => (string) (int) ($row['id'] ?? 0),
+                'title' => (string) ($row['original_name'] ?? ''),
+                'reason' => '첨부 #' . (string) (int) ($row['id'] ?? 0) . ' / 게시글 #' . (string) (int) ($row['post_id'] ?? 0),
+                'member_name' => '게시글: ' . (string) ($row['post_title'] ?? ''),
+                'member_email' => '게시판: ' . (string) ($row['board_title'] ?? '') . ' (' . (string) ($row['board_key'] ?? '') . ')',
+                'created_at' => '상태: ' . (string) ($row['status'] ?? '') . ' / 게시글 ' . (string) ($row['post_status'] ?? ''),
+            ];
+        }, $stmt->fetchAll());
+    }
+
     return [];
 }
 
@@ -210,7 +245,7 @@ function sr_community_coupon_revoke_access(PDO $pdo, int $accountId, string $ded
 
 function sr_community_coupon_target_health(PDO $pdo, string $targetType, string $targetId): array
 {
-    if (!in_array($targetType, ['community_board', 'community_post'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+    if (!in_array($targetType, ['community_board', 'community_post', 'community_attachment'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
         return ['status' => 'unknown', 'message' => '커뮤니티 대상 형식이 올바르지 않습니다.'];
     }
 
@@ -224,6 +259,29 @@ function sr_community_coupon_target_health(PDO $pdo, string $targetType, string 
         return $status === 'enabled'
             ? ['status' => 'ok', 'policy_status' => $status]
             : ['status' => 'disabled_target', 'policy_status' => $status, 'message' => '게시판이 사용 상태가 아닙니다.'];
+    }
+
+    if ($targetType === 'community_attachment') {
+        $stmt = $pdo->prepare(
+            "SELECT a.id, a.status, p.status AS post_status, b.status AS board_status
+             FROM sr_community_attachments a
+             INNER JOIN sr_community_posts p ON p.id = a.post_id
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE a.id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => (int) $targetId]);
+        $attachment = $stmt->fetch();
+        if (!is_array($attachment)) {
+            return ['status' => 'missing_target', 'message' => '첨부를 찾을 수 없습니다.'];
+        }
+
+        $attachmentStatus = (string) ($attachment['status'] ?? '');
+        $postStatus = (string) ($attachment['post_status'] ?? '');
+        $boardStatus = (string) ($attachment['board_status'] ?? '');
+        return $attachmentStatus === 'active' && $postStatus === 'published' && $boardStatus === 'enabled'
+            ? ['status' => 'ok', 'policy_status' => $attachmentStatus]
+            : ['status' => 'disabled_target', 'policy_status' => $attachmentStatus, 'message' => '다운로드 가능한 첨부가 아닙니다.'];
     }
 
     $stmt = $pdo->prepare('SELECT id, status FROM sr_community_posts WHERE id = :id LIMIT 1');
@@ -253,38 +311,62 @@ function sr_community_coupon_target_admin_url(string $targetType, string $target
         return '/admin/community/posts?field=id&q=' . rawurlencode($targetId);
     }
 
+    if ($targetType === 'community_attachment') {
+        return '/admin/community/posts?field=attachment_id&q=' . rawurlencode($targetId);
+    }
+
     return '';
 }
 
 function sr_community_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
 {
-    if ($targetType !== 'community_post' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+    if (!in_array($targetType, ['community_post', 'community_attachment'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
         return ['ok' => false, 'failure_code' => 'target_invalid', 'failure_message' => '커뮤니티 사용 대상 형식이 올바르지 않습니다.'];
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, p.status, b.title AS board_title
-         FROM sr_community_posts p
-         INNER JOIN sr_community_boards b ON b.id = p.board_id
-         WHERE p.id = :id
-         LIMIT 1'
-    );
-    $stmt->execute(['id' => (int) $targetId]);
-    $post = $stmt->fetch();
-    if (!is_array($post) || (string) ($post['status'] ?? '') !== 'published') {
-        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 가능한 게시글이 아닙니다.'];
+    if ($targetType === 'community_attachment') {
+        $stmt = $pdo->prepare(
+            "SELECT a.id, a.post_id, a.status, p.board_id, p.status AS post_status
+             FROM sr_community_attachments a
+             INNER JOIN sr_community_posts p ON p.id = a.post_id
+             WHERE a.id = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => (int) $targetId]);
+        $attachment = $stmt->fetch();
+        if (!is_array($attachment) || (string) ($attachment['status'] ?? '') !== 'active' || (string) ($attachment['post_status'] ?? '') !== 'published') {
+            return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 다운로드 가능한 첨부가 아닙니다.'];
+        }
+        $boardId = (int) ($attachment['board_id'] ?? 0);
+    } else {
+        $stmt = $pdo->prepare(
+            'SELECT p.id, p.board_id, p.status, b.title AS board_title
+             FROM sr_community_posts p
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE p.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => (int) $targetId]);
+        $post = $stmt->fetch();
+        if (!is_array($post) || (string) ($post['status'] ?? '') !== 'published') {
+            return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 가능한 게시글이 아닙니다.'];
+        }
+        $boardId = (int) ($post['board_id'] ?? 0);
     }
 
-    $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+    $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board)) {
-        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '게시글의 게시판을 찾을 수 없습니다.'];
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '커뮤니티 대상의 게시판을 찾을 수 없습니다.'];
     }
 
     require_once SR_ROOT . '/modules/community/helpers/assets.php';
     $settings = sr_community_settings($pdo);
-    $config = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+    $eventPrefix = $targetType === 'community_attachment' ? 'paid_attachment_download' : 'paid_read';
+    $eventKey = $targetType === 'community_attachment' ? 'attachment_download' : 'post_read';
+    $subjectType = $targetType === 'community_attachment' ? 'community.attachment' : 'community.post';
+    $config = sr_community_asset_event_config($pdo, $board, $settings, $eventPrefix, 'once');
     if (empty($config['enabled'])) {
-        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => '유료 열람 대상이 아닙니다.'];
+        return ['ok' => false, 'failure_code' => 'target_unavailable', 'failure_message' => $targetType === 'community_attachment' ? '유료 다운로드 대상이 아닙니다.' : '유료 열람 대상이 아닙니다.'];
     }
 
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
@@ -301,8 +383,8 @@ function sr_community_coupon_target_pricing(PDO $pdo, string $targetType, string
         'price_amount' => $amount,
         'currency_code' => (string) ($config['settlement_currency'] ?? 'KRW'),
         'asset_unit' => '',
-        'already_entitled' => $accountId > 0 && sr_community_has_access_entitlement($pdo, $assetModules, $accountId, 'post_read', 'community.post', (int) $targetId, '', 'all_access'),
-        'policy_summary' => '게시글 열람 ' . number_format($amount) . (string) ($config['settlement_currency'] ?? 'KRW'),
+        'already_entitled' => $accountId > 0 && sr_community_has_access_entitlement($pdo, $assetModules, $accountId, $eventKey, $subjectType, (int) $targetId, '', 'all_access'),
+        'policy_summary' => ($targetType === 'community_attachment' ? '첨부 다운로드 ' : '게시글 열람 ') . number_format($amount) . (string) ($config['settlement_currency'] ?? 'KRW'),
         'priced_at' => sr_now(),
     ];
 }

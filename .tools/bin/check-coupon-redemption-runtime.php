@@ -352,6 +352,23 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_community_attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        uploader_account_id INTEGER,
+        original_name TEXT NOT NULL,
+        stored_name TEXT NOT NULL DEFAULT '',
+        storage_path TEXT NOT NULL DEFAULT '',
+        storage_driver TEXT NOT NULL DEFAULT 'local',
+        storage_key TEXT NOT NULL DEFAULT '',
+        mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+        size_bytes INTEGER NOT NULL DEFAULT 0,
+        checksum_sha256 TEXT NOT NULL DEFAULT '',
+        width INTEGER NOT NULL DEFAULT 0,
+        height INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("CREATE TABLE sr_community_asset_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER NOT NULL,
@@ -1268,6 +1285,11 @@ function sr_coupon_runtime_fixture(): void
         'paid_read_amount' => ['150', 'int'],
         'paid_read_settlement_currency' => ['KRW', 'string'],
         'paid_read_charge_policy' => ['once', 'string'],
+        'paid_attachment_download_enabled' => ['1', 'bool'],
+        'paid_attachment_download_asset_module' => ['point', 'string'],
+        'paid_attachment_download_amount' => ['180', 'int'],
+        'paid_attachment_download_settlement_currency' => ['KRW', 'string'],
+        'paid_attachment_download_charge_policy' => ['once', 'string'],
     ] as $settingKey => $setting) {
         $pdo->prepare(
             "INSERT INTO sr_community_board_settings
@@ -1288,6 +1310,15 @@ function sr_coupon_runtime_fixture(): void
          VALUES
             (9901, 9902, 'published', 'Paid post', :created_at, :updated_at)"
     )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_community_attachments
+            (id, post_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, created_at)
+         VALUES
+            (8801, 9901, 8, 'paid-attachment.txt', 'paid-attachment.txt', '', 'local', 'community/paid-attachment.txt', 'text/plain', 100, :checksum, 'active', :created_at)"
+    )->execute([
+        'checksum' => str_repeat('a', 64),
+        'created_at' => $now,
+    ]);
     $communityPaidReadConfig = [
         'asset_module' => 'point',
         'amount' => 150,
@@ -1354,6 +1385,63 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((int) ($communityRefund['revoked_access_count'] ?? -1) === 1, 'community paid read fixture should revoke coupon access entitlement through refund helper.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.post' AND subject_id = 9901 AND event_key = 'post_read'")->fetchColumn() === 0, 'community paid read fixture should remove coupon-backed post entitlement on refund.');
     sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'community paid read fixture must still have no point transactions after coupon refund.');
+
+    $attachmentIssueId = sr_coupon_runtime_issue($pdo, 'community_attachment_download', 'community_attachment', '8801', 7);
+    $attachmentTargets = sr_community_coupon_target_search($pdo, 'community_attachment', 'paid-attachment', 5);
+    sr_coupon_runtime_assert(isset($attachmentTargets[0]) && (string) ($attachmentTargets[0]['reference_id'] ?? '') === '8801', 'community_attachment coupon target search should return matching attachments.');
+    $adminAttachmentTargets = sr_coupon_target_search($pdo, 'community_attachment', 'paid-attachment', 5);
+    sr_coupon_runtime_assert(isset($adminAttachmentTargets[0]) && (string) ($adminAttachmentTargets[0]['reference_id'] ?? '') === '8801', 'coupon admin target search should return matching community attachments.');
+    $attachmentHealth = sr_community_coupon_target_health($pdo, 'community_attachment', '8801');
+    sr_coupon_runtime_assert((string) ($attachmentHealth['status'] ?? '') === 'ok', 'community_attachment coupon target health should accept active published attachments.');
+    sr_coupon_runtime_assert(sr_community_coupon_target_admin_url('community_attachment', '8801') === '/admin/community/posts?field=attachment_id&q=8801', 'community_attachment coupon target admin URL should point to the community post admin search.');
+    $attachmentChoices = sr_community_available_attachment_download_coupon_issues($pdo, 7, 8801);
+    sr_coupon_runtime_assert(isset($attachmentChoices[0]) && (int) ($attachmentChoices[0]['id'] ?? 0) === $attachmentIssueId, 'community attachment download modal choices should include matching coupon issue.');
+
+    $attachmentDownloadConfig = [
+        'asset_module' => 'point',
+        'amount' => 180,
+        'amounts' => ['point' => 180],
+        'group_policies_json' => '',
+        'policy_set_id' => 0,
+        'charge_policy' => 'once',
+        'settlement_currency' => 'KRW',
+    ];
+    $attachmentResult = sr_community_try_attachment_download_coupon_access($pdo, 7, 8801, $attachmentDownloadConfig, 'community.attachment.download:coupon:7:8801', $attachmentIssueId);
+    sr_coupon_runtime_assert(!empty($attachmentResult['allowed']) && !empty($attachmentResult['processed']), 'community attachment download fixture should process selected coupon-backed access.');
+    sr_coupon_runtime_assert((string) ($attachmentResult['coupon_title'] ?? '') === 'community_attachment_download', 'community attachment download fixture should return the coupon title that backed access.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_asset_logs')->fetchColumn() === 0, 'community attachment download fixture must not create asset logs when selected coupon is applied.');
+    $attachmentSnapshotRow = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT amount, currency_code, policy_summary, target_snapshot_json
+         FROM sr_coupon_redemptions
+         WHERE reference_module = 'community'
+           AND reference_type = 'community.attachment.download'
+           AND reference_id = '8801'
+         LIMIT 1"
+    );
+    $attachmentSnapshot = json_decode((string) ($attachmentSnapshotRow['target_snapshot_json'] ?? ''), true);
+    sr_coupon_runtime_assert((int) ($attachmentSnapshotRow['amount'] ?? -1) === 180, 'community attachment download redemption should store the pricing amount snapshot.');
+    sr_coupon_runtime_assert((string) ($attachmentSnapshotRow['currency_code'] ?? '') === 'KRW', 'community attachment download redemption should store the pricing currency snapshot.');
+    sr_coupon_runtime_assert((string) ($attachmentSnapshotRow['policy_summary'] ?? '') === '첨부 다운로드 180KRW', 'community attachment download redemption should store the pricing policy summary.');
+    sr_coupon_runtime_assert(is_array($attachmentSnapshot) && (string) ($attachmentSnapshot['target_type'] ?? '') === 'community_attachment' && (int) ($attachmentSnapshot['amount'] ?? -1) === 180, 'community attachment download redemption should store a whitelisted target pricing snapshot.');
+    $attachmentEntitlement = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT source_kind, source_asset_module, source_charge_policy, source_reference
+         FROM sr_community_access_entitlements
+         WHERE account_id = 7
+           AND subject_type = 'community.attachment'
+           AND subject_id = 8801
+           AND event_key = 'attachment_download'"
+    );
+    sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_kind'] ?? '') === 'coupon', 'community attachment download fixture should grant a coupon source entitlement.');
+    sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_asset_module'] ?? '') === '', 'community attachment download fixture should not attach an asset module to coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_charge_policy'] ?? '') === 'once', 'community attachment download fixture should preserve the paid attachment charge policy on coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_reference'] ?? '') === 'community.attachment.download:coupon:7:8801', 'community attachment download fixture should store the coupon dedupe key on entitlement.');
+
+    $attachmentRedemptionId = (int) $pdo->query("SELECT id FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.attachment.download' AND reference_id = '8801' LIMIT 1")->fetchColumn();
+    $attachmentRefund = sr_coupon_refund_redemption($pdo, $attachmentRedemptionId, 1, 'community attachment coupon access revoke');
+    sr_coupon_runtime_assert((int) ($attachmentRefund['revoked_access_count'] ?? -1) === 1, 'community attachment download fixture should revoke coupon access entitlement through refund helper.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.attachment' AND subject_id = 8801 AND event_key = 'attachment_download'")->fetchColumn() === 0, 'community attachment download fixture should remove coupon-backed attachment entitlement on refund.');
 }
 
 sr_coupon_runtime_check_model_decision();

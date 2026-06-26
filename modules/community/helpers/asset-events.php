@@ -383,6 +383,20 @@ function sr_community_available_paid_read_coupon_issues(PDO $pdo, int $accountId
     return $issues;
 }
 
+function sr_community_available_attachment_download_coupon_issues(PDO $pdo, int $accountId, int $attachmentId, int $limit = 20): array
+{
+    if ($accountId <= 0 || $attachmentId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return [];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_active_account_target_issues')) {
+        return [];
+    }
+
+    return sr_coupon_active_account_target_issues($pdo, $accountId, 'community_attachment', (string) $attachmentId, $limit);
+}
+
 // This helper owns its transaction boundary so fallback coupon targets cannot
 // commit partial redemption work from a previous target attempt.
 function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey, int $couponIssueId = 0): array
@@ -467,6 +481,87 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
             if (function_exists('sr_log_exception')) {
                 sr_log_exception($exception, 'community_coupon_entitlement_failed');
             }
+        }
+    }
+
+    return ['allowed' => false, 'processed' => false];
+}
+
+function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accountId, int|array $attachment, array $downloadConfig, string $couponDedupeKey, int $couponIssueId = 0): array
+{
+    $attachmentId = is_array($attachment) ? (int) ($attachment['id'] ?? 0) : (int) $attachment;
+    if ($accountId <= 0 || $attachmentId <= 0 || $couponDedupeKey === '') {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    if ((string) ($downloadConfig['charge_policy'] ?? 'once') === 'once'
+        && sr_community_once_access_already_granted($pdo, $downloadConfig, $accountId, 'attachment_download', $attachmentId, $couponDedupeKey)
+    ) {
+        return ['allowed' => true, 'processed' => false, 'already_redeemed' => true];
+    }
+
+    if (!sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_redeem_for_target')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    $assetModules = sr_community_asset_module_keys_from_value($downloadConfig['asset_module'] ?? '', true);
+    $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
+    $amounts = is_array($downloadConfig['amounts'] ?? null) ? $downloadConfig['amounts'] : [];
+    $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($downloadConfig['amount'] ?? 0), $downloadConfig['group_policies_json'] ?? '', (int) ($downloadConfig['policy_set_id'] ?? 0), 'use');
+    $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $confirmationFingerprint = sr_community_asset_confirmation_fingerprint(
+        'attachment_download',
+        'community.attachment',
+        (string) ($downloadConfig['charge_policy'] ?? 'once'),
+        $assetModuleValue,
+        (int) $policyAmounts['amount'],
+        is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [],
+        $policySnapshotJson
+    );
+
+    $couponContext = [
+        'dedupe_key' => $couponDedupeKey,
+        'reference_module' => 'community',
+        'reference_type' => 'community.attachment.download',
+        'reference_id' => (string) $attachmentId,
+    ];
+    if ($couponIssueId > 0) {
+        $couponContext['coupon_issue_id'] = $couponIssueId;
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $couponResult = sr_coupon_redeem_for_target($pdo, $accountId, 'community_attachment', (string) $attachmentId, $couponContext);
+        if (!empty($couponResult['allowed'])) {
+            if (empty($couponResult['already_entitled'])) {
+                sr_community_grant_access_entitlement($pdo, $accountId, 'community.attachment', $attachmentId, 'attachment_download', 'coupon', '', (string) ($downloadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+            }
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            $couponResult['confirmation_fingerprint'] = $confirmationFingerprint;
+            return $couponResult;
+        }
+
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        if (function_exists('sr_log_exception')) {
+            sr_log_exception($exception, 'community_attachment_coupon_entitlement_failed');
         }
     }
 
