@@ -17,6 +17,7 @@ $notice = (string) $flashResult['notice'];
 $settings = sr_antispam_settings($pdo);
 $modeOptions = sr_antispam_mode_options();
 $providerOptions = sr_antispam_provider_options($pdo);
+$targetOptions = sr_antispam_target_options($pdo);
 $challengeTypeOptions = sr_antispam_challenge_type_options($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -39,10 +40,11 @@ if (sr_request_method() === 'POST') {
         'verify_remote_ip_enabled' => ($_POST['verify_remote_ip_enabled'] ?? '') === '1',
         'provider_action_check_enabled' => ($_POST['provider_action_check_enabled'] ?? '') === '1',
         'provider_hostname_check_enabled' => ($_POST['provider_hostname_check_enabled'] ?? '') === '1',
-        'surface_member_register' => sr_antispam_mode(sr_post_string('surface_member_register', 20)),
-        'surface_community_post_guest' => sr_antispam_mode(sr_post_string('surface_community_post_guest', 20)),
-        'surface_community_comment_guest' => sr_antispam_mode(sr_post_string('surface_community_comment_guest', 20)),
     ];
+    foreach ($targetOptions as $surfaceKey => $targetOption) {
+        $targetSettingKey = sr_antispam_surface_setting_key((string) $surfaceKey);
+        $postedSettings[$targetSettingKey] = sr_antispam_mode(sr_post_string($targetSettingKey, 20));
+    }
 
     if (!array_key_exists((string) $postedSettings['challenge_type'], $challengeTypeOptions)) {
         $errors[] = '검증 방식이 올바르지 않습니다.';
@@ -59,17 +61,27 @@ if (sr_request_method() === 'POST') {
         $errors[] = '외부 provider 실패 정책이 올바르지 않습니다.';
         $postedSettings['provider_failure_policy'] = 'fail_closed';
     }
+    $selectedProviderKey = (string) $postedSettings['challenge_type'];
     foreach ($providerOptions as $providerKey => $provider) {
+        $providerKey = (string) $providerKey;
         $siteKeySetting = (string) $provider['site_key_setting'];
         $secretKeySetting = (string) $provider['secret_key_setting'];
-        $postedSettings[$siteKeySetting] = trim(sr_post_string($siteKeySetting, 255));
+        $postedSettings[$siteKeySetting] = array_key_exists($siteKeySetting, $_POST)
+            ? trim(sr_post_string($siteKeySetting, 255))
+            : (string) ($settings[$siteKeySetting] ?? '');
         $scoreSetting = (string) ($provider['score_setting'] ?? '');
         if ($scoreSetting !== '') {
-            $postedSettings[$scoreSetting] = trim(sr_post_string($scoreSetting, 20));
+            $postedSettings[$scoreSetting] = array_key_exists($scoreSetting, $_POST)
+                ? trim(sr_post_string($scoreSetting, 20))
+                : (string) ($settings[$scoreSetting] ?? '0.5');
             if (!is_numeric($postedSettings[$scoreSetting]) || (float) $postedSettings[$scoreSetting] < 0 || (float) $postedSettings[$scoreSetting] > 1) {
                 $errors[] = (string) $provider['label'] . ' 최소 점수는 0에서 1 사이로 입력해 주세요.';
                 $postedSettings[$scoreSetting] = (string) ($settings[$scoreSetting] ?? '0.5');
             }
+        }
+        if ($providerKey !== $selectedProviderKey && !array_key_exists($secretKeySetting, $_POST)) {
+            $postedSettings[$secretKeySetting] = (string) ($settings[$secretKeySetting] ?? '');
+            continue;
         }
         $secretInput = sr_post_string_without_truncation($secretKeySetting, 255);
         if ($secretInput === null) {
@@ -100,7 +112,7 @@ if (sr_request_method() === 'POST') {
                 $postedSettings[$scoreSetting] = (string) min(1, max(0, (float) $postedSettings[$scoreSetting]));
             }
         }
-        sr_antispam_save_settings($pdo, sr_antispam_normalize_settings($postedSettings, $providerOptions));
+        sr_antispam_save_settings($pdo, sr_antispam_normalize_settings($postedSettings, $providerOptions, $targetOptions));
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',

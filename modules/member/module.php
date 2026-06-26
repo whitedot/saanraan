@@ -27,6 +27,7 @@ return [
             'privacy-export.php',
             'dashboard.php',
             'member-group-references.php',
+            'antispam-targets.php',
         ],
         'consumes' => [
             'member-group-rules.php',

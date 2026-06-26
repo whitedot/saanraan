@@ -6,7 +6,7 @@ require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
 
 function sr_antispam_default_settings(): array
 {
-    return [
+    $settings = [
         'enabled' => false,
         'default_mode' => 'guest',
         'challenge_type' => 'math',
@@ -17,21 +17,24 @@ function sr_antispam_default_settings(): array
         'verify_remote_ip_enabled' => false,
         'provider_action_check_enabled' => true,
         'provider_hostname_check_enabled' => true,
-        'surface_member_register' => 'always',
-        'surface_community_post_guest' => 'guest',
-        'surface_community_comment_guest' => 'guest',
     ];
+    foreach (sr_antispam_target_options() as $surfaceKey => $target) {
+        $settings[sr_antispam_surface_setting_key((string) $surfaceKey)] = sr_antispam_mode((string) ($target['default_mode'] ?? $settings['default_mode']));
+    }
+
+    return $settings;
 }
 
 function sr_antispam_settings(PDO $pdo): array
 {
     return sr_antispam_normalize_settings(
         array_merge(sr_antispam_default_settings(), sr_module_settings($pdo, 'antispam')),
-        sr_antispam_provider_options($pdo)
+        sr_antispam_provider_options($pdo),
+        sr_antispam_target_options($pdo)
     );
 }
 
-function sr_antispam_normalize_settings(array $settings, ?array $providerOptions = null): array
+function sr_antispam_normalize_settings(array $settings, ?array $providerOptions = null, ?array $targetOptions = null): array
 {
     $settings['enabled'] = sr_antispam_bool($settings['enabled'] ?? false);
     $settings['default_mode'] = sr_antispam_mode((string) ($settings['default_mode'] ?? 'guest'));
@@ -59,8 +62,10 @@ function sr_antispam_normalize_settings(array $settings, ?array $providerOptions
             $settings[$scoreSetting] = min(1.0, max(0.0, (float) ($settings[$scoreSetting] ?? 0.5)));
         }
     }
-    foreach (sr_antispam_surface_keys() as $surfaceKey) {
-        $settings['surface_' . str_replace('.', '_', $surfaceKey)] = sr_antispam_mode((string) ($settings['surface_' . str_replace('.', '_', $surfaceKey)] ?? $settings['default_mode']));
+    foreach (($targetOptions ?? sr_antispam_target_options()) as $surfaceKey => $target) {
+        $settingKey = sr_antispam_surface_setting_key((string) $surfaceKey);
+        $defaultMode = sr_antispam_mode((string) ($target['default_mode'] ?? $settings['default_mode']));
+        $settings[$settingKey] = sr_antispam_mode((string) ($settings[$settingKey] ?? $defaultMode));
     }
 
     return $settings;
@@ -83,7 +88,56 @@ function sr_antispam_challenge_type(string $value): string
 
 function sr_antispam_surface_keys(): array
 {
-    return ['member.register', 'community.post.guest', 'community.comment.guest'];
+    return array_keys(sr_antispam_target_options());
+}
+
+function sr_antispam_surface_setting_key(string $surface): string
+{
+    return 'surface_' . str_replace('.', '_', $surface);
+}
+
+function sr_antispam_target_options(?PDO $pdo = null): array
+{
+    $targets = [];
+    $contractFiles = [];
+    if ($pdo instanceof PDO) {
+        $contractFiles = sr_enabled_module_contract_files($pdo, 'antispam-targets.php', ['antispam']);
+    } else {
+        foreach (['member', 'community'] as $moduleKey) {
+            $targetFile = SR_ROOT . '/modules/' . $moduleKey . '/antispam-targets.php';
+            if (is_file($targetFile)) {
+                $contractFiles[$moduleKey] = $targetFile;
+            }
+        }
+    }
+
+    foreach ($contractFiles as $moduleKey => $file) {
+        $contract = $pdo instanceof PDO
+            ? sr_load_module_contract_file((string) $moduleKey, (string) $file)
+            : include (string) $file;
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        foreach ($contract as $surfaceKey => $target) {
+            $surfaceKey = is_string($surfaceKey) ? $surfaceKey : '';
+            if ($surfaceKey === '' || preg_match('/\A[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+\z/', $surfaceKey) !== 1 || !is_array($target)) {
+                continue;
+            }
+            $label = trim((string) ($target['label'] ?? ''));
+            if ($label === '') {
+                $label = $surfaceKey;
+            }
+            $targets[$surfaceKey] = [
+                'label' => $label,
+                'default_mode' => sr_antispam_mode((string) ($target['default_mode'] ?? 'guest')),
+                'module_key' => (string) $moduleKey,
+            ];
+        }
+    }
+
+    ksort($targets);
+    return $targets;
 }
 
 function sr_antispam_mode_options(): array
@@ -185,7 +239,7 @@ function sr_antispam_normalize_provider_definition(array $provider): array
 function sr_antispam_policy(PDO $pdo, string $surface, array $context = []): array
 {
     $settings = sr_antispam_settings($pdo);
-    $mode = (string) ($settings['surface_' . str_replace('.', '_', $surface)] ?? $settings['default_mode']);
+    $mode = (string) ($settings[sr_antispam_surface_setting_key($surface)] ?? $settings['default_mode']);
     $account = $context['account'] ?? null;
     $isGuest = !is_array($account);
     $required = !empty($settings['enabled']) && ($mode === 'always' || ($mode === 'guest' && $isGuest));

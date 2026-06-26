@@ -818,6 +818,7 @@ function sr_module_known_contract_files(): array
         'logo-positions.php',
         'notification-events.php',
         'admin-notification-events.php',
+        'antispam-targets.php',
         'antispam-providers.php',
         'oauth-providers.php',
         'embed-manager-targets.php',

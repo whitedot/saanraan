@@ -750,7 +750,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponCreateModalId); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">쿠폰 추가</button>
     </div>
     <div class="admin-list-summary-row admin-coupon-definition-bulk-row">
-        <?php echo sr_admin_pagination_summary_html($definitionPagination); ?>
         <?php if (empty($definitionSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 종류 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
@@ -767,6 +766,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </form>
+        <?php echo sr_admin_pagination_summary_html($definitionPagination); ?>
     </div>
     <div class="table-wrapper">
     <table class="table table-list admin-coupon-definition-table">

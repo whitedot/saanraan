@@ -173,9 +173,18 @@ sr_antispam_check_assert(str_contains($adminView, 'provider_failure_policy'), 'A
 sr_antispam_check_assert(str_contains($adminView, 'provider_action_check_enabled'), 'Antispam admin view must expose provider action check setting.');
 sr_antispam_check_assert(str_contains($adminView, 'provider_hostname_check_enabled'), 'Antispam admin view must expose provider hostname check setting.');
 sr_antispam_check_assert(str_contains($adminView, '$providerOptions'), 'Antispam admin view must render provider settings from provider contracts.');
+sr_antispam_check_assert(str_contains($adminView, 'data-antispam-challenge-type-select'), 'Antispam admin view must select challenge type with a select control.');
+sr_antispam_check_assert(str_contains($adminView, 'data-antispam-challenge-panel'), 'Antispam admin view must show only the selected challenge panel.');
+sr_antispam_check_assert(str_contains($adminView, 'class="form-grid" data-antispam-challenge-panel'), 'Antispam challenge panels must preserve admin form row styling.');
+sr_antispam_check_assert(!str_contains($adminView, 'data-antispam-challenge-switch'), 'Antispam admin view must not use switch controls for exclusive challenge type selection.');
+sr_antispam_check_assert(str_contains($adminView, "'antispam-section-challenge' => '검증 방식'"), 'Antispam sticky tabs must include a challenge type section.');
+sr_antispam_check_assert(str_contains($adminView, "'antispam-section-provider-common' => '프로바이더 공통'"), 'Antispam sticky tabs must include a provider common section.');
+sr_antispam_check_assert(!str_contains($adminView, "str_replace('_', '-', (string) \$providerKey)"), 'Antispam sticky tabs must not expose provider-specific sections.');
 
 $helpers = sr_antispam_check_read('modules/antispam/helpers.php');
 sr_antispam_check_assert(str_contains($helpers, "sr_enabled_module_contract_files(\$pdo, 'antispam-providers.php'"), 'Antispam helper must read provider plugin contracts.');
+sr_antispam_check_assert(str_contains($helpers, "sr_enabled_module_contract_files(\$pdo, 'antispam-targets.php'"), 'Antispam helper must read target module contracts.');
+sr_antispam_check_assert(str_contains($helpers, 'function sr_antispam_target_options'), 'Antispam helper must expose target options from module contracts.');
 sr_antispam_check_assert(!str_contains($helpers, 'https://challenges.cloudflare.com/turnstile/v0/siteverify'), 'Antispam helper must not inline Turnstile provider endpoint.');
 sr_antispam_check_assert(!str_contains($helpers, 'https://hcaptcha.com/siteverify'), 'Antispam helper must not inline hCaptcha provider endpoint.');
 sr_antispam_check_assert(!str_contains($helpers, 'https://www.google.com/recaptcha/api/siteverify'), 'Antispam helper must not inline reCAPTCHA provider endpoint.');
@@ -185,6 +194,10 @@ foreach (['sr_antispam_hp', 'min_submit_seconds', 'fallback_math', 'provider_tim
 
 $memberRegisterAction = sr_antispam_check_read('modules/member/actions/register.php');
 $memberRegisterView = sr_antispam_check_read('modules/member/views/register.php');
+$memberMetadata = sr_antispam_check_read('modules/member/module.php');
+$memberTargets = sr_antispam_check_read('modules/member/antispam-targets.php');
+sr_antispam_check_assert(str_contains($memberMetadata, "'antispam-targets.php'"), 'Member module must declare antispam target contract.');
+sr_antispam_check_assert(str_contains($memberTargets, "'member.register'"), 'Member module must own member registration antispam target.');
 sr_antispam_check_assert(str_contains($memberRegisterAction, "sr_antispam_verify(\$pdo, 'member.register'"), 'Member registration must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($memberRegisterView, "sr_antispam_challenge_render(\$pdo, 'member.register'"), 'Member registration view must render antispam challenge.');
 
@@ -192,6 +205,11 @@ $communityWriteAction = sr_antispam_check_read('modules/community/actions/write.
 $communityWriteView = sr_antispam_check_read('modules/community/skins/basic/form.php');
 $communityCommentAction = sr_antispam_check_read('modules/community/actions/comment.php');
 $communityCommentView = sr_antispam_check_read('modules/community/skins/basic/view.php');
+$communityMetadata = sr_antispam_check_read('modules/community/module.php');
+$communityTargets = sr_antispam_check_read('modules/community/antispam-targets.php');
+sr_antispam_check_assert(str_contains($communityMetadata, "'antispam-targets.php'"), 'Community module must declare antispam target contract.');
+sr_antispam_check_assert(str_contains($communityTargets, "'community.post.guest'"), 'Community module must own guest post antispam target.');
+sr_antispam_check_assert(str_contains($communityTargets, "'community.comment.guest'"), 'Community module must own guest comment antispam target.');
 sr_antispam_check_assert(str_contains($communityWriteAction, "sr_antispam_verify(\$pdo, 'community.post.guest'"), 'Community guest post action must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($communityWriteAction, '$errors = array_merge($errors, sr_community_validate_post_input($values));'), 'Community guest post action must preserve antispam errors when post validation runs.');
 sr_antispam_check_assert(str_contains($communityWriteView, "sr_antispam_challenge_render(\$pdo, 'community.post.guest'"), 'Community guest post form must render antispam challenge.');

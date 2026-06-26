@@ -3,15 +3,48 @@
 $adminPageTitle = '회원 OAuth 설정';
 $adminPageSubtitle = '';
 $callbackUrl = sr_absolute_url($site ?? [], '/oauth/callback');
+$memberOauthExternalProviders = [];
+foreach ($providers as $provider) {
+    if (!empty($provider['mock'])) {
+        continue;
+    }
+    $providerKey = (string) ($provider['provider_key'] ?? '');
+    if ($providerKey === '') {
+        continue;
+    }
+    $memberOauthExternalProviders[] = $provider;
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+
+<?php
+$memberOauthSectionNavItems = [
+    'member-oauth-section-basic' => '기본 설정',
+];
+foreach ($memberOauthExternalProviders as $memberOauthNavProvider) {
+    $memberOauthNavProviderKey = (string) ($memberOauthNavProvider['provider_key'] ?? '');
+    $memberOauthSectionNavItems['member-oauth-section-provider-' . str_replace('_', '-', $memberOauthNavProviderKey)] = (string) ($memberOauthNavProvider['label'] ?? $memberOauthNavProviderKey);
+}
+if ($memberOauthExternalProviders === []) {
+    $memberOauthSectionNavItems['member-oauth-section-providers-empty'] = '외부 제공자';
+}
+?>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="회원 OAuth 설정 섹션">
+    <?php $memberOauthSectionNavIndex = 0; ?>
+    <?php foreach ($memberOauthSectionNavItems as $memberOauthSectionId => $memberOauthSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $memberOauthSectionId); ?>" class="tab-trigger-underline-justified<?php echo $memberOauthSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $memberOauthSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $memberOauthSectionLabel); ?>
+        </a>
+        <?php $memberOauthSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-oauth')); ?>" class="admin-form ui-form-theme member-oauth-admin-form" data-sr-validate-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
-    <section class="card">
+    <section id="member-oauth-section-basic" class="card" data-admin-section-anchor>
         <h2>기본 설정</h2>
         <div class="form-row">
             <span class="form-label">Callback URL</span>
@@ -65,8 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <?php $externalProviderCount = 0; ?>
-    <?php foreach ($providers as $provider) { ?>
-        <?php if (!empty($provider['mock'])) { continue; } ?>
+    <?php foreach ($memberOauthExternalProviders as $provider) { ?>
         <?php
         $externalProviderCount++;
         $providerKey = (string) $provider['provider_key'];
@@ -80,7 +112,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $providerStatus = sr_member_oauth_provider_admin_status($provider, $callbackUrl);
         $providerEnabled = !empty($provider['enabled']);
         ?>
-        <section class="card">
+        <section id="<?php echo sr_e('member-oauth-section-provider-' . str_replace('_', '-', $providerKey)); ?>" class="card" data-admin-section-anchor>
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e($providerLabel); ?></h2>
                 <label class="form-check" for="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>">
@@ -151,7 +183,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
     <?php if ($externalProviderCount < 1) { ?>
-        <section class="card">
+        <section id="member-oauth-section-providers-empty" class="card" data-admin-section-anchor>
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e('외부 제공자 활성화'); ?></h2>
                 <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e(sr_url('/admin/modules')); ?>"><?php echo sr_e('모듈 화면'); ?></a>

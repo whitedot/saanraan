@@ -603,14 +603,25 @@ window.AdminShell = {
             const scrollBehavior = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
             let lastDirectTabScrollAt = 0;
             let activeLink = null;
+            const visiblePairs = () => pairs.filter(pair => {
+                return !pair.link.hidden && !pair.section.hidden && pair.section.offsetParent !== null;
+            });
             const markDirectTabScroll = () => {
                 lastDirectTabScrollAt = Date.now();
             };
             const canAutoScrollTab = () => Date.now() - lastDirectTabScrollAt > 700;
+            const scrollSectionIntoView = section => {
+                const targetTop = Math.max(0, window.scrollY + section.getBoundingClientRect().top - adminStickyOffset());
+                window.scrollTo({ top: targetTop, behavior: scrollBehavior });
+            };
             const activePairFromScroll = () => {
+                const availablePairs = visiblePairs();
+                if (availablePairs.length === 0) {
+                    return null;
+                }
                 const probeY = adminStickyOffset() + Math.min(96, window.innerHeight * 0.25);
-                let activePair = pairs[0];
-                pairs.forEach(pair => {
+                let activePair = availablePairs[0];
+                availablePairs.forEach(pair => {
                     const rect = pair.section.getBoundingClientRect();
                     if (rect.top <= probeY) {
                         activePair = pair;
@@ -618,7 +629,7 @@ window.AdminShell = {
                 });
 
                 if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
-                    activePair = pairs[pairs.length - 1];
+                    activePair = availablePairs[availablePairs.length - 1];
                 }
 
                 return activePair;
@@ -628,7 +639,10 @@ window.AdminShell = {
             const sync = () => {
                 ticking = false;
                 const activePair = activePairFromScroll();
-                const nextLink = activePair ? activePair.link : pairs[0].link;
+                const nextLink = activePair ? activePair.link : null;
+                if (!nextLink) {
+                    return;
+                }
                 const changed = nextLink !== activeLink;
                 activeLink = nextLink;
                 setAnchorTabActive(tabs, nextLink, {
@@ -653,7 +667,7 @@ window.AdminShell = {
                     event.preventDefault();
                     activeLink = link;
                     setAnchorTabActive(tabs, link, { scrollTabIntoView: true });
-                    pair.section.scrollIntoView({ block: 'start', behavior: scrollBehavior });
+                    scrollSectionIntoView(pair.section);
                 });
             });
             tabs.addEventListener('wheel', markDirectTabScroll, { passive: true });

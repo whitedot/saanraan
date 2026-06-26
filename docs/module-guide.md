@@ -936,6 +936,7 @@ return [
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
+- `antispam-targets.php`: 자동등록방지 적용 대상 후보. 화면과 제출 정책을 소유한 모듈이 대상 key, label, 기본 적용 모드를 선언하고, `antispam` 모듈은 설정 UI와 정책 조회에 사용한다.
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 - `embed-manager-targets.php`: 임베드 매니저 대상 검색 후보. 작성 화면은 이 계약의 검색 결과를 marker가 아니라 안전한 URL 링크로 삽입한다.
 - `embed-manager-url-targets.php`: URL 기반 임베딩 resolver와 renderer 후보. 공개 렌더링은 이 계약으로 canonical URL, target allowlist, cache 상태, snapshot, 모듈별 표시 HTML을 결정한다.
@@ -1154,6 +1155,7 @@ return [
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 용도 후보 |
 | `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 작성자/멘션/쪽지 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 | `admin-notification-events.php` | `content`, `community`, `privacy`, `notification` 모듈 | 신고, 개인정보 요청, 작성자 신청, 발송 실패, 저장소 정리 실패 같은 관리자 운영 알림 생성 시 | 선택 알림 모듈의 운영 알림 생성/요약 함수 |
+| `antispam-targets.php` | `antispam` 모듈 | 자동등록방지 관리자 설정 렌더링과 제출별 정책 조회 | 화면 소유 모듈이 선언한 적용 대상 key, label, 기본 적용 모드 |
 
 읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.
 
@@ -1162,7 +1164,7 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php`, `antispam-targets.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php`, `admin-notification-events.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
@@ -1177,9 +1179,10 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php`, `dashboard.php`, `embed-manager-url-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `embed-manager-targets.php`, `embed-manager-url-targets.php`, `reaction-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `embed-manager-targets.php`, `embed-manager-url-targets.php`, `reaction-targets.php`, `antispam-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
 | `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `coupon-references.php`, `sitemap.php`, `member-only-routes.php`, `embed-manager-targets.php`, `embed-manager-url-targets.php`, `reaction-targets.php` | `member-assets.php`, `notification-events.php` |
 | `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `layout-options.php`, `coupon-references.php`, `member-group-references.php`, `member-only-routes.php`, `embed-manager-targets.php`, `embed-manager-url-targets.php`, `reaction-targets.php` | `member-assets.php`, `notification-events.php` |
+| `antispam` | `paths.php`, `admin-menu.php` | `antispam-targets.php`, `antispam-providers.php` |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:

@@ -41,6 +41,7 @@ return [
             'embed-manager-targets.php',
             'embed-manager-url-targets.php',
             'reaction-targets.php',
+            'antispam-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

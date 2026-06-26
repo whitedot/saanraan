@@ -331,6 +331,7 @@ $requiredPackageEntries = [
     'privacy-cleanup.php',
     'privacy-export.php',
     'reaction-targets.php',
+    'antispam-targets.php',
     'sitemap.php',
     'skins',
     'layouts',
@@ -372,6 +373,7 @@ $requiredContracts = [
     'embed-manager-targets.php',
     'embed-manager-url-targets.php',
     'reaction-targets.php',
+    'antispam-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))
