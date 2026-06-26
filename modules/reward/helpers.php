@@ -74,16 +74,40 @@ function sr_reward_notification_cases(): array
             'description' => '적립금이 환불 또는 복원되었을 때 보냅니다.',
             'default_enabled' => true,
         ],
+        'transaction_exchange_in' => [
+            'event_key' => 'transaction.exchange_in',
+            'label' => '환전 입금 알림',
+            'description' => '환전으로 적립금이 입금되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
         'transaction_use' => [
             'event_key' => 'transaction.use',
             'label' => '사용 알림',
             'description' => '적립금이 사용되었을 때 보냅니다.',
             'default_enabled' => true,
         ],
+        'transaction_exchange_out' => [
+            'event_key' => 'transaction.exchange_out',
+            'label' => '환전 출금 알림',
+            'description' => '환전으로 적립금이 출금되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_exchange_fee' => [
+            'event_key' => 'transaction.exchange_fee',
+            'label' => '환전 수수료 알림',
+            'description' => '환전 수수료로 적립금이 차감되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
         'transaction_expire' => [
             'event_key' => 'transaction.expire',
             'label' => '만료 알림',
             'description' => '적립금이 만료되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_withdraw' => [
+            'event_key' => 'transaction.withdraw',
+            'label' => '출금 알림',
+            'description' => '적립금 출금이 처리되었을 때 보냅니다.',
             'default_enabled' => true,
         ],
         'transaction_reclaim' => [

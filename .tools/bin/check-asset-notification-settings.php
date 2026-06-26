@@ -46,7 +46,10 @@ foreach ([
         'events' => [
             'transaction.grant',
             'transaction.refund',
+            'transaction.exchange_in',
             'transaction.use',
+            'transaction.exchange_out',
+            'transaction.exchange_fee',
             'transaction.expire',
             'transaction.adjustment.increase',
             'transaction.adjustment.decrease',
@@ -58,8 +61,12 @@ foreach ([
         'events' => [
             'transaction.grant',
             'transaction.refund',
+            'transaction.exchange_in',
             'transaction.use',
+            'transaction.exchange_out',
+            'transaction.exchange_fee',
             'transaction.expire',
+            'transaction.withdraw',
             'transaction.reclaim',
             'transaction.adjustment.increase',
             'transaction.adjustment.decrease',
@@ -71,7 +78,10 @@ foreach ([
         'events' => [
             'transaction.deposit',
             'transaction.refund',
+            'transaction.exchange_in',
             'transaction.use',
+            'transaction.exchange_out',
+            'transaction.exchange_fee',
             'transaction.withdraw',
             'transaction.adjustment.increase',
             'transaction.adjustment.decrease',
@@ -106,6 +116,10 @@ foreach ([
 
     foreach ($module['events'] as $eventKey) {
         sr_asset_notification_settings_require_markers($helperPath, ["'event_key' => '" . $eventKey . "'"]);
+        sr_asset_notification_settings_require_markers('modules/notification/install.sql', ["'" . $moduleKey . "', '" . $eventKey . "'"]);
+        if (str_starts_with($eventKey, 'transaction.exchange_') || ($moduleKey === 'reward' && $eventKey === 'transaction.withdraw')) {
+            sr_asset_notification_settings_require_markers('modules/notification/updates/2026.06.012.sql', ["'" . $moduleKey . "', '" . $eventKey . "'"]);
+        }
     }
 
     sr_asset_notification_settings_require_markers($actionPath, [

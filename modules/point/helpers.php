@@ -32,10 +32,28 @@ function sr_point_notification_cases(): array
             'description' => '포인트가 환불 또는 복원되었을 때 보냅니다.',
             'default_enabled' => true,
         ],
+        'transaction_exchange_in' => [
+            'event_key' => 'transaction.exchange_in',
+            'label' => '환전 입금 알림',
+            'description' => '환전으로 포인트가 입금되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
         'transaction_use' => [
             'event_key' => 'transaction.use',
             'label' => '사용 알림',
             'description' => '포인트가 사용되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_exchange_out' => [
+            'event_key' => 'transaction.exchange_out',
+            'label' => '환전 출금 알림',
+            'description' => '환전으로 포인트가 출금되었을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+        'transaction_exchange_fee' => [
+            'event_key' => 'transaction.exchange_fee',
+            'label' => '환전 수수료 알림',
+            'description' => '환전 수수료로 포인트가 차감되었을 때 보냅니다.',
             'default_enabled' => true,
         ],
         'transaction_expire' => [
