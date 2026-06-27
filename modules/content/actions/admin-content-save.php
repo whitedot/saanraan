@@ -187,6 +187,23 @@ sr_audit_log($pdo, [
 $statusAfterTargetIds = sr_content_apply_scope_target_ids($pdo, $savedPageId, (int) ($values['content_group_id'] ?? 0), $statusScope);
 $statusAfterRows = sr_content_status_rows_for_ids($pdo, $statusAfterTargetIds);
 sr_content_audit_status_schedule_changes($pdo, $statusBeforeRows, $statusAfterRows, $account);
+if ($pageId < 1 && (string) ($values['status'] ?? '') === 'published') {
+    $followNotificationCount = sr_content_create_follow_notifications($pdo, sr_content_by_id($pdo, $savedPageId) ?: [], (int) $account['id']);
+    if ($followNotificationCount > 0) {
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'content.follow_notifications_created',
+            'target_type' => 'content',
+            'target_id' => (string) $savedPageId,
+            'result' => 'success',
+            'message' => 'Content follower notifications created.',
+            'metadata' => [
+                'notification_count' => $followNotificationCount,
+            ],
+        ]);
+    }
+}
 if ($pageId > 0) {
     sr_admin_audit_asset_settings_update($pdo, [
         'actor_account_id' => (int) $account['id'],

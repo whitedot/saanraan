@@ -303,6 +303,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'privacy_consent_record_count' => $privacyConsentRecordCount,
             ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
         ]);
+        $followNotificationCount = sr_community_create_post_follow_notifications($pdo, [
+            'id' => $postId,
+            'author_account_id' => $authorAccountId,
+            'status' => 'published',
+            'title' => (string) $values['title'],
+            'board_key' => (string) $board['board_key'],
+            'board_title' => (string) $board['title'],
+        ], $authorAccountId > 0 ? $authorAccountId : null);
+        if ($followNotificationCount > 0) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => $authorAccountId > 0 ? $authorAccountId : null,
+                'actor_type' => $isGuestAuthor ? 'guest' : 'member',
+                'event_type' => 'community.post.follow_notifications_created',
+                'target_type' => 'community_post',
+                'target_id' => (string) $postId,
+                'result' => 'success',
+                'message' => 'Community post follower notifications created.',
+                'metadata' => [
+                    'notification_count' => $followNotificationCount,
+                ],
+            ]);
+        }
         sr_redirect('/community/post?id=' . (string) $postId);
     }
 

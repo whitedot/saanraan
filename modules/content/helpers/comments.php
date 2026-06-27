@@ -534,6 +534,35 @@ function sr_content_create_account_event_notification(
     return false;
 }
 
+function sr_content_create_follow_notifications(PDO $pdo, array $page, ?int $createdByAccountId = null): int
+{
+    $contentId = (int) ($page['id'] ?? 0);
+    $authorAccountId = (int) ($page['created_by'] ?? 0);
+    if ($contentId < 1 || $authorAccountId < 1 || (string) ($page['status'] ?? '') !== 'published') {
+        return 0;
+    }
+
+    $metadata = [
+        'content_id' => $contentId,
+        'content_title' => (string) ($page['title'] ?? ''),
+        'member_name' => sr_member_public_name_for_account_id($pdo, $authorAccountId, '회원'),
+        'link_url' => sr_content_path((string) ($page['slug'] ?? '')),
+        'created_at' => sr_now(),
+    ];
+
+    $createdCount = 0;
+    foreach (sr_member_followers($pdo, $authorAccountId) as $followerAccountId) {
+        if ($followerAccountId === $authorAccountId) {
+            continue;
+        }
+        if (sr_content_create_account_event_notification($pdo, $followerAccountId, 'followed_author.content_created', $metadata, $createdByAccountId)) {
+            $createdCount++;
+        }
+    }
+
+    return $createdCount;
+}
+
 function sr_content_mention_tokens(string $bodyText): array
 {
     $tokens = [];

@@ -774,6 +774,7 @@ function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewe
         }
 
         sr_content_grant_submission_author_reward($pdo, $submissionId, $savedContentId, $authorAccountId, $reviewerAccountId);
+        sr_content_create_follow_notifications($pdo, sr_content_by_id($pdo, $savedContentId) ?: [], $reviewerAccountId > 0 ? $reviewerAccountId : null);
 
         if ($startedTransaction) {
             $pdo->commit();

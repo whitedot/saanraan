@@ -80,6 +80,37 @@ function sr_community_create_account_event_notification(
     return false;
 }
 
+function sr_community_create_post_follow_notifications(PDO $pdo, array $post, ?int $createdByAccountId = null): int
+{
+    $postId = (int) ($post['id'] ?? 0);
+    $authorAccountId = (int) ($post['author_account_id'] ?? 0);
+    if ($postId < 1 || $authorAccountId < 1 || (string) ($post['status'] ?? '') !== 'published') {
+        return 0;
+    }
+
+    $metadata = [
+        'post_id' => $postId,
+        'board_key' => (string) ($post['board_key'] ?? ''),
+        'board_title' => (string) ($post['board_title'] ?? ''),
+        'post_title' => (string) ($post['title'] ?? ''),
+        'member_name' => sr_member_public_name_for_account_id($pdo, $authorAccountId, '회원'),
+        'link_url' => '/community/post?id=' . (string) $postId,
+        'created_at' => sr_now(),
+    ];
+
+    $createdCount = 0;
+    foreach (sr_member_followers($pdo, $authorAccountId) as $followerAccountId) {
+        if ($followerAccountId === $authorAccountId) {
+            continue;
+        }
+        if (sr_community_create_account_event_notification($pdo, $followerAccountId, 'followed_author.post_created', $metadata, $createdByAccountId)) {
+            $createdCount++;
+        }
+    }
+
+    return $createdCount;
+}
+
 function sr_community_admin_permission_tables_exist(PDO $pdo): bool
 {
     static $exists = null;

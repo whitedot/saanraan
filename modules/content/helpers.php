@@ -47,7 +47,7 @@ function sr_content_publish_due_scheduled(PDO $pdo): int
 {
     $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT id, slug, published_at
+        "SELECT id, slug, title, created_by, published_at
          FROM sr_content_items
          WHERE status = 'scheduled'
            AND published_at IS NOT NULL
@@ -78,6 +78,8 @@ function sr_content_publish_due_scheduled(PDO $pdo): int
             continue;
         }
 
+        $row['status'] = 'published';
+        sr_content_create_follow_notifications($pdo, $row, (int) ($row['created_by'] ?? 0) > 0 ? (int) $row['created_by'] : null);
         $publishedCount += 1;
         sr_audit_log($pdo, [
             'actor_type' => 'system',
