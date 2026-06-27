@@ -57,6 +57,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         body_format TEXT NOT NULL DEFAULT "plain",
         is_secret INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL,
+        home_feed_candidate INTEGER NOT NULL DEFAULT 1,
         view_count INTEGER NOT NULL DEFAULT 0,
         last_commented_at TEXT NULL,
         created_at TEXT NOT NULL,
@@ -78,6 +79,21 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         checksum_sha256 TEXT NOT NULL DEFAULT "",
         width INTEGER NULL,
         height INTEGER NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_boards (
+        id INTEGER PRIMARY KEY,
+        board_group_id INTEGER NULL,
+        board_key TEXT NOT NULL DEFAULT "",
+        title TEXT NOT NULL DEFAULT "",
+        status TEXT NOT NULL DEFAULT "enabled"
+    )');
+    $pdo->exec('CREATE TABLE sr_community_board_settings (
+        board_id INTEGER NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT NOT NULL,
+        value_type TEXT NOT NULL DEFAULT "string",
+        created_at TEXT NOT NULL DEFAULT "",
+        updated_at TEXT NOT NULL DEFAULT ""
     )');
     $pdo->exec('CREATE TABLE sr_member_accounts (
         id INTEGER PRIMARY KEY,
@@ -107,19 +123,37 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     foreach ([1, 2, 3] as $accountId) {
         $pdo->prepare('INSERT INTO sr_member_accounts (id, status) VALUES (:id, "active")')->execute(['id' => $accountId]);
     }
+    $insertBoard = $pdo->prepare(
+        'INSERT INTO sr_community_boards (id, board_group_id, board_key, title, status)
+         VALUES (:id, :board_group_id, :board_key, :title, "enabled")'
+    );
+    foreach ([
+        ['id' => 1, 'board_group_id' => 0],
+        ['id' => 3, 'board_group_id' => 0],
+        ['id' => 5, 'board_group_id' => 0],
+        ['id' => 82, 'board_group_id' => 0],
+    ] as $row) {
+        $insertBoard->execute([
+            'id' => $row['id'],
+            'board_group_id' => $row['board_group_id'],
+            'board_key' => 'board_' . (string) $row['id'],
+            'title' => 'Board ' . (string) $row['id'],
+        ]);
+    }
 
     $insertPost = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (id, board_id, author_account_id, title, body_text, status, view_count, created_at, updated_at)
+            (id, board_id, author_account_id, title, body_text, status, home_feed_candidate, view_count, created_at, updated_at)
          VALUES
-            (:id, :board_id, :author_account_id, :title, "", :status, :view_count, :created_at, :updated_at)'
+            (:id, :board_id, :author_account_id, :title, "", :status, :home_feed_candidate, :view_count, :created_at, :updated_at)'
     );
     foreach ([
         ['id' => 1, 'board_id' => 1, 'view_count' => 50, 'status' => 'published'],
         ['id' => 2, 'board_id' => 1, 'view_count' => 10, 'status' => 'published'],
         ['id' => 3, 'board_id' => 3, 'view_count' => 90, 'status' => 'published'],
-        ['id' => 4, 'board_id' => 5, 'view_count' => 80, 'status' => 'published'],
+        ['id' => 4, 'board_id' => 5, 'view_count' => 80, 'status' => 'published', 'home_feed_candidate' => 0],
         ['id' => 5, 'board_id' => 1, 'view_count' => 999, 'status' => 'hidden'],
+        ['id' => 40011, 'board_id' => 82, 'view_count' => 1000, 'status' => 'published', 'home_feed_candidate' => 0],
     ] as $row) {
         $insertPost->execute([
             'id' => $row['id'],
@@ -127,16 +161,22 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
             'author_account_id' => (($row['id'] - 1) % 3) + 1,
             'title' => 'Post ' . (string) $row['id'],
             'status' => $row['status'],
+            'home_feed_candidate' => (int) ($row['home_feed_candidate'] ?? 1),
             'view_count' => $row['view_count'],
             'created_at' => '2026-06-24 12:00:00',
             'updated_at' => '2026-06-24 12:00:00',
         ]);
     }
+    $pdo->prepare(
+        'INSERT INTO sr_community_board_settings (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES (:board_id, "home_feed_enabled", "0", "bool", "2026-06-24 12:00:00", "2026-06-24 12:00:00")'
+    )->execute(['board_id' => 5]);
 
     $boards = [
         ['id' => 1, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
         ['id' => 3, 'status' => 'enabled', 'read_policy' => 'member', 'effective_read_policy' => 'member'],
         ['id' => 5, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
+        ['id' => 82, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
     ];
     $baselineBoards = sr_community_feed_cache_public_baseline_boards($boards);
     $homeExcerptAllowed = array_fill_keys(sr_community_feed_cache_public_baseline_board_ids($baselineBoards), true);
@@ -147,16 +187,16 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $latestCached = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
 
     sr_check_community_feed_cache_contract_assert(
-        array_map(static fn (array $post): int => (int) $post['id'], $latest) === [4, 2, 1],
-        'home latest feed fixture must use public baseline boards and published id desc order.'
+        array_map(static fn (array $post): int => (int) $post['id'], $latest) === [2, 1],
+        'home latest feed fixture must exclude boards with home_feed_enabled disabled.'
     );
     sr_check_community_feed_cache_contract_assert(
-        array_map(static fn (array $post): int => (int) $post['id'], $popular) === [4, 1, 2],
-        'home popular feed fixture must use public baseline boards and snapshot view_count order.'
+        array_map(static fn (array $post): int => (int) $post['id'], $popular) === [1, 2],
+        'home popular feed fixture must exclude boards with home_feed_enabled disabled.'
     );
     sr_check_community_feed_cache_contract_assert(
-        array_map(static fn (array $post): int => (int) $post['id'], $latestCached) === [4, 2, 1],
-        'home latest feed fixture must render posts from persistent cache snapshots.'
+        array_map(static fn (array $post): int => (int) $post['id'], $latestCached) === [2, 1],
+        'home latest feed fixture must render filtered posts from persistent cache snapshots and keep post 40011 out.'
     );
     sr_check_community_feed_cache_contract_assert(
         (int) $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache WHERE cache_status = "fresh"')->fetchColumn() === 2,
@@ -278,6 +318,11 @@ sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
+    "effective_home_feed_enabled",
+    'function sr_community_home_feed_enabled_sql_condition',
+    'function sr_community_home_post_candidate_sql_condition',
+    'home-feed-candidate-v1',
+    'home_feed_candidate = 1',
     'function sr_community_feed_cache_table_exists',
     'function sr_community_feed_cache_read',
     'function sr_community_feed_cache_write',
@@ -301,6 +346,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/install.sql',
     'CREATE TABLE IF NOT EXISTS sr_community_feed_cache',
     'uq_sr_community_feed_cache_context (context_hash)',
     'idx_sr_community_posts_status_view_id (status, view_count, id)',
+    'home_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
+    'idx_sr_community_posts_home_status_id (home_feed_candidate, status, id)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.035.sql', [
@@ -313,13 +360,36 @@ sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.
     'uq_sr_community_feed_cache_context (context_hash)',
 ]);
 
+sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.038.sql', [
+    'ADD COLUMN home_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
+    'idx_sr_community_posts_home_status_id',
+    'idx_sr_community_posts_home_status_view_id',
+    'UPDATE {{SR_TABLE_PREFIX}}community_posts p',
+    "home_setting.setting_key = 'home_feed_enabled'",
+]);
+
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
+    '$homeFeedBoards = []',
+    'sr_community_effective_board_home_feed_enabled($pdo, $board)',
+    'sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots, $readableBoardIds)',
+    'function sr_community_home_filter_rows_by_board_ids',
+    '$latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds)',
+    '$recentSeries = sr_community_home_filter_rows_by_board_ids($recentSeries, $readableBoardIds)',
     'sr_community_feed_cache_post_feed_query($pdo',
     'sr_community_feed_cache_read($pdo',
     'sr_community_feed_cache_write($pdo',
     'function sr_community_home_latest_comments',
     "'feed_key' => 'community.home.latest_comments'",
+    "'policy_version' => 'home-feed-candidate-v1'",
     'sr_community_feed_cache_write_snapshots(',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/layouts/basic/home-frame-start.php', [
+    '$communityFrameHomeBoardIds = array_map(\'intval\', array_keys($homeExcerptAllowedByBoardId));',
+    '$latestPosts = isset($latestPosts) && is_array($latestPosts) ? sr_community_home_filter_rows_by_board_ids($latestPosts, $communityFrameHomeBoardIds) : [];',
+    '$popularPosts = isset($popularPosts) && is_array($popularPosts) ? sr_community_home_filter_rows_by_board_ids($popularPosts, $communityFrameHomeBoardIds) : [];',
+    '$latestComments = isset($latestComments) && is_array($latestComments) ? sr_community_home_filter_rows_by_board_ids($latestComments, $communityFrameHomeBoardIds) : [];',
+    '$recentSeries = isset($recentSeries) && is_array($recentSeries) ? sr_community_home_filter_rows_by_board_ids($recentSeries, $communityFrameHomeBoardIds) : [];',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
@@ -339,11 +409,26 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
     '$adminPageTitle = \'홈 피드 캐시\'',
+    '게시판 기준',
+    '커뮤니티 홈 표시',
     '공개 baseline',
     '컨텍스트 해시',
     'DB 영속 캐시 사용',
     '마지막 생성',
     '다음 만료',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/views/admin-boards.php', [
+    '커뮤니티 홈에 표시',
+    'name="home_feed_enabled"',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-boards.php', [
+    'sr_community_feed_cache_mark_all_stale($pdo, \'board_settings_changed\')',
+]);
+
+sr_check_community_feed_cache_contract_contains('docs/performance-policy.md', [
+    '커뮤니티 홈에 표시',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

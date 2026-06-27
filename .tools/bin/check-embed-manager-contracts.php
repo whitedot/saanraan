@@ -443,6 +443,7 @@ sr_embed_contract_runtime_fixture();
 sr_embed_contract_contains('modules/embed_manager/helpers.php', 'function sr_embed_manager_admin_url_cache_summary');
 sr_embed_contract_contains('modules/embed_manager/actions/admin-embed-manager.php', '$urlCacheSummary = sr_embed_manager_admin_url_cache_summary($pdo);');
 sr_embed_contract_contains('modules/embed_manager/views/admin-embed-manager.php', '마지막 URL 확인');
+sr_embed_contract_contains('modules/community/helpers/posts-writing.php', 'CAST(sr_embed_manager_url_cache.target_id AS UNSIGNED)');
 
 if ($errors !== []) {
     fwrite(STDERR, implode(PHP_EOL, $errors) . PHP_EOL);

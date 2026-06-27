@@ -86,6 +86,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
+    <section class="card admin-list-card admin-list-form">
+        <div class="card-header">
+            <h2 class="card-title">게시판 기준</h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="table table-list">
+                <thead>
+                    <tr>
+                        <th>게시판</th>
+                        <th>상태</th>
+                        <th>읽기</th>
+                        <th>커뮤니티 홈 표시</th>
+                        <th>공개 baseline</th>
+                        <th>홈 요약</th>
+                        <th>유료 열람 제한</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($feedCacheBoardRows as $boardRow) { ?>
+                        <tr>
+                            <td>
+                                <strong><?php echo sr_e((string) ($boardRow['title'] ?? '')); ?></strong>
+                                <br>
+                                <code><?php echo sr_e((string) ($boardRow['board_key'] ?? '')); ?></code>
+                            </td>
+                            <td><?php echo sr_e((string) ($boardRow['status'] ?? '')); ?></td>
+                            <td><?php echo sr_e((string) ($boardRow['read_policy'] ?? '')); ?></td>
+                            <td><?php echo !empty($boardRow['home_feed_enabled']) ? '표시' : '제외'; ?></td>
+                            <td><?php echo !empty($boardRow['public_baseline']) ? '예' : '아니오'; ?></td>
+                            <td><?php echo !empty($boardRow['home_excerpt_allowed']) ? '허용' : '숨김'; ?></td>
+                            <td><?php echo !empty($boardRow['paid_read_required']) ? '예' : '아니오'; ?></td>
+                        </tr>
+                    <?php } ?>
+                    <?php if ($feedCacheBoardRows === []) { ?>
+                        <tr><td colspan="7" class="admin-empty-state">표시할 게시판 기준이 없습니다.</td></tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <?php if ($canViewCommunityThumbnailFileCache || $canViewCommunityEmbedManager) { ?>
         <section class="card admin-list-card admin-list-form">
             <div class="card-header">

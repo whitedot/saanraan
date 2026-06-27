@@ -49,7 +49,14 @@ function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId
     } catch (Throwable) {
         $driver = '';
     }
-    $targetIdSql = $driver === 'sqlite' ? 'CAST(id AS TEXT)' : 'CAST(id AS CHAR)';
+    $targetMatchSql = $driver === 'sqlite'
+        ? 'target_id IN (SELECT CAST(id AS TEXT) FROM sr_community_posts WHERE board_id = :board_id)'
+        : 'EXISTS (
+               SELECT 1
+               FROM sr_community_posts p
+               WHERE p.board_id = :board_id
+                 AND p.id = CAST(sr_embed_manager_url_cache.target_id AS UNSIGNED)
+           )';
     $stmt = $pdo->prepare(
         'UPDATE sr_embed_manager_url_cache
          SET cache_status = \'stale\',
@@ -57,7 +64,7 @@ function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId
          WHERE target_module = \'community\'
            AND target_type = \'post\'
            AND cache_status = \'fresh\'
-           AND target_id IN (SELECT ' . $targetIdSql . ' FROM sr_community_posts WHERE board_id = :board_id)'
+           AND ' . $targetMatchSql
     );
     $stmt->execute([
         'updated_at' => sr_now(),
@@ -539,11 +546,13 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
     $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
     $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
+    $homeFeedCandidateColumnSql = sr_community_post_home_feed_candidate_column_exists($pdo) ? 'home_feed_candidate, ' : '';
+    $homeFeedCandidateValueSql = $homeFeedCandidateColumnSql !== '' ? ':home_feed_candidate, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . 'seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . 'seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . $homeFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . ':seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . ':seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . $homeFeedCandidateValueSql . ':status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -583,6 +592,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     }
     if ($secretColumnSql !== '') {
         $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
+    }
+    if ($homeFeedCandidateColumnSql !== '') {
+        $params['home_feed_candidate'] = sr_community_home_feed_candidate_value_for_board($pdo, $boardId);
     }
     $pdo->beginTransaction();
 

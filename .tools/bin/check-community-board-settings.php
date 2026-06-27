@@ -74,6 +74,7 @@ function sr_check_community_board_settings_runtime(): void
     $pdo->exec(
         "CREATE TABLE sr_community_boards (
             id INTEGER PRIMARY KEY,
+            board_group_id INTEGER NULL,
             board_key TEXT NOT NULL,
             title TEXT NOT NULL,
             status TEXT NOT NULL
@@ -89,6 +90,7 @@ function sr_check_community_board_settings_runtime(): void
             body_format TEXT NOT NULL DEFAULT 'plain',
             is_secret INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL,
+            home_feed_candidate INTEGER NOT NULL DEFAULT 1,
             view_count INTEGER NOT NULL DEFAULT 0,
             last_commented_at TEXT NULL,
             created_at TEXT NOT NULL,
@@ -125,7 +127,7 @@ function sr_check_community_board_settings_runtime(): void
     );
 
     $now = '2026-06-14 12:00:00';
-    $pdo->exec("INSERT INTO sr_community_boards (id, board_key, title, status) VALUES (10, 'fixture', 'Fixture Board', 'enabled')");
+    $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title, status) VALUES (10, 20, 'fixture', 'Fixture Board', 'enabled')");
     $board = [
         'id' => 10,
         'board_group_id' => 20,
@@ -166,6 +168,7 @@ function sr_check_community_board_settings_runtime(): void
         ['setting_key' => 'post_delete_lock_comment_count', 'setting_value' => '3', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_min_length', 'setting_value' => '2', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_max_length', 'setting_value' => '4', 'value_type' => 'int'],
+        ['setting_key' => 'home_feed_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
         ['setting_key' => 'reaction_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
     ] as $setting) {
         $boardSettingStmt->execute([
@@ -291,6 +294,14 @@ function sr_check_community_board_settings_runtime(): void
     if (!sr_community_effective_board_reaction_enabled($pdo, $board, ['reaction_enabled' => false])) {
         sr_check_community_board_settings_error('community board reaction enabled override failed.');
     }
+    if (!sr_community_effective_board_home_feed_enabled($pdo, $board)) {
+        sr_check_community_board_settings_error('community board home feed enabled override failed.');
+    }
+    sr_community_sync_board_home_feed_candidates($pdo, 10, false);
+    $candidateCount = (int) $pdo->query('SELECT COUNT(*) FROM sr_community_posts WHERE board_id = 10 AND home_feed_candidate = 0')->fetchColumn();
+    if ($candidateCount !== 5) {
+        sr_check_community_board_settings_error('community board home feed setting must synchronize post home candidates.');
+    }
 }
 
 $settingKeys = [
@@ -304,6 +315,7 @@ $settingKeys = [
     'list_excerpt_length',
     'list_per_page',
     'list_default_sort',
+    'home_feed_enabled',
     'reaction_enabled',
 ];
 
@@ -342,6 +354,16 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",
 ], 'community board reaction enabled helper');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    'function sr_community_effective_board_home_feed_enabled',
+    "sr_community_effective_board_setting(\$pdo, \$board, 'home_feed_enabled'",
+    'function sr_community_sync_board_home_feed_candidates',
+    'home_feed_candidate',
+], 'community board home feed enabled helper');
+sr_check_community_board_settings_contains('modules/community/helpers/posts-writing.php', [
+    'sr_community_home_feed_candidate_value_for_board($pdo, $boardId)',
+    'home_feed_candidate',
+], 'community post home feed candidate creation');
 sr_check_community_board_settings_contains('modules/community/helpers/post-body-settings.php', [
     'function sr_community_post_body_setting_max_length',
     'function sr_community_post_body_length_setting',
@@ -382,6 +404,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     "\$board['list_excerpt_length'] = sr_community_board_setting_value",
     "\$board['list_per_page'] = sr_community_board_setting_value",
     "\$board['list_default_sort'] =",
+    "\$board['home_feed_enabled'] = sr_community_board_setting_value",
 ], 'community admin board edit form value contract');
 sr_check_community_board_settings_contains('modules/community/actions/list.php', [
     'sr_community_board_list_per_page',

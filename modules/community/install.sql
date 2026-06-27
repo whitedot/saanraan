@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     hidden_note TEXT NULL,
     hidden_by_account_id BIGINT UNSIGNED NULL,
     hidden_before_status VARCHAR(30) NOT NULL DEFAULT '',
+    home_feed_candidate TINYINT(1) NOT NULL DEFAULT 1,
     view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     last_commented_at DATETIME NULL,
     created_at DATETIME NOT NULL,
@@ -198,7 +199,9 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     KEY idx_sr_community_posts_og_image_attachment (og_image_attachment_id),
     KEY idx_sr_community_posts_status_id (status, id),
     KEY idx_sr_community_posts_status_updated (status, updated_at),
-    KEY idx_sr_community_posts_status_view_id (status, view_count, id)
+    KEY idx_sr_community_posts_status_view_id (status, view_count, id),
+    KEY idx_sr_community_posts_home_status_id (home_feed_candidate, status, id),
+    KEY idx_sr_community_posts_home_status_view_id (home_feed_candidate, status, view_count, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_community_feed_cache (

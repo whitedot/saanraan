@@ -802,6 +802,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="community_admin_boards_home_feed_enabled">커뮤니티 홈에 표시</label>
+                <div class="form-field">
+                    <label class="form-check form-label" for="community_admin_boards_home_feed_enabled">
+                        <input id="community_admin_boards_home_feed_enabled" type="checkbox" name="home_feed_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'home_feed_enabled', '1') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('사용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_home_feed_enabled', $boardSettingSource($formBoard, 'home_feed_enabled')); ?>
+                    <p class="form-help">끄면 이 게시판의 글, 댓글, 시리즈가 커뮤니티 홈 최신글, 인기글, 최신댓글, 시리즈 후보에 포함되지 않습니다. 게시판 목록과 게시글 직접 접근 정책은 그대로 유지됩니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="community_admin_boards_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input" data-community-level-score="post">

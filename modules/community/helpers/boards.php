@@ -78,6 +78,7 @@ function sr_community_board_group_setting_keys(): array
         'list_excerpt_length',
         'list_per_page',
         'list_default_sort',
+        'home_feed_enabled',
         'reaction_enabled',
         'reaction_post_preset_key',
         'reaction_comment_preset_key',
@@ -201,6 +202,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'list_excerpt_length' => '120',
         'list_per_page' => (string) min(100, max(1, (int) ($settings['posts_per_page'] ?? 20))),
         'list_default_sort' => 'latest',
+        'home_feed_enabled' => '1',
         'level_post_score' => (string) min(10000, max(0, (int) ($settings['level_post_score'] ?? 10))),
         'level_comment_score' => (string) min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2))),
         'image_uploads_enabled' => !empty($settings['image_uploads_enabled']) ? '1' : '0',
@@ -536,6 +538,13 @@ function sr_community_apply_board_setting_scope(PDO $pdo, int $boardId, int $boa
     foreach ($targets as $targetBoardId) {
         sr_community_set_board_setting_source($pdo, (int) $targetBoardId, $settingKey, 'board');
     }
+
+    if ($settingKey === 'home_feed_enabled') {
+        $homeFeedCandidate = in_array((string) $value, ['1', 'true', 'yes', 'on'], true);
+        foreach ($targets as $targetBoardId) {
+            sr_community_sync_board_home_feed_candidates($pdo, (int) $targetBoardId, $homeFeedCandidate);
+        }
+    }
 }
 
 function sr_community_board_select_columns(string $alias = 'b'): string
@@ -780,6 +789,7 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     $board['effective_write_policy'] = sr_community_effective_board_policy($pdo, $board, 'write_policy');
     $board['effective_comment_policy'] = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     $board['effective_image_uploads_enabled'] = sr_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
+    $board['effective_home_feed_enabled'] = sr_community_effective_board_home_feed_enabled($pdo, $board) ? 1 : 0;
     foreach (sr_community_public_display_setting_labels() as $settingKey => $settingLabel) {
         $board[$settingKey] = (int) sr_community_effective_board_setting($pdo, $board, (string) $settingKey, '0');
     }
@@ -859,6 +869,8 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['list_per_page'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_per_page') ?? (string) min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
     $listDefaultSort = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_default_sort') ?? 'latest';
     $board['list_default_sort'] = in_array($listDefaultSort, ['latest', 'oldest', 'views', 'comments'], true) ? $listDefaultSort : 'latest';
+    $board['home_feed_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'home_feed_enabled') ?? '1';
+    $board['effective_home_feed_enabled'] = sr_community_effective_board_home_feed_enabled($pdo, $board) ? '1' : '0';
     $board['level_post_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
     $board['level_comment_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
     $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
@@ -1001,6 +1013,58 @@ function sr_community_board_setting_value(PDO $pdo, int $boardId, string $settin
     $value = $stmt->fetchColumn();
 
     return is_string($value) ? $value : null;
+}
+
+function sr_community_post_home_feed_candidate_column_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByConnection)) {
+        return $existsByConnection[$cacheKey];
+    }
+
+    try {
+        $pdo->query('SELECT home_feed_candidate FROM sr_community_posts LIMIT 0');
+        $existsByConnection[$cacheKey] = true;
+    } catch (Throwable) {
+        $existsByConnection[$cacheKey] = false;
+    }
+
+    return $existsByConnection[$cacheKey];
+}
+
+function sr_community_home_feed_candidate_value_for_board(PDO $pdo, int $boardId): int
+{
+    if ($boardId < 1) {
+        return 1;
+    }
+
+    $board = sr_community_board_by_id($pdo, $boardId);
+    if (!is_array($board)) {
+        return 1;
+    }
+
+    return sr_community_effective_board_home_feed_enabled($pdo, $board) ? 1 : 0;
+}
+
+function sr_community_sync_board_home_feed_candidates(PDO $pdo, int $boardId, bool $homeFeedEnabled): void
+{
+    if ($boardId < 1 || !sr_community_post_home_feed_candidate_column_exists($pdo)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_posts
+         SET home_feed_candidate = :home_feed_candidate
+         WHERE board_id = :board_id
+           AND home_feed_candidate <> :home_feed_candidate_check'
+    );
+    $candidate = $homeFeedEnabled ? 1 : 0;
+    $stmt->execute([
+        'home_feed_candidate' => $candidate,
+        'board_id' => $boardId,
+        'home_feed_candidate_check' => $candidate,
+    ]);
 }
 
 function sr_community_board_settings_runtime_cache_enabled(): bool
@@ -1290,6 +1354,11 @@ function sr_community_effective_board_policy(PDO $pdo, array $board, string $set
 function sr_community_effective_board_image_uploads_enabled(PDO $pdo, array $board): bool
 {
     return in_array(sr_community_effective_board_setting($pdo, $board, 'image_uploads_enabled', (string) (int) ($board['image_uploads_enabled'] ?? 1)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_effective_board_home_feed_enabled(PDO $pdo, array $board): bool
+{
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'home_feed_enabled', '1'), ['1', 'true', 'yes', 'on'], true);
 }
 
 function sr_community_effective_board_file_uploads_enabled(PDO $pdo, array $board): bool

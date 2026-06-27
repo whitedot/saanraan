@@ -18,6 +18,14 @@ if (!$communityFrameChromeReady) {
 }
 $homeMemberSummary = isset($homeMemberSummary) && is_array($homeMemberSummary) ? $homeMemberSummary : null;
 $popularPostReactionCounts = isset($popularPostReactionCounts) && is_array($popularPostReactionCounts) ? $popularPostReactionCounts : [];
+$homeExcerptAllowedByBoardId = isset($homeExcerptAllowedByBoardId) && is_array($homeExcerptAllowedByBoardId) ? $homeExcerptAllowedByBoardId : [];
+if (function_exists('sr_community_home_filter_rows_by_board_ids')) {
+    $communityFrameHomeBoardIds = array_map('intval', array_keys($homeExcerptAllowedByBoardId));
+    $latestPosts = isset($latestPosts) && is_array($latestPosts) ? sr_community_home_filter_rows_by_board_ids($latestPosts, $communityFrameHomeBoardIds) : [];
+    $popularPosts = isset($popularPosts) && is_array($popularPosts) ? sr_community_home_filter_rows_by_board_ids($popularPosts, $communityFrameHomeBoardIds) : [];
+    $latestComments = isset($latestComments) && is_array($latestComments) ? sr_community_home_filter_rows_by_board_ids($latestComments, $communityFrameHomeBoardIds) : [];
+    $recentSeries = isset($recentSeries) && is_array($recentSeries) ? sr_community_home_filter_rows_by_board_ids($recentSeries, $communityFrameHomeBoardIds) : [];
+}
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberSettings : sr_member_settings($pdo);
 $communityMainLabel = isset($communityMainLabel) && is_string($communityMainLabel) && $communityMainLabel !== '' ? $communityMainLabel : '커뮤니티 본문';

@@ -417,8 +417,16 @@ function sr_community_home_latest_comment_snapshots_from_rows(array $rows, array
     return $snapshots;
 }
 
-function sr_community_home_latest_comment_rows_from_snapshots(array $snapshots): array
+function sr_community_home_latest_comment_rows_from_snapshots(array $snapshots, array $allowedBoardIds = []): array
 {
+    $allowed = [];
+    foreach ($allowedBoardIds as $boardId) {
+        $id = (int) $boardId;
+        if ($id > 0) {
+            $allowed[$id] = true;
+        }
+    }
+
     $rows = [];
     foreach ($snapshots as $snapshot) {
         if (!is_array($snapshot)) {
@@ -429,6 +437,9 @@ function sr_community_home_latest_comment_rows_from_snapshots(array $snapshots):
         $postId = (int) ($snapshot['post_id'] ?? 0);
         $boardId = (int) ($snapshot['board_id'] ?? 0);
         if ($commentId < 1 || $postId < 1 || $boardId < 1) {
+            continue;
+        }
+        if ($allowed !== [] && empty($allowed[$boardId])) {
             continue;
         }
 
@@ -482,6 +493,7 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
     $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $homeFeedCandidateSql = sr_community_home_post_candidate_sql_condition($pdo, 'p', 'b.id', '           ');
     $stmt = $pdo->prepare(
         'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
                 p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
@@ -494,7 +506,7 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
            AND p.status = \'published\'
            AND b.status = \'enabled\'
            AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
-         ORDER BY c.id DESC
+ ' . $homeFeedCandidateSql . '        ORDER BY c.id DESC
          LIMIT :limit_value'
     );
     foreach ($commentParams as $paramKey => $value) {
@@ -514,13 +526,13 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
         'display_count' => $limit,
         'fetch_count' => $limit,
         'locale' => 'ko',
-        'policy_version' => 'v1',
+        'policy_version' => 'home-feed-candidate-v1',
     ]);
 
     if ($usePublicCache) {
         $cachedSnapshots = sr_community_feed_cache_read($pdo, $context, ['community_home_comment_snapshot_v1']);
         if (is_array($cachedSnapshots)) {
-            return sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots);
+            return sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots, $readableBoardIds);
         }
     }
 
@@ -536,12 +548,44 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
     return $rows;
 }
 
+function sr_community_home_filter_rows_by_board_ids(array $rows, array $allowedBoardIds): array
+{
+    $allowed = [];
+    foreach ($allowedBoardIds as $boardId) {
+        $id = (int) $boardId;
+        if ($id > 0) {
+            $allowed[$id] = true;
+        }
+    }
+    if ($allowed === []) {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $boardId = (int) ($row['board_id'] ?? 0);
+        if ($boardId > 0 && !empty($allowed[$boardId])) {
+            $filtered[] = $row;
+        }
+    }
+
+    return $filtered;
+}
+
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
     $boards = [];
+    $homeFeedBoards = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
         if (sr_community_account_can_read_board($pdo, $board, $account)) {
             $boards[] = $board;
+            if (sr_community_effective_board_home_feed_enabled($pdo, $board)) {
+                $homeFeedBoards[] = $board;
+            }
         }
     }
 
@@ -554,14 +598,14 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings, $memberSettings);
     $homeExcerptAllowedByBoardId = [];
     $communitySeriesSupported = sr_community_series_supported($pdo);
-    foreach ($boards as $board) {
+    foreach ($homeFeedBoards as $board) {
         $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
         $homeExcerptAllowed = !sr_community_asset_event_required($paidReadConfig);
         $homeExcerptAllowedByBoardId[(int) ($board['id'] ?? 0)] = $homeExcerptAllowed;
     }
-    $latestPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
-    $popularPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
-    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $boards)));
+    $latestPosts = sr_community_home_post_feed($pdo, $homeFeedBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
+    $popularPosts = sr_community_home_post_feed($pdo, $homeFeedBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
+    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $homeFeedBoards)));
     if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
@@ -581,6 +625,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             $seriesParams[$paramKey] = $boardId;
         }
         if ($seriesPlaceholders !== []) {
+            $homeFeedEnabledSql = sr_community_home_feed_enabled_sql_condition($pdo, 'b.id', '                   ');
             $stmt = $pdo->prepare(
                 'SELECT s.*, b.title AS board_title,
                         (SELECT COUNT(*) FROM sr_community_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count,
@@ -597,7 +642,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
                  WHERE s.status = \'active\'
                    AND b.status = \'enabled\'
                    AND s.board_id IN (' . implode(', ', $seriesPlaceholders) . ')
-                 ORDER BY s.updated_at DESC, s.id DESC
+ ' . $homeFeedEnabledSql . '                ORDER BY s.updated_at DESC, s.id DESC
                  LIMIT 20'
             );
             foreach ($seriesParams as $paramKey => $boardId) {
@@ -614,6 +659,10 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             }
         }
     }
+    $latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds);
+    $popularPosts = sr_community_home_filter_rows_by_board_ids($popularPosts, $readableBoardIds);
+    $latestComments = sr_community_home_filter_rows_by_board_ids($latestComments, $readableBoardIds);
+    $recentSeries = sr_community_home_filter_rows_by_board_ids($recentSeries, $readableBoardIds);
     $communityLayoutKey = sr_community_layout_key($settings, $site, $pdo);
     $homeSidebarMenuKey = sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
     if ($homeSidebarMenuKey === 'sr_community_board_groups' && function_exists('sr_community_layout_menu_html')) {
