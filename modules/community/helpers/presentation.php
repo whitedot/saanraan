@@ -242,6 +242,117 @@ function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, a
     return '';
 }
 
+function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
+{
+    $posts = [];
+    foreach ($rows as $post) {
+        if (!is_array($post)) {
+            continue;
+        }
+        $boardId = (int) ($post['board_id'] ?? 0);
+        if (!isset($boardById[$boardId])) {
+            continue;
+        }
+
+        $homeExcerptAllowed = !empty($homeExcerptAllowedByBoardId[$boardId]);
+        $post['home_excerpt_allowed'] = $homeExcerptAllowed;
+        $post['home_image_url'] = sr_community_home_post_image_url($pdo, $post, $boardById[$boardId], $settings, $homeExcerptAllowed);
+        $posts[] = $post;
+    }
+
+    return $posts;
+}
+
+function sr_community_home_post_feed_live_rows(PDO $pdo, array $boardIds, int $limit, string $sort): array
+{
+    $limit = max(1, min(20, $limit));
+    [$sql, $params] = sr_community_feed_cache_post_feed_query($pdo, array_values($boardIds), $limit, $sort, 'home_board_id_');
+    if ($sql === '') {
+        return [];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $value) {
+        $stmt->bindValue($paramKey, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_home_post_feed_rows_by_snapshots(PDO $pdo, array $snapshots, array $boardById): array
+{
+    $postIds = [];
+    foreach ($snapshots as $snapshot) {
+        if (!is_array($snapshot)) {
+            continue;
+        }
+        $postId = (int) ($snapshot['post_id'] ?? 0);
+        $boardId = (int) ($snapshot['board_id'] ?? 0);
+        if ($postId > 0 && isset($boardById[$boardId])) {
+            $postIds[$postId] = $postId;
+        }
+    }
+    if ($postIds === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($postIds) as $index => $postId) {
+        $paramKey = 'cached_post_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $postId;
+    }
+
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
+                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
+                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
+                list_image.id AS list_image_attachment_id,
+                list_image.storage_driver AS list_image_storage_driver,
+                list_image.storage_key AS list_image_storage_key,
+                list_image.mime_type AS list_image_mime_type,
+                list_image.size_bytes AS list_image_size_bytes,
+                list_image.checksum_sha256 AS list_image_checksum_sha256,
+                list_image.width AS list_image_width,
+                list_image.height AS list_image_height
+         FROM sr_community_posts p
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = (
+             SELECT MIN(att_img.id)
+             FROM sr_community_attachments att_img
+             WHERE att_img.post_id = p.id
+               AND att_img.status = \'active\'
+               AND att_img.mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+         )
+         WHERE p.status = \'published\'
+           AND p.id IN (' . implode(', ', $placeholders) . ')'
+    );
+    foreach ($params as $paramKey => $postId) {
+        $stmt->bindValue($paramKey, $postId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    $rowsById = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $rowsById[(int) ($row['id'] ?? 0)] = $row;
+    }
+
+    $rows = [];
+    foreach ($snapshots as $snapshot) {
+        $postId = (int) ($snapshot['post_id'] ?? 0);
+        if (isset($rowsById[$postId])) {
+            $rows[] = $rowsById[$postId];
+        }
+    }
+
+    return $rows;
+}
+
 function sr_community_home_post_feed(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId, int $limit, string $sort): array
 {
     $boardById = [];
@@ -260,24 +371,24 @@ function sr_community_home_post_feed(PDO $pdo, array $boards, array $settings, a
     }
 
     $limit = max(1, min(20, $limit));
-    [$sql, $params] = sr_community_feed_cache_post_feed_query($pdo, array_values($boardIds), $limit, $sort, 'home_board_id_');
-    $stmt = $pdo->prepare($sql);
-    foreach ($params as $paramKey => $boardId) {
-        $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-
-    $posts = [];
-    foreach ($stmt->fetchAll() as $post) {
-        $boardId = (int) ($post['board_id'] ?? 0);
-        if (!isset($boardById[$boardId])) {
-            continue;
+    $cacheContext = sr_community_feed_cache_context_for_home($boards, $homeExcerptAllowedByBoardId, $limit, $sort);
+    if ($cacheContext !== []) {
+        $cachedSnapshots = sr_community_feed_cache_read($pdo, $cacheContext);
+        if (is_array($cachedSnapshots)) {
+            return sr_community_home_post_feed_from_rows(
+                $pdo,
+                sr_community_home_post_feed_rows_by_snapshots($pdo, $cachedSnapshots, $boardById),
+                $boardById,
+                $settings,
+                $homeExcerptAllowedByBoardId
+            );
         }
+    }
 
-        $homeExcerptAllowed = !empty($homeExcerptAllowedByBoardId[$boardId]);
-        $post['home_excerpt_allowed'] = $homeExcerptAllowed;
-        $post['home_image_url'] = sr_community_home_post_image_url($pdo, $post, $boardById[$boardId], $settings, $homeExcerptAllowed);
-        $posts[] = $post;
+    $rows = sr_community_home_post_feed_live_rows($pdo, array_values($boardIds), $limit, $sort);
+    $posts = sr_community_home_post_feed_from_rows($pdo, $rows, $boardById, $settings, $homeExcerptAllowedByBoardId);
+    if ($cacheContext !== []) {
+        sr_community_feed_cache_write($pdo, $cacheContext, $posts);
     }
 
     return $posts;

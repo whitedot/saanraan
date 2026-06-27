@@ -657,6 +657,9 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
         'updated_at' => $now,
         'id' => $postId,
     ]);
+    if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'comment_created');
+    }
 
     return $commentId;
 }

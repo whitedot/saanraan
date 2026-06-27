@@ -116,6 +116,243 @@ function sr_community_feed_cache_context_hash(array $context): string
     return hash('sha256', $json);
 }
 
+function sr_community_feed_cache_table_exists(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_feed_cache LIMIT 1');
+        return true;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function sr_community_feed_cache_ttl_seconds(string $feedKey): int
+{
+    $feedKey = sr_community_feed_cache_key($feedKey);
+    if ($feedKey === 'community.home.popular') {
+        return 300;
+    }
+
+    return 600;
+}
+
+function sr_community_feed_cache_expires_at(string $generatedAt, string $feedKey): string
+{
+    $timestamp = strtotime($generatedAt);
+    if ($timestamp === false) {
+        $timestamp = time();
+    }
+
+    return date('Y-m-d H:i:s', $timestamp + sr_community_feed_cache_ttl_seconds($feedKey));
+}
+
+function sr_community_feed_cache_context_for_home(array $boards, array $homeExcerptAllowedByBoardId, int $displayCount, string $sort): array
+{
+    $boardIds = [];
+    foreach ($boards as $board) {
+        if (!is_array($board) || !sr_community_feed_cache_public_baseline_board($board)) {
+            return [];
+        }
+
+        $boardId = (int) ($board['id'] ?? 0);
+        if ($boardId < 1 || empty($homeExcerptAllowedByBoardId[$boardId])) {
+            return [];
+        }
+
+        $boardIds[$boardId] = $boardId;
+    }
+    if ($boardIds === []) {
+        return [];
+    }
+
+    ksort($boardIds, SORT_NUMERIC);
+    $sort = sr_community_feed_cache_sort_key($sort);
+
+    return sr_community_feed_cache_context([
+        'feed_key' => $sort === 'views' ? 'community.home.popular' : 'community.home.latest',
+        'board_ids' => array_values($boardIds),
+        'sort' => $sort,
+        'display_count' => $displayCount,
+        'fetch_count' => $displayCount,
+        'locale' => 'ko',
+        'policy_version' => 'v1',
+    ]);
+}
+
+function sr_community_feed_cache_snapshot_json(array $snapshots): string
+{
+    $safeSnapshots = [];
+    foreach ($snapshots as $snapshot) {
+        if (!is_array($snapshot) || sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot)) {
+            continue;
+        }
+        $safeSnapshots[] = $snapshot;
+    }
+
+    $json = json_encode($safeSnapshots, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    return is_string($json) ? $json : '[]';
+}
+
+function sr_community_feed_cache_snapshots_from_json(string $json): array
+{
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+
+    $snapshots = [];
+    foreach ($decoded as $snapshot) {
+        if (!is_array($snapshot) || sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot)) {
+            continue;
+        }
+        if ((string) ($snapshot['snapshot_schema_version'] ?? '') !== 'community_feed_card_snapshot_v1') {
+            continue;
+        }
+        $postId = (int) ($snapshot['post_id'] ?? 0);
+        $boardId = (int) ($snapshot['board_id'] ?? 0);
+        if ($postId < 1 || $boardId < 1) {
+            continue;
+        }
+        $snapshots[] = $snapshot;
+    }
+
+    return $snapshots;
+}
+
+function sr_community_feed_cache_read(PDO $pdo, array $context): ?array
+{
+    if (!sr_community_feed_cache_table_exists($pdo)) {
+        return null;
+    }
+
+    $context = sr_community_feed_cache_context($context);
+    $stmt = $pdo->prepare(
+        "SELECT snapshot_json
+         FROM sr_community_feed_cache
+         WHERE context_hash = :context_hash
+           AND cache_status = 'fresh'
+           AND expires_at > :now
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'context_hash' => sr_community_feed_cache_context_hash($context),
+        'now' => sr_now(),
+    ]);
+    $json = $stmt->fetchColumn();
+    if (!is_string($json)) {
+        return null;
+    }
+
+    return sr_community_feed_cache_snapshots_from_json($json);
+}
+
+function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): void
+{
+    if (!sr_community_feed_cache_table_exists($pdo)) {
+        return;
+    }
+
+    $context = sr_community_feed_cache_context($context);
+    $snapshots = [];
+    foreach ($posts as $post) {
+        if (is_array($post)) {
+            $snapshots[] = sr_community_feed_cache_card_snapshot($post);
+        }
+    }
+
+    $now = sr_now();
+    $snapshotJson = sr_community_feed_cache_snapshot_json($snapshots);
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+
+    $upsertClause = 'ON DUPLICATE KEY UPDATE
+            feed_key = VALUES(feed_key),
+            sort_key = VALUES(sort_key),
+            locale = VALUES(locale),
+            policy_version = VALUES(policy_version),
+            baseline = VALUES(baseline),
+            board_ids_json = VALUES(board_ids_json),
+            display_count = VALUES(display_count),
+            fetch_count = VALUES(fetch_count),
+            snapshot_json = VALUES(snapshot_json),
+            snapshot_count = VALUES(snapshot_count),
+            cache_status = VALUES(cache_status),
+            generated_at = VALUES(generated_at),
+            expires_at = VALUES(expires_at),
+            stale_reason = VALUES(stale_reason),
+            updated_at = VALUES(updated_at)';
+    if ($driver === 'sqlite') {
+        $upsertClause = 'ON CONFLICT(context_hash) DO UPDATE SET
+            feed_key = excluded.feed_key,
+            sort_key = excluded.sort_key,
+            locale = excluded.locale,
+            policy_version = excluded.policy_version,
+            baseline = excluded.baseline,
+            board_ids_json = excluded.board_ids_json,
+            display_count = excluded.display_count,
+            fetch_count = excluded.fetch_count,
+            snapshot_json = excluded.snapshot_json,
+            snapshot_count = excluded.snapshot_count,
+            cache_status = excluded.cache_status,
+            generated_at = excluded.generated_at,
+            expires_at = excluded.expires_at,
+            stale_reason = excluded.stale_reason,
+            updated_at = excluded.updated_at';
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_feed_cache
+            (context_hash, feed_key, sort_key, locale, policy_version, baseline, board_ids_json, display_count, fetch_count, snapshot_json, snapshot_count, cache_status, generated_at, expires_at, stale_reason, created_at, updated_at)
+         VALUES
+            (:context_hash, :feed_key, :sort_key, :locale, :policy_version, :baseline, :board_ids_json, :display_count, :fetch_count, :snapshot_json, :snapshot_count, :cache_status, :generated_at, :expires_at, :stale_reason, :created_at, :updated_at)
+         ' . $upsertClause
+    );
+    $stmt->execute([
+        'context_hash' => sr_community_feed_cache_context_hash($context),
+        'feed_key' => (string) $context['feed_key'],
+        'sort_key' => (string) $context['sort'],
+        'locale' => (string) $context['locale'],
+        'policy_version' => (string) $context['policy_version'],
+        'baseline' => (string) $context['baseline'],
+        'board_ids_json' => json_encode($context['board_ids'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]',
+        'display_count' => (int) $context['display_count'],
+        'fetch_count' => (int) $context['fetch_count'],
+        'snapshot_json' => $snapshotJson,
+        'snapshot_count' => count($snapshots),
+        'cache_status' => 'fresh',
+        'generated_at' => $now,
+        'expires_at' => sr_community_feed_cache_expires_at($now, (string) $context['feed_key']),
+        'stale_reason' => '',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+
+function sr_community_feed_cache_mark_all_stale(PDO $pdo, string $reason = 'content_changed'): void
+{
+    if (!sr_community_feed_cache_table_exists($pdo)) {
+        return;
+    }
+
+    $reason = sr_community_feed_cache_key($reason);
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_feed_cache
+         SET cache_status = 'stale',
+             stale_reason = :stale_reason,
+             updated_at = :updated_at
+         WHERE cache_status = 'fresh'"
+    );
+    $stmt->execute([
+        'stale_reason' => $reason,
+        'updated_at' => sr_now(),
+    ]);
+}
+
 function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int $limit, string $sort, string $paramPrefix = 'feed_board_id_'): array
 {
     $ids = [];
@@ -267,24 +504,37 @@ function sr_community_feed_cache_snapshot_contains_forbidden_key(array $value): 
 function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
 {
     $status = [
-        'mode' => 'contract_only',
+        'mode' => 'not_installed',
         'table_exists' => false,
         'file_cache_exists' => false,
         'row_count' => 0,
+        'fresh_count' => 0,
+        'stale_count' => 0,
     ];
 
     try {
-        $stmt = $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache');
+        $stmt = $pdo->query('SELECT cache_status, COUNT(*) AS count_value FROM sr_community_feed_cache GROUP BY cache_status');
         $status['table_exists'] = true;
-        $status['row_count'] = (int) $stmt->fetchColumn();
+        foreach ($stmt->fetchAll() as $row) {
+            $count = (int) ($row['count_value'] ?? 0);
+            $cacheStatus = (string) ($row['cache_status'] ?? '');
+            $status['row_count'] += $count;
+            if ($cacheStatus === 'fresh') {
+                $status['fresh_count'] = $count;
+            } elseif ($cacheStatus === 'stale') {
+                $status['stale_count'] = $count;
+            }
+        }
     } catch (Throwable) {
         $status['table_exists'] = false;
     }
 
     $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 3);
     $status['file_cache_exists'] = is_dir(rtrim($root, '/\\') . '/storage/cache/community-feed');
-    if ($status['table_exists'] || $status['file_cache_exists']) {
-        $status['mode'] = 'persistent_detected';
+    if ($status['table_exists']) {
+        $status['mode'] = 'db_persistent';
+    } elseif ($status['file_cache_exists']) {
+        $status['mode'] = 'file_persistent_detected';
     }
 
     return $status;

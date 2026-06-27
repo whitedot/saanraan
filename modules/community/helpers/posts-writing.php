@@ -100,6 +100,9 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
     if ($status === 'deleted') {
         sr_community_redact_deleted_post($pdo, $postId);
         sr_community_mark_post_embed_target_stale($pdo, $postId);
+        if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+            sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
+        }
         if (empty($options['defer_file_cleanup'])) {
             sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
         }
@@ -109,6 +112,9 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
     if (sr_community_hidden_columns_exist($pdo, 'sr_community_posts')) {
         sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_posts', $postId, $status, $options);
         sr_community_mark_post_embed_target_stale($pdo, $postId);
+        if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+            sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
+        }
         return;
     }
 
@@ -125,6 +131,9 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
         'id' => $postId,
     ]);
     sr_community_mark_post_embed_target_stale($pdo, $postId);
+    if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
+    }
 }
 
 function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $tableName, int $id, string $status, array $options = []): void
@@ -342,6 +351,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
         }
         sr_community_mark_post_embed_target_stale($pdo, $postId);
+        if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+            sr_community_feed_cache_mark_all_stale($pdo, 'post_content_changed');
+        }
         sr_community_save_post_field_values(
             $pdo,
             $postId,
@@ -601,6 +613,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         );
         $pdo->commit();
         sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 작성 후 임시 본문 이미지 정리에 실패했습니다.');
+        if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+            sr_community_feed_cache_mark_all_stale($pdo, 'post_created');
+        }
 
         return $postId;
     } catch (Throwable $exception) {

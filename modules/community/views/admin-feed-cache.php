@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 $adminPageTitle = '최신글 캐시 관리';
 $adminPageSubtitle = [
-    '영속 캐시를 생성하거나 삭제하지 않고 현재 최신글 조회 기준만 확인합니다.',
+    '커뮤니티 홈 공개 baseline 최신글/인기글 DB 영속 캐시 상태를 확인합니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/feed-cache');
 $feedCacheStoreStatus = isset($feedCacheStoreStatus) && is_array($feedCacheStoreStatus) ? $feedCacheStoreStatus : [];
 $feedCacheBoardRows = isset($feedCacheBoardRows) && is_array($feedCacheBoardRows) ? $feedCacheBoardRows : [];
 $feedCacheContextRows = isset($feedCacheContextRows) && is_array($feedCacheContextRows) ? $feedCacheContextRows : [];
 $persistentMode = (string) ($feedCacheStoreStatus['mode'] ?? 'contract_only');
+$persistentModeLabel = match ($persistentMode) {
+    'db_persistent' => 'DB 영속 캐시 사용',
+    'file_persistent_detected' => '파일 영속 캐시 감지',
+    default => '영속 캐시 미설치',
+};
 $baselineBoardCount = count(array_filter($feedCacheBoardRows, static fn (array $row): bool => !empty($row['public_baseline'])));
 $paidReadLimitedCount = count(array_filter($feedCacheBoardRows, static fn (array $row): bool => !empty($row['paid_read_required'])));
 
@@ -24,10 +29,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
             <div class="badge-list">
-                <span class="badge badge-soft-secondary">방식 <?php echo sr_e($persistentMode === 'contract_only' ? '영속 캐시 없음' : '영속 캐시 후보 감지'); ?></span>
+                <span class="badge badge-soft-secondary">방식 <?php echo sr_e($persistentModeLabel); ?></span>
                 <span class="badge badge-soft-secondary">DB 테이블 <?php echo !empty($feedCacheStoreStatus['table_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">파일 캐시 <?php echo !empty($feedCacheStoreStatus['file_cache_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">저장 row <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['row_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">fresh <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['fresh_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">stale <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['stale_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">공개 baseline <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
                 <span class="badge badge-soft-secondary">유료 열람 제한 <?php echo sr_e(number_format($paidReadLimitedCount)); ?>개</span>
             </div>

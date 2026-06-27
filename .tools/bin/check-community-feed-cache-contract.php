@@ -83,6 +83,26 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         id INTEGER PRIMARY KEY,
         status TEXT NOT NULL
     )');
+    $pdo->exec('CREATE TABLE sr_community_feed_cache (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        context_hash TEXT NOT NULL UNIQUE,
+        feed_key TEXT NOT NULL,
+        sort_key TEXT NOT NULL DEFAULT "latest",
+        locale TEXT NOT NULL DEFAULT "ko",
+        policy_version TEXT NOT NULL DEFAULT "v1",
+        baseline TEXT NOT NULL DEFAULT "",
+        board_ids_json TEXT NOT NULL,
+        display_count INTEGER NOT NULL DEFAULT 0,
+        fetch_count INTEGER NOT NULL DEFAULT 0,
+        snapshot_json TEXT NOT NULL,
+        snapshot_count INTEGER NOT NULL DEFAULT 0,
+        cache_status TEXT NOT NULL DEFAULT "fresh",
+        generated_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        stale_reason TEXT NOT NULL DEFAULT "",
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )');
 
     foreach ([1, 2, 3] as $accountId) {
         $pdo->prepare('INSERT INTO sr_member_accounts (id, status) VALUES (:id, "active")')->execute(['id' => $accountId]);
@@ -124,6 +144,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
 
     $latest = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
     $popular = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'views');
+    $latestCached = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
 
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latest) === [4, 2, 1],
@@ -132,6 +153,18 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $popular) === [4, 1, 2],
         'home popular feed fixture must use public baseline boards and snapshot view_count order.'
+    );
+    sr_check_community_feed_cache_contract_assert(
+        array_map(static fn (array $post): int => (int) $post['id'], $latestCached) === [4, 2, 1],
+        'home latest feed fixture must hydrate posts from persistent cache snapshots.'
+    );
+    sr_check_community_feed_cache_contract_assert(
+        (int) $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache WHERE cache_status = "fresh"')->fetchColumn() === 2,
+        'home feed fixture must create persistent cache rows for latest and popular feeds.'
+    );
+    sr_check_community_feed_cache_contract_assert(
+        (string) $pdo->query('SELECT snapshot_json FROM sr_community_feed_cache WHERE feed_key = "community.home.latest" LIMIT 1')->fetchColumn() !== '',
+        'home feed cache row must store snapshot JSON.'
     );
 }
 
@@ -224,6 +257,10 @@ sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
+    'function sr_community_feed_cache_table_exists',
+    'function sr_community_feed_cache_read',
+    'function sr_community_feed_cache_write',
+    'function sr_community_feed_cache_mark_all_stale',
     'function sr_community_feed_cache_post_feed_query',
     'function sr_community_feed_cache_persistent_store_status',
     'function sr_community_feed_cache_admin_board_rows',
@@ -237,6 +274,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/install.sql', [
+    'CREATE TABLE IF NOT EXISTS sr_community_feed_cache',
+    'uq_sr_community_feed_cache_context (context_hash)',
     'idx_sr_community_posts_status_view_id (status, view_count, id)',
 ]);
 
@@ -245,8 +284,15 @@ sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.
     'ALTER TABLE {{SR_TABLE_PREFIX}}community_posts ADD KEY idx_sr_community_posts_status_view_id (status, view_count, id)',
 ]);
 
+sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.037.sql', [
+    'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}community_feed_cache',
+    'uq_sr_community_feed_cache_context (context_hash)',
+]);
+
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
     'sr_community_feed_cache_post_feed_query($pdo',
+    'sr_community_feed_cache_read($pdo',
+    'sr_community_feed_cache_write($pdo',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
@@ -268,7 +314,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/views/admin-f
     '$adminPageTitle = \'최신글 캐시 관리\'',
     '공개 baseline',
     '컨텍스트 해시',
-    '영속 캐시 없음',
+    'DB 영속 캐시 사용',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [
