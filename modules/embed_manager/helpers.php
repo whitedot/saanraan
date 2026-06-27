@@ -441,6 +441,8 @@ function sr_embed_manager_url_normalized_contract(array $definition): array
     $definition['default_variant'] = in_array((string) ($definition['default_variant'] ?? 'summary'), $definition['allowed_variants'], true)
         ? (string) ($definition['default_variant'] ?? 'summary')
         : $definition['allowed_variants'][0];
+    $definition['fragment_cache_public'] = !empty($definition['fragment_cache_public']);
+    $definition['fragment_cache_schema'] = sr_embed_manager_clean_identifier((string) ($definition['fragment_cache_schema'] ?? 'v1')) ?: 'v1';
 
     return $definition;
 }
@@ -1089,6 +1091,126 @@ function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, a
     sr_embed_manager_upsert_url_cache($pdo, $row);
 }
 
+function sr_embed_manager_mark_target_url_cache_stale(PDO $pdo, string $targetModule, string $targetType, int|string $targetId): void
+{
+    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+        return;
+    }
+
+    $targetModule = sr_embed_manager_clean_identifier($targetModule);
+    $targetType = sr_embed_manager_clean_identifier($targetType);
+    $targetId = sr_embed_manager_clean_target_id((string) $targetId);
+    if ($targetModule === '' || $targetType === '' || $targetId === '') {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_embed_manager_url_cache
+         SET cache_status = \'stale\',
+             updated_at = :updated_at
+         WHERE target_module = :target_module
+           AND target_type = :target_type
+           AND target_id = :target_id
+           AND cache_status = \'fresh\''
+    );
+    $stmt->execute([
+        'updated_at' => sr_now(),
+        'target_module' => $targetModule,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+}
+
+function sr_embed_manager_fragment_cache_root(): string
+{
+    if (defined('SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT')) {
+        return rtrim((string) SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT, '/\\');
+    }
+    $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 2);
+    return rtrim($root, '/\\') . '/storage/cache/embeds';
+}
+
+function sr_embed_manager_fragment_cache_public_allowed(array $resolved, array $definition, array $context): bool
+{
+    if (empty($definition['fragment_cache_public'])) {
+        return false;
+    }
+    if ((string) ($resolved['cache_status'] ?? '') !== 'fresh' || (string) ($resolved['target_state'] ?? '') !== 'public') {
+        return false;
+    }
+    if ((string) ($resolved['embed_kind'] ?? '') !== 'internal_url') {
+        return false;
+    }
+    if ((string) ($resolved['target_cache_version'] ?? '') === '') {
+        return false;
+    }
+    if (!empty($context['disable_fragment_cache'])) {
+        return false;
+    }
+
+    return true;
+}
+
+function sr_embed_manager_fragment_cache_key(array $resolved, array $definition, array $context): string
+{
+    $locale = sr_embed_manager_clean_identifier((string) ($context['locale'] ?? 'ko')) ?: 'ko';
+    $payload = [
+        'schema' => 'embed_fragment_' . (string) ($definition['fragment_cache_schema'] ?? 'v1'),
+        'target_module' => (string) ($resolved['target_module'] ?? ''),
+        'target_type' => (string) ($resolved['target_type'] ?? ''),
+        'target_id' => (string) ($resolved['target_id'] ?? ''),
+        'canonical_url_hash' => (string) ($resolved['canonical_url_hash'] ?? ''),
+        'render_variant' => (string) ($resolved['render_variant'] ?? 'summary'),
+        'target_cache_version' => (string) ($resolved['target_cache_version'] ?? ''),
+        'locale' => $locale,
+    ];
+
+    return hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: serialize($payload));
+}
+
+function sr_embed_manager_fragment_cache_path(array $resolved, array $definition, array $context): string
+{
+    $targetModule = sr_embed_manager_clean_identifier((string) ($resolved['target_module'] ?? 'embed')) ?: 'embed';
+    $hash = sr_embed_manager_fragment_cache_key($resolved, $definition, $context);
+
+    return sr_embed_manager_fragment_cache_root() . '/' . $targetModule . '/' . substr($hash, 0, 2) . '/' . $hash . '.html';
+}
+
+function sr_embed_manager_fragment_cache_read(array $resolved, array $definition, array $context): string
+{
+    if (!sr_embed_manager_fragment_cache_public_allowed($resolved, $definition, $context)) {
+        return '';
+    }
+
+    $path = sr_embed_manager_fragment_cache_path($resolved, $definition, $context);
+    if (!is_file($path) || filesize($path) > 262144) {
+        return '';
+    }
+
+    $html = file_get_contents($path);
+    return is_string($html) ? $html : '';
+}
+
+function sr_embed_manager_fragment_cache_write(array $resolved, array $definition, array $context, string $html): void
+{
+    if ($html === '' || !sr_embed_manager_fragment_cache_public_allowed($resolved, $definition, $context)) {
+        return;
+    }
+
+    $path = sr_embed_manager_fragment_cache_path($resolved, $definition, $context);
+    $directory = dirname($path);
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+        return;
+    }
+
+    $temporaryPath = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
+    if (file_put_contents($temporaryPath, $html, LOCK_EX) === false) {
+        return;
+    }
+    @chmod($temporaryPath, 0664);
+    @rename($temporaryPath, $path);
+}
+
 function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
 {
     if (!sr_embed_manager_url_cache_table_exists($pdo)) {
@@ -1277,6 +1399,11 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
         return '';
     }
 
+    $cachedHtml = sr_embed_manager_fragment_cache_read($resolved, $definition, $context);
+    if ($cachedHtml !== '') {
+        return $cachedHtml;
+    }
+
     try {
         $rendered = $definition['render_embed']($pdo, $resolved, $context);
     } catch (Throwable $exception) {
@@ -1315,7 +1442,10 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
         return '';
     }
 
-    return sr_embed_manager_sanitize_rendered_fragment($html);
+    $html = sr_embed_manager_sanitize_rendered_fragment($html);
+    sr_embed_manager_fragment_cache_write($resolved, $definition, $context, $html);
+
+    return $html;
 }
 
 function sr_embed_manager_sanitize_rendered_fragment(string $html): string

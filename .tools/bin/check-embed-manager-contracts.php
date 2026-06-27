@@ -44,6 +44,10 @@ if (!function_exists('sr_log_exception')) {
     }
 }
 
+if (!defined('SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT')) {
+    define('SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT', sys_get_temp_dir() . '/saanraan-embed-fragment-cache-test-' . getmypid());
+}
+
 if (!function_exists('sr_module_settings')) {
     function sr_module_settings(PDO $pdo, string $moduleKey): array
     {
@@ -136,6 +140,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                     'target_type' => 'item',
                     'allowed_variants' => ['summary'],
                     'default_variant' => 'summary',
+                    'fragment_cache_public' => !empty($GLOBALS['sr_embed_contract_fragment_cache_public']),
                     'resolve_url' => static function (PDO $pdo, array $context): ?array {
                         $GLOBALS['sr_embed_contract_resolve_count'] = (int) ($GLOBALS['sr_embed_contract_resolve_count'] ?? 0) + 1;
                         $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
@@ -310,6 +315,23 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
     sr_embed_contract_assert(str_contains($rendered, '문장 안의'), 'Inline URL link paragraph must remain in body.');
     sr_embed_contract_assert(str_contains($rendered, '/fixture/2'), 'Inline URL link must remain a link in standalone-only scope.');
+
+    $fragmentBody = '<p>/fixture/1</p>';
+    $GLOBALS['sr_embed_contract_fragment_cache_public'] = true;
+    $GLOBALS['sr_embed_contract_render_count'] = 0;
+    sr_embed_manager_sync_body_url_cache($pdo, 'fixture', 'doc', 17, 'body', $fragmentBody, 7);
+    sr_embed_contract_assert(str_contains(sr_embed_manager_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'fixture-embed-summary'), 'Public fragment cache fixture must render on first miss.');
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_render_count'] ?? 0) === 1, 'Public fragment cache first miss must call the target renderer.');
+    $GLOBALS['sr_embed_contract_render_count'] = 0;
+    sr_embed_contract_assert(str_contains(sr_embed_manager_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'fixture-embed-summary'), 'Public fragment cache hit must render from the file cache.');
+    sr_embed_contract_assert((int) ($GLOBALS['sr_embed_contract_render_count'] ?? 0) === 0, 'Public fragment cache hit must skip the target renderer.');
+    sr_embed_manager_mark_target_url_cache_stale($pdo, 'fixture', 'item', 1);
+    $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'private', updated_at = '2026-06-11 12:03:00' WHERE id = 1");
+    sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'fixture-embed-summary'), 'Stale target URL cache must prevent serving an old public fragment after target becomes private.');
+    unset($GLOBALS['sr_embed_contract_fragment_cache_public']);
+    $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'active', updated_at = '2026-06-11 12:04:00' WHERE id = 1");
+    sr_embed_manager_mark_target_url_cache_stale($pdo, 'fixture', 'item', 1);
+
     $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'private', updated_at = '2026-06-11 12:05:00' WHERE id = 1");
     sr_embed_contract_assert(!str_contains(sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10), 'fixture-embed-summary'), 'Target renderer must live-gate a fresh cache hit after target becomes private.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache WHERE owner_id = 10 LIMIT 1') === 'broken', 'Target renderer cache signal must refresh cache status after target becomes private.');
