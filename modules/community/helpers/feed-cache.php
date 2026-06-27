@@ -197,24 +197,44 @@ function sr_community_summary_post_candidate_sql_condition(PDO $pdo, string $pos
     return sr_community_summary_feed_enabled_sql_condition($pdo, $boardIdExpression, $indent);
 }
 
-function sr_community_feed_cache_ttl_seconds(string $feedKey): int
+function sr_community_feed_cache_refresh_seconds(string $feedKey): int
 {
     $feedKey = sr_community_feed_cache_key($feedKey);
     if ($feedKey === 'community.home.popular') {
         return 300;
     }
 
-    return 600;
+    return 0;
+}
+
+function sr_community_feed_cache_ttl_seconds(string $feedKey): int
+{
+    return sr_community_feed_cache_refresh_seconds($feedKey);
+}
+
+function sr_community_feed_cache_refresh_policy_label(string $feedKey): string
+{
+    $refreshSeconds = sr_community_feed_cache_refresh_seconds($feedKey);
+    if ($refreshSeconds > 0) {
+        return '조회수 기반 ' . (string) max(1, (int) ceil($refreshSeconds / 60)) . '분 재계산';
+    }
+
+    return '변경 시 갱신';
 }
 
 function sr_community_feed_cache_expires_at(string $generatedAt, string $feedKey): string
 {
+    $refreshSeconds = sr_community_feed_cache_refresh_seconds($feedKey);
+    if ($refreshSeconds < 1) {
+        return '9999-12-31 23:59:59';
+    }
+
     $timestamp = strtotime($generatedAt);
     if ($timestamp === false) {
         $timestamp = time();
     }
 
-    return date('Y-m-d H:i:s', $timestamp + sr_community_feed_cache_ttl_seconds($feedKey));
+    return date('Y-m-d H:i:s', $timestamp + $refreshSeconds);
 }
 
 function sr_community_feed_cache_context_for_home(array $boards, array $homeExcerptAllowedByBoardId, int $displayCount, string $sort): array
@@ -309,18 +329,22 @@ function sr_community_feed_cache_read(PDO $pdo, array $context, array $allowedSc
     }
 
     $context = sr_community_feed_cache_context($context);
+    $where = "context_hash = :context_hash
+           AND cache_status = 'fresh'";
+    $params = [
+        'context_hash' => sr_community_feed_cache_context_hash($context),
+    ];
+    if (sr_community_feed_cache_refresh_seconds((string) $context['feed_key']) > 0) {
+        $where .= "\n           AND expires_at > :now";
+        $params['now'] = sr_now();
+    }
     $stmt = $pdo->prepare(
         "SELECT snapshot_json
          FROM sr_community_feed_cache
-         WHERE context_hash = :context_hash
-           AND cache_status = 'fresh'
-           AND expires_at > :now
+         WHERE " . $where . "
          LIMIT 1"
     );
-    $stmt->execute([
-        'context_hash' => sr_community_feed_cache_context_hash($context),
-        'now' => sr_now(),
-    ]);
+    $stmt->execute($params);
     $json = $stmt->fetchColumn();
     if (!is_string($json)) {
         return null;
@@ -612,6 +636,7 @@ function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
         'table_exists' => false,
         'file_cache_exists' => false,
         'row_count' => 0,
+        'active_count' => 0,
         'fresh_count' => 0,
         'stale_count' => 0,
         'expired_count' => 0,
@@ -624,16 +649,18 @@ function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
         $stmt = $pdo->prepare(
             "SELECT
                 COUNT(*) AS row_count,
+                SUM(CASE WHEN cache_status = 'fresh' AND (feed_key <> 'community.home.popular' OR expires_at > :now_active) THEN 1 ELSE 0 END) AS active_count,
                 SUM(CASE WHEN cache_status = 'fresh' THEN 1 ELSE 0 END) AS fresh_count,
                 SUM(CASE WHEN cache_status = 'stale' THEN 1 ELSE 0 END) AS stale_count,
-                SUM(CASE WHEN cache_status = 'fresh' AND expires_at <= :now_expired THEN 1 ELSE 0 END) AS expired_count,
+                SUM(CASE WHEN cache_status = 'fresh' AND feed_key = 'community.home.popular' AND expires_at <= :now_expired THEN 1 ELSE 0 END) AS expired_count,
                 MAX(generated_at) AS latest_generated_at,
                 MAX(updated_at) AS latest_updated_at,
-                MIN(CASE WHEN cache_status = 'fresh' AND expires_at > :now_next THEN expires_at ELSE NULL END) AS next_expires_at
+                MIN(CASE WHEN cache_status = 'fresh' AND feed_key = 'community.home.popular' AND expires_at > :now_next THEN expires_at ELSE NULL END) AS next_expires_at
              FROM sr_community_feed_cache"
         );
         $now = sr_now();
         $stmt->execute([
+            'now_active' => $now,
             'now_expired' => $now,
             'now_next' => $now,
         ]);
@@ -641,6 +668,7 @@ function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
         $status['table_exists'] = true;
         if (is_array($row)) {
             $status['row_count'] = (int) ($row['row_count'] ?? 0);
+            $status['active_count'] = (int) ($row['active_count'] ?? 0);
             $status['fresh_count'] = (int) ($row['fresh_count'] ?? 0);
             $status['stale_count'] = (int) ($row['stale_count'] ?? 0);
             $status['expired_count'] = (int) ($row['expired_count'] ?? 0);
@@ -707,13 +735,15 @@ function sr_community_feed_cache_admin_context_rows(PDO $pdo): array
     }
 
     try {
-        $stmt = $pdo->query(
+        $stmt = $pdo->prepare(
             'SELECT context_hash, feed_key, sort_key, locale, policy_version, baseline, board_ids_json,
                     display_count, fetch_count, snapshot_count, cache_status, generated_at, expires_at, stale_reason, updated_at
              FROM sr_community_feed_cache
-             ORDER BY updated_at DESC, id DESC
+             WHERE cache_status = \'fresh\'
+             ORDER BY feed_key ASC, sort_key ASC, updated_at DESC, id DESC
              LIMIT 100'
         );
+        $stmt->execute();
     } catch (Throwable) {
         return [];
     }
@@ -721,6 +751,13 @@ function sr_community_feed_cache_admin_context_rows(PDO $pdo): array
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
         if (!is_array($row)) {
+            continue;
+        }
+
+        if (
+            sr_community_feed_cache_refresh_seconds((string) ($row['feed_key'] ?? '')) > 0
+            && strtotime((string) ($row['expires_at'] ?? '')) <= time()
+        ) {
             continue;
         }
 
@@ -737,6 +774,7 @@ function sr_community_feed_cache_admin_context_rows(PDO $pdo): array
             'board_count' => $boardCount,
             'snapshot_count' => (int) ($row['snapshot_count'] ?? 0),
             'cache_status' => (string) ($row['cache_status'] ?? ''),
+            'refresh_policy' => sr_community_feed_cache_refresh_policy_label((string) ($row['feed_key'] ?? '')),
             'generated_at' => (string) ($row['generated_at'] ?? ''),
             'expires_at' => (string) ($row['expires_at'] ?? ''),
             'stale_reason' => (string) ($row['stale_reason'] ?? ''),

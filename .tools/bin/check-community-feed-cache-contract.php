@@ -208,8 +208,13 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     );
     $storeStatus = sr_community_feed_cache_persistent_store_status($pdo);
     sr_check_community_feed_cache_contract_assert((int) ($storeStatus['row_count'] ?? 0) === 2, 'admin store status must count home feed cache rows.');
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['active_count'] ?? 0) === 2, 'admin store status must count currently reusable home feed cache rows.');
     sr_check_community_feed_cache_contract_assert((int) ($storeStatus['fresh_count'] ?? 0) === 2, 'admin store status must count fresh home feed cache rows.');
     sr_check_community_feed_cache_contract_assert((string) ($storeStatus['latest_generated_at'] ?? '') !== '', 'admin store status must expose latest generated time.');
+    sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.popular') === 300, 'popular feed cache refresh policy must be hard-coded to five minutes.');
+    sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.latest') === 0, 'latest feed cache refresh policy must be event-driven.');
+    sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.latest_comments') === 0, 'latest comments feed cache refresh policy must be event-driven.');
+    sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_policy_label('community.home.latest') === '변경 시 갱신', 'latest feed cache admin policy label must describe event-driven refresh.');
 }
 
 $boards = [
@@ -416,13 +421,13 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
     '$adminPageTitle = \'피드 캐시\'',
-    '게시판 기준',
-    '피드 후보',
-    '공개 기준',
-    '저장된 컨텍스트',
+    '현재 유효한 컨텍스트',
     'DB 영속 캐시 사용',
+    '현재 유효',
+    '갱신 대기',
+    '갱신 정책',
+    '변경 시 갱신',
     '마지막 생성',
-    '다음 만료',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-boards.php', [
