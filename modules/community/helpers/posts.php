@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+require_once SR_ROOT . '/modules/community/helpers/post-body-settings.php';
 require_once SR_ROOT . '/modules/community/helpers/posts-comments.php';
 require_once SR_ROOT . '/modules/community/helpers/posts-extra-fields.php';
 require_once SR_ROOT . '/modules/community/helpers/posts-writing.php';

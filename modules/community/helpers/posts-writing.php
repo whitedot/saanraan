@@ -12,14 +12,22 @@ function sr_community_board_post_delete_lock_comment_count(PDO $pdo, array $boar
     return sr_community_effective_board_int_setting($pdo, $board, 'post_delete_lock_comment_count', 0, 0, 1000000);
 }
 
-function sr_community_board_post_body_min_length(PDO $pdo, array $board): int
+function sr_community_board_post_body_min_length(PDO $pdo, array $board, ?array $settings = null): int
 {
-    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_min_length', (int) ($board['post_body_min_length'] ?? 0), 0, sr_community_post_body_setting_max_length());
+    $default = array_key_exists('post_body_min_length', $board)
+        ? (int) $board['post_body_min_length']
+        : sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0);
+
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_min_length', $default, 0, sr_community_post_body_setting_max_length());
 }
 
-function sr_community_board_post_body_max_length(PDO $pdo, array $board): int
+function sr_community_board_post_body_max_length(PDO $pdo, array $board, ?array $settings = null): int
 {
-    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', (int) ($board['post_body_max_length'] ?? 0), 0, sr_community_post_body_setting_max_length());
+    $default = array_key_exists('post_body_max_length', $board)
+        ? (int) $board['post_body_max_length']
+        : sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0);
+
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', $default, 0, sr_community_post_body_setting_max_length());
 }
 
 function sr_community_mark_post_embed_target_stale(PDO $pdo, int $postId): void
@@ -57,7 +65,7 @@ function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId
     ]);
 }
 
-function sr_community_validate_post_body_length(PDO $pdo, array $board, array $values): array
+function sr_community_validate_post_body_length(PDO $pdo, array $board, array $values, ?array $settings = null): array
 {
     $bodyText = $values['body_text'] ?? '';
     if (!is_string($bodyText)) {
@@ -65,8 +73,8 @@ function sr_community_validate_post_body_length(PDO $pdo, array $board, array $v
     }
 
     $length = sr_community_body_plain_length($bodyText, (string) ($values['body_format'] ?? 'plain'));
-    $minLength = sr_community_board_post_body_min_length($pdo, $board);
-    $maxLength = sr_community_board_post_body_max_length($pdo, $board);
+    $minLength = sr_community_board_post_body_min_length($pdo, $board, $settings);
+    $maxLength = sr_community_board_post_body_max_length($pdo, $board, $settings);
     $errors = [];
     if ($minLength > 0 && $length < $minLength) {
         $errors[] = '게시글 본문은 최소 ' . number_format($minLength) . '자 이상 입력해 주세요.';

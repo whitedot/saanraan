@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/community/helpers/post-body-settings.php';
 require_once SR_ROOT . '/modules/community/helpers/board-groups.php';
 require_once SR_ROOT . '/modules/community/helpers/board-cleanup.php';
 
@@ -192,8 +193,8 @@ function sr_community_board_group_default_settings(array $settings): array
         'secret_comments_enabled' => !empty($settings['secret_comments_enabled']) ? '1' : '0',
         'post_edit_lock_comment_count' => '0',
         'post_delete_lock_comment_count' => '0',
-        'post_body_min_length' => (string) min(sr_community_post_body_setting_max_length(), max(0, (int) ($settings['post_body_min_length'] ?? 0))),
-        'post_body_max_length' => (string) min(sr_community_post_body_setting_max_length(), max(0, (int) ($settings['post_body_max_length'] ?? 0))),
+        'post_body_min_length' => (string) sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0),
+        'post_body_max_length' => (string) sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0),
         'comment_body_min_length' => '0',
         'comment_body_max_length' => '0',
         'list_excerpt_enabled' => '0',
@@ -837,8 +838,8 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['secret_comments_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'secret_comments_enabled') ?? (!empty($settings['secret_comments_enabled']) ? '1' : '0');
     $board['post_edit_lock_comment_count'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_edit_lock_comment_count') ?? '0';
     $board['post_delete_lock_comment_count'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_delete_lock_comment_count') ?? '0';
-    $board['post_body_min_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_body_min_length') ?? (string) min(sr_community_post_body_setting_max_length(), max(0, (int) ($settings['post_body_min_length'] ?? 0)));
-    $board['post_body_max_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_body_max_length') ?? (string) min(sr_community_post_body_setting_max_length(), max(0, (int) ($settings['post_body_max_length'] ?? 0)));
+    $board['post_body_min_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_body_min_length') ?? (string) sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0);
+    $board['post_body_max_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_body_max_length') ?? (string) sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0);
     $board['comment_body_min_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'comment_body_min_length') ?? '0';
     $board['comment_body_max_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'comment_body_max_length') ?? '0';
     $board['list_excerpt_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_excerpt_enabled') ?? '0';

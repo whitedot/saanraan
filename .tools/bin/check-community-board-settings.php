@@ -262,6 +262,18 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_validate_post_body_length($pdo, $board, ['body_text' => 'ab', 'body_format' => 'plain']) !== []) {
         sr_check_community_board_settings_error('community post body minimum must not use group fallback.');
     }
+    $globalLengthBoard = [
+        'id' => 11,
+        'board_group_id' => 0,
+        'status' => 'enabled',
+        'read_policy' => 'public',
+    ];
+    if (sr_community_validate_post_body_length($pdo, $globalLengthBoard, ['body_text' => 'abcd', 'body_format' => 'plain'], ['post_body_min_length' => 5]) === []) {
+        sr_check_community_board_settings_error('community post body minimum must use global fallback when board setting is missing.');
+    }
+    if (sr_community_validate_post_body_length($pdo, $globalLengthBoard, ['body_text' => 'abcdef', 'body_format' => 'plain'], ['post_body_max_length' => 5]) === []) {
+        sr_check_community_board_settings_error('community post body maximum must use global fallback when board setting is missing.');
+    }
     if (sr_community_validate_comment_body_length($pdo, $board, ['body_text' => 'abcde']) === []) {
         sr_check_community_board_settings_error('community comment body maximum runtime validation failed.');
     }
@@ -330,18 +342,30 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",
 ], 'community board reaction enabled helper');
-sr_check_community_board_settings_contains('modules/community/helpers/levels.php', [
+sr_check_community_board_settings_contains('modules/community/helpers/post-body-settings.php', [
     'function sr_community_post_body_setting_max_length',
+    'function sr_community_post_body_length_setting',
     'function sr_community_post_body_storage_max_bytes',
-    '\'post_body_min_length\' => min($postBodySettingMaxLength',
-    '\'post_body_max_length\' => min($postBodySettingMaxLength',
+], 'community post body length setting helpers');
+sr_check_community_board_settings_contains('modules/community/helpers/levels.php', [
+    '\'post_body_min_length\' => sr_community_post_body_length_setting',
+    '\'post_body_max_length\' => sr_community_post_body_length_setting',
 ], 'community global post body length defaults');
+sr_check_community_board_settings_contains('modules/community/helpers/posts.php', [
+    'helpers/post-body-settings.php',
+], 'community posts helper body length dependency');
 sr_check_community_board_settings_contains('modules/community/helpers/posts-writing.php', [
     'sr_community_post_body_storage_max_bytes()',
     'sr_community_post_body_setting_max_length()',
-    '(int) ($board[\'post_body_min_length\'] ?? 0)',
-    '(int) ($board[\'post_body_max_length\'] ?? 0)',
+    'sr_community_post_body_length_setting($settings[\'post_body_min_length\'] ?? 0)',
+    'sr_community_post_body_length_setting($settings[\'post_body_max_length\'] ?? 0)',
 ], 'community post body input and board length contract');
+sr_check_community_board_settings_contains('modules/community/actions/write.php', [
+    'sr_community_validate_post_body_length($pdo, $board, $values, $settings)',
+], 'community post create global body length validation');
+sr_check_community_board_settings_contains('modules/community/actions/edit.php', [
+    'sr_community_validate_post_body_length($pdo, $board, $values, $settings)',
+], 'community post edit global body length validation');
 sr_check_community_board_settings_contains('modules/community/reaction-targets.php', [
     'sr_community_effective_board_reaction_enabled($pdo, $board, $settings)',
 ], 'community reaction target board enabled contract');
