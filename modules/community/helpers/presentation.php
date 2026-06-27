@@ -578,6 +578,9 @@ function sr_community_home_filter_rows_by_board_ids(array $rows, array $allowedB
 
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
+    $boardSettingsCacheWasEnabled = sr_community_board_settings_runtime_cache_enabled();
+    sr_community_use_board_settings_runtime_cache(true);
+
     $boards = [];
     $summaryFeedBoards = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
@@ -676,7 +679,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         ]);
     }
 
-    return [
+    $data = [
         'boards' => $boards,
         'latestPosts' => $latestPosts,
         'popularPosts' => $popularPosts,
@@ -689,6 +692,12 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         'homeExcerptAllowedByBoardId' => $homeExcerptAllowedByBoardId,
         'communityLayoutKey' => $communityLayoutKey,
     ];
+
+    if (!$boardSettingsCacheWasEnabled) {
+        sr_community_use_board_settings_runtime_cache(false);
+    }
+
+    return $data;
 }
 
 function sr_community_skin_key(array $boardSettings = []): string

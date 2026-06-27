@@ -405,30 +405,30 @@ sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/admin-menu.php', [
-    "'label' => '홈 피드 캐시'",
+    "'label' => '피드 캐시'",
     "'path' => '/admin/community/feed-cache'",
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-feed-cache.php', [
     'sr_admin_require_permission($pdo, (int) $account[\'id\'], \'/admin/community/feed-cache\', \'view\')',
-    'sr_community_feed_cache_public_baseline_board_ids($boards)',
-    'sr_community_feed_cache_admin_context_rows($baselineBoardIds)',
+    'sr_community_feed_cache_admin_context_rows($pdo)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
-    '$adminPageTitle = \'홈 피드 캐시\'',
+    '$adminPageTitle = \'피드 캐시\'',
     '게시판 기준',
-    '요약 노출',
-    '공개 baseline',
-    '컨텍스트 해시',
+    '피드 후보',
+    '공개 기준',
+    '저장된 컨텍스트',
     'DB 영속 캐시 사용',
     '마지막 생성',
     '다음 만료',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-boards.php', [
-    '요약 영역 노출 허용',
+    '커뮤니티 피드 노출',
     'name="summary_feed_enabled"',
+    '게시판 목록 밖에서 모아 보여 주는 피드 후보',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-boards.php', [
@@ -436,7 +436,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 ]);
 
 sr_check_community_feed_cache_contract_contains('docs/performance-policy.md', [
-    '요약 영역 노출 허용',
+    '커뮤니티 피드 노출',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

@@ -122,21 +122,37 @@ function sr_community_feed_cache_context_hash(array $context): string
 
 function sr_community_feed_cache_table_exists(PDO $pdo): bool
 {
+    static $existsByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByConnection)) {
+        return $existsByConnection[$cacheKey];
+    }
+
     try {
         $pdo->query('SELECT 1 FROM sr_community_feed_cache LIMIT 1');
-        return true;
+        $existsByConnection[$cacheKey] = true;
+        return $existsByConnection[$cacheKey];
     } catch (Throwable) {
-        return false;
+        $existsByConnection[$cacheKey] = false;
+        return $existsByConnection[$cacheKey];
     }
 }
 
 function sr_community_board_settings_table_exists(PDO $pdo): bool
 {
+    static $existsByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByConnection)) {
+        return $existsByConnection[$cacheKey];
+    }
+
     try {
         $pdo->query('SELECT 1 FROM sr_community_board_settings LIMIT 1');
-        return true;
+        $existsByConnection[$cacheKey] = true;
+        return $existsByConnection[$cacheKey];
     } catch (Throwable) {
-        return false;
+        $existsByConnection[$cacheKey] = false;
+        return $existsByConnection[$cacheKey];
     }
 }
 
@@ -684,26 +700,50 @@ function sr_community_feed_cache_admin_board_rows(PDO $pdo, array $boards, array
     return $rows;
 }
 
-function sr_community_feed_cache_admin_context_rows(array $boardIds): array
+function sr_community_feed_cache_admin_context_rows(PDO $pdo): array
 {
-    $contexts = [];
-    foreach ([
-        ['feed_key' => 'community.home.latest', 'sort' => 'latest', 'display_count' => 10, 'fetch_count' => 10],
-        ['feed_key' => 'community.home.popular', 'sort' => 'views', 'display_count' => 5, 'fetch_count' => 5],
-    ] as $context) {
-        $context['board_ids'] = $boardIds;
-        $context['policy_version'] = 'summary-feed-candidate-v1';
-        $context = sr_community_feed_cache_context($context);
-        $contexts[] = [
-            'feed_key' => (string) $context['feed_key'],
-            'sort' => (string) $context['sort'],
-            'display_count' => (int) $context['display_count'],
-            'fetch_count' => (int) $context['fetch_count'],
-            'locale' => (string) $context['locale'],
-            'policy_version' => (string) $context['policy_version'],
-            'context_hash' => sr_community_feed_cache_context_hash($context),
+    if (!sr_community_feed_cache_table_exists($pdo)) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->query(
+            'SELECT context_hash, feed_key, sort_key, locale, policy_version, baseline, board_ids_json,
+                    display_count, fetch_count, snapshot_count, cache_status, generated_at, expires_at, stale_reason, updated_at
+             FROM sr_community_feed_cache
+             ORDER BY updated_at DESC, id DESC
+             LIMIT 100'
+        );
+    } catch (Throwable) {
+        return [];
+    }
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $boardIds = json_decode((string) ($row['board_ids_json'] ?? '[]'), true);
+        $boardCount = is_array($boardIds) ? count(array_filter($boardIds, static fn (mixed $boardId): bool => (int) $boardId > 0)) : 0;
+        $rows[] = [
+            'feed_key' => (string) ($row['feed_key'] ?? ''),
+            'sort' => (string) ($row['sort_key'] ?? ''),
+            'display_count' => (int) ($row['display_count'] ?? 0),
+            'fetch_count' => (int) ($row['fetch_count'] ?? 0),
+            'locale' => (string) ($row['locale'] ?? ''),
+            'policy_version' => (string) ($row['policy_version'] ?? ''),
+            'baseline' => (string) ($row['baseline'] ?? ''),
+            'board_count' => $boardCount,
+            'snapshot_count' => (int) ($row['snapshot_count'] ?? 0),
+            'cache_status' => (string) ($row['cache_status'] ?? ''),
+            'generated_at' => (string) ($row['generated_at'] ?? ''),
+            'expires_at' => (string) ($row['expires_at'] ?? ''),
+            'stale_reason' => (string) ($row['stale_reason'] ?? ''),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'context_hash' => (string) ($row['context_hash'] ?? ''),
         ];
     }
 
-    return $contexts;
+    return $rows;
 }

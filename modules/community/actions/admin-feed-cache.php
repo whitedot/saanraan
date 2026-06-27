@@ -16,9 +16,8 @@ sr_community_use_board_settings_runtime_cache();
 $settings = sr_community_settings($pdo);
 $boards = sr_community_enabled_boards($pdo);
 $baselineBoards = sr_community_feed_cache_public_baseline_boards($boards);
-$baselineBoardIds = sr_community_feed_cache_public_baseline_board_ids($boards);
 $feedCacheStoreStatus = sr_community_feed_cache_persistent_store_status($pdo);
 $feedCacheBoardRows = sr_community_feed_cache_admin_board_rows($pdo, $boards, $settings);
-$feedCacheContextRows = sr_community_feed_cache_admin_context_rows($baselineBoardIds);
+$feedCacheContextRows = sr_community_feed_cache_admin_context_rows($pdo);
 
 include SR_ROOT . '/modules/community/views/admin-feed-cache.php';

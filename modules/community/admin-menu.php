@@ -45,7 +45,7 @@ return [
             'order' => 67,
         ],
         [
-            'label' => '홈 피드 캐시',
+            'label' => '피드 캐시',
             'path' => '/admin/community/feed-cache',
             'order' => 68,
         ],

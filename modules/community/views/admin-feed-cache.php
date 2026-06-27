@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-$adminPageTitle = '홈 피드 캐시';
+$adminPageTitle = '피드 캐시';
 $adminPageSubtitle = [
-    '커뮤니티 홈의 공개 게시판 최신글/인기글 목록을 빠르게 보여주기 위한 저장값입니다.',
-    '게시글, 댓글, 게시판 공개 조건이 바뀌면 기존 저장값은 자동으로 갱신 대상으로 표시되고 다음 홈 조회 때 현재 조건으로 다시 계산됩니다.',
+    '커뮤니티 요약 피드와 목록 밖 피드 출력을 빠르게 보여주기 위한 저장값입니다.',
+    '게시글, 댓글, 게시판 공개 조건이 바뀌면 기존 저장값은 자동으로 갱신 대상으로 표시되고 다음 조회 때 현재 조건으로 다시 계산됩니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/feed-cache');
 $feedCacheStoreStatus = isset($feedCacheStoreStatus) && is_array($feedCacheStoreStatus) ? $feedCacheStoreStatus : [];
@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div class="admin-page admin-page-community-feed-cache admin-ui-scope">
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">컨텍스트 해시</h2>
+            <h2 class="card-title">저장된 컨텍스트</h2>
         </div>
         <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
             <div class="badge-list">
@@ -42,7 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="badge badge-soft-secondary">마지막 생성 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['latest_generated_at'] ?? ''), '-'); ?></span>
                 <span class="badge badge-soft-secondary">마지막 변경 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['latest_updated_at'] ?? ''), '-'); ?></span>
                 <span class="badge badge-soft-secondary">다음 만료 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['next_expires_at'] ?? ''), '-'); ?></span>
-                <span class="badge badge-soft-secondary">공개 baseline <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
+                <span class="badge badge-soft-secondary">공개 기준 <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
                 <span class="badge badge-soft-secondary">유료 열람 제한 <?php echo sr_e(number_format($paidReadLimitedCount)); ?>개</span>
             </div>
         </div>
@@ -59,10 +59,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th>Feed</th>
                         <th>정렬</th>
-                        <th>표시</th>
-                        <th>조회</th>
+                        <th>상태</th>
+                        <th>스냅샷</th>
+                        <th>표시/조회</th>
+                        <th>게시판</th>
                         <th>Locale</th>
                         <th>정책</th>
+                        <th>만료</th>
                         <th>Context hash</th>
                     </tr>
                 </thead>
@@ -71,15 +74,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td><?php echo sr_e((string) ($contextRow['feed_key'] ?? '')); ?></td>
                             <td><?php echo sr_e((string) ($contextRow['sort'] ?? '')); ?></td>
-                            <td><?php echo sr_e(number_format((int) ($contextRow['display_count'] ?? 0))); ?></td>
-                            <td><?php echo sr_e(number_format((int) ($contextRow['fetch_count'] ?? 0))); ?></td>
+                            <td><?php echo sr_e((string) ($contextRow['cache_status'] ?? '')); ?></td>
+                            <td><?php echo sr_e(number_format((int) ($contextRow['snapshot_count'] ?? 0))); ?></td>
+                            <td><?php echo sr_e(number_format((int) ($contextRow['display_count'] ?? 0)) . ' / ' . number_format((int) ($contextRow['fetch_count'] ?? 0))); ?></td>
+                            <td><?php echo sr_e(number_format((int) ($contextRow['board_count'] ?? 0))); ?></td>
                             <td><?php echo sr_e((string) ($contextRow['locale'] ?? '')); ?></td>
                             <td><?php echo sr_e((string) ($contextRow['policy_version'] ?? '')); ?></td>
+                            <td><?php echo sr_admin_time_html((string) ($contextRow['expires_at'] ?? ''), '-'); ?></td>
                             <td><code><?php echo sr_e((string) ($contextRow['context_hash'] ?? '')); ?></code></td>
                         </tr>
                     <?php } ?>
                     <?php if ($feedCacheContextRows === []) { ?>
-                        <tr><td colspan="7" class="admin-empty-state">공개 baseline 게시판이 없습니다.</td></tr>
+                        <tr><td colspan="10" class="admin-empty-state">저장된 피드 캐시 row가 없습니다.</td></tr>
                     <?php } ?>
                 </tbody>
             </table>
@@ -97,9 +103,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>게시판</th>
                         <th>상태</th>
                         <th>읽기</th>
-                        <th>요약 노출</th>
-                        <th>공개 baseline</th>
-                        <th>홈 요약</th>
+                        <th>피드 후보</th>
+                        <th>공개 기준</th>
+                        <th>요약 본문</th>
                         <th>유료 열람 제한</th>
                     </tr>
                 </thead>
