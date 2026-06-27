@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
+require_once SR_ROOT . '/modules/embed_manager/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'delete');
@@ -20,6 +21,7 @@ if ((string) ($page['status'] ?? '') === 'deleted') {
 }
 
 $deleteResult = sr_content_delete_redacted($pdo, $pageId, (int) $account['id']);
+sr_embed_manager_mark_target_url_cache_stale($pdo, 'content', 'content', $pageId);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'admin',

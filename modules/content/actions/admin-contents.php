@@ -14,6 +14,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+require_once SR_ROOT . '/modules/embed_manager/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'view');
@@ -141,6 +142,9 @@ if (sr_request_method() === 'POST') {
                 $changedCount++;
             }
             $pdo->commit();
+            foreach ($selectedIds as $selectedId) {
+                sr_embed_manager_mark_target_url_cache_stale($pdo, 'content', 'content', (int) $selectedId);
+            }
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

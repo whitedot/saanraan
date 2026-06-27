@@ -429,7 +429,7 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     }
 
     sr_embed_contract_contains($modulePath, "'embed-manager-url-targets.php'");
-    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'"] as $needle) {
+    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'fragment_cache_public' => true"] as $needle) {
         sr_embed_contract_contains($contractPath, $needle);
     }
 }

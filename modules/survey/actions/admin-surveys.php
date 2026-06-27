@@ -5,6 +5,7 @@ require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 require_once SR_ROOT . '/modules/survey/helpers/admin-surveys.php';
+require_once SR_ROOT . '/modules/embed_manager/helpers.php';
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
@@ -37,6 +38,7 @@ if (sr_request_method() === 'POST') {
         if (!sr_survey_soft_delete_redacted($pdo, $surveyId, (int) ($account['id'] ?? 0))) {
             sr_admin_redirect_with_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''), '/admin/surveys');
         }
+        sr_embed_manager_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($account['id'] ?? 0),
             'actor_type' => 'admin',
@@ -499,6 +501,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
             $pdo->commit();
+            sr_embed_manager_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
             if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
                 sr_survey_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $surveyId);
             }

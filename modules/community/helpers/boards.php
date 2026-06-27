@@ -952,6 +952,9 @@ function sr_community_update_board(PDO $pdo, int $boardId, array $data): void
         'updated_at' => sr_now(),
         'id' => $boardId,
     ]);
+    if (function_exists('sr_community_mark_board_post_embed_targets_stale')) {
+        sr_community_mark_board_post_embed_targets_stale($pdo, $boardId);
+    }
 }
 function sr_community_board_setting_value(PDO $pdo, int $boardId, string $settingKey): ?string
 {

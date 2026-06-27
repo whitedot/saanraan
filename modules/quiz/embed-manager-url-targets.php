@@ -13,6 +13,7 @@ return [
             'label' => '퀴즈·테스트',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'fragment_cache_public' => true,
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                 if (!str_starts_with($path, '/quiz/')) {
@@ -28,7 +29,10 @@ return [
                 if (!is_array($row)) {
                     return null;
                 }
-                $public = empty($row['deleted_at']) && (string) ($row['status'] ?? '') === 'active' && sr_quiz_public_window_is_open($row);
+                $public = empty($row['deleted_at'])
+                    && (string) ($row['status'] ?? '') === 'active'
+                    && sr_quiz_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
+                    && sr_quiz_public_window_is_open($row);
                 return [
                     'target_id' => (string) (int) ($row['id'] ?? 0),
                     'canonical_url' => '/quiz/' . (string) ($row['quiz_key'] ?? ''),
@@ -48,7 +52,11 @@ return [
                 if (!is_array($row)) {
                     return ['html' => '', 'cache_status' => 'deleted'];
                 }
-                $public = is_array($row) && empty($row['deleted_at']) && (string) ($row['status'] ?? '') === 'active' && sr_quiz_public_window_is_open($row);
+                $public = is_array($row)
+                    && empty($row['deleted_at'])
+                    && (string) ($row['status'] ?? '') === 'active'
+                    && sr_quiz_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
+                    && sr_quiz_public_window_is_open($row);
                 if (!$public) {
                     return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }

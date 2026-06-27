@@ -21,6 +21,7 @@
 | 라이브러리 정의 캐시 | HTML Purifier 정의 캐시처럼 외부 라이브러리 성능 보조에 사용한다. 경로는 `storage/cache/htmlpurifier`처럼 vendor 밖이어야 한다. |
 | 공개 업로드 이미지 응답 캐시 | 회원 아바타처럼 공개 경로로 제공되는 업로드 이미지는 권한/개인정보별 HTML과 분리하고, 파일명 또는 query version으로 갱신되게 한다. 로컬 파일 응답은 `Cache-Control`, `ETag`, `Last-Modified`를 보내고 조건부 요청이 맞으면 `304 Not Modified`로 끝낼 수 있다. |
 | 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. 원본 교체 감지는 모듈 제공 `source_version`/checksum, S3 `VersionId`/ETag/LastModified, 로컬 mtime/size 순으로 산출한 source version이 담당한다. |
+| 내부 URL 임베드 fragment 캐시 | `embed_manager`가 `storage/cache/embeds` 아래에 sanitized HTML fragment를 저장해 같은 공개 baseline 내부 URL 임베드를 다시 렌더링할 때 대상 계약 실행을 건너뛸 수 있다. 직접 공개 URL로 제공하지 않으며, 대상 모듈이 `fragment_cache_public`을 명시하고 익명 공개/비유료/비권한 조건과 target cache version을 제공할 때만 생성한다. |
 | read-only 상태 점검 결과 기록 | `ops-status.php` 출력처럼 사람이 기록하는 운영 기록은 캐시가 아니라 점검 증거로 다룬다. |
 
 ## 금지하거나 보류하는 캐시
@@ -67,6 +68,8 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 커뮤니티 게시글처럼 큰 테이블을 관리자 lookup에서 참조할 때는 offset pagination과 기본 count를 피하고, `id < cursor` 최신순 조회와 `LIMIT + 1` 방식의 `has_more` 계산을 기본으로 한다. 보드가 선택된 최신순/상태 조회는 `(board_id, status, id)` 계열 인덱스에 맞추고, 보드 없이 상태만 거는 최신순 조회를 허용하면 `(status, id)` 인덱스를 설치 SQL과 update SQL에 함께 둔다. 홈/위젯 인기글처럼 공개 baseline 전체에서 `view_count DESC, id DESC`를 쓰는 경로는 `(status, view_count, id)` 인덱스와 후보 게시글 선제 `LIMIT`을 기준으로 측정한다. 제목 `LIKE '%keyword%'` 검색은 보조 fallback으로만 두고, 텍스트 최소 길이와 강한 limit, 가능하면 보드 필터로 범위를 좁힌다.
 
 커뮤니티 게시글 묶음 feed cache는 영속 테이블을 만들기 전에 통합 쿼리 이후에도 병목이라는 fixture/EXPLAIN 증거를 요구한다. 측정 전에는 everyone-discoverable 공개 게시판 baseline, viewer-class 없는 context hash, card snapshot allowlist, 금지 필드 contract checker처럼 schema 없는 helper만 둘 수 있다. 영속 cache를 구현할 때도 최종 HTML, CSRF token, 계정별 권한 결과, 계정별 유료 접근권 상태, 본문 전체는 cache value에 넣지 않는다.
+
+본문 URL 임베드 fragment 캐시는 최신글 공개 baseline과 같은 원칙을 따른다. 콘텐츠 유료 열람, 커뮤니티 paid read/비밀글/비공개 게시판, 퀴즈 회원 그룹 제한, 설문 로그인/회원 그룹 제한처럼 viewer별 계약이 필요한 대상은 fragment cache value에 넣지 않는다. 대상 모듈은 공개 상태나 target cache version이 바뀌는 저장/삭제/상태 변경 후 URL 캐시 row를 stale 처리해 이전 fragment가 재사용되지 않게 해야 한다.
 
 ## 공유호스팅 한계
 

@@ -22,6 +22,41 @@ function sr_community_board_post_body_max_length(PDO $pdo, array $board): int
     return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', 0, 0, 20000);
 }
 
+function sr_community_mark_post_embed_target_stale(PDO $pdo, int $postId): void
+{
+    if ($postId > 0 && function_exists('sr_embed_manager_mark_target_url_cache_stale')) {
+        sr_embed_manager_mark_target_url_cache_stale($pdo, 'community', 'post', $postId);
+    }
+}
+
+function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId): void
+{
+    if ($boardId < 1 || !function_exists('sr_embed_manager_url_cache_table_exists') || !sr_embed_manager_url_cache_table_exists($pdo)) {
+        return;
+    }
+
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+    $targetIdSql = $driver === 'sqlite' ? 'CAST(id AS TEXT)' : 'CAST(id AS CHAR)';
+    $stmt = $pdo->prepare(
+        'UPDATE sr_embed_manager_url_cache
+         SET cache_status = \'stale\',
+             updated_at = :updated_at
+         WHERE target_module = \'community\'
+           AND target_type = \'post\'
+           AND cache_status = \'fresh\'
+           AND target_id IN (SELECT ' . $targetIdSql . ' FROM sr_community_posts WHERE board_id = :board_id)'
+    );
+    $stmt->execute([
+        'updated_at' => sr_now(),
+        'board_id' => $boardId,
+    ]);
+}
+
 function sr_community_validate_post_body_length(PDO $pdo, array $board, array $values): array
 {
     $bodyText = $values['body_text'] ?? '';
@@ -56,6 +91,7 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
 {
     if ($status === 'deleted') {
         sr_community_redact_deleted_post($pdo, $postId);
+        sr_community_mark_post_embed_target_stale($pdo, $postId);
         if (empty($options['defer_file_cleanup'])) {
             sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
         }
@@ -64,6 +100,7 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
 
     if (sr_community_hidden_columns_exist($pdo, 'sr_community_posts')) {
         sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_posts', $postId, $status, $options);
+        sr_community_mark_post_embed_target_stale($pdo, $postId);
         return;
     }
 
@@ -79,6 +116,7 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
         'updated_at' => sr_now(),
         'id' => $postId,
     ]);
+    sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
 
 function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $tableName, int $id, string $status, array $options = []): void
@@ -112,6 +150,9 @@ function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $table
             'updated_at' => $now,
             'id' => $id,
         ]);
+        if ($tableName === 'sr_community_posts') {
+            sr_community_mark_post_embed_target_stale($pdo, $id);
+        }
         return;
     }
 
@@ -133,6 +174,9 @@ function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $table
         'updated_at' => $now,
         'id' => $id,
     ]);
+    if ($tableName === 'sr_community_posts') {
+        sr_community_mark_post_embed_target_stale($pdo, $id);
+    }
 }
 
 function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
@@ -176,6 +220,7 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
     if (function_exists('sr_embed_manager_sync_body_url_cache')) {
         sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', null);
     }
+    sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
 
 function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachmentId): void
@@ -195,6 +240,7 @@ function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachme
         'updated_at' => sr_now(),
         'id' => $postId,
     ]);
+    sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
 
 function sr_community_post_reaction_preset_columns_exist(PDO $pdo): bool
@@ -287,6 +333,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         } else {
             sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
         }
+        sr_community_mark_post_embed_target_stale($pdo, $postId);
         sr_community_save_post_field_values(
             $pdo,
             $postId,

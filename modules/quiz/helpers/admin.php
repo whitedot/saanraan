@@ -1229,6 +1229,9 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         }
 
         $pdo->commit();
+        if (function_exists('sr_embed_manager_mark_target_url_cache_stale')) {
+            sr_embed_manager_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
+        }
         return $quizId;
     } catch (Throwable $exception) {
         $pdo->rollBack();
@@ -1383,6 +1386,9 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
         )->execute(['quiz_id' => $quizId]);
 
         $pdo->commit();
+        if (function_exists('sr_embed_manager_mark_target_url_cache_stale')) {
+            sr_embed_manager_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
+        }
         if ($oldCoverImageUrl !== '') {
             sr_quiz_delete_cover_image_storage($pdo, $oldCoverImageUrl, $quizId);
         }

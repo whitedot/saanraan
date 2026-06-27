@@ -13,6 +13,7 @@ return [
             'label' => '설문·여론조사',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'fragment_cache_public' => true,
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                 if (!str_starts_with($path, '/survey/')) {
@@ -31,6 +32,8 @@ return [
                 $public = empty($row['deleted_at'])
                     && (string) ($row['status'] ?? '') === 'active'
                     && (int) ($row['public_listed'] ?? 0) === 1
+                    && (int) ($row['login_required'] ?? 0) !== 1
+                    && sr_survey_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
                     && sr_survey_public_window_is_open($row);
                 return [
                     'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -55,6 +58,8 @@ return [
                     && empty($row['deleted_at'])
                     && (string) ($row['status'] ?? '') === 'active'
                     && (int) ($row['public_listed'] ?? 0) === 1
+                    && (int) ($row['login_required'] ?? 0) !== 1
+                    && sr_survey_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
                     && sr_survey_public_window_is_open($row);
                 if (!$public) {
                     return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];

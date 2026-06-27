@@ -329,6 +329,7 @@ $allowedStorageCacheFiles = [
     '.tools/bin/check-storage-helpers.php' => true,
     'core/helpers/storage.php' => true,
     'core/helpers/output.php' => true,
+    'modules/embed_manager/helpers.php' => true,
     'docs/core-decisions.md' => true,
     'docs/dependency-policy.md' => true,
     'docs/customization-guide.md' => true,

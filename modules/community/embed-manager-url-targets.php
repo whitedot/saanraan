@@ -12,6 +12,7 @@ return [
             'label' => '커뮤니티 게시글',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'fragment_cache_public' => true,
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $url = (string) ($context['url'] ?? '');
                 $path = (string) parse_url($url, PHP_URL_PATH);
@@ -23,8 +24,9 @@ return [
                 if ($postId < 1) {
                     return null;
                 }
+                $secretSelectSql = function_exists('sr_community_post_secret_column_exists') && sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
                 $stmt = $pdo->prepare(
-                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id,
+                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, ' . $secretSelectSql . '
                             b.status AS board_status, b.read_policy
                      FROM sr_community_posts p
                      INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -42,9 +44,13 @@ return [
                         'cache_status' => 'deleted',
                     ];
                 }
+                $settings = function_exists('sr_community_settings') ? sr_community_settings($pdo) : [];
+                $paidReadConfig = function_exists('sr_community_asset_event_config') ? sr_community_asset_event_config($pdo, $row, $settings, 'paid_read', 'once') : ['enabled' => false];
                 $public = (string) ($row['status'] ?? '') === 'published'
                     && (string) ($row['board_status'] ?? '') === 'enabled'
-                    && (string) ($row['read_policy'] ?? 'public') === 'public';
+                    && (string) ($row['read_policy'] ?? 'public') === 'public'
+                    && (int) ($row['is_secret'] ?? 0) !== 1
+                    && (!function_exists('sr_community_asset_event_required') || !sr_community_asset_event_required($paidReadConfig));
                 $summary = sr_embed_manager_clean_summary((string) ($row['body_text'] ?? ''));
                 $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
                 return [
@@ -60,8 +66,9 @@ return [
                 ];
             },
             'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
+                $secretSelectSql = function_exists('sr_community_post_secret_column_exists') && sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
                 $stmt = $pdo->prepare(
-                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id,
+                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, ' . $secretSelectSql . '
                             b.status AS board_status, b.read_policy
                      FROM sr_community_posts p
                      INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -73,10 +80,14 @@ return [
                 if (!is_array($row)) {
                     return ['html' => '', 'cache_status' => 'deleted'];
                 }
+                $settings = function_exists('sr_community_settings') ? sr_community_settings($pdo) : [];
+                $paidReadConfig = function_exists('sr_community_asset_event_config') ? sr_community_asset_event_config($pdo, $row, $settings, 'paid_read', 'once') : ['enabled' => false];
                 $public = is_array($row)
                     && (string) ($row['status'] ?? '') === 'published'
                     && (string) ($row['board_status'] ?? '') === 'enabled'
-                    && (string) ($row['read_policy'] ?? 'public') === 'public';
+                    && (string) ($row['read_policy'] ?? 'public') === 'public'
+                    && (int) ($row['is_secret'] ?? 0) !== 1
+                    && (!function_exists('sr_community_asset_event_required') || !sr_community_asset_event_required($paidReadConfig));
                 if (!$public) {
                     return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
