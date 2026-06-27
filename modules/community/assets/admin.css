@@ -3,8 +3,9 @@
 .admin-page-community-board-list .admin-community-board-table{table-layout:auto}
 .admin-page-community-board-list .admin-community-board-table th,.admin-page-community-board-list .admin-community-board-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-board-list .admin-community-board-table .admin-table-actions-cell{min-width:7rem;overflow:visible}
-.admin-page-community-board-list .admin-community-board-table th:nth-child(1),.admin-page-community-board-list .admin-community-board-table th:nth-child(3),.admin-page-community-board-list .admin-community-board-table th:nth-child(4),.admin-page-community-board-list .admin-community-board-table th:nth-child(5){width:1%}
+.admin-page-community-board-list .admin-community-board-table th:nth-child(1),.admin-page-community-board-list .admin-community-board-table th:nth-child(4),.admin-page-community-board-list .admin-community-board-table th:nth-child(5){width:1%}
 .admin-page-community-board-list .admin-community-board-key-cell,.admin-page-community-board-list .admin-community-board-title-cell,.admin-page-community-board-list .admin-community-board-group-cell{overflow:hidden;text-overflow:ellipsis}
+.admin-page-community-board-list .admin-community-board-table th:nth-child(3),.admin-page-community-board-list .admin-community-board-group-cell{width:9rem}
 .admin-page-community-board-list .admin-community-board-key-cell{white-space:nowrap}
 .admin-page-community-board-list .admin-community-board-table .admin-row-actions{gap:.5rem}
 .admin-community-board-copy-submit-actions{display:flex;gap:calc(var(--spacing) * 2);margin-left:auto}
