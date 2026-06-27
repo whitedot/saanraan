@@ -516,20 +516,39 @@ function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
         'row_count' => 0,
         'fresh_count' => 0,
         'stale_count' => 0,
+        'expired_count' => 0,
+        'latest_generated_at' => '',
+        'latest_updated_at' => '',
+        'next_expires_at' => '',
     ];
 
     try {
-        $stmt = $pdo->query('SELECT cache_status, COUNT(*) AS count_value FROM sr_community_feed_cache GROUP BY cache_status');
+        $stmt = $pdo->prepare(
+            "SELECT
+                COUNT(*) AS row_count,
+                SUM(CASE WHEN cache_status = 'fresh' THEN 1 ELSE 0 END) AS fresh_count,
+                SUM(CASE WHEN cache_status = 'stale' THEN 1 ELSE 0 END) AS stale_count,
+                SUM(CASE WHEN cache_status = 'fresh' AND expires_at <= :now_expired THEN 1 ELSE 0 END) AS expired_count,
+                MAX(generated_at) AS latest_generated_at,
+                MAX(updated_at) AS latest_updated_at,
+                MIN(CASE WHEN cache_status = 'fresh' AND expires_at > :now_next THEN expires_at ELSE NULL END) AS next_expires_at
+             FROM sr_community_feed_cache"
+        );
+        $now = sr_now();
+        $stmt->execute([
+            'now_expired' => $now,
+            'now_next' => $now,
+        ]);
+        $row = $stmt->fetch();
         $status['table_exists'] = true;
-        foreach ($stmt->fetchAll() as $row) {
-            $count = (int) ($row['count_value'] ?? 0);
-            $cacheStatus = (string) ($row['cache_status'] ?? '');
-            $status['row_count'] += $count;
-            if ($cacheStatus === 'fresh') {
-                $status['fresh_count'] = $count;
-            } elseif ($cacheStatus === 'stale') {
-                $status['stale_count'] = $count;
-            }
+        if (is_array($row)) {
+            $status['row_count'] = (int) ($row['row_count'] ?? 0);
+            $status['fresh_count'] = (int) ($row['fresh_count'] ?? 0);
+            $status['stale_count'] = (int) ($row['stale_count'] ?? 0);
+            $status['expired_count'] = (int) ($row['expired_count'] ?? 0);
+            $status['latest_generated_at'] = (string) ($row['latest_generated_at'] ?? '');
+            $status['latest_updated_at'] = (string) ($row['latest_updated_at'] ?? '');
+            $status['next_expires_at'] = (string) ($row['next_expires_at'] ?? '');
         }
     } catch (Throwable) {
         $status['table_exists'] = false;

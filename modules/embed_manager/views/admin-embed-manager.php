@@ -8,6 +8,7 @@ $adminPageSubtitle = [
 $adminContainerClass = 'admin-page-embed-manager-list admin-ui-scope';
 $selectedStatuses = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
 $detailFilterOpen = $selectedStatuses !== [];
+$urlCacheSummary = isset($urlCacheSummary) && is_array($urlCacheSummary) ? $urlCacheSummary : [];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/embed-manager');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -50,6 +51,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-list-summary-row">
             <p class="admin-summary-meta"><?php echo sr_e('소유 대상은 URL을 본문에 담고 있는 글이나 콘텐츠이고, 임베드 대상은 그 URL이 가리키는 게시글·콘텐츠·퀴즈 같은 공개 대상입니다.'); ?></p>
+        </div>
+        <div class="admin-list-summary-row">
+            <div class="badge-list">
+                <span class="badge badge-soft-secondary"><?php echo sr_e('전체'); ?> <?php echo sr_e(number_format((int) ($urlCacheSummary['row_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('최신'); ?> <?php echo sr_e(number_format((int) ($urlCacheSummary['fresh_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('갱신 필요'); ?> <?php echo sr_e(number_format((int) ($urlCacheSummary['stale_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('대상 삭제됨'); ?> <?php echo sr_e(number_format((int) ($urlCacheSummary['deleted_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('연결 불가'); ?> <?php echo sr_e(number_format((int) ($urlCacheSummary['broken_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('마지막 URL 확인'); ?> <?php echo sr_admin_time_html((string) ($urlCacheSummary['latest_resolved_at'] ?? ''), '-'); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('마지막 렌더 확인'); ?> <?php echo sr_admin_time_html((string) ($urlCacheSummary['latest_render_checked_at'] ?? ''), '-'); ?></span>
+                <span class="badge badge-soft-secondary"><?php echo sr_e('마지막 변경'); ?> <?php echo sr_admin_time_html((string) ($urlCacheSummary['latest_updated_at'] ?? ''), '-'); ?></span>
+            </div>
         </div>
         <div class="admin-list-summary-row">
             <div class="admin-list-summary">

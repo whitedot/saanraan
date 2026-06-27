@@ -17,7 +17,8 @@ $filters = [
     'status' => sr_admin_get_allowed_single_array('status', sr_embed_manager_url_cache_statuses(), 30),
     'q' => trim(sr_get_string('q', 120)),
 ];
-$urlCacheRows = sr_embed_manager_admin_url_cache_rows($pdo, $filters, 100);
 $tableReady = sr_embed_manager_table_exists($pdo);
+$urlCacheSummary = sr_embed_manager_admin_url_cache_summary($pdo);
+$urlCacheRows = $tableReady ? sr_embed_manager_admin_url_cache_rows($pdo, $filters, 100) : [];
 
 include SR_ROOT . '/modules/embed_manager/views/admin-embed-manager.php';

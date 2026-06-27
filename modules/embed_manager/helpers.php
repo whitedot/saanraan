@@ -1246,6 +1246,55 @@ function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $li
     return $stmt->fetchAll();
 }
 
+function sr_embed_manager_admin_url_cache_summary(PDO $pdo): array
+{
+    $summary = [
+        'table_exists' => false,
+        'row_count' => 0,
+        'fresh_count' => 0,
+        'stale_count' => 0,
+        'deleted_count' => 0,
+        'broken_count' => 0,
+        'latest_resolved_at' => '',
+        'latest_render_checked_at' => '',
+        'latest_updated_at' => '',
+    ];
+    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+        return $summary;
+    }
+
+    try {
+        $stmt = $pdo->query(
+            "SELECT
+                COUNT(*) AS row_count,
+                SUM(CASE WHEN cache_status = 'fresh' THEN 1 ELSE 0 END) AS fresh_count,
+                SUM(CASE WHEN cache_status = 'stale' THEN 1 ELSE 0 END) AS stale_count,
+                SUM(CASE WHEN cache_status = 'deleted' THEN 1 ELSE 0 END) AS deleted_count,
+                SUM(CASE WHEN cache_status = 'broken' THEN 1 ELSE 0 END) AS broken_count,
+                MAX(last_resolved_at) AS latest_resolved_at,
+                MAX(last_render_checked_at) AS latest_render_checked_at,
+                MAX(updated_at) AS latest_updated_at
+             FROM sr_embed_manager_url_cache"
+        );
+        $row = $stmt->fetch();
+        $summary['table_exists'] = true;
+        if (is_array($row)) {
+            $summary['row_count'] = (int) ($row['row_count'] ?? 0);
+            $summary['fresh_count'] = (int) ($row['fresh_count'] ?? 0);
+            $summary['stale_count'] = (int) ($row['stale_count'] ?? 0);
+            $summary['deleted_count'] = (int) ($row['deleted_count'] ?? 0);
+            $summary['broken_count'] = (int) ($row['broken_count'] ?? 0);
+            $summary['latest_resolved_at'] = (string) ($row['latest_resolved_at'] ?? '');
+            $summary['latest_render_checked_at'] = (string) ($row['latest_render_checked_at'] ?? '');
+            $summary['latest_updated_at'] = (string) ($row['latest_updated_at'] ?? '');
+        }
+    } catch (Throwable) {
+        $summary['table_exists'] = false;
+    }
+
+    return $summary;
+}
+
 function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
 {
     $settings = sr_embed_manager_settings($pdo);

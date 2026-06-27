@@ -38,6 +38,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="badge badge-soft-secondary">저장 row <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['row_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">최신 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['fresh_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">갱신 필요 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['stale_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">만료됨 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['expired_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">마지막 생성 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['latest_generated_at'] ?? ''), '-'); ?></span>
+                <span class="badge badge-soft-secondary">마지막 변경 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['latest_updated_at'] ?? ''), '-'); ?></span>
+                <span class="badge badge-soft-secondary">다음 만료 <?php echo sr_admin_time_html((string) ($feedCacheStoreStatus['next_expires_at'] ?? ''), '-'); ?></span>
                 <span class="badge badge-soft-secondary">공개 baseline <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
                 <span class="badge badge-soft-secondary">유료 열람 제한 <?php echo sr_e(number_format($paidReadLimitedCount)); ?>개</span>
             </div>

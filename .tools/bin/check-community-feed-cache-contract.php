@@ -166,6 +166,10 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         (string) $pdo->query('SELECT snapshot_json FROM sr_community_feed_cache WHERE feed_key = "community.home.latest" LIMIT 1')->fetchColumn() !== '',
         'home feed cache row must store snapshot JSON.'
     );
+    $storeStatus = sr_community_feed_cache_persistent_store_status($pdo);
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['row_count'] ?? 0) === 2, 'admin store status must count home feed cache rows.');
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['fresh_count'] ?? 0) === 2, 'admin store status must count fresh home feed cache rows.');
+    sr_check_community_feed_cache_contract_assert((string) ($storeStatus['latest_generated_at'] ?? '') !== '', 'admin store status must expose latest generated time.');
 }
 
 $boards = [
@@ -270,6 +274,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
     'function sr_community_feed_cache_persistent_store_status',
     'function sr_community_feed_cache_admin_board_rows',
     'function sr_community_feed_cache_admin_context_rows',
+    'latest_generated_at',
+    'expired_count',
     'SELECT p0.id',
     'INNER JOIN sr_community_posts p ON p.id = picked.id',
     'SELECT MIN(att_img.id)',
@@ -320,6 +326,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/views/admin-f
     '공개 baseline',
     '컨텍스트 해시',
     'DB 영속 캐시 사용',
+    '마지막 생성',
+    '다음 만료',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

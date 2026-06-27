@@ -306,6 +306,10 @@ function sr_embed_contract_runtime_fixture(): void
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_embed_manager_url_cache LIMIT 1') === 'fresh', 'URL cache row must be fresh.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT created_by_account_id FROM sr_embed_manager_url_cache LIMIT 1') === '7', 'URL cache row must store creator account id.');
     sr_embed_contract_assert((string) sr_embed_contract_scalar($pdo, 'SELECT canonical_url FROM sr_embed_manager_url_cache LIMIT 1') === '/fixture/1', 'Standalone URL cache must ignore inline URL links.');
+    $summary = sr_embed_manager_admin_url_cache_summary($pdo);
+    sr_embed_contract_assert((int) ($summary['row_count'] ?? 0) === 1, 'URL cache admin summary must count all rows.');
+    sr_embed_contract_assert((int) ($summary['fresh_count'] ?? 0) === 1, 'URL cache admin summary must count fresh rows.');
+    sr_embed_contract_assert((string) ($summary['latest_updated_at'] ?? '') !== '', 'URL cache admin summary must expose latest updated time.');
 
     $GLOBALS['sr_embed_contract_resolve_count'] = 0;
     $rendered = sr_embed_manager_render_body_html($pdo, $body, 'fixture', 'doc', 10);
@@ -435,6 +439,10 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
 }
 
 sr_embed_contract_runtime_fixture();
+
+sr_embed_contract_contains('modules/embed_manager/helpers.php', 'function sr_embed_manager_admin_url_cache_summary');
+sr_embed_contract_contains('modules/embed_manager/actions/admin-embed-manager.php', '$urlCacheSummary = sr_embed_manager_admin_url_cache_summary($pdo);');
+sr_embed_contract_contains('modules/embed_manager/views/admin-embed-manager.php', '마지막 URL 확인');
 
 if ($errors !== []) {
     fwrite(STDERR, implode(PHP_EOL, $errors) . PHP_EOL);
