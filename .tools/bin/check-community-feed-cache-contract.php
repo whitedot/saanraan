@@ -261,15 +261,14 @@ sr_check_community_feed_cache_contract_contains('modules/community/admin-menu.ph
 sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-feed-cache.php', [
     'sr_admin_require_permission($pdo, (int) $account[\'id\'], \'/admin/community/feed-cache\', \'view\')',
     'sr_community_feed_cache_public_baseline_board_ids($boards)',
-    'sr_community_feed_cache_post_feed_query($pdo, $baselineBoardIds',
+    'sr_community_feed_cache_admin_context_rows($baselineBoardIds)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
     '$adminPageTitle = \'최신글 캐시 관리\'',
-    '캐시 저장소',
     '공개 baseline',
     '컨텍스트 해시',
-    '조회 미리보기',
+    '영속 캐시 없음',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

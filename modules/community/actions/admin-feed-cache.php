@@ -16,23 +16,5 @@ $baselineBoardIds = sr_community_feed_cache_public_baseline_board_ids($boards);
 $feedCacheStoreStatus = sr_community_feed_cache_persistent_store_status($pdo);
 $feedCacheBoardRows = sr_community_feed_cache_admin_board_rows($pdo, $boards, $settings);
 $feedCacheContextRows = sr_community_feed_cache_admin_context_rows($baselineBoardIds);
-$feedCacheLatestPreview = [];
-$feedCachePopularPreview = [];
-
-if ($baselineBoardIds !== []) {
-    foreach ([['latest', 10, 'feedCacheLatestPreview'], ['views', 5, 'feedCachePopularPreview']] as $previewSpec) {
-        [$sort, $limit, $targetVariable] = $previewSpec;
-        [$sql, $params] = sr_community_feed_cache_post_feed_query($pdo, $baselineBoardIds, (int) $limit, (string) $sort, 'admin_feed_board_id_');
-        if ($sql === '') {
-            continue;
-        }
-        $stmt = $pdo->prepare($sql);
-        foreach ($params as $paramKey => $paramValue) {
-            $stmt->bindValue($paramKey, (int) $paramValue, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        $$targetVariable = $stmt->fetchAll();
-    }
-}
 
 include SR_ROOT . '/modules/community/views/admin-feed-cache.php';
