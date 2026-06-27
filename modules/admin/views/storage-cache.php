@@ -173,7 +173,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                     <input type="hidden" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>">
                     <input type="hidden" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>">
                     <input type="hidden" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>">
-                    <p class="form-help">현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
+                    <p class="form-help">현재 조회 조건에 맞는 썸네일 파일 캐시만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
                     <div class="admin-storage-cache-cleanup-summary">
                         <dl>
                             <div>

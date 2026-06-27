@@ -36,7 +36,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="badge badge-soft-secondary">DB 테이블 <?php echo !empty($feedCacheStoreStatus['table_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">파일 캐시 <?php echo !empty($feedCacheStoreStatus['file_cache_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">저장 row <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['row_count'] ?? 0))); ?></span>
-                <span class="badge badge-soft-secondary">fresh <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['fresh_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">최신 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['fresh_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">갱신 필요 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['stale_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">공개 baseline <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
                 <span class="badge badge-soft-secondary">유료 열람 제한 <?php echo sr_e(number_format($paidReadLimitedCount)); ?>개</span>
