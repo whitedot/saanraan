@@ -9,6 +9,8 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/feed-cache', 'view');
 
+sr_community_use_board_settings_runtime_cache();
+
 $settings = sr_community_settings($pdo);
 $boards = sr_community_enabled_boards($pdo);
 $baselineBoards = sr_community_feed_cache_public_baseline_boards($boards);

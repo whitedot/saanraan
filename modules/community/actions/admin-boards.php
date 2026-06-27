@@ -17,6 +17,7 @@ if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
+sr_community_use_board_settings_runtime_cache(sr_request_method() === 'GET');
 
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = $flashResult['errors'];
@@ -34,47 +35,57 @@ $allowedWritePolicies = sr_community_policy_values('write');
 $allowedCommentPolicies = sr_community_policy_values('comment');
 $communitySkinOptions = sr_community_skin_options();
 $settings = sr_community_settings($pdo);
-$editorOptions = sr_editor_options($pdo);
-$assetModuleOptions = sr_community_asset_module_options($pdo);
-$assetPolicySets = sr_community_asset_policy_sets($pdo);
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$editorOptions = [];
+$assetModuleOptions = [];
+$assetPolicySets = [];
+$reactionPresetOptions = ['' => '리액션 기본값'];
 $maxLevel = sr_community_max_level_value($settings);
-$publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
-    ? sr_banner_public_banners($pdo)
-    : [];
+$publicBanners = [];
 $publicBannerIds = [];
-foreach ($publicBanners as $publicBanner) {
-    $publicBannerIds[(int) $publicBanner['id']] = true;
-}
-$publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
-    ? sr_popup_layer_public_layers($pdo)
-    : [];
+$publicPopupLayers = [];
 $publicPopupLayerIds = [];
-foreach ($publicPopupLayers as $publicPopupLayer) {
-    $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
-}
 $publicBannerSettingLabels = sr_community_public_banner_setting_labels();
 $publicPopupLayerSettingLabels = sr_community_public_popup_layer_setting_labels();
 $publicDisplaySettingLabels = $publicBannerSettingLabels + $publicPopupLayerSettingLabels;
-$memberGroups = sr_member_groups($pdo);
+$memberGroups = [];
 $enabledMemberGroups = [];
 $enabledMemberGroupKeys = [];
-foreach ($memberGroups as $memberGroup) {
-    if ((string) ($memberGroup['status'] ?? '') !== 'enabled') {
-        continue;
-    }
-
-    $enabledMemberGroups[] = $memberGroup;
-    $enabledMemberGroupKeys[] = (string) $memberGroup['group_key'];
-}
-
 $boardGroups = sr_community_board_groups($pdo);
 $boardGroupIds = [];
 $boardGroupSettings = [];
 foreach ($boardGroups as $boardGroup) {
     $boardGroupId = (int) $boardGroup['id'];
     $boardGroupIds[$boardGroupId] = true;
-    $boardGroupSettings[$boardGroupId] = sr_community_board_group_settings($pdo, $boardGroupId);
+    if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
+        $boardGroupSettings[$boardGroupId] = sr_community_board_group_settings($pdo, $boardGroupId);
+    }
+}
+if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
+    $editorOptions = sr_editor_options($pdo);
+    $assetModuleOptions = sr_community_asset_module_options($pdo);
+    $assetPolicySets = sr_community_asset_policy_sets($pdo);
+    $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+    $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
+        ? sr_banner_public_banners($pdo)
+        : [];
+    foreach ($publicBanners as $publicBanner) {
+        $publicBannerIds[(int) $publicBanner['id']] = true;
+    }
+    $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_module_enabled($pdo, 'popup_layer')
+        ? sr_popup_layer_public_layers($pdo)
+        : [];
+    foreach ($publicPopupLayers as $publicPopupLayer) {
+        $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
+    }
+    $memberGroups = sr_member_groups($pdo);
+    foreach ($memberGroups as $memberGroup) {
+        if ((string) ($memberGroup['status'] ?? '') !== 'enabled') {
+            continue;
+        }
+
+        $enabledMemberGroups[] = $memberGroup;
+        $enabledMemberGroupKeys[] = (string) $memberGroup['group_key'];
+    }
 }
 $boardGroupFilterValue = sr_get_string('group_id', 20);
 $boardGroupFilterId = preg_match('/\A[1-9][0-9]*\z/', $boardGroupFilterValue) === 1 ? (int) $boardGroupFilterValue : 0;
@@ -1318,9 +1329,7 @@ $boardSort = sr_admin_sort_from_request(sr_community_admin_board_sort_options(),
 $boardPagination = sr_admin_pagination_from_total($pdo, $communityBoardsPage === 'list' ? sr_community_admin_board_count($pdo, $boardListFilters) : 0);
 $boards = [];
 if ($communityBoardsPage === 'list') {
-    foreach (sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination), $boardSort) as $board) {
-        $boards[] = sr_community_admin_prepare_board_row($pdo, $board, $settings, $publicDisplaySettingLabels);
-    }
+    $boards = sr_community_admin_boards($pdo, $boardListFilters, (int) $boardPagination['per_page'], sr_admin_pagination_offset($boardPagination), $boardSort, false);
 }
 $communityStorageCleanupFailures = $communityBoardsPage === 'list' ? sr_community_storage_cleanup_failures($pdo) : [];
 

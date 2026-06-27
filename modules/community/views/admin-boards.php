@@ -72,16 +72,19 @@ $boardField = static function (array $board, string $key, string $default = ''):
 $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
-$privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
-if (isset($formBoard) && is_array($formBoard)) {
-    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard['privacy_consent_document_key'] ?? ''));
-}
+$privacyConsentDocumentOptions = [];
 $thumbnailCriterionValue = sr_community_thumbnail_criterion($boardField($formBoard ?? [], 'thumbnail_criterion', (string) ($settings['thumbnail_criterion'] ?? 'width')));
-foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
-    $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
-    $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[$privacyConsentDocumentSettingKey] ?? ''));
+if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
+    $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
     if (isset($formBoard) && is_array($formBoard)) {
-        $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard[$privacyConsentDocumentSettingKey] ?? ''));
+        $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard['privacy_consent_document_key'] ?? ''));
+    }
+    foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
+        $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
+        $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[$privacyConsentDocumentSettingKey] ?? ''));
+        if (isset($formBoard) && is_array($formBoard)) {
+            $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($formBoard[$privacyConsentDocumentSettingKey] ?? ''));
+        }
     }
 }
 $privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocumentKey) use ($privacyConsentDocumentOptions): string {

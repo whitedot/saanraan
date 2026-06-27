@@ -1029,6 +1029,22 @@ function sr_community_board_group_keys(PDO $pdo, int $boardId, string $settingKe
     return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
 }
 
+function sr_community_board_group_keys_from_effective_setting(PDO $pdo, array $board, string $settingKey): array
+{
+    if (!in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {
+        return [];
+    }
+
+    $value = trim(sr_community_effective_board_setting($pdo, $board, $settingKey, ''));
+    if ($value === '') {
+        return [];
+    }
+
+    $decoded = json_decode($value, true);
+    $rawKeys = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    return sr_community_normalize_board_group_keys(is_array($rawKeys) ? $rawKeys : []);
+}
+
 function sr_community_board_own_group_keys(PDO $pdo, int $boardId, string $settingKey): array
 {
     if ($boardId < 1 || !in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true)) {

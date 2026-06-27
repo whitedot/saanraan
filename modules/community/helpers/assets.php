@@ -986,21 +986,10 @@ function sr_community_board_asset_setting_source(PDO $pdo, int $boardId, string 
         return 'all';
     }
 
+    $sources = function_exists('sr_community_board_setting_sources') ? sr_community_board_setting_sources($pdo, $boardId) : [];
     foreach (sr_community_asset_prefix_setting_keys($prefix) as $settingKey) {
-        $stmt = $pdo->prepare(
-            'SELECT source
-             FROM sr_community_board_setting_sources
-             WHERE board_id = :board_id
-               AND setting_key = :setting_key
-             LIMIT 1'
-        );
-        $stmt->execute([
-            'board_id' => $boardId,
-            'setting_key' => $settingKey,
-        ]);
-        $source = $stmt->fetchColumn();
-        if (is_string($source) && $source !== '') {
-            return sr_community_normalize_board_setting_source($source);
+        if (array_key_exists((string) $settingKey, $sources)) {
+            return sr_community_normalize_board_setting_source((string) $sources[(string) $settingKey]);
         }
     }
 
@@ -1019,20 +1008,9 @@ function sr_community_board_asset_setting_key_source(PDO $pdo, int $boardId, str
         return 'all';
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT source
-         FROM sr_community_board_setting_sources
-         WHERE board_id = :board_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'board_id' => $boardId,
-        'setting_key' => $settingKey,
-    ]);
-    $source = $stmt->fetchColumn();
-    if (is_string($source) && $source !== '') {
-        return sr_community_normalize_board_setting_source($source);
+    $sources = function_exists('sr_community_board_setting_sources') ? sr_community_board_setting_sources($pdo, $boardId) : [];
+    if (array_key_exists($settingKey, $sources)) {
+        return sr_community_normalize_board_setting_source((string) $sources[$settingKey]);
     }
 
     return sr_community_board_asset_setting_source($pdo, $boardId, $prefix);

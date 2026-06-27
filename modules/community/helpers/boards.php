@@ -650,7 +650,7 @@ function sr_community_admin_board_default_sort(): array
     return sr_admin_sort_default('sort_order', 'asc');
 }
 
-function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
+function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = [], bool $withEffectiveSettings = true): array
 {
     $queryParts = sr_community_admin_board_query_parts($filters);
     $sql = 'SELECT ' . sr_community_board_select_columns('b') . ',
@@ -680,7 +680,7 @@ function sr_community_admin_boards(PDO $pdo, array $filters, int $limit = 0, int
 
     $boards = [];
     foreach ($stmt->fetchAll() as $board) {
-        $boards[] = sr_community_board_with_effective_settings($pdo, $board);
+        $boards[] = $withEffectiveSettings ? sr_community_board_with_effective_settings($pdo, $board) : $board;
     }
 
     return $boards;
@@ -795,34 +795,46 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     return $board;
 }
 
-function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $settings, array $publicDisplaySettingLabels): array
+function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $settings, array $publicDisplaySettingLabels, array $categoriesByBoardId = []): array
 {
+    $boardId = (int) ($board['id'] ?? 0);
     $board['setting_sources'] = sr_community_board_setting_sources($pdo, (int) $board['id']);
     $board['attachment_max_bytes'] = sr_community_board_own_attachment_max_bytes($pdo, (int) $board['id'], $settings);
     $board['attachment_max_count'] = sr_community_board_own_attachment_max_count($pdo, (int) $board['id'], $settings);
     foreach ($publicDisplaySettingLabels as $displaySettingKey => $_displaySettingLabel) {
         $board[(string) $displaySettingKey] = (int) (sr_community_board_setting_value($pdo, (int) $board['id'], (string) $displaySettingKey) ?? 0);
     }
-    $board['effective_attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['effective_attachment_max_count'] = sr_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
+    $defaultAttachmentMaxBytes = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
+    $effectiveAttachmentMaxBytes = sr_community_effective_board_setting($pdo, $board, 'attachment_max_bytes', (string) $defaultAttachmentMaxBytes);
+    $board['effective_attachment_max_bytes'] = min(10485760, max(1024, (int) $effectiveAttachmentMaxBytes));
+    $effectiveAttachmentMaxCount = sr_community_effective_board_setting($pdo, $board, 'attachment_max_count', '1');
+    $board['effective_attachment_max_count'] = min(10, max(0, (int) $effectiveAttachmentMaxCount));
     foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
         $board[$thumbnailSettingKey] = sr_community_board_own_thumbnail_setting($pdo, (int) $board['id'], $thumbnailSettingKey, $settings);
-        $board['effective_' . $thumbnailSettingKey] = sr_community_board_thumbnail_setting($pdo, (int) $board['id'], $thumbnailSettingKey, $settings);
+        $board['effective_' . $thumbnailSettingKey] = sr_community_effective_thumbnail_setting($pdo, $board, $thumbnailSettingKey, $settings);
     }
     $board['file_uploads_enabled'] = sr_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0');
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
     $board['file_attachment_max_bytes'] = sr_community_board_own_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
     $board['file_attachment_max_count'] = sr_community_board_own_file_attachment_max_count($pdo, (int) $board['id'], $settings);
-    $board['effective_file_attachment_max_bytes'] = sr_community_board_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
-    $board['effective_file_attachment_max_count'] = sr_community_board_file_attachment_max_count($pdo, (int) $board['id'], $settings);
+    $defaultFileAttachmentMaxBytes = min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880)));
+    $effectiveFileAttachmentMaxBytes = sr_community_effective_board_setting($pdo, $board, 'file_attachment_max_bytes', (string) $defaultFileAttachmentMaxBytes);
+    $board['effective_file_attachment_max_bytes'] = min(20971520, max(1024, (int) $effectiveFileAttachmentMaxBytes));
+    $defaultFileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3)));
+    $effectiveFileAttachmentMaxCount = sr_community_effective_board_setting($pdo, $board, 'file_attachment_max_count', (string) $defaultFileAttachmentMaxCount);
+    $board['effective_file_attachment_max_count'] = min(5, max(0, (int) $effectiveFileAttachmentMaxCount));
     $board['file_allowed_extensions'] = sr_community_board_own_file_allowed_extensions($pdo, (int) $board['id'], $settings);
-    $board['effective_file_allowed_extensions'] = sr_community_board_file_allowed_extensions($pdo, (int) $board['id'], $settings);
+    $defaultFileAllowedExtensions = sr_community_normalize_file_extensions(is_array($settings['file_allowed_extensions'] ?? null) ? $settings['file_allowed_extensions'] : ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp']);
+    $effectiveFileAllowedExtensions = sr_community_effective_board_setting($pdo, $board, 'file_allowed_extensions', implode(',', $defaultFileAllowedExtensions));
+    $board['effective_file_allowed_extensions'] = trim($effectiveFileAllowedExtensions) === ''
+        ? $defaultFileAllowedExtensions
+        : sr_community_normalize_file_extensions(preg_split('/[\s,]+/', $effectiveFileAllowedExtensions) ?: []);
     $board['read_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'read_group_keys');
     $board['write_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'write_group_keys');
     $board['comment_group_keys'] = sr_community_board_own_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
-    $board['effective_read_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-    $board['effective_write_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'write_group_keys');
-    $board['effective_comment_group_keys'] = sr_community_board_group_keys($pdo, (int) $board['id'], 'comment_group_keys');
+    $board['effective_read_group_keys'] = sr_community_board_group_keys_from_effective_setting($pdo, $board, 'read_group_keys');
+    $board['effective_write_group_keys'] = sr_community_board_group_keys_from_effective_setting($pdo, $board, 'write_group_keys');
+    $board['effective_comment_group_keys'] = sr_community_board_group_keys_from_effective_setting($pdo, $board, 'comment_group_keys');
     $board['read_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['write_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['comment_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'comment_min_level');
@@ -830,10 +842,10 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['category_required'] = sr_community_board_category_required($pdo, (int) $board['id']) ? '1' : '0';
     $board['series_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'series_enabled') ?? (!empty($settings['series_enabled']) ? '1' : '0');
     $board['effective_series_enabled'] = sr_community_effective_board_series_enabled($pdo, $board, $settings) ? '1' : '0';
-    $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
-    $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
-    $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
-    $board['categories'] = sr_community_categories($pdo, (int) $board['id'], false);
+    $board['effective_read_min_level'] = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'read_min_level', '0'), $settings);
+    $board['effective_write_min_level'] = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'write_min_level', '0'), $settings);
+    $board['effective_comment_min_level'] = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'comment_min_level', '0'), $settings);
+    $board['categories'] = is_array($categoriesByBoardId[$boardId] ?? null) ? $categoriesByBoardId[$boardId] : sr_community_categories($pdo, $boardId, false);
     $board['secret_posts_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'secret_posts_enabled') ?? (!empty($settings['secret_posts_enabled']) ? '1' : '0');
     $board['secret_comments_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'secret_comments_enabled') ?? (!empty($settings['secret_comments_enabled']) ? '1' : '0');
     $board['post_edit_lock_comment_count'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_edit_lock_comment_count') ?? '0';
@@ -963,6 +975,15 @@ function sr_community_board_setting_value(PDO $pdo, int $boardId, string $settin
         return null;
     }
 
+    if (sr_community_board_settings_runtime_cache_enabled()) {
+        $settings = sr_community_board_settings_map($pdo, $boardId);
+        if (array_key_exists($settingKey, $settings)) {
+            return $settings[$settingKey];
+        }
+
+        return null;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT setting_value
          FROM sr_community_board_settings
@@ -977,6 +998,70 @@ function sr_community_board_setting_value(PDO $pdo, int $boardId, string $settin
     $value = $stmt->fetchColumn();
 
     return is_string($value) ? $value : null;
+}
+
+function sr_community_board_settings_runtime_cache_enabled(): bool
+{
+    return !empty($GLOBALS['sr_community_board_settings_runtime_cache_enabled']);
+}
+
+function sr_community_use_board_settings_runtime_cache(bool $enabled = true): void
+{
+    $GLOBALS['sr_community_board_settings_runtime_cache_enabled'] = $enabled;
+    if (!$enabled) {
+        sr_community_clear_board_settings_runtime_cache();
+    }
+}
+
+function sr_community_board_settings_map(PDO $pdo, int $boardId): array
+{
+    if ($boardId < 1) {
+        return [];
+    }
+
+    $cache = $GLOBALS['sr_community_board_settings_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+
+    if (array_key_exists($boardId, $cache) && is_array($cache[$boardId])) {
+        return $cache[$boardId];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT setting_key, setting_value
+         FROM sr_community_board_settings
+         WHERE board_id = :board_id'
+    );
+    $stmt->execute(['board_id' => $boardId]);
+
+    $settings = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $key = (string) ($row['setting_key'] ?? '');
+        if ($key !== '') {
+            $settings[$key] = (string) ($row['setting_value'] ?? '');
+        }
+    }
+
+    $cache[$boardId] = $settings;
+    $GLOBALS['sr_community_board_settings_runtime_cache'] = $cache;
+
+    return $settings;
+}
+
+function sr_community_clear_board_settings_runtime_cache(int $boardId = 0): void
+{
+    if ($boardId > 0) {
+        if (isset($GLOBALS['sr_community_board_settings_runtime_cache']) && is_array($GLOBALS['sr_community_board_settings_runtime_cache'])) {
+            unset($GLOBALS['sr_community_board_settings_runtime_cache'][$boardId]);
+        }
+        if (isset($GLOBALS['sr_community_board_setting_sources_runtime_cache']) && is_array($GLOBALS['sr_community_board_setting_sources_runtime_cache'])) {
+            unset($GLOBALS['sr_community_board_setting_sources_runtime_cache'][$boardId]);
+        }
+        return;
+    }
+
+    unset($GLOBALS['sr_community_board_settings_runtime_cache'], $GLOBALS['sr_community_board_setting_sources_runtime_cache']);
 }
 
 function sr_community_set_board_setting(PDO $pdo, int $boardId, string $settingKey, string $settingValue, string $valueType = 'string'): void
@@ -1004,6 +1089,7 @@ function sr_community_set_board_setting(PDO $pdo, int $boardId, string $settingK
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    sr_community_clear_board_settings_runtime_cache($boardId);
 }
 
 function sr_community_board_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
@@ -1082,26 +1168,44 @@ function sr_community_board_setting_source(PDO $pdo, int $boardId, string $setti
         return 'board';
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT source
-         FROM sr_community_board_setting_sources
-         WHERE board_id = :board_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'board_id' => $boardId,
-        'setting_key' => $settingKey,
-    ]);
-    $source = $stmt->fetchColumn();
+    $sources = sr_community_board_setting_sources($pdo, $boardId);
+    $source = (string) ($sources[$settingKey] ?? 'board');
 
-    return sr_community_normalize_board_setting_source(is_string($source) ? $source : 'board');
+    return sr_community_normalize_board_setting_source($source);
 }
 
 function sr_community_board_setting_sources(PDO $pdo, int $boardId): array
 {
     if ($boardId < 1) {
         return [];
+    }
+
+    if (!sr_community_board_settings_runtime_cache_enabled()) {
+        $stmt = $pdo->prepare(
+            'SELECT setting_key, source
+             FROM sr_community_board_setting_sources
+             WHERE board_id = :board_id'
+        );
+        $stmt->execute(['board_id' => $boardId]);
+
+        $sources = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $settingKey = (string) ($row['setting_key'] ?? '');
+            if (in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
+                $sources[$settingKey] = sr_community_normalize_board_setting_source((string) ($row['source'] ?? 'board'));
+            }
+        }
+
+        return $sources;
+    }
+
+    $cache = $GLOBALS['sr_community_board_setting_sources_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+
+    if (array_key_exists($boardId, $cache) && is_array($cache[$boardId])) {
+        return $cache[$boardId];
     }
 
     $stmt = $pdo->prepare(
@@ -1118,6 +1222,9 @@ function sr_community_board_setting_sources(PDO $pdo, int $boardId): array
             $sources[$settingKey] = sr_community_normalize_board_setting_source((string) ($row['source'] ?? 'board'));
         }
     }
+
+    $cache[$boardId] = $sources;
+    $GLOBALS['sr_community_board_setting_sources_runtime_cache'] = $cache;
 
     return $sources;
 }
@@ -1146,6 +1253,7 @@ function sr_community_set_board_setting_source(PDO $pdo, int $boardId, string $s
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    sr_community_clear_board_settings_runtime_cache($boardId);
 }
 
 function sr_community_effective_board_setting(PDO $pdo, array $board, string $settingKey, mixed $default = ''): string
