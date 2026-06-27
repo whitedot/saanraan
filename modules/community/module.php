@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.035',
+    'version' => '2026.06.036',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [

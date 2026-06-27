@@ -751,7 +751,7 @@ class SrDatabaseSessionHandler implements SessionHandlerInterface
     {
         $this->acquireLock($id);
         if (!$this->lockAcquired) {
-            return false;
+            return '';
         }
 
         $this->refreshSessionIdHashSupport();

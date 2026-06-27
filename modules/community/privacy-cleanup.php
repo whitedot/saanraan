@@ -75,6 +75,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $postExtraValuesAnonymizedCount = 0;
     $postFieldValuesAnonymizedCount = 0;
     $submissionConsentAnonymizedCount = 0;
+    $attachmentDownloadLogAnonymizedCount = 0;
     $assetRecoveryFailureAnonymizedCount = 0;
     $assetRecoveryFailureActorLinksCleared = 0;
 
@@ -197,6 +198,16 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $submissionConsentAnonymizedCount = $stmt->rowCount();
     }
 
+    if ($columnExists($pdo, 'sr_community_attachment_download_logs', 'account_id')) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_attachment_download_logs
+             SET account_id = NULL
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $attachmentDownloadLogAnonymizedCount = $stmt->rowCount();
+    }
+
     if ($columnExists($pdo, 'sr_community_asset_recovery_failures', 'account_id')) {
         $hasRecoveryActorColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'actor_account_id');
         $hasRecoveryContextColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'operation_context_json');
@@ -245,6 +256,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_post_extra_values_anonymized_count' => $postExtraValuesAnonymizedCount,
         'community_post_field_values_anonymized_count' => $postFieldValuesAnonymizedCount,
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
+        'community_attachment_download_log_anonymized_count' => $attachmentDownloadLogAnonymizedCount,
         'community_asset_recovery_failure_anonymized_count' => $assetRecoveryFailureAnonymizedCount,
         'community_asset_recovery_failure_actor_links_cleared' => $assetRecoveryFailureActorLinksCleared,
         'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,

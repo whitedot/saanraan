@@ -277,6 +277,28 @@ CREATE TABLE IF NOT EXISTS sr_community_attachments (
     KEY idx_sr_community_attachments_checksum (checksum_sha256)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_attachment_download_logs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    board_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    post_id BIGINT UNSIGNED NOT NULL,
+    attachment_id BIGINT UNSIGNED NOT NULL,
+    account_id BIGINT UNSIGNED NULL,
+    download_type VARCHAR(20) NOT NULL DEFAULT 'free',
+    charge_policy VARCHAR(30) NOT NULL DEFAULT 'once',
+    asset_module VARCHAR(120) NOT NULL DEFAULT '',
+    amount BIGINT NOT NULL DEFAULT 0,
+    asset_access_log_ids_json TEXT NULL,
+    post_title_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    attachment_original_name_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_community_attachment_downloads_board (board_id, created_at),
+    KEY idx_sr_community_attachment_downloads_post (post_id, created_at),
+    KEY idx_sr_community_attachment_downloads_attachment (attachment_id, created_at),
+    KEY idx_sr_community_attachment_downloads_account (account_id, created_at),
+    KEY idx_sr_community_attachment_downloads_type (download_type, created_at)
+);
+
 CREATE TABLE IF NOT EXISTS sr_community_reports (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     target_type VARCHAR(30) NOT NULL,

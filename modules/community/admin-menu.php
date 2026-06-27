@@ -35,6 +35,16 @@ return [
             'order' => 65,
         ],
         [
+            'label' => '첨부파일 관리',
+            'path' => '/admin/community/attachments',
+            'order' => 66,
+        ],
+        [
+            'label' => '첨부 다운로드 내역',
+            'path' => '/admin/community/attachment-downloads',
+            'order' => 67,
+        ],
+        [
             'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 70,

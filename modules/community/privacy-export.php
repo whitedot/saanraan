@@ -81,6 +81,7 @@ return static function (PDO $pdo, int $accountId): array {
         'post_field_values' => [],
         'comments' => [],
         'attachments' => [],
+        'attachment_download_logs' => [],
         'reports' => [],
         'messages' => [],
         'scraps' => [],
@@ -177,6 +178,19 @@ return static function (PDO $pdo, int $accountId): array {
          LIMIT 1001'
     );
     $empty['attachments'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'attachments', $sectionLimits);
+
+    if (function_exists('sr_community_attachment_download_logs_table_exists') && sr_community_attachment_download_logs_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT id, board_id, post_id, attachment_id, account_id, download_type, charge_policy,
+                    asset_module, amount, asset_access_log_ids_json,
+                    post_title_snapshot, attachment_original_name_snapshot, created_at
+             FROM sr_community_attachment_download_logs
+             WHERE account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1001'
+        );
+        $empty['attachment_download_logs'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'attachment_download_logs', $sectionLimits);
+    }
 
     $stmt = $pdo->prepare(
         'SELECT id, target_type, target_id,
@@ -358,6 +372,7 @@ return static function (PDO $pdo, int $accountId): array {
         $empty['asset_logs'] = [];
         $empty['asset_recovery_failures'] = [];
         $empty['publisher_reward_logs'] = [];
+        $empty['attachment_download_logs'] = [];
         $empty['submission_consents'] = [];
     }
 

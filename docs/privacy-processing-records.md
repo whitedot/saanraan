@@ -97,6 +97,7 @@
 | CAPTCHA provider script | 외부 script와 provider cookie 가능성 | 공개 제출/회원가입 자동등록방지 | 보안 목적 provider 표면이다. Turnstile, hCaptcha, reCAPTCHA를 활성화하면 외부 처리자와 국외이전 후보에 포함한다. 마케팅/분석 목적 script와 함께 쓰면 사전 동의 gate를 추가해야 한다. | `modules/antispam/helpers.php`, `modules/antispam_captcha_providers/antispam-providers.php` |
 | CAPTCHA remote IP | provider 검증 POST payload | provider의 위험도 판단 보조 | 기본값은 `verify_remote_ip_enabled = false`다. 켜면 개인정보 처리활동 기록과 개인정보 안내문에 remote IP 전달을 반영한다. | `modules/antispam/module.php`, `modules/antispam/views/admin-settings.php` |
 | 커뮤니티 제출 동의 | DB row, POST checkbox | 게시글/댓글/첨부 업로드 시 개인정보 수집 동의 증적 | 브라우저 저장소에 유지하지 않고 제출 시 `community_privacy_consent_accepted`를 서버에서 검증한다. | `modules/community/helpers/privacy-consents.php`, export/cleanup runtime |
+| 커뮤니티 첨부 다운로드 이력 | DB row | 첨부파일 무료/유료 다운로드 성공 이력, 유료 다운로드 차감 로그 대조 | 브라우저 저장소에 유지하지 않는다. 로그인 회원 다운로드는 `account_id`로 연결하고 탈퇴/익명화 시 이 연결을 제거한다. | `modules/community/actions/attachment.php`, `modules/community/privacy-export.php`, `modules/community/privacy-cleanup.php` |
 
 후속 모듈이 `localStorage`, `sessionStorage`, IndexedDB, analytics cookie, pixel script, A/B testing script를 추가하면 이 inventory와 ROPA processor/국외이전 후보를 먼저 갱신한다. 비필수 저장소는 렌더링 전에 동의 상태를 확인해야 하며, 거부 상태에서도 필수 보안 흐름이 동작해야 한다. 기능성 저장소는 `sr_privacy_cookie_consent_allows('popup_dismissal')`처럼 항목별 gate 또는 같은 의미의 클라이언트 gate를 거친다.
 

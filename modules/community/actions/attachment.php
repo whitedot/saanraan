@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 if (sr_request_method() === 'POST') {
@@ -72,13 +73,20 @@ $postPath = '/community/post?id=' . rawurlencode((string) (int) ($post['id'] ?? 
 $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
 $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+$isAttachmentAdmin = is_array($account)
+    && (int) ($account['id'] ?? 0) > 0
+    && function_exists('sr_admin_has_permission')
+    && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/attachments', 'view');
+$downloadResult = ['paid' => false];
+$paidReadConfirmationFingerprint = '';
+$paidReadBridgeCreatedAt = 0;
 if ($disposition === 'attachment' && is_array($board)) {
     $settings = sr_community_settings($pdo);
 }
 if (is_array($board)) {
     $settings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
     $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
-    if (!$isUploader && !$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
+    if (!$isUploader && !$isAuthor && !$isAttachmentAdmin && sr_community_asset_event_required($paidReadConfig)) {
         if (!is_array($account)) {
             $account = sr_member_require_login($pdo);
         }
@@ -88,8 +96,6 @@ if (is_array($board)) {
             $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
         $paidReadChargePolicy = (string) ($paidReadConfig['charge_policy'] ?? 'once');
-        $paidReadConfirmationFingerprint = '';
-        $paidReadBridgeCreatedAt = 0;
         $skipPaidReadCharge = $paidReadChargePolicy === 'once'
             && sr_community_has_paid_read_session((int) $account['id'], (int) ($post['id'] ?? 0))
             && sr_community_once_access_already_granted($pdo, $paidReadConfig, (int) $account['id'], 'post_read', (int) $post['id'], $couponDedupeKey);
@@ -187,7 +193,7 @@ if (is_array($board)) {
 
 if ($disposition === 'attachment' && is_array($board)) {
     $downloadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_attachment_download', 'once');
-    if (!$isUploader && !$isAuthor && sr_community_asset_event_required($downloadConfig)) {
+    if (!$isUploader && !$isAuthor && !$isAttachmentAdmin && sr_community_asset_event_required($downloadConfig)) {
         if (!is_array($account)) {
             $account = sr_member_require_login($pdo);
         }
@@ -208,6 +214,11 @@ if ($disposition === 'attachment' && is_array($board)) {
                 'processed' => false,
                 'coupon_used' => !empty($downloadCouponResult['processed']),
                 'confirmation_fingerprint' => (string) ($downloadCouponResult['confirmation_fingerprint'] ?? ''),
+                'paid' => true,
+                'charge_policy' => (string) ($downloadConfig['charge_policy'] ?? 'once'),
+                'asset_module' => (string) ($downloadConfig['asset_module'] ?? ''),
+                'amount' => 0,
+                'access_log_ids' => [],
             ];
         } elseif ($downloadCouponIssueId > 0) {
             $downloadResult = sr_community_run_asset_event(
@@ -222,6 +233,8 @@ if ($disposition === 'attachment' && is_array($board)) {
                 false
             );
             $downloadResult['message'] = '선택한 쿠폰을 사용할 수 없습니다.';
+            $downloadResult['paid'] = true;
+            $downloadResult['charge_policy'] = (string) ($downloadConfig['charge_policy'] ?? 'once');
         } else {
             $downloadResult = sr_community_run_asset_event(
                 $pdo,
@@ -237,6 +250,8 @@ if ($disposition === 'attachment' && is_array($board)) {
                 true,
                 $assetConfirmedPost
             );
+            $downloadResult['paid'] = true;
+            $downloadResult['charge_policy'] = (string) ($downloadConfig['charge_policy'] ?? 'once');
         }
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
@@ -264,6 +279,10 @@ if ($disposition === 'attachment' && is_array($board)) {
         }
         sr_community_grant_attachment_publisher_reward($pdo, $board, $settings, $post, $attachment, (int) $account['id'], $downloadResult);
     }
+}
+$downloadAccountId = is_array($account) && (int) ($account['id'] ?? 0) > 0 ? (int) $account['id'] : null;
+if ($disposition === 'attachment') {
+    sr_community_record_attachment_download($pdo, $attachment, $downloadAccountId, $downloadResult);
 }
 if ($downloadUrl !== '') {
     header('Cache-Control: private, max-age=300');

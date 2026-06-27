@@ -644,6 +644,373 @@ function sr_community_format_bytes(int $bytes): string
     return sr_format_bytes($bytes);
 }
 
+function sr_community_attachment_download_logs_table_exists(PDO $pdo): bool
+{
+    static $existsByPdo = [];
+
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
+    }
+
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sr_community_attachment_download_logs'");
+            $existsByPdo[$cacheKey] = $stmt !== false && $stmt->fetchColumn() !== false;
+            return $existsByPdo[$cacheKey];
+        }
+
+        $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.TABLES
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name'
+        );
+        $stmt->execute(['table_name' => $prefix . 'community_attachment_download_logs']);
+        $existsByPdo[$cacheKey] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $existsByPdo[$cacheKey] = false;
+    }
+
+    return $existsByPdo[$cacheKey];
+}
+
+function sr_community_record_attachment_download(PDO $pdo, array $attachment, ?int $accountId, array $accessResult = []): void
+{
+    if (!sr_community_attachment_download_logs_table_exists($pdo)) {
+        return;
+    }
+
+    $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
+    $accessLogIds = [];
+    foreach ((array) ($accessResult['access_log_ids'] ?? []) as $accessLogId) {
+        $accessLogId = (int) $accessLogId;
+        if ($accessLogId > 0) {
+            $accessLogIds[$accessLogId] = $accessLogId;
+        }
+    }
+    $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $downloadType = !empty($accessResult['paid']) || $accessLogIds !== [] ? 'paid' : 'free';
+    $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_attachment_download_logs
+            (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, post_title_snapshot, attachment_original_name_snapshot, created_at)
+         VALUES
+            (:board_id, :post_id, :attachment_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :post_title_snapshot, :attachment_original_name_snapshot, :created_at)'
+    );
+    $stmt->execute([
+        'board_id' => (int) ($post['board_id'] ?? 0),
+        'post_id' => (int) ($attachment['post_id'] ?? $post['id'] ?? 0),
+        'attachment_id' => (int) ($attachment['id'] ?? 0),
+        'account_id' => $accountId !== null && $accountId > 0 ? $accountId : null,
+        'download_type' => $downloadType,
+        'charge_policy' => (string) ($accessResult['charge_policy'] ?? 'once'),
+        'asset_module' => (string) ($accessResult['asset_module'] ?? ''),
+        'amount' => $amount,
+        'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
+        'post_title_snapshot' => sr_clean_single_line((string) ($post['title'] ?? ''), 160),
+        'attachment_original_name_snapshot' => sr_clean_single_line((string) ($attachment['original_name'] ?? ''), 160),
+        'created_at' => sr_now(),
+    ]);
+}
+
+function sr_community_admin_attachment_status_counts(PDO $pdo): array
+{
+    $counts = ['total' => 0, 'active' => 0, 'hidden' => 0];
+    $stmt = $pdo->query(
+        "SELECT status, COUNT(*) AS count_value
+         FROM sr_community_attachments
+         WHERE status IN ('active', 'hidden')
+         GROUP BY status"
+    );
+    foreach ($stmt !== false ? $stmt->fetchAll() : [] as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+            $counts['total'] += $count;
+        }
+    }
+
+    return $counts;
+}
+
+function sr_community_admin_attachment_sort_options(): array
+{
+    return [
+        'created_at' => ['label' => '등록일', 'columns' => ['a.created_at', 'a.id']],
+        'original_name' => ['label' => '파일명', 'columns' => ['a.original_name', 'a.id']],
+        'size_bytes' => ['label' => '크기', 'columns' => ['a.size_bytes', 'a.id']],
+        'status' => ['label' => '상태', 'columns' => ['a.status', 'a.id']],
+        'board' => ['label' => '게시판', 'columns' => ['b.title', 'a.id']],
+        'post' => ['label' => '게시글', 'columns' => ['p.title', 'a.id']],
+        'download_count' => ['label' => '다운로드', 'columns' => ['download_count', 'a.id']],
+    ];
+}
+
+function sr_community_admin_attachment_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_admin_attachment_where_sql(array $filters): array
+{
+    $conditions = [];
+    $params = [];
+
+    $statuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach (array_values($statuses) as $index => $status) {
+            $paramKey = 'status_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $status;
+        }
+        $conditions[] = 'a.status IN (' . implode(', ', $placeholders) . ')';
+    } else {
+        $conditions[] = "a.status IN ('active', 'hidden')";
+    }
+
+    $boardId = (int) ($filters['board_id'] ?? 0);
+    if ($boardId > 0) {
+        $conditions[] = 'p.board_id = :board_id';
+        $params['board_id'] = $boardId;
+    }
+
+    $postId = (int) ($filters['post_id'] ?? 0);
+    if ($postId > 0) {
+        $conditions[] = 'a.post_id = :post_id';
+        $params['post_id'] = $postId;
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $conditions[] = "(a.original_name LIKE :keyword_like ESCAPE '\\\\' OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+        $params['keyword_like'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+    }
+
+    return [
+        'sql' => $conditions === [] ? '' : 'WHERE ' . implode(' AND ', $conditions),
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_attachment_count(PDO $pdo, array $filters): int
+{
+    $where = sr_community_admin_attachment_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_community_attachments a
+         INNER JOIN sr_community_posts p ON p.id = a.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         ' . $where['sql']
+    );
+    $stmt->execute($where['params']);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_admin_attachments(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    $where = sr_community_admin_attachment_where_sql($filters);
+    $downloadJoinSql = sr_community_attachment_download_logs_table_exists($pdo)
+        ? 'LEFT JOIN sr_community_attachment_download_logs d ON d.attachment_id = a.id'
+        : '';
+    $downloadCountSql = sr_community_attachment_download_logs_table_exists($pdo)
+        ? 'COUNT(d.id)'
+        : '0';
+    $stmt = $pdo->prepare(
+        'SELECT a.id, a.post_id, a.uploader_account_id, a.original_name, a.mime_type, a.size_bytes, a.width, a.height, a.status, a.created_at,
+                p.title AS post_title, p.status AS post_status, p.board_id,
+                b.title AS board_title, b.board_key,
+                u.display_name AS uploader_display_name,
+                ' . $downloadCountSql . ' AS download_count
+         FROM sr_community_attachments a
+         INNER JOIN sr_community_posts p ON p.id = a.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts u ON u.id = a.uploader_account_id
+         ' . $downloadJoinSql . '
+         ' . $where['sql'] . '
+         GROUP BY a.id, a.post_id, a.uploader_account_id, a.original_name, a.mime_type, a.size_bytes, a.width, a.height, a.status, a.created_at,
+                  p.title, p.status, p.board_id, b.title, b.board_key, u.display_name
+         ' . sr_admin_sort_order_sql(sr_community_admin_attachment_sort_options(), $sort, sr_community_admin_attachment_default_sort()) . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($where['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_admin_set_attachment_status(PDO $pdo, array $attachmentIds, string $status): array
+{
+    $status = in_array($status, ['active', 'hidden'], true) ? $status : '';
+    $ids = [];
+    foreach ($attachmentIds as $attachmentId) {
+        $attachmentId = (int) $attachmentId;
+        if ($attachmentId > 0) {
+            $ids[$attachmentId] = $attachmentId;
+        }
+    }
+    $ids = array_values($ids);
+    if ($status === '' || $ids === []) {
+        return ['changed' => 0, 'skipped' => 0];
+    }
+
+    $changed = 0;
+    $skipped = 0;
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_attachments
+         SET status = :status
+         WHERE id = :id
+           AND status <> :status'
+    );
+    foreach ($ids as $attachmentId) {
+        $before = sr_community_attachment_by_id($pdo, $attachmentId);
+        if (!is_array($before) || (string) ($before['status'] ?? '') === $status) {
+            $skipped++;
+            continue;
+        }
+        $stmt->execute([
+            'status' => $status,
+            'id' => $attachmentId,
+        ]);
+        $changed += $stmt->rowCount();
+    }
+
+    return ['changed' => $changed, 'skipped' => $skipped];
+}
+
+function sr_community_admin_attachment_download_log_sort_options(): array
+{
+    return [
+        'created_at' => ['label' => '다운로드 시각', 'columns' => ['d.created_at', 'd.id']],
+        'board' => ['label' => '게시판', 'columns' => ['board_title', 'd.id']],
+        'post' => ['label' => '게시글', 'columns' => ['post_title', 'd.id']],
+        'attachment' => ['label' => '첨부파일', 'columns' => ['attachment_name', 'd.id']],
+        'account_id' => ['label' => '회원', 'columns' => ['d.account_id', 'd.id']],
+        'download_type' => ['label' => '구분', 'columns' => ['d.download_type', 'd.id']],
+        'amount' => ['label' => '금액', 'columns' => ['d.amount', 'd.id']],
+    ];
+}
+
+function sr_community_admin_attachment_download_log_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_admin_attachment_download_log_where_sql(array $filters): array
+{
+    $conditions = [];
+    $params = [];
+
+    foreach (['board_id', 'post_id', 'attachment_id', 'account_id'] as $key) {
+        $value = (int) ($filters[$key] ?? 0);
+        if ($value > 0) {
+            $conditions[] = 'd.' . $key . ' = :' . $key;
+            $params[$key] = $value;
+        }
+    }
+
+    $downloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
+    if ($downloadTypes !== []) {
+        $placeholders = [];
+        foreach (array_values($downloadTypes) as $index => $downloadType) {
+            $paramKey = 'download_type_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $downloadType;
+        }
+        $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $dateFrom = (string) ($filters['date_from'] ?? '');
+    if ($dateFrom !== '') {
+        $conditions[] = 'd.created_at >= :date_from';
+        $params['date_from'] = $dateFrom . ' 00:00:00';
+    }
+
+    $dateTo = (string) ($filters['date_to'] ?? '');
+    if ($dateTo !== '') {
+        $conditions[] = 'd.created_at <= :date_to';
+        $params['date_to'] = $dateTo . ' 23:59:59';
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $conditions[] = "(d.post_title_snapshot LIKE :keyword_like ESCAPE '\\\\' OR d.attachment_original_name_snapshot LIKE :keyword_like ESCAPE '\\\\' OR p.title LIKE :keyword_like ESCAPE '\\\\' OR a.original_name LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\' OR u.display_name LIKE :keyword_like ESCAPE '\\\\' OR u.email LIKE :keyword_like ESCAPE '\\\\')";
+        $params['keyword_like'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+    }
+
+    return [
+        'sql' => $conditions === [] ? '' : 'WHERE ' . implode(' AND ', $conditions),
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_attachment_download_log_count(PDO $pdo, array $filters): int
+{
+    if (!sr_community_attachment_download_logs_table_exists($pdo)) {
+        return 0;
+    }
+
+    $where = sr_community_admin_attachment_download_log_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_community_attachment_download_logs d
+         LEFT JOIN sr_community_attachments a ON a.id = d.attachment_id
+         LEFT JOIN sr_community_posts p ON p.id = d.post_id
+         LEFT JOIN sr_community_boards b ON b.id = d.board_id
+         LEFT JOIN sr_member_accounts u ON u.id = d.account_id
+         ' . $where['sql']
+    );
+    $stmt->execute($where['params']);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_admin_attachment_download_logs(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    if (!sr_community_attachment_download_logs_table_exists($pdo)) {
+        return [];
+    }
+
+    $where = sr_community_admin_attachment_download_log_where_sql($filters);
+    $stmt = $pdo->prepare(
+        "SELECT d.id, d.board_id, d.post_id, d.attachment_id, d.account_id, d.download_type, d.charge_policy, d.asset_module, d.amount,
+                d.asset_access_log_ids_json, d.created_at,
+                COALESCE(NULLIF(b.title, ''), '') AS board_title,
+                b.board_key,
+                COALESCE(NULLIF(p.title, ''), NULLIF(d.post_title_snapshot, '')) AS post_title,
+                p.status AS post_status,
+                COALESCE(NULLIF(a.original_name, ''), NULLIF(d.attachment_original_name_snapshot, '')) AS attachment_name,
+                a.status AS attachment_status,
+                u.display_name,
+                u.email
+         FROM sr_community_attachment_download_logs d
+         LEFT JOIN sr_community_attachments a ON a.id = d.attachment_id
+         LEFT JOIN sr_community_posts p ON p.id = d.post_id
+         LEFT JOIN sr_community_boards b ON b.id = d.board_id
+         LEFT JOIN sr_member_accounts u ON u.id = d.account_id
+         " . $where['sql'] . '
+         ' . sr_admin_sort_order_sql(sr_community_admin_attachment_download_log_sort_options(), $sort, sr_community_admin_attachment_download_log_default_sort()) . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($where['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_community_attachment_file_path(array $attachment): ?string
 {
     $driver = (string) ($attachment['storage_driver'] ?? 'local');
