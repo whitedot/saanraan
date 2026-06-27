@@ -39,19 +39,30 @@ if ($categoryKey !== '') {
     $categoryInvalid = !is_array($selectedCategory) || (string) $selectedCategory['status'] !== 'enabled';
 }
 $selectedCategoryId = is_array($selectedCategory) && !$categoryInvalid ? (int) $selectedCategory['id'] : 0;
+$authorHash = strtolower(trim(sr_get_string('author', 40)));
+$authorFilterAccount = sr_member_public_account_hash_is_valid($authorHash)
+    ? sr_member_public_account_summary_by_hash($pdo, sr_runtime_config(), $authorHash)
+    : null;
+$authorFilterAccountId = is_array($authorFilterAccount) && !in_array((string) ($authorFilterAccount['status'] ?? ''), ['withdrawn', 'anonymized'], true)
+    ? (int) ($authorFilterAccount['id'] ?? 0)
+    : 0;
 $pageValue = sr_get_string('page', 20);
 $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1;
-$postCount = $categoryInvalid ? 0 : sr_community_board_post_count($pdo, (int) $board['id'], $keyword, $selectedCategoryId);
+$postCount = $categoryInvalid ? 0 : sr_community_board_post_count($pdo, (int) $board['id'], $keyword, $selectedCategoryId, $authorFilterAccountId);
 $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort);
+$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort, $authorFilterAccountId);
 $boardNotice = '';
 if (isset($_SESSION['sr_community_board_notice']) && is_string($_SESSION['sr_community_board_notice'])) {
     $boardNotice = $_SESSION['sr_community_board_notice'];
 }
 unset($_SESSION['sr_community_board_notice']);
+$memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_array($_SESSION['sr_member_follow_feedback'])
+    ? $_SESSION['sr_member_follow_feedback']
+    : ['notice' => '', 'errors' => []];
+unset($_SESSION['sr_member_follow_feedback']);
 $skinKey = sr_community_board_skin_key($pdo, $board);
 $skinView = sr_community_skin_view($skinKey, 'list');
 

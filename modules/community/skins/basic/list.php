@@ -2,6 +2,7 @@
 
 $baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key'])
     . (isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '')
+    . (!empty($authorHash) && !empty($authorFilterAccountId) ? '&author=' . rawurlencode((string) $authorHash) : '')
     . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
 $seo = sr_community_board_seo_meta($pdo, $board, [
     'category' => isset($selectedCategory) && is_array($selectedCategory) ? $selectedCategory : null,
@@ -64,6 +65,14 @@ $communityFrameModifier = 'list';
         <?php } ?>
 
         <?php echo sr_public_feedback_toasts('community', $boardNotice, []); ?>
+        <?php echo sr_public_feedback_toasts('member', (string) ($memberFollowFeedback['notice'] ?? ''), is_array($memberFollowFeedback['errors'] ?? null) ? $memberFollowFeedback['errors'] : []); ?>
+
+        <?php if (!empty($authorFilterAccountId) && is_array($authorFilterAccount)) { ?>
+            <p>
+                <?php echo sr_e((string) ($authorFilterAccount['public_name'] ?? $authorFilterAccount['display_name'] ?? '회원')); ?>님의 게시글을 보고 있습니다.
+                <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">전체 보기</a>
+            </p>
+        <?php } ?>
 
         <?php if ($canWriteBoard) { ?>
             <p>
@@ -145,9 +154,12 @@ $communityFrameModifier = 'list';
                             <?php if ($postExcerpt !== '') { ?>
                                 <p><?php echo sr_e($postExcerpt); ?></p>
                             <?php } ?>
-                            <p class="community-home-post-meta">
+                            <div class="community-home-post-meta">
                                 <span class="member-default-avatar community-home-post-avatar <?php echo sr_e($postAuthorAvatarClass); ?>" aria-hidden="true"><?php echo sr_e($postAuthorInitial); ?></span>
-                                <span><?php echo sr_e($postAuthorLabel); ?></span>
+                                <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $postAuthorAccountId, $postAuthorLabel, [
+                                    'community_board_key' => (string) $board['board_key'],
+                                    'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                ]); ?>
                                 <span aria-hidden="true">&middot;</span>
                                 <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
                                 <?php if ((int) ($post['active_attachment_count'] ?? 0) > 0) { ?>
@@ -163,7 +175,7 @@ $communityFrameModifier = 'list';
                                     <span aria-hidden="true">&middot;</span>
                                     <span><?php echo sr_e('반응 ' . number_format($postReactionCount)); ?></span>
                                 <?php } ?>
-                            </p>
+                            </div>
                         </div>
                     </article>
                 <?php } ?>

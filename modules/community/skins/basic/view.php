@@ -50,6 +50,10 @@ $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
 $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_array($comments ?? null) ? count($comments) : 0));
 $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']));
+$memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_array($_SESSION['sr_member_follow_feedback'])
+    ? $_SESSION['sr_member_follow_feedback']
+    : ['notice' => '', 'errors' => []];
+unset($_SESSION['sr_member_follow_feedback']);
 ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
         <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
@@ -65,12 +69,16 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
         <article class="community-post-view">
             <header class="community-post-view-header">
             <h1 class="community-post-title community-post-view-title"><?php echo sr_e($pageTitle); ?></h1>
-            <p class="community-post-view-meta">
+            <div class="community-post-view-meta">
                 <?php if ((int) ($post['is_secret'] ?? 0) === 1) { ?>
                     <?php echo sr_e('비밀글'); ?>
                     /
                 <?php } ?>
-                <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
+                <?php $communityPostAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
+                <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($post['author_account_id'] ?? 0), $communityPostAuthorLabel, [
+                    'community_board_key' => (string) $post['board_key'],
+                    'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                ]); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
                 <?php if (!empty($categoryEnabled) && (string) ($post['category_title'] ?? '') !== '') { ?>
@@ -81,7 +89,7 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                         <?php echo sr_e((string) $post['category_title']); ?>
                     <?php } ?>
                 <?php } ?>
-            </p>
+            </div>
             <div class="community-post-view-actions">
                 <a class="btn btn-ghost-default" href="<?php echo sr_e($communityPostBoardUrl); ?>"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
                 <button type="button" class="btn btn-ghost-default community-post-comments-jump" data-community-scroll-target="#comments" aria-label="<?php echo sr_e('댓글 ' . number_format($communityPostCommentCount) . '개로 바로가기'); ?>">
@@ -181,6 +189,7 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
             </header>
 
             <?php echo sr_public_feedback_toasts('community', implode(' ', array_filter(array_map('strval', $postNotices))) . ($reportNotice !== '' ? ($postNotices !== [] ? ' ' : '') . $reportNotice : ''), $reportErrors); ?>
+            <?php echo sr_public_feedback_toasts('member', (string) ($memberFollowFeedback['notice'] ?? ''), is_array($memberFollowFeedback['errors'] ?? null) ? $memberFollowFeedback['errors'] : []); ?>
 
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
@@ -427,8 +436,12 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
                             $communityCommentUrl = sr_url('/community/post?id=' . rawurlencode((string) (int) $post['id']) . '#community-comment-' . rawurlencode((string) (int) ($comment['id'] ?? 0)));
                             ?>
-                            <p>
-                                <?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
+                            <div class="community-comment-meta">
+                                <?php $communityCommentAuthorLabel = sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
+                                <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($comment['author_account_id'] ?? 0), $communityCommentAuthorLabel, [
+                                    'community_board_key' => (string) $post['board_key'],
+                                    'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                ]); ?>
                                 <?php if ($communityCommentCreatedAt !== '') { ?>
                                     /
                                     <?php echo sr_community_time_html($communityCommentCreatedAt); ?>
@@ -439,7 +452,7 @@ $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) 
                                 <?php if ($communityCommentDepth > 1) { ?>
                                     / <?php echo sr_e('답글 ' . (string) $communityCommentDepth . '단계'); ?>
                                 <?php } ?>
-                            </p>
+                            </div>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
                                 <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>

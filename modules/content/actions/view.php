@@ -89,5 +89,9 @@ unset($_SESSION['sr_content_comment_notice'], $_SESSION['sr_content_comment_erro
 $pageActionNotice = $_SESSION['sr_content_action_notice'] ?? '';
 $pageActionErrors = $_SESSION['sr_content_action_errors'] ?? [];
 unset($_SESSION['sr_content_action_notice'], $_SESSION['sr_content_action_errors']);
+$memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_array($_SESSION['sr_member_follow_feedback'])
+    ? $_SESSION['sr_member_follow_feedback']
+    : ['notice' => '', 'errors' => []];
+unset($_SESSION['sr_member_follow_feedback']);
 
 include SR_ROOT . '/modules/content/views/content.php';

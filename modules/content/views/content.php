@@ -116,6 +116,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             </div>
         <?php } else { ?>
             <?php echo sr_public_feedback_toasts('content', (string) ($pageActionNotice ?? ''), is_array($pageActionErrors ?? null) ? $pageActionErrors : []); ?>
+            <?php echo sr_public_feedback_toasts('member', (string) ($memberFollowFeedback['notice'] ?? ''), is_array($memberFollowFeedback['errors'] ?? null) ? $memberFollowFeedback['errors'] : []); ?>
             <?php if (!empty($pageAccess['charged'])) { ?>
                 <p class="content-access-notice">
                     <?php echo sr_e((string) ($pageAccess['asset_label'] ?? sr_t('content::ui.member.415a098e'))); ?>
@@ -342,7 +343,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 $contentCommentCreatedAt = (string) ($contentComment['created_at'] ?? '');
                                 ?>
                                 <div class="content-comment-meta">
-                                    <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
+                                    <?php $contentCommentAuthorLabel = (string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원'); ?>
+                                    <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
+                                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                    ]); ?>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
                                         <?php echo sr_content_time_html($contentCommentCreatedAt); ?>
                                     <?php } ?>

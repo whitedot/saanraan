@@ -30,6 +30,62 @@
     min-width: 0;
 }
 
+.member-profile-menu {
+    display: inline-block;
+    position: relative;
+}
+
+.member-profile-menu > summary {
+    color: var(--sr-text, var(--text-strong, #242424));
+    cursor: pointer;
+    display: inline-flex;
+    font-weight: 700;
+    list-style: none;
+}
+
+.member-profile-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.member-profile-menu-dropdown {
+    background: var(--sr-surface, #fff);
+    border: 1px solid var(--sr-border, #d9e0ea);
+    border-radius: 8px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, .16);
+    display: grid;
+    gap: 2px;
+    left: 0;
+    min-width: 9rem;
+    padding: 6px;
+    position: absolute;
+    top: calc(100% + 6px);
+    z-index: 30;
+}
+
+.member-profile-menu-item {
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--sr-text, var(--text-strong, #242424));
+    display: block;
+    font: inherit;
+    padding: 8px 10px;
+    text-align: left;
+    text-decoration: none;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.member-profile-menu-item:hover,
+.member-profile-menu-item:focus {
+    background: var(--sr-surface-muted, #f5f7fb);
+    color: var(--sr-text, var(--text-strong, #242424));
+}
+
+.member-profile-menu-form {
+    margin: 0;
+}
+
 .community-asset-confirmation-modal {
     color: var(--sr-text, var(--text-strong, #242424));
 }

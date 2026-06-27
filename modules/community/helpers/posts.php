@@ -82,7 +82,7 @@ function sr_community_board_list_sort_sql(string $sort): string
     return 'p.id DESC';
 }
 
-function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest'): array
+function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest', int $authorAccountId = 0): array
 {
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
@@ -102,6 +102,10 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     if ($categorySupported && $categoryId > 0) {
         $where .= ' AND p.category_id = :category_id';
         $params['category_id'] = $categoryId;
+    }
+    if ($authorAccountId > 0) {
+        $where .= ' AND p.author_account_id = :author_account_id';
+        $params['author_account_id'] = $authorAccountId;
     }
 
     $categorySelectSql = $categorySupported
@@ -138,7 +142,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
          LIMIT :limit_value OFFSET :offset_value'
     );
     foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        $stmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id', 'author_account_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
@@ -205,7 +209,7 @@ function sr_community_body_excerpt(string $bodyText, string $bodyFormat, int $le
     return (function_exists('mb_substr') ? mb_substr($plainText, 0, $length) : substr($plainText, 0, $length)) . '...';
 }
 
-function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0): int
+function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0, int $authorAccountId = 0): int
 {
     if ($boardId < 1) {
         return 0;
@@ -227,6 +231,10 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
         $where .= ' AND category_id = :category_id';
         $params['category_id'] = $categoryId;
     }
+    if ($authorAccountId > 0) {
+        $where .= ' AND author_account_id = :author_account_id';
+        $params['author_account_id'] = $authorAccountId;
+    }
 
     $stmt = $pdo->prepare(
         'SELECT COUNT(*)
@@ -234,7 +242,7 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
          WHERE ' . $where
     );
     foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        $stmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id', 'author_account_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
     $stmt->execute();
 
