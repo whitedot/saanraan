@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => sr_t('privacy::ui.privacy.5cdfba05'),
+    'label' => '개인정보 관리',
     'order' => 20,
     'items' => [
         [

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => sr_t('notification::ui.notification.12ddd6ca'),
+    'label' => '알림 관리',
     'order' => 10,
     'items' => [
         [

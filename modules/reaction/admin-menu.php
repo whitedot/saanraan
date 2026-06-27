@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => '리액션',
+    'label' => '리액션 관리',
     'order' => 30,
     'items' => [
         [
