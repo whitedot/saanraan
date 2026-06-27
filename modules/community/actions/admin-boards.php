@@ -494,7 +494,7 @@ if (sr_request_method() === 'POST') {
         $listPerPage = sr_admin_post_int_in_range('list_per_page', 1, 100);
         $listDefaultSortInput = sr_post_string('list_default_sort', 20);
         $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
-        $homeFeedEnabled = ($_POST['home_feed_enabled'] ?? '') === '1';
+        $summaryFeedEnabled = ($_POST['summary_feed_enabled'] ?? '') === '1';
         $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
@@ -960,7 +960,7 @@ if (sr_request_method() === 'POST') {
                 'list_excerpt_length' => (string) $listExcerptLength,
                 'list_per_page' => (string) $listPerPage,
                 'list_default_sort' => $listDefaultSort,
-                'home_feed_enabled' => $homeFeedEnabled ? '1' : '0',
+                'summary_feed_enabled' => $summaryFeedEnabled ? '1' : '0',
                 'reaction_enabled' => $reactionEnabled ? '1' : '0',
                 'reaction_post_preset_key' => $reactionPostPresetKey,
                 'reaction_comment_preset_key' => $reactionCommentPresetKey,
@@ -1025,7 +1025,7 @@ if (sr_request_method() === 'POST') {
                     'board_key' => $boardKey,
                     'board_group_id' => $boardGroupId,
                     'status' => $status,
-                    'home_feed_enabled' => $homeFeedEnabled,
+                    'summary_feed_enabled' => $summaryFeedEnabled,
                     'image_uploads_enabled' => $imageUploadsEnabled,
                     'file_uploads_enabled' => $fileUploadsEnabled,
                     'attachment_max_bytes' => $attachmentMaxBytes,
@@ -1238,8 +1238,8 @@ if (sr_request_method() === 'POST') {
                         'after_status' => $status,
                         'before_board_group_id' => (int) ($board['board_group_id'] ?? 0),
                         'after_board_group_id' => $boardGroupId,
-                        'before_home_feed_enabled' => sr_community_effective_board_home_feed_enabled($pdo, $board),
-                        'after_home_feed_enabled' => $homeFeedEnabled,
+                        'before_summary_feed_enabled' => sr_community_effective_board_summary_feed_enabled($pdo, $board),
+                        'after_summary_feed_enabled' => $summaryFeedEnabled,
                         'before_image_uploads_enabled' => (int) $board['image_uploads_enabled'] === 1,
                         'after_image_uploads_enabled' => $imageUploadsEnabled,
                         'after_file_uploads_enabled' => $fileUploadsEnabled,

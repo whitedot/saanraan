@@ -802,14 +802,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_home_feed_enabled">커뮤니티 홈에 표시</label>
+                <label class="form-label" for="community_admin_boards_summary_feed_enabled">요약 영역 노출 허용</label>
                 <div class="form-field">
-                    <label class="form-check form-label" for="community_admin_boards_home_feed_enabled">
-                        <input id="community_admin_boards_home_feed_enabled" type="checkbox" name="home_feed_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'home_feed_enabled', '1') === '1' ? ' checked' : ''; ?>>
+                    <label class="form-check form-label" for="community_admin_boards_summary_feed_enabled">
+                        <input id="community_admin_boards_summary_feed_enabled" type="checkbox" name="summary_feed_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'summary_feed_enabled', '1') === '1' ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
-                    <?php echo $settingSourceRadioHtml('source_home_feed_enabled', $boardSettingSource($formBoard, 'home_feed_enabled')); ?>
-                    <p class="form-help">끄면 이 게시판의 글, 댓글, 시리즈가 커뮤니티 홈 최신글, 인기글, 최신댓글, 시리즈 후보에 포함되지 않습니다. 게시판 목록과 게시글 직접 접근 정책은 그대로 유지됩니다.</p>
+                    <?php echo $settingSourceRadioHtml('source_summary_feed_enabled', $boardSettingSource($formBoard, 'summary_feed_enabled')); ?>
+                    <p class="form-help">끄면 이 게시판의 글, 댓글, 시리즈가 커뮤니티 메인, 사이드바, 최근글/인기글처럼 게시판 목록 밖에서 모아 보여 주는 요약 영역 후보에 포함되지 않습니다. 게시판 목록과 게시글 직접 접근 정책은 그대로 유지됩니다.</p>
                 </div>
             </div>
             <div class="form-row">

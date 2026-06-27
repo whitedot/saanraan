@@ -97,7 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>게시판</th>
                         <th>상태</th>
                         <th>읽기</th>
-                        <th>커뮤니티 홈 표시</th>
+                        <th>요약 노출</th>
                         <th>공개 baseline</th>
                         <th>홈 요약</th>
                         <th>유료 열람 제한</th>
@@ -113,7 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td><?php echo sr_e((string) ($boardRow['status'] ?? '')); ?></td>
                             <td><?php echo sr_e((string) ($boardRow['read_policy'] ?? '')); ?></td>
-                            <td><?php echo !empty($boardRow['home_feed_enabled']) ? '표시' : '제외'; ?></td>
+                            <td><?php echo !empty($boardRow['summary_feed_enabled']) ? '표시' : '제외'; ?></td>
                             <td><?php echo !empty($boardRow['public_baseline']) ? '예' : '아니오'; ?></td>
                             <td><?php echo !empty($boardRow['home_excerpt_allowed']) ? '허용' : '숨김'; ?></td>
                             <td><?php echo !empty($boardRow['paid_read_required']) ? '예' : '아니오'; ?></td>

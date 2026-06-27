@@ -43,7 +43,7 @@ function sr_community_feed_cache_public_baseline_board(array $board): bool
         return false;
     }
 
-    if ((string) ($board['effective_home_feed_enabled'] ?? $board['home_feed_enabled'] ?? '1') !== '1') {
+    if ((string) ($board['effective_summary_feed_enabled'] ?? $board['summary_feed_enabled'] ?? '1') !== '1') {
         return false;
     }
 
@@ -140,7 +140,7 @@ function sr_community_board_settings_table_exists(PDO $pdo): bool
     }
 }
 
-function sr_community_home_feed_enabled_sql_condition(PDO $pdo, string $boardIdExpression, string $indent = '               '): string
+function sr_community_summary_feed_enabled_sql_condition(PDO $pdo, string $boardIdExpression, string $indent = '               '): string
 {
     if (!sr_community_board_settings_table_exists($pdo)) {
         return '';
@@ -151,21 +151,34 @@ function sr_community_home_feed_enabled_sql_condition(PDO $pdo, string $boardIdE
 " . $indent . "    SELECT 1
 " . $indent . "    FROM sr_community_board_settings home_setting
 " . $indent . "    WHERE home_setting.board_id = " . $boardIdExpression . "
-" . $indent . "      AND home_setting.setting_key = 'home_feed_enabled'
+" . $indent . "      AND home_setting.setting_key = 'summary_feed_enabled'
 " . $indent . "      AND home_setting.setting_value IN " . $disabledValues . "
+" . $indent . ")
+" . $indent . "AND NOT EXISTS (
+" . $indent . "    SELECT 1
+" . $indent . "    FROM sr_community_board_settings legacy_home_setting
+" . $indent . "    WHERE legacy_home_setting.board_id = " . $boardIdExpression . "
+" . $indent . "      AND legacy_home_setting.setting_key = 'home_feed_enabled'
+" . $indent . "      AND legacy_home_setting.setting_value IN " . $disabledValues . "
+" . $indent . "      AND NOT EXISTS (
+" . $indent . "          SELECT 1
+" . $indent . "          FROM sr_community_board_settings summary_setting
+" . $indent . "          WHERE summary_setting.board_id = legacy_home_setting.board_id
+" . $indent . "            AND summary_setting.setting_key = 'summary_feed_enabled'
+" . $indent . "      )
 " . $indent . ")\n";
 
     return $sql;
 }
 
-function sr_community_home_post_candidate_sql_condition(PDO $pdo, string $postAlias, string $boardIdExpression, string $indent = '               '): string
+function sr_community_summary_post_candidate_sql_condition(PDO $pdo, string $postAlias, string $boardIdExpression, string $indent = '               '): string
 {
     $postAlias = preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $postAlias) === 1 ? $postAlias : 'p';
-    if (function_exists('sr_community_post_home_feed_candidate_column_exists') && sr_community_post_home_feed_candidate_column_exists($pdo)) {
-        return $indent . 'AND ' . $postAlias . ".home_feed_candidate = 1\n";
+    if (function_exists('sr_community_post_summary_feed_candidate_column_exists') && sr_community_post_summary_feed_candidate_column_exists($pdo)) {
+        return $indent . 'AND ' . $postAlias . ".summary_feed_candidate = 1\n";
     }
 
-    return sr_community_home_feed_enabled_sql_condition($pdo, $boardIdExpression, $indent);
+    return sr_community_summary_feed_enabled_sql_condition($pdo, $boardIdExpression, $indent);
 }
 
 function sr_community_feed_cache_ttl_seconds(string $feedKey): int
@@ -217,7 +230,7 @@ function sr_community_feed_cache_context_for_home(array $boards, array $homeExce
         'display_count' => $displayCount,
         'fetch_count' => $displayCount,
         'locale' => 'ko',
-        'policy_version' => 'home-feed-candidate-v1',
+        'policy_version' => 'summary-feed-candidate-v1',
     ]);
 }
 
@@ -455,7 +468,7 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $params['limit_value'] = $limit;
-    $homeFeedCandidateSql = sr_community_home_post_candidate_sql_condition($pdo, 'p0', 'p0.board_id');
+    $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p0', 'p0.board_id');
 
     return [
         'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
@@ -475,7 +488,7 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
              FROM sr_community_posts p0
              WHERE p0.status = \'published\'
                AND p0.board_id IN (' . implode(', ', $placeholders) . ')
- ' . $homeFeedCandidateSql . '            ORDER BY ' . $innerOrderSql . '
+ ' . $summaryFeedCandidateSql . '            ORDER BY ' . $innerOrderSql . '
              LIMIT :limit_value
          ) picked
          INNER JOIN sr_community_posts p ON p.id = picked.id
@@ -651,7 +664,7 @@ function sr_community_feed_cache_admin_board_rows(PDO $pdo, array $boards, array
             ? sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once')
             : ['enabled' => false];
         $readPolicy = (string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? '');
-        $homeFeedEnabled = (string) ($board['effective_home_feed_enabled'] ?? $board['home_feed_enabled'] ?? '1') === '1';
+        $summaryFeedEnabled = (string) ($board['effective_summary_feed_enabled'] ?? $board['summary_feed_enabled'] ?? '1') === '1';
         $baseline = sr_community_feed_cache_public_baseline_board($board);
         $homeExcerptAllowed = !function_exists('sr_community_asset_event_required') || !sr_community_asset_event_required($paidReadConfig);
 
@@ -661,7 +674,7 @@ function sr_community_feed_cache_admin_board_rows(PDO $pdo, array $boards, array
             'title' => (string) ($board['title'] ?? ''),
             'status' => (string) ($board['status'] ?? ''),
             'read_policy' => $readPolicy,
-            'home_feed_enabled' => $homeFeedEnabled,
+            'summary_feed_enabled' => $summaryFeedEnabled,
             'public_baseline' => $baseline,
             'home_excerpt_allowed' => $homeExcerptAllowed,
             'paid_read_required' => !$homeExcerptAllowed,
@@ -679,7 +692,7 @@ function sr_community_feed_cache_admin_context_rows(array $boardIds): array
         ['feed_key' => 'community.home.popular', 'sort' => 'views', 'display_count' => 5, 'fetch_count' => 5],
     ] as $context) {
         $context['board_ids'] = $boardIds;
-        $context['policy_version'] = 'home-feed-candidate-v1';
+        $context['policy_version'] = 'summary-feed-candidate-v1';
         $context = sr_community_feed_cache_context($context);
         $contexts[] = [
             'feed_key' => (string) $context['feed_key'],

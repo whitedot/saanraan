@@ -493,7 +493,7 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
     $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
-    $homeFeedCandidateSql = sr_community_home_post_candidate_sql_condition($pdo, 'p', 'b.id', '           ');
+    $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p', 'b.id', '           ');
     $stmt = $pdo->prepare(
         'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
                 p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
@@ -506,7 +506,7 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
            AND p.status = \'published\'
            AND b.status = \'enabled\'
            AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
- ' . $homeFeedCandidateSql . '        ORDER BY c.id DESC
+ ' . $summaryFeedCandidateSql . '        ORDER BY c.id DESC
          LIMIT :limit_value'
     );
     foreach ($commentParams as $paramKey => $value) {
@@ -526,7 +526,7 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
         'display_count' => $limit,
         'fetch_count' => $limit,
         'locale' => 'ko',
-        'policy_version' => 'home-feed-candidate-v1',
+        'policy_version' => 'summary-feed-candidate-v1',
     ]);
 
     if ($usePublicCache) {
@@ -579,12 +579,12 @@ function sr_community_home_filter_rows_by_board_ids(array $rows, array $allowedB
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
     $boards = [];
-    $homeFeedBoards = [];
+    $summaryFeedBoards = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
         if (sr_community_account_can_read_board($pdo, $board, $account)) {
             $boards[] = $board;
-            if (sr_community_effective_board_home_feed_enabled($pdo, $board)) {
-                $homeFeedBoards[] = $board;
+            if (sr_community_effective_board_summary_feed_enabled($pdo, $board)) {
+                $summaryFeedBoards[] = $board;
             }
         }
     }
@@ -598,14 +598,14 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings, $memberSettings);
     $homeExcerptAllowedByBoardId = [];
     $communitySeriesSupported = sr_community_series_supported($pdo);
-    foreach ($homeFeedBoards as $board) {
+    foreach ($summaryFeedBoards as $board) {
         $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
         $homeExcerptAllowed = !sr_community_asset_event_required($paidReadConfig);
         $homeExcerptAllowedByBoardId[(int) ($board['id'] ?? 0)] = $homeExcerptAllowed;
     }
-    $latestPosts = sr_community_home_post_feed($pdo, $homeFeedBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
-    $popularPosts = sr_community_home_post_feed($pdo, $homeFeedBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
-    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $homeFeedBoards)));
+    $latestPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
+    $popularPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
+    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $summaryFeedBoards)));
     if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
@@ -625,7 +625,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             $seriesParams[$paramKey] = $boardId;
         }
         if ($seriesPlaceholders !== []) {
-            $homeFeedEnabledSql = sr_community_home_feed_enabled_sql_condition($pdo, 'b.id', '                   ');
+            $summaryFeedEnabledSql = sr_community_summary_feed_enabled_sql_condition($pdo, 'b.id', '                   ');
             $stmt = $pdo->prepare(
                 'SELECT s.*, b.title AS board_title,
                         (SELECT COUNT(*) FROM sr_community_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count,
@@ -642,7 +642,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
                  WHERE s.status = \'active\'
                    AND b.status = \'enabled\'
                    AND s.board_id IN (' . implode(', ', $seriesPlaceholders) . ')
- ' . $homeFeedEnabledSql . '                ORDER BY s.updated_at DESC, s.id DESC
+ ' . $summaryFeedEnabledSql . '                ORDER BY s.updated_at DESC, s.id DESC
                  LIMIT 20'
             );
             foreach ($seriesParams as $paramKey => $boardId) {

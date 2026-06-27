@@ -57,7 +57,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         body_format TEXT NOT NULL DEFAULT "plain",
         is_secret INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL,
-        home_feed_candidate INTEGER NOT NULL DEFAULT 1,
+        summary_feed_candidate INTEGER NOT NULL DEFAULT 1,
         view_count INTEGER NOT NULL DEFAULT 0,
         last_commented_at TEXT NULL,
         created_at TEXT NOT NULL,
@@ -143,17 +143,17 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
 
     $insertPost = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (id, board_id, author_account_id, title, body_text, status, home_feed_candidate, view_count, created_at, updated_at)
+            (id, board_id, author_account_id, title, body_text, status, summary_feed_candidate, view_count, created_at, updated_at)
          VALUES
-            (:id, :board_id, :author_account_id, :title, "", :status, :home_feed_candidate, :view_count, :created_at, :updated_at)'
+            (:id, :board_id, :author_account_id, :title, "", :status, :summary_feed_candidate, :view_count, :created_at, :updated_at)'
     );
     foreach ([
         ['id' => 1, 'board_id' => 1, 'view_count' => 50, 'status' => 'published'],
         ['id' => 2, 'board_id' => 1, 'view_count' => 10, 'status' => 'published'],
         ['id' => 3, 'board_id' => 3, 'view_count' => 90, 'status' => 'published'],
-        ['id' => 4, 'board_id' => 5, 'view_count' => 80, 'status' => 'published', 'home_feed_candidate' => 0],
+        ['id' => 4, 'board_id' => 5, 'view_count' => 80, 'status' => 'published', 'summary_feed_candidate' => 0],
         ['id' => 5, 'board_id' => 1, 'view_count' => 999, 'status' => 'hidden'],
-        ['id' => 40011, 'board_id' => 82, 'view_count' => 1000, 'status' => 'published', 'home_feed_candidate' => 0],
+        ['id' => 40011, 'board_id' => 82, 'view_count' => 1000, 'status' => 'published', 'summary_feed_candidate' => 0],
     ] as $row) {
         $insertPost->execute([
             'id' => $row['id'],
@@ -161,7 +161,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
             'author_account_id' => (($row['id'] - 1) % 3) + 1,
             'title' => 'Post ' . (string) $row['id'],
             'status' => $row['status'],
-            'home_feed_candidate' => (int) ($row['home_feed_candidate'] ?? 1),
+            'summary_feed_candidate' => (int) ($row['summary_feed_candidate'] ?? 1),
             'view_count' => $row['view_count'],
             'created_at' => '2026-06-24 12:00:00',
             'updated_at' => '2026-06-24 12:00:00',
@@ -169,7 +169,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     }
     $pdo->prepare(
         'INSERT INTO sr_community_board_settings (board_id, setting_key, setting_value, value_type, created_at, updated_at)
-         VALUES (:board_id, "home_feed_enabled", "0", "bool", "2026-06-24 12:00:00", "2026-06-24 12:00:00")'
+         VALUES (:board_id, "summary_feed_enabled", "0", "bool", "2026-06-24 12:00:00", "2026-06-24 12:00:00")'
     )->execute(['board_id' => 5]);
 
     $boards = [
@@ -188,11 +188,11 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
 
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latest) === [2, 1],
-        'home latest feed fixture must exclude boards with home_feed_enabled disabled.'
+        'home latest feed fixture must exclude boards with summary_feed_enabled disabled.'
     );
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $popular) === [1, 2],
-        'home popular feed fixture must exclude boards with home_feed_enabled disabled.'
+        'home popular feed fixture must exclude boards with summary_feed_enabled disabled.'
     );
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latestCached) === [2, 1],
@@ -318,11 +318,11 @@ sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
-    "effective_home_feed_enabled",
-    'function sr_community_home_feed_enabled_sql_condition',
-    'function sr_community_home_post_candidate_sql_condition',
-    'home-feed-candidate-v1',
-    'home_feed_candidate = 1',
+    "effective_summary_feed_enabled",
+    'function sr_community_summary_feed_enabled_sql_condition',
+    'function sr_community_summary_post_candidate_sql_condition',
+    'summary-feed-candidate-v1',
+    'summary_feed_candidate = 1',
     'function sr_community_feed_cache_table_exists',
     'function sr_community_feed_cache_read',
     'function sr_community_feed_cache_write',
@@ -346,8 +346,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/install.sql',
     'CREATE TABLE IF NOT EXISTS sr_community_feed_cache',
     'uq_sr_community_feed_cache_context (context_hash)',
     'idx_sr_community_posts_status_view_id (status, view_count, id)',
-    'home_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
-    'idx_sr_community_posts_home_status_id (home_feed_candidate, status, id)',
+    'summary_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
+    'idx_sr_community_posts_summary_status_id (summary_feed_candidate, status, id)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.035.sql', [
@@ -361,16 +361,24 @@ sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.038.sql', [
-    'ADD COLUMN home_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
-    'idx_sr_community_posts_home_status_id',
-    'idx_sr_community_posts_home_status_view_id',
+    'ADD COLUMN summary_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
+    'idx_sr_community_posts_summary_status_id',
+    'idx_sr_community_posts_summary_status_view_id',
     'UPDATE {{SR_TABLE_PREFIX}}community_posts p',
-    "home_setting.setting_key = 'home_feed_enabled'",
+    "home_setting.setting_key = 'summary_feed_enabled'",
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.039.sql', [
+    'CHANGE COLUMN home_feed_candidate summary_feed_candidate',
+    "legacy_setting.setting_key = 'home_feed_enabled'",
+    "summary_setting.setting_key = 'summary_feed_enabled'",
+    'idx_sr_community_posts_summary_status_id',
+    "SET version = '2026.06.039'",
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
-    '$homeFeedBoards = []',
-    'sr_community_effective_board_home_feed_enabled($pdo, $board)',
+    '$summaryFeedBoards = []',
+    'sr_community_effective_board_summary_feed_enabled($pdo, $board)',
     'sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots, $readableBoardIds)',
     'function sr_community_home_filter_rows_by_board_ids',
     '$latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds)',
@@ -380,7 +388,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     'sr_community_feed_cache_write($pdo',
     'function sr_community_home_latest_comments',
     "'feed_key' => 'community.home.latest_comments'",
-    "'policy_version' => 'home-feed-candidate-v1'",
+    "'policy_version' => 'summary-feed-candidate-v1'",
     'sr_community_feed_cache_write_snapshots(',
 ]);
 
@@ -410,7 +418,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
     '$adminPageTitle = \'홈 피드 캐시\'',
     '게시판 기준',
-    '커뮤니티 홈 표시',
+    '요약 노출',
     '공개 baseline',
     '컨텍스트 해시',
     'DB 영속 캐시 사용',
@@ -419,8 +427,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/views/admin-f
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-boards.php', [
-    '커뮤니티 홈에 표시',
-    'name="home_feed_enabled"',
+    '요약 영역 노출 허용',
+    'name="summary_feed_enabled"',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-boards.php', [
@@ -428,7 +436,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 ]);
 
 sr_check_community_feed_cache_contract_contains('docs/performance-policy.md', [
-    '커뮤니티 홈에 표시',
+    '요약 영역 노출 허용',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

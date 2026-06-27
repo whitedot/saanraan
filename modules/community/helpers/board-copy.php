@@ -376,14 +376,14 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
     $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
     $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
     $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $homeFeedCandidateColumnSql = sr_community_post_home_feed_candidate_column_exists($pdo) ? 'home_feed_candidate, ' : '';
-    $homeFeedCandidateValueSql = $homeFeedCandidateColumnSql !== '' ? ':home_feed_candidate, ' : '';
-    $homeFeedCandidate = sr_community_home_feed_candidate_value_for_board($pdo, $newBoardId);
+    $summaryFeedCandidateColumnSql = sr_community_post_summary_feed_candidate_column_exists($pdo) ? 'summary_feed_candidate, ' : '';
+    $summaryFeedCandidateValueSql = $summaryFeedCandidateColumnSql !== '' ? ':summary_feed_candidate, ' : '';
+    $summaryFeedCandidate = sr_community_summary_feed_candidate_value_for_board($pdo, $newBoardId);
     $insertPost = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . $secretColumnSql . $homeFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . $secretColumnSql . $summaryFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . $secretValueSql . $homeFeedCandidateValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . $secretValueSql . $summaryFeedCandidateValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     foreach ($stmt->fetchAll() as $post) {
         if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
@@ -414,8 +414,8 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
         if ($secretColumnSql !== '') {
             $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
-        if ($homeFeedCandidateColumnSql !== '') {
-            $params['home_feed_candidate'] = $homeFeedCandidate;
+        if ($summaryFeedCandidateColumnSql !== '') {
+            $params['summary_feed_candidate'] = $summaryFeedCandidate;
         }
         if ((string) ($post['body_format'] ?? 'plain') === 'html') {
             $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
