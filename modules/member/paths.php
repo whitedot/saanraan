@@ -7,6 +7,7 @@ return [
     'POST /register' => 'actions/register.php',
     'GET /member/avatar' => 'actions/avatar.php',
     'GET /member/mention-search' => 'actions/mention-search.php',
+    'POST /member/follow' => 'actions/follow.php',
     'GET /account' => 'actions/account.php',
     'POST /account' => 'actions/account.php',
     'GET /mypage' => 'actions/account.php',
