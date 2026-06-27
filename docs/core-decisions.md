@@ -130,7 +130,7 @@
 
 `embed_manager` 유지 조건:
 
-- 내부 키는 `embed_manager`, 운영자 표시명은 `임베드 매니저`이고 관리자 메뉴 그룹명은 `임베드 관리`다. 하위 메뉴는 `임베드 캐시 관리`와 `환경설정`으로 분리한다.
+- 내부 키는 `embed_manager`, 운영자 표시명은 `임베드 매니저`이고 관리자 메뉴 그룹명은 `임베드 관리`다. 하위 메뉴는 `본문 URL 임베드`와 `환경설정`으로 분리한다.
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
@@ -138,7 +138,7 @@
 - 본문 URL이 저장 진실원이며, `sr_embed_manager_url_cache`는 canonical URL hash, target tuple, public snapshot, cache status를 담는 파생 cache/index다.
 - 공개 baseline으로 판정된 내부 URL 임베드는 대상 모듈이 `fragment_cache_public` 계약을 명시한 경우에만 `storage/cache/embeds` 아래 sanitized HTML fragment를 생성할 수 있다. 이 파일은 직접 공개 URL로 제공하지 않고 PHP 렌더 경로에서만 읽는다.
 - fragment 캐시 대상은 익명 공개 상태, viewer-independent HTML, target cache version이 있는 내부 URL로 제한한다. 콘텐츠 유료 열람, 커뮤니티 유료/비밀/권한 게시글, 퀴즈 회원 그룹 제한, 설문 로그인/그룹 제한처럼 viewer별 계약이 필요한 대상은 fresh public fragment로 저장하지 않는다.
-- 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_embed_manager_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 stale 처리해야 한다.
+- 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_embed_manager_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 갱신 필요 상태로 표시해야 한다.
 - URL 임베딩은 전역 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정과 각 지원 모듈의 `embed_enabled` 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
 - 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
 - 대상 모듈은 `embed-manager-url-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
