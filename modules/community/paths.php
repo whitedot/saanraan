@@ -42,6 +42,7 @@ return [
     'GET /admin/community/attachments' => 'actions/admin-attachments.php',
     'POST /admin/community/attachments' => 'actions/admin-attachments.php',
     'GET /admin/community/attachment-downloads' => 'actions/admin-attachment-downloads.php',
+    'GET /admin/community/feed-cache' => 'actions/admin-feed-cache.php',
     'GET /admin/community/recovery-failures' => 'actions/admin-recovery-failures.php',
     'POST /admin/community/recovery-failures' => 'actions/admin-recovery-failures.php',
     'GET /admin/community/levels' => 'actions/admin-levels.php',

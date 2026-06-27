@@ -45,6 +45,11 @@ return [
             'order' => 67,
         ],
         [
+            'label' => '최신글 캐시 관리',
+            'path' => '/admin/community/feed-cache',
+            'order' => 68,
+        ],
+        [
             'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 70,

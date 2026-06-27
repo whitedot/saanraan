@@ -336,6 +336,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community admin feed cache entry',
+        'path' => '/admin/community/feed-cache',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'sitemap endpoint',
         'path' => '/sitemap.xml',
         'allowed_statuses' => [200, 404],

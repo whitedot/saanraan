@@ -225,6 +225,9 @@ sr_check_community_feed_cache_contract_home_feed_fixture();
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
     'function sr_community_feed_cache_post_feed_query',
+    'function sr_community_feed_cache_persistent_store_status',
+    'function sr_community_feed_cache_admin_board_rows',
+    'function sr_community_feed_cache_admin_context_rows',
     'SELECT p0.id',
     'INNER JOIN sr_community_posts p ON p.id = picked.id',
     'SELECT MIN(att_img.id)',
@@ -244,6 +247,29 @@ sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
     'sr_community_feed_cache_post_feed_query($pdo',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
+    "'GET /admin/community/feed-cache' => 'actions/admin-feed-cache.php'",
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/admin-menu.php', [
+    "'label' => '최신글 캐시 관리'",
+    "'path' => '/admin/community/feed-cache'",
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-feed-cache.php', [
+    'sr_admin_require_permission($pdo, (int) $account[\'id\'], \'/admin/community/feed-cache\', \'view\')',
+    'sr_community_feed_cache_public_baseline_board_ids($boards)',
+    'sr_community_feed_cache_post_feed_query($pdo, $baselineBoardIds',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
+    '$adminPageTitle = \'최신글 캐시 관리\'',
+    '캐시 저장소',
+    '공개 baseline',
+    '컨텍스트 해시',
+    '조회 미리보기',
 ]);
 
 sr_check_community_feed_cache_contract_contains('.tools/bin/measure-community-home-feed.php', [

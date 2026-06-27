@@ -67,7 +67,7 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 
 커뮤니티 게시글처럼 큰 테이블을 관리자 lookup에서 참조할 때는 offset pagination과 기본 count를 피하고, `id < cursor` 최신순 조회와 `LIMIT + 1` 방식의 `has_more` 계산을 기본으로 한다. 보드가 선택된 최신순/상태 조회는 `(board_id, status, id)` 계열 인덱스에 맞추고, 보드 없이 상태만 거는 최신순 조회를 허용하면 `(status, id)` 인덱스를 설치 SQL과 update SQL에 함께 둔다. 홈/위젯 인기글처럼 공개 baseline 전체에서 `view_count DESC, id DESC`를 쓰는 경로는 `(status, view_count, id)` 인덱스와 후보 게시글 선제 `LIMIT`을 기준으로 측정한다. 제목 `LIKE '%keyword%'` 검색은 보조 fallback으로만 두고, 텍스트 최소 길이와 강한 limit, 가능하면 보드 필터로 범위를 좁힌다.
 
-커뮤니티 게시글 묶음 feed cache는 영속 테이블을 만들기 전에 통합 쿼리 이후에도 병목이라는 fixture/EXPLAIN 증거를 요구한다. 측정 전에는 everyone-discoverable 공개 게시판 baseline, viewer-class 없는 context hash, card snapshot allowlist, 금지 필드 contract checker처럼 schema 없는 helper만 둘 수 있다. 영속 cache를 구현할 때도 최종 HTML, CSRF token, 계정별 권한 결과, 계정별 유료 접근권 상태, 본문 전체는 cache value에 넣지 않는다.
+커뮤니티 게시글 묶음 feed cache는 영속 테이블을 만들기 전에 통합 쿼리 이후에도 병목이라는 fixture/EXPLAIN 증거를 요구한다. 측정 전에는 everyone-discoverable 공개 게시판 baseline, viewer-class 없는 context hash, card snapshot allowlist, 금지 필드 contract checker처럼 schema 없는 helper와 `/admin/community/feed-cache` read-only 점검 화면만 둘 수 있다. 이 점검 화면은 `sr_community_feed_cache` table이나 `storage/cache/community-feed` 디렉터리가 있으면 후보 저장소로 감지하지만 생성, 삭제, 재생성 작업은 하지 않는다. 영속 cache를 구현할 때도 최종 HTML, CSRF token, 계정별 권한 결과, 계정별 유료 접근권 상태, 본문 전체는 cache value에 넣지 않는다.
 
 본문 URL 임베드 fragment 캐시는 최신글 공개 baseline과 같은 원칙을 따른다. 콘텐츠 유료 열람, 커뮤니티 paid read/비밀글/비공개 게시판, 퀴즈 회원 그룹 제한, 설문 로그인/회원 그룹 제한처럼 viewer별 계약이 필요한 대상은 fragment cache value에 넣지 않는다. 대상 모듈은 공개 상태나 target cache version이 바뀌는 저장/삭제/상태 변경 후 URL 캐시 row를 stale 처리해 이전 fragment가 재사용되지 않게 해야 한다.
 

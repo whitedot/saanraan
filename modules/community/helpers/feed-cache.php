@@ -263,3 +263,87 @@ function sr_community_feed_cache_snapshot_contains_forbidden_key(array $value): 
 
     return false;
 }
+
+function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
+{
+    $status = [
+        'mode' => 'contract_only',
+        'table_exists' => false,
+        'file_cache_exists' => false,
+        'row_count' => 0,
+    ];
+
+    try {
+        $stmt = $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache');
+        $status['table_exists'] = true;
+        $status['row_count'] = (int) $stmt->fetchColumn();
+    } catch (Throwable) {
+        $status['table_exists'] = false;
+    }
+
+    $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 3);
+    $status['file_cache_exists'] = is_dir(rtrim($root, '/\\') . '/storage/cache/community-feed');
+    if ($status['table_exists'] || $status['file_cache_exists']) {
+        $status['mode'] = 'persistent_detected';
+    }
+
+    return $status;
+}
+
+function sr_community_feed_cache_admin_board_rows(PDO $pdo, array $boards, array $settings): array
+{
+    $rows = [];
+    foreach ($boards as $board) {
+        if (!is_array($board)) {
+            continue;
+        }
+
+        $boardId = (int) ($board['id'] ?? 0);
+        if ($boardId < 1) {
+            continue;
+        }
+
+        $paidReadConfig = function_exists('sr_community_asset_event_config')
+            ? sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once')
+            : ['enabled' => false];
+        $readPolicy = (string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? '');
+        $baseline = sr_community_feed_cache_public_baseline_board($board);
+        $homeExcerptAllowed = !function_exists('sr_community_asset_event_required') || !sr_community_asset_event_required($paidReadConfig);
+
+        $rows[] = [
+            'id' => $boardId,
+            'board_key' => (string) ($board['board_key'] ?? ''),
+            'title' => (string) ($board['title'] ?? ''),
+            'status' => (string) ($board['status'] ?? ''),
+            'read_policy' => $readPolicy,
+            'public_baseline' => $baseline,
+            'home_excerpt_allowed' => $homeExcerptAllowed,
+            'paid_read_required' => !$homeExcerptAllowed,
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_community_feed_cache_admin_context_rows(array $boardIds): array
+{
+    $contexts = [];
+    foreach ([
+        ['feed_key' => 'community.home.latest', 'sort' => 'latest', 'display_count' => 10, 'fetch_count' => 10],
+        ['feed_key' => 'community.home.popular', 'sort' => 'views', 'display_count' => 5, 'fetch_count' => 5],
+    ] as $context) {
+        $context['board_ids'] = $boardIds;
+        $context = sr_community_feed_cache_context($context);
+        $contexts[] = [
+            'feed_key' => (string) $context['feed_key'],
+            'sort' => (string) $context['sort'],
+            'display_count' => (int) $context['display_count'],
+            'fetch_count' => (int) $context['fetch_count'],
+            'locale' => (string) $context['locale'],
+            'policy_version' => (string) $context['policy_version'],
+            'context_hash' => sr_community_feed_cache_context_hash($context),
+        ];
+    }
+
+    return $contexts;
+}
