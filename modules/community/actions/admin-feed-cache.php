@@ -8,6 +8,8 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/feed-cache', 'view');
+$canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
+$canViewCommunityEmbedManager = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/embed-manager', 'view');
 
 sr_community_use_board_settings_runtime_cache();
 

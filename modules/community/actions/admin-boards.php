@@ -17,6 +17,7 @@ if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
+$canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
 sr_community_use_board_settings_runtime_cache(sr_request_method() === 'GET');
 
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();

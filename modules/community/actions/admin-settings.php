@@ -20,6 +20,8 @@ $settings = sr_community_settings($pdo);
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
+$canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
+$canViewCommunityEmbedManager = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/embed-manager', 'view');
 $communityLayoutOptions = sr_public_layout_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();

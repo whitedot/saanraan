@@ -11,6 +11,8 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/feed-
 $feedCacheStoreStatus = isset($feedCacheStoreStatus) && is_array($feedCacheStoreStatus) ? $feedCacheStoreStatus : [];
 $feedCacheBoardRows = isset($feedCacheBoardRows) && is_array($feedCacheBoardRows) ? $feedCacheBoardRows : [];
 $feedCacheContextRows = isset($feedCacheContextRows) && is_array($feedCacheContextRows) ? $feedCacheContextRows : [];
+$canViewCommunityThumbnailFileCache = !empty($canViewCommunityThumbnailFileCache);
+$canViewCommunityEmbedManager = !empty($canViewCommunityEmbedManager);
 $persistentMode = (string) ($feedCacheStoreStatus['mode'] ?? 'contract_only');
 $persistentModeLabel = match ($persistentMode) {
     'db_persistent' => 'DB 영속 캐시 사용',
@@ -80,17 +82,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card admin-list-card admin-list-form">
-        <div class="card-header">
-            <h2 class="card-title">관련 운영 화면</h2>
-        </div>
-        <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
-            <div class="badge-list">
-                <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">커뮤니티 썸네일 파일 캐시</a>
-                <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">본문 URL 임베드 저장값</a>
+    <?php if ($canViewCommunityThumbnailFileCache || $canViewCommunityEmbedManager) { ?>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header">
+                <h2 class="card-title">관련 운영 화면</h2>
             </div>
-        </div>
-    </section>
+            <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
+                <div class="badge-list">
+                    <?php if ($canViewCommunityThumbnailFileCache) { ?>
+                        <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">커뮤니티 썸네일 파일 캐시</a>
+                    <?php } ?>
+                    <?php if ($canViewCommunityEmbedManager) { ?>
+                        <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">본문 URL 임베드 저장값</a>
+                    <?php } ?>
+                </div>
+            </div>
+        </section>
+    <?php } ?>
 </div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

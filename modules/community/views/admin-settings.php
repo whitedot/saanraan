@@ -81,6 +81,8 @@ $messageWritePolicyLabels = [
     'group' => sr_t('community::ui.message_policy.group'),
 ];
 $thumbnailCriterionValue = sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width'));
+$canViewCommunityThumbnailFileCache = !empty($canViewCommunityThumbnailFileCache);
+$canViewCommunityEmbedManager = !empty($canViewCommunityEmbedManager);
 $levelScoreHelpModalId = 'community-level-score-help-modal';
 $levelScoreHelpBodyHtml = '<p>' . sr_e(sr_t('community::ui.level_score_help_global_default')) . '</p>'
     . '<p>' . sr_e(sr_t('community::ui.level_score_help_formula')) . '</p>'
@@ -517,7 +519,9 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '사용'); ?>
                 <p class="form-help">게시글 목록 이미지는 공개 첨부 이미지가 있으면 항상 캐시 썸네일을 우선 사용합니다. 이 설정은 읽기 화면의 첨부 이미지 미리보기에 적용되며, 게시판 개별 설정에서 재정의할 수 있습니다.</p>
-                <p class="form-help">생성된 공개 썸네일 파일은 <a href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">썸네일 파일 캐시</a>에서 확인하고 정리할 수 있습니다. 정리해도 원본 파일과 게시글은 삭제되지 않습니다.</p>
+                <?php if ($canViewCommunityThumbnailFileCache) { ?>
+                    <p class="form-help">생성된 공개 썸네일 파일은 <a href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">썸네일 파일 캐시</a>에서 확인하고 정리할 수 있습니다. 정리해도 원본 파일과 게시글은 삭제되지 않습니다.</p>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
@@ -616,7 +620,7 @@ $communitySettingsSectionNavItems = [
             <span class="form-label">임베드 사용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
-                <p class="form-help">꺼져 있으면 커뮤니티 게시글 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에서 게시글을 임베드 대상으로 검색하거나 자동 표시하지 않습니다. 본문 URL 임베드 저장값은 <a href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">임베드 관리</a>에서 확인합니다.</p>
+                <p class="form-help">꺼져 있으면 커뮤니티 게시글 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에서 게시글을 임베드 대상으로 검색하거나 자동 표시하지 않습니다.<?php if ($canViewCommunityEmbedManager) { ?> 본문 URL 임베드 저장값은 <a href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">임베드 관리</a>에서 확인합니다.<?php } ?></p>
             </div>
         </div>
         <div class="form-row">

@@ -19,6 +19,7 @@ $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ?
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 $selectedBoardStatuses = is_array($boardListFilters['status'] ?? null) ? $boardListFilters['status'] : [];
+$canViewCommunityThumbnailFileCache = !empty($canViewCommunityThumbnailFileCache);
 $adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardsPage === 'list', '/admin/community/boards');
 $communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 
@@ -927,7 +928,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                     <?php echo $settingSourceRadioHtml('source_thumbnail_enabled', $boardSettingSource($formBoard, 'thumbnail_enabled')); ?>
                     <p class="form-help">게시글 목록 이미지는 공개 첨부 이미지가 있으면 항상 캐시 썸네일을 우선 사용합니다. 이 설정은 읽기 화면의 첨부 이미지 미리보기에 적용됩니다.</p>
-                    <p class="form-help">생성된 공개 썸네일 파일은 <a href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">썸네일 파일 캐시</a>에서 확인하고 정리할 수 있습니다. 정리해도 원본 파일과 게시글은 삭제되지 않습니다.</p>
+                    <?php if ($canViewCommunityThumbnailFileCache) { ?>
+                        <p class="form-help">생성된 공개 썸네일 파일은 <a href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">썸네일 파일 캐시</a>에서 확인하고 정리할 수 있습니다. 정리해도 원본 파일과 게시글은 삭제되지 않습니다.</p>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
