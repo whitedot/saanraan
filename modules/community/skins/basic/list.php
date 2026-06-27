@@ -4,6 +4,8 @@ $baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_ke
     . (isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '')
     . (!empty($authorHash) && !empty($authorFilterAccountId) ? '&author=' . rawurlencode((string) $authorHash) : '')
     . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
+$authorQuery = !empty($authorHash) && !empty($authorFilterAccountId) ? '&author=' . rawurlencode((string) $authorHash) : '';
+$categoryQuery = isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '';
 $seo = sr_community_board_seo_meta($pdo, $board, [
     'category' => isset($selectedCategory) && is_array($selectedCategory) ? $selectedCategory : null,
     'keyword' => $keyword,
@@ -84,9 +86,9 @@ $communityFrameModifier = 'list';
         <?php if ($communityListCategoryEnabled && isset($categories) && is_array($categories) && $categories !== []) { ?>
             <nav aria-label="카테고리">
                 <p>
-                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''))); ?>"><?php echo sr_e('전체'); ?></a>
+                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $authorQuery . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''))); ?>"><?php echo sr_e('전체'); ?></a>
                     <?php foreach ($categories as $category) { ?>
-                        <?php $categoryUrl = '/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $category['category_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''); ?>
+                        <?php $categoryUrl = '/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $category['category_key']) . $authorQuery . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''); ?>
                         /
                         <a href="<?php echo sr_e(sr_url($categoryUrl)); ?>"<?php echo isset($selectedCategory) && is_array($selectedCategory) && (int) $selectedCategory['id'] === (int) $category['id'] ? ' aria-current="page"' : ''; ?>>
                             <?php echo sr_e((string) $category['title']); ?>
@@ -98,6 +100,12 @@ $communityFrameModifier = 'list';
 
         <form method="get" action="<?php echo sr_e(sr_url('/community/board')); ?>">
             <input type="hidden" name="key" value="<?php echo sr_e((string) $board['board_key']); ?>">
+            <?php if ($categoryQuery !== '') { ?>
+                <input type="hidden" name="category" value="<?php echo sr_e((string) $selectedCategory['category_key']); ?>">
+            <?php } ?>
+            <?php if ($authorQuery !== '') { ?>
+                <input type="hidden" name="author" value="<?php echo sr_e((string) $authorHash); ?>">
+            <?php } ?>
             <p>
                 <label for="modules_community_list_q">
                     <span><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></span>
@@ -105,7 +113,7 @@ $communityFrameModifier = 'list';
                 </label>
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
                 <?php if ($keyword !== '') { ?>
-                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
+                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $categoryQuery . $authorQuery)); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
                 <?php } ?>
             </p>
         </form>
