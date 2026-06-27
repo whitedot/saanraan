@@ -171,7 +171,8 @@ function sr_member_public_name_menu_html(PDO $pdo, ?array $viewerAccount, int $t
     }
 
     $communityBoardKey = trim((string) ($options['community_board_key'] ?? ''));
-    if ($communityBoardKey !== '') {
+    $communityBoardAccessible = !empty($options['community_board_accessible']);
+    if ($communityBoardAccessible && $communityBoardKey !== '') {
         $items[] = '<a class="member-profile-menu-item" href="' . sr_e(sr_url('/community/board?key=' . rawurlencode($communityBoardKey) . '&author=' . rawurlencode($targetHash))) . '">게시글 보기</a>';
     }
 

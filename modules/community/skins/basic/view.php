@@ -77,6 +77,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                 <?php $communityPostAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
                 <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($post['author_account_id'] ?? 0), $communityPostAuthorLabel, [
                     'community_board_key' => (string) $post['board_key'],
+                    'community_board_accessible' => is_array($postBoard ?? null),
                     'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                 ]); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
@@ -440,6 +441,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <?php $communityCommentAuthorLabel = sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
                                 <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($comment['author_account_id'] ?? 0), $communityCommentAuthorLabel, [
                                     'community_board_key' => (string) $post['board_key'],
+                                    'community_board_accessible' => is_array($postBoard ?? null),
                                     'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                                 ]); ?>
                                 <?php if ($communityCommentCreatedAt !== '') { ?>

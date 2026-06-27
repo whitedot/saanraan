@@ -166,6 +166,7 @@ $communityFrameModifier = 'list';
                                 <span class="member-default-avatar community-home-post-avatar <?php echo sr_e($postAuthorAvatarClass); ?>" aria-hidden="true"><?php echo sr_e($postAuthorInitial); ?></span>
                                 <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $postAuthorAccountId, $postAuthorLabel, [
                                     'community_board_key' => (string) $board['board_key'],
+                                    'community_board_accessible' => true,
                                     'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                                 ]); ?>
                                 <span aria-hidden="true">&middot;</span>
