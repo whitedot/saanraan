@@ -131,6 +131,8 @@ function sr_check_community_board_settings_runtime(): void
         'board_group_id' => 20,
         'status' => 'enabled',
         'read_policy' => 'public',
+        'post_body_min_length' => '0',
+        'post_body_max_length' => '0',
     ];
     $groupSettingStmt = $pdo->prepare(
         'INSERT INTO sr_community_board_group_settings
@@ -227,6 +229,21 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_board_list_default_sort($pdo, $board) !== 'latest') {
         sr_check_community_board_settings_error('community board list default sort must not use group fallback.');
     }
+    $globalDefaults = sr_community_board_default_settings([
+        'post_body_min_length' => 7,
+        'post_body_max_length' => 9,
+    ]);
+    if ((string) ($globalDefaults['post_body_min_length'] ?? '') !== '7' || (string) ($globalDefaults['post_body_max_length'] ?? '') !== '9') {
+        sr_check_community_board_settings_error('community global post body length defaults must seed new board settings.');
+    }
+    $globalLimitDefaults = sr_community_board_default_settings([
+        'post_body_min_length' => sr_community_post_body_setting_max_length() + 1,
+        'post_body_max_length' => sr_community_post_body_setting_max_length() + 1,
+    ]);
+    if ((int) ($globalLimitDefaults['post_body_min_length'] ?? 0) !== sr_community_post_body_setting_max_length()
+        || (int) ($globalLimitDefaults['post_body_max_length'] ?? 0) !== sr_community_post_body_setting_max_length()) {
+        sr_check_community_board_settings_error('community global post body length defaults must be bounded by storage policy.');
+    }
 
     $commentSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 10, 0, '', 0, 'comments'), 'id'));
     if ($commentSortedIds !== [1, 3, 5, 2]) {
@@ -298,13 +315,33 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts-comm
     'sr_community_validate_comment_body_length',
 ], 'community comment runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/actions/admin-boards.php', array_merge($settingKeys, [
+    'sr_community_post_body_setting_max_length()',
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
+sr_check_community_board_settings_contains('modules/community/actions/admin-settings.php', [
+    'sr_admin_post_int_in_range(\'post_body_min_length\', 0, $postBodyMaxSettingLength)',
+    'sr_admin_post_int_in_range(\'post_body_max_length\', 0, $postBodyMaxSettingLength)',
+    '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
+    '[\'post_body_min_length\', (string) $postBodyMinLength, \'int\']',
+    '[\'post_body_max_length\', (string) $postBodyMaxLength, \'int\']',
+], 'community global post body length setting save');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",
 ], 'community board reaction enabled helper');
+sr_check_community_board_settings_contains('modules/community/helpers/levels.php', [
+    'function sr_community_post_body_setting_max_length',
+    'function sr_community_post_body_storage_max_bytes',
+    '\'post_body_min_length\' => min($postBodySettingMaxLength',
+    '\'post_body_max_length\' => min($postBodySettingMaxLength',
+], 'community global post body length defaults');
+sr_check_community_board_settings_contains('modules/community/helpers/posts-writing.php', [
+    'sr_community_post_body_storage_max_bytes()',
+    'sr_community_post_body_setting_max_length()',
+    '(int) ($board[\'post_body_min_length\'] ?? 0)',
+    '(int) ($board[\'post_body_max_length\'] ?? 0)',
+], 'community post body input and board length contract');
 sr_check_community_board_settings_contains('modules/community/reaction-targets.php', [
     'sr_community_effective_board_reaction_enabled($pdo, $board, $settings)',
 ], 'community reaction target board enabled contract');

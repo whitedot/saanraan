@@ -6,6 +6,7 @@ function sr_community_default_settings(): array
 {
     $metadata = sr_module_metadata('community');
     $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
+    $postBodySettingMaxLength = sr_community_post_body_setting_max_length();
 
     return [
         'posts_per_page' => (int) ($settings['posts_per_page'] ?? 20),
@@ -49,6 +50,8 @@ function sr_community_default_settings(): array
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
+        'post_body_min_length' => min($postBodySettingMaxLength, max(0, (int) ($settings['post_body_min_length'] ?? 0))),
+        'post_body_max_length' => min($postBodySettingMaxLength, max(0, (int) ($settings['post_body_max_length'] ?? 0))),
         'embed_enabled' => (bool) ($settings['embed_enabled'] ?? true),
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
@@ -121,6 +124,16 @@ function sr_community_default_settings(): array
         'paid_attachment_download_publisher_reward_enabled' => (bool) ($settings['paid_attachment_download_publisher_reward_enabled'] ?? false),
         'paid_attachment_download_publisher_reward_rate' => (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0),
     ];
+}
+
+function sr_community_post_body_setting_max_length(): int
+{
+    return 16000000;
+}
+
+function sr_community_post_body_storage_max_bytes(): int
+{
+    return 16000000;
 }
 
 function sr_community_layout_menu_slots(): array

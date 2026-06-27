@@ -37,7 +37,7 @@ return [
     'action.error.paid_read_post_failed' => '보유 포인트/금액이 부족해 게시글을 볼 수 없습니다.',
     'action.error.post_delete_forbidden' => '이 게시글을 삭제할 수 없습니다.',
     'action.error.post_body_required' => '본문을 입력해 주세요.',
-    'action.error.post_body_too_long' => '본문은 20000자 이내로 입력해 주세요.',
+    'action.error.post_body_too_long' => '본문이 저장 가능한 크기를 초과했습니다.',
     'action.error.post_edit_forbidden' => '이 게시글을 수정할 수 없습니다.',
     'action.error.post_not_found' => '게시글을 찾을 수 없습니다.',
     'action.error.series_not_found' => '시리즈를 찾을 수 없습니다.',

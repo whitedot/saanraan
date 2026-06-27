@@ -72,6 +72,9 @@ if (sr_request_method() === 'POST') {
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
         $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
+        $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
+        $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, $postBodyMaxSettingLength);
+        $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
         $embedEnabled = ($_POST['embed_enabled'] ?? '') === '1';
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
@@ -206,6 +209,17 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
             $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
         }
+        if ($postBodyMinLength === null) {
+            $errors[] = '게시글 본문 최소 길이가 올바르지 않습니다.';
+            $postBodyMinLength = (int) ($settings['post_body_min_length'] ?? 0);
+        }
+        if ($postBodyMaxLength === null) {
+            $errors[] = '게시글 본문 최대 길이가 올바르지 않습니다.';
+            $postBodyMaxLength = (int) ($settings['post_body_max_length'] ?? 0);
+        }
+        if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
+            $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
+        }
         if ($thumbnailCriterionInput !== $thumbnailCriterion) {
             $errors[] = '썸네일 생성 기준 선택이 올바르지 않습니다.';
         }
@@ -335,6 +349,8 @@ if (sr_request_method() === 'POST') {
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
+                ['post_body_min_length', (string) $postBodyMinLength, 'int'],
+                ['post_body_max_length', (string) $postBodyMaxLength, 'int'],
                 ['embed_enabled', $embedEnabled ? '1' : '0', 'bool'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],

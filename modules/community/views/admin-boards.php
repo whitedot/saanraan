@@ -20,6 +20,7 @@ $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 $selectedBoardStatuses = is_array($boardListFilters['status'] ?? null) ? $boardListFilters['status'] : [];
 $adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardsPage === 'list', '/admin/community/boards');
+$communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 
 $settingSourceLabels = [
     'board' => ['visible' => sr_t('community::ui.scope.current_only'), 'sr' => '적용', 'toast' => ''],
@@ -732,17 +733,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_post_body_min_length">게시글 본문 최소 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <input id="community_admin_boards_post_body_min_length" type="number" name="post_body_min_length" min="0" max="20000" value="<?php echo sr_e($boardField($formBoard, 'post_body_min_length', '0')); ?>" required class="form-input">
+                    <input id="community_admin_boards_post_body_min_length" type="number" name="post_body_min_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e($boardField($formBoard, 'post_body_min_length', (string) ($settings['post_body_min_length'] ?? 0))); ?>" required class="form-input">
                     <?php echo $settingSourceRadioHtml('source_post_body_min_length', $boardSettingSource($formBoard, 'post_body_min_length')); ?>
-                    <p class="form-help">0이면 최소 길이를 검사하지 않습니다.</p>
+                    <p class="form-help">0이면 최소 길이를 검사하지 않습니다. 커뮤니티 환경설정의 기본값을 게시판에서 재정의할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_post_body_max_length">게시글 본문 최대 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
-                    <input id="community_admin_boards_post_body_max_length" type="number" name="post_body_max_length" min="0" max="20000" value="<?php echo sr_e($boardField($formBoard, 'post_body_max_length', '0')); ?>" required class="form-input">
+                    <input id="community_admin_boards_post_body_max_length" type="number" name="post_body_max_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e($boardField($formBoard, 'post_body_max_length', (string) ($settings['post_body_max_length'] ?? 0))); ?>" required class="form-input">
                     <?php echo $settingSourceRadioHtml('source_post_body_max_length', $boardSettingSource($formBoard, 'post_body_max_length')); ?>
-                    <p class="form-help">0이면 최대 길이를 검사하지 않습니다.</p>
+                    <p class="form-help">0이면 최대 길이를 검사하지 않습니다. 저장 가능한 실제 크기는 DB와 서버 요청 크기 설정의 영향을 받습니다.</p>
                 </div>
             </div>
             <div class="form-row">

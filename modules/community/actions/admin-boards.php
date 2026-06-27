@@ -472,8 +472,9 @@ if (sr_request_method() === 'POST') {
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $postEditLockCommentCount = sr_admin_post_int_in_range('post_edit_lock_comment_count', 0, 1000000);
         $postDeleteLockCommentCount = sr_admin_post_int_in_range('post_delete_lock_comment_count', 0, 1000000);
-        $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, 20000);
-        $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, 20000);
+        $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
+        $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, $postBodyMaxSettingLength);
+        $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
         $commentBodyMinLength = sr_admin_post_int_in_range('comment_body_min_length', 0, 5000);
         $commentBodyMaxLength = sr_admin_post_int_in_range('comment_body_max_length', 0, 5000);
         $listExcerptEnabled = ($_POST['list_excerpt_enabled'] ?? '') === '1';

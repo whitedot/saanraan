@@ -14,12 +14,12 @@ function sr_community_board_post_delete_lock_comment_count(PDO $pdo, array $boar
 
 function sr_community_board_post_body_min_length(PDO $pdo, array $board): int
 {
-    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_min_length', 0, 0, 20000);
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_min_length', (int) ($board['post_body_min_length'] ?? 0), 0, sr_community_post_body_setting_max_length());
 }
 
 function sr_community_board_post_body_max_length(PDO $pdo, array $board): int
 {
-    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', 0, 0, 20000);
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', (int) ($board['post_body_max_length'] ?? 0), 0, sr_community_post_body_setting_max_length());
 }
 
 function sr_community_mark_post_embed_target_stale(PDO $pdo, int $postId): void
@@ -444,7 +444,7 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         $bodyFormat = 'html';
     }
 
-    $bodyText = sr_post_string_without_truncation('body_text', 20000);
+    $bodyText = sr_post_string_without_truncation('body_text', sr_community_post_body_storage_max_bytes());
     if ($bodyFormat === 'html' && is_string($bodyText)) {
         $bodyText = sr_community_sanitize_post_html($bodyText);
     }

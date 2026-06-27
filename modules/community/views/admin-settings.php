@@ -2,6 +2,7 @@
 
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
+$communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 $communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communitySiteMenuOptions): void {
     ?>
@@ -594,6 +595,20 @@ $communitySettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글 작성/수정 화면에 적용할 툴바입니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_post_body_min_length">게시글 본문 최소 길이 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="community_admin_settings_post_body_min_length" type="number" name="post_body_min_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e((string) ($settings['post_body_min_length'] ?? 0)); ?>" required class="form-input">
+                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 0이면 최소 길이를 검사하지 않습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_post_body_max_length">게시글 본문 최대 길이 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="community_admin_settings_post_body_max_length" type="number" name="post_body_max_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e((string) ($settings['post_body_max_length'] ?? 0)); ?>" required class="form-input">
+                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 0이면 최대 길이를 검사하지 않습니다. 저장 가능한 실제 크기는 DB와 서버 요청 크기 설정의 영향을 받습니다.</p>
             </div>
         </div>
         <div class="form-row">
