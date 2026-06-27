@@ -120,24 +120,6 @@ function sr_community_feed_cache_context_hash(array $context): string
     return hash('sha256', $json);
 }
 
-function sr_community_feed_cache_table_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $cacheKey = (string) spl_object_id($pdo);
-    if (array_key_exists($cacheKey, $existsByConnection)) {
-        return $existsByConnection[$cacheKey];
-    }
-
-    try {
-        $pdo->query('SELECT 1 FROM sr_community_feed_cache LIMIT 1');
-        $existsByConnection[$cacheKey] = true;
-        return $existsByConnection[$cacheKey];
-    } catch (Throwable) {
-        $existsByConnection[$cacheKey] = false;
-        return $existsByConnection[$cacheKey];
-    }
-}
-
 function sr_community_board_settings_table_exists(PDO $pdo): bool
 {
     static $existsByConnection = [];
@@ -322,35 +304,119 @@ function sr_community_feed_cache_snapshots_from_json(string $json, array $allowe
     return $snapshots;
 }
 
+function sr_community_feed_cache_file_root(): string
+{
+    $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 3);
+
+    return rtrim($root, '/\\') . '/storage/cache/community-feed';
+}
+
+function sr_community_feed_cache_file_path(string $contextHash): string
+{
+    $contextHash = preg_match('/\A[a-f0-9]{64}\z/', $contextHash) === 1 ? $contextHash : str_repeat('0', 64);
+
+    return sr_community_feed_cache_file_root() . '/' . substr($contextHash, 0, 2) . '/' . $contextHash . '.json';
+}
+
+function sr_community_feed_cache_file_record(array $context, array $snapshots, string $now): array
+{
+    $context = sr_community_feed_cache_context($context);
+    $contextHash = sr_community_feed_cache_context_hash($context);
+
+    return [
+        'schema_version' => 'community_feed_file_cache_v1',
+        'context_hash' => $contextHash,
+        'feed_key' => (string) $context['feed_key'],
+        'sort_key' => (string) $context['sort'],
+        'locale' => (string) $context['locale'],
+        'policy_version' => (string) $context['policy_version'],
+        'baseline' => (string) $context['baseline'],
+        'board_ids' => array_values(array_map('intval', $context['board_ids'])),
+        'display_count' => (int) $context['display_count'],
+        'fetch_count' => (int) $context['fetch_count'],
+        'snapshot_count' => count($snapshots),
+        'snapshots' => array_values($snapshots),
+        'cache_status' => 'fresh',
+        'generated_at' => $now,
+        'expires_at' => sr_community_feed_cache_expires_at($now, (string) $context['feed_key']),
+        'stale_reason' => '',
+        'updated_at' => $now,
+    ];
+}
+
+function sr_community_feed_cache_file_records(int $limit = 1000): array
+{
+    $root = sr_community_feed_cache_file_root();
+    if (!is_dir($root)) {
+        return [];
+    }
+
+    $records = [];
+    foreach (glob($root . '/*/*.json') ?: [] as $path) {
+        if (!is_file($path) || !is_readable($path)) {
+            continue;
+        }
+        $json = file_get_contents($path);
+        if (!is_string($json)) {
+            continue;
+        }
+        $record = json_decode($json, true);
+        if (!is_array($record) || (string) ($record['schema_version'] ?? '') !== 'community_feed_file_cache_v1') {
+            continue;
+        }
+        $records[] = $record;
+        if (count($records) >= $limit) {
+            break;
+        }
+    }
+
+    return $records;
+}
+
+function sr_community_feed_cache_file_is_active(array $record): bool
+{
+    if ((string) ($record['cache_status'] ?? '') !== 'fresh') {
+        return false;
+    }
+
+    $feedKey = (string) ($record['feed_key'] ?? '');
+    if (sr_community_feed_cache_refresh_seconds($feedKey) < 1) {
+        return true;
+    }
+
+    $expiresAt = strtotime((string) ($record['expires_at'] ?? ''));
+
+    return $expiresAt !== false && $expiresAt > time();
+}
+
 function sr_community_feed_cache_read(PDO $pdo, array $context, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): ?array
 {
-    if (!sr_community_feed_cache_table_exists($pdo)) {
+    unset($pdo);
+
+    $context = sr_community_feed_cache_context($context);
+    $contextHash = sr_community_feed_cache_context_hash($context);
+    $path = sr_community_feed_cache_file_path($contextHash);
+    if (!is_file($path) || !is_readable($path)) {
         return null;
     }
 
-    $context = sr_community_feed_cache_context($context);
-    $where = "context_hash = :context_hash
-           AND cache_status = 'fresh'";
-    $params = [
-        'context_hash' => sr_community_feed_cache_context_hash($context),
-    ];
-    if (sr_community_feed_cache_refresh_seconds((string) $context['feed_key']) > 0) {
-        $where .= "\n           AND expires_at > :now";
-        $params['now'] = sr_now();
-    }
-    $stmt = $pdo->prepare(
-        "SELECT snapshot_json
-         FROM sr_community_feed_cache
-         WHERE " . $where . "
-         LIMIT 1"
-    );
-    $stmt->execute($params);
-    $json = $stmt->fetchColumn();
+    $json = file_get_contents($path);
     if (!is_string($json)) {
         return null;
     }
+    $record = json_decode($json, true);
+    if (!is_array($record)
+        || (string) ($record['schema_version'] ?? '') !== 'community_feed_file_cache_v1'
+        || (string) ($record['context_hash'] ?? '') !== $contextHash
+        || !sr_community_feed_cache_file_is_active($record)
+    ) {
+        return null;
+    }
 
-    return sr_community_feed_cache_snapshots_from_json($json, $allowedSchemaVersions);
+    return sr_community_feed_cache_snapshots_from_json(
+        json_encode($record['snapshots'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]',
+        $allowedSchemaVersions
+    );
 }
 
 function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): void
@@ -367,9 +433,7 @@ function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): 
 
 function sr_community_feed_cache_write_snapshots(PDO $pdo, array $context, array $snapshots): void
 {
-    if (!sr_community_feed_cache_table_exists($pdo)) {
-        return;
-    }
+    unset($pdo);
 
     $context = sr_community_feed_cache_context($context);
     $safeSnapshots = [];
@@ -380,98 +444,46 @@ function sr_community_feed_cache_write_snapshots(PDO $pdo, array $context, array
     }
 
     $now = sr_now();
-    $snapshotJson = json_encode($safeSnapshots, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    if (!is_string($snapshotJson)) {
-        $snapshotJson = '[]';
+    $record = sr_community_feed_cache_file_record($context, $safeSnapshots, $now);
+    $json = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($json)) {
+        return;
     }
-    $driver = '';
-    try {
-        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-    } catch (Throwable) {
-        $driver = '';
-    }
-
-    $upsertClause = 'ON DUPLICATE KEY UPDATE
-            feed_key = VALUES(feed_key),
-            sort_key = VALUES(sort_key),
-            locale = VALUES(locale),
-            policy_version = VALUES(policy_version),
-            baseline = VALUES(baseline),
-            board_ids_json = VALUES(board_ids_json),
-            display_count = VALUES(display_count),
-            fetch_count = VALUES(fetch_count),
-            snapshot_json = VALUES(snapshot_json),
-            snapshot_count = VALUES(snapshot_count),
-            cache_status = VALUES(cache_status),
-            generated_at = VALUES(generated_at),
-            expires_at = VALUES(expires_at),
-            stale_reason = VALUES(stale_reason),
-            updated_at = VALUES(updated_at)';
-    if ($driver === 'sqlite') {
-        $upsertClause = 'ON CONFLICT(context_hash) DO UPDATE SET
-            feed_key = excluded.feed_key,
-            sort_key = excluded.sort_key,
-            locale = excluded.locale,
-            policy_version = excluded.policy_version,
-            baseline = excluded.baseline,
-            board_ids_json = excluded.board_ids_json,
-            display_count = excluded.display_count,
-            fetch_count = excluded.fetch_count,
-            snapshot_json = excluded.snapshot_json,
-            snapshot_count = excluded.snapshot_count,
-            cache_status = excluded.cache_status,
-            generated_at = excluded.generated_at,
-            expires_at = excluded.expires_at,
-            stale_reason = excluded.stale_reason,
-            updated_at = excluded.updated_at';
+    $contextHash = sr_community_feed_cache_context_hash($context);
+    $path = sr_community_feed_cache_file_path($contextHash);
+    $dir = dirname($path);
+    if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+        return;
     }
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_community_feed_cache
-            (context_hash, feed_key, sort_key, locale, policy_version, baseline, board_ids_json, display_count, fetch_count, snapshot_json, snapshot_count, cache_status, generated_at, expires_at, stale_reason, created_at, updated_at)
-         VALUES
-            (:context_hash, :feed_key, :sort_key, :locale, :policy_version, :baseline, :board_ids_json, :display_count, :fetch_count, :snapshot_json, :snapshot_count, :cache_status, :generated_at, :expires_at, :stale_reason, :created_at, :updated_at)
-         ' . $upsertClause
-    );
-    $stmt->execute([
-        'context_hash' => sr_community_feed_cache_context_hash($context),
-        'feed_key' => (string) $context['feed_key'],
-        'sort_key' => (string) $context['sort'],
-        'locale' => (string) $context['locale'],
-        'policy_version' => (string) $context['policy_version'],
-        'baseline' => (string) $context['baseline'],
-        'board_ids_json' => json_encode($context['board_ids'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]',
-        'display_count' => (int) $context['display_count'],
-        'fetch_count' => (int) $context['fetch_count'],
-        'snapshot_json' => $snapshotJson,
-        'snapshot_count' => count($safeSnapshots),
-        'cache_status' => 'fresh',
-        'generated_at' => $now,
-        'expires_at' => sr_community_feed_cache_expires_at($now, (string) $context['feed_key']),
-        'stale_reason' => '',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(6));
+    $handle = @fopen($temporaryPath, 'wb');
+    if ($handle === false) {
+        return;
+    }
+    $written = false;
+    if (flock($handle, LOCK_EX)) {
+        $written = fwrite($handle, $json . "\n") !== false;
+        fflush($handle);
+        flock($handle, LOCK_UN);
+    }
+    fclose($handle);
+    if (!$written || !@rename($temporaryPath, $path)) {
+        @unlink($temporaryPath);
+        return;
+    }
+    @chmod($path, 0664);
 }
 
 function sr_community_feed_cache_mark_all_stale(PDO $pdo, string $reason = 'content_changed'): void
 {
-    if (!sr_community_feed_cache_table_exists($pdo)) {
-        return;
-    }
+    unset($pdo, $reason);
 
-    $reason = sr_community_feed_cache_key($reason);
-    $stmt = $pdo->prepare(
-        "UPDATE sr_community_feed_cache
-         SET cache_status = 'stale',
-             stale_reason = :stale_reason,
-             updated_at = :updated_at
-         WHERE cache_status = 'fresh'"
-    );
-    $stmt->execute([
-        'stale_reason' => $reason,
-        'updated_at' => sr_now(),
-    ]);
+    foreach (glob(sr_community_feed_cache_file_root() . '/*/*.json') ?: [] as $path) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
 }
 
 function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int $limit, string $sort, string $paramPrefix = 'feed_board_id_'): array
@@ -631,9 +643,10 @@ function sr_community_feed_cache_snapshot_contains_forbidden_key(array $value): 
 
 function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
 {
+    unset($pdo);
+
     $status = [
         'mode' => 'not_installed',
-        'table_exists' => false,
         'file_cache_exists' => false,
         'row_count' => 0,
         'active_count' => 0,
@@ -645,47 +658,38 @@ function sr_community_feed_cache_persistent_store_status(PDO $pdo): array
         'next_expires_at' => '',
     ];
 
-    try {
-        $stmt = $pdo->prepare(
-            "SELECT
-                COUNT(*) AS row_count,
-                SUM(CASE WHEN cache_status = 'fresh' AND (feed_key <> 'community.home.popular' OR expires_at > :now_active) THEN 1 ELSE 0 END) AS active_count,
-                SUM(CASE WHEN cache_status = 'fresh' THEN 1 ELSE 0 END) AS fresh_count,
-                SUM(CASE WHEN cache_status = 'stale' THEN 1 ELSE 0 END) AS stale_count,
-                SUM(CASE WHEN cache_status = 'fresh' AND feed_key = 'community.home.popular' AND expires_at <= :now_expired THEN 1 ELSE 0 END) AS expired_count,
-                MAX(generated_at) AS latest_generated_at,
-                MAX(updated_at) AS latest_updated_at,
-                MIN(CASE WHEN cache_status = 'fresh' AND feed_key = 'community.home.popular' AND expires_at > :now_next THEN expires_at ELSE NULL END) AS next_expires_at
-             FROM sr_community_feed_cache"
-        );
-        $now = sr_now();
-        $stmt->execute([
-            'now_active' => $now,
-            'now_expired' => $now,
-            'now_next' => $now,
-        ]);
-        $row = $stmt->fetch();
-        $status['table_exists'] = true;
-        if (is_array($row)) {
-            $status['row_count'] = (int) ($row['row_count'] ?? 0);
-            $status['active_count'] = (int) ($row['active_count'] ?? 0);
-            $status['fresh_count'] = (int) ($row['fresh_count'] ?? 0);
-            $status['stale_count'] = (int) ($row['stale_count'] ?? 0);
-            $status['expired_count'] = (int) ($row['expired_count'] ?? 0);
-            $status['latest_generated_at'] = (string) ($row['latest_generated_at'] ?? '');
-            $status['latest_updated_at'] = (string) ($row['latest_updated_at'] ?? '');
-            $status['next_expires_at'] = (string) ($row['next_expires_at'] ?? '');
+    $status['file_cache_exists'] = is_dir(sr_community_feed_cache_file_root());
+    $records = sr_community_feed_cache_file_records();
+    foreach ($records as $record) {
+        $status['row_count']++;
+        if ((string) ($record['cache_status'] ?? '') === 'fresh') {
+            $status['fresh_count']++;
+        } else {
+            $status['stale_count']++;
         }
-    } catch (Throwable) {
-        $status['table_exists'] = false;
+        if (sr_community_feed_cache_file_is_active($record)) {
+            $status['active_count']++;
+            $expiresAt = (string) ($record['expires_at'] ?? '');
+            if ($expiresAt !== ''
+                && $expiresAt !== '9999-12-31 23:59:59'
+                && ($status['next_expires_at'] === '' || strcmp($expiresAt, $status['next_expires_at']) < 0)
+            ) {
+                $status['next_expires_at'] = $expiresAt;
+            }
+        } elseif ((string) ($record['cache_status'] ?? '') === 'fresh') {
+            $status['expired_count']++;
+        }
+        $generatedAt = (string) ($record['generated_at'] ?? '');
+        $updatedAt = (string) ($record['updated_at'] ?? '');
+        if ($generatedAt !== '' && strcmp($generatedAt, $status['latest_generated_at']) > 0) {
+            $status['latest_generated_at'] = $generatedAt;
+        }
+        if ($updatedAt !== '' && strcmp($updatedAt, $status['latest_updated_at']) > 0) {
+            $status['latest_updated_at'] = $updatedAt;
+        }
     }
-
-    $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 3);
-    $status['file_cache_exists'] = is_dir(rtrim($root, '/\\') . '/storage/cache/community-feed');
-    if ($status['table_exists']) {
-        $status['mode'] = 'db_persistent';
-    } elseif ($status['file_cache_exists']) {
-        $status['mode'] = 'file_persistent_detected';
+    if ($status['file_cache_exists']) {
+        $status['mode'] = 'file_persistent';
     }
 
     return $status;
@@ -730,38 +734,15 @@ function sr_community_feed_cache_admin_board_rows(PDO $pdo, array $boards, array
 
 function sr_community_feed_cache_admin_context_rows(PDO $pdo): array
 {
-    if (!sr_community_feed_cache_table_exists($pdo)) {
-        return [];
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT context_hash, feed_key, sort_key, locale, policy_version, baseline, board_ids_json,
-                    display_count, fetch_count, snapshot_count, cache_status, generated_at, expires_at, stale_reason, updated_at
-             FROM sr_community_feed_cache
-             WHERE cache_status = \'fresh\'
-             ORDER BY feed_key ASC, sort_key ASC, updated_at DESC, id DESC
-             LIMIT 100'
-        );
-        $stmt->execute();
-    } catch (Throwable) {
-        return [];
-    }
+    unset($pdo);
 
     $rows = [];
-    foreach ($stmt->fetchAll() as $row) {
-        if (!is_array($row)) {
+    foreach (sr_community_feed_cache_file_records(100) as $row) {
+        if (!sr_community_feed_cache_file_is_active($row)) {
             continue;
         }
 
-        if (
-            sr_community_feed_cache_refresh_seconds((string) ($row['feed_key'] ?? '')) > 0
-            && strtotime((string) ($row['expires_at'] ?? '')) <= time()
-        ) {
-            continue;
-        }
-
-        $boardIds = json_decode((string) ($row['board_ids_json'] ?? '[]'), true);
+        $boardIds = $row['board_ids'] ?? [];
         $boardCount = is_array($boardIds) ? count(array_filter($boardIds, static fn (mixed $boardId): bool => (int) $boardId > 0)) : 0;
         $rows[] = [
             'feed_key' => (string) ($row['feed_key'] ?? ''),

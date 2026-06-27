@@ -66,7 +66,17 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $pdo->exec('CREATE TABLE sr_community_comments (
         id INTEGER PRIMARY KEY,
         post_id INTEGER NOT NULL,
-        status TEXT NOT NULL
+        author_account_id INTEGER NULL,
+        author_public_name_snapshot TEXT NOT NULL DEFAULT "",
+        guest_author_name TEXT NOT NULL DEFAULT "",
+        guest_password_hash TEXT NULL,
+        guest_ip_hash TEXT NULL,
+        guest_user_agent_hash TEXT NULL,
+        body_text TEXT NOT NULL DEFAULT "",
+        is_secret INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_community_attachments (
         id INTEGER PRIMARY KEY,
@@ -99,27 +109,6 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         id INTEGER PRIMARY KEY,
         status TEXT NOT NULL
     )');
-    $pdo->exec('CREATE TABLE sr_community_feed_cache (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        context_hash TEXT NOT NULL UNIQUE,
-        feed_key TEXT NOT NULL,
-        sort_key TEXT NOT NULL DEFAULT "latest",
-        locale TEXT NOT NULL DEFAULT "ko",
-        policy_version TEXT NOT NULL DEFAULT "v1",
-        baseline TEXT NOT NULL DEFAULT "",
-        board_ids_json TEXT NOT NULL,
-        display_count INTEGER NOT NULL DEFAULT 0,
-        fetch_count INTEGER NOT NULL DEFAULT 0,
-        snapshot_json TEXT NOT NULL,
-        snapshot_count INTEGER NOT NULL DEFAULT 0,
-        cache_status TEXT NOT NULL DEFAULT "fresh",
-        generated_at TEXT NOT NULL,
-        expires_at TEXT NOT NULL,
-        stale_reason TEXT NOT NULL DEFAULT "",
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    )');
-
     foreach ([1, 2, 3] as $accountId) {
         $pdo->prepare('INSERT INTO sr_member_accounts (id, status) VALUES (:id, "active")')->execute(['id' => $accountId]);
     }
@@ -171,6 +160,30 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         'INSERT INTO sr_community_board_settings (board_id, setting_key, setting_value, value_type, created_at, updated_at)
          VALUES (:board_id, "summary_feed_enabled", "0", "bool", "2026-06-24 12:00:00", "2026-06-24 12:00:00")'
     )->execute(['board_id' => 5]);
+    $insertComment = $pdo->prepare(
+        'INSERT INTO sr_community_comments
+            (id, post_id, author_account_id, author_public_name_snapshot, guest_author_name, body_text, is_secret, status, created_at, updated_at)
+         VALUES
+            (:id, :post_id, :author_account_id, :author_public_name_snapshot, "", :body_text, 0, :status, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['id' => 10, 'post_id' => 1, 'body_text' => '첫 번째 댓글', 'status' => 'published'],
+        ['id' => 11, 'post_id' => 2, 'body_text' => '두 번째 댓글', 'status' => 'published'],
+        ['id' => 12, 'post_id' => 4, 'body_text' => '피드 제외 댓글', 'status' => 'published'],
+        ['id' => 13, 'post_id' => 5, 'body_text' => '숨김 글 댓글', 'status' => 'published'],
+        ['id' => 14, 'post_id' => 1, 'body_text' => '숨김 댓글', 'status' => 'hidden'],
+    ] as $row) {
+        $insertComment->execute([
+            'id' => $row['id'],
+            'post_id' => $row['post_id'],
+            'author_account_id' => (($row['id'] - 1) % 3) + 1,
+            'author_public_name_snapshot' => 'Commenter ' . (string) $row['id'],
+            'body_text' => $row['body_text'],
+            'status' => $row['status'],
+            'created_at' => '2026-06-24 12:' . str_pad((string) $row['id'], 2, '0', STR_PAD_LEFT) . ':00',
+            'updated_at' => '2026-06-24 12:' . str_pad((string) $row['id'], 2, '0', STR_PAD_LEFT) . ':00',
+        ]);
+    }
 
     $boards = [
         ['id' => 1, 'status' => 'enabled', 'read_policy' => 'public', 'effective_read_policy' => 'public'],
@@ -182,9 +195,12 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $homeExcerptAllowed = array_fill_keys(sr_community_feed_cache_public_baseline_board_ids($baselineBoards), true);
     $settings = sr_community_default_settings();
 
+    sr_community_feed_cache_mark_all_stale($pdo, 'fixture_reset');
     $latest = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
     $popular = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'views');
     $latestCached = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
+    $latestComments = sr_community_home_latest_comments($pdo, sr_community_feed_cache_public_baseline_board_ids($baselineBoards), $homeExcerptAllowed, 10, true);
+    $latestCommentsCached = sr_community_home_latest_comments($pdo, sr_community_feed_cache_public_baseline_board_ids($baselineBoards), $homeExcerptAllowed, 10, true);
 
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latest) === [2, 1],
@@ -199,18 +215,23 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         'home latest feed fixture must render filtered posts from persistent cache snapshots and keep post 40011 out.'
     );
     sr_check_community_feed_cache_contract_assert(
-        (int) $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache WHERE cache_status = "fresh"')->fetchColumn() === 2,
-        'home feed fixture must create persistent cache rows for latest and popular feeds.'
+        array_map(static fn (array $comment): int => (int) $comment['id'], $latestComments) === [11, 10],
+        'home latest comments fixture must exclude hidden comments, hidden posts, and boards with summary_feed_enabled disabled.'
     );
     sr_check_community_feed_cache_contract_assert(
-        (string) $pdo->query('SELECT snapshot_json FROM sr_community_feed_cache WHERE feed_key = "community.home.latest" LIMIT 1')->fetchColumn() !== '',
-        'home feed cache row must store snapshot JSON.'
+        array_map(static fn (array $comment): int => (int) $comment['id'], $latestCommentsCached) === [11, 10],
+        'home latest comments fixture must render from file cache snapshots.'
     );
     $storeStatus = sr_community_feed_cache_persistent_store_status($pdo);
-    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['row_count'] ?? 0) === 2, 'admin store status must count home feed cache rows.');
-    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['active_count'] ?? 0) === 2, 'admin store status must count currently reusable home feed cache rows.');
-    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['fresh_count'] ?? 0) === 2, 'admin store status must count fresh home feed cache rows.');
+    sr_check_community_feed_cache_contract_assert((string) ($storeStatus['mode'] ?? '') === 'file_persistent', 'admin store status must report file persistent cache mode.');
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['row_count'] ?? 0) >= 3, 'admin store status must count home feed cache files.');
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['active_count'] ?? 0) >= 3, 'admin store status must count currently reusable home feed cache files.');
+    sr_check_community_feed_cache_contract_assert((int) ($storeStatus['fresh_count'] ?? 0) >= 3, 'admin store status must count fresh home feed cache files.');
     sr_check_community_feed_cache_contract_assert((string) ($storeStatus['latest_generated_at'] ?? '') !== '', 'admin store status must expose latest generated time.');
+    sr_check_community_feed_cache_contract_assert(
+        in_array('community.home.latest_comments', array_map(static fn (array $row): string => (string) ($row['feed_key'] ?? ''), sr_community_feed_cache_admin_context_rows($pdo)), true),
+        'admin context rows must include latest comments file cache.'
+    );
     sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.popular') === 300, 'popular feed cache refresh policy must be hard-coded to five minutes.');
     sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.latest') === 0, 'latest feed cache refresh policy must be event-driven.');
     sr_check_community_feed_cache_contract_assert(sr_community_feed_cache_refresh_seconds('community.home.latest_comments') === 0, 'latest comments feed cache refresh policy must be event-driven.');
@@ -328,8 +349,10 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
     'function sr_community_summary_post_candidate_sql_condition',
     'summary-feed-candidate-v1',
     'summary_feed_candidate = 1',
-    'function sr_community_feed_cache_table_exists',
     'function sr_community_feed_cache_read',
+    'function sr_community_feed_cache_file_root',
+    'function sr_community_feed_cache_file_path',
+    'community_feed_file_cache_v1',
     'function sr_community_feed_cache_write',
     'function sr_community_feed_cache_write_snapshots',
     'function sr_community_feed_cache_mark_all_stale',
@@ -348,8 +371,6 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/install.sql', [
-    'CREATE TABLE IF NOT EXISTS sr_community_feed_cache',
-    'uq_sr_community_feed_cache_context (context_hash)',
     'idx_sr_community_posts_status_view_id (status, view_count, id)',
     'summary_feed_candidate TINYINT(1) NOT NULL DEFAULT 1',
     'idx_sr_community_posts_summary_status_id (summary_feed_candidate, status, id)',
@@ -358,11 +379,6 @@ sr_check_community_feed_cache_contract_contains('modules/community/install.sql',
 sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.035.sql', [
     'idx_sr_community_posts_status_view_id',
     'ALTER TABLE {{SR_TABLE_PREFIX}}community_posts ADD KEY idx_sr_community_posts_status_view_id (status, view_count, id)',
-]);
-
-sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.037.sql', [
-    'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}community_feed_cache',
-    'uq_sr_community_feed_cache_context (context_hash)',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.038.sql', [
@@ -379,6 +395,11 @@ sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.
     "summary_setting.setting_key = 'summary_feed_enabled'",
     'idx_sr_community_posts_summary_status_id',
     "SET version = '2026.06.039'",
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/updates/2026.06.040.sql', [
+    'DROP TABLE IF EXISTS {{SR_TABLE_PREFIX}}community_feed_cache',
+    "SET version = '2026.06.040'",
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', [
@@ -422,7 +443,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
     '$adminPageTitle = \'피드 캐시\'',
     '현재 유효한 컨텍스트',
-    'DB 영속 캐시 사용',
+    '파일 영속 캐시 사용',
     '현재 유효',
     '갱신 대기',
     '갱신 정책',

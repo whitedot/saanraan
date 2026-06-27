@@ -12,8 +12,7 @@ $feedCacheStoreStatus = isset($feedCacheStoreStatus) && is_array($feedCacheStore
 $feedCacheContextRows = isset($feedCacheContextRows) && is_array($feedCacheContextRows) ? $feedCacheContextRows : [];
 $persistentMode = (string) ($feedCacheStoreStatus['mode'] ?? 'contract_only');
 $persistentModeLabel = match ($persistentMode) {
-    'db_persistent' => 'DB 영속 캐시 사용',
-    'file_persistent_detected' => '파일 영속 캐시 감지',
+    'file_persistent' => '파일 영속 캐시 사용',
     default => '영속 캐시 미설치',
 };
 
@@ -28,7 +27,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
             <div class="badge-list">
                 <span class="badge badge-soft-secondary">방식 <?php echo sr_e($persistentModeLabel); ?></span>
-                <span class="badge badge-soft-secondary">DB 테이블 <?php echo !empty($feedCacheStoreStatus['table_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">파일 캐시 <?php echo !empty($feedCacheStoreStatus['file_cache_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">저장 row <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['row_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">현재 유효 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['active_count'] ?? 0))); ?></span>
