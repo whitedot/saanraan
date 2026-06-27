@@ -131,7 +131,7 @@ return [
     'settings.help.home_path.body.2' => '선택지는 기본 홈페이지와 설치된 콘텐츠, 커뮤니티, 퀴즈, 설문의 메인 화면으로 제한됩니다.',
     'settings.help.home_path.title' => '초기화면 도움말',
     'settings.help.list_pagination_per_page.body.1' => '페이징 기본수는 관리자 목록 화면에서 한 페이지에 기본으로 표시할 항목 수입니다.',
-    'settings.help.list_pagination_per_page.body.2' => '값을 크게 하면 한 번에 더 많이 볼 수 있지만 목록 조회가 무거워질 수 있습니다. 10개 이상 500개 이하로 입력하세요.',
+    'settings.help.list_pagination_per_page.body.2' => '값을 크게 하면 한 번에 더 많이 볼 수 있지만 목록 조회가 무거워질 수 있습니다. 5개 이상 500개 이하로 입력하세요.',
     'settings.help.list_pagination_per_page.title' => '페이징 기본수 도움말',
     'settings.help.open' => '설명 보기',
     'settings.help.public_layout.body.1' => '공통 레이아웃은 사이트 공개 화면의 외곽 구조와 기본 홈 템플릿을 결정합니다.',

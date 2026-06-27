@@ -47,11 +47,11 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     }
 
     if (preg_match('/\A[1-9][0-9]*\z/', $postedListPaginationPerPageInput) !== 1) {
-        $errors[] = '페이징 기본수는 10개 이상 500개 이하의 정수여야 합니다.';
+        $errors[] = '페이징 기본수는 5개 이상 500개 이하의 정수여야 합니다.';
     } else {
         $postedListPaginationPerPage = (int) $postedListPaginationPerPageInput;
-        if ($postedListPaginationPerPage < 10 || $postedListPaginationPerPage > 500) {
-            $errors[] = '페이징 기본수는 10개 이상 500개 이하로 입력하세요.';
+        if ($postedListPaginationPerPage < 5 || $postedListPaginationPerPage > 500) {
+            $errors[] = '페이징 기본수는 5개 이상 500개 이하로 입력하세요.';
         }
     }
 

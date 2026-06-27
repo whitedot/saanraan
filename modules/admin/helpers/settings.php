@@ -555,7 +555,7 @@ function sr_admin_list_pagination_per_page(array $settings): int
 {
     $perPage = $settings['list_pagination_per_page'] ?? ($settings['audit_logs_per_page'] ?? 50);
 
-    return max(10, min(500, (int) $perPage));
+    return max(5, min(500, (int) $perPage));
 }
 
 function sr_admin_skin_view(string $skinKey, string $viewKey): string

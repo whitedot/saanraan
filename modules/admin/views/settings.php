@@ -420,7 +420,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('admin_settings_list_pagination_per_page', '페이징 기본수', $siteSettingsHelp['list_pagination_per_page']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <div class="input-group admin-input-unit">
-                    <input id="admin_settings_list_pagination_per_page" type="number" name="list_pagination_per_page" value="<?php echo sr_e((string) $values['list_pagination_per_page']); ?>" class="form-input" min="10" max="500" required>
+                    <input id="admin_settings_list_pagination_per_page" type="number" name="list_pagination_per_page" value="<?php echo sr_e((string) $values['list_pagination_per_page']); ?>" class="form-input" min="5" max="500" required>
                     <span class="input-group-text">개</span>
                 </div>
             </div>
