@@ -262,6 +262,18 @@ $json = sr_community_feed_cache_card_snapshot_json([
 sr_check_community_feed_cache_contract_assert(!str_contains($json, 'body_text'), 'snapshot JSON must not contain body_text key.');
 sr_check_community_feed_cache_contract_assert(!str_contains($json, 'csrf_token'), 'snapshot JSON must not contain csrf token key.');
 
+$commentSnapshotJson = json_encode([[
+    'snapshot_schema_version' => 'community_home_comment_snapshot_v1',
+    'id' => 9,
+    'post_id' => 88,
+    'board_id' => 5,
+    'body_excerpt' => '댓글 요약',
+]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+sr_check_community_feed_cache_contract_assert(
+    count(sr_community_feed_cache_snapshots_from_json(is_string($commentSnapshotJson) ? $commentSnapshotJson : '[]', ['community_home_comment_snapshot_v1'])) === 1,
+    'latest comment cache snapshots must be readable with their own schema version.'
+);
+
 sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [

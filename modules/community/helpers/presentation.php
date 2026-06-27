@@ -518,7 +518,7 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
     ]);
 
     if ($usePublicCache) {
-        $cachedSnapshots = sr_community_feed_cache_read($pdo, $context);
+        $cachedSnapshots = sr_community_feed_cache_read($pdo, $context, ['community_home_comment_snapshot_v1']);
         if (is_array($cachedSnapshots)) {
             return sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots);
         }

@@ -194,11 +194,22 @@ function sr_community_feed_cache_snapshot_json(array $snapshots): string
     return is_string($json) ? $json : '[]';
 }
 
-function sr_community_feed_cache_snapshots_from_json(string $json): array
+function sr_community_feed_cache_snapshots_from_json(string $json, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): array
 {
     $decoded = json_decode($json, true);
     if (!is_array($decoded)) {
         return [];
+    }
+
+    $allowedSchemas = [];
+    foreach ($allowedSchemaVersions as $schemaVersion) {
+        $schemaVersion = (string) $schemaVersion;
+        if ($schemaVersion !== '') {
+            $allowedSchemas[$schemaVersion] = true;
+        }
+    }
+    if ($allowedSchemas === []) {
+        $allowedSchemas['community_feed_card_snapshot_v1'] = true;
     }
 
     $snapshots = [];
@@ -206,10 +217,10 @@ function sr_community_feed_cache_snapshots_from_json(string $json): array
         if (!is_array($snapshot) || sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot)) {
             continue;
         }
-        if ((string) ($snapshot['snapshot_schema_version'] ?? '') !== 'community_feed_card_snapshot_v1') {
+        if (!isset($allowedSchemas[(string) ($snapshot['snapshot_schema_version'] ?? '')])) {
             continue;
         }
-        $postId = (int) ($snapshot['post_id'] ?? 0);
+        $postId = (int) ($snapshot['post_id'] ?? $snapshot['id'] ?? 0);
         $boardId = (int) ($snapshot['board_id'] ?? 0);
         if ($postId < 1 || $boardId < 1) {
             continue;
@@ -220,7 +231,7 @@ function sr_community_feed_cache_snapshots_from_json(string $json): array
     return $snapshots;
 }
 
-function sr_community_feed_cache_read(PDO $pdo, array $context): ?array
+function sr_community_feed_cache_read(PDO $pdo, array $context, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): ?array
 {
     if (!sr_community_feed_cache_table_exists($pdo)) {
         return null;
@@ -244,7 +255,7 @@ function sr_community_feed_cache_read(PDO $pdo, array $context): ?array
         return null;
     }
 
-    return sr_community_feed_cache_snapshots_from_json($json);
+    return sr_community_feed_cache_snapshots_from_json($json, $allowedSchemaVersions);
 }
 
 function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): void
