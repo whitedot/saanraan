@@ -384,6 +384,158 @@ function sr_community_home_post_feed(PDO $pdo, array $boards, array $settings, a
     return $posts;
 }
 
+function sr_community_home_latest_comment_snapshots_from_rows(array $rows, array $homeExcerptAllowedByBoardId): array
+{
+    $snapshots = [];
+    foreach ($rows as $comment) {
+        if (!is_array($comment)) {
+            continue;
+        }
+
+        $boardId = (int) ($comment['board_id'] ?? 0);
+        $excerptAllowed = empty($comment['is_secret'])
+            && empty($comment['post_is_secret'])
+            && !empty($homeExcerptAllowedByBoardId[$boardId]);
+        $snapshots[] = [
+            'snapshot_schema_version' => 'community_home_comment_snapshot_v1',
+            'id' => max(0, (int) ($comment['id'] ?? 0)),
+            'post_id' => max(0, (int) ($comment['post_id'] ?? 0)),
+            'board_id' => max(0, $boardId),
+            'author_account_id' => max(0, (int) ($comment['author_account_id'] ?? 0)),
+            'author_display_name' => sr_clean_single_line((string) ($comment['author_public_name_snapshot'] ?? ''), 120),
+            'guest_author_name' => sr_clean_single_line((string) ($comment['guest_author_name'] ?? ''), 120),
+            'author_account_status' => sr_clean_single_line((string) ($comment['author_account_status'] ?? ''), 30),
+            'body_excerpt' => $excerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 50) : '',
+            'post_title' => sr_clean_single_line((string) ($comment['post_title'] ?? ''), 160),
+            'is_secret' => !empty($comment['is_secret']) ? 1 : 0,
+            'post_is_secret' => !empty($comment['post_is_secret']) ? 1 : 0,
+            'created_at' => sr_clean_single_line((string) ($comment['created_at'] ?? ''), 40),
+            'updated_at' => sr_clean_single_line((string) ($comment['updated_at'] ?? ''), 40),
+        ];
+    }
+
+    return $snapshots;
+}
+
+function sr_community_home_latest_comment_rows_from_snapshots(array $snapshots): array
+{
+    $rows = [];
+    foreach ($snapshots as $snapshot) {
+        if (!is_array($snapshot)) {
+            continue;
+        }
+
+        $commentId = (int) ($snapshot['id'] ?? 0);
+        $postId = (int) ($snapshot['post_id'] ?? 0);
+        $boardId = (int) ($snapshot['board_id'] ?? 0);
+        if ($commentId < 1 || $postId < 1 || $boardId < 1) {
+            continue;
+        }
+
+        $rows[] = [
+            'id' => $commentId,
+            'post_id' => $postId,
+            'board_id' => $boardId,
+            'author_account_id' => max(0, (int) ($snapshot['author_account_id'] ?? 0)),
+            'author_display_name' => (string) ($snapshot['author_display_name'] ?? ''),
+            'guest_author_name' => (string) ($snapshot['guest_author_name'] ?? ''),
+            'guest_password_hash' => null,
+            'guest_ip_hash' => null,
+            'guest_user_agent_hash' => null,
+            'author_account_status' => (string) ($snapshot['author_account_status'] ?? ''),
+            'body_text' => (string) ($snapshot['body_excerpt'] ?? ''),
+            'is_secret' => !empty($snapshot['is_secret']) ? 1 : 0,
+            'created_at' => (string) ($snapshot['created_at'] ?? ''),
+            'updated_at' => (string) ($snapshot['updated_at'] ?? ''),
+            'post_title' => (string) ($snapshot['post_title'] ?? ''),
+            'post_author_account_id' => 0,
+            'post_is_secret' => !empty($snapshot['post_is_secret']) ? 1 : 0,
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoardIds, int $limit = 10): array
+{
+    $ids = [];
+    foreach ($readableBoardIds as $boardId) {
+        $id = (int) $boardId;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+    ksort($ids, SORT_NUMERIC);
+    if ($ids === []) {
+        return [];
+    }
+
+    $boardPlaceholders = [];
+    $commentParams = [];
+    foreach (array_values($ids) as $index => $boardId) {
+        $paramKey = 'board_id_' . (string) $index;
+        $boardPlaceholders[] = ':' . $paramKey;
+        $commentParams[$paramKey] = $boardId;
+    }
+    $commentParams['limit_value'] = max(1, min(20, $limit));
+
+    $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
+                p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
+                b.id AS board_id, b.board_key, b.title AS board_title
+         FROM sr_community_comments c
+         INNER JOIN sr_community_posts p ON p.id = c.post_id
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
+         WHERE c.status = \'published\'
+           AND p.status = \'published\'
+           AND b.status = \'enabled\'
+           AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
+         ORDER BY c.id DESC
+         LIMIT :limit_value'
+    );
+    foreach ($commentParams as $paramKey => $value) {
+        $stmt->bindValue($paramKey, $value, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, array $homeExcerptAllowedByBoardId, int $limit = 10, bool $usePublicCache = false): array
+{
+    $context = sr_community_feed_cache_context([
+        'feed_key' => 'community.home.latest_comments',
+        'board_ids' => $readableBoardIds,
+        'sort' => 'activity',
+        'display_count' => $limit,
+        'fetch_count' => $limit,
+        'locale' => 'ko',
+        'policy_version' => 'v1',
+    ]);
+
+    if ($usePublicCache) {
+        $cachedSnapshots = sr_community_feed_cache_read($pdo, $context);
+        if (is_array($cachedSnapshots)) {
+            return sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots);
+        }
+    }
+
+    $rows = sr_community_home_latest_comment_live_rows($pdo, $readableBoardIds, $limit);
+    if ($usePublicCache) {
+        sr_community_feed_cache_write_snapshots(
+            $pdo,
+            $context,
+            sr_community_home_latest_comment_snapshots_from_rows($rows, $homeExcerptAllowedByBoardId)
+        );
+    }
+
+    return $rows;
+}
+
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
     $boards = [];
@@ -409,47 +561,13 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     }
     $latestPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
     $popularPosts = sr_community_home_post_feed($pdo, $boards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
+    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $boards)));
     if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
     }
-    $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $boards)));
     if ($readableBoardIds !== []) {
-        $boardPlaceholders = [];
-        $commentParams = [];
-        foreach ($readableBoardIds as $index => $boardId) {
-            if ($boardId < 1) {
-                continue;
-            }
-            $paramKey = 'board_id_' . (string) $index;
-            $boardPlaceholders[] = ':' . $paramKey;
-            $commentParams[$paramKey] = $boardId;
-        }
-        if ($boardPlaceholders !== []) {
-            $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
-            $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
-            $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
-            $stmt = $pdo->prepare(
-                'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
-                        p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
-                        b.id AS board_id, b.board_key, b.title AS board_title
-                 FROM sr_community_comments c
-                 INNER JOIN sr_community_posts p ON p.id = c.post_id
-                 INNER JOIN sr_community_boards b ON b.id = p.board_id
-                 LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
-                 WHERE c.status = \'published\'
-                   AND p.status = \'published\'
-                   AND b.status = \'enabled\'
-                   AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
-                 ORDER BY c.id DESC
-                 LIMIT 10'
-            );
-            foreach ($commentParams as $paramKey => $boardId) {
-                $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
-            }
-            $stmt->execute();
-            $latestComments = $stmt->fetchAll();
-        }
+        $latestComments = sr_community_home_latest_comments($pdo, $readableBoardIds, $homeExcerptAllowedByBoardId, 10, !is_array($account));
     }
     if ($communitySeriesSupported && $readableBoardIds !== []) {
         $seriesPlaceholders = [];

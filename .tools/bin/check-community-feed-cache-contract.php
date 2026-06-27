@@ -269,6 +269,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
     'function sr_community_feed_cache_table_exists',
     'function sr_community_feed_cache_read',
     'function sr_community_feed_cache_write',
+    'function sr_community_feed_cache_write_snapshots',
     'function sr_community_feed_cache_mark_all_stale',
     'function sr_community_feed_cache_post_feed_query',
     'function sr_community_feed_cache_persistent_store_status',
@@ -304,6 +305,9 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     'sr_community_feed_cache_post_feed_query($pdo',
     'sr_community_feed_cache_read($pdo',
     'sr_community_feed_cache_write($pdo',
+    'function sr_community_home_latest_comments',
+    "'feed_key' => 'community.home.latest_comments'",
+    'sr_community_feed_cache_write_snapshots(',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [

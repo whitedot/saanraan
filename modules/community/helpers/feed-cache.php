@@ -249,11 +249,6 @@ function sr_community_feed_cache_read(PDO $pdo, array $context): ?array
 
 function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): void
 {
-    if (!sr_community_feed_cache_table_exists($pdo)) {
-        return;
-    }
-
-    $context = sr_community_feed_cache_context($context);
     $snapshots = [];
     foreach ($posts as $post) {
         if (is_array($post)) {
@@ -261,8 +256,28 @@ function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): 
         }
     }
 
+    sr_community_feed_cache_write_snapshots($pdo, $context, $snapshots);
+}
+
+function sr_community_feed_cache_write_snapshots(PDO $pdo, array $context, array $snapshots): void
+{
+    if (!sr_community_feed_cache_table_exists($pdo)) {
+        return;
+    }
+
+    $context = sr_community_feed_cache_context($context);
+    $safeSnapshots = [];
+    foreach ($snapshots as $snapshot) {
+        if (is_array($snapshot) && !sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot)) {
+            $safeSnapshots[] = $snapshot;
+        }
+    }
+
     $now = sr_now();
-    $snapshotJson = sr_community_feed_cache_snapshot_json($snapshots);
+    $snapshotJson = json_encode($safeSnapshots, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($snapshotJson)) {
+        $snapshotJson = '[]';
+    }
     $driver = '';
     try {
         $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -323,7 +338,7 @@ function sr_community_feed_cache_write(PDO $pdo, array $context, array $posts): 
         'display_count' => (int) $context['display_count'],
         'fetch_count' => (int) $context['fetch_count'],
         'snapshot_json' => $snapshotJson,
-        'snapshot_count' => count($snapshots),
+        'snapshot_count' => count($safeSnapshots),
         'cache_status' => 'fresh',
         'generated_at' => $now,
         'expires_at' => sr_community_feed_cache_expires_at($now, (string) $context['feed_key']),
