@@ -331,6 +331,47 @@ function sr_thumbnail_module_key(array $source): string
     return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1 ? $moduleKey : 'common';
 }
 
+function sr_thumbnail_metadata_cache_url(array $source, array $options): string
+{
+    foreach (['source_version', 'checksum_sha256', 'checksum'] as $key) {
+        if (trim((string) ($source[$key] ?? '')) !== '') {
+            $normalized = sr_thumbnail_normalize_options($options);
+            $format = $normalized['format'] === 'source'
+                ? sr_thumbnail_format_for_mime((string) ($source['mime_type'] ?? $source['content_type'] ?? ''))
+                : $normalized['format'];
+            $format = $format === 'jpeg' ? 'jpg' : $format;
+            if (!in_array($format, ['jpg', 'png', 'gif', 'webp'], true)) {
+                return '';
+            }
+
+            $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
+            $keyValue = (string) ($source['storage_key'] ?? $source['key'] ?? '');
+            $sourceId = sr_storage_key_is_safe($keyValue) ? $keyValue : '';
+            if ($sourceId === '' && is_string($source['source_path'] ?? null)) {
+                $storageRoot = realpath(SR_ROOT . '/storage');
+                $realPath = realpath((string) $source['source_path']);
+                if (is_string($storageRoot) && is_string($realPath)) {
+                    $storagePrefix = rtrim($storageRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+                    if (str_starts_with($realPath, $storagePrefix)) {
+                        $sourceId = substr($realPath, strlen($storagePrefix));
+                    }
+                }
+            }
+            if (!in_array($driver, ['local', 's3'], true) || $sourceId === '') {
+                return '';
+            }
+
+            $sourceHash = hash('sha256', $driver . ':' . $sourceId);
+            $sourceVersion = sr_thumbnail_source_version($source);
+            $cacheRelative = 'cache/thumbnails/' . sr_thumbnail_module_key($source) . '/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . sr_thumbnail_variant_key($normalized) . '_' . $sourceVersion . '.' . $format;
+            $cachePath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $cacheRelative);
+            return is_file($cachePath) ? sr_thumbnail_public_cache_url($cacheRelative) : '';
+        }
+    }
+
+    return '';
+}
+
 function sr_thumbnail_source_version(array $source, ?array $head = null, ?string $sourcePath = null): string
 {
     foreach (['source_version', 'checksum_sha256', 'checksum'] as $key) {
@@ -381,6 +422,11 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     }
     if (!$publicSource || !in_array($driver, ['local', 's3'], true) || (!sr_storage_key_is_safe($key) && $sourcePath === '')) {
         return $publicUrl;
+    }
+
+    $metadataCacheUrl = sr_thumbnail_metadata_cache_url($source, $options);
+    if ($metadataCacheUrl !== '') {
+        return $metadataCacheUrl;
     }
 
     $sourceFile = $sourcePath !== ''

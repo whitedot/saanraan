@@ -156,7 +156,7 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     );
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latestCached) === [4, 2, 1],
-        'home latest feed fixture must hydrate posts from persistent cache snapshots.'
+        'home latest feed fixture must render posts from persistent cache snapshots.'
     );
     sr_check_community_feed_cache_contract_assert(
         (int) $pdo->query('SELECT COUNT(*) FROM sr_community_feed_cache WHERE cache_status = "fresh"')->fetchColumn() === 2,
@@ -220,6 +220,9 @@ $snapshot = sr_community_feed_cache_card_snapshot([
     'view_count' => 123,
     'thumbnail_url' => '/bad/cache.jpg',
     'list_image_attachment_id' => 44,
+    'list_image_storage_key' => 'community/44/source.jpg',
+    'list_image_mime_type' => 'image/jpeg',
+    'list_image_size_bytes' => 2048,
     'list_image_checksum_sha256' => str_repeat('a', 64),
     'list_image_width' => 640,
     'list_image_height' => 360,
@@ -236,9 +239,11 @@ $snapshot = sr_community_feed_cache_card_snapshot([
 sr_check_community_feed_cache_contract_assert(($snapshot['post_id'] ?? null) === 77, 'card snapshot must store post id.');
 sr_check_community_feed_cache_contract_assert(($snapshot['author_account_id'] ?? null) === 9, 'card snapshot must store author account id for render-time label resolve.');
 sr_check_community_feed_cache_contract_assert(($snapshot['view_count'] ?? null) === 123, 'card snapshot must store view count for both ordering and display.');
+sr_check_community_feed_cache_contract_assert(($snapshot['comment_count'] ?? null) === 100, 'card snapshot may store public comment count for cached home card rendering.');
 sr_check_community_feed_cache_contract_assert(($snapshot['thumbnail_source']['attachment_id'] ?? null) === 44, 'card snapshot must store thumbnail source marker instead of rendered URL.');
+sr_check_community_feed_cache_contract_assert(($snapshot['thumbnail_source']['storage_key'] ?? '') !== '', 'card snapshot must store thumbnail source key so cache hits can avoid attachment relookup.');
 sr_check_community_feed_cache_contract_assert(!array_key_exists('author_label_snapshot', $snapshot), 'card snapshot must not store author label snapshot.');
-sr_check_community_feed_cache_contract_assert(!array_key_exists('published_comment_count', $snapshot), 'card snapshot must not store comment count before #360 source is adopted.');
+sr_check_community_feed_cache_contract_assert(!array_key_exists('published_comment_count', $snapshot), 'card snapshot must not store source-specific comment count key.');
 sr_check_community_feed_cache_contract_assert(!array_key_exists('thumbnail_url', $snapshot), 'card snapshot must not store rendered thumbnail URL.');
 sr_check_community_feed_cache_contract_assert(!sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot), 'card snapshot must not contain forbidden fields.');
 

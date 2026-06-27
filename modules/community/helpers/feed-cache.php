@@ -432,6 +432,10 @@ function sr_community_feed_cache_thumbnail_source_marker(array $post): array
 
     return [
         'attachment_id' => $attachmentId,
+        'storage_driver' => (string) ($post['list_image_storage_driver'] ?? $post['thumbnail_storage_driver'] ?? 'local'),
+        'storage_key' => (string) ($post['list_image_storage_key'] ?? $post['thumbnail_storage_key'] ?? ''),
+        'mime_type' => (string) ($post['list_image_mime_type'] ?? $post['thumbnail_mime_type'] ?? ''),
+        'size_bytes' => max(0, (int) ($post['list_image_size_bytes'] ?? $post['thumbnail_size_bytes'] ?? 0)),
         'checksum_sha256' => (string) ($post['list_image_checksum_sha256'] ?? $post['thumbnail_checksum_sha256'] ?? ''),
         'width' => max(0, (int) ($post['list_image_width'] ?? $post['thumbnail_width'] ?? 0)),
         'height' => max(0, (int) ($post['list_image_height'] ?? $post['thumbnail_height'] ?? 0)),
@@ -450,8 +454,10 @@ function sr_community_feed_cache_card_snapshot(array $post): array
         'title' => sr_clean_single_line((string) ($post['title'] ?? ''), 160),
         'author_account_id' => max(0, (int) ($post['author_account_id'] ?? 0)),
         'view_count' => max(0, (int) ($post['view_count'] ?? 0)),
+        'comment_count' => max(0, (int) ($post['published_comment_count'] ?? $post['comment_count'] ?? 0)),
         'thumbnail_source' => sr_community_feed_cache_thumbnail_source_marker($post),
         'is_secret' => !empty($post['is_secret']) ? 1 : 0,
+        'excerpt' => !empty($post['is_secret']) ? '' : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160),
         'created_at' => sr_clean_single_line((string) ($post['created_at'] ?? ''), 40),
         'updated_at' => sr_clean_single_line((string) ($post['updated_at'] ?? ''), 40),
         'source_updated_at' => sr_clean_single_line((string) ($post['source_updated_at'] ?? $post['updated_at'] ?? ''), 40),

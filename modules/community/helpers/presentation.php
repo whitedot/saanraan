@@ -257,6 +257,11 @@ function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boa
         $homeExcerptAllowed = !empty($homeExcerptAllowedByBoardId[$boardId]);
         $post['home_excerpt_allowed'] = $homeExcerptAllowed;
         $post['home_image_url'] = sr_community_home_post_image_url($pdo, $post, $boardById[$boardId], $settings, $homeExcerptAllowed);
+        if ($homeExcerptAllowed && !array_key_exists('home_excerpt', $post)) {
+            $post['home_excerpt'] = !empty($post['is_secret'])
+                ? ''
+                : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
+        }
         $posts[] = $post;
     }
 
@@ -282,72 +287,57 @@ function sr_community_home_post_feed_live_rows(PDO $pdo, array $boardIds, int $l
 
 function sr_community_home_post_feed_rows_by_snapshots(PDO $pdo, array $snapshots, array $boardById): array
 {
-    $postIds = [];
+    unset($pdo);
+
+    $rows = [];
     foreach ($snapshots as $snapshot) {
         if (!is_array($snapshot)) {
             continue;
         }
         $postId = (int) ($snapshot['post_id'] ?? 0);
         $boardId = (int) ($snapshot['board_id'] ?? 0);
-        if ($postId > 0 && isset($boardById[$boardId])) {
-            $postIds[$postId] = $postId;
+        if ($postId < 1 || !isset($boardById[$boardId])) {
+            continue;
         }
-    }
-    if ($postIds === []) {
-        return [];
-    }
 
-    $placeholders = [];
-    $params = [];
-    foreach (array_values($postIds) as $index => $postId) {
-        $paramKey = 'cached_post_id_' . (string) $index;
-        $placeholders[] = ':' . $paramKey;
-        $params[$paramKey] = $postId;
-    }
-
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
-    $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
-                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
-                (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
-                list_image.id AS list_image_attachment_id,
-                list_image.storage_driver AS list_image_storage_driver,
-                list_image.storage_key AS list_image_storage_key,
-                list_image.mime_type AS list_image_mime_type,
-                list_image.size_bytes AS list_image_size_bytes,
-                list_image.checksum_sha256 AS list_image_checksum_sha256,
-                list_image.width AS list_image_width,
-                list_image.height AS list_image_height
-         FROM sr_community_posts p
-         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
-         LEFT JOIN sr_community_attachments list_image ON list_image.id = (
-             SELECT MIN(att_img.id)
-             FROM sr_community_attachments att_img
-             WHERE att_img.post_id = p.id
-               AND att_img.status = \'active\'
-               AND att_img.mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
-         )
-         WHERE p.status = \'published\'
-           AND p.id IN (' . implode(', ', $placeholders) . ')'
-    );
-    foreach ($params as $paramKey => $postId) {
-        $stmt->bindValue($paramKey, $postId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-
-    $rowsById = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $rowsById[(int) ($row['id'] ?? 0)] = $row;
-    }
-
-    $rows = [];
-    foreach ($snapshots as $snapshot) {
-        $postId = (int) ($snapshot['post_id'] ?? 0);
-        if (isset($rowsById[$postId])) {
-            $rows[] = $rowsById[$postId];
-        }
+        $thumbnailSource = isset($snapshot['thumbnail_source']) && is_array($snapshot['thumbnail_source'])
+            ? $snapshot['thumbnail_source']
+            : [];
+        $rows[] = [
+            'id' => $postId,
+            'board_id' => $boardId,
+            'category_id' => null,
+            'category_key' => null,
+            'category_title' => null,
+            'category_status' => null,
+            'author_account_id' => max(0, (int) ($snapshot['author_account_id'] ?? 0)),
+            'author_public_name_snapshot' => '',
+            'author_account_status' => '',
+            'guest_author_name' => '',
+            'guest_password_hash' => null,
+            'guest_ip_hash' => null,
+            'guest_user_agent_hash' => null,
+            'title' => (string) ($snapshot['title'] ?? ''),
+            'body_text' => '',
+            'body_format' => 'plain',
+            'is_secret' => !empty($snapshot['is_secret']) ? 1 : 0,
+            'status' => 'published',
+            'view_count' => max(0, (int) ($snapshot['view_count'] ?? 0)),
+            'last_commented_at' => null,
+            'created_at' => (string) ($snapshot['created_at'] ?? ''),
+            'updated_at' => (string) ($snapshot['updated_at'] ?? ''),
+            'published_comment_count' => max(0, (int) ($snapshot['comment_count'] ?? 0)),
+            'active_attachment_count' => empty($thumbnailSource) ? 0 : 1,
+            'list_image_attachment_id' => max(0, (int) ($thumbnailSource['attachment_id'] ?? 0)),
+            'list_image_storage_driver' => (string) ($thumbnailSource['storage_driver'] ?? 'local'),
+            'list_image_storage_key' => (string) ($thumbnailSource['storage_key'] ?? ''),
+            'list_image_mime_type' => (string) ($thumbnailSource['mime_type'] ?? ''),
+            'list_image_size_bytes' => max(0, (int) ($thumbnailSource['size_bytes'] ?? 0)),
+            'list_image_checksum_sha256' => (string) ($thumbnailSource['checksum_sha256'] ?? ''),
+            'list_image_width' => max(0, (int) ($thumbnailSource['width'] ?? 0)),
+            'list_image_height' => max(0, (int) ($thumbnailSource['height'] ?? 0)),
+            'home_excerpt' => (string) ($snapshot['excerpt'] ?? ''),
+        ];
     }
 
     return $rows;

@@ -310,6 +310,12 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
         sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, ['width' => 160, 'height' => 90]) === $thumbnailUrl,
         'Thumbnail helper must reuse an existing variant cache file.'
     );
+    $metadataHitSource = $source;
+    $metadataHitSource['mime_type'] = 'image/png';
+    sr_storage_helper_assert(
+        sr_thumbnail_public_url(new PDO('sqlite::memory:'), $metadataHitSource, ['width' => 160, 'height' => 90, 'max_source_bytes' => 1]) === $thumbnailUrl,
+        'Thumbnail helper must return metadata cache hits before opening an oversized source.'
+    );
     sr_thumbnail_delete_variants($source);
     sr_storage_helper_assert(!is_file($thumbnailPath), 'Thumbnail helper must delete cached variants for the source.');
     $sourcePathThumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), [

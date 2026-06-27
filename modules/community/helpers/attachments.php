@@ -124,20 +124,22 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
 
     $attachmentId = (int) $post['list_image_attachment_id'];
     $publicUrl = sr_url('/community/attachment?id=' . rawurlencode((string) $attachmentId));
-    $attachment = sr_community_attachment_by_id($pdo, $attachmentId);
-    if (is_array($attachment)
-        && (int) ($attachment['post_id'] ?? 0) === (int) ($post['id'] ?? 0)
-        && (string) ($attachment['status'] ?? '') === 'active'
-        && sr_community_attachment_is_image($attachment)
-    ) {
-        $post['list_image_storage_driver'] = sr_community_attachment_storage_driver($attachment);
-        $post['list_image_storage_key'] = sr_community_attachment_storage_key($attachment);
-        $post['list_image_mime_type'] = (string) ($attachment['mime_type'] ?? '');
-        $post['list_image_size_bytes'] = (int) ($attachment['size_bytes'] ?? 0);
-        $post['list_image_checksum_sha256'] = (string) ($attachment['checksum_sha256'] ?? '');
-        $post['list_image_width'] = (int) ($attachment['width'] ?? 0);
-        $post['list_image_height'] = (int) ($attachment['height'] ?? 0);
-        $post['list_image_source_path'] = sr_community_attachment_file_path($attachment) ?? '';
+    if ((string) ($post['list_image_storage_key'] ?? '') === '' && (string) ($post['list_image_source_path'] ?? '') === '') {
+        $attachment = sr_community_attachment_by_id($pdo, $attachmentId);
+        if (is_array($attachment)
+            && (int) ($attachment['post_id'] ?? 0) === (int) ($post['id'] ?? 0)
+            && (string) ($attachment['status'] ?? '') === 'active'
+            && sr_community_attachment_is_image($attachment)
+        ) {
+            $post['list_image_storage_driver'] = sr_community_attachment_storage_driver($attachment);
+            $post['list_image_storage_key'] = sr_community_attachment_storage_key($attachment);
+            $post['list_image_mime_type'] = (string) ($attachment['mime_type'] ?? '');
+            $post['list_image_size_bytes'] = (int) ($attachment['size_bytes'] ?? 0);
+            $post['list_image_checksum_sha256'] = (string) ($attachment['checksum_sha256'] ?? '');
+            $post['list_image_width'] = (int) ($attachment['width'] ?? 0);
+            $post['list_image_height'] = (int) ($attachment['height'] ?? 0);
+            $post['list_image_source_path'] = sr_community_attachment_file_path($attachment) ?? '';
+        }
     }
 
     return sr_thumbnail_public_url($pdo, [

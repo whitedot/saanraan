@@ -20,7 +20,7 @@
 | 정적 asset 브라우저 캐시 | CSS, JavaScript, 이미지, 폰트처럼 공개 정적 파일에 사용한다. URL version 또는 파일 수정 시각으로 갱신 가능해야 한다. |
 | 라이브러리 정의 캐시 | HTML Purifier 정의 캐시처럼 외부 라이브러리 성능 보조에 사용한다. 경로는 `storage/cache/htmlpurifier`처럼 vendor 밖이어야 한다. |
 | 공개 업로드 이미지 응답 캐시 | 회원 아바타처럼 공개 경로로 제공되는 업로드 이미지는 권한/개인정보별 HTML과 분리하고, 파일명 또는 query version으로 갱신되게 한다. 로컬 파일 응답은 `Cache-Control`, `ETag`, `Last-Modified`를 보내고 조건부 요청이 맞으면 `304 Not Modified`로 끝낼 수 있다. |
-| 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. 원본 교체 감지는 모듈 제공 `source_version`/checksum, S3 `VersionId`/ETag/LastModified, 로컬 mtime/size 순으로 산출한 source version이 담당한다. |
+| 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. 원본 교체 감지는 모듈 제공 `source_version`/checksum, S3 `VersionId`/ETag/LastModified, 로컬 mtime/size 순으로 산출한 source version이 담당한다. 호출자가 checksum/source version과 MIME을 제공하면 helper는 원본 파일 또는 S3 원본을 열기 전에 기존 cache file을 먼저 확인하고, cache hit이면 원본 검증/다운로드 없이 캐시 URL을 반환해야 한다. |
 | 내부 URL 임베드 fragment 캐시 | `embed_manager`가 `storage/cache/embeds` 아래에 sanitized HTML fragment를 저장해 같은 공개 baseline 내부 URL 임베드를 다시 렌더링할 때 대상 계약 실행을 건너뛸 수 있다. 직접 공개 URL로 제공하지 않으며, 대상 모듈이 `fragment_cache_public`을 명시하고 익명 공개/비유료/비권한 조건과 target cache version을 제공할 때만 생성한다. |
 | read-only 상태 점검 결과 기록 | `ops-status.php` 출력처럼 사람이 기록하는 운영 기록은 캐시가 아니라 점검 증거로 다룬다. |
 
@@ -40,7 +40,7 @@
 
 기간별 정리는 현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제하고, 원본 파일이나 모듈 데이터는 변경하지 않는다. 삭제 작업은 하단 sticky 액션에서 확인 모달을 열고, 관리자 `delete` 권한, CSRF, 확인 문구, 감사 로그를 요구한다. 캐시 정책의 핵심은 원본 변경 시 정확한 시점에 새 캐시 URL이 나오고, 더 이상 필요하지 않은 파생 파일을 운영자가 확인해 지울 수 있는 것이다. 따라서 모듈은 가능한 한 `source_version` 또는 checksum을 제공하고, 원본 교체/삭제 작업 뒤에는 `sr_thumbnail_delete_variants()`를 호출해 같은 원본 key의 기존 variant를 정리한다.
 
-S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤 임시 파일로 내려받아 local `storage/cache/thumbnails`에 썸네일 캐시를 생성한다. S3 `VersionId`가 있으면 presigned `GetObject`에도 같은 version을 지정해 HEAD와 GET 사이의 원본 변경 경합을 줄인다. 썸네일 캐시 저장소 자체를 S3로 바꾸는 기능은 adapter 기반 list/delete 계약이 필요하므로 후속 범위로 둔다.
+S3 원본 이미지는 cache miss 또는 checksum/source version이 없어 선조회가 불가능할 때 `HeadObject`로 크기와 version marker를 확인한 뒤 임시 파일로 내려받아 local `storage/cache/thumbnails`에 썸네일 캐시를 생성한다. S3 `VersionId`가 있으면 presigned `GetObject`에도 같은 version을 지정해 HEAD와 GET 사이의 원본 변경 경합을 줄인다. 썸네일 캐시 저장소 자체를 S3로 바꾸는 기능은 adapter 기반 list/delete 계약이 필요하므로 후속 범위로 둔다.
 
 ## 사이트 메뉴 캐시
 
@@ -67,7 +67,7 @@ S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤
 
 커뮤니티 게시글처럼 큰 테이블을 관리자 lookup에서 참조할 때는 offset pagination과 기본 count를 피하고, `id < cursor` 최신순 조회와 `LIMIT + 1` 방식의 `has_more` 계산을 기본으로 한다. 보드가 선택된 최신순/상태 조회는 `(board_id, status, id)` 계열 인덱스에 맞추고, 보드 없이 상태만 거는 최신순 조회를 허용하면 `(status, id)` 인덱스를 설치 SQL과 update SQL에 함께 둔다. 홈/위젯 인기글처럼 공개 baseline 전체에서 `view_count DESC, id DESC`를 쓰는 경로는 `(status, view_count, id)` 인덱스와 후보 게시글 선제 `LIMIT`을 기준으로 측정한다. 제목 `LIKE '%keyword%'` 검색은 보조 fallback으로만 두고, 텍스트 최소 길이와 강한 limit, 가능하면 보드 필터로 범위를 좁힌다.
 
-커뮤니티 게시글 묶음 feed cache는 `sr_community_feed_cache` DB 테이블을 영속 저장소로 사용한다. 사용자 커뮤니티 홈의 everyone-discoverable 공개 게시판 baseline 최신글/인기글 feed는 context hash, 게시판 ID set, 정렬, 표시 수, locale, 정책 버전을 기준으로 snapshot을 저장한다. cache miss, stale, 만료 상태에서는 live query를 실행하고 같은 요청에서 cache row를 갱신한다. cache value에는 최종 HTML, CSRF token, 계정별 권한 결과, 계정별 유료 접근권 상태, 본문 전체를 넣지 않는다. 저장 snapshot은 post id, board id, 제목, 작성자 account id, 조회수, 썸네일 source marker, 비밀글 표시, 생성/수정 시각처럼 공개 baseline 재조회에 필요한 좁은 값만 담고, 렌더링 직전 현재 게시글 row를 post id로 다시 hydrate한다. 게시글 작성/수정/삭제/상태 변경, 댓글 작성, 게시판 설정 변경은 feed cache row를 stale 처리해야 한다.
+커뮤니티 게시글 묶음 feed cache는 `sr_community_feed_cache` DB 테이블을 영속 저장소로 사용한다. 사용자 커뮤니티 홈의 everyone-discoverable 공개 게시판 baseline 최신글/인기글 feed는 context hash, 게시판 ID set, 정렬, 표시 수, locale, 정책 버전을 기준으로 snapshot을 저장한다. cache miss, stale, 만료 상태에서는 live query를 실행하고 같은 요청에서 cache row를 갱신한다. cache value에는 최종 HTML, CSRF token, 계정별 권한 결과, 계정별 유료 접근권 상태, 본문 전체, 렌더된 썸네일 URL을 넣지 않는다. 저장 snapshot은 post id, board id, 제목, 작성자 account id, 조회수, 공개 댓글 수, 공개 홈 excerpt, 썸네일 source marker, 비밀글 표시, 생성/수정 시각처럼 공개 baseline 홈 카드 렌더링에 필요한 좁은 값만 담는다. 공개 홈 cache hit는 후보 재선정과 게시글 row hydrate를 건너뛰고 snapshot으로 카드 row를 구성하되, 작성자 label처럼 계정 상태를 반영해야 하는 값은 렌더 단계에서 resolve한다. 게시글 작성/수정/삭제/상태 변경, 댓글 작성, 게시판 설정 변경은 feed cache row를 stale 처리해야 한다.
 
 본문 URL 임베드 fragment 캐시는 최신글 공개 baseline과 같은 원칙을 따른다. 콘텐츠 유료 열람, 커뮤니티 paid read/비밀글/비공개 게시판, 퀴즈 회원 그룹 제한, 설문 로그인/회원 그룹 제한처럼 viewer별 계약이 필요한 대상은 fragment cache value에 넣지 않는다. 대상 모듈은 공개 상태나 target cache version이 바뀌는 저장/삭제/상태 변경 후 URL 캐시 row를 stale 처리해 이전 fragment가 재사용되지 않게 해야 한다.
 

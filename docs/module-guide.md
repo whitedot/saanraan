@@ -661,7 +661,7 @@ modules/board/
 
 ## 9-3. 공개 이미지 썸네일
 
-공개 목록, 카드, 커버 이미지처럼 여러 크기의 공개 이미지가 필요한 모듈은 직접 경로와 파일명을 조립하지 말고 `sr_thumbnail_public_url()`을 사용한다. 이 helper는 로컬 원본과 S3 원본을 같은 입력 구조로 받고, 실제 이미지 MIME과 크기를 다시 확인한 뒤 `storage/cache/thumbnails/{module_key}/{hash-prefix}/` 아래에 파생 파일을 만든다.
+공개 목록, 카드, 커버 이미지처럼 여러 크기의 공개 이미지가 필요한 모듈은 직접 경로와 파일명을 조립하지 말고 `sr_thumbnail_public_url()`을 사용한다. 이 helper는 로컬 원본과 S3 원본을 같은 입력 구조로 받고, 실제 이미지 MIME과 크기를 다시 확인한 뒤 `storage/cache/thumbnails/{module_key}/{hash-prefix}/` 아래에 파생 파일을 만든다. 모듈이 checksum/source version과 MIME을 넘기면 기존 캐시 파일을 원본 열기보다 먼저 확인하므로, 목록/홈처럼 반복 노출되는 화면에서는 가능한 한 이 metadata를 함께 제공한다.
 
 모듈이 넘기는 source 배열에는 가능한 한 다음 값을 포함한다.
 
@@ -672,7 +672,7 @@ modules/board/
 
 썸네일 크기, 맞춤 방식, 품질은 호출 모듈이 화면 용도에 맞게 `width`, `height`, `mode`, `quality`, `format`, `max_source_bytes`, `max_source_pixels` option으로 정한다. 다만 각 모듈이 별도 썸네일 디렉터리, 파일명, 삭제 규칙을 하드코딩하지 않는다. 원본 이미지가 교체되거나 삭제되는 action에서는 `sr_thumbnail_delete_variants()`로 같은 저장소 key의 기존 variant를 정리해 잔존 캐시 파일을 줄인다.
 
-S3 원본은 helper가 `HeadObject`와 임시 파일 다운로드를 거쳐 처리한다. S3 `VersionId`가 있으면 같은 version을 다운로드하도록 presigned URL에 반영하고, 실제 MIME은 내려받은 파일 기준으로 다시 판단한다. 썸네일 캐시 저장소 자체는 현재 local `storage/cache/thumbnails`이며, S3 캐시 저장소 선택은 별도 adapter 계획 범위다.
+S3 원본은 cache miss 또는 metadata 부족으로 선조회가 불가능할 때 helper가 `HeadObject`와 임시 파일 다운로드를 거쳐 처리한다. S3 `VersionId`가 있으면 같은 version을 다운로드하도록 presigned URL에 반영하고, 실제 MIME은 내려받은 파일 기준으로 다시 판단한다. 썸네일 캐시 저장소 자체는 현재 local `storage/cache/thumbnails`이며, S3 캐시 저장소 선택은 별도 adapter 계획 범위다.
 
 ## 9-4. 번역 파일
 
