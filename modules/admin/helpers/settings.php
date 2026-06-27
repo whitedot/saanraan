@@ -170,15 +170,15 @@ function sr_admin_code_label_context_options(): array
         'embed_manager_status' => [
             'active' => '정상',
             'removed' => '제거됨',
-            'broken' => '깨짐',
+            'broken' => '연결 불가',
             'private' => '비공개',
             'deleted' => '삭제됨',
         ],
         'embed_manager_cache_status' => [
-            'fresh' => '정상',
-            'stale' => '재확인 필요',
-            'deleted' => '삭제됨',
-            'broken' => '깨짐',
+            'fresh' => '최신',
+            'stale' => '갱신 필요',
+            'deleted' => '대상 삭제됨',
+            'broken' => '연결 불가',
         ],
         'policy' => [
             'public' => '전체 공개',

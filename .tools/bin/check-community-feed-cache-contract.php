@@ -305,7 +305,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/admin-menu.php', [
-    "'label' => '최신글 캐시 관리'",
+    "'label' => '홈 피드 캐시'",
     "'path' => '/admin/community/feed-cache'",
 ]);
 
@@ -316,7 +316,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/actions/admin
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/views/admin-feed-cache.php', [
-    '$adminPageTitle = \'최신글 캐시 관리\'',
+    '$adminPageTitle = \'홈 피드 캐시\'',
     '공개 baseline',
     '컨텍스트 해시',
     'DB 영속 캐시 사용',

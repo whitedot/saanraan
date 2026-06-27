@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-$adminPageTitle = '최신글 캐시 관리';
+$adminPageTitle = '홈 피드 캐시';
 $adminPageSubtitle = [
-    '커뮤니티 홈 공개 baseline 최신글/인기글 DB 영속 캐시 상태를 확인합니다.',
+    '커뮤니티 홈의 공개 게시판 최신글/인기글 목록을 빠르게 보여주기 위한 저장값입니다.',
+    '게시글, 댓글, 게시판 공개 조건이 바뀌면 기존 저장값은 자동으로 갱신 대상으로 표시되고 다음 홈 조회 때 현재 조건으로 다시 계산됩니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/feed-cache');
 $feedCacheStoreStatus = isset($feedCacheStoreStatus) && is_array($feedCacheStoreStatus) ? $feedCacheStoreStatus : [];
@@ -34,9 +35,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="badge badge-soft-secondary">파일 캐시 <?php echo !empty($feedCacheStoreStatus['file_cache_exists']) ? '있음' : '없음'; ?></span>
                 <span class="badge badge-soft-secondary">저장 row <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['row_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">fresh <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['fresh_count'] ?? 0))); ?></span>
-                <span class="badge badge-soft-secondary">stale <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['stale_count'] ?? 0))); ?></span>
+                <span class="badge badge-soft-secondary">갱신 필요 <?php echo sr_e(number_format((int) ($feedCacheStoreStatus['stale_count'] ?? 0))); ?></span>
                 <span class="badge badge-soft-secondary">공개 baseline <?php echo sr_e(number_format($baselineBoardCount)); ?>개</span>
                 <span class="badge badge-soft-secondary">유료 열람 제한 <?php echo sr_e(number_format($paidReadLimitedCount)); ?>개</span>
+            </div>
+        </div>
+        <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
+            <div class="badge-list">
+                <span class="badge badge-soft-info">게시글 작성/수정/삭제/상태 변경 시 갱신 대상</span>
+                <span class="badge badge-soft-info">댓글 작성 시 갱신 대상</span>
+                <span class="badge badge-soft-info">게시판 공개/권한/유료 열람 조건 변경 시 갱신 대상</span>
             </div>
         </div>
         <div class="table-wrapper">
@@ -69,6 +77,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </tbody>
             </table>
+        </div>
+    </section>
+
+    <section class="card admin-list-card admin-list-form">
+        <div class="card-header">
+            <h2 class="card-title">관련 운영 화면</h2>
+        </div>
+        <div class="admin-list-summary-row admin-community-feed-cache-summary-row">
+            <div class="badge-list">
+                <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">커뮤니티 썸네일 파일 캐시</a>
+                <a class="badge badge-soft-secondary" href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">본문 URL 임베드 저장값</a>
+            </div>
         </div>
     </section>
 </div>

@@ -1,8 +1,9 @@
 <?php
 
-$adminPageTitle = '썸네일 캐시';
+$adminPageTitle = '썸네일 파일 캐시';
 $adminPageSubtitle = [
-    '정리해도 원본 파일은 삭제되지 않습니다.',
+    '공개 이미지에서 만든 작은 이미지 파일입니다.',
+    '정리해도 원본 파일과 게시글은 삭제되지 않으며, 화면에서 다시 필요해지면 새로 생성됩니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/storage-cache');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -69,7 +70,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             </thead>
             <tbody>
                 <?php if ($dateCounts === []) { ?>
-                    <tr><td colspan="3" class="admin-empty-state">조회된 썸네일 캐시가 없습니다.</td></tr>
+                    <tr><td colspan="3" class="admin-empty-state">조회된 썸네일 파일 캐시가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($dateCounts as $date => $count) { ?>
                     <tr>
@@ -134,7 +135,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             </thead>
             <tbody>
                 <?php if ($cacheRows === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state">조회된 썸네일 캐시 파일이 없습니다.</td></tr>
+                    <tr><td colspan="6" class="admin-empty-state">조회된 썸네일 파일 캐시가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($cacheRows as $row) { ?>
                     <tr>
@@ -164,7 +165,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
         <div class="modal-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme" data-admin-storage-cache-cleanup-form>
                 <div class="modal-header">
-                    <h3 id="admin-storage-cache-cleanup-modal-label" class="modal-title">썸네일 캐시 정리</h3>
+                    <h3 id="admin-storage-cache-cleanup-modal-label" class="modal-title">썸네일 파일 캐시 정리</h3>
                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#admin-storage-cache-cleanup-modal"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">

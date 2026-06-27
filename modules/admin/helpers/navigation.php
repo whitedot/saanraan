@@ -164,7 +164,7 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 30],
                 ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 40],
                 ['label' => '운영 지연/실패 점검', 'path' => '/admin/operations', 'order' => 50],
-                ['label' => '썸네일 캐시', 'path' => '/admin/storage-cache', 'order' => 60],
+                ['label' => '썸네일 파일 캐시', 'path' => '/admin/storage-cache', 'order' => 60],
                 ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 70],
                 ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 80],
                 ['label' => sr_t('admin::nav.roles'), 'path' => '/admin/roles', 'order' => 90],

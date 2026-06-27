@@ -1,7 +1,10 @@
 <?php
 
-$adminPageTitle = '임베드 캐시 관리';
-$adminPageSubtitle = '';
+$adminPageTitle = '본문 URL 임베드';
+$adminPageSubtitle = [
+    '본문 안의 URL을 카드 형태로 보여주기 위한 파생 저장값입니다.',
+    'URL이 가리키는 대상의 제목, 요약, 대표 이미지, 공개 상태가 바뀌면 대상 모듈이 갱신 대상으로 표시합니다.',
+];
 $adminContainerClass = 'admin-page-embed-manager-list admin-ui-scope';
 $selectedStatuses = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
 $detailFilterOpen = $selectedStatuses !== [];
@@ -36,14 +39,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (!$tableReady) { ?>
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e('URL 임베드 캐시'); ?></h2>
+            <h2 class="card-title"><?php echo sr_e('URL 임베드 저장값'); ?></h2>
         </div>
-        <p class="admin-empty-state"><?php echo sr_e('URL 임베드 캐시 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
+        <p class="admin-empty-state"><?php echo sr_e('본문 URL 임베드 저장 테이블이 아직 준비되지 않았습니다. 모듈 설치 또는 업데이트 상태를 확인하세요.'); ?></p>
     </section>
 <?php } else { ?>
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title"><?php echo sr_e('URL 임베드 캐시'); ?></h2>
+            <h2 class="card-title"><?php echo sr_e('URL 임베드 저장값'); ?></h2>
+        </div>
+        <div class="admin-list-summary-row">
+            <p class="admin-summary-meta"><?php echo sr_e('소유 대상은 URL을 본문에 담고 있는 글이나 콘텐츠이고, 임베드 대상은 그 URL이 가리키는 게시글·콘텐츠·퀴즈 같은 공개 대상입니다.'); ?></p>
         </div>
         <div class="admin-list-summary-row">
             <div class="admin-list-summary">
@@ -52,7 +58,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="table-wrapper">
             <table class="table table-list admin-embed-manager-table">
-                <caption class="sr-only"><?php echo sr_e('URL 임베드 캐시 목록'); ?></caption>
+                <caption class="sr-only"><?php echo sr_e('URL 임베드 저장값 목록'); ?></caption>
                 <thead>
                     <tr>
                         <th><?php echo sr_e('URL'); ?></th>
@@ -65,7 +71,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($urlCacheRows === []) { ?>
                         <tr>
-                            <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 URL 임베드 캐시가 없습니다.'); ?></td>
+                            <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 URL 임베드 저장값이 없습니다.'); ?></td>
                         </tr>
                     <?php } ?>
                     <?php foreach ($urlCacheRows as $ref) { ?>

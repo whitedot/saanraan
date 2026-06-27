@@ -45,7 +45,7 @@ return [
             'order' => 67,
         ],
         [
-            'label' => '최신글 캐시 관리',
+            'label' => '홈 피드 캐시',
             'path' => '/admin/community/feed-cache',
             'order' => 68,
         ],
