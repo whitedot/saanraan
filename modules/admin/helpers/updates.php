@@ -2,61 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_admin_update_files(string $directory): array
-{
-    return sr_schema_update_files($directory);
-}
-
-function sr_admin_update_checksum(string $path): string
-{
-    return sr_schema_update_checksum($path);
-}
-
-function sr_admin_update_statement_count(string $path): int
-{
-    return sr_schema_update_statement_count($path);
-}
-
-function sr_admin_update_path_is_allowed(array $update): bool
-{
-    return sr_schema_update_path_is_allowed($update);
-}
-
-function sr_admin_acquire_update_lock(PDO $pdo): bool
-{
-    return sr_schema_update_lock_acquire($pdo);
-}
-
-function sr_admin_release_update_lock(PDO $pdo): void
-{
-    sr_schema_update_lock_release($pdo);
-}
-
-function sr_admin_applied_schema_versions(PDO $pdo): array
-{
-    return sr_applied_schema_version_map($pdo);
-}
-
-function sr_admin_schema_versions(PDO $pdo): array
-{
-    return sr_schema_version_rows($pdo);
-}
-
-function sr_admin_pending_updates(PDO $pdo): array
-{
-    return sr_pending_schema_updates($pdo);
-}
-
-function sr_admin_apply_update(PDO $pdo, array $update): void
-{
-    sr_apply_schema_update($pdo, $update);
-}
-
-function sr_admin_previous_update_failure(): ?array
-{
-    return sr_previous_schema_update_failure();
-}
-
 function sr_admin_audit_schema_update(PDO $pdo, array $account, array $update, string $eventType, string $result, string $message, array $metadata = []): void
 {
     sr_audit_log($pdo, [
@@ -194,14 +139,4 @@ function sr_admin_handle_updates_post(PDO $pdo, array $account): array
         'notice' => $notice,
         'applied_updates' => $appliedUpdates,
     ];
-}
-
-function sr_admin_module_version_drifts(PDO $pdo, array $pendingUpdateCounts): array
-{
-    return sr_module_version_drifts($pdo, $pendingUpdateCounts);
-}
-
-function sr_admin_file_only_module_version_drifts(array $moduleVersionDrifts): array
-{
-    return sr_file_only_module_version_drifts($moduleVersionDrifts);
 }

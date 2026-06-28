@@ -480,7 +480,7 @@ function sr_check_module_lifecycle_ui_contract(): void
         }
     }
 
-    foreach (['sr_admin_acquire_update_lock', 'update-failed.json', 'schema.update.failed', 'backup_confirmed'] as $needle) {
+    foreach (['sr_schema_update_lock_acquire', 'update-failed.json', 'schema.update.failed', 'backup_confirmed'] as $needle) {
         if (!str_contains($updatesHelper, $needle)) {
             sr_check_add_error('Admin update safety marker is missing: ' . $needle);
         }
