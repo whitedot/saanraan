@@ -120,19 +120,6 @@ function sr_content_series_by_id(PDO $pdo, int $seriesId): ?array
     return is_array($row) ? $row : null;
 }
 
-function sr_content_series_by_key(PDO $pdo, string $seriesKey): ?array
-{
-    if (!sr_content_series_key_is_valid($seriesKey) || !sr_content_series_supported($pdo)) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare('SELECT * FROM sr_content_series WHERE series_key = :series_key LIMIT 1');
-    $stmt->execute(['series_key' => $seriesKey]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
-}
-
 function sr_content_series_key_exists(PDO $pdo, string $seriesKey, int $exceptSeriesId = 0): bool
 {
     if (!sr_content_series_key_is_valid($seriesKey) || !sr_content_series_supported($pdo)) {

@@ -899,41 +899,6 @@ function sr_content_copy_series_validate_options(PDO $pdo, int $sourceContentId,
     return $errors;
 }
 
-function sr_content_hide(PDO $pdo, int $pageId, int $accountId): bool
-{
-    $page = sr_content_by_id($pdo, $pageId);
-    if (!is_array($page)) {
-        return false;
-    }
-
-    $now = sr_now();
-    $pdo->beginTransaction();
-    try {
-        $stmt = $pdo->prepare(
-            "UPDATE sr_content_items
-             SET status = 'hidden', updated_by = :updated_by, updated_at = :updated_at
-             WHERE id = :id"
-        );
-        $stmt->execute([
-            'updated_by' => $accountId,
-            'updated_at' => $now,
-            'id' => $pageId,
-        ]);
-
-        $page['status'] = 'hidden';
-        sr_content_record_revision($pdo, $pageId, $page, $accountId, $now);
-        $pdo->commit();
-
-        return $stmt->rowCount() > 0;
-    } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        throw $exception;
-    }
-}
-
 function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): array
 {
     $page = sr_content_by_id($pdo, $pageId);

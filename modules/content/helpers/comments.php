@@ -462,16 +462,6 @@ function sr_content_delete_comment_redacted(PDO $pdo, int $commentId): void
     ]);
 }
 
-function sr_content_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
-}
-
-function sr_content_notification_available(PDO $pdo): bool
-{
-    return sr_content_notification_create_function($pdo) !== '';
-}
-
 function sr_content_notification_create_function(PDO $pdo): string
 {
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');
@@ -480,31 +470,6 @@ function sr_content_notification_create_function(PDO $pdo): string
 function sr_content_notification_event_function(PDO $pdo): string
 {
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
-}
-
-function sr_content_create_account_notification(PDO $pdo, int $accountId, string $title, string $bodyText, string $linkUrl, ?int $createdByAccountId = null): bool
-{
-    $createNotificationFunction = sr_content_notification_create_function($pdo);
-    if ($accountId < 1 || $createNotificationFunction === '') {
-        return false;
-    }
-
-    try {
-        $createNotificationFunction($pdo, [
-            'audience' => 'account',
-            'account_id' => $accountId,
-            'title' => $title,
-            'body_text' => $bodyText,
-            'link_url' => $linkUrl,
-            'channels' => ['site'],
-            'created_by_account_id' => $createdByAccountId,
-        ]);
-        return true;
-    } catch (Throwable $exception) {
-        sr_log_exception($exception, 'content_notification_create');
-    }
-
-    return false;
 }
 
 function sr_content_create_account_event_notification(
@@ -561,16 +526,6 @@ function sr_content_create_follow_notifications(PDO $pdo, array $page, ?int $cre
     }
 
     return $createdCount;
-}
-
-function sr_content_mention_tokens(string $bodyText): array
-{
-    $tokens = [];
-    foreach (sr_member_mention_token_rows($bodyText) as $row) {
-        $tokens[(string) $row['token']] = true;
-    }
-
-    return array_keys($tokens);
 }
 
 function sr_content_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array

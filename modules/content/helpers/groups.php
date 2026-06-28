@@ -598,28 +598,6 @@ function sr_content_update_group(PDO $pdo, int $groupId, array $data): void
     ]);
 }
 
-function sr_content_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
-{
-    if ($groupId < 1 || !in_array($settingKey, sr_content_group_setting_keys(), true) || !sr_content_group_settings_table_exists($pdo)) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT setting_value
-         FROM sr_content_group_settings
-         WHERE group_id = :group_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'group_id' => $groupId,
-        'setting_key' => $settingKey,
-    ]);
-    $value = $stmt->fetchColumn();
-
-    return is_string($value) ? $value : null;
-}
-
 function sr_content_set_group_setting(PDO $pdo, int $groupId, string $settingKey, string $settingValue, string $valueType = 'string'): void
 {
     if ($groupId < 1 || !in_array($settingKey, sr_content_group_setting_keys(), true) || !sr_content_group_settings_table_exists($pdo)) {
@@ -757,38 +735,6 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     return $check;
 }
 
-function sr_content_group_content_ids(PDO $pdo, int $groupId): array
-{
-    if ($groupId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
-        return [];
-    }
-
-    $stmt = $pdo->prepare('SELECT id FROM sr_content_items WHERE content_group_id = :group_id ORDER BY id ASC');
-    $stmt->execute(['group_id' => $groupId]);
-
-    return array_values(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
-}
-
-function sr_content_group_cover_image_urls_for_delete(PDO $pdo, array $contentIds): array
-{
-    $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
-    if ($contentIds === [] || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
-        return [];
-    }
-
-    $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
-    $stmt = $pdo->prepare(
-        'SELECT DISTINCT cover_image_url
-         FROM sr_content_items
-         WHERE id IN (' . $placeholders . ')
-           AND cover_image_url <> \'\'
-         ORDER BY cover_image_url ASC'
-    );
-    $stmt->execute($contentIds);
-
-    return array_values(array_filter(array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN))));
-}
-
 function sr_content_group_file_rows_for_delete(PDO $pdo, array $contentIds): array
 {
     $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
@@ -817,28 +763,6 @@ function sr_content_group_file_rows_for_delete(PDO $pdo, array $contentIds): arr
     $stmt->execute($params);
 
     return $stmt->fetchAll();
-}
-
-function sr_content_setting_source(PDO $pdo, int $pageId, string $settingKey): string
-{
-    if ($pageId < 1 || !in_array($settingKey, sr_content_group_setting_keys(), true) || !sr_content_setting_sources_table_exists($pdo)) {
-        return 'content';
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT source
-         FROM sr_content_setting_sources
-         WHERE content_id = :content_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'content_id' => $pageId,
-        'setting_key' => $settingKey,
-    ]);
-    $source = $stmt->fetchColumn();
-
-    return sr_content_normalize_setting_source(is_string($source) ? $source : 'content');
 }
 
 function sr_content_setting_sources(PDO $pdo, int $pageId): array

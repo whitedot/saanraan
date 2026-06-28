@@ -89,25 +89,6 @@ function sr_content_author_application_by_account(PDO $pdo, int $accountId): ?ar
     return is_array($row) ? $row : null;
 }
 
-function sr_content_author_application_by_id(PDO $pdo, int $applicationId): ?array
-{
-    if ($applicationId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT a.*, m.email, m.display_name, m.status AS account_status
-         FROM sr_content_author_applications a
-         LEFT JOIN sr_member_accounts m ON m.id = a.account_id
-         WHERE a.id = :id
-         LIMIT 1'
-    );
-    $stmt->execute(['id' => $applicationId]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
-}
-
 function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $applicationId = 0): array
 {
     if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
@@ -456,19 +437,6 @@ function sr_content_group_submission_group_keys(string $value): array
     }
 
     return array_keys($keys);
-}
-
-function sr_content_group_submission_group_keys_value(array $groupKeys): string
-{
-    $keys = [];
-    foreach ($groupKeys as $groupKey) {
-        $groupKey = strtolower(trim((string) $groupKey));
-        if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1) {
-            $keys[$groupKey] = true;
-        }
-    }
-
-    return json_encode(array_keys($keys), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
 }
 
 function sr_content_member_submission_allowed_groups(PDO $pdo, int $accountId): array

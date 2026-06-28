@@ -412,33 +412,6 @@ function sr_content_create_asset_transaction(PDO $pdo, string $assetModule, arra
     return (int) $transactionFunction($pdo, $data);
 }
 
-function sr_content_allocate_asset_use(PDO $pdo, array $assetModules, int $accountId, int $amount): array
-{
-    $remaining = max(0, $amount);
-    $allocations = [];
-    foreach (sr_content_asset_module_keys_from_value($assetModules) as $assetModule) {
-        if ($remaining <= 0) {
-            break;
-        }
-
-        $balance = sr_content_asset_balance($pdo, $assetModule, $accountId);
-        if ($balance <= 0) {
-            continue;
-        }
-
-        $useAmount = min($balance, $remaining);
-        if ($useAmount > 0) {
-            $allocations[] = [
-                'asset_module' => $assetModule,
-                'amount' => $useAmount,
-            ];
-            $remaining -= $useAmount;
-        }
-    }
-
-    return $remaining === 0 ? $allocations : [];
-}
-
 function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
     $settlementAmount = max(0, $settlementAmount);

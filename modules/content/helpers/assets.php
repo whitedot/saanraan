@@ -502,13 +502,6 @@ function sr_content_asset_group_policy_json_from_post(string $fieldName): string
     return sr_admin_asset_group_policy_json_from_value(sr_admin_asset_group_policies_from_post($fieldName));
 }
 
-function sr_content_asset_group_policy_json_from_input(mixed $input): string
-{
-    sr_content_require_asset_group_policy_helpers();
-
-    return sr_admin_asset_group_policy_json_from_value(sr_admin_asset_group_policies_from_input($input));
-}
-
 function sr_content_asset_policy_set_key_is_valid(string $setKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $setKey) === 1;
@@ -619,26 +612,6 @@ function sr_content_save_asset_policy_set(PDO $pdo, array $values, int $accountI
     return (int) $pdo->lastInsertId();
 }
 
-function sr_content_asset_policy_set_select_html(string $id, string $name, array $policySets, int $selectedId): string
-{
-    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
-    $html .= '<option value="0"' . ($selectedId === 0 ? ' selected' : '') . '>선택 안 함</option>';
-    foreach ($policySets as $policySet) {
-        $setId = (int) ($policySet['id'] ?? 0);
-        if ($setId < 1) {
-            continue;
-        }
-        $html .= '<option value="' . sr_e((string) $setId) . '"' . ($selectedId === $setId ? ' selected' : '') . '>';
-        $html .= sr_e((string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId));
-        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
-            $html .= ' (' . sr_e(sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status')) . ')';
-        }
-        $html .= '</option>';
-    }
-
-    return $html . '</select>';
-}
-
 function sr_content_asset_policy_set_ids_from_value(mixed $value): array
 {
     $rawValues = [];
@@ -694,11 +667,6 @@ function sr_content_asset_policy_set_selection_json_from_ids(array $setIds): str
 
     $json = json_encode(['policy_set_ids' => $setIds], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return is_string($json) ? $json : '';
-}
-
-function sr_content_asset_policy_set_selection_json_from_post(string $fieldName): string
-{
-    return sr_content_asset_policy_set_selection_json_from_ids(sr_content_asset_policy_set_ids_from_value($_POST[$fieldName] ?? []));
 }
 
 function sr_content_asset_policy_set_first_id(array $setIds): int
@@ -929,16 +897,6 @@ function sr_content_asset_modules_available(PDO $pdo, array $assetModules): bool
     return true;
 }
 
-function sr_content_asset_combined_balance(PDO $pdo, array $assetModules, int $accountId): int
-{
-    $balance = 0;
-    foreach (sr_content_asset_module_keys_from_value($assetModules) as $assetModule) {
-        $balance += sr_content_asset_balance($pdo, $assetModule, $accountId);
-    }
-
-    return $balance;
-}
-
 function sr_content_asset_amounts_from_value(mixed $value, array $assetModules = [], int $fallbackAmount = 0): array
 {
     $decoded = null;
@@ -997,28 +955,6 @@ function sr_content_asset_amount_input_values(mixed $amountsValue, array $assetM
     }
 
     return $amounts;
-}
-
-function sr_content_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, bool $syncSelected = false): string
-{
-    $amounts = sr_content_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
-    $html = '<div class="admin-asset-amount-grid"' . ($syncSelected ? ' data-admin-asset-amount-sync' : '') . '>';
-    foreach ($assetModuleOptions as $assetModule => $assetOption) {
-        $assetModule = (string) $assetModule;
-        $label = (string) ($assetOption['label'] ?? sr_content_asset_module_label($assetModule));
-        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_content_asset_module_unit_label($assetModule));
-        $isSelected = in_array($assetModule, $selectedAssetModules, true);
-        $html .= '<div class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
-            . '<div class="input-group admin-asset-grouped-input-group">'
-            . '<span class="input-group-text">' . sr_e($label) . '</span>'
-            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
-            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
-            . '</div>'
-            . '</div>';
-    }
-    $html .= '</div>';
-
-    return $html;
 }
 
 function sr_content_asset_grouped_amount_inputs_html(string $id, string $moduleFieldName, string $amountFieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, string $emptyLabel, string $singleWhenSelector = '', string $singleWhenValue = ''): string
@@ -1117,26 +1053,6 @@ function sr_content_asset_purchase_power_snapshot_json(array $snapshot): string
 {
     $encoded = json_encode($snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     return is_string($encoded) ? $encoded : '{}';
-}
-
-function sr_content_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
-{
-    $allocations = [];
-    foreach (sr_content_asset_deduction_order() as $assetModule) {
-        $amount = (int) ($amounts[$assetModule] ?? 0);
-        if ($amount <= 0) {
-            continue;
-        }
-        if (sr_content_asset_balance($pdo, $assetModule, $accountId) < $amount) {
-            return [];
-        }
-        $allocations[] = [
-            'asset_module' => $assetModule,
-            'amount' => $amount,
-        ];
-    }
-
-    return $allocations;
 }
 
 function sr_content_allocate_asset_settlement_use(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
@@ -1310,9 +1226,4 @@ function sr_content_group_asset_settings_for_audit(array $settings): array
     $auditSettings['file_asset_charge_policy'] = (string) $fileAssetSettings['asset_charge_policy'];
 
     return $auditSettings;
-}
-
-function sr_content_group_asset_settings_from_storage_for_audit(PDO $pdo, int $groupId): array
-{
-    return sr_content_group_asset_settings_for_audit(sr_content_group_settings($pdo, $groupId));
 }
