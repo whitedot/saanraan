@@ -773,16 +773,6 @@ function sr_body_text_html(array $record, bool $linkPlainUrls = false): string
     return sr_plain_text_html($bodyText, $linkPlainUrls);
 }
 
-function sr_body_text_is_empty(string $bodyText, string $bodyFormat): bool
-{
-    if ($bodyFormat !== 'html') {
-        return trim($bodyText) === '';
-    }
-
-    $plainText = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-    return $plainText === '';
-}
-
 function sr_editor_normalize_key(string $editorKey, bool $allowInherit = false): string
 {
     $editorKey = strtolower(trim($editorKey));
@@ -893,21 +883,6 @@ function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 
     return function_exists($assetsFunction) ? (string) $assetsFunction($pdo, $presetKey) : '';
 }
 
-function sr_material_icon_stylesheet_url(): string
-{
-    return '';
-}
-
-function sr_material_icon_font_url(): string
-{
-    return sr_url('/assets/fonts/material-symbols-outlined.ttf');
-}
-
-function sr_icon_stylesheet_tags(): string
-{
-    return '';
-}
-
 function sr_material_icon_name(string $name): string
 {
     $name = trim($name);
@@ -975,11 +950,6 @@ function sr_icon(string $name, string $class = '', string $label = '', string $i
     return '<span class="' . sr_e($classes) . '"' . $idAttribute . ' data-sr-material-icon' . $accessibility . '>' . sr_e($iconName) . '</span>';
 }
 
-function sr_material_icon_bootstrap_script(): string
-{
-    return sr_icon_bootstrap_script();
-}
-
 function sr_icon_bootstrap_script(): string
 {
     return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}function n(){r.classList.add("sr-material-icons-unavailable");y()}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"").then(y,function(){if(document.fonts.ready){document.fonts.ready.then(y,n)}else{n()}})}else{y()}})();</script>';
@@ -1017,7 +987,6 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $opt
     $tags = [
         '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
-        sr_icon_stylesheet_tags(),
     ];
 
     $profile = is_string($options['style_profile'] ?? null) ? sr_public_style_profile_key((string) $options['style_profile']) : 'kit';

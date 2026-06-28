@@ -2,20 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_php_string_array_value(string $content, string $key): string
-{
-    foreach (['\'', '"'] as $quote) {
-        $quotedKey = preg_quote($key, '/');
-        $quotedQuote = preg_quote($quote, '/');
-        $pattern = '/' . $quotedQuote . $quotedKey . $quotedQuote . '\s*=>\s*' . $quotedQuote . '((?:\\\\.|[^' . $quotedQuote . '\\\\])*)' . $quotedQuote . '/';
-        if (preg_match($pattern, $content, $matches) === 1) {
-            return stripcslashes((string) $matches[1]);
-        }
-    }
-
-    return '';
-}
-
 function sr_php_array_block(string $content, string $key): string
 {
     foreach (['\'', '"'] as $quote) {
@@ -121,35 +107,6 @@ function sr_php_balanced_block(string $content, int $openOffset, string $openCha
     }
 
     return '';
-}
-
-function sr_php_string_list_array_value(string $content, string $key): array
-{
-    $block = sr_php_array_block($content, $key);
-    if ($block === '') {
-        return [];
-    }
-
-    $values = [];
-    $inner = substr($block, 1, -1);
-    if (!is_string($inner)) {
-        return [];
-    }
-
-    foreach (sr_php_split_top_level_array_segments($inner) as $segment) {
-        $segment = trim($segment);
-        if ($segment === '') {
-            continue;
-        }
-
-        if (preg_match('/\A(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")\z/s', $segment) !== 1) {
-            return [];
-        }
-
-        $values[] = sr_php_decode_quoted_string($segment);
-    }
-
-    return array_values(array_unique($values));
 }
 
 function sr_php_array_literal_entries(string $block): ?array

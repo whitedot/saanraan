@@ -514,20 +514,3 @@ function sr_read_reference_admin_url_is_safe(string $adminUrl): bool
 
     return true;
 }
-
-function sr_read_reference_count(PDO $pdo, string $targetType, int $targetId, string $targetKey = '', array $context = []): int
-{
-    $contractFile = sr_read_reference_contract_file_for_target_type($targetType);
-    if ($contractFile === '') {
-        return 0;
-    }
-
-    $result = sr_read_reference_collect($pdo, $contractFile, [
-        'owner_module_key' => (string) ($context['owner_module_key'] ?? ''),
-        'target_type' => $targetType,
-        'target_id' => $targetId,
-        'target_key' => $targetKey,
-    ], $context);
-
-    return count($result['rows']);
-}

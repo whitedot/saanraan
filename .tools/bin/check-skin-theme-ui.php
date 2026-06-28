@@ -99,7 +99,7 @@ function sr_skin_theme_check_admin_skin_material_icons(): void
             $errors[] = 'Admin skin layout-header must render Material icons through the common helper: ' . $relativePath;
         }
 
-        if (!str_contains($content, 'sr_material_icon_bootstrap_script();') && !str_contains($content, 'sr_icon_bootstrap_script();')) {
+        if (!str_contains($content, 'sr_icon_bootstrap_script();')) {
             $errors[] = 'Admin skin layout-header must load the Material icon readiness bootstrap: ' . $relativePath;
         }
 

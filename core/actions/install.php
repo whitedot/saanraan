@@ -272,50 +272,6 @@ function sr_install_module_definition_lookup(string $moduleKey, array $requiredM
     return null;
 }
 
-function sr_install_foundation_dependency_keys(array $moduleKeys, array $availableModuleKeys): array
-{
-    $available = array_fill_keys($availableModuleKeys, true);
-    $foundations = [];
-    $visited = [];
-    $visiting = [];
-
-    $visit = static function (string $moduleKey) use (&$visit, &$available, &$foundations, &$visited, &$visiting): void {
-        if (isset($visited[$moduleKey])) {
-            return;
-        }
-
-        if (isset($visiting[$moduleKey])) {
-            return;
-        }
-
-        $visiting[$moduleKey] = true;
-        foreach (sr_module_foundation_dependencies((string) $moduleKey) as $foundationModuleKey) {
-            $foundationModuleKey = (string) $foundationModuleKey;
-            if ($foundationModuleKey === '') {
-                continue;
-            }
-
-            if (!isset($available[$foundationModuleKey])) {
-                $foundations[$foundationModuleKey] = $foundationModuleKey;
-                continue;
-            }
-
-            $visit($foundationModuleKey);
-            if (!isset($foundations[$foundationModuleKey])) {
-                $foundations[$foundationModuleKey] = $foundationModuleKey;
-            }
-        }
-        unset($visiting[$moduleKey]);
-        $visited[$moduleKey] = true;
-    };
-
-    foreach (array_values(array_unique(array_map('strval', $moduleKeys))) as $moduleKey) {
-        $visit((string) $moduleKey);
-    }
-
-    return array_values($foundations);
-}
-
 function sr_install_module_dependency_keys(array $moduleKeys, array $availableModuleKeys, array $requiredModuleKeys): array
 {
     $available = array_fill_keys($availableModuleKeys, true);
