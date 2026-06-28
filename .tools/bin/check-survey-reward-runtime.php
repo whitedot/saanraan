@@ -35,15 +35,6 @@ function sr_survey_reward_runtime_scalar(PDO $pdo, string $sql, array $params = 
     return $stmt->fetchColumn();
 }
 
-function sr_survey_reward_runtime_row(PDO $pdo, string $sql, array $params = []): array
-{
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : [];
-}
-
 function sr_survey_reward_runtime_transaction(PDO $pdo, array $data): int
 {
     global $srSurveyRewardRuntimeTransactions, $srSurveyRewardRuntimeFailNext;
