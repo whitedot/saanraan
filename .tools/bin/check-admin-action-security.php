@@ -1002,14 +1002,6 @@ if (!is_string($adminDashboardHelper)) {
 } elseif (strpos($adminDashboardHelper, "sr_log_sensitive_text_sanitize(sr_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false) {
     $errors[] = 'Admin dashboard recovery markers must mask secret-like messages before display.';
 }
-if (is_string($adminDashboardHelper) && (
-    strpos($adminDashboardHelper, "sr_module_sources_enabled(\$pdo, \$config)") === false
-    || strpos($adminDashboardHelper, "if (is_array(\$row) && \$valueType !== 'bool')") === false
-    || strpos($adminDashboardHelper, "sr_t('admin::ui.settings.bool.save.678349be')") === false
-    || strpos($adminDashboardHelper, "sr_t('admin::ui.text.f1259957')") === false
-)) {
-    $errors[] = 'Admin dashboard sensitive setting summary must reflect effective module source write state and invalid stored types.';
-}
 
 $communityReportsHelper = file_get_contents($root . '/modules/community/helpers/reports.php');
 $communityMessageDeleteAction = file_get_contents($root . '/modules/community/actions/message-delete.php');

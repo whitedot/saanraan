@@ -385,7 +385,7 @@ sr_security_baseline_require_markers('core/helpers/upload.php', [
 sr_security_baseline_require_markers('.tools/bin/check-auth-runtime.php', [
     'Runtime session table is missing',
     'session_id_hash',
-    'trusted proxy',
+    'sr_trusted_proxy_config_errors',
     'Rate limit count helper is missing',
     'App key resolver is missing',
 ]);
