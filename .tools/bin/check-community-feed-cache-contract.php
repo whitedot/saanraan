@@ -377,6 +377,11 @@ sr_check_community_feed_cache_contract_assert(
     count(sr_community_feed_cache_read(new PDO('sqlite::memory:'), $memoryContext)) === 1,
     'feed cache read must reuse same-request memory records before falling back to file storage.'
 );
+sr_community_feed_cache_mark_all_stale(new PDO('sqlite::memory:'), 'memory_fixture_reset');
+sr_check_community_feed_cache_contract_assert(
+    sr_community_feed_cache_read(new PDO('sqlite::memory:'), $memoryContext) === null,
+    'feed cache stale invalidation must clear same-request memory records as well as file records.'
+);
 
 sr_check_community_feed_cache_contract_home_feed_fixture();
 
@@ -393,6 +398,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
     'community_feed_file_cache_v1',
     'function sr_community_feed_cache_memory_record',
     'function sr_community_feed_cache_remember_record',
+    'function sr_community_feed_cache_clear_memory_records',
     'function sr_community_feed_cache_write',
     'function sr_community_feed_cache_write_snapshots',
     'function sr_community_feed_cache_mark_all_stale',

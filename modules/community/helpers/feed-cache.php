@@ -410,6 +410,11 @@ function sr_community_feed_cache_remember_record(string $contextHash, array $rec
     $GLOBALS['sr_community_feed_cache_memory_records'] = $records;
 }
 
+function sr_community_feed_cache_clear_memory_records(): void
+{
+    $GLOBALS['sr_community_feed_cache_memory_records'] = [];
+}
+
 function sr_community_feed_cache_read(PDO $pdo, array $context, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): ?array
 {
     unset($pdo);
@@ -509,6 +514,7 @@ function sr_community_feed_cache_mark_all_stale(PDO $pdo, string $reason = 'cont
 {
     unset($pdo, $reason);
 
+    sr_community_feed_cache_clear_memory_records();
     foreach (glob(sr_community_feed_cache_file_root() . '/*/*.json') ?: [] as $path) {
         if (is_file($path)) {
             @unlink($path);
