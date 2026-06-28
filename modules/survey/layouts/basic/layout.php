@@ -35,6 +35,8 @@ $layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutColorSchemeIcons = ['light' => 'light_mode', 'dark' => 'dark_mode', 'system' => 'settings_suggest'];
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
+$layoutFooterBrandLogoHtml = '';
+$layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
 $layoutModuleHomeUrl = sr_url('/survey');
@@ -50,12 +52,32 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'survey-layout-brand-logo survey-layout-brand-logo-desktop',
         'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'survey',
+        'usage_slot_key' => 'top',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
             ? 'survey-layout-brand-logo survey-layout-brand-logo-mobile'
             : 'survey-layout-brand-logo',
         'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'survey',
+        'usage_slot_key' => 'top',
+    ]);
+    $layoutFooterBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
+        'class' => 'survey-layout-brand-logo survey-layout-footer-logo survey-layout-brand-logo-desktop',
+        'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'survey',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
+    ]);
+    $layoutFooterMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
+        'class' => $layoutFooterBrandLogoHtml !== ''
+            ? 'survey-layout-brand-logo survey-layout-footer-logo survey-layout-brand-logo-mobile'
+            : 'survey-layout-brand-logo survey-layout-footer-logo',
+        'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'survey',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
     ]);
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
@@ -416,6 +438,12 @@ if (
             </nav>
         <?php } ?>
         <div class="survey-layout-footer-row">
+            <?php if ($layoutFooterBrandLogoHtml !== '' || $layoutFooterMobileBrandLogoHtml !== '') { ?>
+                <a class="survey-layout-footer-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                    <?php echo $layoutFooterMobileBrandLogoHtml; ?>
+                    <?php echo $layoutFooterBrandLogoHtml; ?>
+                </a>
+            <?php } ?>
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
             <div class="survey-theme-dropdown dropdown" data-dropdown-placement="top-end">
                 <button class="survey-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>

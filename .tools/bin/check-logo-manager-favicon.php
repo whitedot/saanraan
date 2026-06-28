@@ -194,6 +194,15 @@ function sr_logo_manager_favicon_check_pdo(): PDO
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_logo_manager_logo_usage_targets (
+            id INTEGER PRIMARY KEY,
+            logo_id INTEGER NOT NULL,
+            layout_provider_key TEXT NOT NULL,
+            slot_key TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT '2026-06-10 12:00:00'
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_modules (
             id INTEGER PRIMARY KEY,
             module_key TEXT NOT NULL
@@ -267,6 +276,22 @@ function sr_logo_manager_favicon_check_insert_variant(PDO $pdo, array $row): voi
             (:id, :logo_id, :variant_key, :purpose, :width, :height, :status, :storage_driver, :storage_key, :public_url, :mime_type, :updated_at)'
     );
     $stmt->execute($row);
+}
+
+function sr_logo_manager_favicon_check_insert_usage(PDO $pdo, int $logoId, string $providerKey, string $slotKey): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_logo_manager_logo_usage_targets
+            (logo_id, layout_provider_key, slot_key, created_at)
+         VALUES
+            (:logo_id, :layout_provider_key, :slot_key, :created_at)'
+    );
+    $stmt->execute([
+        'logo_id' => $logoId,
+        'layout_provider_key' => $providerKey,
+        'slot_key' => $slotKey,
+        'created_at' => '2026-06-10 12:00:00',
+    ]);
 }
 
 $pdo = sr_logo_manager_favicon_check_pdo();
@@ -418,6 +443,70 @@ sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-star
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 80,
+    'position_key' => 'public.header.desktop',
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 1,
+    'public_url' => '/uploads/logo-all-short.png',
+]);
+sr_logo_manager_favicon_check_insert_usage($pdo, 80, 'all', 'top');
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 81,
+    'position_key' => 'public.header.desktop',
+    'starts_at' => '2026-06-01 00:00:00',
+    'ends_at' => '2026-06-30 23:59:59',
+    'sort_order' => 99,
+    'public_url' => '/uploads/logo-content-direct-long.png',
+]);
+sr_logo_manager_favicon_check_insert_usage($pdo, 81, 'content', 'top');
+$contentLogo = sr_logo_manager_active_logo($pdo, 'public.header.desktop', null, [
+    'layout_provider_key' => 'content',
+    'slot_key' => 'top',
+]);
+sr_logo_manager_favicon_check_assert(
+    is_array($contentLogo) && (string) ($contentLogo['public_url'] ?? '') === '/uploads/logo-content-direct-long.png',
+    'module-specific logo usage must outrank all-layout usage even when the all-layout period is shorter'
+);
+$communityLogo = sr_logo_manager_active_logo($pdo, 'public.header.desktop', null, [
+    'layout_provider_key' => 'community',
+    'slot_key' => 'top',
+]);
+sr_logo_manager_favicon_check_assert(
+    is_array($communityLogo) && (string) ($communityLogo['public_url'] ?? '') === '/uploads/logo-all-short.png',
+    'all-layout logo usage must apply to layout providers without a direct logo'
+);
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 82,
+    'position_key' => 'public.header.desktop',
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 99,
+    'public_url' => '/uploads/logo-content-short.png',
+]);
+sr_logo_manager_favicon_check_insert_usage($pdo, 82, 'content', 'top');
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 83,
+    'position_key' => 'public.header.desktop',
+    'starts_at' => '2026-06-01 00:00:00',
+    'ends_at' => '2026-06-30 23:59:59',
+    'sort_order' => 1,
+    'public_url' => '/uploads/logo-content-wide.png',
+]);
+sr_logo_manager_favicon_check_insert_usage($pdo, 83, 'content', 'top');
+$contentLogo = sr_logo_manager_active_logo($pdo, 'public.header.desktop', null, [
+    'layout_provider_key' => 'content',
+    'slot_key' => 'top',
+]);
+sr_logo_manager_favicon_check_assert(
+    is_array($contentLogo) && (string) ($contentLogo['public_url'] ?? '') === '/uploads/logo-content-short.png',
+    'shorter usage period must outrank lower sort order within the same usage priority'
+);
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
     'id' => 7,
     'public_url' => '/uploads/favicon-original.png',
 ]);
@@ -542,6 +631,7 @@ if (is_string($adminAction)) {
     foreach ([
         "sr_logo_manager_favicon_position_key() && sr_post_string('also_use_as_app_icon'",
         "sr_logo_manager_app_icon_position_key() && sr_post_string('also_use_as_favicon'",
+        '$insertPositionKey === sr_logo_manager_public_symbol_position_key()',
         "'copied_from_position_key' => \$insertPositionKey === \$positionKey ? '' : \$positionKey",
     ] as $marker) {
         sr_logo_manager_favicon_check_assert(
@@ -556,9 +646,12 @@ sr_logo_manager_favicon_check_assert(is_string($adminLogoManagerView), 'logo man
 if (is_string($adminLogoManagerView)) {
     foreach ([
         'data-logo-manager-app-icon-copy-row',
+        'data-logo-manager-app-icon-copy-switch',
         'name="also_use_as_app_icon"',
         'data-logo-manager-favicon-copy-row',
         'name="also_use_as_favicon"',
+        'var symbolEnabled = function ()',
+        'appIconCopySwitch.addEventListener',
         'sr_logo_manager_favicon_position_key()',
         'sr_logo_manager_app_icon_position_key()',
     ] as $marker) {
@@ -567,6 +660,21 @@ if (is_string($adminLogoManagerView)) {
             'logo manager view must preserve favicon/app icon split marker: ' . $marker
         );
     }
+    $appIconCopyRowPosition = strpos($adminLogoManagerView, 'data-logo-manager-app-icon-copy-row');
+    $publicSymbolRowPosition = strpos($adminLogoManagerView, 'data-logo-manager-public-symbol-row');
+    sr_logo_manager_favicon_check_assert(
+        is_int($appIconCopyRowPosition) && is_int($publicSymbolRowPosition) && $appIconCopyRowPosition < $publicSymbolRowPosition,
+        'create form must show app icon copy before public symbol option'
+    );
+}
+
+$logoManagerLang = is_file('modules/logo_manager/lang/ko.php') ? file_get_contents('modules/logo_manager/lang/ko.php') : false;
+sr_logo_manager_favicon_check_assert(is_string($logoManagerLang), 'logo manager Korean language file must be readable');
+if (is_string($logoManagerLang)) {
+    sr_logo_manager_favicon_check_assert(
+        str_contains($logoManagerLang, "'ui.public_symbol.label' => '사용자 화면 심볼로도 사용'"),
+        'public symbol label must use the requested also-use wording'
+    );
 }
 
 $adminHeader = is_file('modules/admin/skins/basic/layout-header.php') ? file_get_contents('modules/admin/skins/basic/layout-header.php') : false;

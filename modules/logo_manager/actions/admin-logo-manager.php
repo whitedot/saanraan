@@ -10,6 +10,8 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', 'view');
 
 $positionOptions = sr_logo_manager_position_options($pdo);
+$usageOptions = sr_logo_manager_layout_usage_options($pdo);
+$usageSlotOptions = sr_logo_manager_usage_slot_options();
 $logoStatuses = ['active', 'disabled', 'archived'];
 $logoManagerDefaultAltText = is_array($site ?? null) ? trim((string) (($site['site_name'] ?? '') !== '' ? $site['site_name'] : ($site['name'] ?? ''))) : '';
 $flashResult = sr_admin_pop_flash_result();
@@ -17,6 +19,7 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $logoTableExists = sr_logo_manager_table_exists($pdo);
 $iconVariantTableExists = sr_logo_manager_icon_variants_table_exists($pdo);
+$usageTargetTableExists = sr_logo_manager_usage_targets_table_exists($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -35,7 +38,7 @@ if (sr_request_method() === 'POST') {
         $altText = sr_logo_manager_clean_single_line(sr_post_string('alt_text', 160), 160);
         $linkUrlRaw = sr_post_string('link_url', 255);
         $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
-        $useAsPublicSymbol = sr_logo_manager_use_as_public_symbol_value($positionKey, sr_post_string('use_as_public_symbol', 1));
+        $useAsPublicSymbol = sr_post_string('use_as_public_symbol', 1) === '1' ? 1 : 0;
         $status = sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
         $startsAtInput = sr_post_string('starts_at', 30);
         $endsAtInput = sr_post_string('ends_at', 30);
@@ -45,9 +48,23 @@ if (sr_request_method() === 'POST') {
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
         $copyPositionKey = '';
+        $usesLayoutTargets = sr_logo_manager_position_uses_layout_targets($positionKey, $positionOptions);
+        $hasInvalidUsageTargets = false;
+        $usageTargets = $usesLayoutTargets
+            ? sr_logo_manager_usage_targets_from_input($_POST['usage_targets'] ?? [], $usageOptions, $usageSlotOptions, $hasInvalidUsageTargets)
+            : [];
 
         if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
             $errors[] = '로고 용도 값이 올바르지 않습니다.';
+        }
+        if ($usesLayoutTargets && !$usageTargetTableExists) {
+            $errors[] = '로고 사용처 업데이트를 먼저 적용하세요.';
+        }
+        if ($usesLayoutTargets && $usageTargets === []) {
+            $errors[] = '로고 사용처를 하나 이상 선택하세요.';
+        }
+        if ($usesLayoutTargets && $hasInvalidUsageTargets) {
+            $errors[] = '로고 사용처 값이 올바르지 않습니다.';
         }
         if ($positionKey === sr_logo_manager_favicon_position_key() && sr_post_string('also_use_as_app_icon', 1) === '1') {
             $copyPositionKey = sr_logo_manager_app_icon_position_key();
@@ -123,7 +140,7 @@ if (sr_request_method() === 'POST') {
                 );
                 $createdCount = 0;
                 foreach ($uploadedImagesByPosition as $insertPositionKey => $insertedImage) {
-                    $insertUseAsPublicSymbol = $insertPositionKey === $positionKey ? $useAsPublicSymbol : 0;
+                    $insertUseAsPublicSymbol = $insertPositionKey === sr_logo_manager_public_symbol_position_key() ? $useAsPublicSymbol : 0;
                     $stmt->execute([
                         'position_key' => $insertPositionKey,
                         'title' => $title,
@@ -149,6 +166,14 @@ if (sr_request_method() === 'POST') {
                     ]);
                     $logoId = (int) $pdo->lastInsertId();
                     $createdCount++;
+                    if ($usageTargetTableExists) {
+                        sr_logo_manager_save_usage_targets(
+                            $pdo,
+                            $logoId,
+                            $insertPositionKey === $positionKey && $usesLayoutTargets ? $usageTargets : [],
+                            $now
+                        );
+                    }
 
                     sr_audit_log($pdo, [
                         'actor_account_id' => (int) $account['id'],
@@ -161,6 +186,7 @@ if (sr_request_method() === 'POST') {
                         'metadata' => [
                             'position_key' => $insertPositionKey,
                             'copied_from_position_key' => $insertPositionKey === $positionKey ? '' : $positionKey,
+                            'usage_targets' => $insertPositionKey === $positionKey && $usesLayoutTargets ? $usageTargets : [],
                             'use_as_public_symbol' => $insertUseAsPublicSymbol,
                             'starts_at' => $startsAt,
                             'ends_at' => $endsAt,
@@ -220,9 +246,23 @@ if (sr_request_method() === 'POST') {
         $sortOrder = sr_logo_manager_clean_sort_order(sr_post_string('sort_order', 20));
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
+        $usesLayoutTargets = sr_logo_manager_position_uses_layout_targets($positionKey, $positionOptions);
+        $hasInvalidUsageTargets = false;
+        $usageTargets = $usesLayoutTargets
+            ? sr_logo_manager_usage_targets_from_input($_POST['usage_targets'] ?? [], $usageOptions, $usageSlotOptions, $hasInvalidUsageTargets)
+            : [];
 
         if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
             $errors[] = '로고 용도 값이 올바르지 않습니다.';
+        }
+        if ($usesLayoutTargets && !$usageTargetTableExists) {
+            $errors[] = '로고 사용처 업데이트를 먼저 적용하세요.';
+        }
+        if ($usesLayoutTargets && $usageTargets === []) {
+            $errors[] = '로고 사용처를 하나 이상 선택하세요.';
+        }
+        if ($usesLayoutTargets && $hasInvalidUsageTargets) {
+            $errors[] = '로고 사용처 값이 올바르지 않습니다.';
         }
         if ($title === '') {
             $errors[] = '로고 이름을 입력하세요.';
@@ -333,6 +373,9 @@ if (sr_request_method() === 'POST') {
                 $sql .= ' WHERE id = :id';
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
+                if ($usageTargetTableExists) {
+                    sr_logo_manager_save_usage_targets($pdo, $logoId, $usesLayoutTargets ? $usageTargets : [], $now);
+                }
                 if ($imageReplaced && $iconVariantTableExists) {
                     $stale = $pdo->prepare("UPDATE sr_logo_manager_icon_variants SET status = 'stale', updated_at = :updated_at WHERE logo_id = :logo_id AND status = 'active'");
                     $stale->execute(['updated_at' => $now, 'logo_id' => $logoId]);
@@ -349,6 +392,7 @@ if (sr_request_method() === 'POST') {
                     'metadata' => [
                         'before' => $before,
                         'after' => $after,
+                        'usage_targets' => $usesLayoutTargets ? $usageTargets : [],
                         'image_replaced' => $imageReplaced,
                         'old_storage_driver' => (string) $logo['storage_driver'],
                         'old_storage_key' => (string) $logo['storage_key'],
@@ -472,6 +516,10 @@ if (sr_request_method() === 'POST') {
                         $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_icon_variants WHERE logo_id IN (' . $placeholders . ')');
                         $stmt->execute($faviconLogoIds);
                     }
+                    if ($usageTargetTableExists) {
+                        $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logo_usage_targets WHERE logo_id IN (' . $placeholders . ')');
+                        $stmt->execute($faviconLogoIds);
+                    }
                     $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logos WHERE id IN (' . $placeholders . ')');
                     $stmt->execute($faviconLogoIds);
                 }
@@ -546,6 +594,10 @@ if (sr_request_method() === 'POST') {
 
                 if ($iconVariantTableExists) {
                     $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_icon_variants WHERE logo_id = :logo_id');
+                    $stmt->execute(['logo_id' => $logoId]);
+                }
+                if ($usageTargetTableExists) {
+                    $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logo_usage_targets WHERE logo_id = :logo_id');
                     $stmt->execute(['logo_id' => $logoId]);
                 }
 
@@ -754,7 +806,28 @@ foreach (array_keys($positionOptions) as $positionKey) {
 $activeLogoIdsByPosition = [];
 foreach ($activeLogos as $positionKey => $activeLogo) {
     if (is_array($activeLogo) && (int) ($activeLogo['id'] ?? 0) > 0) {
-        $activeLogoIdsByPosition[(string) $positionKey] = (int) $activeLogo['id'];
+        $activeLogoIdsByPosition[(string) $positionKey][(int) $activeLogo['id']] = true;
+    }
+}
+if ($usageTargetTableExists) {
+    foreach (array_keys($positionOptions) as $positionKey) {
+        if (!sr_logo_manager_position_uses_layout_targets((string) $positionKey, $positionOptions)) {
+            continue;
+        }
+        foreach (array_keys($usageOptions) as $usageProviderKey) {
+            if ((string) $usageProviderKey === 'all') {
+                continue;
+            }
+            foreach (array_keys($usageSlotOptions) as $usageSlotKey) {
+                $activeLogo = sr_logo_manager_active_logo($pdo, (string) $positionKey, null, [
+                    'layout_provider_key' => (string) $usageProviderKey,
+                    'slot_key' => (string) $usageSlotKey,
+                ]);
+                if (is_array($activeLogo) && (int) ($activeLogo['id'] ?? 0) > 0) {
+                    $activeLogoIdsByPosition[(string) $positionKey][(int) $activeLogo['id']] = true;
+                }
+            }
+        }
     }
 }
 $logoManagerFaviconResetMarker = sr_logo_manager_favicon_reset_marker($pdo);
@@ -765,6 +838,7 @@ $logoDefaultSort = sr_admin_logo_default_sort();
 $logoSort = sr_admin_sort_from_request($logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir');
 $logos = [];
 $iconVariantsByLogoId = [];
+$usageTargetsByLogoId = [];
 if ($logoTableExists) {
     $stmt = $pdo->query('SELECT COUNT(*) AS count_value FROM sr_logo_manager_logos');
     $logoCountRow = $stmt->fetch();
@@ -779,8 +853,11 @@ if ($logoTableExists) {
          LIMIT ' . (int) $logoPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($logoPagination)
     );
     $logos = $stmt->fetchAll();
+    $logoIds = $logos !== []
+        ? array_values(array_filter(array_map(static fn (array $logo): int => (int) ($logo['id'] ?? 0), $logos)))
+        : [];
+    $usageTargetsByLogoId = $usageTargetTableExists ? sr_logo_manager_usage_targets_by_logo_ids($pdo, $logoIds) : [];
     if ($iconVariantTableExists && $logos !== []) {
-        $logoIds = array_values(array_filter(array_map(static fn (array $logo): int => (int) ($logo['id'] ?? 0), $logos)));
         if ($logoIds !== []) {
             $placeholders = implode(', ', array_fill(0, count($logoIds), '?'));
             $stmt = $pdo->prepare(

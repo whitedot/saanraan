@@ -145,6 +145,15 @@ function sr_quiz_check_schema(): void
         "name = '퀴즈·테스트'",
         "version = '2026.06.017'",
     ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.019.sql', [
+        'DELETE FROM {{SR_TABLE_PREFIX}}admin_account_permissions',
+        "WHERE menu_path = '/admin/quiz/manual'",
+        "version = '2026.06.019'",
+    ]);
+    sr_quiz_check_file_not_contains('modules/quiz/updates/2026.06.019.sql', [
+        'admin_permissions',
+        'WHERE path =',
+    ]);
 }
 
 function sr_quiz_check_asset_lookup_contracts(): void

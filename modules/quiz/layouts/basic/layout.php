@@ -38,6 +38,8 @@ $layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutColorSchemeIcons = ['light' => 'light_mode', 'dark' => 'dark_mode', 'system' => 'settings_suggest'];
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
+$layoutFooterBrandLogoHtml = '';
+$layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
 $layoutModuleHomeUrl = sr_url('/quiz');
@@ -53,12 +55,32 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'quiz-layout-brand-logo quiz-layout-brand-logo-desktop',
         'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'quiz',
+        'usage_slot_key' => 'top',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
             ? 'quiz-layout-brand-logo quiz-layout-brand-logo-mobile'
             : 'quiz-layout-brand-logo',
         'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'quiz',
+        'usage_slot_key' => 'top',
+    ]);
+    $layoutFooterBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
+        'class' => 'quiz-layout-brand-logo quiz-layout-footer-logo quiz-layout-brand-logo-desktop',
+        'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'quiz',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
+    ]);
+    $layoutFooterMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
+        'class' => $layoutFooterBrandLogoHtml !== ''
+            ? 'quiz-layout-brand-logo quiz-layout-footer-logo quiz-layout-brand-logo-mobile'
+            : 'quiz-layout-brand-logo quiz-layout-footer-logo',
+        'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'quiz',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
     ]);
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
@@ -419,6 +441,12 @@ if (
             </nav>
         <?php } ?>
         <div class="quiz-layout-footer-row">
+            <?php if ($layoutFooterBrandLogoHtml !== '' || $layoutFooterMobileBrandLogoHtml !== '') { ?>
+                <a class="quiz-layout-footer-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                    <?php echo $layoutFooterMobileBrandLogoHtml; ?>
+                    <?php echo $layoutFooterBrandLogoHtml; ?>
+                </a>
+            <?php } ?>
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
             <div class="quiz-theme-dropdown dropdown" data-dropdown-placement="top-end">
                 <button class="quiz-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>

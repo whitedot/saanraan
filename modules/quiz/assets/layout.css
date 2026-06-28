@@ -402,6 +402,21 @@
     width: min(1360px, 100%);
 }
 
+.quiz-layout-footer-brand-link {
+    align-items: center;
+    color: var(--sr-text, var(--color-body-color, #20242a));
+    display: inline-flex;
+    flex: 0 1 auto;
+    gap: 8px;
+    min-width: 0;
+    text-decoration: none;
+}
+
+.quiz-layout-footer-logo {
+    max-height: 1.5rem;
+    max-width: min(8rem, 30vw);
+}
+
 .quiz-layout-footer-row p {
     margin: 0;
     min-width: 0;

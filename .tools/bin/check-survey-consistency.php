@@ -161,6 +161,20 @@ foreach (["name = '설문·여론조사'", "version = '2026.06.014'"] as $needle
         'Survey display name update must sync installed module record'
     );
 }
+foreach (['DELETE FROM {{SR_TABLE_PREFIX}}admin_account_permissions', "WHERE menu_path = '/admin/surveys/manual'", "version = '2026.06.016'"] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.016.sql',
+        $needle,
+        'Survey 2026.06.016 update must remove legacy manual permissions using current admin permission schema'
+    );
+}
+foreach (['admin_permissions', 'WHERE path ='] as $needle) {
+    sr_survey_check_not_contains(
+        'modules/survey/updates/2026.06.016.sql',
+        $needle,
+        'Survey 2026.06.016 update must not use legacy admin permission schema'
+    );
+}
 sr_survey_check_contains(
     'modules/survey/updates/2026.06.005.sql',
     'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}survey_comments',

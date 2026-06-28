@@ -101,10 +101,49 @@
     width: 1%;
 }
 
+.logo-manager-usage-grid {
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    display: grid;
+    gap: 0;
+    grid-template-columns: minmax(7rem, 1fr) repeat(2, minmax(5rem, auto));
+    overflow: hidden;
+}
+
+.logo-manager-usage-grid-heading,
+.logo-manager-usage-provider,
+.logo-manager-usage-choice {
+    align-items: center;
+    border-bottom: 1px solid var(--color-default-200);
+    display: flex;
+    min-height: 2.5rem;
+    padding: .5rem .75rem;
+}
+
+.logo-manager-usage-grid-heading {
+    background: var(--color-default-100);
+    color: var(--text-strong);
+    font-weight: 700;
+}
+
+.logo-manager-usage-provider {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.logo-manager-usage-choice {
+    border-left: 1px solid var(--color-default-200);
+    margin: 0;
+}
+
+.logo-manager-usage-grid > :nth-last-child(-n + 3) {
+    border-bottom: 0;
+}
+
 .logo-manager-assets-table {
     min-width: 62rem;
 }
 
 .logo-manager-assignments-table {
-    min-width: 64rem;
+    min-width: 72rem;
 }

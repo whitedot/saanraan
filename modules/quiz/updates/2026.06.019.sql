@@ -1,5 +1,5 @@
-DELETE FROM {{SR_TABLE_PREFIX}}admin_permissions
-WHERE path = '/admin/quiz/manual';
+DELETE FROM {{SR_TABLE_PREFIX}}admin_account_permissions
+WHERE menu_path = '/admin/quiz/manual';
 
 UPDATE {{SR_TABLE_PREFIX}}modules
 SET version = '2026.06.019',

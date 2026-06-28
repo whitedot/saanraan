@@ -2,7 +2,7 @@
 
 return [
     'name' => '로고 매니저',
-    'version' => '2026.06.004',
+    'version' => '2026.06.005',
     'type' => 'module',
     'description' => '용도별 로고와 적용 기간을 관리합니다.',
     'admin' => [

@@ -35,6 +35,8 @@ $layoutColorSchemeOptions = sr_color_scheme_options();
 $layoutColorSchemeIcons = ['light' => 'light_mode', 'dark' => 'dark_mode', 'system' => 'settings_suggest'];
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
+$layoutFooterBrandLogoHtml = '';
+$layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
 $layoutFaviconHtml = '';
@@ -44,15 +46,36 @@ $layoutBeforeLayoutHtml = '';
 $layoutAfterLayoutHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
+    $layoutLogoTopUsage = ['layout_provider_key' => 'core', 'slot_key' => 'top'];
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'public-layout-brand-logo public-layout-brand-logo-desktop',
         'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'core',
+        'usage_slot_key' => 'top',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
             ? 'public-layout-brand-logo public-layout-brand-logo-mobile'
             : 'public-layout-brand-logo',
         'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'core',
+        'usage_slot_key' => 'top',
+    ]);
+    $layoutFooterBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
+        'class' => 'public-layout-brand-logo public-layout-footer-logo public-layout-brand-logo-desktop',
+        'fallback_position_key' => 'public.header.mobile',
+        'layout_provider_key' => 'core',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
+    ]);
+    $layoutFooterMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
+        'class' => $layoutFooterBrandLogoHtml !== ''
+            ? 'public-layout-brand-logo public-layout-footer-logo public-layout-brand-logo-mobile'
+            : 'public-layout-brand-logo public-layout-footer-logo',
+        'fallback_position_key' => 'public.header.desktop',
+        'layout_provider_key' => 'core',
+        'usage_slot_key' => 'bottom',
+        'allow_untargeted_fallback' => false,
     ]);
     $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
@@ -64,9 +87,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
             $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
         }
     }
-    $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
+    $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop', null, $layoutLogoTopUsage);
     if (!is_array($layoutBrandLogo)) {
-        $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.mobile');
+        $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.mobile', null, $layoutLogoTopUsage);
     }
     if (is_array($layoutBrandLogo)) {
         $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
@@ -406,6 +429,12 @@ if (
             </nav>
         <?php } ?>
         <div class="public-layout-footer-row">
+            <?php if ($layoutFooterBrandLogoHtml !== '' || $layoutFooterMobileBrandLogoHtml !== '') { ?>
+                <a class="public-layout-footer-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                    <?php echo $layoutFooterMobileBrandLogoHtml; ?>
+                    <?php echo $layoutFooterBrandLogoHtml; ?>
+                </a>
+            <?php } ?>
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
             <div class="public-theme-dropdown dropdown" data-dropdown-placement="top-end">
                 <button class="public-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>

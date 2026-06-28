@@ -1040,8 +1040,9 @@ return [
 - `position_key`는 `module.area.name`처럼 점으로 구분한 소문자/숫자/underscore key를 사용한다.
 - 로고매니저는 이 계약을 로고 배치 생성 화면의 로고 용도 선택지로만 사용한다.
 - 앱아이콘 기본 용도 `public.app_icon`은 `사용자 화면 심볼로 사용` 옵션을 저장할 수 있다. 기본 공개/콘텐츠/커뮤니티/퀴즈/설문 레이아웃은 사용자화면 PC/모바일 로고가 둘 다 없을 때 이 심볼 후보를 브랜드 이미지 fallback으로 사용한다. 사용자화면 PC 또는 모바일 로고 중 한쪽만 있으면 다른 화면에서도 같은 로고를 fallback으로 사용한다. 별도 레이아웃에서는 `sr_logo_manager_public_symbol_logo()`, `sr_logo_manager_public_symbol_url()`, 또는 `sr_logo_manager_render_public_symbol_logo()`를 명시적으로 호출해야 반영된다. 파비콘 등록 폼의 `앱아이콘으로도 사용`, 앱아이콘 등록 폼의 `파비콘으로도 사용` 스위치는 같은 업로드를 별도 저장본으로 다른 기본 용도에도 등록한다.
+- 공개 레이아웃 로고 용도는 `sr_logo_manager_logo_usage_targets`의 사용처로 레이아웃 제공자 `전체` 또는 개별 provider module key와 `상단`/`하단` 슬롯을 저장한다. 현재 로고 선택은 같은 용도 안에서 개별 provider 직접 지정, `전체` 지정, 사용처가 없는 기존 상단 fallback 순서로 우선하고, 같은 사용처 우선순위 안에서는 기존 기간 정책처럼 현재 시각에 해당하면서 전체 기간이 더 짧은 로고를 먼저 고른다. 하단 슬롯은 명시 사용처가 있을 때만 출력하며 사용처 없는 기존 로고를 fallback으로 쓰지 않는다.
 - `public.favicon` 용도 로고는 로컬 저장소의 PNG/JPEG/WebP 원본에서 16, 32, 48, 180, 192, 512 정사각 PNG 파생 아이콘을 생성할 수 있다. 활성 아이콘 세트가 있으면 `sr_logo_manager_favicon_link_tag()`가 사이즈별 `icon`/`apple-touch-icon` 링크를 출력하고, 생성된 세트가 없거나 생성할 수 없는 원본이면 기존 단일 favicon URL로 fallback한다. 파비콘 로고가 등록된 적은 있지만 현재 활성 후보가 없으면 `icon`과 `apple-touch-icon` link를 모두 출력하지 않고 `/favicon.ico` fallback도 no-store 404로 응답한다. 완전 삭제 POST는 이전 투명 아이콘 캐시를 밀어내도록 origin cache 정리 헤더를 보낸다. 브라우저의 favicon 캐시를 피하기 위해 활성 아이콘 URL에는 로고/아이콘 상태 변경 버전을 포함한다. SVG 원본과 S3 원본은 공유호스팅 rasterize/다운로드 제약 때문에 현재 파생 생성 대상에서 제외한다.
-- 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다.
+- 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다. 공개 레이아웃에서 사용처를 반영할 때는 `layout_provider_key`, `usage_slot_key`를 넘기고, 하단처럼 기존 상단 fallback을 쓰면 안 되는 위치는 `allow_untargeted_fallback => false`를 함께 넘긴다.
 
 `notification-events.php`:
 

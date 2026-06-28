@@ -10,6 +10,11 @@ $logoManagerCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $logoManagerActionSuffix = $logoManagerCurrentQuery !== '' ? '?' . $logoManagerCurrentQuery : '';
 $logoManagerIconSizeOptions = sr_logo_manager_icon_size_options();
 $logoManagerDefaultIconKeys = sr_logo_manager_default_icon_variant_keys();
+$usageOptions = isset($usageOptions) && is_array($usageOptions) ? $usageOptions : [];
+$usageSlotOptions = isset($usageSlotOptions) && is_array($usageSlotOptions) ? $usageSlotOptions : sr_logo_manager_usage_slot_options();
+$usageTargetsByLogoId = isset($usageTargetsByLogoId) && is_array($usageTargetsByLogoId) ? $usageTargetsByLogoId : [];
+$logoManagerDefaultUsageChecked = [];
+$logoManagerDefaultUsageChecked['all']['top'] = true;
 $logoManagerNow = is_string($logoManagerNow ?? null) ? $logoManagerNow : sr_now();
 $logoManagerFaviconResetMarker = is_string($logoManagerFaviconResetMarker ?? null) ? $logoManagerFaviconResetMarker : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -78,10 +83,43 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <select id="logo_manager_position_key" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                             <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
-                                <option value="<?php echo sr_e((string) $positionKey); ?>"><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
+                                <option value="<?php echo sr_e((string) $positionKey); ?>" data-logo-manager-uses-layout-targets="<?php echo sr_logo_manager_position_uses_layout_targets((string) $positionKey, $positionOptions) ? '1' : '0'; ?>"><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
                             <?php } ?>
                         </select>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                    </div>
+                </div>
+                <div class="form-row" data-logo-manager-usage-target-row>
+                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                    <div class="form-field">
+                        <div class="logo-manager-usage-grid" data-logo-manager-usage-group>
+                            <span class="logo-manager-usage-grid-heading"><?php echo sr_e(sr_t('logo_manager::ui.usage.provider')); ?></span>
+                            <?php foreach ($usageSlotOptions as $usageSlotKey => $usageSlotLabel) { ?>
+                                <span class="logo-manager-usage-grid-heading"><?php echo sr_e((string) $usageSlotLabel); ?></span>
+                            <?php } ?>
+                            <?php foreach ($usageOptions as $usageProviderKey => $usageOption) { ?>
+                                <span class="logo-manager-usage-provider"><?php echo sr_e((string) ($usageOption['label'] ?? $usageProviderKey)); ?></span>
+                                <?php foreach ($usageSlotOptions as $usageSlotKey => $usageSlotLabel) { ?>
+                                    <?php $usageInputId = 'logo_manager_usage_' . (string) $usageProviderKey . '_' . (string) $usageSlotKey; ?>
+                                    <label class="form-check form-label logo-manager-usage-choice" for="<?php echo sr_e($usageInputId); ?>">
+                                        <input id="<?php echo sr_e($usageInputId); ?>" type="checkbox" name="usage_targets[<?php echo sr_e((string) $usageProviderKey); ?>][]" value="<?php echo sr_e((string) $usageSlotKey); ?>" class="form-switch form-switch-light" data-logo-manager-usage-choice<?php echo !empty($logoManagerDefaultUsageChecked[(string) $usageProviderKey][(string) $usageSlotKey]) ? ' checked' : ''; ?>>
+                                        <?php echo sr_admin_choice_label_html((string) $usageSlotLabel); ?>
+                                    </label>
+                                <?php } ?>
+                            <?php } ?>
+                        </div>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.usage.help')); ?></small>
+                        <small class="validation-error-note" data-logo-manager-usage-error hidden><?php echo sr_e(sr_t('logo_manager::ui.usage.required')); ?></small>
+                    </div>
+                </div>
+                <div class="form-row" data-logo-manager-app-icon-copy-row>
+                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.label')); ?></span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="logo_manager_also_use_as_app_icon">
+                            <input id="logo_manager_also_use_as_app_icon" type="checkbox" name="also_use_as_app_icon" value="1" class="form-switch form-switch-light" data-logo-manager-app-icon-copy-switch>
+                            <?php echo sr_admin_choice_label_html('사용'); ?>
+                        </label>
+                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.help')); ?></small>
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-public-symbol-row>
@@ -92,16 +130,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_admin_choice_label_html('사용'); ?>
                         </label>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
-                    </div>
-                </div>
-                <div class="form-row" data-logo-manager-app-icon-copy-row>
-                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.label')); ?></span>
-                    <div class="form-field">
-                        <label class="form-check form-label" for="logo_manager_also_use_as_app_icon">
-                            <input id="logo_manager_also_use_as_app_icon" type="checkbox" name="also_use_as_app_icon" value="1" class="form-switch form-switch-light">
-                            <?php echo sr_admin_choice_label_html('사용'); ?>
-                        </label>
-                        <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.help')); ?></small>
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-favicon-copy-row>
@@ -215,6 +243,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="logo_manager_bulk_select_all" type="checkbox" class="form-checkbox" data-logo-manager-select-all<?php echo $logos === [] ? ' disabled' : ''; ?>>
                     </th>
                     <th<?php echo sr_admin_sort_aria('position_key', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.position.label'), 'position_key', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
+                    <th><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.list_label')); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
@@ -227,13 +256,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($logos === []) { ?>
-                    <tr><td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
+                    <tr><td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($logos as $logo) { ?>
                         <?php
                         $logoManagerPositionKey = (string) ($logo['position_key'] ?? '');
-                        $logoManagerActiveIdForPosition = (int) ($activeLogoIdsByPosition[$logoManagerPositionKey] ?? 0);
-                        $logoManagerIsCurrentLogo = $logoManagerActiveIdForPosition > 0 && $logoManagerActiveIdForPosition === (int) ($logo['id'] ?? 0);
+                        $logoManagerLogoId = (int) ($logo['id'] ?? 0);
+                        $logoManagerIsCurrentLogo = !empty($activeLogoIdsByPosition[$logoManagerPositionKey][$logoManagerLogoId]);
+                        $logoManagerUsesLayoutTargets = sr_logo_manager_position_uses_layout_targets($logoManagerPositionKey, $positionOptions);
+                        $logoManagerUsageTargets = is_array($usageTargetsByLogoId[$logoManagerLogoId] ?? null) ? $usageTargetsByLogoId[$logoManagerLogoId] : [];
                         $logoManagerStartsAt = is_string($logo['starts_at'] ?? null) ? (string) $logo['starts_at'] : '';
                         $logoManagerEndsAt = is_string($logo['ends_at'] ?? null) ? (string) $logo['ends_at'] : '';
                         $logoManagerIsCurrentPeriod = ($logoManagerStartsAt === '' || $logoManagerStartsAt <= $logoManagerNow)
@@ -246,6 +277,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="selected_logo_ids[]" value="<?php echo sr_e((string) (int) $logo['id']); ?>" class="form-checkbox" form="logo-manager-bulk-status-form" data-logo-manager-row-select>
                             </td>
                             <td><?php echo sr_e(sr_logo_manager_position_label($logoManagerPositionKey, $pdo)); ?></td>
+                            <td class="admin-table-break"><?php echo $logoManagerUsesLayoutTargets ? sr_e(sr_logo_manager_usage_summary($logoManagerUsageTargets, $usageOptions, $usageSlotOptions, true)) : '-'; ?></td>
                             <td class="admin-table-break">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
                                 <?php echo sr_e((string) $logo['title']); ?>
@@ -331,8 +363,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php foreach ($logos as $logo) { ?>
     <?php
-    $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id'];
+    $logoManagerEditLogoId = (int) $logo['id'];
+    $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) $logoManagerEditLogoId;
     $logoManagerEditPositionKey = (string) ($logo['position_key'] ?? '');
+    $logoManagerEditUsageTargets = is_array($usageTargetsByLogoId[$logoManagerEditLogoId] ?? null) ? $usageTargetsByLogoId[$logoManagerEditLogoId] : [];
+    $logoManagerEditUsageChecked = [];
+    foreach ($logoManagerEditUsageTargets as $logoManagerEditUsageTarget) {
+        $logoManagerEditUsageProviderKey = sr_logo_manager_clean_usage_provider_key((string) ($logoManagerEditUsageTarget['layout_provider_key'] ?? ''));
+        $logoManagerEditUsageSlotKey = sr_logo_manager_clean_usage_slot_key((string) ($logoManagerEditUsageTarget['slot_key'] ?? ''));
+        if ($logoManagerEditUsageProviderKey !== '' && $logoManagerEditUsageSlotKey !== '') {
+            $logoManagerEditUsageChecked[$logoManagerEditUsageProviderKey][$logoManagerEditUsageSlotKey] = true;
+        }
+    }
+    if ($logoManagerEditUsageTargets === [] && sr_logo_manager_position_uses_layout_targets($logoManagerEditPositionKey, $positionOptions)) {
+        $logoManagerEditUsageChecked = $logoManagerDefaultUsageChecked;
+    }
     ?>
     <div id="<?php echo sr_e($logoManagerEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($logoManagerEditModalId); ?>-label" aria-hidden="true" inert>
         <div class="modal-dialog modal-dialog-lg">
@@ -353,10 +398,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-field">
                             <select id="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                                 <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
-                                    <option value="<?php echo sr_e((string) $positionKey); ?>"<?php echo (string) $positionKey === $logoManagerEditPositionKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
+                                    <option value="<?php echo sr_e((string) $positionKey); ?>" data-logo-manager-uses-layout-targets="<?php echo sr_logo_manager_position_uses_layout_targets((string) $positionKey, $positionOptions) ? '1' : '0'; ?>"<?php echo (string) $positionKey === $logoManagerEditPositionKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
                                 <?php } ?>
                             </select>
                             <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                        </div>
+                    </div>
+                    <div class="form-row" data-logo-manager-usage-target-row>
+                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                        <div class="form-field">
+                            <div class="logo-manager-usage-grid" data-logo-manager-usage-group>
+                                <span class="logo-manager-usage-grid-heading"><?php echo sr_e(sr_t('logo_manager::ui.usage.provider')); ?></span>
+                                <?php foreach ($usageSlotOptions as $usageSlotKey => $usageSlotLabel) { ?>
+                                    <span class="logo-manager-usage-grid-heading"><?php echo sr_e((string) $usageSlotLabel); ?></span>
+                                <?php } ?>
+                                <?php foreach ($usageOptions as $usageProviderKey => $usageOption) { ?>
+                                    <span class="logo-manager-usage-provider"><?php echo sr_e((string) ($usageOption['label'] ?? $usageProviderKey)); ?></span>
+                                    <?php foreach ($usageSlotOptions as $usageSlotKey => $usageSlotLabel) { ?>
+                                        <?php $usageInputId = 'logo_manager_edit_usage_' . (string) $logoManagerEditLogoId . '_' . (string) $usageProviderKey . '_' . (string) $usageSlotKey; ?>
+                                        <label class="form-check form-label logo-manager-usage-choice" for="<?php echo sr_e($usageInputId); ?>">
+                                            <input id="<?php echo sr_e($usageInputId); ?>" type="checkbox" name="usage_targets[<?php echo sr_e((string) $usageProviderKey); ?>][]" value="<?php echo sr_e((string) $usageSlotKey); ?>" class="form-switch form-switch-light" data-logo-manager-usage-choice<?php echo !empty($logoManagerEditUsageChecked[(string) $usageProviderKey][(string) $usageSlotKey]) ? ' checked' : ''; ?>>
+                                            <?php echo sr_admin_choice_label_html((string) $usageSlotLabel); ?>
+                                        </label>
+                                    <?php } ?>
+                                <?php } ?>
+                            </div>
+                            <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.usage.help')); ?></small>
+                            <small class="validation-error-note" data-logo-manager-usage-error hidden><?php echo sr_e(sr_t('logo_manager::ui.usage.required')); ?></small>
                         </div>
                     </div>
                     <div class="form-row" data-logo-manager-public-symbol-row>
@@ -596,23 +664,92 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var form = positionSelect.closest('form');
         var symbolSwitch = form ? form.querySelector('[data-logo-manager-public-symbol-switch]') : null;
         var appIconCopyRow = form ? form.querySelector('[data-logo-manager-app-icon-copy-row]') : null;
+        var appIconCopySwitch = form ? form.querySelector('[data-logo-manager-app-icon-copy-switch]') : null;
         var faviconCopyRow = form ? form.querySelector('[data-logo-manager-favicon-copy-row]') : null;
+        var usageRow = form ? form.querySelector('[data-logo-manager-usage-target-row]') : null;
+        var usageChoices = form ? Array.prototype.slice.call(form.querySelectorAll('[data-logo-manager-usage-choice]')) : [];
+        var usageError = form ? form.querySelector('[data-logo-manager-usage-error]') : null;
+        var usageRequiredMessage = <?php echo sr_js_json_encode(sr_t('logo_manager::ui.usage.required')); ?>;
+        var faviconPosition = <?php echo sr_js_json_encode(sr_logo_manager_favicon_position_key()); ?>;
+        var appIconPosition = <?php echo sr_js_json_encode(sr_logo_manager_app_icon_position_key()); ?>;
+        var selectedOption = function () {
+            return positionSelect.options[positionSelect.selectedIndex] || null;
+        };
+        var usageEnabled = function () {
+            var option = selectedOption();
+            return !!option && option.getAttribute('data-logo-manager-uses-layout-targets') === '1';
+        };
+        var symbolEnabled = function () {
+            return positionSelect.value === appIconPosition
+                || (positionSelect.value === faviconPosition && appIconCopySwitch && appIconCopySwitch.checked);
+        };
+        var checkedUsageCount = function () {
+            return usageChoices.filter(function (input) {
+                return input.checked && !input.disabled;
+            }).length;
+        };
+        var syncUsageValidity = function (report) {
+            if (usageChoices.length < 1) {
+                return true;
+            }
+            var firstChoice = usageChoices[0];
+            var isValid = !usageEnabled() || checkedUsageCount() > 0;
+            firstChoice.setCustomValidity(isValid ? '' : usageRequiredMessage);
+            usageChoices.forEach(function (input) {
+                input.setAttribute('aria-invalid', isValid ? 'false' : 'true');
+            });
+            if (usageError) {
+                usageError.hidden = isValid;
+            }
+            if (!isValid && report && typeof firstChoice.reportValidity === 'function') {
+                firstChoice.reportValidity();
+            }
+            return isValid;
+        };
         var sync = function () {
-            var symbolEnabled = positionSelect.value === <?php echo sr_js_json_encode(sr_logo_manager_public_symbol_position_key()); ?>;
+            var canUseAsSymbol = symbolEnabled();
             if (symbolSwitch) {
-                symbolSwitch.disabled = !symbolEnabled;
-                if (!symbolEnabled) {
+                symbolSwitch.disabled = !canUseAsSymbol;
+                if (!canUseAsSymbol) {
                     symbolSwitch.checked = false;
                 }
             }
             if (appIconCopyRow) {
-                appIconCopyRow.hidden = positionSelect.value !== <?php echo sr_js_json_encode(sr_logo_manager_favicon_position_key()); ?>;
+                appIconCopyRow.hidden = positionSelect.value !== faviconPosition;
+            }
+            if (appIconCopySwitch) {
+                appIconCopySwitch.disabled = positionSelect.value !== faviconPosition;
+                if (appIconCopySwitch.disabled) {
+                    appIconCopySwitch.checked = false;
+                }
             }
             if (faviconCopyRow) {
-                faviconCopyRow.hidden = positionSelect.value !== <?php echo sr_js_json_encode(sr_logo_manager_app_icon_position_key()); ?>;
+                faviconCopyRow.hidden = positionSelect.value !== appIconPosition;
             }
+            if (usageRow) {
+                usageRow.hidden = !usageEnabled();
+            }
+            usageChoices.forEach(function (input) {
+                input.disabled = !usageEnabled();
+            });
+            syncUsageValidity(false);
         };
         positionSelect.addEventListener('change', sync);
+        if (appIconCopySwitch) {
+            appIconCopySwitch.addEventListener('change', sync);
+        }
+        usageChoices.forEach(function (input) {
+            input.addEventListener('change', function () {
+                syncUsageValidity(false);
+            });
+        });
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                if (!syncUsageValidity(true)) {
+                    event.preventDefault();
+                }
+            });
+        }
         sync();
     });
 

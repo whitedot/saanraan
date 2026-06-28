@@ -124,6 +124,127 @@ function sr_logo_manager_position_label(string $positionKey, ?PDO $pdo = null): 
     return (string) ($options[$positionKey]['label'] ?? $positionKey);
 }
 
+function sr_logo_manager_clean_usage_provider_key(string $providerKey): string
+{
+    $providerKey = strtolower(trim($providerKey));
+    if ($providerKey === 'all') {
+        return 'all';
+    }
+    if (function_exists('sr_is_safe_module_key')) {
+        return sr_is_safe_module_key($providerKey) ? $providerKey : '';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{0,39}\z/', $providerKey) === 1 ? $providerKey : '';
+}
+
+function sr_logo_manager_usage_slot_options(): array
+{
+    return [
+        'top' => '상단',
+        'bottom' => '하단',
+    ];
+}
+
+function sr_logo_manager_clean_usage_slot_key(string $slotKey): string
+{
+    $slotKey = strtolower(trim($slotKey));
+    return isset(sr_logo_manager_usage_slot_options()[$slotKey]) ? $slotKey : '';
+}
+
+function sr_logo_manager_layout_usage_options(?PDO $pdo = null): array
+{
+    $options = [
+        'all' => [
+            'provider_key' => 'all',
+            'label' => sr_t('logo_manager::ui.usage.all'),
+        ],
+    ];
+    if ($pdo instanceof PDO && function_exists('sr_public_layout_options')) {
+        foreach (sr_public_layout_options($pdo, true) as $layoutOption) {
+            if (!is_array($layoutOption)) {
+                continue;
+            }
+
+            $providerKey = sr_logo_manager_clean_usage_provider_key((string) ($layoutOption['provider_module_key'] ?? ''));
+            if ($providerKey === '' || isset($options[$providerKey])) {
+                continue;
+            }
+
+            $label = sr_logo_manager_clean_single_line((string) ($layoutOption['provider_label'] ?? $providerKey), 80);
+            $options[$providerKey] = [
+                'provider_key' => $providerKey,
+                'label' => $label !== '' ? $label : $providerKey,
+            ];
+        }
+    }
+
+    if (!isset($options['core'])) {
+        $options['core'] = [
+            'provider_key' => 'core',
+            'label' => sr_t('public_layout.common.provider'),
+        ];
+    }
+
+    return $options;
+}
+
+function sr_logo_manager_position_uses_layout_targets(string $positionKey, array $positionOptions): bool
+{
+    $positionKey = sr_logo_manager_clean_position_key($positionKey);
+    if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
+        return false;
+    }
+
+    return (string) ($positionOptions[$positionKey]['surface'] ?? '') === 'public';
+}
+
+function sr_logo_manager_usage_targets_from_input(mixed $rawTargets, array $usageOptions, array $slotOptions, ?bool &$hasInvalid = null): array
+{
+    $hasInvalid = false;
+    if ($rawTargets === null || $rawTargets === '') {
+        return [];
+    }
+    if (!is_array($rawTargets)) {
+        $hasInvalid = true;
+        return [];
+    }
+
+    $targets = [];
+    $seen = [];
+    foreach ($rawTargets as $rawProviderKey => $rawSlots) {
+        $providerKey = sr_logo_manager_clean_usage_provider_key((string) $rawProviderKey);
+        if ($providerKey === '' || !isset($usageOptions[$providerKey])) {
+            $hasInvalid = true;
+            continue;
+        }
+
+        if (!is_array($rawSlots)) {
+            $hasInvalid = true;
+            continue;
+        }
+
+        foreach ($rawSlots as $rawSlotKey) {
+            $slotKey = sr_logo_manager_clean_usage_slot_key((string) $rawSlotKey);
+            if ($slotKey === '' || !isset($slotOptions[$slotKey])) {
+                $hasInvalid = true;
+                continue;
+            }
+
+            $targetKey = $providerKey . ':' . $slotKey;
+            if (isset($seen[$targetKey])) {
+                continue;
+            }
+            $seen[$targetKey] = true;
+            $targets[] = [
+                'layout_provider_key' => $providerKey,
+                'slot_key' => $slotKey,
+            ];
+        }
+    }
+
+    return $targets;
+}
+
 function sr_logo_manager_favicon_position_key(): string
 {
     return 'public.favicon';
@@ -192,6 +313,115 @@ function sr_logo_manager_icon_variants_table_exists(PDO $pdo): bool
     }
 
     return $cache[$cacheKey];
+}
+
+function sr_logo_manager_usage_targets_table_exists(PDO $pdo): bool
+{
+    static $cache = [];
+    $cacheKey = method_exists($pdo, 'srTablePrefix') ? $pdo->srTablePrefix() : 'sr_';
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_logo_manager_logo_usage_targets LIMIT 1');
+        $cache[$cacheKey] = true;
+    } catch (Throwable) {
+        $cache[$cacheKey] = false;
+    }
+
+    return $cache[$cacheKey];
+}
+
+function sr_logo_manager_save_usage_targets(PDO $pdo, int $logoId, array $targets, string $now): void
+{
+    if ($logoId < 1) {
+        throw new InvalidArgumentException('로고 배치 ID가 올바르지 않습니다.');
+    }
+    if (!sr_logo_manager_usage_targets_table_exists($pdo)) {
+        throw new RuntimeException('로고 사용처 업데이트를 먼저 적용하세요.');
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logo_usage_targets WHERE logo_id = :logo_id');
+    $stmt->execute(['logo_id' => $logoId]);
+
+    if ($targets === []) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_logo_manager_logo_usage_targets
+            (logo_id, layout_provider_key, slot_key, created_at)
+         VALUES
+            (:logo_id, :layout_provider_key, :slot_key, :created_at)'
+    );
+    foreach ($targets as $target) {
+        $providerKey = sr_logo_manager_clean_usage_provider_key((string) ($target['layout_provider_key'] ?? ''));
+        $slotKey = sr_logo_manager_clean_usage_slot_key((string) ($target['slot_key'] ?? ''));
+        if ($providerKey === '' || $slotKey === '') {
+            continue;
+        }
+
+        $stmt->execute([
+            'logo_id' => $logoId,
+            'layout_provider_key' => $providerKey,
+            'slot_key' => $slotKey,
+            'created_at' => $now,
+        ]);
+    }
+}
+
+function sr_logo_manager_usage_targets_by_logo_ids(PDO $pdo, array $logoIds): array
+{
+    $logoIds = array_values(array_unique(array_filter(array_map('intval', $logoIds), static fn (int $logoId): bool => $logoId > 0)));
+    if ($logoIds === [] || !sr_logo_manager_usage_targets_table_exists($pdo)) {
+        return [];
+    }
+
+    $placeholders = implode(', ', array_fill(0, count($logoIds), '?'));
+    $stmt = $pdo->prepare(
+        'SELECT logo_id, layout_provider_key, slot_key
+         FROM sr_logo_manager_logo_usage_targets
+         WHERE logo_id IN (' . $placeholders . ')
+         ORDER BY layout_provider_key ASC, slot_key ASC'
+    );
+    $stmt->execute($logoIds);
+
+    $targets = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $logoId = (int) ($row['logo_id'] ?? 0);
+        if ($logoId < 1) {
+            continue;
+        }
+        $targets[$logoId][] = [
+            'layout_provider_key' => (string) ($row['layout_provider_key'] ?? ''),
+            'slot_key' => (string) ($row['slot_key'] ?? ''),
+        ];
+    }
+
+    return $targets;
+}
+
+function sr_logo_manager_usage_summary(array $targets, array $usageOptions, array $slotOptions, bool $legacyTopFallback = false): string
+{
+    if ($targets === []) {
+        return $legacyTopFallback ? '상단 전체(기존)' : '지정 없음';
+    }
+
+    $labels = [];
+    foreach ($targets as $target) {
+        $providerKey = sr_logo_manager_clean_usage_provider_key((string) ($target['layout_provider_key'] ?? ''));
+        $slotKey = sr_logo_manager_clean_usage_slot_key((string) ($target['slot_key'] ?? ''));
+        if ($providerKey === '' || $slotKey === '') {
+            continue;
+        }
+
+        $providerLabel = (string) ($usageOptions[$providerKey]['label'] ?? $providerKey);
+        $slotLabel = (string) ($slotOptions[$slotKey] ?? $slotKey);
+        $labels[] = $providerLabel . ' ' . $slotLabel;
+    }
+
+    return $labels === [] ? ($legacyTopFallback ? '상단 전체(기존)' : '지정 없음') : implode(', ', $labels);
 }
 
 function sr_logo_manager_delete_storage_references(array $references): array
@@ -1105,7 +1335,7 @@ function sr_logo_manager_resize_icon_png(string $sourcePath, string $targetPath,
     return $written;
 }
 
-function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now = null): ?array
+function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now = null, array $usageTarget = []): ?array
 {
     $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
     if (!sr_logo_manager_table_exists($pdo)) {
@@ -1113,16 +1343,82 @@ function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now
     }
 
     $now = $now !== null ? $now : sr_now();
+    $usageProviderKey = sr_logo_manager_clean_usage_provider_key((string) ($usageTarget['layout_provider_key'] ?? $usageTarget['provider_key'] ?? ''));
+    $usageSlotKey = sr_logo_manager_clean_usage_slot_key((string) ($usageTarget['slot_key'] ?? $usageTarget['usage_slot_key'] ?? ''));
+    $hasUsageTarget = $usageProviderKey !== '' && $usageSlotKey !== '';
+    if ($hasUsageTarget && !sr_logo_manager_usage_targets_table_exists($pdo) && $usageSlotKey === 'bottom') {
+        return null;
+    }
+
     try {
+        $params = [
+            'position_key' => $positionKey,
+            'now_start' => $now,
+            'now_end' => $now,
+        ];
+        $selectUsageRankSql = '';
+        $whereUsageSql = '';
+        $orderUsageSql = '';
+        if ($hasUsageTarget && sr_logo_manager_usage_targets_table_exists($pdo)) {
+            $allowUntargetedFallback = array_key_exists('allow_untargeted_fallback', $usageTarget)
+                ? !empty($usageTarget['allow_untargeted_fallback'])
+                : $usageSlotKey === 'top';
+            $selectUsageRankSql = ",
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM sr_logo_manager_logo_usage_targets lm_usage_match
+                            WHERE lm_usage_match.logo_id = sr_logo_manager_logos.id
+                              AND lm_usage_match.layout_provider_key = :usage_provider_key_rank
+                              AND lm_usage_match.slot_key = :usage_slot_key_rank
+                        ) THEN 0
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM sr_logo_manager_logo_usage_targets lm_usage_all_rank
+                            WHERE lm_usage_all_rank.logo_id = sr_logo_manager_logos.id
+                              AND lm_usage_all_rank.layout_provider_key = 'all'
+                              AND lm_usage_all_rank.slot_key = :usage_slot_key_all_rank
+                        ) THEN 1
+                        WHEN :allow_untargeted_fallback_rank = 1 THEN 2
+                        ELSE 1
+                    END AS usage_rank";
+            $whereUsageSql = "
+               AND (
+                    EXISTS (
+                        SELECT 1
+                        FROM sr_logo_manager_logo_usage_targets lm_usage_filter
+                        WHERE lm_usage_filter.logo_id = sr_logo_manager_logos.id
+                          AND lm_usage_filter.layout_provider_key IN (:usage_provider_key_filter, 'all')
+                          AND lm_usage_filter.slot_key = :usage_slot_key_filter
+                    )
+                    OR (
+                        :allow_untargeted_fallback = 1
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM sr_logo_manager_logo_usage_targets lm_usage_any
+                            WHERE lm_usage_any.logo_id = sr_logo_manager_logos.id
+                        )
+                    )
+               )";
+            $orderUsageSql = 'usage_rank ASC,';
+            $params['usage_provider_key_rank'] = $usageProviderKey;
+            $params['usage_slot_key_rank'] = $usageSlotKey;
+            $params['usage_slot_key_all_rank'] = $usageSlotKey;
+            $params['allow_untargeted_fallback_rank'] = $allowUntargetedFallback ? 1 : 0;
+            $params['usage_provider_key_filter'] = $usageProviderKey;
+            $params['usage_slot_key_filter'] = $usageSlotKey;
+            $params['allow_untargeted_fallback'] = $allowUntargetedFallback ? 1 : 0;
+        }
+
         $stmt = $pdo->prepare(
             "SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, starts_at, ends_at, sort_order,
-                    storage_driver, storage_key, public_url, mime_type, width, height
+                    storage_driver, storage_key, public_url, mime_type, width, height" . $selectUsageRankSql . "
              FROM sr_logo_manager_logos
              WHERE position_key = :position_key
                AND status = 'active'
                AND (starts_at IS NULL OR starts_at <= :now_start)
-               AND (ends_at IS NULL OR ends_at >= :now_end)
-             ORDER BY CASE WHEN starts_at IS NULL AND ends_at IS NULL THEN 1 ELSE 0 END ASC,
+               AND (ends_at IS NULL OR ends_at >= :now_end)" . $whereUsageSql . "
+             ORDER BY " . $orderUsageSql . " CASE WHEN starts_at IS NULL AND ends_at IS NULL THEN 1 ELSE 0 END ASC,
                       CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN 0 ELSE 1 END ASC,
                       CASE
                           WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at)
@@ -1133,11 +1429,7 @@ function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now
                       id DESC
              LIMIT 1"
         );
-        $stmt->execute([
-            'position_key' => $positionKey,
-            'now_start' => $now,
-            'now_end' => $now,
-        ]);
+        $stmt->execute($params);
 
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
@@ -1178,11 +1470,24 @@ function sr_logo_manager_default_logo(PDO $pdo, string $positionKey): ?array
 
 function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site = null, array $attributes = []): string
 {
-    $logo = sr_logo_manager_active_logo($pdo, $positionKey);
+    $usageTarget = [];
+    $layoutProviderKey = sr_logo_manager_clean_usage_provider_key((string) ($attributes['layout_provider_key'] ?? $attributes['provider_key'] ?? ''));
+    $usageSlotKey = sr_logo_manager_clean_usage_slot_key((string) ($attributes['usage_slot_key'] ?? $attributes['slot_key'] ?? ''));
+    if ($layoutProviderKey !== '' && $usageSlotKey !== '') {
+        $usageTarget = [
+            'layout_provider_key' => $layoutProviderKey,
+            'slot_key' => $usageSlotKey,
+        ];
+        if (array_key_exists('allow_untargeted_fallback', $attributes)) {
+            $usageTarget['allow_untargeted_fallback'] = !empty($attributes['allow_untargeted_fallback']);
+        }
+    }
+
+    $logo = sr_logo_manager_active_logo($pdo, $positionKey, null, $usageTarget);
     if (!is_array($logo) && isset($attributes['fallback_position_key'])) {
         $fallbackPositionKey = sr_logo_manager_clean_position_key((string) $attributes['fallback_position_key']);
         if ($fallbackPositionKey !== '' && $fallbackPositionKey !== sr_logo_manager_clean_position_key($positionKey)) {
-            $logo = sr_logo_manager_active_logo($pdo, $fallbackPositionKey);
+            $logo = sr_logo_manager_active_logo($pdo, $fallbackPositionKey, null, $usageTarget);
         }
     }
     if (!is_array($logo)) {
