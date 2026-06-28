@@ -242,7 +242,7 @@ function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, a
     return '';
 }
 
-function sr_community_home_debug_query_add(string $label, string $sql, array $params = []): void
+function sr_community_home_debug_query_add(string $label, string $sql, array $params = [], ?float $elapsedMs = null, ?int $rowCount = null): void
 {
     $queries = $GLOBALS['sr_community_home_debug_queries'] ?? [];
     if (!is_array($queries)) {
@@ -253,6 +253,8 @@ function sr_community_home_debug_query_add(string $label, string $sql, array $pa
         'label' => $label,
         'sql' => $sql,
         'params' => $params,
+        'elapsed_ms' => $elapsedMs,
+        'row_count' => $rowCount,
     ];
     $GLOBALS['sr_community_home_debug_queries'] = $queries;
 }
@@ -280,6 +282,16 @@ function sr_community_home_debug_query_panel_html(): string
         $paramsJson = json_encode($query['params'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         $html .= '<article class="community-home-query-debug-item">';
         $html .= '<h3>' . sr_e(number_format($index + 1) . '. ' . (string) ($query['label'] ?? 'query')) . '</h3>';
+        $meta = [];
+        if (is_numeric($query['elapsed_ms'] ?? null)) {
+            $meta[] = 'time: ' . number_format((float) $query['elapsed_ms'], 3) . ' ms';
+        }
+        if (is_numeric($query['row_count'] ?? null)) {
+            $meta[] = 'rows: ' . number_format((int) $query['row_count']);
+        }
+        if ($meta !== []) {
+            $html .= '<p class="community-home-query-debug-meta">' . sr_e(implode(' / ', $meta)) . '</p>';
+        }
         $html .= '<pre><code>' . sr_e((string) ($query['sql'] ?? '')) . '</code></pre>';
         $html .= '<h4>params</h4>';
         $html .= '<pre><code>' . sr_e(is_string($paramsJson) ? $paramsJson : '[]') . '</code></pre>';
@@ -324,14 +336,22 @@ function sr_community_home_post_feed_live_rows(PDO $pdo, array $boardIds, int $l
         return [];
     }
 
-    sr_community_home_debug_query_add('community home post feed: ' . sr_community_feed_cache_sort_key($sort), $sql, $params);
+    $startedAt = microtime(true);
     $stmt = $pdo->prepare($sql);
     foreach ($params as $paramKey => $value) {
         $stmt->bindValue($paramKey, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
     $stmt->execute();
+    $rows = $stmt->fetchAll();
+    sr_community_home_debug_query_add(
+        'community home post feed: ' . sr_community_feed_cache_sort_key($sort),
+        $sql,
+        $params,
+        (microtime(true) - $startedAt) * 1000,
+        count($rows)
+    );
 
-    return $stmt->fetchAll();
+    return $rows;
 }
 
 function sr_community_home_post_feed_rows_by_snapshots(PDO $pdo, array $snapshots, array $boardById): array
@@ -556,14 +576,22 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
            AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
  ' . $summaryFeedCandidateSql . '        ORDER BY c.id DESC
          LIMIT :limit_value';
-    sr_community_home_debug_query_add('community home latest comments', $sql, $commentParams);
+    $startedAt = microtime(true);
     $stmt = $pdo->prepare($sql);
     foreach ($commentParams as $paramKey => $value) {
         $stmt->bindValue($paramKey, $value, PDO::PARAM_INT);
     }
     $stmt->execute();
+    $rows = $stmt->fetchAll();
+    sr_community_home_debug_query_add(
+        'community home latest comments',
+        $sql,
+        $commentParams,
+        (microtime(true) - $startedAt) * 1000,
+        count($rows)
+    );
 
-    return $stmt->fetchAll();
+    return $rows;
 }
 
 function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, array $homeExcerptAllowedByBoardId, int $limit = 10, bool $usePublicCache = false): array
@@ -744,13 +772,21 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
                    AND s.board_id IN (' . implode(', ', $seriesPlaceholders) . ')
  ' . $summaryFeedEnabledSql . '                ORDER BY s.updated_at DESC, s.id DESC
                  LIMIT 20';
-            sr_community_home_debug_query_add('community home recent series', $seriesSql, $seriesParams);
+            $startedAt = microtime(true);
             $stmt = $pdo->prepare($seriesSql);
             foreach ($seriesParams as $paramKey => $boardId) {
                 $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
             }
             $stmt->execute();
-            foreach ($stmt->fetchAll() as $series) {
+            $seriesRows = $stmt->fetchAll();
+            sr_community_home_debug_query_add(
+                'community home recent series',
+                $seriesSql,
+                $seriesParams,
+                (microtime(true) - $startedAt) * 1000,
+                count($seriesRows)
+            );
+            foreach ($seriesRows as $series) {
                 if (sr_community_series_can_view($pdo, $series, $account)) {
                     $recentSeries[] = $series;
                 }

@@ -1929,6 +1929,13 @@ a.community-post-title:focus,
     margin-top: 16px;
 }
 
+.community-home-query-debug-meta {
+    color: var(--sr-muted, var(--text-muted, #666));
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
 .community-home-query-debug pre {
     background: var(--sr-surface-muted, #f5f7fb);
     border: 1px solid var(--sr-border, #d9e0ea);
