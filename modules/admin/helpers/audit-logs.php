@@ -647,15 +647,6 @@ function sr_admin_audit_log_query_parts(array &$filters): array
     ];
 }
 
-function sr_admin_audit_log_page_number(string $value): int
-{
-    if (preg_match('/\A[1-9][0-9]*\z/', $value) !== 1) {
-        return 1;
-    }
-
-    return max(1, min(1000000, (int) $value));
-}
-
 function sr_admin_audit_log_count(PDO $pdo, array $filters): int
 {
     $queryParts = sr_admin_audit_log_query_parts($filters);
@@ -672,40 +663,6 @@ function sr_admin_audit_log_count(PDO $pdo, array $filters): int
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
-}
-
-function sr_admin_audit_log_page_url(array $filters, int $page): string
-{
-    $query = [];
-    $field = sr_admin_audit_log_search_field((string) ($filters['field'] ?? 'event_type'));
-    $keyword = trim((string) ($filters['q'] ?? ''));
-    if ($keyword !== '') {
-        $query['field'] = $field;
-        $query['q'] = $keyword;
-    }
-
-    foreach (['event_type', 'target_type', 'target_id', 'ip_address', 'date_from', 'date_to'] as $filterKey) {
-        $value = trim((string) ($filters[$filterKey] ?? ''));
-        if ($value !== '') {
-            $query[$filterKey] = $value;
-        }
-    }
-
-    foreach (['actor_type', 'result'] as $filterKey) {
-        $values = is_array($filters[$filterKey] ?? null) ? $filters[$filterKey] : [];
-        foreach ($values as $value) {
-            $value = trim((string) $value);
-            if ($value !== '') {
-                $query[$filterKey][] = $value;
-            }
-        }
-    }
-
-    if ($page > 1) {
-        $query['page'] = $page;
-    }
-
-    return sr_url('/admin/audit-logs' . ($query !== [] ? '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986) : ''));
 }
 
 function sr_admin_audit_logs(PDO $pdo, array &$filters, int $limit = 100, int $offset = 0, array $sort = []): array
