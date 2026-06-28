@@ -449,17 +449,16 @@ function sr_check_module_lifecycle_ui_contract(): void
     $moduleView = file_get_contents('modules/admin/views/modules.php');
     $adminLang = file_get_contents('modules/admin/lang/ko.php');
     $updatesHelper = file_get_contents('modules/admin/helpers/updates.php');
-    $moduleSources = file_get_contents('modules/admin/helpers/module-sources.php');
     $moduleLifecycle = file_get_contents('core/helpers/module-lifecycle.php');
     $moduleSourceCore = file_get_contents('core/helpers/module-source.php');
     $moduleMetadataCore = file_get_contents('core/helpers/module-metadata.php');
     $schemaUpdatesCore = file_get_contents('core/helpers/schema-updates.php');
-    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($adminLang) || !is_string($updatesHelper) || !is_string($moduleSources) || !is_string($moduleLifecycle) || !is_string($moduleSourceCore) || !is_string($moduleMetadataCore) || !is_string($schemaUpdatesCore)) {
+    if (!is_string($moduleActions) || !is_string($moduleView) || !is_string($adminLang) || !is_string($updatesHelper) || !is_string($moduleLifecycle) || !is_string($moduleSourceCore) || !is_string($moduleMetadataCore) || !is_string($schemaUpdatesCore)) {
         sr_check_add_error('Admin module lifecycle files cannot be read.');
         return;
     }
 
-    $moduleLifecycleContent = $moduleActions . "\n" . $moduleSources . "\n" . $moduleLifecycle . "\n" . $moduleSourceCore . "\n" . $moduleMetadataCore . "\n" . $schemaUpdatesCore;
+    $moduleLifecycleContent = $moduleActions . "\n" . $moduleLifecycle . "\n" . $moduleSourceCore . "\n" . $moduleMetadataCore . "\n" . $schemaUpdatesCore;
     foreach ([
         'function sr_module_lifecycle_state',
         'install_incomplete',

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/module-source.php';
+
 function sr_admin_retention_cutoff(int $days): string
 {
     return date('Y-m-d H:i:s', time() - ($days * 86400));
@@ -749,12 +751,7 @@ function sr_admin_retention_delete_module_directories(array $directories, ?int $
             break;
         }
 
-        if (function_exists('sr_admin_remove_directory')) {
-            sr_admin_remove_directory($directory);
-        } else {
-            require_once SR_ROOT . '/core/helpers/module-source.php';
-            sr_remove_directory($directory);
-        }
+        sr_remove_directory($directory);
         $deletedCount++;
     }
 

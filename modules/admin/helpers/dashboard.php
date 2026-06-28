@@ -516,7 +516,7 @@ function sr_admin_dashboard_sensitive_setting_summary(PDO $pdo, array $config): 
             $state = sr_t('admin::ui.text.acc90fbf');
             $detail = sr_t('admin::ui.settings.bool.save.678349be');
         } elseif ($settingKey === 'admin.module_sources_enabled' && $enabled) {
-            $detail = sr_admin_runtime_is_production($config)
+            $detail = sr_runtime_is_production($config)
                 ? sr_t('admin::ui.text.c0ad1b1e')
                 : sr_t('admin::ui.text.f1259957');
         }

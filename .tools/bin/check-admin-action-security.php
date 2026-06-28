@@ -842,12 +842,7 @@ if (!is_string($bannerHelper)) {
 $moduleLifecycleHelper = file_get_contents($root . '/core/helpers/module-lifecycle.php');
 $moduleSourceHelper = file_get_contents($root . '/core/helpers/module-source.php');
 $schemaUpdatesHelper = file_get_contents($root . '/core/helpers/schema-updates.php');
-$adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
-if (!is_string($adminModuleSourcesHelper)) {
-    $errors[] = 'Admin module sources helper cannot be read.';
-    $adminModuleSourcesHelper = '';
-}
-$moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . (is_string($moduleSourceHelper) ? $moduleSourceHelper : '') . "\n" . $adminModuleSourcesHelper;
+$moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . (is_string($moduleSourceHelper) ? $moduleSourceHelper : '');
 if (
     strpos($moduleSourceSafetyContent, 'function sr_module_zip_entry_is_symlink') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_zip_entry_is_symlink($zip, $i)') === false
