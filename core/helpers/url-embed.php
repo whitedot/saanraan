@@ -34,11 +34,6 @@ function sr_url_embed_clean_stylesheet_path(string $value): string
         : '';
 }
 
-function sr_url_embed_allowed_statuses(): array
-{
-    return ['active', 'removed', 'broken', 'private', 'deleted'];
-}
-
 function sr_url_embed_module_label(string $moduleKey): string
 {
     $labels = [
@@ -124,12 +119,6 @@ function sr_url_embed_settings(PDO $pdo): array
     }
 }
 
-function sr_url_embed_url_embedding_enabled(PDO $pdo): bool
-{
-    $settings = sr_url_embed_settings($pdo);
-    return !empty($settings['url_embed_enabled']);
-}
-
 function sr_url_embed_module_enabled(PDO $pdo, string $moduleKey): bool
 {
     $moduleKey = sr_url_embed_clean_identifier($moduleKey);
@@ -171,11 +160,6 @@ function sr_url_embed_embed_kind_allowed(string $embedKind, array $settings): bo
 function sr_url_embed_cache_statuses(): array
 {
     return ['fresh', 'stale', 'deleted', 'broken'];
-}
-
-function sr_url_embed_table_exists(PDO $pdo): bool
-{
-    return sr_url_embed_cache_table_exists($pdo);
 }
 
 function sr_url_embed_cache_table_exists(PDO $pdo): bool
@@ -1438,41 +1422,6 @@ function sr_url_embed_fragment_cache_admin_cleanup(array $filters, int $limit = 
         'limit' => $limit,
         'limit_reached' => $limitReached,
     ];
-}
-
-function sr_url_embed_admin_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
-{
-    if (!sr_url_embed_cache_table_exists($pdo)) {
-        return [];
-    }
-
-    $limit = max(1, min(200, $limit));
-    $where = [];
-    $params = [];
-
-    $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
-    $status = $statusValues === [] ? '' : (string) $statusValues[0];
-    if ($status !== '' && in_array($status, sr_url_embed_cache_statuses(), true)) {
-        $where[] = 'cache_status = :status';
-        $params['status'] = $status;
-    }
-
-    $keyword = trim((string) ($filters['q'] ?? ''));
-    if ($keyword !== '') {
-        $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
-        $where[] = '(source_url LIKE :keyword OR canonical_url LIKE :keyword OR owner_module LIKE :keyword OR target_module LIKE :keyword OR target_type LIKE :keyword OR target_id LIKE :keyword OR label_snapshot LIKE :keyword)';
-        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
-    }
-
-    $sql = 'SELECT *
-            FROM sr_url_embed_cache'
-        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
-        . ' ORDER BY updated_at DESC, id DESC
-            LIMIT ' . $limit;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-
-    return $stmt->fetchAll();
 }
 
 function sr_url_embed_admin_cache_summary(PDO $pdo): array

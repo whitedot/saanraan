@@ -2,36 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_php_array_block(string $content, string $key): string
-{
-    foreach (['\'', '"'] as $quote) {
-        $quotedKey = preg_quote($key, '/');
-        $quotedQuote = preg_quote($quote, '/');
-        $pattern = '/' . $quotedQuote . $quotedKey . $quotedQuote . '\s*=>\s*(\[|array\s*\()/i';
-        if (preg_match($pattern, $content, $matches, PREG_OFFSET_CAPTURE) !== 1) {
-            continue;
-        }
-
-        $token = (string) $matches[1][0];
-        $offset = (int) $matches[1][1];
-        $openOffset = $offset;
-        if ($token !== '[') {
-            $parenOffset = strpos($token, '(');
-            if ($parenOffset === false) {
-                continue;
-            }
-
-            $openOffset += $parenOffset;
-        }
-        $block = sr_php_balanced_block($content, $openOffset, $token === '[' ? '[' : '(', $token === '[' ? ']' : ')');
-        if ($block !== '') {
-            return $block;
-        }
-    }
-
-    return '';
-}
-
 function sr_php_balanced_block(string $content, int $openOffset, string $openChar, string $closeChar): string
 {
     $length = strlen($content);

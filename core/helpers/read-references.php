@@ -18,17 +18,6 @@ function sr_read_reference_statuses(): array
     return ['ok', 'stale', 'disabled_target', 'missing_target', 'unknown'];
 }
 
-function sr_read_reference_contract_file_for_target_type(string $targetType): string
-{
-    foreach (sr_read_reference_contract_files() as $contractFile => $knownTargetType) {
-        if ($knownTargetType === $targetType) {
-            return (string) $contractFile;
-        }
-    }
-
-    return '';
-}
-
 function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target, array $context = []): array
 {
     $rows = [];
