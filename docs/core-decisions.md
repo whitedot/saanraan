@@ -141,7 +141,7 @@ URL 임베드 helper 유지 조건:
 - 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_url_embed_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 갱신 필요 상태로 표시해야 한다.
 - URL 임베딩은 전역 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정과 각 지원 모듈의 `embed_enabled` 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
 - 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
-- 대상 모듈은 `url-embed-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
+- 대상 모듈은 `url-embed-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer, 전용 `embed_stylesheet`를 제공한다. 내부 임베드 스타일은 호출처 모듈의 reset/module stylesheet를 끌어오지 않고 대상 모듈의 `assets/embed.css` 같은 전용 CSS만 로드한다. renderer는 `aside` 같은 호출처 의미 태그보다 `sr-content-embed`, `sr-community-embed`, `sr-quiz-embed`, `sr-survey-embed`, `sr-coupon-embed` 같은 임베드 전용 custom tag를 사용한다. fragment cache가 공개 HTML 조각을 저장하므로 renderer 마크업이나 sanitizer allowlist가 바뀌면 대상 계약의 `fragment_cache_schema`를 올린다.
 - 공개 표시 HTML은 공통 관리 모듈 카드가 아니라 외부 provider renderer 또는 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
 - URL 임베드 helper는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.

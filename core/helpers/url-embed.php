@@ -20,6 +20,18 @@ function sr_url_embed_clean_label(string $value): string
     return function_exists('mb_substr') ? mb_substr($value, 0, 255) : substr($value, 0, 255);
 }
 
+function sr_url_embed_clean_stylesheet_path(string $value): string
+{
+    $value = trim($value);
+    if ($value === '' || !sr_is_safe_relative_url($value)) {
+        return '';
+    }
+
+    return preg_match('#\Amodules/[a-z][a-z0-9_]{1,39}/assets/[a-z0-9_./-]+\.css\z#', ltrim($value, '/')) === 1
+        ? $value
+        : '';
+}
+
 function sr_url_embed_allowed_statuses(): array
 {
     return ['active', 'removed', 'broken', 'private', 'deleted'];
@@ -421,6 +433,7 @@ function sr_url_embed_url_normalized_contract(array $definition): array
         : $definition['allowed_variants'][0];
     $definition['fragment_cache_public'] = !empty($definition['fragment_cache_public']);
     $definition['fragment_cache_schema'] = sr_url_embed_clean_identifier((string) ($definition['fragment_cache_schema'] ?? 'v1')) ?: 'v1';
+    $definition['embed_stylesheet'] = sr_url_embed_clean_stylesheet_path((string) ($definition['embed_stylesheet'] ?? ''));
 
     return $definition;
 }
@@ -694,17 +707,17 @@ function sr_url_embed_render_external_url(array $resolved): string
 
     if ($provider === 'youtube') {
         $embedUrl = 'https://www.youtube-nocookie.com/embed/' . rawurlencode($targetId);
-        return '<figure class="sr-url-embed sr-url-embed-youtube" data-sr-url-embed="youtube">'
+        return '<sr-url-embed class="sr-url-embed sr-url-embed-youtube" data-sr-url-embed="youtube">'
             . '<iframe src="' . sr_e($embedUrl) . '" title="YouTube video" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>'
-            . '<figcaption><a href="' . sr_e($canonicalUrl) . '" target="_blank" rel="noopener noreferrer">YouTube에서 보기</a></figcaption>'
-            . '</figure>';
+            . '<span class="sr-url-embed-caption"><a href="' . sr_e($canonicalUrl) . '" target="_blank" rel="noopener noreferrer">YouTube에서 보기</a></span>'
+            . '</sr-url-embed>';
     }
 
     $label = sr_url_embed_external_provider_label($provider);
-    return '<aside class="sr-url-embed sr-url-embed-' . sr_e($provider) . '" data-sr-url-embed="' . sr_e($provider) . '">'
+    return '<sr-url-embed class="sr-url-embed sr-url-embed-' . sr_e($provider) . '" data-sr-url-embed="' . sr_e($provider) . '">'
         . '<strong>' . sr_e($label) . '</strong>'
         . '<a href="' . sr_e($canonicalUrl) . '" target="_blank" rel="noopener noreferrer">' . sr_e($canonicalUrl) . '</a>'
-        . '</aside>';
+        . '</sr-url-embed>';
 }
 
 function sr_url_embed_url_from_standalone_text(string $text): string
@@ -1115,6 +1128,79 @@ function sr_url_embed_owner_url_cache_by_source(PDO $pdo, string $ownerModule, s
     }
 
     return $rows;
+}
+
+function sr_url_embed_stylesheet_for_resolved(PDO $pdo, array $resolved): string
+{
+    if ((string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+        return '';
+    }
+    if ((string) ($resolved['embed_kind'] ?? '') === 'external_url') {
+        return '/assets/url-embed.css';
+    }
+    if ((string) ($resolved['embed_kind'] ?? '') !== 'internal_url') {
+        return '';
+    }
+
+    $targetModule = sr_url_embed_clean_identifier((string) ($resolved['target_module'] ?? ''));
+    $targetType = sr_url_embed_clean_identifier((string) ($resolved['target_type'] ?? ''));
+    if ($targetModule === '' || $targetType === '' || !sr_url_embed_module_enabled($pdo, $targetModule)) {
+        return '';
+    }
+
+    $definition = sr_url_embed_url_contract_targets($pdo)[$targetModule][$targetType] ?? null;
+    return is_array($definition) ? (string) ($definition['embed_stylesheet'] ?? '') : '';
+}
+
+function sr_url_embed_stylesheets_for_body(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): array
+{
+    $settings = sr_url_embed_settings($pdo);
+    if ($bodyHtml === '' || $ownerId < 1 || empty($settings['url_embed_enabled'])) {
+        return [];
+    }
+
+    $ownerModule = sr_url_embed_clean_identifier($ownerModule);
+    $ownerType = sr_url_embed_clean_identifier($ownerType);
+    $ownerField = sr_url_embed_clean_identifier($ownerField) ?: 'body';
+    if ($ownerModule === '' || $ownerType === '' || !sr_url_embed_module_enabled($pdo, $ownerModule)) {
+        return [];
+    }
+
+    $cacheRows = sr_url_embed_owner_url_cache_by_source($pdo, $ownerModule, $ownerType, $ownerId, $ownerField);
+    $context = array_merge($context, [
+        'owner_module' => $ownerModule,
+        'owner_type' => $ownerType,
+        'owner_id' => $ownerId,
+        'owner_field' => $ownerField,
+        'embed_scope' => (string) ($settings['embed_scope'] ?? 'standalone_url_only'),
+        'url_embed_settings' => $settings,
+        'url_cache_by_source' => $cacheRows,
+    ]);
+
+    $stylesheets = [];
+    foreach (sr_url_embed_extract_candidate_urls($bodyHtml, (string) $context['embed_scope']) as $candidate) {
+        $url = (string) ($candidate['url'] ?? '');
+        if ($url === '') {
+            continue;
+        }
+        $cachedRow = sr_url_embed_cached_row_for_url($cacheRows, $url);
+        $resolved = is_array($cachedRow) ? sr_url_embed_resolved_from_cache_row($cachedRow) : [];
+        if ($resolved === [] || (string) ($resolved['cache_status'] ?? '') !== 'fresh') {
+            $resolved = sr_url_embed_resolve_url($pdo, $url, $context);
+        }
+        if (!is_array($resolved) || sr_url_embed_is_self_reference($resolved, $context)) {
+            continue;
+        }
+        if (!sr_url_embed_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
+            continue;
+        }
+        $stylesheet = sr_url_embed_stylesheet_for_resolved($pdo, $resolved);
+        if ($stylesheet !== '') {
+            $stylesheets[$stylesheet] = $stylesheet;
+        }
+    }
+
+    return array_values($stylesheets);
 }
 
 function sr_url_embed_cached_row_for_url(array $cacheRows, string $url): ?array
@@ -1634,7 +1720,7 @@ function sr_url_embed_sanitize_rendered_fragment(string $html): string
     if (!$loaded) {
         return '';
     }
-    $allowedTags = ['div', 'aside', 'a', 'img', 'strong', 'p', 'span'];
+    $allowedTags = ['div', 'a', 'img', 'strong', 'p', 'span', 'sr-content-embed', 'sr-community-embed', 'sr-coupon-embed', 'sr-quiz-embed', 'sr-survey-embed'];
     $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-coupon-embed', 'data-quiz-embed', 'data-survey-embed'];
     $nodes = [];
     foreach ($dom->getElementsByTagName('*') as $node) {

@@ -13,7 +13,9 @@ return [
             'label' => '퀴즈·테스트',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'embed_stylesheet' => '/modules/quiz/assets/embed.css',
             'fragment_cache_public' => true,
+            'fragment_cache_schema' => 'custom_tag_v1',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                 if (!str_starts_with($path, '/quiz/')) {
@@ -64,7 +66,7 @@ return [
                 $label = (string) ($row['title'] ?? '');
                 $summary = sr_url_embed_clean_summary((string) ($row['description'] ?? ''));
                 $image = sr_url_embed_safe_url(sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
-                $html = '<aside class="quiz-embed-summary" data-quiz-embed="summary">';
+                $html = '<sr-quiz-embed class="quiz-embed-summary" data-quiz-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="quiz-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
@@ -72,7 +74,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
+                return ['html' => $html . '</sr-quiz-embed>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

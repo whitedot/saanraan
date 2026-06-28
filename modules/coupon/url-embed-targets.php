@@ -12,6 +12,7 @@ return [
             'label' => '쿠폰 발급 캠페인',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'embed_stylesheet' => '/modules/coupon/assets/embed.css',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $url = (string) ($context['url'] ?? '');
                 $path = (string) parse_url($url, PHP_URL_PATH);
@@ -63,7 +64,7 @@ return [
                     $ctaUrl = $campaignUrl;
                 }
 
-                $html = '<aside class="coupon-embed-claim card" data-coupon-embed="claim">';
+                $html = '<sr-coupon-embed class="coupon-embed-claim card" data-coupon-embed="claim">';
                 $html .= '<div class="card-body">';
                 $html .= '<strong><a href="' . sr_e($campaignUrl) . '">' . sr_e((string) ($campaign['title'] ?? '')) . '</a></strong>';
                 if ((string) ($campaign['description'] ?? '') !== '') {
@@ -72,7 +73,7 @@ return [
                 $html .= '<p><span>쿠폰: ' . sr_e((string) ($campaign['coupon_title'] ?? '')) . '</span>';
                 $html .= '<span> 남은 수량: ' . ($remaining === null ? sr_e('제한 없음') : sr_e(number_format((int) $remaining) . '장')) . '</span></p>';
                 $html .= '<a class="btn btn-primary" href="' . sr_e($ctaUrl) . '">' . sr_e($ctaLabel) . '</a>';
-                $html .= '</div></aside>';
+                $html .= '</div></sr-coupon-embed>';
 
                 return [
                     'html' => $html,

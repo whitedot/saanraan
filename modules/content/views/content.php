@@ -28,6 +28,7 @@ $contentStylesheets = [
     '/modules/popup_layer/assets/module.css',
     '/modules/reaction/assets/module.css',
 ];
+$contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }

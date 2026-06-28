@@ -113,6 +113,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                     'target_type' => 'item',
                     'allowed_variants' => ['summary'],
                     'default_variant' => 'summary',
+                    'embed_stylesheet' => '/modules/fixture/assets/embed.css',
                     'fragment_cache_public' => !empty($GLOBALS['sr_url_embed_contract_fragment_cache_public']),
                     'resolve_url' => static function (PDO $pdo, array $context): ?array {
                         $GLOBALS['sr_url_embed_contract_resolve_count'] = (int) ($GLOBALS['sr_url_embed_contract_resolve_count'] ?? 0) + 1;
@@ -157,12 +158,12 @@ if (!function_exists('sr_load_module_contract_file')) {
                             return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                         }
                         $image = (string) ($row['image_snapshot'] ?? '');
-                        $html = '<aside class="fixture-embed-summary" data-content-embed="summary">';
+                        $html = '<sr-content-embed class="fixture-embed-summary" data-content-embed="summary">';
                         if ($image !== '') {
                             $html .= '<img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" />';
                         }
                         $html .= '<strong><a href="/fixture/' . sr_e((string) (int) ($row['id'] ?? 0)) . '">' . sr_e((string) ($row['label_snapshot'] ?? '')) . '</a></strong>';
-                        $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></aside>';
+                        $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></sr-content-embed>';
                         return ['html' => $html, 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                     },
                 ],
@@ -286,7 +287,9 @@ function sr_url_embed_contract_runtime_fixture(): void
 
     $GLOBALS['sr_url_embed_contract_resolve_count'] = 0;
     $rendered = sr_url_embed_render_body_html($pdo, $body, 'fixture', 'doc', 10);
+    $stylesheets = sr_url_embed_stylesheets_for_body($pdo, $body, 'fixture', 'doc', 10);
     sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_resolve_count'] ?? 0) === 0, 'Fresh URL cache hit must render without re-running the resolver.');
+    sr_url_embed_contract_assert($stylesheets === ['/modules/fixture/assets/embed.css'], 'Fresh internal URL cache hit must expose the target module embed stylesheet.');
     sr_url_embed_contract_assert(str_contains($rendered, 'fixture-embed-summary'), 'URL render must use target module renderer HTML.');
     sr_url_embed_contract_assert(str_contains($rendered, '공개 항목'), 'URL render must include target label.');
     sr_url_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
@@ -297,6 +300,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'item', 1, 'body', $selfBody, 7);
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_module = "fixture" AND owner_type = "item" AND owner_id = 1') === 0, 'Self URL embed must not create a derived cache row.');
     $selfRendered = sr_url_embed_render_body_html($pdo, $selfBody, 'fixture', 'item', 1);
+    sr_url_embed_contract_assert(sr_url_embed_stylesheets_for_body($pdo, $selfBody, 'fixture', 'item', 1) === [], 'Self URL embed must not expose an embed stylesheet.');
     sr_url_embed_contract_assert(!str_contains($selfRendered, 'fixture-embed-summary'), 'Self URL embed must not render an embed card.');
     sr_url_embed_contract_assert(str_contains($selfRendered, '/fixture/1'), 'Self URL embed must leave the original URL in place.');
 
@@ -382,6 +386,7 @@ function sr_url_embed_contract_runtime_fixture(): void
 
     sr_url_embed_contract_assert(sr_url_embed_search_targets($pdo, '공개', 10) === [], 'Target search contracts must stay disabled in URL paste mode.');
     $youtubeBody = '<p>https://youtu.be/dQw4w9WgXcQ</p>';
+    sr_url_embed_contract_assert(sr_url_embed_stylesheets_for_body($pdo, $youtubeBody, 'fixture', 'doc', 18) === ['/assets/url-embed.css'], 'External URL embeds must expose the common external embed stylesheet.');
     $youtubeRendered = sr_url_embed_render_body_html($pdo, $youtubeBody, 'fixture', 'doc', 18);
     sr_url_embed_contract_assert(str_contains($youtubeRendered, 'youtube-nocookie.com/embed/dQw4w9WgXcQ'), 'YouTube standalone URL must render as a safe iframe.');
     $xRendered = sr_url_embed_render_body_html($pdo, '<p>https://x.com/example/status/1234567890</p>', 'fixture', 'doc', 19);
@@ -418,10 +423,12 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     }
 
     sr_url_embed_contract_contains($modulePath, "'url-embed-targets.php'");
-    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'fragment_cache_public' => true"] as $needle) {
+    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v1'"] as $needle) {
         sr_url_embed_contract_contains($contractPath, $needle);
     }
 }
+
+sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', "'embed_stylesheet' => '/modules/coupon/assets/embed.css'");
 
 sr_url_embed_contract_runtime_fixture();
 

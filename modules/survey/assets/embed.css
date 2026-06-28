@@ -1,0 +1,24 @@
+sr-survey-embed,
+.survey-embed-summary {
+    display: grid;
+    gap: .5rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    color: var(--sr-text, var(--color-default-900, #242424));
+    border: 1px solid var(--sr-border, var(--color-default-200, #d8dde6));
+    border-radius: 8px;
+    background: var(--sr-surface, var(--color-default-0, #fff));
+}
+
+.survey-embed-summary img {
+    display: block;
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.survey-embed-summary p {
+    margin: 0;
+    color: var(--sr-muted, var(--color-default-600, #666));
+}

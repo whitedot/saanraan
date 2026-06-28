@@ -12,7 +12,9 @@ return [
             'label' => '커뮤니티 게시글',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'embed_stylesheet' => '/modules/community/assets/embed.css',
             'fragment_cache_public' => true,
+            'fragment_cache_schema' => 'custom_tag_v1',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $url = (string) ($context['url'] ?? '');
                 $path = (string) parse_url($url, PHP_URL_PATH);
@@ -95,7 +97,7 @@ return [
                 $label = (string) ($row['title'] ?? '');
                 $summary = sr_url_embed_clean_summary((string) ($row['body_text'] ?? ''));
                 $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
-                $html = '<aside class="community-embed-summary" data-community-embed="summary">';
+                $html = '<sr-community-embed class="community-embed-summary" data-community-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="community-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
@@ -103,7 +105,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
+                return ['html' => $html . '</sr-community-embed>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

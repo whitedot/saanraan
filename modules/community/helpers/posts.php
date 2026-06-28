@@ -1224,6 +1224,23 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
     return $html;
 }
 
+function sr_community_post_body_embed_stylesheets(array $post, ?array $settings = null, ?PDO $pdo = null): array
+{
+    if (!$pdo instanceof PDO || !sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)) {
+        return [];
+    }
+
+    $bodyText = (string) ($post['body_text'] ?? '');
+    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+        $html = sr_community_sanitize_post_html($bodyText);
+    } else {
+        $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
+        $html = sr_community_plain_text_html($bodyText, $linkUrls);
+    }
+
+    return sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
+}
+
 function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool
 {
     if (!sr_module_enabled($pdo, 'ckeditor') || !is_file(SR_ROOT . '/modules/ckeditor/helpers.php')) {

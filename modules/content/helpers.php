@@ -444,6 +444,16 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
     return $html;
 }
 
+function sr_content_body_embed_stylesheets(array $page, ?array $settings = null, ?PDO $pdo = null): array
+{
+    if (!$pdo instanceof PDO || !sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
+        return [];
+    }
+
+    $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
+    return sr_url_embed_stylesheets_for_body($pdo, sr_body_text_html($page, $linkPlainUrls), 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
+}
+
 function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array $groupSettings = []): array
 {
     $defaults = sr_content_group_default_settings($site, $pdo);

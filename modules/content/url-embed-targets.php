@@ -12,7 +12,9 @@ return [
             'label' => '콘텐츠',
             'allowed_variants' => ['summary'],
             'default_variant' => 'summary',
+            'embed_stylesheet' => '/modules/content/assets/embed.css',
             'fragment_cache_public' => true,
+            'fragment_cache_schema' => 'custom_tag_v1',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                 if (!str_starts_with($path, '/content/')) {
@@ -56,7 +58,7 @@ return [
                 $label = (string) ($row['title'] ?? '');
                 $summary = sr_url_embed_clean_summary((string) ($row['summary'] ?? ''));
                 $image = sr_url_embed_safe_url((string) ($row['cover_image_url'] ?? ''));
-                $html = '<aside class="content-embed-summary" data-content-embed="summary">';
+                $html = '<sr-content-embed class="content-embed-summary" data-content-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="content-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
@@ -64,7 +66,7 @@ return [
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
-                return ['html' => $html . '</aside>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
+                return ['html' => $html . '</sr-content-embed>', 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
             },
         ],
     ],

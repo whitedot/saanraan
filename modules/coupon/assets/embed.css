@@ -1,0 +1,13 @@
+sr-coupon-embed,
+.coupon-embed-claim {
+    display: block;
+    margin: 1rem 0;
+}
+
+.coupon-embed-claim p {
+    margin: .5rem 0 0;
+}
+
+.coupon-embed-claim .btn {
+    margin-top: .75rem;
+}
