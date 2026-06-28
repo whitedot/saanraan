@@ -2,22 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_admin_module_menu_items(PDO $pdo): array
-{
-    $items = [];
-    foreach (sr_admin_module_menu_groups($pdo) as $group) {
-        foreach ($group['items'] as $item) {
-            $items[] = $item;
-        }
-    }
-
-    usort($items, function (array $left, array $right): int {
-        return [$left['order'], $left['label'], $left['path']] <=> [$right['order'], $right['label'], $right['path']];
-    });
-
-    return $items;
-}
-
 function sr_admin_navigation_groups(PDO $pdo): array
 {
     return sr_admin_apply_menu_overrides($pdo, sr_admin_navigation_source_groups($pdo));

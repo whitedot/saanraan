@@ -375,16 +375,6 @@ function sr_admin_handle_modules_post(
     return sr_admin_action_result($errors, $notice);
 }
 
-function sr_admin_module_route_conflict_errors(PDO $pdo, string $candidateModuleKey): array
-{
-    return sr_module_route_conflict_errors($pdo, $candidateModuleKey);
-}
-
-function sr_admin_module_route_map(string $moduleKey): array
-{
-    return sr_module_route_map($moduleKey);
-}
-
 function sr_admin_prepare_module_foundations(PDO $pdo, array $account, string $moduleKey): array
 {
     $prepared = [];
@@ -487,11 +477,6 @@ function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $
 
     sr_member_log_auth($pdo, $accountId, 'module_source_reauth', 'success');
     return [];
-}
-
-function sr_admin_module_code_older_errors(PDO $pdo, string $moduleKey): array
-{
-    return sr_module_code_older_errors($pdo, $moduleKey);
 }
 
 function sr_admin_module_lifecycle_state(array $module): array

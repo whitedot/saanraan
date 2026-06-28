@@ -183,40 +183,6 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
     return (string) ob_get_clean();
 }
 
-function sr_admin_checkbox_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음'): string
-{
-    $selectedMap = [];
-    foreach ($selectedValues as $selectedValue) {
-        $selectedMap[(string) $selectedValue] = true;
-    }
-
-    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
-    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_checkbox_list';
-    $html = '<div id="' . sr_e($id) . '" class="admin-check-list" role="group">';
-
-    if ($options === []) {
-        $html .= '<span class="form-help">' . sr_e($emptyLabel) . '</span>';
-        return $html . '</div>';
-    }
-
-    $index = 0;
-    foreach ($options as $value => $label) {
-        $value = (string) $value;
-        if ($value === '') {
-            continue;
-        }
-
-        $inputId = $idBase . '_' . (string) $index;
-        $html .= '<label class="form-check form-label" for="' . sr_e($inputId) . '">'
-            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" class="form-checkbox"' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
-            . sr_admin_choice_label_html((string) $label)
-            . '</label>';
-        $index++;
-    }
-
-    return $html . '</div>';
-}
-
 function sr_admin_filter_toggle_group_html(string $id, string $name, array $options, array $selectedValues, string $allLabel = '전체'): string
 {
     $selectedMap = [];

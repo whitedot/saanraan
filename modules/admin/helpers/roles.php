@@ -70,11 +70,6 @@ function sr_admin_is_owner(PDO $pdo, int $accountId): bool
     return (bool) $stmt->fetchColumn();
 }
 
-function sr_admin_has_role(PDO $pdo, int $accountId, array $allowedRoles): bool
-{
-    return in_array('owner', $allowedRoles, true) && sr_admin_is_owner($pdo, $accountId);
-}
-
 function sr_admin_has_admin_access(PDO $pdo, int $accountId): bool
 {
     if ($accountId < 1) {
@@ -202,19 +197,6 @@ function sr_admin_current_permission_keys(PDO $pdo, int $accountId): array
     }
 
     return $tokens;
-}
-
-function sr_admin_current_permission_map(PDO $pdo, int $accountId): array
-{
-    $map = [];
-    foreach (sr_admin_current_permission_keys($pdo, $accountId) as $token) {
-        [$menuPath, $actionKey] = sr_admin_parse_permission_token($token);
-        if ($menuPath !== '' && $actionKey !== '') {
-            $map[$menuPath][$actionKey] = true;
-        }
-    }
-
-    return $map;
 }
 
 function sr_admin_has_permission(PDO $pdo, int $accountId, string $menuPath, string $actionKey = 'view'): bool
@@ -469,52 +451,6 @@ function sr_admin_post_permission_keys_valid(PDO $pdo): bool
     }
 
     return true;
-}
-
-function sr_admin_permission_filter(PDO $pdo): string
-{
-    $permissionFilter = sr_get_string('permission', 230);
-    if ($permissionFilter === '') {
-        return '';
-    }
-
-    if (in_array($permissionFilter, ['any', 'none', 'owner'], true)) {
-        return $permissionFilter;
-    }
-
-    [$menuPath, $actionKey] = sr_admin_parse_permission_token($permissionFilter);
-    $allowedMap = sr_admin_permission_option_map($pdo);
-
-    return $menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath]) ? $menuPath . '|' . $actionKey : '';
-}
-
-function sr_admin_permission_filter_has_conditions(string $statusFilter, string $permissionFilter, array $searchFilter): bool
-{
-    return $statusFilter !== ''
-        || $permissionFilter !== ''
-        || trim((string) ($searchFilter['keyword'] ?? '')) !== '';
-}
-
-function sr_admin_permission_filter_url(string $statusFilter, string $permissionFilter, array $searchFilter): string
-{
-    $query = [];
-    if ($statusFilter !== '') {
-        $query['status'] = $statusFilter;
-    }
-
-    if ($permissionFilter !== '') {
-        $query['permission'] = $permissionFilter;
-    }
-
-    if ((string) ($searchFilter['field'] ?? 'all') !== 'all') {
-        $query['field'] = (string) $searchFilter['field'];
-    }
-
-    if (trim((string) ($searchFilter['keyword'] ?? '')) !== '') {
-        $query['q'] = (string) $searchFilter['keyword'];
-    }
-
-    return '/admin/roles' . ($query === [] ? '' : '?' . http_build_query($query));
 }
 
 function sr_admin_handle_permissions_post(PDO $pdo, array $account): array

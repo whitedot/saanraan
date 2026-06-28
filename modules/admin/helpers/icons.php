@@ -282,13 +282,6 @@ function sr_admin_icon_symbols(): array
     ];
 }
 
-function sr_admin_icon_symbol_exists(string $name): bool
-{
-    $symbols = sr_admin_icon_symbols();
-
-    return isset($symbols[$name]);
-}
-
 function sr_admin_menu_symbol_allowed(string $name): bool
 {
     $symbols = sr_admin_icon_symbols();
