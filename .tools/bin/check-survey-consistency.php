@@ -211,6 +211,18 @@ foreach (['sr_survey_display_settings_for_survey', 'sr_survey_optional_option_ke
         'Survey helpers must validate and apply global and individual skin settings'
     );
 }
+foreach (['$surveyMemberGroupsForAdmin', 'sr_admin_member_group_key_badge_select_html', "'survey_member_group_keys'", "'member_group_keys'"] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/admin-surveys.php',
+        $needle,
+        'Survey admin form must use the shared member group select badge picker'
+    );
+}
+sr_survey_check_not_contains(
+    'modules/survey/actions/admin-surveys.php',
+    'name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"',
+    'Survey admin form must not render every member group as a checkbox list'
+);
 sr_survey_check_contains(
     'modules/survey/helpers.php',
     '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',

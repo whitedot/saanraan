@@ -16,6 +16,9 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys',
 $assetOptions = sr_survey_asset_options($pdo);
 $couponDefinitions = sr_survey_coupon_definitions($pdo);
 $memberGroups = sr_member_groups($pdo);
+$surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static function (array $memberGroup): bool {
+    return (string) ($memberGroup['status'] ?? '') === 'enabled';
+}));
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
@@ -1150,18 +1153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 대상 회원 그룹', $surveyHelp['member_groups']['id']); ?><span>참여 대상 회원 그룹</span></div>
                     <div class="form-field">
-                        <div class="admin-checkbox-list">
-                            <?php if ($memberGroups === []): ?>
-                                <p class="form-help">선택 가능한 회원 그룹이 없습니다.</p>
-                            <?php endif; ?>
-                            <?php foreach ($memberGroups as $memberGroup): ?>
-                                <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
-                                <label class="form-check form-label">
-                                    <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
-                                    <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
+                        <?php echo sr_admin_member_group_key_badge_select_html('survey_member_group_keys', 'member_group_keys', $selectedMemberGroupKeys, $surveyMemberGroupsForAdmin); ?>
                         <p class="form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
                     </div>
                 </div>
