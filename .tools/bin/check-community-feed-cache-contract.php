@@ -208,6 +208,12 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $latestCached = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
     $latestComments = sr_community_home_latest_comments($pdo, sr_community_feed_cache_public_baseline_board_ids($baselineBoards), $homeExcerptAllowed, 10, true);
     $latestCommentsCached = sr_community_home_latest_comments($pdo, sr_community_feed_cache_public_baseline_board_ids($baselineBoards), $homeExcerptAllowed, 10, true);
+    $s3BodyImageUrl = sr_community_home_post_image_url($pdo, [
+        'id' => 9001,
+        'body_format' => 'html',
+        'body_text' => '<p><img src="/community/body-file?post_id=9001&amp;file=body.webp&amp;d=s3"></p>',
+        'is_secret' => 0,
+    ], ['id' => 1, 'read_policy' => 'public', 'effective_read_policy' => 'public'], $settings, true);
 
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latest) === [2, 1],
@@ -228,6 +234,10 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $comment): int => (int) $comment['id'], $latestCommentsCached) === [11, 10],
         'home latest comments fixture must render from file cache snapshots.'
+    );
+    sr_check_community_feed_cache_contract_assert(
+        str_contains($s3BodyImageUrl, '/community/body-file?post_id=9001') && str_contains($s3BodyImageUrl, 'd=s3'),
+        'home body image fallback must preserve the community body-file storage driver query.'
     );
     $storeStatus = sr_community_feed_cache_persistent_store_status($pdo);
     sr_check_community_feed_cache_contract_assert((string) ($storeStatus['mode'] ?? '') === 'file_persistent', 'admin store status must report file persistent cache mode.');

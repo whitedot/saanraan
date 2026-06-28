@@ -235,7 +235,7 @@ function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, a
 
     foreach (sr_community_body_file_refs_from_html((string) ($post['body_text'] ?? '')) as $ref) {
         if ((string) ($ref['type'] ?? '') === 'post' && (int) ($ref['post_id'] ?? 0) === $postId) {
-            return sr_community_body_file_post_proxy_url($postId, (string) ($ref['file'] ?? ''));
+            return sr_community_body_file_post_proxy_url($postId, (string) ($ref['file'] ?? ''), (string) ($ref['driver'] ?? 'local'));
         }
     }
 

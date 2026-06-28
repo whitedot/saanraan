@@ -142,7 +142,7 @@ php .tools/bin/check-deployment-config.php
 
 메일을 HTTP API transport로 보낼 때는 `mail.transport`를 `http_api`로 설정할 수 있다. 이 경우 endpoint는 공개 HTTPS URL이어야 하며, private/reserved/loopback/link-local/CGNAT/documentation/multicast 주소는 허용하지 않는다.
 
-파일 저장소를 S3로 바꾸려면 `storage.default`를 `s3`로 설정하고 bucket, region, endpoint, credential env를 지정한다. 운영 환경에서는 `endpoint`와 `public_base_url`이 HTTPS여야 하며, HTTP S3-compatible endpoint는 개발 환경 검증용으로만 사용한다. 배너 이미지는 공개 URL이 있으면 `public_base_url`을 사용할 수 있고, 커뮤니티 첨부는 권한 확인 후 짧은 presigned URL로 전달한다.
+파일 저장소를 S3로 바꾸려면 `storage.default`를 `s3`로 설정하고 bucket, region, endpoint, credential env를 지정한다. 운영 환경에서는 `endpoint`와 `public_base_url`이 HTTPS여야 하며, HTTP S3-compatible endpoint는 개발 환경 검증용으로만 사용한다. 배너 이미지는 공개 URL이 있으면 `public_base_url`을 사용할 수 있고, 커뮤니티 첨부와 커뮤니티 본문 이미지는 권한 확인 후 짧은 presigned URL로 전달한다. 커뮤니티 본문 이미지 임시 객체는 `community/body/tmp/` prefix를 사용하며, S3에는 서버 파일 스캔 기반 만료 정리가 적용되지 않는다. S3 운영 버킷에는 `community/body/tmp/` 객체를 1-2일 안에 만료시키는 lifecycle rule을 별도로 설정해야 한다.
 
 ```php
 'storage' => [
