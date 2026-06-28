@@ -1906,3 +1906,38 @@ a.community-post-title:focus,
 .community-toast {
     overflow-wrap: anywhere;
 }
+
+.community-home-query-debug {
+    border-top: 1px solid var(--sr-border, #d9e0ea);
+    color: var(--sr-text, var(--text-strong, #242424));
+    margin-top: 32px;
+    padding-top: 24px;
+}
+
+.community-home-query-debug h2,
+.community-home-query-debug h3,
+.community-home-query-debug h4 {
+    color: inherit;
+    font-family: var(--font-body);
+    font-size: 14px;
+    letter-spacing: 0;
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.community-home-query-debug-item {
+    margin-top: 16px;
+}
+
+.community-home-query-debug pre {
+    background: var(--sr-surface-muted, #f5f7fb);
+    border: 1px solid var(--sr-border, #d9e0ea);
+    border-radius: 8px;
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0 0 12px;
+    overflow: auto;
+    padding: 12px;
+    white-space: pre-wrap;
+}

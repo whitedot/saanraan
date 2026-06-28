@@ -242,6 +242,54 @@ function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, a
     return '';
 }
 
+function sr_community_home_debug_query_add(string $label, string $sql, array $params = []): void
+{
+    $queries = $GLOBALS['sr_community_home_debug_queries'] ?? [];
+    if (!is_array($queries)) {
+        $queries = [];
+    }
+
+    $queries[] = [
+        'label' => $label,
+        'sql' => $sql,
+        'params' => $params,
+    ];
+    $GLOBALS['sr_community_home_debug_queries'] = $queries;
+}
+
+function sr_community_home_debug_queries(): array
+{
+    $queries = $GLOBALS['sr_community_home_debug_queries'] ?? [];
+
+    return is_array($queries) ? $queries : [];
+}
+
+function sr_community_home_debug_query_panel_html(): string
+{
+    $queries = sr_community_home_debug_queries();
+    if ($queries === []) {
+        return '<section class="community-home-query-debug"><h2>실행 쿼리</h2><p>기록된 커뮤니티 메인 쿼리가 없습니다.</p></section>';
+    }
+
+    $html = '<section class="community-home-query-debug"><h2>실행 쿼리</h2>';
+    foreach ($queries as $index => $query) {
+        if (!is_array($query)) {
+            continue;
+        }
+
+        $paramsJson = json_encode($query['params'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $html .= '<article class="community-home-query-debug-item">';
+        $html .= '<h3>' . sr_e(number_format($index + 1) . '. ' . (string) ($query['label'] ?? 'query')) . '</h3>';
+        $html .= '<pre><code>' . sr_e((string) ($query['sql'] ?? '')) . '</code></pre>';
+        $html .= '<h4>params</h4>';
+        $html .= '<pre><code>' . sr_e(is_string($paramsJson) ? $paramsJson : '[]') . '</code></pre>';
+        $html .= '</article>';
+    }
+    $html .= '</section>';
+
+    return $html;
+}
+
 function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
 {
     $posts = [];
@@ -276,6 +324,7 @@ function sr_community_home_post_feed_live_rows(PDO $pdo, array $boardIds, int $l
         return [];
     }
 
+    sr_community_home_debug_query_add('community home post feed: ' . sr_community_feed_cache_sort_key($sort), $sql, $params);
     $stmt = $pdo->prepare($sql);
     foreach ($params as $paramKey => $value) {
         $stmt->bindValue($paramKey, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
@@ -494,8 +543,7 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p', 'b.id', '           ');
-    $stmt = $pdo->prepare(
-        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
+    $sql = 'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
                 p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
                 b.id AS board_id, b.board_key, b.title AS board_title
          FROM sr_community_comments c
@@ -507,8 +555,9 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
            AND b.status = \'enabled\'
            AND b.id IN (' . implode(', ', $boardPlaceholders) . ')
  ' . $summaryFeedCandidateSql . '        ORDER BY c.id DESC
-         LIMIT :limit_value'
-    );
+         LIMIT :limit_value';
+    sr_community_home_debug_query_add('community home latest comments', $sql, $commentParams);
+    $stmt = $pdo->prepare($sql);
     foreach ($commentParams as $paramKey => $value) {
         $stmt->bindValue($paramKey, $value, PDO::PARAM_INT);
     }
@@ -660,8 +709,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         }
         if ($seriesPlaceholders !== []) {
             $summaryFeedEnabledSql = sr_community_summary_feed_enabled_sql_condition($pdo, 'b.id', '                   ');
-            $stmt = $pdo->prepare(
-                'SELECT s.*, b.title AS board_title,
+            $seriesSql = 'SELECT s.*, b.title AS board_title,
                         (SELECT COUNT(*) FROM sr_community_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count,
                         (SELECT si.post_id
                          FROM sr_community_series_items si
@@ -677,8 +725,9 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
                    AND b.status = \'enabled\'
                    AND s.board_id IN (' . implode(', ', $seriesPlaceholders) . ')
  ' . $summaryFeedEnabledSql . '                ORDER BY s.updated_at DESC, s.id DESC
-                 LIMIT 20'
-            );
+                 LIMIT 20';
+            sr_community_home_debug_query_add('community home recent series', $seriesSql, $seriesParams);
+            $stmt = $pdo->prepare($seriesSql);
             foreach ($seriesParams as $paramKey => $boardId) {
                 $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
             }

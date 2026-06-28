@@ -389,12 +389,41 @@ function sr_community_feed_cache_file_is_active(array $record): bool
     return $expiresAt !== false && $expiresAt > time();
 }
 
+function sr_community_feed_cache_memory_record(string $contextHash): ?array
+{
+    $records = $GLOBALS['sr_community_feed_cache_memory_records'] ?? [];
+    if (!is_array($records) || !isset($records[$contextHash]) || !is_array($records[$contextHash])) {
+        return null;
+    }
+
+    return $records[$contextHash];
+}
+
+function sr_community_feed_cache_remember_record(string $contextHash, array $record): void
+{
+    $records = $GLOBALS['sr_community_feed_cache_memory_records'] ?? [];
+    if (!is_array($records)) {
+        $records = [];
+    }
+
+    $records[$contextHash] = $record;
+    $GLOBALS['sr_community_feed_cache_memory_records'] = $records;
+}
+
 function sr_community_feed_cache_read(PDO $pdo, array $context, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): ?array
 {
     unset($pdo);
 
     $context = sr_community_feed_cache_context($context);
     $contextHash = sr_community_feed_cache_context_hash($context);
+    $memoryRecord = sr_community_feed_cache_memory_record($contextHash);
+    if (is_array($memoryRecord) && sr_community_feed_cache_file_is_active($memoryRecord)) {
+        return sr_community_feed_cache_snapshots_from_json(
+            json_encode($memoryRecord['snapshots'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]',
+            $allowedSchemaVersions
+        );
+    }
+
     $path = sr_community_feed_cache_file_path($contextHash);
     if (!is_file($path) || !is_readable($path)) {
         return null;
@@ -450,6 +479,7 @@ function sr_community_feed_cache_write_snapshots(PDO $pdo, array $context, array
         return;
     }
     $contextHash = sr_community_feed_cache_context_hash($context);
+    sr_community_feed_cache_remember_record($contextHash, $record);
     $path = sr_community_feed_cache_file_path($contextHash);
     $dir = dirname($path);
     if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {

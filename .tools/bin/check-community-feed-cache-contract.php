@@ -343,6 +343,27 @@ sr_check_community_feed_cache_contract_assert(
     'latest comment cache snapshots must be readable with their own schema version.'
 );
 
+$memoryContext = sr_community_feed_cache_context([
+    'feed_key' => 'community.home.latest',
+    'board_ids' => [1],
+    'sort' => 'latest',
+    'display_count' => 1,
+    'fetch_count' => 1,
+    'locale' => 'ko',
+    'policy_version' => 'memory-fixture-v1',
+]);
+$memoryHash = sr_community_feed_cache_context_hash($memoryContext);
+$GLOBALS['sr_community_feed_cache_memory_records'] = [];
+sr_community_feed_cache_remember_record($memoryHash, sr_community_feed_cache_file_record($memoryContext, [[
+    'snapshot_schema_version' => 'community_feed_card_snapshot_v1',
+    'post_id' => 99,
+    'board_id' => 1,
+]], sr_now()));
+sr_check_community_feed_cache_contract_assert(
+    count(sr_community_feed_cache_read(new PDO('sqlite::memory:'), $memoryContext)) === 1,
+    'feed cache read must reuse same-request memory records before falling back to file storage.'
+);
+
 sr_check_community_feed_cache_contract_home_feed_fixture();
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
@@ -356,6 +377,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-
     'function sr_community_feed_cache_file_root',
     'function sr_community_feed_cache_file_path',
     'community_feed_file_cache_v1',
+    'function sr_community_feed_cache_memory_record',
+    'function sr_community_feed_cache_remember_record',
     'function sr_community_feed_cache_write',
     'function sr_community_feed_cache_write_snapshots',
     'function sr_community_feed_cache_mark_all_stale',
