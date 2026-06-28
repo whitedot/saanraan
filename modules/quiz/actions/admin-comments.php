@@ -8,6 +8,9 @@ require_once __DIR__ . '/../helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz/comments', 'view');
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz/comments', 'edit');
@@ -40,9 +43,11 @@ if (sr_request_method() === 'POST') {
         ],
     ]);
 
-    $_SESSION['sr_quiz_admin_comment_notice'] = '댓글 상태를 변경했습니다.';
     $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
-    sr_redirect('/admin/quiz/comments' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
+    sr_admin_redirect_with_result(
+        sr_admin_action_result([], '댓글 상태를 변경했습니다.'),
+        '/admin/quiz/comments' . ($redirectQuery !== '' ? '?' . $redirectQuery : '')
+    );
 }
 
 $commentFilters = sr_quiz_admin_comment_filters_from_request();
@@ -51,8 +56,6 @@ $commentStatusOptions = [];
 foreach (sr_quiz_comment_statuses() as $status) {
     $commentStatusOptions[$status] = sr_quiz_comment_status_label($status);
 }
-$commentNotice = (string) ($_SESSION['sr_quiz_admin_comment_notice'] ?? '');
-unset($_SESSION['sr_quiz_admin_comment_notice']);
 $commentDetailFilterOpen = (string) ($commentFilters['status'] ?? '') !== '' || (string) ($commentFilters['secret'] ?? '') !== '';
 $canEditComments = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz/comments', 'edit');
 $commentActionQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
@@ -64,11 +67,7 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/quiz/comments')
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($commentNotice !== '') { ?>
-    <div class="alert alert-success" role="alert">
-        <p><?php echo sr_e($commentNotice); ?></p>
-    </div>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/quiz/comments')); ?>" class="filtering-form admin-quiz-comment-filter ui-form-theme">
     <div class="filtering filtering-card<?php echo $commentDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
