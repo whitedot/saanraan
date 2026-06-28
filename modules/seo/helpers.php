@@ -71,11 +71,6 @@ function sr_seo_settings(PDO $pdo): array
     return $settings;
 }
 
-function sr_seo_clean_single_line(string $value, int $maxLength): string
-{
-    return sr_clean_single_line($value, $maxLength);
-}
-
 function sr_seo_clean_textarea(string $value, int $maxLength): string
 {
     return sr_clean_text($value, $maxLength);

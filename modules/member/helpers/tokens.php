@@ -34,20 +34,6 @@ function sr_member_create_password_reset(PDO $pdo, array $config, int $accountId
     return $token;
 }
 
-function sr_member_find_password_reset(PDO $pdo, array $config, string $token): ?array
-{
-    if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {
-        return null;
-    }
-
-    $tokenHash = sr_member_password_reset_token_hash($config, $token);
-    if ($tokenHash === '') {
-        return null;
-    }
-
-    return sr_member_find_password_reset_by_hash($pdo, $tokenHash);
-}
-
 function sr_member_password_reset_token_hash(array $config, string $token): string
 {
     if (preg_match('/\A[a-f0-9]{64}\z/', $token) !== 1) {

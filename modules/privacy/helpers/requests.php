@@ -15,34 +15,6 @@ function sr_privacy_request_types(): array
     return ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
 }
 
-function sr_privacy_request_type_label(string $requestType): string
-{
-    $labels = [
-        'access' => '열람',
-        'rectification' => '정정',
-        'erasure' => '삭제',
-        'restriction' => '처리 제한',
-        'portability' => '이동권',
-        'objection' => '처리 반대',
-        'withdrawal' => '동의 철회',
-    ];
-
-    return $labels[$requestType] ?? $requestType;
-}
-
-function sr_privacy_request_status_label(string $status): string
-{
-    $labels = [
-        'requested' => '요청',
-        'reviewing' => '검토 중',
-        'completed' => '완료',
-        'rejected' => '거절',
-        'cancelled' => '취소',
-    ];
-
-    return $labels[$status] ?? $status;
-}
-
 function sr_privacy_time_html(string $value): string
 {
     return sr_relative_time_html($value);

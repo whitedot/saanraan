@@ -160,11 +160,6 @@ function sr_member_clear_account_group_keys_runtime_cache(PDO $pdo, int $account
     unset($GLOBALS['sr_member_account_group_keys_runtime_cache'][(string) spl_object_id($pdo) . ':' . (string) $accountId]);
 }
 
-function sr_member_account_in_group(PDO $pdo, int $accountId, string $groupKey): bool
-{
-    return in_array($groupKey, sr_member_account_group_keys($pdo, $accountId), true);
-}
-
 function sr_member_account_in_any_group(PDO $pdo, int $accountId, array $groupKeys): bool
 {
     $normalizedKeys = [];
@@ -345,44 +340,6 @@ function sr_admin_member_group_status_counts(PDO $pdo): array
     }
 
     return $counts;
-}
-
-function sr_admin_member_group_filter_rows(array $groups, array $filter): array
-{
-    $status = is_array($filter['status'] ?? null) ? $filter['status'] : [];
-    $field = (string) ($filter['field'] ?? 'all');
-    $keyword = trim((string) ($filter['keyword'] ?? ''));
-    $keyword = function_exists('mb_strtolower') ? mb_strtolower($keyword, 'UTF-8') : strtolower($keyword);
-
-    return array_values(array_filter($groups, static function (array $group) use ($status, $field, $keyword): bool {
-        if ($status !== [] && !in_array((string) ($group['status'] ?? ''), $status, true)) {
-            return false;
-        }
-
-        if ($keyword === '') {
-            return true;
-        }
-
-        $values = [];
-        if ($field === 'key' || $field === 'all') {
-            $values[] = (string) ($group['group_key'] ?? '');
-        }
-        if ($field === 'title' || $field === 'all') {
-            $values[] = (string) ($group['title'] ?? '');
-        }
-        if ($field === 'description' || $field === 'all') {
-            $values[] = (string) ($group['description'] ?? '');
-        }
-
-        foreach ($values as $value) {
-            $normalizedValue = function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
-            if (str_contains($normalizedValue, $keyword)) {
-                return true;
-            }
-        }
-
-        return false;
-    }));
 }
 
 function sr_member_group_by_id(PDO $pdo, int $groupId): ?array
@@ -1066,35 +1023,6 @@ function sr_member_group_evaluate_account(PDO $pdo, int $accountId, array $filte
             'updated_at' => sr_now(),
             'id' => (int) $rule['id'],
         ]);
-    }
-
-    return $summary;
-}
-
-function sr_member_group_evaluate_accounts(PDO $pdo, array $filters = []): array
-{
-    if (!sr_member_groups_table_exists($pdo)) {
-        return ['accounts' => 0, 'evaluated' => 0, 'granted' => 0, 'revoked' => 0];
-    }
-
-    $limit = max(1, min(200, (int) ($filters['limit'] ?? 50)));
-    $stmt = $pdo->prepare(
-        "SELECT id
-         FROM sr_member_accounts
-         WHERE status IN ('active', 'pending')
-         ORDER BY id ASC
-         LIMIT :limit_value"
-    );
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
-    $stmt->execute();
-
-    $summary = ['accounts' => 0, 'evaluated' => 0, 'granted' => 0, 'revoked' => 0];
-    foreach ($stmt->fetchAll() as $row) {
-        $accountSummary = sr_member_group_evaluate_account($pdo, (int) $row['id'], $filters);
-        $summary['accounts']++;
-        $summary['evaluated'] += (int) $accountSummary['evaluated'];
-        $summary['granted'] += (int) $accountSummary['granted'];
-        $summary['revoked'] += (int) $accountSummary['revoked'];
     }
 
     return $summary;

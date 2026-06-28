@@ -707,11 +707,6 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
     return is_array($delivery) ? $delivery : null;
 }
 
-function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds): ?array
-{
-    return sr_notification_claim_delivery($pdo, $lockId, $now, $lockTimeoutSeconds, ['email']);
-}
-
 function sr_notification_mark_delivery_sent(PDO $pdo, int $deliveryId, string $now, string $providerMessageId = ''): void
 {
     $providerMessageId = sr_notification_clean_single_line($providerMessageId, 120);
@@ -1121,12 +1116,6 @@ function sr_notification_process_external_push_delivery(PDO $pdo, array $site, a
 
     $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, (string) ($providerResult['error'] ?? $channel . ' failed'), $attemptCount, $failureMaxAttempts);
     return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
-}
-
-function sr_notification_process_slack_webhook_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
-{
-    $delivery['channel'] = 'slack_webhook';
-    return sr_notification_process_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
 }
 
 function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array

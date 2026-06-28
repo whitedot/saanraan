@@ -346,18 +346,6 @@ function sr_member_public_account_hash_is_valid(string $publicHash): bool
     return preg_match('/\A[a-f0-9]{32}\z/', $publicHash) === 1;
 }
 
-function sr_member_public_account_summary_with_hash(PDO $pdo, array $config, int $accountId): ?array
-{
-    $summary = sr_member_public_account_summary($pdo, $accountId);
-    if (!is_array($summary)) {
-        return null;
-    }
-
-    $summary['public_hash'] = sr_member_public_account_hash($config, (int) $summary['id']);
-
-    return $summary;
-}
-
 function sr_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
 {
     $publicHash = strtolower(trim($publicHash));

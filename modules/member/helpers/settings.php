@@ -111,11 +111,6 @@ function sr_member_email_login_enabled(array $settings): bool
     return true;
 }
 
-function sr_member_login_id_required(array $settings): bool
-{
-    return false;
-}
-
 function sr_member_skin_options(): array
 {
     return sr_filter_view_options([
@@ -265,16 +260,6 @@ function sr_member_profile_field_setting_keys(): array
     return $keys;
 }
 
-function sr_member_profile_field_required_setting_keys(): array
-{
-    $keys = [];
-    foreach (sr_member_profile_field_definitions() as $definition) {
-        $keys[(string) $definition['required_key']] = (string) $definition['label'];
-    }
-
-    return $keys;
-}
-
 function sr_member_profile_field_definitions(): array
 {
     return [
@@ -304,16 +289,6 @@ function sr_member_profile_field_settings(array $settings): array
     }
 
     return $visible;
-}
-
-function sr_member_profile_field_required_settings(array $settings): array
-{
-    $required = [];
-    foreach (sr_member_profile_field_policies($settings) as $field => $policy) {
-        $required[$field] = !empty($policy['required']);
-    }
-
-    return $required;
 }
 
 function sr_member_profile_field_policies(array $settings): array

@@ -983,12 +983,6 @@ function sr_member_avatar_src(string $reference): string
     return sr_is_http_url($url) ? $url : sr_url($url);
 }
 
-function sr_member_default_avatar_color(string $publicHash): string
-{
-    $palette = sr_member_default_avatar_color_palette();
-    return $palette[sr_member_default_avatar_color_index($publicHash)] ?? '#4f46e5';
-}
-
 function sr_member_default_avatar_color_class(string $publicHash): string
 {
     return 'member-avatar-color-' . (string) sr_member_default_avatar_color_index($publicHash);

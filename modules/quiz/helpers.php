@@ -277,11 +277,6 @@ function sr_quiz_mode_label(string $mode): string
     ][$mode] ?? $mode;
 }
 
-function sr_quiz_truthy(mixed $value): bool
-{
-    return sr_truthy($value);
-}
-
 function sr_quiz_default_settings(): array
 {
     return [

@@ -185,49 +185,6 @@ function sr_member_public_name_for_account_id(PDO $pdo, int $accountId, string $
     return (string) ($summary['public_name'] ?? sr_member_public_name($summary, sr_member_settings($pdo), $fallback));
 }
 
-function sr_member_public_account_summaries(PDO $pdo, array $accountIds): array
-{
-    $ids = [];
-    foreach ($accountIds as $accountId) {
-        $accountId = (int) $accountId;
-        if ($accountId > 0) {
-            $ids[$accountId] = true;
-        }
-    }
-    if ($ids === []) {
-        return [];
-    }
-
-    $settings = sr_member_settings($pdo);
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $join = sr_member_nicknames_table_exists($pdo)
-        ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id'
-        : '';
-    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname' : "'' AS nickname";
-    $stmt = $pdo->prepare(
-        'SELECT a.id, a.display_name, a.locale, a.status, ' . $nicknameSelect . '
-         FROM sr_member_accounts a
-         ' . $join . '
-         WHERE a.id IN (' . $placeholders . ')'
-    );
-    $stmt->execute(array_keys($ids));
-
-    $summaries = [];
-    foreach ($stmt->fetchAll() as $account) {
-        $account['public_name'] = sr_member_public_name($account, $settings);
-        $summaries[(int) $account['id']] = [
-            'id' => (int) $account['id'],
-            'display_name' => (string) $account['display_name'],
-            'nickname' => (string) ($account['nickname'] ?? ''),
-            'public_name' => (string) $account['public_name'],
-            'locale' => (string) $account['locale'],
-            'status' => (string) $account['status'],
-        ];
-    }
-
-    return $summaries;
-}
-
 function sr_member_public_name_lookup_account_ids(PDO $pdo, array $tokens, array $excludeAccountIds = []): array
 {
     $settings = sr_member_settings($pdo);
