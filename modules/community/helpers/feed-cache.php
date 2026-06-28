@@ -486,28 +486,7 @@ function sr_community_feed_cache_write_snapshots(PDO $pdo, array $context, array
     $contextHash = sr_community_feed_cache_context_hash($context);
     sr_community_feed_cache_remember_record($contextHash, $record);
     $path = sr_community_feed_cache_file_path($contextHash);
-    $dir = dirname($path);
-    if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
-        return;
-    }
-
-    $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(6));
-    $handle = @fopen($temporaryPath, 'wb');
-    if ($handle === false) {
-        return;
-    }
-    $written = false;
-    if (flock($handle, LOCK_EX)) {
-        $written = fwrite($handle, $json . "\n") !== false;
-        fflush($handle);
-        flock($handle, LOCK_UN);
-    }
-    fclose($handle);
-    if (!$written || !@rename($temporaryPath, $path)) {
-        @unlink($temporaryPath);
-        return;
-    }
-    @chmod($path, 0664);
+    sr_write_file_atomically($path, $json . "\n");
 }
 
 function sr_community_feed_cache_mark_all_stale(PDO $pdo, string $reason = 'content_changed'): void

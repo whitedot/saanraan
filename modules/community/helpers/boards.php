@@ -812,31 +812,11 @@ function sr_community_enabled_boards_file_cache_write(array $boards): void
         return;
     }
 
-    $root = sr_community_board_file_cache_root();
-    if (!is_dir($root) && !@mkdir($root, 0775, true) && !is_dir($root)) {
-        return;
-    }
-
     $path = sr_community_enabled_boards_file_cache_path();
-    $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(6));
-    $handle = @fopen($temporaryPath, 'wb');
-    if ($handle === false) {
+    if (!sr_write_file_atomically($path, $json . "\n")) {
         return;
     }
 
-    $written = false;
-    if (flock($handle, LOCK_EX)) {
-        $written = fwrite($handle, $json . "\n") !== false;
-        fflush($handle);
-        flock($handle, LOCK_UN);
-    }
-    fclose($handle);
-    if (!$written || !@rename($temporaryPath, $path)) {
-        @unlink($temporaryPath);
-        return;
-    }
-
-    @chmod($path, 0664);
     $GLOBALS['sr_community_enabled_boards_file_cache_record'] = $record;
 }
 

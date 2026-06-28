@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/common.php';
+
 function sr_url_embed_clean_identifier(string $value): string
 {
     $value = trim($value);
@@ -1398,17 +1400,7 @@ function sr_url_embed_fragment_cache_write(array $resolved, array $definition, a
     }
 
     $path = sr_url_embed_fragment_cache_path($resolved, $definition, $context);
-    $directory = dirname($path);
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-        return;
-    }
-
-    $temporaryPath = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
-    if (file_put_contents($temporaryPath, $html, LOCK_EX) === false) {
-        return;
-    }
-    @chmod($temporaryPath, 0664);
-    @rename($temporaryPath, $path);
+    sr_write_file_atomically($path, $html);
 }
 
 function sr_url_embed_fragment_cache_admin_date_filter(string $value): string

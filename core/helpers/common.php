@@ -114,6 +114,46 @@ function sr_json_array(string $json): array
     return is_array($decoded) ? $decoded : [];
 }
 
+function sr_write_file_atomically(string $path, string $contents, int $directoryMode = 0775, int $fileMode = 0664): bool
+{
+    $directory = dirname($path);
+    if (!is_dir($directory) && !@mkdir($directory, $directoryMode, true) && !is_dir($directory)) {
+        return false;
+    }
+
+    $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(6));
+    $handle = @fopen($temporaryPath, 'wb');
+    if ($handle === false) {
+        return false;
+    }
+
+    $written = false;
+    if (flock($handle, LOCK_EX)) {
+        $length = strlen($contents);
+        $offset = 0;
+        $written = true;
+        while ($offset < $length) {
+            $chunkLength = fwrite($handle, substr($contents, $offset));
+            if ($chunkLength === false || $chunkLength === 0) {
+                $written = false;
+                break;
+            }
+            $offset += $chunkLength;
+        }
+        $written = $written && fflush($handle);
+        flock($handle, LOCK_UN);
+    }
+    fclose($handle);
+
+    if (!$written || !@rename($temporaryPath, $path)) {
+        @unlink($temporaryPath);
+        return false;
+    }
+
+    @chmod($path, $fileMode);
+    return true;
+}
+
 function sr_image_format_for_mime(string $mimeType, bool $allowSvg = false, bool $allowGif = false): string
 {
     return match (strtolower(trim($mimeType))) {
