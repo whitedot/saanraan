@@ -287,19 +287,6 @@ function sr_community_home_debug_timings(): array
     return is_array($timings) ? $timings : [];
 }
 
-function sr_community_home_debug_page_elapsed_ms(): float
-{
-    $startedAt = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
-    if (!is_numeric($startedAt)) {
-        $startedAt = $GLOBALS['sr_request_started_at'] ?? null;
-    }
-    if (!is_numeric($startedAt)) {
-        return 0.0;
-    }
-
-    return max(0.0, (microtime(true) - (float) $startedAt) * 1000);
-}
-
 function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
 {
     $posts = [];

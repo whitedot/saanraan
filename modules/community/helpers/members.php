@@ -115,19 +115,3 @@ function sr_community_public_account_summary_by_hash(PDO $pdo, array $config, st
 
     return $summary;
 }
-
-function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $excludeAccountId = 0): bool
-{
-    return sr_member_nickname_exists($pdo, $nickname, $excludeAccountId);
-}
-
-function sr_community_nickname_reset_reason_options(): array
-{
-    return [
-        'inappropriate' => sr_t('community::nickname_reset_reason.inappropriate'),
-        'personal_info' => sr_t('community::nickname_reset_reason.personal_info'),
-        'impersonation' => sr_t('community::nickname_reset_reason.impersonation'),
-        'spam' => sr_t('community::nickname_reset_reason.spam'),
-        'policy' => sr_t('community::nickname_reset_reason.policy'),
-    ];
-}
