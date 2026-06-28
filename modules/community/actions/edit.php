@@ -7,7 +7,8 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_current_account($pdo);
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$isPostRequest = sr_request_method() === 'POST';
+if ($isPostRequest) {
     sr_require_csrf();
 }
 
@@ -20,7 +21,7 @@ if (!is_array($post)) {
 
 $isGuestAuthor = !is_array($account) && (int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '';
 $guestEditSessionKey = 'sr_community_guest_post_edit_' . (string) $postId;
-if ($isGuestAuthor && $_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION[$guestEditSessionKey]) && sr_community_guest_can_edit_post($post, sr_post_string_without_truncation('guest_password', 255) ?? '')) {
+if ($isGuestAuthor && $isPostRequest && !isset($_SESSION[$guestEditSessionKey]) && sr_community_guest_can_edit_post($post, sr_post_string_without_truncation('guest_password', 255) ?? '')) {
     $_SESSION[$guestEditSessionKey] = hash('sha256', (string) ($post['guest_password_hash'] ?? ''));
 }
 $guestEditVerified = $isGuestAuthor
@@ -125,7 +126,7 @@ if ($postFormFlash !== []
     unset($_SESSION['sr_community_post_form_flash']);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($isPostRequest) {
     if (!isset($_POST['title']) && $guestEditVerified) {
         $_SESSION['sr_community_post_notice'] = '비회원 글 수정 비밀번호를 확인했습니다.';
         sr_redirect('/community/edit?id=' . (string) $postId);

@@ -10,6 +10,7 @@ if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/
 }
 
 $account = sr_member_current_account($pdo);
+$isPostRequest = sr_request_method() === 'POST';
 $boardKey = sr_get_string('key', 60);
 $board = sr_community_board_by_key($pdo, $boardKey);
 if (!is_array($board) || (string) $board['status'] !== 'enabled') {
@@ -88,7 +89,7 @@ if ($postFormFlash !== []
     unset($_SESSION['sr_community_post_form_flash']);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($isPostRequest) {
     sr_require_csrf();
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
