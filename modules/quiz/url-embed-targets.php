@@ -62,8 +62,8 @@ return [
                 }
                 $canonicalUrl = '/quiz/' . (string) ($row['quiz_key'] ?? '');
                 $label = (string) ($row['title'] ?? '');
-                $summary = sr_embed_manager_clean_summary((string) ($row['description'] ?? ''));
-                $image = sr_embed_manager_safe_url(sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
+                $summary = sr_url_embed_clean_summary((string) ($row['description'] ?? ''));
+                $image = sr_url_embed_safe_url(sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
                 $html = '<aside class="quiz-embed-summary" data-quiz-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="quiz-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';

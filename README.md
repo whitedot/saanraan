@@ -28,7 +28,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
 | 기본 설치 | `core + member + admin + privacy` |
-| 선택 번들 | 커뮤니티, 콘텐츠, 퀴즈, 설문, 임베드 매니저, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor |
+| 선택 번들 | 커뮤니티, 콘텐츠, 퀴즈, 설문, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅, PHP-FPM 기반 nginx |
@@ -65,7 +65,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 - 알림 모듈, 사이트 알림, 이메일 delivery queue, 도메인 이벤트 템플릿.
 - 포인트 유효기간/만료를 포함한 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면, 포인트/금액 항목 간 환전 정책과 실행 로그.
 - 쿠폰·이용권 모듈과 콘텐츠/커뮤니티 유료 열람 우선 적용, 회원 탈퇴 시 쿠폰 상태 처리.
-- 임베드 매니저 공식 선택 모듈과 본문 URL 임베드 캐시 점검.
+- 본문에 단독으로 붙여 넣은 YouTube, X, Instagram, 내부 콘텐츠 URL 자동 임베드.
 - CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
 - 로컬 파일 저장과 S3 호환 저장소 helper, Apache/nginx 배포 보호 기준.
 
@@ -82,7 +82,6 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지, 레벨/회원 그룹 규칙 |
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계, 보상 지급 |
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 지급 |
-| 서비스 | `embed_manager` | 본문 URL 임베딩 cache와 모듈별 URL renderer 조율 |
 | 운영 | `notification`, `privacy` | 알림, 발송 작업, 개인정보 요청/사본 제공 |
 | 플러그인 | `ckeditor` | CKEditor 5 에셋 로딩과 textarea 강화 |
 

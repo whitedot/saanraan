@@ -14,7 +14,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
-require_once SR_ROOT . '/modules/embed_manager/helpers.php';
+require_once SR_ROOT . '/core/helpers/url-embed.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'edit');
@@ -190,7 +190,7 @@ $statusAfterRows = sr_content_status_rows_for_ids($pdo, $statusAfterTargetIds);
 sr_content_audit_status_schedule_changes($pdo, $statusBeforeRows, $statusAfterRows, $account);
 $embedStaleTargetIds = array_unique(array_filter(array_merge([$savedPageId], $statusBeforeTargetIds, $statusAfterTargetIds), static fn (int $targetId): bool => $targetId > 0));
 foreach ($embedStaleTargetIds as $embedStaleTargetId) {
-    sr_embed_manager_mark_target_url_cache_stale($pdo, 'content', 'content', (int) $embedStaleTargetId);
+    sr_url_embed_mark_target_url_cache_stale($pdo, 'content', 'content', (int) $embedStaleTargetId);
 }
 $savedContent = sr_content_by_id($pdo, $savedPageId) ?: [];
 $wasPublished = is_array($existingContent) && (string) ($existingContent['status'] ?? '') === 'published';

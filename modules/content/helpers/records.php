@@ -444,10 +444,10 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                     'id' => $pageId,
                 ]);
             }
-            sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', (string) ($values['body_text'] ?? ''), $accountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', (string) ($values['body_text'] ?? ''), $accountId);
         } else {
             sr_content_cleanup_unreferenced_body_files($pdo, $pageId, '');
-            sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
         }
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         if ($startedTransaction) {
@@ -659,9 +659,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
                     'id' => $newContentId,
                 ]);
             }
-            sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
         } else {
-            sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', '', $accountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $newContentId, 'body', '', $accountId);
         }
 
         $stmt = $pdo->prepare(
@@ -1082,7 +1082,7 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
             $stmt->execute([$pageId, $pageId]);
         }
 
-        sr_embed_manager_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
+        sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
         $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, [$pageId]);
 
         $stmt = $pdo->prepare(

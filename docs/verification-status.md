@@ -96,7 +96,7 @@ php .tools/bin/smoke-http.php
 - 허용 태그와 속성 목록
 - CKEditor가 생성하는 정상 HTML fixture
 - XSS payload 제거 fixture
-- 임베드 매니저 marker가 허용 범위를 벗어나지 않는지 확인하는 fixture
+- URL 임베드가 저장 HTML에 marker/script/iframe을 남기지 않는지 확인하는 fixture
 - plain textarea fallback과 `body_format=html` 저장 경계 확인
 
 현재 기준:

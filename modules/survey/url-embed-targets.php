@@ -66,8 +66,8 @@ return [
                 }
                 $canonicalUrl = '/survey/' . (string) ($row['survey_key'] ?? '');
                 $label = (string) ($row['title'] ?? '');
-                $summary = sr_embed_manager_clean_summary((string) ($row['description'] ?? ''));
-                $image = sr_embed_manager_safe_url(sr_survey_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
+                $summary = sr_url_embed_clean_summary((string) ($row['description'] ?? ''));
+                $image = sr_url_embed_safe_url(sr_survey_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
                 $html = '<aside class="survey-embed-summary" data-survey-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="survey-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';

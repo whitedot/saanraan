@@ -92,11 +92,11 @@ function sr_sanitizer_check_case(callable $sanitize, string $label): void
         '<img src="/storage/proxy/body.png" alt="internal image">',
     ], $label . ' relative URLs');
 
-    $markerOutput = $sanitize('<span class="foo sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc1234" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="12" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="퀴즈  자세히 보기">ignored</span>');
+    $markerOutput = $sanitize('<span class="foo sr-url-embed-marker" data-sr-url-embed-ref="em_abc1234" data-sr-url-embed-target-module="content" data-sr-url-embed-target-type="content" data-sr-url-embed-target-id="12" data-sr-url-embed-variant="card" data-sr-url-embed-label="퀴즈  자세히 보기">ignored</span>');
     sr_sanitizer_check_not_contains($markerOutput, [
         '<span',
-        'sr-embed-manager-marker',
-        'data-sr-embed-manager',
+        'sr-url-embed-marker',
+        'data-sr-url-embed',
         'class=',
     ], $label . ' markerless URL policy');
     sr_sanitizer_check_contains($markerOutput, ['ignored'], $label . ' marker text preservation');
@@ -205,7 +205,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
             'modules/content/helpers.php' => [
                 'function sr_content_body_html(',
                 'sr_body_text_html($page, $linkPlainUrls)',
-                'sr_embed_manager_render_body_html($pdo, $html, \'content\', \'content\'',
+                'sr_url_embed_render_body_html($pdo, $html, \'content\', \'content\'',
             ],
             'modules/content/helpers/records.php' => [
                 'function sr_content_input_values(',
@@ -214,7 +214,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 'function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $accountId): int',
                 '$copy[\'body_text\'] = sr_sanitize_rich_text_html((string) ($copy[\'body_text\'] ?? \'\'));',
                 '$rewrittenBodyText = sr_sanitize_rich_text_html((string) ($copy[\'body_text\'] ?? \'\'));',
-                'sr_embed_manager_sync_body_url_cache($pdo, \'content\', \'content\', $newContentId, \'body\', (string) ($copy[\'body_text\'] ?? \'\'), $accountId);',
+                'sr_url_embed_sync_body_url_cache($pdo, \'content\', \'content\', $newContentId, \'body\', (string) ($copy[\'body_text\'] ?? \'\'), $accountId);',
             ],
         ],
         'community rich text flow' => [
@@ -225,7 +225,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 'return sr_sanitize_rich_text_html($html);',
                 'function sr_community_post_body_html(',
                 'sr_community_sanitize_post_html($bodyText)',
-                'sr_embed_manager_render_body_html($pdo, $html, \'community\', \'post\'',
+                'sr_url_embed_render_body_html($pdo, $html, \'community\', \'post\'',
             ],
             'modules/community/helpers/posts-writing.php' => [
                 'function sr_community_post_input_values(',
@@ -286,7 +286,7 @@ function sr_sanitizer_check_purifier_direct_case(): void
         . '<a href="/content/example?x=1" rel="bookmark" target="_blank">internal</a>'
         . '<a href="https://example.com/body" rel="bookmark" target="_blank">external</a>'
         . '<img src="data:image/svg+xml;base64,PHN2Zy8+" alt="bad">'
-        . '<span class="foo sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc1234" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="12" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="본문">marker</span>'
+        . '<span class="foo sr-url-embed-marker" data-sr-url-embed-ref="em_abc1234" data-sr-url-embed-target-module="content" data-sr-url-embed-target-type="content" data-sr-url-embed-target-id="12" data-sr-url-embed-variant="card" data-sr-url-embed-label="본문">marker</span>'
         . '</p>';
 
     $output = sr_sanitize_rich_text_html_with_purifier($input);
@@ -303,8 +303,8 @@ function sr_sanitizer_check_purifier_direct_case(): void
         'target=',
         'data:image',
         'rel="bookmark"',
-        'sr-embed-manager-marker',
-        'data-sr-embed-manager',
+        'sr-url-embed-marker',
+        'data-sr-url-embed',
     ], 'HTML Purifier direct fixture');
     sr_sanitizer_check_contains($output, [
         '<a href="/content/example?x=1">internal</a>',

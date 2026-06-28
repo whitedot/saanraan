@@ -118,12 +118,6 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'admin content link card targets entry',
-        'path' => '/admin/content/link-card-targets?target=community_post&q=test',
-        'allowed_statuses' => [200, 302, 403, 404],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
         'label' => 'admin asset reconciliation entry',
         'path' => '/admin/assets/reconciliation',
         'allowed_statuses' => [200, 302, 403, 404],
@@ -177,13 +171,6 @@ $checks = [
     [
         'label' => 'community write auth guard',
         'path' => '/community/write?key=free',
-        'allowed_statuses' => [302, 404],
-        'redirect_path_prefixes' => ['/login?next='],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
-        'label' => 'community link insert targets auth guard',
-        'path' => '/community/link-card-targets?target=content&q=test',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -692,7 +679,6 @@ if ($expectMemberOnly) {
         '/community/group?key=general' => true,
         '/community/message/write' => true,
         '/community/write?key=free' => true,
-        '/community/link-card-targets?target=content&q=test' => true,
         '/community/edit?id=1' => true,
         '/community/scraps' => true,
         '/community/messages' => true,

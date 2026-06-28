@@ -421,14 +421,14 @@ function sr_admin_status_description_options(string $context, array $labels = []
             'resolved' => '신고 검토와 조치가 완료되었습니다.',
             'dismissed' => '조치하지 않기로 판단한 신고입니다.',
         ],
-        'embed_manager_status' => [
+        'url_embed_status' => [
             'active' => 'URL 임베드 대상이 정상적으로 연결되어 있습니다.',
             'removed' => '원본 URL 또는 캐시 대상이 제거된 상태입니다.',
             'broken' => 'URL 임베드 대상 연결이 깨져 확인이 필요합니다.',
             'private' => '비공개 대상이라 공개 렌더링이 제한됩니다.',
             'deleted' => '삭제된 대상으로 일반 렌더링에서 제외됩니다.',
         ],
-        'embed_manager_cache_status' => [
+        'url_embed_cache_status' => [
             'fresh' => '현재 저장값을 공개 화면에서 사용할 수 있습니다.',
             'stale' => '대상 변경 때문에 갱신이 필요하며, 다음 렌더링 때 현재 조건으로 다시 확인합니다.',
             'deleted' => 'URL이 가리키는 대상이 삭제되어 공개 렌더링에서 제외됩니다.',

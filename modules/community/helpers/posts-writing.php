@@ -32,14 +32,14 @@ function sr_community_board_post_body_max_length(PDO $pdo, array $board, ?array 
 
 function sr_community_mark_post_embed_target_stale(PDO $pdo, int $postId): void
 {
-    if ($postId > 0 && function_exists('sr_embed_manager_mark_target_url_cache_stale')) {
-        sr_embed_manager_mark_target_url_cache_stale($pdo, 'community', 'post', $postId);
+    if ($postId > 0 && function_exists('sr_url_embed_mark_target_url_cache_stale')) {
+        sr_url_embed_mark_target_url_cache_stale($pdo, 'community', 'post', $postId);
     }
 }
 
 function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId): void
 {
-    if ($boardId < 1 || !function_exists('sr_embed_manager_url_cache_table_exists') || !sr_embed_manager_url_cache_table_exists($pdo)) {
+    if ($boardId < 1 || !function_exists('sr_url_embed_cache_table_exists') || !sr_url_embed_cache_table_exists($pdo)) {
         return;
     }
 
@@ -55,10 +55,10 @@ function sr_community_mark_board_post_embed_targets_stale(PDO $pdo, int $boardId
                SELECT 1
                FROM sr_community_posts p
                WHERE p.board_id = :board_id
-                 AND p.id = CAST(sr_embed_manager_url_cache.target_id AS UNSIGNED)
+                 AND p.id = CAST(sr_url_embed_cache.target_id AS UNSIGNED)
            )';
     $stmt = $pdo->prepare(
-        'UPDATE sr_embed_manager_url_cache
+        'UPDATE sr_url_embed_cache
          SET cache_status = \'stale\',
              updated_at = :updated_at
          WHERE target_module = \'community\'
@@ -250,8 +250,8 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
     ]);
     sr_community_redact_post_field_values($pdo, $postId);
 
-    if (function_exists('sr_embed_manager_sync_body_url_cache')) {
-        sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', null);
+    if (function_exists('sr_url_embed_sync_body_url_cache')) {
+        sr_url_embed_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', null);
     }
     sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
@@ -367,9 +367,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $stmt->execute($params);
         if ($bodyFormat === 'html') {
-            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $accountId > 0 ? $accountId : null);
+            sr_url_embed_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $accountId > 0 ? $accountId : null);
         } else {
-            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
+            sr_url_embed_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
         }
         sr_community_mark_post_embed_target_stale($pdo, $postId);
         if (function_exists('sr_community_feed_cache_mark_all_stale')) {
@@ -627,9 +627,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
                     'id' => $postId,
                 ]);
             }
-            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $authorAccountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', $bodyText, $authorAccountId);
         } else {
-            sr_embed_manager_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
+            sr_url_embed_sync_body_url_cache($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
         }
         sr_community_save_post_field_values(
             $pdo,

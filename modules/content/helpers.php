@@ -15,7 +15,7 @@ require_once SR_ROOT . '/modules/content/helpers/files.php';
 require_once SR_ROOT . '/modules/content/helpers/series.php';
 require_once SR_ROOT . '/modules/content/helpers/comments.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
-require_once SR_ROOT . '/modules/embed_manager/helpers.php';
+require_once SR_ROOT . '/core/helpers/url-embed.php';
 
 function sr_content_allowed_statuses(): array
 {
@@ -437,8 +437,8 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
 
     $html = sr_body_text_html($page, $linkPlainUrls);
-    if ($pdo instanceof PDO && (string) ($page['body_format'] ?? 'plain') === 'html') {
-        $html = sr_embed_manager_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
+    if ($pdo instanceof PDO && sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
+        $html = sr_url_embed_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
     return $html;

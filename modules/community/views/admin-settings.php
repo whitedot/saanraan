@@ -620,7 +620,7 @@ $communitySettingsSectionNavItems = [
             <span class="form-label">임베드 사용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
-                <p class="form-help">꺼져 있으면 커뮤니티 게시글 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에서 게시글을 임베드 대상으로 검색하거나 자동 표시하지 않습니다.<?php if ($canViewCommunityEmbedManager) { ?> 본문 URL 임베드 저장값은 <a href="<?php echo sr_e(sr_url('/admin/embed-manager')); ?>">임베드 관리</a>에서 확인합니다.<?php } ?></p>
+                <p class="form-help">켜져 있으면 본문에 단독으로 붙여 넣은 YouTube, X, Instagram, 내부 콘텐츠 URL을 공개 화면에서 자동 해석해 표시합니다.</p>
             </div>
         </div>
         <div class="form-row">

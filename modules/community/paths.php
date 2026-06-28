@@ -15,7 +15,6 @@ return [
     'GET /community/ui-kit' => 'actions/ui-kit.php',
     'GET /community/write' => 'actions/write.php',
     'POST /community/write' => 'actions/write.php',
-    'GET /community/link-card-targets' => 'actions/link-card-targets.php',
     'GET /community/edit' => 'actions/edit.php',
     'POST /community/edit' => 'actions/edit.php',
     'POST /community/delete' => 'actions/delete.php',

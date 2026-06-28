@@ -210,7 +210,6 @@ $expected = [
     'content' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'coupon' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'deposit' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
-    'embed_manager' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
     'logo_manager' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
     'member' => ['status' => 'export_owner', 'export' => true, 'cleanup' => false, 'consumes_cleanup' => true],
     'member_oauth' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
@@ -228,7 +227,7 @@ $expected = [
     'survey' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
 ];
 
-$operationalRetainedModules = ['admin', 'embed_manager', 'logo_manager'];
+$operationalRetainedModules = ['admin', 'logo_manager'];
 
 foreach ($expected as $moduleKey => $policy) {
     if ($matrix !== '' && strpos($matrix, '| `' . $moduleKey . '` | `' . $policy['status'] . '` |') === false) {
@@ -358,7 +357,7 @@ foreach ([
 
 foreach ([
     '## 마일스톤 12 재기준화 기준',
-    '현재 번들 모듈은 27개',
+    '현재 번들 모듈은 26개',
     'antispam_captcha_providers',
     'member_oauth',
     'policy_documents',
@@ -659,7 +658,6 @@ foreach ([
 
 foreach ([
     'admin' => '관리자 권한',
-    'embed_manager' => '본문 참조',
     'logo_manager' => '로고 변경',
 ] as $moduleKey => $retentionMarker) {
     if ($matrix !== '' && strpos($matrix, '| `' . $moduleKey . '` | ' . $retentionMarker) === false) {
@@ -693,7 +691,6 @@ foreach ([
     '운영자 접근 범위',
     '1.0 전 검토 항목',
     '탈퇴 계정 표시명',
-    'orphan ref',
     '감사 로그로 충분히 대체',
     '재식별성이 높은 필드',
     '보존기간 정책',

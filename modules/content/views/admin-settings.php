@@ -88,7 +88,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">임베드 사용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
-                <p class="form-help">꺼져 있으면 콘텐츠 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에서 콘텐츠를 임베드 대상으로 검색하거나 자동 표시하지 않습니다.</p>
+                <p class="form-help">꺼져 있으면 콘텐츠 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에 붙여 넣은 콘텐츠 URL도 자동 표시하지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">

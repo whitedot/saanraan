@@ -30,7 +30,7 @@ return [
             'member-withdrawal-assets.php',
             'coupon-references.php',
             'dashboard.php',
-            'embed-manager-url-targets.php',
+            'url-embed-targets.php',
         ],
         'consumes' => [
             'coupon-references.php',

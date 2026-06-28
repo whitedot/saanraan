@@ -43,13 +43,13 @@ rich text sanitizer payload 회귀 점검
 보상/설문 정합성 회귀 점검
 ```
 
-현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, 임베드 매니저 계약 구조 기준은 `.tools/bin/check-embed-manager-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
+현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, URL 임베드 계약 구조 기준은 `.tools/bin/check-url-embed-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
 
 퀴즈/설문 공개 스킨 설정을 바꾼 경우 `/admin/quiz/settings`, `/admin/surveys/settings`의 기본값과 개별 퀴즈/설문 수정 화면의 `skin_key`가 허용 목록 값으로만 저장되는지 확인한다. 개별 값이 비어 있으면 환경설정 기본값을 상속하고, 개별 값이 있으면 상세/응시/응답/완료 화면에서 개별값이 우선해야 한다. `/quiz`, `/quiz/{quiz_key}`, `/survey`, `/survey/{survey_key}`는 선택 스킨의 `home`/`view` 본문을 공개 레이아웃 안에서 렌더링해야 하며, 결과/완료 화면의 보상 지급 안내가 유지되어야 한다. 잘못된 legacy `skin_key`나 누락된 스킨 view는 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file이 남는지 확인한다.
 
 설문 모듈을 확인할 때는 기타 선택지를 고른 공개 응답이 기타 텍스트를 요구하고, 분석 CSV와 개인정보 사본의 `other_text`에 저장되는지 함께 본다.
 
-본문 임베드 변경을 확인할 때는 콘텐츠 관리자 화면에서 커뮤니티 게시글/퀴즈/설문 검색 결과를 CKEditor 본문에 삽입하고 저장 후 `sr_embed_manager_refs`가 동기화되는지 확인한다. 커뮤니티 작성 화면에서는 콘텐츠/퀴즈/설문 검색 후보가 공개 후보만 노출되는지 확인한다. 공개 콘텐츠/게시글 화면은 marker fallback blockquote가 카드/CTA로 치환되고, 퀴즈·설문 완료 후 `return_to` 링크로 원래 화면에 돌아갈 수 있어야 한다. 가능하면 브라우저 QA로 CKEditor 삽입까지 확인하고, 불가능하면 로컬 수동 smoke 결과와 미실행 사유를 기록한다.
+본문 임베드 변경을 확인할 때는 콘텐츠/커뮤니티 본문에 YouTube, X, Instagram, 내부 콘텐츠 URL을 한 줄에 단독으로 붙여 넣고 저장한다. 공개 콘텐츠/게시글 화면에서는 저장 HTML에 전용 marker나 script/iframe을 남기지 않은 채 서버 렌더링 시점에 URL이 카드 또는 외부 임베드로 해석되어야 한다. 퀴즈·설문 완료 후 내부 URL 임베드의 `return_to` 링크로 원래 화면에 돌아갈 수 있어야 한다. 가능하면 브라우저 QA로 실제 붙여넣기와 공개 렌더링까지 확인하고, 불가능하면 로컬 수동 smoke 결과와 미실행 사유를 기록한다.
 
 비밀글/비밀댓글 변경을 확인할 때는 커뮤니티 전역과 게시판 설정, 콘텐츠 환경설정, 퀴즈/설문 항목 설정의 허용 스위치를 각각 껐다 켠다. 허용이 꺼진 상태에서 `is_secret=1`을 직접 POST해도 새 게시글/댓글은 공개로 저장되어야 하며, 기존 비밀 댓글은 수정 요청 후에도 비밀 상태가 유지되어야 한다. 허용이 켜진 상태에서는 사용자 작성/수정 화면에 비밀 선택지가 표시되고, 커뮤니티 비밀 게시글 본문·첨부·퀴즈 연결·댓글·SEO/OG 설명·커뮤니티 링크 카드 검색 결과는 작성자 또는 관리자/운영 권한자 외에는 노출되지 않아야 한다. 비밀 댓글 본문은 댓글 작성자, 대상 글/콘텐츠 작성자, 댓글 관리자 권한자만 볼 수 있고 멘션 알림을 만들지 않아야 한다.
 

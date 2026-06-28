@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-function sr_embed_manager_clean_identifier(string $value): string
+function sr_url_embed_clean_identifier(string $value): string
 {
     $value = trim($value);
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
-function sr_embed_manager_clean_target_id(string $value): string
+function sr_url_embed_clean_target_id(string $value): string
 {
     $value = trim($value);
     return preg_match('/\A[1-9][0-9]{0,19}\z/', $value) === 1 ? $value : '';
 }
 
-function sr_embed_manager_clean_label(string $value): string
+function sr_url_embed_clean_label(string $value): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
     return function_exists('mb_substr') ? mb_substr($value, 0, 255) : substr($value, 0, 255);
 }
 
-function sr_embed_manager_allowed_statuses(): array
+function sr_url_embed_allowed_statuses(): array
 {
     return ['active', 'removed', 'broken', 'private', 'deleted'];
 }
 
-function sr_embed_manager_module_label(string $moduleKey): string
+function sr_url_embed_module_label(string $moduleKey): string
 {
     $labels = [
         'content' => '콘텐츠',
@@ -37,7 +37,7 @@ function sr_embed_manager_module_label(string $moduleKey): string
     return $labels[$moduleKey] ?? $moduleKey;
 }
 
-function sr_embed_manager_target_type_label(string $targetModule, string $targetType): string
+function sr_url_embed_target_type_label(string $targetModule, string $targetType): string
 {
     $labels = [
         'content' => [
@@ -57,10 +57,10 @@ function sr_embed_manager_target_type_label(string $targetModule, string $target
     return (string) ($labels[$targetModule][$targetType] ?? $targetType);
 }
 
-function sr_embed_manager_target_label(string $moduleKey, string $targetType, string $targetId): string
+function sr_url_embed_target_label(string $moduleKey, string $targetType, string $targetId): string
 {
-    $label = sr_embed_manager_module_label($moduleKey);
-    $typeLabel = sr_embed_manager_target_type_label($moduleKey, $targetType);
+    $label = sr_url_embed_module_label($moduleKey);
+    $typeLabel = sr_url_embed_target_type_label($moduleKey, $targetType);
     if ($typeLabel !== '' && $typeLabel !== $label) {
         $label .= ' / ' . $typeLabel;
     }
@@ -71,17 +71,17 @@ function sr_embed_manager_target_label(string $moduleKey, string $targetType, st
     return $label;
 }
 
-function sr_embed_manager_normalize_contract_target(array $definition): array
+function sr_url_embed_normalize_contract_target(array $definition): array
 {
-    $targetModule = sr_embed_manager_clean_identifier((string) ($definition['target_module'] ?? ''));
-    $targetType = sr_embed_manager_clean_identifier((string) ($definition['target_type'] ?? ''));
+    $targetModule = sr_url_embed_clean_identifier((string) ($definition['target_module'] ?? ''));
+    $targetType = sr_url_embed_clean_identifier((string) ($definition['target_type'] ?? ''));
     if ($targetModule === '' || $targetType === '') {
         return [];
     }
 
     $variants = [];
     foreach ((array) ($definition['allowed_variants'] ?? ['card']) as $variant) {
-        $variant = sr_embed_manager_clean_identifier((string) $variant);
+        $variant = sr_url_embed_clean_identifier((string) $variant);
         if ($variant !== '') {
             $variants[$variant] = true;
         }
@@ -106,50 +106,28 @@ function sr_embed_manager_normalize_contract_target(array $definition): array
     return $definition;
 }
 
-function sr_embed_manager_contract_targets(PDO $pdo): array
+function sr_url_embed_contract_targets(PDO $pdo): array
 {
-    $targets = [];
-    foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-targets.php', ['embed_manager']) as $moduleKey => $file) {
-        if (!sr_embed_manager_module_enabled($pdo, (string) $moduleKey)) {
-            continue;
-        }
-        $contract = sr_load_module_contract_file($moduleKey, $file);
-        if (!is_array($contract)) {
-            continue;
-        }
+    unset($pdo);
 
-        foreach ((array) ($contract['targets'] ?? []) as $definition) {
-            if (!is_array($definition)) {
-                continue;
-            }
-
-            $definition = sr_embed_manager_normalize_contract_target($definition);
-            if ($definition === []) {
-                continue;
-            }
-
-            $targets[(string) $definition['target_module']][(string) $definition['target_type']] = $definition;
-        }
-    }
-
-    return $targets;
+    return [];
 }
 
-function sr_embed_manager_contract_target(PDO $pdo, string $targetModule, string $targetType): ?array
+function sr_url_embed_contract_target(PDO $pdo, string $targetModule, string $targetType): ?array
 {
-    $targetModule = sr_embed_manager_clean_identifier($targetModule);
-    $targetType = sr_embed_manager_clean_identifier($targetType);
+    $targetModule = sr_url_embed_clean_identifier($targetModule);
+    $targetType = sr_url_embed_clean_identifier($targetType);
     if ($targetModule === '' || $targetType === '') {
         return null;
     }
 
-    $targets = sr_embed_manager_contract_targets($pdo);
+    $targets = sr_url_embed_contract_targets($pdo);
     return isset($targets[$targetModule][$targetType]) && is_array($targets[$targetModule][$targetType])
         ? $targets[$targetModule][$targetType]
         : null;
 }
 
-function sr_embed_manager_normalize_target_filter(string $target): array
+function sr_url_embed_normalize_target_filter(string $target): array
 {
     $target = trim($target);
     $legacy = [
@@ -166,8 +144,8 @@ function sr_embed_manager_normalize_target_filter(string $target): array
     foreach ([':', '/', '.'] as $separator) {
         if (str_contains($target, $separator)) {
             [$module, $type] = array_pad(explode($separator, $target, 2), 2, '');
-            $module = sr_embed_manager_clean_identifier($module);
-            $type = sr_embed_manager_clean_identifier($type);
+            $module = sr_url_embed_clean_identifier($module);
+            $type = sr_url_embed_clean_identifier($type);
             return $module !== '' && $type !== '' ? [[$module, $type]] : [];
         }
     }
@@ -175,11 +153,11 @@ function sr_embed_manager_normalize_target_filter(string $target): array
     return [];
 }
 
-function sr_embed_manager_target_filters_from_value(string $value): array
+function sr_url_embed_target_filters_from_value(string $value): array
 {
     $filters = [];
     foreach (preg_split('/\s*,\s*/', $value) ?: [] as $target) {
-        foreach (sr_embed_manager_normalize_target_filter((string) $target) as $filter) {
+        foreach (sr_url_embed_normalize_target_filter((string) $target) as $filter) {
             $filters[implode(':', $filter)] = $filter;
         }
     }
@@ -187,7 +165,7 @@ function sr_embed_manager_target_filters_from_value(string $value): array
     return array_values($filters);
 }
 
-function sr_embed_manager_search_result_limit(int $limit, array $filterMap): int
+function sr_url_embed_search_result_limit(int $limit, array $filterMap): int
 {
     $limit = max(1, min(30, $limit));
     if ($filterMap === []) {
@@ -197,9 +175,9 @@ function sr_embed_manager_search_result_limit(int $limit, array $filterMap): int
     return min(90, $limit * max(1, count($filterMap)));
 }
 
-function sr_embed_manager_absolute_public_url(PDO $pdo, string $url): string
+function sr_url_embed_absolute_public_url(PDO $pdo, string $url): string
 {
-    $url = sr_embed_manager_safe_url($url);
+    $url = sr_url_embed_safe_url($url);
     if ($url === '' || sr_is_http_url($url)) {
         return $url;
     }
@@ -216,20 +194,20 @@ function sr_embed_manager_absolute_public_url(PDO $pdo, string $url): string
     return function_exists('sr_absolute_url') ? sr_absolute_url($site, $url) : $url;
 }
 
-function sr_embed_manager_normalize_target_result(PDO $pdo, array $row, string $targetModule, string $targetType, array $definition): ?array
+function sr_url_embed_normalize_target_result(PDO $pdo, array $row, string $targetModule, string $targetType, array $definition): ?array
 {
-    $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? $row['entity_id'] ?? $row['id'] ?? ''));
+    $targetId = sr_url_embed_clean_target_id((string) ($row['target_id'] ?? $row['entity_id'] ?? $row['id'] ?? ''));
     if ($targetId === '') {
         return null;
     }
 
-    $label = sr_embed_manager_clean_label((string) ($row['label_snapshot'] ?? $row['title'] ?? ''));
+    $label = sr_url_embed_clean_label((string) ($row['label_snapshot'] ?? $row['title'] ?? ''));
     if ($label === '') {
         $label = $targetModule . ' #' . $targetId;
     }
 
     $status = (string) ($row['status'] ?? 'active');
-    if (!in_array($status, sr_embed_manager_allowed_statuses(), true)) {
+    if (!in_array($status, sr_url_embed_allowed_statuses(), true)) {
         $status = 'broken';
     }
 
@@ -238,33 +216,33 @@ function sr_embed_manager_normalize_target_result(PDO $pdo, array $row, string $
         $variant = (string) ($definition['default_variant'] ?? 'card');
     }
 
-    $publicUrl = sr_embed_manager_absolute_public_url($pdo, (string) ($row['public_url'] ?? $row['url'] ?? ''));
-    $adminUrl = sr_embed_manager_safe_url((string) ($row['admin_url'] ?? ''));
+    $publicUrl = sr_url_embed_absolute_public_url($pdo, (string) ($row['public_url'] ?? $row['url'] ?? ''));
+    $adminUrl = sr_url_embed_safe_url((string) ($row['admin_url'] ?? ''));
 
     return [
         'module' => $targetModule,
         'entity_type' => $targetType,
         'entity_id' => $targetId,
         'title' => $label,
-        'summary' => sr_embed_manager_clean_summary((string) ($row['summary'] ?? '')),
+        'summary' => sr_url_embed_clean_summary((string) ($row['summary'] ?? '')),
         'url' => $publicUrl,
         'admin_url' => $adminUrl,
         'status' => $status,
-        'meta' => sr_embed_manager_clean_summary((string) ($row['meta'] ?? '')),
+        'meta' => sr_url_embed_clean_summary((string) ($row['meta'] ?? '')),
     ];
 }
 
-function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, array $context = []): array
+function sr_url_embed_search_targets(PDO $pdo, string $keyword, int $limit, array $context = []): array
 {
     $limit = max(1, min(30, $limit));
-    $filters = sr_embed_manager_target_filters_from_value((string) ($context['targets'] ?? $context['target'] ?? ''));
+    $filters = sr_url_embed_target_filters_from_value((string) ($context['targets'] ?? $context['target'] ?? ''));
     $filterMap = [];
     foreach ($filters as $filter) {
         $filterMap[implode(':', $filter)] = true;
     }
 
     $items = [];
-    foreach (sr_embed_manager_contract_targets($pdo) as $targetModule => $types) {
+    foreach (sr_url_embed_contract_targets($pdo) as $targetModule => $types) {
         foreach ($types as $targetType => $definition) {
             if ($filterMap !== [] && !isset($filterMap[$targetModule . ':' . $targetType])) {
                 continue;
@@ -285,7 +263,7 @@ function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, 
                     'owner_type' => (string) ($context['owner_type'] ?? ''),
                 ]);
             } catch (Throwable $exception) {
-                sr_log_exception($exception, 'embed_manager_search_failed_' . $targetModule . '_' . $targetType);
+                sr_log_exception($exception, 'url_embed_search_failed_' . $targetModule . '_' . $targetType);
                 continue;
             }
 
@@ -293,7 +271,7 @@ function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, 
                 if (!is_array($row)) {
                     continue;
                 }
-                $item = sr_embed_manager_normalize_target_result($pdo, $row, (string) $targetModule, (string) $targetType, $definition);
+                $item = sr_url_embed_normalize_target_result($pdo, $row, (string) $targetModule, (string) $targetType, $definition);
                 if (is_array($item)) {
                     $items[] = $item;
                 }
@@ -301,16 +279,16 @@ function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, 
         }
     }
 
-    return array_slice($items, 0, sr_embed_manager_search_result_limit($limit, $filterMap));
+    return array_slice($items, 0, sr_url_embed_search_result_limit($limit, $filterMap));
 }
 
-function sr_embed_manager_clean_summary(string $value): string
+function sr_url_embed_clean_summary(string $value): string
 {
     $value = trim(preg_replace('/\s+/', ' ', strip_tags($value)) ?? '');
     return function_exists('mb_substr') ? mb_substr($value, 0, 240) : substr($value, 0, 240);
 }
 
-function sr_embed_manager_safe_url(string $value): string
+function sr_url_embed_safe_url(string $value): string
 {
     $value = trim($value);
     if ($value === '') {
@@ -324,35 +302,35 @@ function sr_embed_manager_safe_url(string $value): string
     return '';
 }
 
-function sr_embed_manager_default_settings(): array
+function sr_url_embed_default_settings(): array
 {
     return [
-        'url_embed_enabled' => false,
+        'url_embed_enabled' => true,
         'internal_url_embed_enabled' => true,
-        'external_url_embed_enabled' => false,
+        'external_url_embed_enabled' => true,
         'embed_scope' => 'standalone_url_only',
     ];
 }
 
-function sr_embed_manager_settings(PDO $pdo): array
+function sr_url_embed_settings(PDO $pdo): array
 {
     try {
-        return array_merge(sr_embed_manager_default_settings(), sr_module_settings($pdo, 'embed_manager'));
+        return array_merge(sr_url_embed_default_settings(), sr_module_settings($pdo, 'url_embed'));
     } catch (Throwable $exception) {
-        return sr_embed_manager_default_settings();
+        return sr_url_embed_default_settings();
     }
 }
 
-function sr_embed_manager_url_embedding_enabled(PDO $pdo): bool
+function sr_url_embed_url_embedding_enabled(PDO $pdo): bool
 {
-    $settings = sr_embed_manager_settings($pdo);
+    $settings = sr_url_embed_settings($pdo);
     return !empty($settings['url_embed_enabled']);
 }
 
-function sr_embed_manager_module_enabled(PDO $pdo, string $moduleKey): bool
+function sr_url_embed_module_enabled(PDO $pdo, string $moduleKey): bool
 {
-    $moduleKey = sr_embed_manager_clean_identifier($moduleKey);
-    if ($moduleKey === '' || $moduleKey === 'embed_manager') {
+    $moduleKey = sr_url_embed_clean_identifier($moduleKey);
+    if ($moduleKey === '' || $moduleKey === 'url_embed') {
         return true;
     }
 
@@ -375,7 +353,7 @@ function sr_embed_manager_module_enabled(PDO $pdo, string $moduleKey): bool
     return true;
 }
 
-function sr_embed_manager_embed_kind_allowed(string $embedKind, array $settings): bool
+function sr_url_embed_embed_kind_allowed(string $embedKind, array $settings): bool
 {
     if ($embedKind === 'internal_url') {
         return !empty($settings['internal_url_embed_enabled']);
@@ -387,36 +365,36 @@ function sr_embed_manager_embed_kind_allowed(string $embedKind, array $settings)
     return false;
 }
 
-function sr_embed_manager_url_cache_statuses(): array
+function sr_url_embed_cache_statuses(): array
 {
     return ['fresh', 'stale', 'deleted', 'broken'];
 }
 
-function sr_embed_manager_table_exists(PDO $pdo): bool
+function sr_url_embed_table_exists(PDO $pdo): bool
 {
-    return sr_embed_manager_url_cache_table_exists($pdo);
+    return sr_url_embed_cache_table_exists($pdo);
 }
 
-function sr_embed_manager_url_cache_table_exists(PDO $pdo): bool
+function sr_url_embed_cache_table_exists(PDO $pdo): bool
 {
     try {
-        $pdo->query('SELECT 1 FROM sr_embed_manager_url_cache LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_url_embed_cache LIMIT 1');
         return true;
     } catch (Throwable $exception) {
         return false;
     }
 }
 
-function sr_embed_manager_clean_cache_status(string $value): string
+function sr_url_embed_clean_cache_status(string $value): string
 {
     $value = trim($value);
-    return in_array($value, sr_embed_manager_url_cache_statuses(), true) ? $value : 'broken';
+    return in_array($value, sr_url_embed_cache_statuses(), true) ? $value : 'broken';
 }
 
-function sr_embed_manager_url_normalized_contract(array $definition): array
+function sr_url_embed_url_normalized_contract(array $definition): array
 {
-    $targetModule = sr_embed_manager_clean_identifier((string) ($definition['target_module'] ?? ''));
-    $targetType = sr_embed_manager_clean_identifier((string) ($definition['target_type'] ?? ''));
+    $targetModule = sr_url_embed_clean_identifier((string) ($definition['target_module'] ?? ''));
+    $targetType = sr_url_embed_clean_identifier((string) ($definition['target_type'] ?? ''));
     if ($targetModule === '' || $targetType === '') {
         return [];
     }
@@ -426,7 +404,7 @@ function sr_embed_manager_url_normalized_contract(array $definition): array
 
     $variants = [];
     foreach ((array) ($definition['allowed_variants'] ?? ['summary']) as $variant) {
-        $variant = sr_embed_manager_clean_identifier((string) $variant);
+        $variant = sr_url_embed_clean_identifier((string) $variant);
         if ($variant !== '') {
             $variants[$variant] = true;
         }
@@ -442,16 +420,16 @@ function sr_embed_manager_url_normalized_contract(array $definition): array
         ? (string) ($definition['default_variant'] ?? 'summary')
         : $definition['allowed_variants'][0];
     $definition['fragment_cache_public'] = !empty($definition['fragment_cache_public']);
-    $definition['fragment_cache_schema'] = sr_embed_manager_clean_identifier((string) ($definition['fragment_cache_schema'] ?? 'v1')) ?: 'v1';
+    $definition['fragment_cache_schema'] = sr_url_embed_clean_identifier((string) ($definition['fragment_cache_schema'] ?? 'v1')) ?: 'v1';
 
     return $definition;
 }
 
-function sr_embed_manager_url_contract_targets(PDO $pdo): array
+function sr_url_embed_url_contract_targets(PDO $pdo): array
 {
     $targets = [];
-    foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-url-targets.php', ['embed_manager']) as $moduleKey => $file) {
-        if (!sr_embed_manager_module_enabled($pdo, (string) $moduleKey)) {
+    foreach (sr_enabled_module_contract_files($pdo, 'url-embed-targets.php', ['url_embed']) as $moduleKey => $file) {
+        if (!sr_url_embed_module_enabled($pdo, (string) $moduleKey)) {
             continue;
         }
         $contract = sr_load_module_contract_file($moduleKey, $file);
@@ -462,7 +440,7 @@ function sr_embed_manager_url_contract_targets(PDO $pdo): array
             if (!is_array($definition)) {
                 continue;
             }
-            $definition = sr_embed_manager_url_normalized_contract($definition);
+            $definition = sr_url_embed_url_normalized_contract($definition);
             if ($definition !== []) {
                 $targets[(string) $definition['target_module']][(string) $definition['target_type']] = $definition;
             }
@@ -472,7 +450,7 @@ function sr_embed_manager_url_contract_targets(PDO $pdo): array
     return $targets;
 }
 
-function sr_embed_manager_request_base_parts(PDO $pdo): array
+function sr_url_embed_request_base_parts(PDO $pdo): array
 {
     $baseUrl = '';
     if (function_exists('sr_site_setting')) {
@@ -485,7 +463,7 @@ function sr_embed_manager_request_base_parts(PDO $pdo): array
     return is_array($parts) ? $parts : [];
 }
 
-function sr_embed_manager_normalize_source_url(PDO $pdo, string $url): array
+function sr_url_embed_normalize_source_url(PDO $pdo, string $url): array
 {
     $url = trim(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     $url = rtrim($url, " \t\r\n.,;:");
@@ -511,7 +489,7 @@ function sr_embed_manager_normalize_source_url(PDO $pdo, string $url): array
         return [];
     }
 
-    $base = sr_embed_manager_request_base_parts($pdo);
+    $base = sr_url_embed_request_base_parts($pdo);
     $host = strtolower((string) ($parts['host'] ?? ''));
     $baseHost = strtolower((string) ($base['host'] ?? ''));
     $path = (string) ($parts['path'] ?? '/');
@@ -525,23 +503,23 @@ function sr_embed_manager_normalize_source_url(PDO $pdo, string $url): array
     ];
 }
 
-function sr_embed_manager_clean_resolved_url(array $resolved, array $definition): array
+function sr_url_embed_clean_resolved_url(array $resolved, array $definition): array
 {
-    $targetId = sr_embed_manager_clean_target_id((string) ($resolved['target_id'] ?? ''));
+    $targetId = sr_url_embed_clean_target_id((string) ($resolved['target_id'] ?? ''));
     if ($targetId === '') {
         return [];
     }
-    $canonicalUrl = sr_embed_manager_safe_url((string) ($resolved['canonical_url'] ?? $resolved['public_url'] ?? ''));
+    $canonicalUrl = sr_url_embed_safe_url((string) ($resolved['canonical_url'] ?? $resolved['public_url'] ?? ''));
     if ($canonicalUrl === '') {
         return [];
     }
-    $variant = sr_embed_manager_clean_identifier((string) ($resolved['variant'] ?? $definition['default_variant'] ?? 'summary'));
+    $variant = sr_url_embed_clean_identifier((string) ($resolved['variant'] ?? $definition['default_variant'] ?? 'summary'));
     if (!in_array($variant, (array) ($definition['allowed_variants'] ?? ['summary']), true)) {
         $variant = (string) ($definition['default_variant'] ?? 'summary');
     }
-    $cacheStatus = sr_embed_manager_clean_cache_status((string) ($resolved['cache_status'] ?? 'fresh'));
-    $targetState = sr_embed_manager_clean_identifier((string) ($resolved['target_state'] ?? $resolved['status'] ?? 'public'));
-    $resolverState = sr_embed_manager_clean_identifier((string) ($resolved['resolver_state'] ?? 'resolved'));
+    $cacheStatus = sr_url_embed_clean_cache_status((string) ($resolved['cache_status'] ?? 'fresh'));
+    $targetState = sr_url_embed_clean_identifier((string) ($resolved['target_state'] ?? $resolved['status'] ?? 'public'));
+    $resolverState = sr_url_embed_clean_identifier((string) ($resolved['resolver_state'] ?? 'resolved'));
     $imagePolicy = in_array((string) ($resolved['image_snapshot_policy'] ?? 'none'), ['none', 'opaque_key', 'public_url_ok'], true)
         ? (string) ($resolved['image_snapshot_policy'] ?? 'none')
         : 'none';
@@ -551,15 +529,15 @@ function sr_embed_manager_clean_resolved_url(array $resolved, array $definition)
         'canonical_url' => $canonicalUrl,
         'canonical_url_hash' => hash('sha256', $canonicalUrl),
         'embed_kind' => (string) ($resolved['embed_kind'] ?? 'internal_url'),
-        'provider_key' => sr_embed_manager_clean_identifier((string) ($resolved['provider_key'] ?? $definition['target_module'] ?? '')),
+        'provider_key' => sr_url_embed_clean_identifier((string) ($resolved['provider_key'] ?? $definition['target_module'] ?? '')),
         'render_variant' => $variant,
         'target_module' => (string) ($definition['target_module'] ?? ''),
         'target_type' => (string) ($definition['target_type'] ?? ''),
         'target_id' => $targetId,
-        'target_cache_version' => sr_embed_manager_clean_label((string) ($resolved['target_cache_version'] ?? $resolved['updated_at'] ?? '')),
-        'label_snapshot' => sr_embed_manager_clean_label((string) ($resolved['label_snapshot'] ?? $resolved['title'] ?? '')),
-        'summary_snapshot' => sr_embed_manager_clean_summary((string) ($resolved['summary_snapshot'] ?? $resolved['summary'] ?? '')),
-        'image_snapshot' => $imagePolicy === 'public_url_ok' ? sr_embed_manager_safe_url((string) ($resolved['image_snapshot'] ?? '')) : '',
+        'target_cache_version' => sr_url_embed_clean_label((string) ($resolved['target_cache_version'] ?? $resolved['updated_at'] ?? '')),
+        'label_snapshot' => sr_url_embed_clean_label((string) ($resolved['label_snapshot'] ?? $resolved['title'] ?? '')),
+        'summary_snapshot' => sr_url_embed_clean_summary((string) ($resolved['summary_snapshot'] ?? $resolved['summary'] ?? '')),
+        'image_snapshot' => $imagePolicy === 'public_url_ok' ? sr_url_embed_safe_url((string) ($resolved['image_snapshot'] ?? '')) : '',
         'image_snapshot_policy' => $imagePolicy,
         'target_state' => $targetState,
         'resolver_state' => $resolverState,
@@ -568,25 +546,49 @@ function sr_embed_manager_clean_resolved_url(array $resolved, array $definition)
     ];
 }
 
-function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []): ?array
+function sr_url_embed_is_self_reference(array $resolved, array $context): bool
 {
-    $settings = sr_embed_manager_settings($pdo);
-    $normalized = sr_embed_manager_normalize_source_url($pdo, $url);
+    $ownerModule = sr_url_embed_clean_identifier((string) ($context['owner_module'] ?? $resolved['owner_module'] ?? ''));
+    $ownerType = sr_url_embed_clean_identifier((string) ($context['owner_type'] ?? $resolved['owner_type'] ?? ''));
+    $ownerId = (int) ($context['owner_id'] ?? $resolved['owner_id'] ?? 0);
+    $targetModule = sr_url_embed_clean_identifier((string) ($resolved['target_module'] ?? ''));
+    $targetType = sr_url_embed_clean_identifier((string) ($resolved['target_type'] ?? ''));
+    $targetId = sr_url_embed_clean_target_id((string) ($resolved['target_id'] ?? ''));
+
+    return $ownerModule !== ''
+        && $ownerType !== ''
+        && $ownerId > 0
+        && $ownerModule === $targetModule
+        && $ownerType === $targetType
+        && (string) $ownerId === $targetId;
+}
+
+function sr_url_embed_resolve_url(PDO $pdo, string $url, array $context = []): ?array
+{
+    $settings = sr_url_embed_settings($pdo);
+    $normalized = sr_url_embed_normalize_source_url($pdo, $url);
     if ($normalized === []) {
         return null;
     }
-    if (!sr_embed_manager_embed_kind_allowed((string) $normalized['embed_kind'], $settings)) {
+    if (!sr_url_embed_embed_kind_allowed((string) $normalized['embed_kind'], $settings)) {
         return null;
     }
 
-    foreach (sr_embed_manager_url_contract_targets($pdo) as $types) {
+    if ((string) $normalized['embed_kind'] === 'external_url') {
+        $external = sr_url_embed_resolve_external_url((string) $normalized['source_url']);
+        if (is_array($external)) {
+            return $external;
+        }
+    }
+
+    foreach (sr_url_embed_url_contract_targets($pdo) as $types) {
         foreach ($types as $definition) {
             try {
                 $resolved = $definition['resolve_url']($pdo, array_merge($context, $normalized, [
                     'url' => $normalized['canonical_probe_url'],
                 ]));
             } catch (Throwable $exception) {
-                sr_log_exception($exception, 'embed_manager_url_resolve_failed_' . (string) ($definition['target_module'] ?? '') . '_' . (string) ($definition['target_type'] ?? ''));
+                sr_log_exception($exception, 'url_embed_url_resolve_failed_' . (string) ($definition['target_module'] ?? '') . '_' . (string) ($definition['target_type'] ?? ''));
                 continue;
             }
             if (!is_array($resolved)) {
@@ -596,7 +598,7 @@ function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []
                 'source_url' => (string) $normalized['source_url'],
                 'embed_kind' => (string) $normalized['embed_kind'],
             ]);
-            $clean = sr_embed_manager_clean_resolved_url($resolved, $definition);
+            $clean = sr_url_embed_clean_resolved_url($resolved, $definition);
             return $clean !== [] ? $clean : null;
         }
     }
@@ -604,7 +606,108 @@ function sr_embed_manager_resolve_url(PDO $pdo, string $url, array $context = []
     return null;
 }
 
-function sr_embed_manager_url_from_standalone_text(string $text): string
+function sr_url_embed_resolve_external_url(string $url): ?array
+{
+    $parts = parse_url($url);
+    if (!is_array($parts)) {
+        return null;
+    }
+
+    $host = strtolower((string) ($parts['host'] ?? ''));
+    $host = str_starts_with($host, 'www.') ? substr($host, 4) : $host;
+    $path = (string) ($parts['path'] ?? '');
+    $query = [];
+    parse_str((string) ($parts['query'] ?? ''), $query);
+
+    $provider = '';
+    $targetId = '';
+    $canonicalUrl = '';
+    if (in_array($host, ['youtube.com', 'm.youtube.com'], true)) {
+        $videoId = preg_match('#\A/shorts/([A-Za-z0-9_-]{6,})#', $path, $matches) === 1
+            ? (string) $matches[1]
+            : (string) ($query['v'] ?? '');
+        if (preg_match('/\A[A-Za-z0-9_-]{6,}\z/', $videoId) === 1) {
+            $provider = 'youtube';
+            $targetId = $videoId;
+            $canonicalUrl = 'https://www.youtube.com/watch?v=' . rawurlencode($videoId);
+        }
+    } elseif ($host === 'youtu.be') {
+        $videoId = ltrim($path, '/');
+        if (preg_match('/\A[A-Za-z0-9_-]{6,}\z/', $videoId) === 1) {
+            $provider = 'youtube';
+            $targetId = $videoId;
+            $canonicalUrl = 'https://www.youtube.com/watch?v=' . rawurlencode($videoId);
+        }
+    } elseif (in_array($host, ['x.com', 'twitter.com'], true) && preg_match('#\A/[^/]+/status/([0-9]+)#', $path, $matches) === 1) {
+        $provider = 'x';
+        $targetId = (string) $matches[1];
+        $canonicalUrl = 'https://x.com' . $path;
+    } elseif ($host === 'instagram.com' && preg_match('#\A/(p|reel|tv)/([A-Za-z0-9_-]+)#', $path, $matches) === 1) {
+        $provider = 'instagram';
+        $targetId = (string) $matches[2];
+        $canonicalUrl = 'https://www.instagram.com/' . (string) $matches[1] . '/' . rawurlencode($targetId) . '/';
+    }
+
+    if ($provider === '' || $targetId === '' || $canonicalUrl === '') {
+        return null;
+    }
+
+    return [
+        'source_url' => $url,
+        'canonical_url' => $canonicalUrl,
+        'canonical_url_hash' => hash('sha256', $canonicalUrl),
+        'embed_kind' => 'external_url',
+        'provider_key' => $provider,
+        'render_variant' => 'embed',
+        'target_module' => 'external',
+        'target_type' => $provider,
+        'target_id' => $targetId,
+        'target_cache_version' => '',
+        'label_snapshot' => sr_url_embed_external_provider_label($provider),
+        'summary_snapshot' => '',
+        'image_snapshot' => '',
+        'image_snapshot_policy' => 'none',
+        'target_state' => 'public',
+        'resolver_state' => 'resolved',
+        'cache_status' => 'fresh',
+        'resolved_payload_json' => '{}',
+    ];
+}
+
+function sr_url_embed_external_provider_label(string $provider): string
+{
+    return [
+        'youtube' => 'YouTube',
+        'x' => 'X',
+        'instagram' => 'Instagram',
+    ][$provider] ?? 'External';
+}
+
+function sr_url_embed_render_external_url(array $resolved): string
+{
+    $provider = (string) ($resolved['provider_key'] ?? '');
+    $targetId = (string) ($resolved['target_id'] ?? '');
+    $canonicalUrl = sr_url_embed_safe_url((string) ($resolved['canonical_url'] ?? ''));
+    if ($provider === '' || $targetId === '' || $canonicalUrl === '') {
+        return '';
+    }
+
+    if ($provider === 'youtube') {
+        $embedUrl = 'https://www.youtube-nocookie.com/embed/' . rawurlencode($targetId);
+        return '<figure class="sr-url-embed sr-url-embed-youtube" data-sr-url-embed="youtube">'
+            . '<iframe src="' . sr_e($embedUrl) . '" title="YouTube video" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>'
+            . '<figcaption><a href="' . sr_e($canonicalUrl) . '" target="_blank" rel="noopener noreferrer">YouTube에서 보기</a></figcaption>'
+            . '</figure>';
+    }
+
+    $label = sr_url_embed_external_provider_label($provider);
+    return '<aside class="sr-url-embed sr-url-embed-' . sr_e($provider) . '" data-sr-url-embed="' . sr_e($provider) . '">'
+        . '<strong>' . sr_e($label) . '</strong>'
+        . '<a href="' . sr_e($canonicalUrl) . '" target="_blank" rel="noopener noreferrer">' . sr_e($canonicalUrl) . '</a>'
+        . '</aside>';
+}
+
+function sr_url_embed_url_from_standalone_text(string $text): string
 {
     $text = trim(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     $text = preg_replace('/\s+/', ' ', $text) ?? '';
@@ -618,12 +721,12 @@ function sr_embed_manager_url_from_standalone_text(string $text): string
     return '';
 }
 
-function sr_embed_manager_normalized_node_text(DOMNode $node): string
+function sr_url_embed_normalized_node_text(DOMNode $node): string
 {
     return trim(preg_replace('/\s+/', ' ', html_entity_decode($node->textContent, ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?? '');
 }
 
-function sr_embed_manager_node_is_only_meaningful_child(DOMNode $node): bool
+function sr_url_embed_node_is_only_meaningful_child(DOMNode $node): bool
 {
     $parent = $node->parentNode;
     if (!$parent instanceof DOMNode) {
@@ -643,13 +746,13 @@ function sr_embed_manager_node_is_only_meaningful_child(DOMNode $node): bool
     return true;
 }
 
-function sr_embed_manager_standalone_replacement_node(DOMNode $node, DOMElement $root): DOMNode
+function sr_url_embed_standalone_replacement_node(DOMNode $node, DOMElement $root): DOMNode
 {
     $candidate = $node;
-    $candidateText = sr_embed_manager_normalized_node_text($node);
+    $candidateText = sr_url_embed_normalized_node_text($node);
     while ($candidate->parentNode instanceof DOMElement && !$candidate->parentNode->isSameNode($root)) {
         $parent = $candidate->parentNode;
-        if (sr_embed_manager_normalized_node_text($parent) !== $candidateText || !sr_embed_manager_node_is_only_meaningful_child($candidate)) {
+        if (sr_url_embed_normalized_node_text($parent) !== $candidateText || !sr_url_embed_node_is_only_meaningful_child($candidate)) {
             break;
         }
         $candidate = $parent;
@@ -658,7 +761,7 @@ function sr_embed_manager_standalone_replacement_node(DOMNode $node, DOMElement 
     return $candidate;
 }
 
-function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope = 'standalone_url_only'): array
+function sr_url_embed_extract_candidate_urls(string $bodyHtml, string $scope = 'standalone_url_only'): array
 {
     if ($bodyHtml === '') {
         return [];
@@ -668,10 +771,10 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
     $position = 0;
     if (!class_exists('DOMDocument')) {
         if ($scope === 'all_supported_links') {
-            return sr_embed_manager_extract_legacy_candidate_urls($bodyHtml);
+            return sr_url_embed_extract_legacy_candidate_urls($bodyHtml);
         }
-        if (sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)) !== '') {
-            return [['url' => sr_embed_manager_url_from_standalone_text(strip_tags($bodyHtml)), 'position' => 0]];
+        if (sr_url_embed_url_from_standalone_text(strip_tags($bodyHtml)) !== '') {
+            return [['url' => sr_url_embed_url_from_standalone_text(strip_tags($bodyHtml)), 'position' => 0]];
         }
 
         return [];
@@ -692,15 +795,15 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
             continue;
         }
         $href = trim(html_entity_decode($link->getAttribute('href'), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-        $label = sr_embed_manager_normalized_node_text($link);
+        $label = sr_url_embed_normalized_node_text($link);
         if ($href === '' || ($label !== '' && $label !== $href)) {
             continue;
         }
-        if ($scope !== 'all_supported_links' && !sr_embed_manager_node_is_only_meaningful_child($link)) {
+        if ($scope !== 'all_supported_links' && !sr_url_embed_node_is_only_meaningful_child($link)) {
             continue;
         }
-        $replaceNode = $scope === 'all_supported_links' ? $link : sr_embed_manager_standalone_replacement_node($link, $root);
-        if ($scope === 'all_supported_links' || sr_embed_manager_normalized_node_text($replaceNode) === $label) {
+        $replaceNode = $scope === 'all_supported_links' ? $link : sr_url_embed_standalone_replacement_node($link, $root);
+        if ($scope === 'all_supported_links' || sr_url_embed_normalized_node_text($replaceNode) === $label) {
             $urls[] = ['url' => $href, 'position' => $position++];
         }
     }
@@ -712,12 +815,12 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
             if (!$textNode instanceof DOMText || $textNode->parentNode instanceof DOMElement && strtolower($textNode->parentNode->tagName) === 'a') {
                 continue;
             }
-            $url = sr_embed_manager_url_from_standalone_text($textNode->textContent);
+            $url = sr_url_embed_url_from_standalone_text($textNode->textContent);
             if ($url === '') {
                 continue;
             }
-            $replaceNode = sr_embed_manager_standalone_replacement_node($textNode, $root);
-            if (sr_embed_manager_normalized_node_text($replaceNode) === $url) {
+            $replaceNode = sr_url_embed_standalone_replacement_node($textNode, $root);
+            if (sr_url_embed_normalized_node_text($replaceNode) === $url) {
                 $urls[] = ['url' => $url, 'position' => $position++];
             }
         }
@@ -726,7 +829,7 @@ function sr_embed_manager_extract_candidate_urls(string $bodyHtml, string $scope
     return $urls;
 }
 
-function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $root, string $scope): array
+function sr_url_embed_dom_renderable_nodes(DOMDocument $dom, DOMElement $root, string $scope): array
 {
     $items = [];
     $seen = [];
@@ -737,15 +840,15 @@ function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $roo
             continue;
         }
         $href = trim(html_entity_decode($link->getAttribute('href'), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-        $label = sr_embed_manager_normalized_node_text($link);
+        $label = sr_url_embed_normalized_node_text($link);
         if ($href === '' || ($label !== '' && $label !== $href)) {
             continue;
         }
-        if ($scope !== 'all_supported_links' && !sr_embed_manager_node_is_only_meaningful_child($link)) {
+        if ($scope !== 'all_supported_links' && !sr_url_embed_node_is_only_meaningful_child($link)) {
             continue;
         }
-        $replaceNode = $scope === 'all_supported_links' ? $link : sr_embed_manager_standalone_replacement_node($link, $root);
-        if ($scope !== 'all_supported_links' && sr_embed_manager_normalized_node_text($replaceNode) !== $label) {
+        $replaceNode = $scope === 'all_supported_links' ? $link : sr_url_embed_standalone_replacement_node($link, $root);
+        if ($scope !== 'all_supported_links' && sr_url_embed_normalized_node_text($replaceNode) !== $label) {
             continue;
         }
         $key = spl_object_id($replaceNode);
@@ -763,12 +866,12 @@ function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $roo
             if (!$textNode instanceof DOMText || $textNode->parentNode instanceof DOMElement && strtolower($textNode->parentNode->tagName) === 'a') {
                 continue;
             }
-            $url = sr_embed_manager_url_from_standalone_text($textNode->textContent);
+            $url = sr_url_embed_url_from_standalone_text($textNode->textContent);
             if ($url === '') {
                 continue;
             }
-            $replaceNode = sr_embed_manager_standalone_replacement_node($textNode, $root);
-            if (sr_embed_manager_normalized_node_text($replaceNode) !== $url) {
+            $replaceNode = sr_url_embed_standalone_replacement_node($textNode, $root);
+            if (sr_url_embed_normalized_node_text($replaceNode) !== $url) {
                 continue;
             }
             $key = spl_object_id($replaceNode);
@@ -783,7 +886,7 @@ function sr_embed_manager_dom_renderable_nodes(DOMDocument $dom, DOMElement $roo
     return $items;
 }
 
-function sr_embed_manager_extract_legacy_candidate_urls(string $bodyHtml): array
+function sr_url_embed_extract_legacy_candidate_urls(string $bodyHtml): array
 {
     $urls = [];
     $position = 0;
@@ -806,34 +909,41 @@ function sr_embed_manager_extract_legacy_candidate_urls(string $bodyHtml): array
     return $urls;
 }
 
-function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
+function sr_url_embed_sync_body_url_cache(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
 {
-    $settings = sr_embed_manager_settings($pdo);
-    if ($ownerId < 1 || empty($settings['url_embed_enabled']) || !sr_embed_manager_url_cache_table_exists($pdo)) {
+    $settings = sr_url_embed_settings($pdo);
+    if ($ownerId < 1 || empty($settings['url_embed_enabled']) || !sr_url_embed_cache_table_exists($pdo)) {
         return;
     }
 
-    $ownerModule = sr_embed_manager_clean_identifier($ownerModule);
-    $ownerType = sr_embed_manager_clean_identifier($ownerType);
-    $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
+    $ownerModule = sr_url_embed_clean_identifier($ownerModule);
+    $ownerType = sr_url_embed_clean_identifier($ownerType);
+    $ownerField = sr_url_embed_clean_identifier($ownerField) ?: 'body';
     if ($ownerModule === '' || $ownerType === '') {
         throw new InvalidArgumentException('URL 임베드 캐시 소유자 정보가 올바르지 않습니다.');
     }
-    if (!sr_embed_manager_module_enabled($pdo, $ownerModule)) {
-        sr_embed_manager_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, [], sr_now());
+    if (!sr_url_embed_module_enabled($pdo, $ownerModule)) {
+        sr_url_embed_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, [], sr_now());
         return;
     }
 
     $now = sr_now();
     $activeHashes = [];
-    foreach (sr_embed_manager_extract_candidate_urls($bodyHtml, (string) ($settings['embed_scope'] ?? 'standalone_url_only')) as $candidate) {
-        $resolved = sr_embed_manager_resolve_url($pdo, (string) ($candidate['url'] ?? ''), [
+    foreach (sr_url_embed_extract_candidate_urls($bodyHtml, (string) ($settings['embed_scope'] ?? 'standalone_url_only')) as $candidate) {
+        $resolved = sr_url_embed_resolve_url($pdo, (string) ($candidate['url'] ?? ''), [
             'owner_module' => $ownerModule,
             'owner_type' => $ownerType,
             'owner_id' => $ownerId,
             'owner_field' => $ownerField,
         ]);
         if (!is_array($resolved)) {
+            continue;
+        }
+        if (sr_url_embed_is_self_reference($resolved, [
+            'owner_module' => $ownerModule,
+            'owner_type' => $ownerType,
+            'owner_id' => $ownerId,
+        ])) {
             continue;
         }
         $resolved['owner_module'] = $ownerModule;
@@ -846,14 +956,14 @@ function sr_embed_manager_sync_body_url_cache(PDO $pdo, string $ownerModule, str
         $resolved['updated_at'] = $now;
         $resolved['last_resolved_at'] = $now;
         $resolved['last_render_checked_at'] = null;
-        sr_embed_manager_upsert_url_cache($pdo, $resolved);
+        sr_url_embed_upsert_url_cache($pdo, $resolved);
         $activeHashes[] = (string) $resolved['canonical_url_hash'];
     }
 
-    sr_embed_manager_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $activeHashes, $now);
+    sr_url_embed_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, $activeHashes, $now);
 }
 
-function sr_embed_manager_upsert_url_cache(PDO $pdo, array $row): void
+function sr_url_embed_upsert_url_cache(PDO $pdo, array $row): void
 {
     $driver = '';
     try {
@@ -908,7 +1018,7 @@ function sr_embed_manager_upsert_url_cache(PDO $pdo, array $row): void
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO sr_embed_manager_url_cache
+        'INSERT INTO sr_url_embed_cache
             (owner_module, owner_type, owner_id, owner_field, source_url, canonical_url, canonical_url_hash, embed_kind, provider_key, render_variant, target_module, target_type, target_id, target_cache_version, label_snapshot, summary_snapshot, image_snapshot, image_snapshot_policy, target_state, resolver_state, cache_status, resolved_payload_json, sort_order, last_resolved_at, last_render_checked_at, created_by_account_id, created_at, updated_at)
          VALUES
             (:owner_module, :owner_type, :owner_id, :owner_field, :source_url, :canonical_url, :canonical_url_hash, :embed_kind, :provider_key, :render_variant, :target_module, :target_type, :target_id, :target_cache_version, :label_snapshot, :summary_snapshot, :image_snapshot, :image_snapshot_policy, :target_state, :resolver_state, :cache_status, :resolved_payload_json, :sort_order, :last_resolved_at, :last_render_checked_at, :created_by_account_id, :created_at, :updated_at)
@@ -946,7 +1056,7 @@ function sr_embed_manager_upsert_url_cache(PDO $pdo, array $row): void
     ]);
 }
 
-function sr_embed_manager_mark_missing_owner_urls_stale(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, array $activeHashes, string $now): void
+function sr_url_embed_mark_missing_owner_urls_stale(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, array $activeHashes, string $now): void
 {
     $params = [
         'owner_module' => $ownerModule,
@@ -955,7 +1065,7 @@ function sr_embed_manager_mark_missing_owner_urls_stale(PDO $pdo, string $ownerM
         'owner_field' => $ownerField,
         'updated_at' => $now,
     ];
-    $sql = 'UPDATE sr_embed_manager_url_cache
+    $sql = 'UPDATE sr_url_embed_cache
             SET cache_status = \'stale\', updated_at = :updated_at
             WHERE owner_module = :owner_module
               AND owner_type = :owner_type
@@ -978,14 +1088,14 @@ function sr_embed_manager_mark_missing_owner_urls_stale(PDO $pdo, string $ownerM
     $stmt->execute($params);
 }
 
-function sr_embed_manager_owner_url_cache_by_source(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField): array
+function sr_url_embed_owner_url_cache_by_source(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField): array
 {
-    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+    if (!sr_url_embed_cache_table_exists($pdo)) {
         return [];
     }
     $stmt = $pdo->prepare(
         'SELECT *
-         FROM sr_embed_manager_url_cache
+         FROM sr_url_embed_cache
          WHERE owner_module = :owner_module
            AND owner_type = :owner_type
            AND owner_id = :owner_id
@@ -1007,7 +1117,7 @@ function sr_embed_manager_owner_url_cache_by_source(PDO $pdo, string $ownerModul
     return $rows;
 }
 
-function sr_embed_manager_cached_row_for_url(array $cacheRows, string $url): ?array
+function sr_url_embed_cached_row_for_url(array $cacheRows, string $url): ?array
 {
     $url = trim($url);
     if ($url === '') {
@@ -1020,9 +1130,9 @@ function sr_embed_manager_cached_row_for_url(array $cacheRows, string $url): ?ar
     return null;
 }
 
-function sr_embed_manager_render_cache_key_for_url(array $cacheRows, string $url): string
+function sr_url_embed_render_cache_key_for_url(array $cacheRows, string $url): string
 {
-    $row = sr_embed_manager_cached_row_for_url($cacheRows, $url);
+    $row = sr_url_embed_cached_row_for_url($cacheRows, $url);
     if (is_array($row) && preg_match('/\A[a-f0-9]{64}\z/', (string) ($row['canonical_url_hash'] ?? '')) === 1) {
         return 'canonical:' . (string) $row['canonical_url_hash'];
     }
@@ -1030,12 +1140,16 @@ function sr_embed_manager_render_cache_key_for_url(array $cacheRows, string $url
     return 'source:' . hash('sha256', trim($url));
 }
 
-function sr_embed_manager_resolved_from_cache_row(array $row): array
+function sr_url_embed_resolved_from_cache_row(array $row): array
 {
-    $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? ''));
-    $canonicalUrl = sr_embed_manager_safe_url((string) ($row['canonical_url'] ?? ''));
-    $targetModule = sr_embed_manager_clean_identifier((string) ($row['target_module'] ?? ''));
-    $targetType = sr_embed_manager_clean_identifier((string) ($row['target_type'] ?? ''));
+    $embedKind = (string) ($row['embed_kind'] ?? 'internal_url');
+    $rawTargetId = (string) ($row['target_id'] ?? '');
+    $targetId = $embedKind === 'external_url'
+        ? (preg_match('/\A[A-Za-z0-9_-]{1,120}\z/', $rawTargetId) === 1 ? $rawTargetId : '')
+        : sr_url_embed_clean_target_id($rawTargetId);
+    $canonicalUrl = sr_url_embed_safe_url((string) ($row['canonical_url'] ?? ''));
+    $targetModule = sr_url_embed_clean_identifier((string) ($row['target_module'] ?? ''));
+    $targetType = sr_url_embed_clean_identifier((string) ($row['target_type'] ?? ''));
     if ($targetId === '' || $canonicalUrl === '' || $targetModule === '' || $targetType === '') {
         return [];
     }
@@ -1044,7 +1158,7 @@ function sr_embed_manager_resolved_from_cache_row(array $row): array
         'source_url' => (string) ($row['source_url'] ?? ''),
         'canonical_url' => $canonicalUrl,
         'canonical_url_hash' => (string) ($row['canonical_url_hash'] ?? hash('sha256', $canonicalUrl)),
-        'embed_kind' => (string) ($row['embed_kind'] ?? 'internal_url'),
+        'embed_kind' => $embedKind,
         'provider_key' => (string) ($row['provider_key'] ?? $targetModule),
         'render_variant' => (string) ($row['render_variant'] ?? 'summary'),
         'target_module' => $targetModule,
@@ -1057,20 +1171,20 @@ function sr_embed_manager_resolved_from_cache_row(array $row): array
         'image_snapshot_policy' => (string) ($row['image_snapshot_policy'] ?? 'none'),
         'target_state' => (string) ($row['target_state'] ?? ''),
         'resolver_state' => (string) ($row['resolver_state'] ?? ''),
-        'cache_status' => sr_embed_manager_clean_cache_status((string) ($row['cache_status'] ?? 'broken')),
+        'cache_status' => sr_url_embed_clean_cache_status((string) ($row['cache_status'] ?? 'broken')),
         'resolved_payload_json' => (string) ($row['resolved_payload_json'] ?? '{}'),
     ];
 }
 
-function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, array $context): void
+function sr_url_embed_cache_resolved_for_render(PDO $pdo, array $resolved, array $context): void
 {
-    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+    if (!sr_url_embed_cache_table_exists($pdo)) {
         return;
     }
-    $ownerModule = sr_embed_manager_clean_identifier((string) ($context['owner_module'] ?? ''));
-    $ownerType = sr_embed_manager_clean_identifier((string) ($context['owner_type'] ?? ''));
+    $ownerModule = sr_url_embed_clean_identifier((string) ($context['owner_module'] ?? ''));
+    $ownerType = sr_url_embed_clean_identifier((string) ($context['owner_type'] ?? ''));
     $ownerId = (int) ($context['owner_id'] ?? 0);
-    $ownerField = sr_embed_manager_clean_identifier((string) ($context['owner_field'] ?? '')) ?: 'body';
+    $ownerField = sr_url_embed_clean_identifier((string) ($context['owner_field'] ?? '')) ?: 'body';
     if ($ownerModule === '' || $ownerType === '' || $ownerId < 1) {
         return;
     }
@@ -1088,24 +1202,24 @@ function sr_embed_manager_cache_resolved_for_render(PDO $pdo, array $resolved, a
         'last_resolved_at' => $now,
         'last_render_checked_at' => $now,
     ]);
-    sr_embed_manager_upsert_url_cache($pdo, $row);
+    sr_url_embed_upsert_url_cache($pdo, $row);
 }
 
-function sr_embed_manager_mark_target_url_cache_stale(PDO $pdo, string $targetModule, string $targetType, int|string $targetId): void
+function sr_url_embed_mark_target_url_cache_stale(PDO $pdo, string $targetModule, string $targetType, int|string $targetId): void
 {
-    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+    if (!sr_url_embed_cache_table_exists($pdo)) {
         return;
     }
 
-    $targetModule = sr_embed_manager_clean_identifier($targetModule);
-    $targetType = sr_embed_manager_clean_identifier($targetType);
-    $targetId = sr_embed_manager_clean_target_id((string) $targetId);
+    $targetModule = sr_url_embed_clean_identifier($targetModule);
+    $targetType = sr_url_embed_clean_identifier($targetType);
+    $targetId = sr_url_embed_clean_target_id((string) $targetId);
     if ($targetModule === '' || $targetType === '' || $targetId === '') {
         return;
     }
 
     $stmt = $pdo->prepare(
-        'UPDATE sr_embed_manager_url_cache
+        'UPDATE sr_url_embed_cache
          SET cache_status = \'stale\',
              updated_at = :updated_at
          WHERE target_module = :target_module
@@ -1121,16 +1235,16 @@ function sr_embed_manager_mark_target_url_cache_stale(PDO $pdo, string $targetMo
     ]);
 }
 
-function sr_embed_manager_fragment_cache_root(): string
+function sr_url_embed_fragment_cache_root(): string
 {
-    if (defined('SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT')) {
-        return rtrim((string) SR_EMBED_MANAGER_FRAGMENT_CACHE_ROOT, '/\\');
+    if (defined('SR_URL_EMBED_FRAGMENT_CACHE_ROOT')) {
+        return rtrim((string) SR_URL_EMBED_FRAGMENT_CACHE_ROOT, '/\\');
     }
     $root = defined('SR_ROOT') ? (string) SR_ROOT : dirname(__DIR__, 2);
     return rtrim($root, '/\\') . '/storage/cache/embeds';
 }
 
-function sr_embed_manager_fragment_cache_public_allowed(array $resolved, array $definition, array $context): bool
+function sr_url_embed_fragment_cache_public_allowed(array $resolved, array $definition, array $context): bool
 {
     if (empty($definition['fragment_cache_public'])) {
         return false;
@@ -1151,9 +1265,9 @@ function sr_embed_manager_fragment_cache_public_allowed(array $resolved, array $
     return true;
 }
 
-function sr_embed_manager_fragment_cache_key(array $resolved, array $definition, array $context): string
+function sr_url_embed_fragment_cache_key(array $resolved, array $definition, array $context): string
 {
-    $locale = sr_embed_manager_clean_identifier((string) ($context['locale'] ?? 'ko')) ?: 'ko';
+    $locale = sr_url_embed_clean_identifier((string) ($context['locale'] ?? 'ko')) ?: 'ko';
     $payload = [
         'schema' => 'embed_fragment_' . (string) ($definition['fragment_cache_schema'] ?? 'v1'),
         'target_module' => (string) ($resolved['target_module'] ?? ''),
@@ -1168,21 +1282,21 @@ function sr_embed_manager_fragment_cache_key(array $resolved, array $definition,
     return hash('sha256', json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: serialize($payload));
 }
 
-function sr_embed_manager_fragment_cache_path(array $resolved, array $definition, array $context): string
+function sr_url_embed_fragment_cache_path(array $resolved, array $definition, array $context): string
 {
-    $targetModule = sr_embed_manager_clean_identifier((string) ($resolved['target_module'] ?? 'embed')) ?: 'embed';
-    $hash = sr_embed_manager_fragment_cache_key($resolved, $definition, $context);
+    $targetModule = sr_url_embed_clean_identifier((string) ($resolved['target_module'] ?? 'embed')) ?: 'embed';
+    $hash = sr_url_embed_fragment_cache_key($resolved, $definition, $context);
 
-    return sr_embed_manager_fragment_cache_root() . '/' . $targetModule . '/' . substr($hash, 0, 2) . '/' . $hash . '.html';
+    return sr_url_embed_fragment_cache_root() . '/' . $targetModule . '/' . substr($hash, 0, 2) . '/' . $hash . '.html';
 }
 
-function sr_embed_manager_fragment_cache_read(array $resolved, array $definition, array $context): string
+function sr_url_embed_fragment_cache_read(array $resolved, array $definition, array $context): string
 {
-    if (!sr_embed_manager_fragment_cache_public_allowed($resolved, $definition, $context)) {
+    if (!sr_url_embed_fragment_cache_public_allowed($resolved, $definition, $context)) {
         return '';
     }
 
-    $path = sr_embed_manager_fragment_cache_path($resolved, $definition, $context);
+    $path = sr_url_embed_fragment_cache_path($resolved, $definition, $context);
     if (!is_file($path) || filesize($path) > 262144) {
         return '';
     }
@@ -1191,13 +1305,13 @@ function sr_embed_manager_fragment_cache_read(array $resolved, array $definition
     return is_string($html) ? $html : '';
 }
 
-function sr_embed_manager_fragment_cache_write(array $resolved, array $definition, array $context, string $html): void
+function sr_url_embed_fragment_cache_write(array $resolved, array $definition, array $context, string $html): void
 {
-    if ($html === '' || !sr_embed_manager_fragment_cache_public_allowed($resolved, $definition, $context)) {
+    if ($html === '' || !sr_url_embed_fragment_cache_public_allowed($resolved, $definition, $context)) {
         return;
     }
 
-    $path = sr_embed_manager_fragment_cache_path($resolved, $definition, $context);
+    $path = sr_url_embed_fragment_cache_path($resolved, $definition, $context);
     $directory = dirname($path);
     if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
         return;
@@ -1211,9 +1325,9 @@ function sr_embed_manager_fragment_cache_write(array $resolved, array $definitio
     @rename($temporaryPath, $path);
 }
 
-function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
+function sr_url_embed_admin_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
 {
-    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+    if (!sr_url_embed_cache_table_exists($pdo)) {
         return [];
     }
 
@@ -1223,7 +1337,7 @@ function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $li
 
     $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
     $status = $statusValues === [] ? '' : (string) $statusValues[0];
-    if ($status !== '' && in_array($status, sr_embed_manager_url_cache_statuses(), true)) {
+    if ($status !== '' && in_array($status, sr_url_embed_cache_statuses(), true)) {
         $where[] = 'cache_status = :status';
         $params['status'] = $status;
     }
@@ -1236,7 +1350,7 @@ function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $li
     }
 
     $sql = 'SELECT *
-            FROM sr_embed_manager_url_cache'
+            FROM sr_url_embed_cache'
         . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
         . ' ORDER BY updated_at DESC, id DESC
             LIMIT ' . $limit;
@@ -1246,7 +1360,7 @@ function sr_embed_manager_admin_url_cache_rows(PDO $pdo, array $filters, int $li
     return $stmt->fetchAll();
 }
 
-function sr_embed_manager_admin_url_cache_summary(PDO $pdo): array
+function sr_url_embed_admin_cache_summary(PDO $pdo): array
 {
     $summary = [
         'table_exists' => false,
@@ -1259,7 +1373,7 @@ function sr_embed_manager_admin_url_cache_summary(PDO $pdo): array
         'latest_render_checked_at' => '',
         'latest_updated_at' => '',
     ];
-    if (!sr_embed_manager_url_cache_table_exists($pdo)) {
+    if (!sr_url_embed_cache_table_exists($pdo)) {
         return $summary;
     }
 
@@ -1274,7 +1388,7 @@ function sr_embed_manager_admin_url_cache_summary(PDO $pdo): array
                 MAX(last_resolved_at) AS latest_resolved_at,
                 MAX(last_render_checked_at) AS latest_render_checked_at,
                 MAX(updated_at) AS latest_updated_at
-             FROM sr_embed_manager_url_cache"
+             FROM sr_url_embed_cache"
         );
         $row = $stmt->fetch();
         $summary['table_exists'] = true;
@@ -1295,20 +1409,20 @@ function sr_embed_manager_admin_url_cache_summary(PDO $pdo): array
     return $summary;
 }
 
-function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
+function sr_url_embed_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
 {
-    $settings = sr_embed_manager_settings($pdo);
+    $settings = sr_url_embed_settings($pdo);
     if ($bodyHtml === '' || $ownerId < 1 || empty($settings['url_embed_enabled'])) {
         return $bodyHtml;
     }
 
-    $ownerModule = sr_embed_manager_clean_identifier($ownerModule);
-    $ownerType = sr_embed_manager_clean_identifier($ownerType);
-    $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
+    $ownerModule = sr_url_embed_clean_identifier($ownerModule);
+    $ownerType = sr_url_embed_clean_identifier($ownerType);
+    $ownerField = sr_url_embed_clean_identifier($ownerField) ?: 'body';
     if ($ownerModule === '' || $ownerType === '') {
         return $bodyHtml;
     }
-    if (!sr_embed_manager_module_enabled($pdo, $ownerModule)) {
+    if (!sr_url_embed_module_enabled($pdo, $ownerModule)) {
         return $bodyHtml;
     }
 
@@ -1319,7 +1433,7 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
         'owner_field' => $ownerField,
         'embed_scope' => (string) ($settings['embed_scope'] ?? 'standalone_url_only'),
         'url_embed_settings' => $settings,
-        'url_cache_by_source' => sr_embed_manager_owner_url_cache_by_source($pdo, $ownerModule, $ownerType, $ownerId, $ownerField),
+        'url_cache_by_source' => sr_url_embed_owner_url_cache_by_source($pdo, $ownerModule, $ownerType, $ownerId, $ownerField),
     ]);
     if ((int) ($context['viewer_account_id'] ?? 0) < 1 && function_exists('sr_member_current_account')) {
         $viewerAccount = sr_member_current_account($pdo);
@@ -1329,15 +1443,15 @@ function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $o
     }
 
     if (class_exists('DOMDocument')) {
-        return sr_embed_manager_render_body_html_dom($pdo, $bodyHtml, $context);
+        return sr_url_embed_render_body_html_dom($pdo, $bodyHtml, $context);
     }
 
     return $bodyHtml;
 }
 
-function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array $context): string
+function sr_url_embed_render_body_html_dom(PDO $pdo, string $bodyHtml, array $context): string
 {
-    $wrapped = '<div data-sr-embed-manager-root="1">' . $bodyHtml . '</div>';
+    $wrapped = '<div data-sr-url-embed-root="1">' . $bodyHtml . '</div>';
     $previous = libxml_use_internal_errors(true);
     $dom = new DOMDocument('1.0', 'UTF-8');
     $loaded = $dom->loadHTML('<?xml encoding="UTF-8">' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
@@ -1349,7 +1463,7 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
 
     $xpath = new DOMXPath($dom);
     $replace = [];
-    $nodes = sr_embed_manager_dom_renderable_nodes($dom, $dom->documentElement, (string) ($context['embed_scope'] ?? 'standalone_url_only'));
+    $nodes = sr_url_embed_dom_renderable_nodes($dom, $dom->documentElement, (string) ($context['embed_scope'] ?? 'standalone_url_only'));
     if ($nodes === []) {
         return $bodyHtml;
     }
@@ -1363,10 +1477,10 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
         $cacheRows = isset($context['url_cache_by_source']) && is_array($context['url_cache_by_source'])
             ? $context['url_cache_by_source']
             : [];
-        $cacheKey = sr_embed_manager_render_cache_key_for_url($cacheRows, $url);
+        $cacheKey = sr_url_embed_render_cache_key_for_url($cacheRows, $url);
         if (!array_key_exists($cacheKey, $renderedByUrl)) {
             $renderContext = array_merge($context, ['sort_order' => (int) ($item['position'] ?? 0)]);
-            $renderedByUrl[$cacheKey] = sr_embed_manager_render_url($pdo, $url, $renderContext);
+            $renderedByUrl[$cacheKey] = sr_url_embed_render_url($pdo, $url, $renderContext);
         }
         $html = (string) $renderedByUrl[$cacheKey];
         if ($html !== '') {
@@ -1378,13 +1492,13 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
         if (!$node instanceof DOMNode || $node->parentNode === null) {
             continue;
         }
-        $fragment = sr_embed_manager_dom_fragment_from_html($dom, $html);
+        $fragment = sr_url_embed_dom_fragment_from_html($dom, $html);
         if ($fragment instanceof DOMDocumentFragment) {
             $node->parentNode->replaceChild($fragment, $node);
         }
     }
 
-    $root = $xpath->query('//*[@data-sr-embed-manager-root="1"]')->item(0);
+    $root = $xpath->query('//*[@data-sr-url-embed-root="1"]')->item(0);
     if (!$root instanceof DOMElement) {
         return $bodyHtml;
     }
@@ -1396,7 +1510,7 @@ function sr_embed_manager_render_body_html_dom(PDO $pdo, string $bodyHtml, array
     return $html !== '' ? $html : $bodyHtml;
 }
 
-function sr_embed_manager_dom_fragment_from_html(DOMDocument $targetDom, string $html): ?DOMDocumentFragment
+function sr_url_embed_dom_fragment_from_html(DOMDocument $targetDom, string $html): ?DOMDocumentFragment
 {
     if ($html === '') {
         return null;
@@ -1419,36 +1533,46 @@ function sr_embed_manager_dom_fragment_from_html(DOMDocument $targetDom, string 
     return $fragment;
 }
 
-function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): string
+function sr_url_embed_render_url(PDO $pdo, string $url, array $context): string
 {
     $cacheRows = isset($context['url_cache_by_source']) && is_array($context['url_cache_by_source'])
         ? $context['url_cache_by_source']
         : [];
-    $cachedRow = sr_embed_manager_cached_row_for_url($cacheRows, $url);
-    $resolved = is_array($cachedRow) ? sr_embed_manager_resolved_from_cache_row($cachedRow) : [];
+    $cachedRow = sr_url_embed_cached_row_for_url($cacheRows, $url);
+    $resolved = is_array($cachedRow) ? sr_url_embed_resolved_from_cache_row($cachedRow) : [];
     if ($resolved === [] || (string) ($resolved['cache_status'] ?? '') !== 'fresh') {
-        $resolved = sr_embed_manager_resolve_url($pdo, $url, $context);
+        $resolved = sr_url_embed_resolve_url($pdo, $url, $context);
         if (!is_array($resolved)) {
             return '';
         }
-        sr_embed_manager_cache_resolved_for_render($pdo, $resolved, $context);
+        if (sr_url_embed_is_self_reference($resolved, $context)) {
+            return '';
+        }
+        sr_url_embed_cache_resolved_for_render($pdo, $resolved, $context);
+    }
+    if (sr_url_embed_is_self_reference($resolved, $context)) {
+        return '';
     }
     if ((string) ($resolved['cache_status'] ?? '') !== 'fresh') {
         return '';
     }
     $settings = isset($context['url_embed_settings']) && is_array($context['url_embed_settings'])
         ? $context['url_embed_settings']
-        : sr_embed_manager_settings($pdo);
-    if (!sr_embed_manager_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
+        : sr_url_embed_settings($pdo);
+    if (!sr_url_embed_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
         return '';
     }
 
-    $definition = sr_embed_manager_url_contract_targets($pdo)[$resolved['target_module']][$resolved['target_type']] ?? null;
+    if ((string) ($resolved['embed_kind'] ?? '') === 'external_url') {
+        return sr_url_embed_render_external_url($resolved);
+    }
+
+    $definition = sr_url_embed_url_contract_targets($pdo)[$resolved['target_module']][$resolved['target_type']] ?? null;
     if (!is_array($definition) || !is_callable($definition['render_embed'] ?? null)) {
         return '';
     }
 
-    $cachedHtml = sr_embed_manager_fragment_cache_read($resolved, $definition, $context);
+    $cachedHtml = sr_url_embed_fragment_cache_read($resolved, $definition, $context);
     if ($cachedHtml !== '') {
         return $cachedHtml;
     }
@@ -1456,26 +1580,26 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
     try {
         $rendered = $definition['render_embed']($pdo, $resolved, $context);
     } catch (Throwable $exception) {
-        sr_log_exception($exception, 'embed_manager_url_render_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
+        sr_log_exception($exception, 'url_embed_url_render_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
         return '';
     }
     if (is_array($rendered)) {
         $renderCacheStatus = array_key_exists('cache_status', $rendered)
-            ? sr_embed_manager_clean_cache_status((string) $rendered['cache_status'])
+            ? sr_url_embed_clean_cache_status((string) $rendered['cache_status'])
             : (string) ($resolved['cache_status'] ?? '');
-        $renderCacheVersion = sr_embed_manager_clean_label((string) ($rendered['target_cache_version'] ?? ''));
+        $renderCacheVersion = sr_url_embed_clean_label((string) ($rendered['target_cache_version'] ?? ''));
         $cacheStatusChanged = $renderCacheStatus !== '' && $renderCacheStatus !== (string) ($resolved['cache_status'] ?? '');
         $cacheVersionChanged = $renderCacheVersion !== '' && $renderCacheVersion !== (string) ($resolved['target_cache_version'] ?? '');
         if ($cacheStatusChanged || $cacheVersionChanged) {
-            $refreshed = sr_embed_manager_resolve_url($pdo, $url, $context);
+            $refreshed = sr_url_embed_resolve_url($pdo, $url, $context);
             if (is_array($refreshed)) {
-                sr_embed_manager_cache_resolved_for_render($pdo, $refreshed, $context);
+                sr_url_embed_cache_resolved_for_render($pdo, $refreshed, $context);
                 $resolved = $refreshed;
                 if ((string) ($resolved['cache_status'] ?? '') === 'fresh') {
                     try {
                         $rendered = $definition['render_embed']($pdo, $resolved, $context);
                     } catch (Throwable $exception) {
-                        sr_log_exception($exception, 'embed_manager_url_render_refresh_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
+                        sr_log_exception($exception, 'url_embed_url_render_refresh_failed_' . (string) ($resolved['target_module'] ?? '') . '_' . (string) ($resolved['target_type'] ?? ''));
                         return '';
                     }
                 }
@@ -1491,13 +1615,13 @@ function sr_embed_manager_render_url(PDO $pdo, string $url, array $context): str
         return '';
     }
 
-    $html = sr_embed_manager_sanitize_rendered_fragment($html);
-    sr_embed_manager_fragment_cache_write($resolved, $definition, $context, $html);
+    $html = sr_url_embed_sanitize_rendered_fragment($html);
+    sr_url_embed_fragment_cache_write($resolved, $definition, $context, $html);
 
     return $html;
 }
 
-function sr_embed_manager_sanitize_rendered_fragment(string $html): string
+function sr_url_embed_sanitize_rendered_fragment(string $html): string
 {
     if ($html === '' || !class_exists('DOMDocument')) {
         return '';
@@ -1529,7 +1653,7 @@ function sr_embed_manager_sanitize_rendered_fragment(string $html): string
                 $node->removeAttributeNode($attribute);
                 continue;
             }
-            if (in_array(strtolower($attribute->name), ['href', 'src'], true) && sr_embed_manager_safe_url($attribute->value) === '') {
+            if (in_array(strtolower($attribute->name), ['href', 'src'], true) && sr_url_embed_safe_url($attribute->value) === '') {
                 $node->removeAttributeNode($attribute);
             }
         }

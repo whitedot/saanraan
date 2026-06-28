@@ -18,7 +18,6 @@ function sr_admin_code_label_context_options(): array
             'coupon' => '쿠폰·이용권',
             'community' => '커뮤니티',
             'deposit' => '예치금',
-            'embed_manager' => '임베드 매니저',
             'logo_manager' => '로고 관리',
             'member' => '회원',
             'member_oauth' => '회원 OAuth',
@@ -167,14 +166,14 @@ function sr_admin_code_label_context_options(): array
             'canceled' => '취소',
             'dead' => 'Dead-letter',
         ],
-        'embed_manager_status' => [
+        'url_embed_status' => [
             'active' => '정상',
             'removed' => '제거됨',
             'broken' => '연결 불가',
             'private' => '비공개',
             'deleted' => '삭제됨',
         ],
-        'embed_manager_cache_status' => [
+        'url_embed_cache_status' => [
             'fresh' => '최신',
             'stale' => '갱신 필요',
             'deleted' => '대상 삭제됨',

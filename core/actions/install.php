@@ -123,12 +123,6 @@ $optionalModules = [
         'label' => '회원 OAuth 제공자',
         'description' => '회원 OAuth 모듈에 Google, Kakao, Naver, GitHub, Apple ID provider 계약을 설치합니다.',
     ],
-    'embed_manager' => [
-        'name' => '임베드 매니저',
-        'version' => '2026.06.002',
-        'label' => '임베드 매니저',
-        'description' => '본문 URL 임베드 캐시 점검과 legacy 링크 카드 토큰 거부 처리를 설치합니다.',
-    ],
     'point' => [
         'name' => '포인트',
         'version' => '2026.04.001',

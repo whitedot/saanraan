@@ -94,8 +94,8 @@ foreach ($optionalKeys as $moduleKey) {
     }
 }
 
-if (!str_contains($install, "'embed_manager' => [\n        'name' => '임베드 매니저',\n        'version' => '2026.06.002'")) {
-    $errors[] = 'embed_manager initial installer version must match its file-only current module version.';
+if (str_contains($install, "'url_embed' => [")) {
+    $errors[] = 'url_embed must not be listed as an initial installer module.';
 }
 if (!str_contains($install, "'seo' => [\n        'name' => 'SEO',\n        'version' => '2026.05.001'")) {
     $errors[] = 'seo initial installer version must match its file-only current module version.';

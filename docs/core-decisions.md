@@ -104,7 +104,7 @@
 
 코어에 두는 것을 기본값으로 삼지 않는다. 여러 모듈에서 반복되더라도 데이터 모델이나 업무 규칙의 모양을 강하게 유도한다면 코어 primitive가 아니라 공유 도메인 패턴이다.
 
-현재 공유 도메인 패턴은 코어 밖 공식 선택 모듈로 이동한다. `asset_ledger`는 자산 원장 primitive, `embed_manager`는 본문 URL 임베드 캐시와 legacy 링크 카드 토큰 거부 처리를 소유한다.
+현재 공유 도메인 패턴은 코어 primitive와 공식 선택 모듈을 구분한다. `asset_ledger`는 자산 원장 primitive를 소유하는 공식 선택 모듈이고, 본문 URL 임베드는 별도 관리 모듈 없이 `core/helpers/url-embed.php`의 좁은 helper가 맡는다.
 
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 거래 insert만 `asset_ledger` 공식 선택 모듈의 helper로 줄이고, 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 
@@ -128,24 +128,24 @@
 - 회수 실패 상태는 `open`, `recovered`, `manually_resolved`, `cancelled`를 사용한다. `recovered`는 전액 회수 종결, `manually_resolved`는 운영자의 오프라인 처리 또는 회수 포기 인정, `cancelled`는 회수 대상 제외다. 수동 해소와 취소는 남은 `unrecovered_amount`를 0으로 만들지 않고 보존한다. 부분 회수 원장 거래는 `sr_asset_recovery_reversal_links`로 회수 row와 연결한다.
 - 회수 실패 큐의 개인정보 export/cleanup은 `asset_ledger`가 소유한다. `operation_context_json`은 allowlist 키만 저장하고, `failure_reason`은 enum/code로 기록한다.
 
-`embed_manager` 유지 조건:
+URL 임베드 helper 유지 조건:
 
-- 내부 키는 `embed_manager`, 운영자 표시명은 `임베드 매니저`이고 관리자 메뉴 그룹명은 `임베드 관리`다. 하위 메뉴는 `본문 URL 임베드`와 `환경설정`으로 분리한다.
-- 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
-- CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
+- 임베드는 별도 관리 모듈이 아니라 `core/helpers/url-embed.php`의 URL 임베드 helper가 맡는다. 콘텐츠·커뮤니티 본문에 단독으로 붙여 넣은 YouTube, X, Instagram, 내부 콘텐츠 URL을 공개 렌더링 시점에 해석하며, 관리자 검색 삽입 화면과 검색 계약은 사용하지 않는다.
+- 관리자 사이드메뉴와 별도 설정 화면을 만들지 않는다. 각 owner 모듈은 필요한 경우 자체 `embed_enabled` 설정으로 본문 URL 임베드를 켜거나 끈다.
+- CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, URL 임베드 helper는 저장 HTML을 오염시키지 않는 공개 렌더링 보조로 유지한다.
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
 - 콘텐츠/커뮤니티 검색 삽입은 본문 안에 안전한 URL 또는 링크 HTML을 넣고 전용 marker를 만들지 않는다.
-- 본문 URL이 저장 진실원이며, `sr_embed_manager_url_cache`는 canonical URL hash, target tuple, public snapshot, cache status를 담는 파생 cache/index다.
+- 본문 URL이 저장 진실원이며, `sr_url_embed_cache`는 canonical URL hash, target tuple, public snapshot, cache status를 담는 파생 cache/index다.
 - 공개 baseline으로 판정된 내부 URL 임베드는 대상 모듈이 `fragment_cache_public` 계약을 명시한 경우에만 `storage/cache/embeds` 아래 sanitized HTML fragment를 생성할 수 있다. 이 파일은 직접 공개 URL로 제공하지 않고 PHP 렌더 경로에서만 읽는다.
 - fragment 캐시 대상은 익명 공개 상태, viewer-independent HTML, target cache version이 있는 내부 URL로 제한한다. 콘텐츠 유료 열람, 커뮤니티 유료/비밀/권한 게시글, 퀴즈 회원 그룹 제한, 설문 로그인/그룹 제한처럼 viewer별 계약이 필요한 대상은 fresh public fragment로 저장하지 않는다.
-- 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_embed_manager_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 갱신 필요 상태로 표시해야 한다.
+- 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_url_embed_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 갱신 필요 상태로 표시해야 한다.
 - URL 임베딩은 전역 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정과 각 지원 모듈의 `embed_enabled` 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
 - 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
-- 대상 모듈은 `embed-manager-url-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
-- 공개 표시 HTML은 `embed_manager` 공통 카드가 아니라 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
-- `embed_manager`는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
+- 대상 모듈은 `url-embed-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer를 제공한다.
+- 공개 표시 HTML은 공통 관리 모듈 카드가 아니라 외부 provider renderer 또는 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
+- URL 임베드 helper는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.
-- legacy 링크 카드 토큰 감지/거부는 `embed_manager`의 호환 범위다. 신규 저장과 운영 복사에서는 `{{sr_link_card ...}}` 토큰 유입을 차단하지만, legacy refs 테이블(`sr_content_link_refs`, `sr_community_link_refs`)은 현재 초기 설치 기준의 저장 진실원이나 참조 원장이 아니므로 제거한다.
+- legacy 링크 카드 토큰 감지/거부는 URL 임베드 helper의 호환 범위다. 신규 저장과 운영 복사에서는 `{{sr_link_card ...}}` 토큰 유입을 차단하지만, legacy refs 테이블(`sr_content_link_refs`, `sr_community_link_refs`)은 현재 초기 설치 기준의 저장 진실원이나 참조 원장이 아니므로 제거한다.
 
 퇴출 또는 이동 기준:
 

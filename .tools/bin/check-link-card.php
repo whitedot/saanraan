@@ -54,18 +54,18 @@ if (sr_link_card_extract_tokens($fakeWidgetHtml) !== []) {
     sr_link_card_check_error('Rendered or pasted widget HTML must not be treated as a trusted link card reference.');
 }
 
-$adminUrlCacheReflection = new ReflectionFunction('sr_embed_manager_admin_url_cache_rows');
+$adminUrlCacheReflection = new ReflectionFunction('sr_url_embed_admin_cache_rows');
 if ($adminUrlCacheReflection->getNumberOfParameters() !== 3) {
-    sr_link_card_check_error('Embed manager admin URL cache helper signature changed unexpectedly.');
+    sr_link_card_check_error('URL embed admin URL cache helper signature changed unexpectedly.');
 }
 
-$multiTargetLimit = sr_embed_manager_search_result_limit(10, [
+$multiTargetLimit = sr_url_embed_search_result_limit(10, [
     'community:post' => true,
     'quiz:quiz_set' => true,
     'survey:survey_form' => true,
 ]);
 if ($multiTargetLimit !== 30) {
-    sr_link_card_check_error('Embed manager multi-target searches must keep later target results reachable.');
+    sr_link_card_check_error('URL embed multi-target searches must keep later target results reachable.');
 }
 
 $contentHelper = file_get_contents($root . '/modules/content/helpers/records.php');

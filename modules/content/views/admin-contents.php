@@ -502,16 +502,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
                     <small><?php echo sr_e($contentEditorKey === 'ckeditor' ? 'CKEditor 제출은 허용된 HTML만 정화해 저장합니다.' : sr_t('content::ui.content.plain.save.723dab58')); ?></small>
-                    <?php if (sr_module_enabled($pdo, 'community') || sr_module_enabled($pdo, 'quiz') || sr_module_enabled($pdo, 'survey')) { ?>
-                        <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/admin/content/link-card-targets')); ?>" data-target="community_post,quiz_set,survey_form" data-textarea="content_admin_contents_body_text">
-                            <div class="sr-link-card-picker-controls">
-                                <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('게시글, 퀴즈, 설문 제목/Key/ID 검색'); ?>">
-                                <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
-                                <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
-                            </div>
-                            <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('게시글, 퀴즈, 설문을 검색해 본문에 URL 링크로 삽입합니다.'); ?></div>
-                        </div>
-                    <?php } ?>
                 </div>
             </div>
         </section>

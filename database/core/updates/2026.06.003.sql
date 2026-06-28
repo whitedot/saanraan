@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS sr_embed_manager_url_cache (
+CREATE TABLE IF NOT EXISTS sr_url_embed_cache (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     owner_module VARCHAR(60) NOT NULL,
     owner_type VARCHAR(60) NOT NULL,
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS sr_embed_manager_url_cache (
     created_by_account_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
-    UNIQUE KEY uq_sr_embed_manager_url_owner_hash (owner_module, owner_type, owner_id, owner_field, canonical_url_hash),
-    KEY idx_sr_embed_manager_url_owner (owner_module, owner_type, owner_id, owner_field, cache_status, sort_order),
-    KEY idx_sr_embed_manager_url_target (target_module, target_type, target_id, cache_status),
-    KEY idx_sr_embed_manager_url_hash (canonical_url_hash)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    UNIQUE KEY uq_sr_url_embed_owner_hash (owner_module, owner_type, owner_id, owner_field, canonical_url_hash),
+    KEY idx_sr_url_embed_owner (owner_module, owner_type, owner_id, owner_field, cache_status, sort_order),
+    KEY idx_sr_url_embed_target (target_module, target_type, target_id, cache_status),
+    KEY idx_sr_url_embed_hash (canonical_url_hash)
+);

@@ -315,8 +315,7 @@ $requiredPackageEntries = [
     'assets',
     'banner-references.php',
     'dashboard.php',
-    'embed-manager-targets.php',
-    'embed-manager-url-targets.php',
+    'url-embed-targets.php',
     'extension-points.php',
     'helpers',
     'helpers.php',
@@ -370,8 +369,7 @@ $requiredContracts = [
     'banner-references.php',
     'popup-layer-references.php',
     'member-group-references.php',
-    'embed-manager-targets.php',
-    'embed-manager-url-targets.php',
+    'url-embed-targets.php',
     'reaction-targets.php',
     'antispam-targets.php',
 ];
@@ -769,7 +767,7 @@ sr_community_release_file_contains('modules/community/actions/view.php', [
 sr_community_release_file_contains('modules/community/helpers/posts-writing.php', [
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
-    "sr_embed_manager_sync_body_url_cache(\$pdo, 'community', 'post', \$postId, 'body', '', null)",
+    "sr_url_embed_sync_body_url_cache(\$pdo, 'community', 'post', \$postId, 'body', '', null)",
 ], 'Community delegated post delete policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
     'sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null)',

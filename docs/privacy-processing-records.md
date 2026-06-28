@@ -42,7 +42,6 @@
 | `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. |
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 계좌정보 마스킹 시점, 처리자 접근 범위를 기록한다. |
-| `embed_manager` | 본문 URL 임베드 캐시와 생성자 메타데이터 | URL 캐시는 본문 URL에서 파생한 canonical URL hash, 대상 tuple, 상태 점검 메타데이터와 선택적 `created_by_account_id`를 보관한다. 본문 소유 모듈 cleanup은 빈 본문 sync로 캐시를 stale 처리하고, URL 캐시는 삭제/복사 차단의 hidden 원장으로 쓰지 않는다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |

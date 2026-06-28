@@ -21,7 +21,7 @@
 
 ## target 계약
 
-반응 대상 모듈은 `reaction-targets.php` 계약을 제공한다. 계약은 기존 `embed-manager-targets.php`와 같은 명시적 파일 로딩 패턴을 따른다.
+반응 대상 모듈은 `reaction-targets.php` 계약을 제공한다. 계약은 기존 `url-embed-targets.php`와 같은 명시적 파일 로딩 패턴을 따른다.
 
 필수 기능:
 

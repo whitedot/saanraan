@@ -51,7 +51,7 @@ return [
                     && (string) ($row['read_policy'] ?? 'public') === 'public'
                     && (int) ($row['is_secret'] ?? 0) !== 1
                     && (!function_exists('sr_community_asset_event_required') || !sr_community_asset_event_required($paidReadConfig));
-                $summary = sr_embed_manager_clean_summary((string) ($row['body_text'] ?? ''));
+                $summary = sr_url_embed_clean_summary((string) ($row['body_text'] ?? ''));
                 $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
                 return [
                     'target_id' => (string) $postId,
@@ -93,7 +93,7 @@ return [
                 }
                 $canonicalUrl = '/community/post?id=' . rawurlencode((string) (int) ($row['id'] ?? 0));
                 $label = (string) ($row['title'] ?? '');
-                $summary = sr_embed_manager_clean_summary((string) ($row['body_text'] ?? ''));
+                $summary = sr_url_embed_clean_summary((string) ($row['body_text'] ?? ''));
                 $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
                 $html = '<aside class="community-embed-summary" data-community-embed="summary">';
                 if ($image !== '') {

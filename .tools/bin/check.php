@@ -362,8 +362,7 @@ function sr_check_module_lifecycle_metadata(): void
         'antispam-targets.php' => true,
         'antispam-providers.php' => true,
         'oauth-providers.php' => true,
-        'embed-manager-targets.php' => true,
-        'embed-manager-url-targets.php' => true,
+        'url-embed-targets.php' => true,
         'reaction-targets.php' => true,
     ];
 
@@ -529,8 +528,7 @@ function sr_check_module_contract_files(): void
         'antispam-targets.php',
         'antispam-providers.php',
         'oauth-providers.php',
-        'embed-manager-targets.php',
-        'embed-manager-url-targets.php',
+        'url-embed-targets.php',
         'reaction-targets.php',
     ];
     $requiredConsumes = [
@@ -1289,7 +1287,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-scheduled-scope.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-link-card.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-embed-manager-contracts.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-url-embed-contracts.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-read-reference-contracts.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-reaction-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-quiz-consistency.php'));

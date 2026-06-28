@@ -54,8 +54,8 @@ return [
                 }
                 $canonicalUrl = sr_content_path((string) ($row['slug'] ?? ''));
                 $label = (string) ($row['title'] ?? '');
-                $summary = sr_embed_manager_clean_summary((string) ($row['summary'] ?? ''));
-                $image = sr_embed_manager_safe_url((string) ($row['cover_image_url'] ?? ''));
+                $summary = sr_url_embed_clean_summary((string) ($row['summary'] ?? ''));
+                $image = sr_url_embed_safe_url((string) ($row['cover_image_url'] ?? ''));
                 $html = '<aside class="content-embed-summary" data-content-embed="summary">';
                 if ($image !== '') {
                     $html .= '<a class="content-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';

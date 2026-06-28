@@ -42,7 +42,7 @@ sr_htmlpurifier_runtime_assert(!is_dir($root . '/modules/htmlpurifier/vendor/cac
 $config = sr_rich_text_purifier_config();
 sr_htmlpurifier_runtime_assert(strtolower((string) $config->get('Core.Encoding')) === 'utf-8', 'Purifier config must use UTF-8.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Doctype') === 'HTML 4.01 Transitional', 'Purifier config doctype must remain explicit.');
-sr_htmlpurifier_runtime_assert(!str_contains((string) $config->get('HTML.Allowed'), 'data-sr-embed-manager'), 'Purifier config must not allow embed marker attributes.');
+sr_htmlpurifier_runtime_assert(!str_contains((string) $config->get('HTML.Allowed'), 'data-sr-url-embed'), 'Purifier config must not allow embed marker attributes.');
 sr_htmlpurifier_runtime_assert($config->get('URI.AllowedSchemes') === ['http' => true, 'https' => true], 'Purifier config must allow only http and https schemes.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Nofollow') === true, 'Purifier config must enable HTML.Nofollow.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.TargetBlank') === false, 'Purifier config must not add target blank.');
@@ -50,7 +50,7 @@ sr_htmlpurifier_runtime_assert((string) $config->get('Cache.SerializerPath') ===
 
 $payload = '<p onclick="bad()">Hi <a href="javascript:alert(1)" target="_blank">bad</a>'
     . '<a href="https://example.com/safe" rel="bookmark">safe</a>'
-    . '<span class="foo sr-embed-manager-marker" data-sr-embed-manager-ref="em_abc1234" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="12" data-sr-embed-manager-variant="card" data-sr-embed-manager-label="  Label  ">embed</span>'
+    . '<span class="foo sr-url-embed-marker" data-sr-url-embed-ref="em_abc1234" data-sr-url-embed-target-module="content" data-sr-url-embed-target-type="content" data-sr-url-embed-target-id="12" data-sr-url-embed-variant="card" data-sr-url-embed-label="  Label  ">embed</span>'
     . '<img src="http://example.com/a.png" alt="bad">'
     . '<img src="https://example.com/a.png" alt="good" width="640" height="480" style="width:100%">'
     . '<svg><a xlink:href="javascript:alert(1)">x</a></svg></p>';
@@ -61,7 +61,7 @@ sr_htmlpurifier_runtime_assert(!str_contains(strtolower($sanitized), 'onclick'),
 sr_htmlpurifier_runtime_assert(!str_contains(strtolower($sanitized), 'target='), 'Purifier-backed sanitizer output must remove target attributes.');
 sr_htmlpurifier_runtime_assert(!str_contains(strtolower($sanitized), 'src="http://'), 'Final canonicalizer must remove insecure external image URLs after Purifier.');
 sr_htmlpurifier_runtime_assert(str_contains($sanitized, '<a href="https://example.com/safe" rel="nofollow noopener noreferrer">safe</a>'), 'Purifier-backed sanitizer output must keep safe links with server rel policy.');
-sr_htmlpurifier_runtime_assert(!str_contains($sanitized, 'sr-embed-manager-marker') && !str_contains($sanitized, 'data-sr-embed-manager'), 'Purifier-backed sanitizer output must remove embed marker attributes.');
+sr_htmlpurifier_runtime_assert(!str_contains($sanitized, 'sr-url-embed-marker') && !str_contains($sanitized, 'data-sr-url-embed'), 'Purifier-backed sanitizer output must remove embed marker attributes.');
 sr_htmlpurifier_runtime_assert(str_contains($sanitized, '<img src="https://example.com/a.png" alt="good" width="640" height="480">'), 'Purifier-backed sanitizer output must keep safe HTTPS images.');
 
 if ($errors !== []) {

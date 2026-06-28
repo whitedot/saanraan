@@ -472,7 +472,7 @@ $quizSettingsSectionNavItems = [
                 <span class="form-label">임베드 사용</span>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('quiz_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
-                    <p class="form-help">꺼져 있으면 콘텐츠나 커뮤니티 본문에서 퀴즈를 임베드 대상으로 검색하거나 주소로 자동 표시하지 않습니다.</p>
+                    <p class="form-help">꺼져 있으면 콘텐츠나 커뮤니티 본문에 붙여 넣은 퀴즈 URL을 자동 표시하지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row">

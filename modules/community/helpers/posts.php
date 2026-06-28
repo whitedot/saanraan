@@ -1217,8 +1217,8 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
     }
 
-    if ($pdo instanceof PDO && (string) ($post['body_format'] ?? 'plain') === 'html') {
-        $html = sr_embed_manager_render_body_html($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
+    if ($pdo instanceof PDO && sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)) {
+        $html = sr_url_embed_render_body_html($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
     return $html;

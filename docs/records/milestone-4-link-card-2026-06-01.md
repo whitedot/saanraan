@@ -1,11 +1,11 @@
 # 마일스톤 4 링크 카드 구현 기록
 
-> 2026-06-08 후속 결정: 이 문서는 마일스톤 4 당시의 구현 기록이다. 현재 1.0 방향은 링크 카드 토큰을 신규 저장에서 거부하고, 검색 삽입 결과를 일반 HTML 또는 텍스트 링크로 저장하는 정책이다. legacy token 감지/거부와 제한된 refs 정리 helper는 `embed_manager` 모듈의 호환 범위로 이동했다. 새 `embed_manager` marker + refs 모델은 기존 1.0 정책의 변경 후보이며, refs는 삭제 차단을 자동 강제하는 hidden 원장이 아니라 렌더링과 점검을 위한 명시적 참조다.
+> 2026-06-08 후속 결정: 이 문서는 마일스톤 4 당시의 구현 기록이다. 현재 1.0 방향은 링크 카드 토큰을 신규 저장에서 거부하고, 검색 삽입 결과를 일반 HTML 또는 텍스트 링크로 저장하는 정책이다. 현재 legacy token 감지/거부는 URL 임베드 helper의 호환 범위이며, 신규 URL 임베드는 marker나 refs 모델 없이 본문에 저장된 URL을 공개 렌더링 시점에 해석한다.
 
 ## 범위
 
 - 공통 링크 카드 토큰은 `{{sr_link_card module="community" entity_type="post" entity_id="1" variant="compact" label="선택 제목" slot="body"}}` 형식을 사용한다.
-- 토큰 파싱, 대상 검증, 요청 단위 resolver 배치 호출, 공개 렌더링은 당시 `core/helpers/link-card.php`의 좁은 helper가 담당했다. 현재 legacy 토큰 거부 helper는 `modules/embed_manager/helpers.php`에 있다.
+- 토큰 파싱, 대상 검증, 요청 단위 resolver 배치 호출, 공개 렌더링은 당시 `core/helpers/link-card.php`의 좁은 helper가 담당했다. 현재 legacy 토큰 거부와 URL 자동 임베드 helper는 `core/helpers/url-embed.php`에 있다.
 - 링크 참조 저장은 배치 모듈이 소유한다. 콘텐츠는 `sr_content_link_refs`, 커뮤니티는 `sr_community_link_refs`에 저장한다.
 - 콘텐츠 본문은 커뮤니티 게시글 링크 카드를 저장하고 공개 화면에서 렌더링할 수 있다.
 - 커뮤니티 게시글은 콘텐츠 링크 카드를 저장하고 공개 화면에서 렌더링할 수 있다.
