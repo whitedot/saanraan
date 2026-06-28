@@ -276,7 +276,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <dd>
                                         <?php echo sr_e(!empty($consent['consented']) ? sr_t('member::ui.text.051a33c2') : sr_t('member::ui.text.1c15cddb')); ?>
                                         <?php echo sr_e((string) $consent['consent_version']); ?>
-                                        <?php echo sr_e((string) $consent['created_at']); ?>
+                                        <?php echo sr_relative_time_html((string) $consent['created_at']); ?>
                                     </dd>
                                 <?php } ?>
                             </dl>

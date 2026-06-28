@@ -585,7 +585,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                                 </td>
                                                 <td><?php echo sr_e(sr_admin_code_label((string) $membership['assignment_type'], 'assignment_type')); ?></td>
                                                 <td><?php echo sr_e(sr_admin_code_label((string) $membership['status'], 'membership_status')); ?></td>
-                                                <td><?php echo sr_e((string) ($membership['granted_at'] ?? '')); ?></td>
+                                                <td><?php echo sr_admin_time_html((string) ($membership['granted_at'] ?? '')); ?></td>
                                                 <td class="admin-table-actions-cell">
                                                     <div class="admin-row-actions">
                                                         <?php if ((string) $membership['assignment_type'] === 'manual' && (string) $membership['status'] === 'active') { ?>
@@ -596,7 +596,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                                                 <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.293182ec')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.293182ec')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                                             </form>
                                                         <?php } else { ?>
-                                                            <?php echo sr_e((string) ($membership['revoked_at'] ?? '')); ?>
+                                                            <?php echo sr_admin_time_html((string) ($membership['revoked_at'] ?? '')); ?>
                                                         <?php } ?>
                                                     </div>
                                                 </td>
