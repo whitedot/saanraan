@@ -282,7 +282,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <?php echo sr_admin_switch_html('member_admin_edit_email_verified', 'email_verified', '1', (string) ($memberEditValues['email_verified'] ?? (((string) ($editMember['email_verified_at'] ?? '') !== '') ? '1' : '0')) === '1', '완료'); ?>
                         <?php if ((string) ($editMember['email_verified_at'] ?? '') !== '') { ?>
-                            <small class="form-help">현재 인증 완료 시각: <?php echo sr_e((string) $editMember['email_verified_at']); ?></small>
+                            <small class="form-help">현재 인증 완료 시각: <?php echo sr_admin_time_html((string) $editMember['email_verified_at']); ?></small>
                         <?php } ?>
                     </div>
                 </div>

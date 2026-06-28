@@ -164,7 +164,7 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                                             </td>
                                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
                                             <td class="admin-table-break"><?php echo sr_e((string) ($row['message'] ?? ($row['policy_status'] ?? ''))); ?></td>
-                                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($row['updated_at'] ?? '')); ?></td>
+                                            <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($row['updated_at'] ?? '')); ?></td>
                                             <td class="admin-table-actions-cell">
                                                 <?php if ($adminUrl !== '') { ?>
                                                     <a href="<?php echo sr_e(sr_url($adminUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e('관리 화면 열기'); ?>" title="<?php echo sr_e('관리 화면 열기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
