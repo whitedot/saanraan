@@ -29,10 +29,5 @@ return [
             'path' => '/admin/quiz/embed-cache',
             'order' => 35,
         ],
-        [
-            'label' => '퀴즈 매뉴얼',
-            'path' => '/admin/quiz/manual',
-            'order' => 40,
-        ],
     ],
 ];

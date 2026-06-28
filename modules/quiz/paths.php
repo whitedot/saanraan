@@ -17,7 +17,6 @@ return [
     'POST /admin/quiz/settings' => 'actions/admin-settings.php',
     'GET /admin/quiz/embed-cache' => 'actions/admin-embed-cache.php',
     'POST /admin/quiz/embed-cache' => 'actions/admin-embed-cache.php',
-    'GET /admin/quiz/manual' => 'actions/admin-manual.php',
     'GET /admin/quiz/attempts' => 'actions/admin-attempts.php',
     'POST /admin/quiz/attempts' => 'actions/admin-attempts.php',
 ];

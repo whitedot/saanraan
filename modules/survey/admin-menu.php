@@ -39,10 +39,5 @@ return [
             'path' => '/admin/surveys/embed-cache',
             'order' => 45,
         ],
-        [
-            'label' => '매뉴얼',
-            'path' => '/admin/surveys/manual',
-            'order' => 50,
-        ],
     ],
 ];

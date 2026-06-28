@@ -22,5 +22,4 @@ return [
     'POST /admin/surveys/settings' => 'actions/admin-settings.php',
     'GET /admin/surveys/embed-cache' => 'actions/admin-embed-cache.php',
     'POST /admin/surveys/embed-cache' => 'actions/admin-embed-cache.php',
-    'GET /admin/surveys/manual' => 'actions/admin-manual.php',
 ];
