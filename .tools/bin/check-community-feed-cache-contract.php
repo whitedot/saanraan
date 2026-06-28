@@ -196,6 +196,9 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $settings = sr_community_default_settings();
 
     sr_community_feed_cache_mark_all_stale($pdo, 'fixture_reset');
+    sr_community_home_warm_public_feed_cache($pdo, $boards, $settings, $homeExcerptAllowed);
+    $mixedStoreStatus = sr_community_feed_cache_persistent_store_status($pdo);
+    sr_check_community_feed_cache_contract_assert((int) ($mixedStoreStatus['active_count'] ?? 0) >= 3, 'mixed readable home chrome must still warm public baseline feed cache files.');
     $latest = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
     $popular = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'views');
     $latestCached = sr_community_home_post_feed($pdo, $baselineBoards, $settings, $homeExcerptAllowed, 10, 'latest');
@@ -406,6 +409,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     '$summaryFeedBoards = []',
     'sr_community_effective_board_summary_feed_enabled($pdo, $board)',
     'sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots, $readableBoardIds)',
+    'function sr_community_home_warm_public_feed_cache',
+    'sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId)',
     'function sr_community_home_filter_rows_by_board_ids',
     '$latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds)',
     '$recentSeries = sr_community_home_filter_rows_by_board_ids($recentSeries, $readableBoardIds)',

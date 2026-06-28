@@ -548,6 +548,36 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
     return $rows;
 }
 
+function sr_community_home_warm_public_feed_cache(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId): void
+{
+    $publicBoards = [];
+    foreach ($boards as $board) {
+        if (!is_array($board) || !sr_community_feed_cache_public_baseline_board($board)) {
+            continue;
+        }
+
+        $boardId = (int) ($board['id'] ?? 0);
+        if ($boardId < 1 || empty($homeExcerptAllowedByBoardId[$boardId])) {
+            continue;
+        }
+
+        $publicBoards[] = $board;
+    }
+    if ($publicBoards === []) {
+        return;
+    }
+
+    sr_community_home_post_feed($pdo, $publicBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
+    sr_community_home_post_feed($pdo, $publicBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
+    sr_community_home_latest_comments(
+        $pdo,
+        sr_community_feed_cache_public_baseline_board_ids($publicBoards),
+        $homeExcerptAllowedByBoardId,
+        10,
+        true
+    );
+}
+
 function sr_community_home_filter_rows_by_board_ids(array $rows, array $allowedBoardIds): array
 {
     $allowed = [];
@@ -616,6 +646,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     if ($readableBoardIds !== []) {
         $latestComments = sr_community_home_latest_comments($pdo, $readableBoardIds, $homeExcerptAllowedByBoardId, 10, !is_array($account));
     }
+    sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId);
     if ($communitySeriesSupported && $readableBoardIds !== []) {
         $seriesPlaceholders = [];
         $seriesParams = [];
