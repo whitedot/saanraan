@@ -41,11 +41,6 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
         . '</div>';
 }
 
-function sr_admin_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
-}
-
 function sr_admin_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
@@ -871,23 +866,6 @@ function sr_admin_select_badge_list_item_html(string $name, string $value, strin
         . '</span>';
 
     return $html;
-}
-
-function sr_admin_member_group_key_select_html(string $id, string $name, array $selectedKeys, array $memberGroups): string
-{
-    $options = [];
-    foreach ($memberGroups as $memberGroup) {
-        $groupKey = (string) ($memberGroup['group_key'] ?? '');
-        if ($groupKey === '') {
-            continue;
-        }
-
-        $title = trim((string) ($memberGroup['title'] ?? ''));
-        $label = $title !== '' ? $title : $groupKey;
-        $options[$groupKey] = $label;
-    }
-
-    return sr_admin_checkbox_list_html($id, $name, $options, $selectedKeys, '활성 회원 그룹 없음');
 }
 
 function sr_admin_member_group_key_badge_select_html(string $id, string $name, array $selectedKeys, array $memberGroups): string
