@@ -10,4 +10,5 @@ $postIdValue = sr_get_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $tmpToken = sr_get_string('tmp', 64);
 $fileName = sr_get_string('file', 180);
-sr_community_send_body_file($pdo, $postId, $fileName, $tmpToken);
+$driver = sr_get_string('d', 20);
+sr_community_send_body_file($pdo, $postId, $fileName, $tmpToken, $driver);

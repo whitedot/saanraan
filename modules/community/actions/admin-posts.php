@@ -177,6 +177,7 @@ if (sr_request_method() === 'POST') {
                 ]);
                 $pdo->commit();
                 if ($status === 'deleted') {
+                    sr_community_cleanup_body_file_refs_for_deleted_post($pdo, $postId, (string) ($post['body_text'] ?? ''));
                     sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
                     sr_community_cleanup_attachment_storage_refs($pdo, $postAttachmentStorageRefs);
                 }

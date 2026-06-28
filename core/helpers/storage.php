@@ -85,7 +85,7 @@ function sr_storage_copy(string $driver, string $sourceKey, string $targetKey, a
     }
 
     if ($driver === 's3') {
-        throw new RuntimeException('현재 저장소 driver에서는 첨부파일 포함 복사를 지원하지 않습니다.');
+        return sr_storage_s3_copy($sourceKey, $targetKey, $options);
     }
 
     $sourcePath = sr_storage_local_path($sourceKey);
@@ -842,6 +842,33 @@ function sr_storage_s3_delete(array $config, string $key): bool
     }
 
     return $response['status'] >= 200 && $response['status'] < 300;
+}
+
+function sr_storage_s3_copy(string $sourceKey, string $targetKey, array $options = []): array
+{
+    $config = isset($options['config']) && is_array($options['config']) ? $options['config'] : sr_runtime_config();
+    $head = sr_storage_s3_head($config, $sourceKey);
+    if ($head === null) {
+        throw new RuntimeException('원본 S3 파일을 찾을 수 없습니다.');
+    }
+
+    $sourceFile = sr_storage_copy_to_temp_file('s3', $sourceKey, [
+        'config' => $config,
+        'max_bytes' => (int) ($options['max_bytes'] ?? 104857600),
+    ]);
+    if (!is_array($sourceFile) || !is_string($sourceFile['path'] ?? null)) {
+        throw new RuntimeException('S3 파일 복사를 준비할 수 없습니다.');
+    }
+
+    try {
+        return sr_storage_s3_put_file($config, (string) $sourceFile['path'], $targetKey, array_merge($options, [
+            'content_type' => (string) ($head['content_type'] ?? $sourceFile['content_type'] ?? 'application/octet-stream'),
+        ]));
+    } finally {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink((string) $sourceFile['path']);
+        }
+    }
 }
 
 function sr_storage_s3_presigned_url(array $config, string $key, int $ttlSeconds, array $options = []): string

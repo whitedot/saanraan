@@ -76,14 +76,28 @@ function sr_community_body_file_post_key(int $postId, string $fileName): string
     return $postId > 0 && $fileName !== '' ? 'community/body/' . sr_community_body_file_post_shard($postId) . '/' . $postId . '/' . $fileName : '';
 }
 
-function sr_community_body_file_tmp_proxy_url(string $token, string $fileName): string
+function sr_community_body_file_storage_driver(string $driver): string
 {
-    return sr_url('/community/body-file?tmp=' . rawurlencode($token) . '&file=' . rawurlencode($fileName));
+    $driver = strtolower(trim($driver));
+
+    return in_array($driver, ['local', 's3'], true) ? $driver : 'local';
 }
 
-function sr_community_body_file_post_proxy_url(int $postId, string $fileName): string
+function sr_community_body_file_driver_query(string $driver): string
 {
-    return sr_url('/community/body-file?post_id=' . rawurlencode((string) $postId) . '&file=' . rawurlencode($fileName));
+    $driver = sr_community_body_file_storage_driver($driver);
+
+    return $driver === 'local' ? '' : '&d=' . rawurlencode($driver);
+}
+
+function sr_community_body_file_tmp_proxy_url(string $token, string $fileName, string $driver = 'local'): string
+{
+    return sr_url('/community/body-file?tmp=' . rawurlencode($token) . '&file=' . rawurlencode($fileName) . sr_community_body_file_driver_query($driver));
+}
+
+function sr_community_body_file_post_proxy_url(int $postId, string $fileName, string $driver = 'local'): string
+{
+    return sr_url('/community/body-file?post_id=' . rawurlencode((string) $postId) . '&file=' . rawurlencode($fileName) . sr_community_body_file_driver_query($driver));
 }
 
 function sr_community_upload_body_file(PDO $pdo, int $accountId, array $board, array $file, string $token, ?array $post = null): array
@@ -124,13 +138,14 @@ function sr_community_upload_body_file(PDO $pdo, int $accountId, array $board, a
         throw new RuntimeException('본문 이미지 저장 key가 올바르지 않습니다.');
     }
 
+    $storageDriver = sr_storage_default_driver();
     sr_storage_put_file((string) $validated['tmp_name'], $storageKey, [
-        'driver' => 'local',
+        'driver' => $storageDriver,
         'content_type' => $storedMimeType,
     ]);
 
     return [
-        'url' => sr_community_body_file_tmp_proxy_url($token, $storedName),
+        'url' => sr_community_body_file_tmp_proxy_url($token, $storedName, $storageDriver),
         'width' => (int) ($imageSize[0] ?? 0),
         'height' => (int) ($imageSize[1] ?? 0),
     ];
@@ -189,10 +204,20 @@ function sr_community_body_file_ref_from_url(string $url): ?array
     }
     $tmpToken = (string) ($params['tmp'] ?? '');
     if ($tmpToken !== '') {
-        return preg_match('/\A[a-f0-9]{32}\z/', $tmpToken) === 1 ? ['type' => 'tmp', 'token' => $tmpToken, 'file' => $fileName] : null;
+        return preg_match('/\A[a-f0-9]{32}\z/', $tmpToken) === 1 ? [
+            'type' => 'tmp',
+            'token' => $tmpToken,
+            'file' => $fileName,
+            'driver' => sr_community_body_file_storage_driver((string) ($params['d'] ?? 'local')),
+        ] : null;
     }
     $postId = (int) ($params['post_id'] ?? 0);
-    return $postId > 0 ? ['type' => 'post', 'post_id' => $postId, 'file' => $fileName] : null;
+    return $postId > 0 ? [
+        'type' => 'post',
+        'post_id' => $postId,
+        'file' => $fileName,
+        'driver' => sr_community_body_file_storage_driver((string) ($params['d'] ?? 'local')),
+    ] : null;
 }
 
 function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, int $accountId, bool $cleanupUnreferenced = true, ?array &$createdFiles = null, ?array &$finalizedTmpFiles = null): string
@@ -212,27 +237,34 @@ function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, i
         if (!sr_community_body_file_token_is_valid($token)) {
             continue;
         }
+        $driver = sr_community_body_file_storage_driver((string) ($ref['driver'] ?? 'local'));
         $sourceKey = sr_community_body_file_tmp_key($token, $fileName);
         $targetKey = sr_community_body_file_post_key($postId, $fileName);
         if ($sourceKey === '' || $targetKey === '') {
             continue;
         }
         try {
-            sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+            sr_storage_copy($driver, $sourceKey, $targetKey, ['overwrite' => true]);
         } catch (Throwable $exception) {
-            sr_community_record_storage_cleanup_failure($pdo, 'body_file_finalize', $postId, 'local', $sourceKey, $exception->getMessage());
+            sr_community_record_storage_cleanup_failure($pdo, 'body_file_finalize', $postId, $driver, $sourceKey, $exception->getMessage());
             throw new RuntimeException('본문 이미지 저장을 완료할 수 없습니다.');
         }
         if (is_array($createdFiles)) {
-            $createdFiles[] = ['driver' => 'local', 'key' => $targetKey];
+            $createdFiles[] = ['driver' => $driver, 'key' => $targetKey];
         }
         if (is_array($finalizedTmpFiles)) {
-            $finalizedTmpFiles[] = ['driver' => 'local', 'key' => $sourceKey];
+            $finalizedTmpFiles[] = ['driver' => $driver, 'key' => $sourceKey];
         }
-        $oldUrl = sr_community_body_file_tmp_proxy_url($token, $fileName);
-        $newUrl = sr_community_body_file_post_proxy_url($postId, $fileName);
+        $oldUrl = sr_community_body_file_tmp_proxy_url($token, $fileName, $driver);
+        $newUrl = sr_community_body_file_post_proxy_url($postId, $fileName, $driver);
         $replacements[$oldUrl] = $newUrl;
         $replacements[sr_e($oldUrl)] = sr_e($newUrl);
+        if ($driver === 'local') {
+            $legacyOldUrl = sr_community_body_file_tmp_proxy_url($token, $fileName);
+            $legacyNewUrl = sr_community_body_file_post_proxy_url($postId, $fileName);
+            $replacements[$legacyOldUrl] = $legacyNewUrl;
+            $replacements[sr_e($legacyOldUrl)] = sr_e($legacyNewUrl);
+        }
     }
 
     if ($replacements !== []) {
@@ -261,19 +293,26 @@ function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetP
         if ($sourceKey === '' || $targetKey === '') {
             continue;
         }
+        $driver = sr_community_body_file_storage_driver((string) ($ref['driver'] ?? 'local'));
         try {
-            sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+            sr_storage_copy($driver, $sourceKey, $targetKey, ['overwrite' => true]);
         } catch (Throwable $exception) {
-            sr_community_record_storage_cleanup_failure($pdo, 'body_file_clone', $targetPostId, 'local', $sourceKey, $exception->getMessage());
+            sr_community_record_storage_cleanup_failure($pdo, 'body_file_clone', $targetPostId, $driver, $sourceKey, $exception->getMessage());
             throw new RuntimeException('게시글 본문 이미지 복사를 완료할 수 없습니다.');
         }
         if (is_array($createdFiles)) {
-            $createdFiles[] = ['driver' => 'local', 'key' => $targetKey];
+            $createdFiles[] = ['driver' => $driver, 'key' => $targetKey];
         }
-        $oldUrl = sr_community_body_file_post_proxy_url($sourcePostId, $fileName);
-        $newUrl = sr_community_body_file_post_proxy_url($targetPostId, $fileName);
+        $oldUrl = sr_community_body_file_post_proxy_url($sourcePostId, $fileName, $driver);
+        $newUrl = sr_community_body_file_post_proxy_url($targetPostId, $fileName, $driver);
         $replacements[$oldUrl] = $newUrl;
         $replacements[sr_e($oldUrl)] = sr_e($newUrl);
+        if ($driver === 'local') {
+            $legacyOldUrl = sr_community_body_file_post_proxy_url($sourcePostId, $fileName);
+            $legacyNewUrl = sr_community_body_file_post_proxy_url($targetPostId, $fileName);
+            $replacements[$legacyOldUrl] = $legacyNewUrl;
+            $replacements[sr_e($legacyOldUrl)] = sr_e($legacyNewUrl);
+        }
     }
 
     return $replacements === [] ? $html : strtr($html, $replacements);
@@ -302,7 +341,7 @@ function sr_community_cleanup_storage_file_refs(PDO $pdo, array $files, string $
     }
 }
 
-function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, string $html): void
+function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, string $html, string $previousHtml = ''): void
 {
     if ($postId < 1) {
         return;
@@ -312,6 +351,29 @@ function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, str
     foreach (sr_community_body_file_refs_from_html($html) as $ref) {
         if ((string) ($ref['type'] ?? '') === 'post' && (int) ($ref['post_id'] ?? 0) === $postId) {
             $kept[(string) $ref['file']] = true;
+        }
+    }
+
+    if ($previousHtml !== '') {
+        $seen = [];
+        foreach (sr_community_body_file_refs_from_html($previousHtml) as $ref) {
+            if ((string) ($ref['type'] ?? '') !== 'post' || (int) ($ref['post_id'] ?? 0) !== $postId) {
+                continue;
+            }
+            $fileName = (string) ($ref['file'] ?? '');
+            if ($fileName === '' || isset($kept[$fileName])) {
+                continue;
+            }
+            $driver = sr_community_body_file_storage_driver((string) ($ref['driver'] ?? 'local'));
+            $key = sr_community_body_file_post_key($postId, $fileName);
+            $dedupeKey = $driver . ':' . $key;
+            if ($key === '' || isset($seen[$dedupeKey])) {
+                continue;
+            }
+            $seen[$dedupeKey] = true;
+            if (!sr_storage_delete($driver, $key)) {
+                sr_community_record_storage_cleanup_failure($pdo, 'body_file_unreferenced', $postId, $driver, $key, '본문에서 제거된 이미지 저장소 정리에 실패했습니다.');
+            }
         }
     }
 
@@ -331,10 +393,49 @@ function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, str
     }
 }
 
+function sr_community_cleanup_body_file_refs_for_deleted_post(PDO $pdo, int $postId, string $bodyText): int
+{
+    if ($postId < 1 || $bodyText === '') {
+        return 0;
+    }
+
+    $deleted = 0;
+    $seen = [];
+    foreach (sr_community_body_file_refs_from_html($bodyText) as $ref) {
+        if ((string) ($ref['type'] ?? '') !== 'post' || (int) ($ref['post_id'] ?? 0) !== $postId) {
+            continue;
+        }
+        $driver = sr_community_body_file_storage_driver((string) ($ref['driver'] ?? 'local'));
+        $key = sr_community_body_file_post_key($postId, (string) ($ref['file'] ?? ''));
+        $dedupeKey = $driver . ':' . $key;
+        if ($key === '' || isset($seen[$dedupeKey])) {
+            continue;
+        }
+        $seen[$dedupeKey] = true;
+        if (sr_storage_delete($driver, $key)) {
+            $deleted++;
+        } else {
+            sr_community_record_storage_cleanup_failure($pdo, 'body_file_post_delete', $postId, $driver, $key, '게시글 삭제 후 본문 이미지 저장소 정리에 실패했습니다.');
+        }
+    }
+
+    return $deleted;
+}
+
 function sr_community_cleanup_body_files_for_deleted_posts(PDO $pdo, array $postIds): int
 {
     $deleted = 0;
     foreach (array_values(array_filter(array_map('intval', $postIds), static fn (int $postId): bool => $postId > 0)) as $postId) {
+        $bodyText = '';
+        try {
+            $stmt = $pdo->prepare('SELECT body_text FROM sr_community_posts WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $postId]);
+            $bodyText = (string) ($stmt->fetchColumn() ?: '');
+        } catch (Throwable) {
+            $bodyText = '';
+        }
+        $deleted += sr_community_cleanup_body_file_refs_for_deleted_post($pdo, $postId, $bodyText);
+
         $directory = SR_ROOT . '/storage/community/body/' . sr_community_body_file_post_shard($postId) . '/' . (string) $postId;
         if (!is_dir($directory)) {
             continue;
@@ -398,8 +499,9 @@ function sr_community_cleanup_expired_body_files(PDO $pdo, int $limit = 10): arr
     return ['deleted' => $deleted, 'failed' => $failed];
 }
 
-function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, string $tmpToken = ''): void
+function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, string $tmpToken = '', string $driver = 'local'): void
 {
+    $driver = sr_community_body_file_storage_driver($driver);
     if ($tmpToken !== '') {
         $account = sr_member_current_account($pdo);
         if (!is_array($account) || !sr_community_body_file_token_is_valid($tmpToken)) {
@@ -418,16 +520,25 @@ function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, st
     if ($key === '' || !sr_storage_key_is_safe($key)) {
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
-    $head = sr_storage_head('local', $key);
+    $head = sr_storage_head($driver, $key);
     $mimeType = (string) ($head['content_type'] ?? '');
     if (!is_array($head) || !in_array($mimeType, sr_community_body_file_allowed_mime_types(), true)) {
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
+    if ($driver === 's3') {
+        $url = sr_storage_signed_url('s3', $key, 300, [
+            'response-content-type' => sr_download_content_type($mimeType),
+        ]);
+        if ($url === '') {
+            sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
+        }
+        sr_redirect_trusted_external($url);
+    }
+
     $path = sr_storage_local_path($key);
     if (!is_string($path)) {
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
-
     sr_send_file_headers($mimeType, (int) ($head['content_length'] ?? 0), 'private, max-age=300');
     readfile($path);
     sr_finish_response();

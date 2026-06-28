@@ -105,12 +105,21 @@ function sr_community_post_locked_by_comments(PDO $pdo, array $board, int $postI
 function sr_community_update_post_status(PDO $pdo, int $postId, string $status, array $options = []): void
 {
     if ($status === 'deleted') {
+        $bodyTextBeforeDelete = '';
+        try {
+            $stmt = $pdo->prepare('SELECT body_text FROM sr_community_posts WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $postId]);
+            $bodyTextBeforeDelete = (string) ($stmt->fetchColumn() ?: '');
+        } catch (Throwable) {
+            $bodyTextBeforeDelete = '';
+        }
         sr_community_redact_deleted_post($pdo, $postId);
         sr_community_mark_post_embed_target_stale($pdo, $postId);
         if (function_exists('sr_community_feed_cache_mark_all_stale')) {
             sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
         }
         if (empty($options['defer_file_cleanup'])) {
+            sr_community_cleanup_body_file_refs_for_deleted_post($pdo, $postId, $bodyTextBeforeDelete);
             sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
         }
         return;
@@ -292,9 +301,14 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
 
     $createdBodyFiles = [];
     $finalizedTmpFiles = [];
+    $previousBodyText = '';
     $pdo->beginTransaction();
 
     try {
+        $previousStmt = $pdo->prepare('SELECT body_text FROM sr_community_posts WHERE id = :id LIMIT 1');
+        $previousStmt->execute(['id' => $postId]);
+        $previousBodyText = (string) ($previousStmt->fetchColumn() ?: '');
+
         $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
             ? (string) $values['body_format']
             : 'plain';
@@ -378,9 +392,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
 
     if ($bodyFormat === 'html') {
         sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 수정 후 임시 본문 이미지 정리에 실패했습니다.');
-        sr_community_cleanup_unreferenced_body_files($pdo, $postId, $bodyText);
+        sr_community_cleanup_unreferenced_body_files($pdo, $postId, $bodyText, $previousBodyText);
     } else {
-        sr_community_cleanup_unreferenced_body_files($pdo, $postId, '');
+        sr_community_cleanup_unreferenced_body_files($pdo, $postId, '', $previousBodyText);
     }
 }
 

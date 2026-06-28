@@ -123,9 +123,15 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     }
 
     $attachmentFiles = sr_community_board_attachment_storage_refs($pdo, $boardId);
-    $stmt = $pdo->prepare('SELECT id FROM sr_community_posts WHERE board_id = :board_id');
+    $stmt = $pdo->prepare('SELECT id, body_text FROM sr_community_posts WHERE board_id = :board_id');
     $stmt->execute(['board_id' => $boardId]);
-    $bodyFilePostIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    $bodyFileRows = $stmt->fetchAll();
+    $bodyFilePostIds = [];
+    foreach ($bodyFileRows as $bodyFileRow) {
+        if (is_array($bodyFileRow) && (int) ($bodyFileRow['id'] ?? 0) > 0) {
+            $bodyFilePostIds[] = (int) $bodyFileRow['id'];
+        }
+    }
     $pdo->beginTransaction();
     try {
         $deletedSettingSources = sr_community_optional_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
@@ -207,7 +213,13 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
             sr_community_record_storage_cleanup_failure($pdo, 'board_delete_attachment', $boardId, $driver, $key, '게시판 삭제 후 첨부 파일 저장소 정리에 실패했습니다.');
         }
     }
-    $deletedBodyFiles = sr_community_cleanup_body_files_for_deleted_posts($pdo, $bodyFilePostIds);
+    $deletedBodyFiles = 0;
+    foreach ($bodyFileRows as $bodyFileRow) {
+        if (is_array($bodyFileRow) && (int) ($bodyFileRow['id'] ?? 0) > 0) {
+            $deletedBodyFiles += sr_community_cleanup_body_file_refs_for_deleted_post($pdo, (int) $bodyFileRow['id'], (string) ($bodyFileRow['body_text'] ?? ''));
+        }
+    }
+    $deletedBodyFiles += sr_community_cleanup_body_files_for_deleted_posts($pdo, $bodyFilePostIds);
 
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_setting_sources'] = $deletedSettingSources;

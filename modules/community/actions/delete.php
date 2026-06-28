@@ -103,6 +103,7 @@ try {
         ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
     ]);
     $pdo->commit();
+    sr_community_cleanup_body_file_refs_for_deleted_post($pdo, $postId, (string) ($post['body_text'] ?? ''));
     sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
     sr_community_cleanup_attachment_storage_refs($pdo, $postAttachmentStorageRefs);
 } catch (Throwable $exception) {
