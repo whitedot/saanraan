@@ -244,6 +244,46 @@ foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
     sr_antispam_check_assert(isset($providerOptions[$providerKey]), 'Antispam provider options must load bundled plugin contract without PDO: ' . $providerKey);
 }
 sr_antispam_check_assert((string) ($providerOptions['turnstile']['widget_class'] ?? '') === 'cf-turnstile', 'Antispam provider options must keep widget class from plugin contract.');
+$validProvider = sr_antispam_normalize_provider_definition([
+    'label' => 'Fixture CAPTCHA',
+    'site_key_setting' => 'fixture_site_key',
+    'secret_key_setting' => 'fixture_secret_key',
+    'response_field' => 'fixture-response',
+    'endpoint' => 'https://93.184.216.34/siteverify',
+    'script_url' => 'https://captcha.example/widget.js',
+    'widget_class' => 'fixture-captcha',
+]);
+sr_antispam_check_assert($validProvider !== [], 'Antispam provider contract must allow HTTPS public provider URLs.');
+foreach ([
+    'file:///tmp/provider.json',
+    'https://localhost/siteverify',
+    'https://127.0.0.1/siteverify',
+    'https://10.0.0.2/siteverify',
+] as $badEndpoint) {
+    $invalidProvider = sr_antispam_normalize_provider_definition([
+        'label' => 'Invalid CAPTCHA',
+        'site_key_setting' => 'invalid_site_key',
+        'secret_key_setting' => 'invalid_secret_key',
+        'response_field' => 'invalid-response',
+        'endpoint' => $badEndpoint,
+        'script_url' => 'https://captcha.example/widget.js',
+        'widget_class' => 'invalid-captcha',
+    ]);
+    sr_antispam_check_assert($invalidProvider === [], 'Antispam provider contract must reject unsafe endpoint URL: ' . $badEndpoint);
+}
+$httpScriptProvider = sr_antispam_normalize_provider_definition([
+    'label' => 'Invalid CAPTCHA',
+    'site_key_setting' => 'invalid_site_key',
+    'secret_key_setting' => 'invalid_secret_key',
+    'response_field' => 'invalid-response',
+    'endpoint' => 'https://93.184.216.34/siteverify',
+    'script_url' => 'http://captcha.example/widget.js',
+    'widget_class' => 'invalid-captcha',
+]);
+sr_antispam_check_assert($httpScriptProvider === [], 'Antispam provider contract must reject non-HTTPS script URLs.');
+sr_antispam_check_assert(!sr_antispam_provider_endpoint_is_allowed('file:///tmp/provider.json'), 'Antispam provider endpoint gate must reject file URLs before HTTP calls.');
+sr_antispam_check_assert(!sr_antispam_provider_endpoint_is_allowed('https://127.0.0.1/siteverify'), 'Antispam provider endpoint gate must reject loopback endpoints before HTTP calls.');
+sr_antispam_check_assert(sr_antispam_http_post('file:///tmp/provider.json', [], 1) === null, 'Antispam provider HTTP helper must not read non-HTTP URLs.');
 
 $variants = [];
 for ($i = 1; $i <= 6; $i++) {

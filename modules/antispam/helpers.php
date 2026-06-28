@@ -218,8 +218,8 @@ function sr_antispam_normalize_provider_definition(array $provider): array
         || $endpoint === ''
         || $scriptUrl === ''
         || $widgetClass === ''
-        || filter_var($endpoint, FILTER_VALIDATE_URL) === false
-        || filter_var($scriptUrl, FILTER_VALIDATE_URL) === false
+        || !sr_antispam_provider_contract_url_is_allowed($endpoint)
+        || !sr_antispam_provider_contract_url_is_allowed($scriptUrl)
     ) {
         return [];
     }
@@ -234,6 +234,34 @@ function sr_antispam_normalize_provider_definition(array $provider): array
         'widget_class' => $widgetClass,
         'score_setting' => preg_match('/\A[a-z][a-z0-9_]{1,80}\z/', $scoreSetting) === 1 ? $scoreSetting : '',
     ];
+}
+
+function sr_antispam_provider_contract_url_is_allowed(string $url): bool
+{
+    if (!sr_is_http_url($url) || strtolower((string) parse_url($url, PHP_URL_SCHEME)) !== 'https') {
+        return false;
+    }
+
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return false;
+    }
+
+    $host = strtolower(trim($host, '[]'));
+    if ($host === '' || $host === 'localhost') {
+        return false;
+    }
+
+    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+        return sr_ip_is_public_network_address($host);
+    }
+
+    return str_contains($host, '.') && sr_http_hostname_is_valid($host);
+}
+
+function sr_antispam_provider_endpoint_is_allowed(string $url): bool
+{
+    return sr_antispam_provider_contract_url_is_allowed($url) && sr_is_public_http_url($url);
 }
 
 function sr_antispam_policy(PDO $pdo, string $surface, array $context = []): array
@@ -563,7 +591,7 @@ function sr_antispam_current_hostname(): string
 
 function sr_antispam_http_post(string $url, array $payload, int $timeoutSeconds): ?array
 {
-    if (!filter_var($url, FILTER_VALIDATE_URL) || !ini_get('allow_url_fopen')) {
+    if (!sr_antispam_provider_endpoint_is_allowed($url) || !ini_get('allow_url_fopen')) {
         return null;
     }
     $context = stream_context_create([
