@@ -6,7 +6,7 @@ if (is_array($job ?? null)) {
 }
 $adminPageSubtitle = '대량 데이터는 배치로 이어서 실행됩니다.';
 $adminContainerClass = 'admin-community-board-copy-jobs admin-ui-scope';
-$adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/boards')) . '" class="btn btn-outline-secondary">'
+$adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/boards')) . '" class="btn btn-ghost-secondary">'
     . sr_e('게시판 목록')
     . '</a>';
 $communityBoardCopyJobStatusClass = static function (string $status): string {

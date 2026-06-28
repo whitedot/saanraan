@@ -22,7 +22,7 @@ $selectedBoardStatuses = is_array($boardListFilters['status'] ?? null) ? $boardL
 $canViewCommunityThumbnailFileCache = !empty($canViewCommunityThumbnailFileCache);
 $adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardsPage === 'list', '/admin/community/boards');
 if ($communityBoardsPage === 'list') {
-    $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/board-copy-jobs')) . '" class="btn btn-outline-secondary">'
+    $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/board-copy-jobs')) . '" class="btn btn-ghost-secondary">'
         . sr_e('작업 관리')
         . '</a>';
 }
