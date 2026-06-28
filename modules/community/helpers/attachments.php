@@ -473,7 +473,12 @@ function sr_community_create_attachment(PDO $pdo, array $data): int
         'created_at' => sr_now(),
     ]);
 
-    return (int) $pdo->lastInsertId();
+    $attachmentId = (int) $pdo->lastInsertId();
+    if ($attachmentId > 0 && function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'attachment_created');
+    }
+
+    return $attachmentId;
 }
 
 function sr_community_update_post_attachments_status(PDO $pdo, int $postId, string $status, bool $deleteFiles = true): int
@@ -498,7 +503,12 @@ function sr_community_update_post_attachments_status(PDO $pdo, int $postId, stri
         'post_id' => $postId,
     ]);
 
-    return $stmt->rowCount();
+    $updatedCount = $stmt->rowCount();
+    if ($updatedCount > 0 && function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'attachment_status_changed');
+    }
+
+    return $updatedCount;
 }
 
 function sr_community_post_attachment_storage_refs(PDO $pdo, int $postId): array
@@ -574,7 +584,12 @@ function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId, boo
         'post_id' => $postId,
     ]);
 
-    return $update->rowCount();
+    $updatedCount = $update->rowCount();
+    if ($updatedCount > 0 && function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'attachment_status_changed');
+    }
+
+    return $updatedCount;
 }
 
 function sr_community_restore_hidden_post_attachments(PDO $pdo, int $postId): int
@@ -591,7 +606,12 @@ function sr_community_restore_hidden_post_attachments(PDO $pdo, int $postId): in
     );
     $stmt->execute(['post_id' => $postId]);
 
-    return $stmt->rowCount();
+    $updatedCount = $stmt->rowCount();
+    if ($updatedCount > 0 && function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'attachment_status_changed');
+    }
+
+    return $updatedCount;
 }
 
 function sr_community_attachment_mime_is_allowed(string $mimeType): bool

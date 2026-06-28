@@ -158,8 +158,12 @@ sr_storage_helper_assert(
     is_string($communityAttachments)
         && strpos($communityAttachments, 'function sr_community_post_list_thumbnail_url') !== false
         && strpos($communityAttachments, 'sr_community_asset_event_required($paidReadConfig)') !== false
-        && strpos($communityAttachments, 'sr_thumbnail_delete_variants') !== false,
-    'Community attachment helpers must expose public-list thumbnail URL and cache cleanup guards.'
+        && strpos($communityAttachments, 'sr_thumbnail_delete_variants') !== false
+        && preg_match('/function sr_community_create_attachment\(.*?sr_community_feed_cache_mark_all_stale\(\$pdo, \'attachment_created\'\)/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_update_post_attachments_status\(.*?sr_community_feed_cache_mark_all_stale\(\$pdo, \'attachment_status_changed\'\)/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_redact_deleted_post_attachments\(.*?sr_community_feed_cache_mark_all_stale\(\$pdo, \'attachment_status_changed\'\)/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_restore_hidden_post_attachments\(.*?sr_community_feed_cache_mark_all_stale\(\$pdo, \'attachment_status_changed\'\)/s', $communityAttachments) === 1,
+    'Community attachment helpers must expose public-list thumbnail URL and invalidate thumbnail/feed caches on attachment changes.'
 );
 sr_storage_helper_assert(
     is_string($communityAttachments)
