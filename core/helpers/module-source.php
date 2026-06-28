@@ -29,12 +29,6 @@ function sr_parse_upload_size(string $value): int
     return (int) $number;
 }
 
-function sr_runtime_is_production(?array $config = null): bool
-{
-    $config = is_array($config) ? $config : sr_runtime_config();
-    return (string) ($config['env'] ?? 'production') === 'production';
-}
-
 function sr_module_source_upload_limit_bytes(): int
 {
     $limits = [];
