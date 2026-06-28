@@ -123,11 +123,6 @@ function sr_asset_exchange_record_execute_attempt(PDO $pdo, int $accountId): voi
     );
 }
 
-function sr_asset_exchange_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
-}
-
 function sr_asset_exchange_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
@@ -1241,16 +1236,6 @@ function sr_asset_exchange_optional_int(mixed $value, int $default, string $mess
     }
 
     return sr_asset_exchange_required_int($value, $message);
-}
-
-function sr_asset_exchange_optional_positive_int(mixed $value, int $default, string $message): int
-{
-    $intValue = sr_asset_exchange_optional_int($value, $default, $message);
-    if ($intValue <= 0) {
-        throw new InvalidArgumentException($message);
-    }
-
-    return $intValue;
 }
 
 function sr_asset_exchange_optional_non_negative_int(mixed $value, int $default, string $message): int

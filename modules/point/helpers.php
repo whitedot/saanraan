@@ -200,11 +200,6 @@ function sr_point_notification_setting_for_event(array $settings, string $eventK
     return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
 }
 
-function sr_point_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
-}
-
 function sr_point_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
@@ -683,14 +678,6 @@ function sr_point_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfig
     }
 
     return ['error' => null, 'approval_account_id' => $approvalAccountId];
-}
-
-function sr_point_asset_option(PDO $pdo): array
-{
-    return [
-        'label' => sr_point_display_name($pdo),
-        'unit_label' => sr_point_unit_label($pdo),
-    ];
 }
 
 function sr_point_balance(PDO $pdo, int $accountId): int

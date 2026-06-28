@@ -86,11 +86,6 @@ function sr_antispam_challenge_type(string $value): string
     return $value === 'math' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : 'math';
 }
 
-function sr_antispam_surface_keys(): array
-{
-    return array_keys(sr_antispam_target_options());
-}
-
 function sr_antispam_surface_setting_key(string $surface): string
 {
     return 'surface_' . str_replace('.', '_', $surface);

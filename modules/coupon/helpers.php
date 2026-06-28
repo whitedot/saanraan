@@ -442,11 +442,6 @@ function sr_coupon_definition_benefit_label(array $definition): string
     return sr_coupon_type_label($couponType);
 }
 
-function sr_coupon_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
-}
-
 function sr_coupon_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
@@ -710,11 +705,6 @@ function sr_coupon_claim_source_label(string $source): string
         'admin' => '관리자',
         default => $source,
     };
-}
-
-function sr_coupon_claim_status_occupies(string $status): bool
-{
-    return in_array($status, ['reserved', 'pending_payment', 'issued'], true);
 }
 
 function sr_coupon_claim_tables_available(PDO $pdo): bool
@@ -1278,27 +1268,6 @@ function sr_coupon_target_capability_summary(array $capabilities): string
     }
 
     return implode(', ', array_values(array_unique(array_filter($summary))));
-}
-
-function sr_coupon_target_contracts_with_capabilities(PDO $pdo, array $requiredCapabilities): array
-{
-    $requiredCapabilities = array_values(array_filter(array_map('strval', $requiredCapabilities)));
-    if ($requiredCapabilities === []) {
-        return sr_coupon_target_contracts($pdo);
-    }
-
-    return array_filter(
-        sr_coupon_target_contracts($pdo),
-        static function (array $target) use ($requiredCapabilities): bool {
-            foreach ($requiredCapabilities as $capability) {
-                if (!sr_coupon_target_contract_has_capability($target, $capability)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    );
 }
 
 function sr_coupon_assert_refundable_target_contract(PDO $pdo, string $targetType, string $refundablePolicy): void
@@ -3290,11 +3259,6 @@ function sr_coupon_issue_claim_columns_available(PDO $pdo): bool
     }
 
     return $available;
-}
-
-function sr_coupon_redemption_pricing_snapshot(PDO $pdo, string $targetType, string $targetId, int $accountId, array $context): array
-{
-    return sr_coupon_redemption_pricing_snapshot_from_result(sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context), $targetType, $targetId);
 }
 
 function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, string $targetType, string $targetId): array

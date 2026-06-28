@@ -812,21 +812,6 @@ function sr_banner_target_from_row(array $row, string $label = '저장된 노출
     ];
 }
 
-function sr_banner_link_attributes(string $url): string
-{
-    $url = sr_banner_clean_url($url);
-    if ($url === '') {
-        return '';
-    }
-
-    $attributes = ' href="' . sr_e($url) . '"';
-    if (sr_is_http_url($url)) {
-        $attributes .= ' target="_blank" rel="noopener noreferrer"';
-    }
-
-    return $attributes;
-}
-
 function sr_banner_click_url(int $bannerId): string
 {
     return '/banner/click?id=' . rawurlencode((string) $bannerId);
@@ -987,16 +972,6 @@ function sr_banner_public_banners(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function sr_banner_public_banner_option_labels(PDO $pdo): array
-{
-    $labels = [];
-    foreach (sr_banner_public_banners($pdo) as $banner) {
-        $labels[(int) $banner['id']] = (string) $banner['title'];
-    }
-
-    return $labels;
-}
-
 function sr_banner_settings(PDO $pdo): array
 {
     $metadata = sr_module_metadata('banner');
@@ -1102,19 +1077,6 @@ function sr_banner_skin_key_for_placement(string $skinKey, string $placementKind
     }
 
     return sr_banner_skin_supports('basic', $placementKind) ? 'basic' : null;
-}
-
-function sr_banner_skin_options_for_placement(string $placementKind): array
-{
-    $placementKind = sr_banner_placement_kind($placementKind);
-    $options = [];
-    foreach (sr_banner_skin_options() as $skinKey => $skinOption) {
-        if (sr_banner_skin_supports((string) $skinKey, $placementKind)) {
-            $options[$skinKey] = $skinOption;
-        }
-    }
-
-    return $options;
 }
 
 function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void

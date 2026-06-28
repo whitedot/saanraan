@@ -600,11 +600,6 @@ function sr_logo_manager_clean_sort_order(string $value): ?int
     return max(-100000, min(100000, (int) $value));
 }
 
-function sr_logo_manager_format_bytes(int $bytes): string
-{
-    return sr_format_bytes($bytes);
-}
-
 function sr_logo_manager_upload_was_provided(mixed $file): bool
 {
     return sr_upload_was_provided($file);
@@ -1439,35 +1434,6 @@ function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now
     }
 }
 
-function sr_logo_manager_default_logo(PDO $pdo, string $positionKey): ?array
-{
-    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
-    if (!sr_logo_manager_table_exists($pdo)) {
-        return null;
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            "SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, starts_at, ends_at, sort_order,
-                    storage_driver, storage_key, public_url, mime_type, width, height
-             FROM sr_logo_manager_logos
-             WHERE position_key = :position_key
-               AND status = 'active'
-               AND starts_at IS NULL
-               AND ends_at IS NULL
-             ORDER BY sort_order ASC, id DESC
-             LIMIT 1"
-        );
-        $stmt->execute(['position_key' => $positionKey]);
-
-        $row = $stmt->fetch();
-        return is_array($row) ? $row : null;
-    } catch (Throwable $exception) {
-        sr_log_exception($exception, 'logo_manager_default_logo_failed');
-        return null;
-    }
-}
-
 function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site = null, array $attributes = []): string
 {
     $usageTarget = [];
@@ -1611,23 +1577,6 @@ function sr_logo_manager_public_symbol_url(PDO $pdo): string
 {
     $logo = sr_logo_manager_public_symbol_logo($pdo);
     return is_array($logo) ? sr_logo_manager_logo_url($logo) : '';
-}
-
-function sr_logo_manager_favicon_has_configured_logo(PDO $pdo): bool
-{
-    if (!sr_logo_manager_table_exists($pdo)) {
-        return false;
-    }
-
-    try {
-        $stmt = $pdo->prepare('SELECT 1 FROM sr_logo_manager_logos WHERE position_key = :position_key LIMIT 1');
-        $stmt->execute(['position_key' => sr_logo_manager_favicon_position_key()]);
-
-        return (bool) $stmt->fetchColumn();
-    } catch (Throwable $exception) {
-        sr_log_exception($exception, 'logo_manager_favicon_configured_check_failed');
-        return false;
-    }
 }
 
 function sr_logo_manager_favicon_cache_version(PDO $pdo): string
