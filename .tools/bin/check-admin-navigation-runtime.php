@@ -58,6 +58,7 @@ function sr_admin_navigation_runtime_pdo(): PDO
     $pdo->exec(
         "INSERT INTO sr_modules (module_key, status)
          VALUES
+            ('community', 'enabled'),
             ('seo', 'enabled'),
             ('notification', 'enabled')"
     );
@@ -109,8 +110,22 @@ foreach ($groups as $group) {
     }
 }
 sr_admin_navigation_runtime_assert(isset($moduleGroups['seo']), 'Admin navigation runtime fixture must expose SEO module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['community']), 'Admin navigation runtime fixture must expose community module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['notification']), 'Admin navigation runtime fixture must expose notification module menu group.');
 sr_admin_navigation_runtime_assert((int) ($moduleGroups['seo']['order'] ?? 0) === 50, 'Admin navigation runtime fixture must use SEO module admin menu order.');
+$communityBoardMenuItem = [];
+foreach ((array) ($moduleGroups['community']['items'] ?? []) as $communityMenuItem) {
+    if (!is_array($communityMenuItem) || (string) ($communityMenuItem['path'] ?? '') !== '/admin/community/boards') {
+        continue;
+    }
+    $communityBoardMenuItem = $communityMenuItem;
+    break;
+}
+sr_admin_navigation_runtime_assert($communityBoardMenuItem !== [], 'Admin navigation runtime fixture must expose the community board management menu item.');
+sr_admin_navigation_runtime_assert(
+    in_array('/admin/community/board-copy-jobs', (array) ($communityBoardMenuItem['active_paths'] ?? []), true),
+    'Admin navigation runtime fixture must preserve board copy job active path aliases after menu normalization.'
+);
 $notificationMenuPaths = array_map(
     static fn (array $item): string => (string) ($item['path'] ?? ''),
     array_values(array_filter((array) ($moduleGroups['notification']['items'] ?? []), 'is_array'))
@@ -129,6 +144,22 @@ sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 2, '/admin/seo
 sr_admin_navigation_runtime_assert(sr_admin_has_permission($pdo, 3, '/admin/storage-cache', 'view'), 'Admin navigation runtime fixture must allow storage cache view permission.');
 sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 3, '/admin/storage-cache', 'delete'), 'Admin navigation runtime fixture must not infer storage cache delete permission.');
 sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 2, '/admin/../unsafe', 'view'), 'Admin navigation runtime fixture must reject unsafe permission paths.');
+sr_admin_navigation_runtime_assert(
+    sr_admin_shell_active_menu_path('/admin/community/board-copy-jobs', [
+        [
+            'label' => '게시판 관리',
+            'path' => '/admin/community/boards',
+            'active_paths' => ['/admin/community/board-copy-jobs'],
+        ],
+    ]) === '/admin/community/boards',
+    'Admin shell active menu path should support item active_paths aliases.'
+);
+
+$communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
+sr_admin_navigation_runtime_assert(
+    is_string($communityAdminMenu) && str_contains($communityAdminMenu, "'active_paths' => ['/admin/community/board-copy-jobs']"),
+    'Community admin menu should keep board copy jobs active under board management.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "admin navigation runtime checks failed:\n");

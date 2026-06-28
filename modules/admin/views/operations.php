@@ -15,6 +15,9 @@ $statusClass = static function (string $status): string {
         default => 'is-danger',
     };
 };
+$followupUrl = static function (string $label): string {
+    return str_starts_with($label, 'community.board_copy.') ? '/admin/community/board-copy-jobs' : '';
+};
 ?>
 
 <section class="card admin-list-card admin-list-form">
@@ -35,6 +38,7 @@ $statusClass = static function (string $status): string {
             <thead>
                 <tr>
                     <th>상태</th>
+                    <th class="text-center">바로가기</th>
                     <th>항목</th>
                     <th>모듈</th>
                     <th>건수</th>
@@ -46,19 +50,29 @@ $statusClass = static function (string $status): string {
             </thead>
             <tbody>
                 <?php if ($operationStatusRows === []) { ?>
-                    <tr><td colspan="8" class="admin-empty-state">운영 지연/실패 점검 항목이 없습니다.</td></tr>
+                    <tr><td colspan="9" class="admin-empty-state">운영 지연/실패 점검 항목이 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($operationStatusRows as $row) { ?>
                     <?php
                     $rowStatus = (string) ($row['status'] ?? 'error');
                     $rowMessage = trim((string) ($row['message'] ?? ''));
                     $rowTargets = isset($row['targets']) && is_array($row['targets']) ? $row['targets'] : [];
+                    $rowFollowup = (string) ($row['followup'] ?? '');
+                    $rowFollowupUrl = $followupUrl((string) ($row['label'] ?? ''));
+                    $rowFollowupActionLabel = $rowFollowupUrl !== '' ? '게시판 작업 관리' : '';
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">
                             <span class="admin-status <?php echo sr_e($statusClass($rowStatus)); ?>">
                                 <?php echo sr_e((string) ($row['status_label'] ?? '오류')); ?>
                             </span>
+                        </td>
+                        <td class="admin-table-nowrap text-center">
+                            <?php if ($rowFollowupUrl !== '') { ?>
+                                <a href="<?php echo sr_e(sr_url($rowFollowupUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e($rowFollowupActionLabel . ' 바로가기'); ?>" title="<?php echo sr_e($rowFollowupActionLabel); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                            <?php } else { ?>
+                                -
+                            <?php } ?>
                         </td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($row['title'] ?? '')); ?></strong>
@@ -87,7 +101,13 @@ $statusClass = static function (string $status): string {
                                 -
                             <?php } ?>
                         </td>
-                        <td class="admin-table-break"><?php echo sr_e((string) ($row['followup'] ?? '')); ?></td>
+                        <td class="admin-table-break">
+                            <?php if ($rowFollowup !== '') { ?>
+                                <span><?php echo sr_e($rowFollowup); ?></span>
+                            <?php } else { ?>
+                                -
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>

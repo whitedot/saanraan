@@ -3,6 +3,9 @@
 $adminPageTitle = '게시판 복사';
 $adminPageSubtitle = '기존 게시판 설정이나 운영 데이터를 새 사용 중지 게시판으로 복사합니다.';
 $adminContainerClass = 'admin-community-board-form admin-ui-scope';
+$adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/board-copy-jobs')) . '" class="btn btn-outline-secondary">'
+    . sr_e('작업 관리')
+    . '</a>';
 $communityBoardCopySeriesSuggestions = sr_community_board_copy_series_suggestions($pdo, (int) $sourceBoard['id']);
 $communityBoardCopyStorageWarnings = sr_community_board_copy_storage_warnings($copyCounts);
 $communityBoardCopySelectedCounts = isset($selectedCopyCounts) && is_array($selectedCopyCounts)
@@ -14,6 +17,8 @@ $communityBoardCopyScopeChecked = static function (string $scopeKey) use ($commu
 };
 $communityBoardCopyAllChecked = sr_community_board_copy_scope_all_selected($values);
 $communityBoardCopyLoad = sr_community_board_copy_load_assessment($communityBoardCopySelectedCounts, $values, $batchAvailable);
+$communityBoardCopySettingsSubmitLabel = '설정만 복사';
+$communityBoardCopyStartSubmitLabel = '복사 시작 (1/' . (string) sr_community_board_copy_job_stage_total() . ')';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -158,9 +163,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
     <div class="form-sticky-actions form-actions form-actions-split admin-community-board-copy-actions">
-        <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
+        <div class="admin-community-board-copy-secondary-actions">
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs')); ?>" class="btn btn-outline-secondary"><?php echo sr_e('작업 관리'); ?></a>
+        </div>
         <div class="admin-community-board-copy-submit-actions">
-            <button type="submit" class="btn btn-solid-primary admin-community-board-copy-primary" data-copy-submit-label><?php echo sr_e(!empty($values['copy_posts_comments']) ? '복사 작업 만들기' : '설정만 복사'); ?></button>
+            <button type="submit" class="btn btn-solid-primary admin-community-board-copy-primary" data-copy-submit-label data-copy-settings-label="<?php echo sr_e($communityBoardCopySettingsSubmitLabel); ?>" data-copy-start-label="<?php echo sr_e($communityBoardCopyStartSubmitLabel); ?>"><?php echo sr_e(!empty($values['copy_posts_comments']) ? $communityBoardCopyStartSubmitLabel : $communityBoardCopySettingsSubmitLabel); ?></button>
         </div>
     </div>
 </form>
@@ -230,7 +238,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
             if (submitLabel) {
-                submitLabel.textContent = hasPosts ? '복사 작업 만들기' : '설정만 복사';
+                submitLabel.textContent = hasPosts
+                    ? (submitLabel.getAttribute('data-copy-start-label') || '복사 시작')
+                    : (submitLabel.getAttribute('data-copy-settings-label') || '설정만 복사');
             }
         };
         if (!form) {

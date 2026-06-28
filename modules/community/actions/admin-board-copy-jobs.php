@@ -29,7 +29,7 @@ if (sr_request_method() === 'POST') {
         $status = (string) ($targetJob['status'] ?? '');
         if ($intent === 'run') {
             if (!in_array($status, ['pending', 'running', 'cleanup_required'], true)) {
-                throw new RuntimeException('현재 상태에서는 다음 묶음 처리를 실행할 수 없습니다.');
+                throw new RuntimeException('현재 상태에서는 다음 단계를 실행할 수 없습니다.');
             }
             $result = sr_community_board_copy_job_run($pdo, $jobId, (int) $account['id']);
             $notice = (string) ($result['message'] ?? '복사 작업을 처리했습니다.');

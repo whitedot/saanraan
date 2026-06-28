@@ -223,10 +223,25 @@ function sr_admin_module_menu_groups(PDO $pdo): array
                 continue;
             }
 
+            $activePaths = [];
+            foreach (is_array($rawItem['active_paths'] ?? null) ? $rawItem['active_paths'] : [] as $activePath) {
+                $activePath = trim((string) $activePath);
+                if (
+                    $activePath !== ''
+                    && $activePath !== $path
+                    && preg_match('/\A\/admin(?:\/[a-z0-9][a-z0-9_-]*)*\z/', $activePath) === 1
+                    && isset($paths['GET ' . $activePath])
+                    && !in_array($activePath, $activePaths, true)
+                ) {
+                    $activePaths[] = $activePath;
+                }
+            }
+
             $items[] = [
                 'module_key' => $moduleKey,
                 'label' => $label,
                 'path' => $path,
+                'active_paths' => $activePaths,
                 'order' => (int) ($rawItem['order'] ?? 1000),
             ];
         }

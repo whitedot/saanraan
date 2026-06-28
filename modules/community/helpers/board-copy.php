@@ -141,17 +141,104 @@ function sr_community_board_copy_limits(): array
     ];
 }
 
-function sr_community_board_copy_suggestion(array $board): array
+function sr_community_board_copy_suggestion(array $board, ?PDO $pdo = null): array
 {
     $key = strtolower((string) ($board['board_key'] ?? 'board')) . '_copy';
-    if (!sr_community_board_key_is_valid($key)) {
-        $key = 'board_copy';
+    $key = sr_community_board_copy_candidate_key($key);
+    if ($pdo instanceof PDO) {
+        $key = sr_community_board_copy_unique_board_key($pdo, $key);
     }
 
     return [
         'board_key' => $key,
         'title' => sr_community_clean_single_line((string) ($board['title'] ?? '') . ' 복사본', 120),
     ];
+}
+
+function sr_community_board_copy_candidate_key(string $preferredKey): string
+{
+    $key = strtolower(trim($preferredKey));
+    $key = preg_replace('/[^a-z0-9_]+/', '_', $key) ?? '';
+    $key = preg_replace('/_+/', '_', $key) ?? '';
+    $key = trim($key, '_');
+    if ($key === '' || preg_match('/\A[a-z]/', $key) !== 1) {
+        $key = 'board_copy';
+    }
+    if (strlen($key) > 60) {
+        $key = substr($key, 0, 60);
+    }
+    if (!sr_community_board_key_is_valid($key)) {
+        $key = 'board_copy';
+    }
+
+    return $key;
+}
+
+function sr_community_board_copy_key_with_suffix(string $baseKey, int $sequence): string
+{
+    if ($sequence <= 1) {
+        return sr_community_board_copy_candidate_key($baseKey);
+    }
+
+    $suffix = '_' . (string) $sequence;
+    $maxBaseLength = max(1, 60 - strlen($suffix));
+    $base = substr(sr_community_board_copy_candidate_key($baseKey), 0, $maxBaseLength);
+    $candidate = $base . $suffix;
+    if (!sr_community_board_key_is_valid($candidate)) {
+        return sr_community_board_copy_candidate_key('board_copy' . $suffix);
+    }
+
+    return $candidate;
+}
+
+function sr_community_board_copy_reserved_board_keys(PDO $pdo, int $ignoreJobId = 0): array
+{
+    try {
+        $sql = "SELECT id, options_json
+                FROM sr_community_board_copy_jobs
+                WHERE target_board_id = 0
+                  AND status IN ('pending', 'running', 'paused', 'failed', 'cleanup_required', 'cleaning')";
+        $params = [];
+        if ($ignoreJobId > 0) {
+            $sql .= ' AND id <> :ignore_id';
+            $params['ignore_id'] = $ignoreJobId;
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+    } catch (Throwable) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $options = json_decode((string) ($row['options_json'] ?? ''), true);
+        if (!is_array($options)) {
+            continue;
+        }
+        $boardKey = (string) ($options['board_key'] ?? '');
+        if (sr_community_board_key_is_valid($boardKey)) {
+            $keys[$boardKey] = true;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_community_board_copy_unique_board_key(PDO $pdo, string $preferredKey, int $ignoreJobId = 0): string
+{
+    $baseKey = sr_community_board_copy_candidate_key($preferredKey);
+    $reservedKeys = sr_community_board_copy_reserved_board_keys($pdo, $ignoreJobId);
+    for ($sequence = 1; $sequence <= 9999; $sequence++) {
+        $candidate = sr_community_board_copy_key_with_suffix($baseKey, $sequence);
+        if (isset($reservedKeys[$candidate])) {
+            continue;
+        }
+        if (!is_array(sr_community_board_by_key($pdo, $candidate))) {
+            return $candidate;
+        }
+    }
+
+    throw new RuntimeException('사용 가능한 게시판 Key를 만들 수 없습니다.');
 }
 
 function sr_community_clean_single_line(string $value, int $maxLength): string
@@ -479,8 +566,8 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
     $errors = sr_community_board_copy_scope_errors($values);
     if (!sr_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 Key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
-    } elseif (is_array(sr_community_board_by_key($pdo, $boardKey))) {
-        $errors[] = '이미 사용 중인 게시판 Key입니다.';
+    } else {
+        $boardKey = sr_community_board_copy_unique_board_key($pdo, $boardKey);
     }
     if ($title === '') {
         $errors[] = '새 게시판 제목을 입력하세요.';

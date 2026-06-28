@@ -42,6 +42,24 @@ function sr_board_copy_limit_counts(array $overrides = []): array
     ], $overrides);
 }
 
+function sr_community_board_key_is_valid(string $boardKey): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $boardKey) === 1;
+}
+
+function sr_community_board_by_key(PDO $pdo, string $boardKey): ?array
+{
+    try {
+        $stmt = $pdo->prepare('SELECT board_key FROM sr_community_boards WHERE board_key = :board_key LIMIT 1');
+        $stmt->execute(['board_key' => $boardKey]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable) {
+        return null;
+    }
+
+    return is_array($row) ? $row : null;
+}
+
 $limits = sr_community_board_copy_limits();
 foreach ([
     'posts' => 500,
@@ -66,6 +84,80 @@ sr_board_copy_limit_assert(
     sr_community_board_copy_normalized_values(['copy_scope' => ['settings', 'posts_comments']])['mode'] === 'full',
     'Post/comment board copy scope should use the job path.'
 );
+
+sr_board_copy_limit_assert(
+    sr_community_board_copy_candidate_key('Bad Board Copy!') === 'bad_board_copy',
+    'Board copy candidate key should normalize unsafe characters.'
+);
+
+sr_board_copy_limit_assert(
+    strlen(sr_community_board_copy_key_with_suffix(str_repeat('a', 60), 12)) === 60
+        && str_ends_with(sr_community_board_copy_key_with_suffix(str_repeat('a', 60), 12), '_12'),
+    'Board copy suffixed key should stay within the board key length limit.'
+);
+
+if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+    $keyPdo = new PDO('sqlite::memory:');
+    $keyPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $keyPdo->exec('CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY AUTOINCREMENT, board_key TEXT NOT NULL UNIQUE)');
+    $keyPdo->exec('CREATE TABLE sr_community_board_copy_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, target_board_id INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL, options_json TEXT NULL)');
+    $keyPdo->prepare('INSERT INTO sr_community_boards (board_key) VALUES (:board_key)')->execute(['board_key' => 'qa_board_copy']);
+    $keyPdo->prepare('INSERT INTO sr_community_board_copy_jobs (target_board_id, status, options_json) VALUES (0, :status, :options_json)')->execute([
+        'status' => 'pending',
+        'options_json' => json_encode(['board_key' => 'qa_board_copy_2'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ]);
+    $reservedJobId = (int) $keyPdo->lastInsertId();
+    sr_board_copy_limit_assert(
+        sr_community_board_copy_unique_board_key($keyPdo, 'qa_board_copy') === 'qa_board_copy_3',
+        'Board copy unique key should skip existing boards and reserved copy jobs.'
+    );
+    sr_board_copy_limit_assert(
+        sr_community_board_copy_unique_board_key($keyPdo, 'qa_board_copy', $reservedJobId) === 'qa_board_copy_2',
+        'Board copy unique key should ignore the current copy job reservation.'
+    );
+    sr_board_copy_limit_assert(
+        sr_community_board_copy_suggestion(['board_key' => 'qa_board'], $keyPdo)['board_key'] === 'qa_board_copy_3',
+        'Board copy suggestion should use the next available copy key.'
+    );
+} else {
+    sr_board_copy_limit_error('PDO sqlite driver is required for board copy key fixture.');
+}
+
+$copyAction = is_file('modules/community/actions/admin-board-copy.php') ? file_get_contents('modules/community/actions/admin-board-copy.php') : false;
+$copyView = is_file('modules/community/views/admin-board-copy.php') ? file_get_contents('modules/community/views/admin-board-copy.php') : false;
+$boardListView = is_file('modules/community/views/admin-boards.php') ? file_get_contents('modules/community/views/admin-boards.php') : false;
+$copyJobsView = is_file('modules/community/views/admin-board-copy-jobs.php') ? file_get_contents('modules/community/views/admin-board-copy-jobs.php') : false;
+$copyJobsHelper = is_file('modules/community/helpers/board-copy-jobs.php') ? file_get_contents('modules/community/helpers/board-copy-jobs.php') : false;
+$communityAdminCss = is_file('modules/community/assets/admin.css') ? file_get_contents('modules/community/assets/admin.css') : false;
+sr_board_copy_limit_assert(is_string($copyAction) && str_contains($copyAction, "sr_redirect('/admin/community/boards/copy?id=' . (string) \$boardId);"), 'Board copy validation failure should return to the copy page.');
+sr_board_copy_limit_assert(is_string($copyAction) && str_contains($copyAction, "sr_community_board_copy_values"), 'Board copy validation failure should preserve submitted values for the copy page.');
+sr_board_copy_limit_assert(is_string($copyView) && str_contains($copyView, "/admin/community/board-copy-jobs"), 'Board copy form should link to the copy job list.');
+sr_board_copy_limit_assert(is_string($boardListView) && str_contains($boardListView, "/admin/community/board-copy-jobs"), 'Community board list should link to the copy job list.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, "/admin/community/boards"), 'Board copy job list should link back to the board list.');
+sr_board_copy_limit_assert(is_string($copyView) && str_contains($copyView, 'class="btn btn-outline-secondary"') && !str_contains($copyView, "sr_material_icon_html('history')"), 'Board copy job buttons should use secondary outline styling without the history icon.');
+sr_board_copy_limit_assert(is_string($boardListView) && str_contains($boardListView, 'class="btn btn-outline-secondary"') && !str_contains($boardListView, "sr_material_icon_html('history')"), 'Community board list copy job button should use secondary outline styling without the history icon.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'class="btn btn-outline-secondary"') && !str_contains($copyJobsView, "sr_material_icon_html('view_list')"), 'Board copy jobs board list button should use secondary outline styling without an icon.');
+sr_board_copy_limit_assert(is_string($copyView) && str_contains($copyView, "sr_e('작업 관리')") && !str_contains($copyView, "sr_e('복사 작업')"), 'Board copy buttons should say job management.');
+sr_board_copy_limit_assert(is_string($boardListView) && str_contains($boardListView, "sr_e('작업 관리')") && !str_contains($boardListView, "sr_e('복사 작업')"), 'Community board list copy job button should say job management.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, '게시판 작업 관리') && !str_contains($copyJobsView, '게시판 배치 복사'), 'Board copy job page title should say board job management.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'card admin-list-card admin-list-form') && str_contains($copyJobsView, 'admin-list-summary-row'), 'Board copy job list should use the standard admin list card surface.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'admin-status <?php echo sr_e($communityBoardCopyJobStatusClass'), 'Board copy job status should use admin status badges.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, "['completed', 'cancelled']") && str_contains($copyJobsView, "'확인' : '계속하기'") && !str_contains($copyJobsView, "<?php echo sr_e('열기'); ?>"), 'Board copy job list manage button should use status-aware labels.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, "['pending', 'failed', 'paused']") && str_contains($copyJobsView, 'name="intent" value="cancel" class="btn btn-sm btn-outline-danger"'), 'Board copy job list should expose cancel actions for cancellable jobs.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'card admin-form ui-form-theme admin-community-board-copy-job-detail') && str_contains($copyJobsView, '<?php } else { ?>'), 'Board copy job detail should use the detail-only form surface without the recent jobs list.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, '작업 내용') && str_contains($copyJobsView, 'admin-community-board-copy-job-heading-badges'), 'Board copy job detail should use a concise content header with spaced badges.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'class="form-row"') && str_contains($copyJobsView, '<span class="form-label"><?php echo sr_e(\'상태\'); ?></span>') && !str_contains($copyJobsView, '<dl class="admin-community-board-copy-job-summary"'), 'Board copy job detail should use form-style rows instead of a definition list.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'form-sticky-actions form-actions form-actions-split admin-community-board-copy-job-actions'), 'Board copy job step actions should use sticky submit styling.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'admin-community-board-copy-job-action-left') && str_contains($copyJobsView, 'admin-community-board-copy-job-action-right'), 'Board copy job step actions should split destructive and primary actions.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'name="intent" value="cancel" class="btn btn-outline-danger"'), 'Board copy job cleanup action should use an outline danger button.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, "? '정리 다시 시도' : '다음 단계'"), 'Board copy job run button should say next stage.');
+sr_board_copy_limit_assert(is_string($copyJobsView) && str_contains($copyJobsView, 'admin-community-board-copy-job-summary-row'), 'Board copy job list summary row should have a dedicated spacing class.');
+sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-summary-row{padding-block:'), 'Board copy job list header badges should have vertical spacing.');
+sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-table .admin-table-actions-cell{') && str_contains($communityAdminCss, '.admin-community-board-copy-job-table .admin-row-actions{'), 'Board copy job list row actions should have screen-specific table spacing.');
+sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-detail>.form-row{'), 'Board copy job detail form rows should have screen-specific form layout styling.');
+sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-actions{gap:') && !str_contains($communityAdminCss, '.admin-community-board-copy-job-actions{border-top:'), 'Board copy job sticky submit should not draw a top divider.');
+sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-action-right{justify-content:flex-end;margin-left:auto}'), 'Board copy job primary step actions should align right.');
+sr_board_copy_limit_assert(is_string($copyJobsHelper) && str_contains($copyJobsHelper, 'ORDER BY CASE WHEN j.status IN'), 'Board copy job list should prioritize unfinished or failed jobs.');
 
 sr_board_copy_limit_assert(
     in_array('첨부파일을 복사하려면 게시글+댓글도 함께 선택하세요.', sr_community_board_copy_scope_errors(['copy_scope' => ['attachments']]), true),

@@ -223,22 +223,60 @@ function sr_admin_shell_navigation_group_items(PDO $pdo, array $group, string $c
 function sr_admin_shell_active_menu_path(string $currentPath, array $rawItems): string
 {
     $activePath = '';
+    $activeMatchLength = 0;
     foreach ($rawItems as $rawItem) {
         if (!is_array($rawItem)) {
             continue;
         }
 
         $path = trim((string) ($rawItem['path'] ?? ''));
-        if ($path === '' || !sr_admin_shell_path_matches($currentPath, $path)) {
+        if ($path === '') {
             continue;
         }
 
-        if ($activePath === '' || strlen($path) > strlen($activePath)) {
+        $matchLength = sr_admin_shell_menu_item_match_length($currentPath, $rawItem);
+        if ($matchLength < 1) {
+            continue;
+        }
+
+        if ($activePath === '' || $matchLength > $activeMatchLength) {
+            $activeMatchLength = $matchLength;
             $activePath = $path;
         }
     }
 
     return $activePath;
+}
+
+function sr_admin_shell_menu_item_active_paths(array $rawItem): array
+{
+    $paths = [];
+    $path = trim((string) ($rawItem['path'] ?? ''));
+    if ($path !== '') {
+        $paths[] = $path;
+    }
+
+    $activePaths = isset($rawItem['active_paths']) && is_array($rawItem['active_paths']) ? $rawItem['active_paths'] : [];
+    foreach ($activePaths as $activePath) {
+        $activePath = trim((string) $activePath);
+        if ($activePath !== '' && !in_array($activePath, $paths, true)) {
+            $paths[] = $activePath;
+        }
+    }
+
+    return $paths;
+}
+
+function sr_admin_shell_menu_item_match_length(string $currentPath, array $rawItem): int
+{
+    $matchLength = 0;
+    foreach (sr_admin_shell_menu_item_active_paths($rawItem) as $activePath) {
+        if (sr_admin_shell_path_matches($currentPath, $activePath)) {
+            $matchLength = max($matchLength, strlen($activePath));
+        }
+    }
+
+    return $matchLength;
 }
 
 function sr_admin_shell_path_matches(string $currentPath, string $itemPath): bool
@@ -410,6 +448,7 @@ function sr_admin_current_page_module_key(PDO $pdo, string $currentPath): string
 
     $matchedModuleKey = '';
     $matchedPath = '';
+    $matchedLength = 0;
     foreach (sr_admin_navigation_source_groups($pdo) as $group) {
         foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
             if (!is_array($moduleGroup)) {
@@ -427,11 +466,13 @@ function sr_admin_current_page_module_key(PDO $pdo, string $currentPath): string
                 }
 
                 $path = trim((string) ($item['path'] ?? ''));
-                if ($path === '' || !sr_admin_shell_path_matches($currentPath, $path)) {
+                $matchLength = $path !== '' ? sr_admin_shell_menu_item_match_length($currentPath, $item) : 0;
+                if ($matchLength < 1) {
                     continue;
                 }
 
-                if ($matchedPath === '' || strlen($path) > strlen($matchedPath)) {
+                if ($matchedPath === '' || $matchLength > $matchedLength) {
+                    $matchedLength = $matchLength;
                     $matchedPath = $path;
                     $matchedModuleKey = $moduleKey;
                 }

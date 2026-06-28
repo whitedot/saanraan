@@ -32,14 +32,28 @@ if (!is_array($sourceBoard)) {
     sr_render_error(404, '복사할 게시판을 찾을 수 없습니다.');
 }
 
-$suggestion = sr_community_board_copy_suggestion($sourceBoard);
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$restoredValues = [];
+if (sr_request_method() === 'GET' && session_status() === PHP_SESSION_ACTIVE) {
+    $restoredCopyValues = $_SESSION['sr_community_board_copy_values'][$boardId] ?? null;
+    unset($_SESSION['sr_community_board_copy_values'][$boardId]);
+    if (isset($_SESSION['sr_community_board_copy_values']) && $_SESSION['sr_community_board_copy_values'] === []) {
+        unset($_SESSION['sr_community_board_copy_values']);
+    }
+    if (is_array($restoredCopyValues)) {
+        $restoredValues = $restoredCopyValues;
+    }
+}
+
+$suggestion = sr_community_board_copy_suggestion($sourceBoard, $pdo);
 $values = [
-    'board_key' => sr_request_method() === 'POST' ? sr_post_string('board_key', 60) : (string) $suggestion['board_key'],
-    'title' => sr_request_method() === 'POST' ? sr_post_string('title', 120) : (string) $suggestion['title'],
-    'mode' => sr_request_method() === 'POST' ? sr_post_string('mode', 20) : 'settings',
-    'copy_scope' => sr_request_method() === 'POST' ? (is_array($_POST['copy_scope'] ?? null) ? $_POST['copy_scope'] : []) : ['settings'],
-    'copy_series' => ($_POST['copy_series'] ?? '') === '1',
-    'series_titles' => is_array($_POST['community_series_titles'] ?? null) ? $_POST['community_series_titles'] : [],
+    'board_key' => sr_request_method() === 'POST' ? sr_post_string('board_key', 60) : (string) ($restoredValues['board_key'] ?? $suggestion['board_key']),
+    'title' => sr_request_method() === 'POST' ? sr_post_string('title', 120) : (string) ($restoredValues['title'] ?? $suggestion['title']),
+    'mode' => sr_request_method() === 'POST' ? sr_post_string('mode', 20) : (string) ($restoredValues['mode'] ?? 'settings'),
+    'copy_scope' => sr_request_method() === 'POST' ? (is_array($_POST['copy_scope'] ?? null) ? $_POST['copy_scope'] : []) : (is_array($restoredValues['copy_scope'] ?? null) ? $restoredValues['copy_scope'] : ['settings']),
+    'copy_series' => sr_request_method() === 'POST' ? (($_POST['copy_series'] ?? '') === '1') : !empty($restoredValues['copy_series']),
+    'series_titles' => sr_request_method() === 'POST' ? (is_array($_POST['community_series_titles'] ?? null) ? $_POST['community_series_titles'] : []) : (is_array($restoredValues['series_titles'] ?? null) ? $restoredValues['series_titles'] : []),
 ];
 $values = sr_community_board_copy_normalized_values($values);
 $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
@@ -50,7 +64,6 @@ $limitErrors = !empty($values['copy_posts_comments'])
     : [];
 $batchAvailable = $batchErrors === [];
 $loadAssessment = sr_community_board_copy_load_assessment($selectedCopyCounts, $values, $batchAvailable);
-$errors = [];
 
 if (sr_request_method() === 'POST') {
     try {
@@ -118,8 +131,18 @@ if (sr_request_method() === 'POST') {
         $errors = ['게시판 복사 중 오류가 발생했습니다.'];
     }
 
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION['sr_community_board_copy_values'][$boardId] = [
+            'board_key' => (string) ($values['board_key'] ?? ''),
+            'title' => (string) ($values['title'] ?? ''),
+            'mode' => (string) ($values['mode'] ?? 'settings'),
+            'copy_scope' => is_array($values['copy_scope'] ?? null) ? $values['copy_scope'] : [],
+            'copy_series' => !empty($values['copy_series']),
+            'series_titles' => is_array($values['series_titles'] ?? null) ? $values['series_titles'] : [],
+        ];
+    }
     sr_admin_flash_result(sr_admin_action_result($errors, ''));
-    sr_redirect('/admin/community/boards');
+    sr_redirect('/admin/community/boards/copy?id=' . (string) $boardId);
 }
 
 include SR_ROOT . '/modules/community/views/admin-board-copy.php';

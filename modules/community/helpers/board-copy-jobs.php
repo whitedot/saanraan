@@ -88,8 +88,8 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
     $errors = [];
     if (!sr_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 Key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
-    } elseif (is_array(sr_community_board_by_key($pdo, $boardKey))) {
-        $errors[] = '이미 사용 중인 게시판 Key입니다.';
+    } else {
+        $boardKey = sr_community_board_copy_unique_board_key($pdo, $boardKey);
     }
     if ($title === '') {
         $errors[] = '새 게시판 제목을 입력하세요.';
@@ -193,7 +193,9 @@ function sr_community_board_copy_jobs_recent(PDO $pdo, int $limit = 30): array
          FROM sr_community_board_copy_jobs j
          LEFT JOIN sr_community_boards b ON b.id = j.source_board_id
          LEFT JOIN sr_community_boards tb ON tb.id = j.target_board_id
-         ORDER BY j.id DESC
+         ORDER BY CASE WHEN j.status IN (\'pending\', \'running\', \'paused\', \'failed\', \'cleanup_required\', \'cleaning\') THEN 0 ELSE 1 END ASC,
+                  j.updated_at DESC,
+                  j.id DESC
          LIMIT ' . $limit
     );
 
@@ -335,7 +337,7 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return ['done' => false, 'stage' => 'complete', 'status' => 'running', 'message' => '복사 결과를 확인했습니다.'];
     }
     if ($stage === 'complete') {
-        return ['done' => true, 'stage' => 'complete', 'status' => 'completed', 'message' => '게시판 배치 복사가 완료되었습니다.'];
+        return ['done' => true, 'stage' => 'complete', 'status' => 'completed', 'message' => '게시판 복사가 완료되었습니다.'];
     }
     if ($stage === 'cleanup') {
         $cleanup = sr_community_board_copy_job_cleanup($pdo, $job, $lockToken, (int) ($limits['cleanup'] ?? 100));
@@ -459,11 +461,23 @@ function sr_community_board_copy_job_create_board(PDO $pdo, array $job, string $
     $options = sr_community_board_copy_job_json($job, 'options_json');
     $now = sr_now();
     $copySettings = !array_key_exists('copy_settings', $options) || !empty($options['copy_settings']);
+    $boardKey = sr_community_board_copy_unique_board_key($pdo, (string) ($options['board_key'] ?? ''), (int) $job['id']);
+    if ($boardKey !== (string) ($options['board_key'] ?? '')) {
+        $options['board_key'] = $boardKey;
+        $pdo->prepare('UPDATE sr_community_board_copy_jobs SET options_json = :options_json, updated_at = :updated_at WHERE id = :id AND lock_token = :lock_token')
+            ->execute([
+                'options_json' => json_encode($options, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'updated_at' => $now,
+                'id' => (int) $job['id'],
+                'lock_token' => $lockToken,
+            ]);
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
+    }
     $pdo->beginTransaction();
     try {
         $newBoardId = sr_community_create_board($pdo, [
             'board_group_id' => $copySettings ? (int) ($source['board_group_id'] ?? 0) : 0,
-            'board_key' => (string) ($options['board_key'] ?? ''),
+            'board_key' => $boardKey,
             'title' => (string) ($options['title'] ?? ''),
             'description' => $copySettings ? (string) ($source['description'] ?? '') : '',
             'status' => 'disabled',
