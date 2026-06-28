@@ -166,9 +166,10 @@ sr_storage_helper_assert(
         && preg_match('/function sr_community_post_list_thumbnail_url\(.*?sr_thumbnail_public_url\(.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) === 1
         && preg_match('/function sr_community_post_list_thumbnail_url\(.*?sr_community_attachment_file_path\(.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) === 1
         && preg_match('/function sr_community_attachment_file_path\(.*?\$keyPath = sr_storage_local_path\(\$key\).*?storage_path/s', $communityAttachments) === 1
+        && preg_match('/function sr_community_post_list_thumbnail_options\(.*?\'require_cache\' => true/s', $communityAttachments) === 1
         && preg_match('/function sr_community_post_list_thumbnail_url\(.*?thumbnail_enabled.*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) !== 1
         && preg_match('/function sr_community_post_list_thumbnail_url\(.*?thumbnail_min_(?:width|bytes).*?function sr_community_post_view_image_thumbnail_url/s', $communityAttachments) !== 1,
-    'Community board list thumbnails must use the thumbnail cache with local source fallback and without setting or minimum-size original URL fallback.'
+    'Community board list thumbnails must use the thumbnail cache with local source fallback and without original URL fallback, setting fallback, or minimum-size original URL fallback.'
 );
 sr_storage_helper_assert(
     is_string($communityPosts)
@@ -293,6 +294,10 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     sr_storage_helper_assert(
         sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, ['width' => 160, 'height' => 90, 'max_source_bytes' => 1]) === '/fallback.png',
         'Thumbnail helper must apply source byte limits to local sources before generating a variant.'
+    );
+    sr_storage_helper_assert(
+        sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, ['width' => 160, 'height' => 90, 'max_source_bytes' => 1, 'require_cache' => true]) === '',
+        'Thumbnail helper must be able to suppress original URL fallback when a caller requires a generated public cache file.'
     );
     $thumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, [
         'width' => 160,

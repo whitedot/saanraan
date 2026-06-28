@@ -413,6 +413,8 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     unset($pdo);
 
     $publicUrl = trim((string) ($source['public_url'] ?? ''));
+    $cacheRequired = !empty($options['require_cache']);
+    $fallbackUrl = $cacheRequired ? '' : $publicUrl;
     $publicSource = !empty($source['public']) || $publicUrl !== '';
     $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
     $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
@@ -421,7 +423,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         $sourcePath = (string) $source['source_path'];
     }
     if (!$publicSource || !in_array($driver, ['local', 's3'], true) || (!sr_storage_key_is_safe($key) && $sourcePath === '')) {
-        return $publicUrl;
+        return $fallbackUrl;
     }
 
     $metadataCacheUrl = sr_thumbnail_metadata_cache_url($source, $options);
@@ -435,7 +437,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
             'max_bytes' => (int) ($options['max_source_bytes'] ?? 20971520),
         ]);
     if (!is_array($sourceFile) || !is_string($sourceFile['path'] ?? null)) {
-        return $publicUrl;
+        return $fallbackUrl;
     }
     $sourcePath = (string) $sourceFile['path'];
 
@@ -444,14 +446,14 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
     $detectedImageMime = strtolower(trim((string) ($imageInfo['mime'] ?? sr_upload_detect_mime($sourcePath))));
     if (!in_array($detectedImageMime, sr_thumbnail_supported()['mime_types'], true)) {
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
     $mimeType = $detectedImageMime;
     $sourcePixels = (int) ($imageInfo[0] ?? 0) * (int) ($imageInfo[1] ?? 0);
@@ -459,7 +461,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
 
     $normalized = sr_thumbnail_normalize_options($options);
@@ -469,7 +471,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
 
     $moduleKey = sr_thumbnail_module_key($source);
@@ -490,7 +492,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
     if (!is_writable($cacheDir)) {
         @chmod($cacheDir, 0775);
@@ -511,7 +513,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         if (!empty($sourceFile['cleanup'])) {
             @unlink($sourcePath);
         }
-        return $publicUrl;
+        return $fallbackUrl;
     }
 
     if (!empty($sourceFile['cleanup'])) {

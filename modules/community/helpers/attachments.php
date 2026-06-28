@@ -228,6 +228,7 @@ function sr_community_post_list_thumbnail_options(array $post): array
         'mode' => 'contain',
         'quality' => 82,
         'format' => 'source',
+        'require_cache' => true,
     ];
 }
 
