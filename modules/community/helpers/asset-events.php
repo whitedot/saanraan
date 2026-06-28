@@ -1530,11 +1530,6 @@ function sr_community_asset_reversal_error_message(array $result, string $balanc
     return $message !== '' ? $message : sr_t($fallbackKey);
 }
 
-function sr_community_asset_recovery_failure_statuses(): array
-{
-    return ['open', 'recovered', 'manually_resolved', 'cancelled'];
-}
-
 function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $failureId): ?array
 {
     if (!sr_community_asset_recovery_failures_table_exists($pdo)) {

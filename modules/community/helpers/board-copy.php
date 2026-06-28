@@ -343,23 +343,6 @@ function sr_community_board_copy_series_validate_options(PDO $pdo, int $boardId,
     return $errors;
 }
 
-function sr_community_board_copy_series_option_title(int $sourceBoardId, int $seriesId): string
-{
-    if ($sourceBoardId < 1 || $seriesId < 1 || !isset($GLOBALS['sr_community_board_copy_series_options']) || !is_array($GLOBALS['sr_community_board_copy_series_options'])) {
-        return '';
-    }
-    $options = $GLOBALS['sr_community_board_copy_series_options'][$sourceBoardId] ?? null;
-    if (!is_array($options)) {
-        return '';
-    }
-    $titles = $options['series_titles'] ?? null;
-    if (!is_array($titles)) {
-        return '';
-    }
-
-    return sr_community_clean_single_line((string) ($titles[(string) $seriesId] ?? $titles[$seriesId] ?? ''), 160);
-}
-
 function sr_community_board_copy_limit_errors(array $counts): array
 {
     return array_merge(
@@ -642,83 +625,4 @@ function sr_community_copy_board_categories(PDO $pdo, int $sourceBoardId, int $n
     }
 
     return $map;
-}
-
-function sr_community_copy_board_comments(PDO $pdo, array $postMap): void
-{
-    if ($postMap === []) {
-        return;
-    }
-    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
-    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $secretColumnSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $insert = $pdo->prepare(
-        'INSERT INTO sr_community_comments
-            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
-         VALUES
-            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
-    );
-    foreach ($postMap as $sourcePostId => $newPostId) {
-        $stmt = $pdo->prepare('SELECT * FROM sr_community_comments WHERE post_id = :post_id ORDER BY id ASC');
-        $stmt->execute(['post_id' => (int) $sourcePostId]);
-        foreach ($stmt->fetchAll() as $comment) {
-            $params = [
-                'post_id' => (int) $newPostId,
-                'author_account_id' => (int) $comment['author_account_id'],
-                'body_text' => (string) $comment['body_text'],
-                'status' => (string) $comment['status'],
-                'created_at' => (string) $comment['created_at'],
-                'updated_at' => (string) $comment['updated_at'],
-            ];
-            if ($authorSnapshotColumnSql !== '') {
-                $params['author_public_name_snapshot'] = (string) ($comment['author_public_name_snapshot'] ?? '');
-            }
-            if ($secretColumnSql !== '') {
-                $params['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
-            }
-            $insert->execute($params);
-        }
-    }
-}
-
-function sr_community_copy_board_attachments(PDO $pdo, array $postMap, array &$createdFiles): void
-{
-    $insert = $pdo->prepare(
-        'INSERT INTO sr_community_attachments
-            (post_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, width, height, status, created_at)
-         VALUES
-            (:post_id, :uploader_account_id, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, :width, :height, :status, :created_at)'
-    );
-    foreach ($postMap as $sourcePostId => $newPostId) {
-        $stmt = $pdo->prepare('SELECT * FROM sr_community_attachments WHERE post_id = :post_id ORDER BY id ASC');
-        $stmt->execute(['post_id' => (int) $sourcePostId]);
-        foreach ($stmt->fetchAll() as $attachment) {
-            $driver = sr_community_attachment_storage_driver($attachment);
-            $sourceKey = sr_community_attachment_storage_key($attachment);
-            $extension = strtolower(pathinfo((string) ($attachment['stored_name'] ?: $attachment['original_name']), PATHINFO_EXTENSION));
-            $extension = preg_match('/\A[a-z0-9]{1,16}\z/', $extension) === 1 ? $extension : 'bin';
-            $datePath = date('Y/m');
-            $storedName = bin2hex(random_bytes(16)) . '.' . $extension;
-            $targetKey = 'community/attachments/' . $datePath . '/' . $storedName;
-            sr_storage_copy($driver, $sourceKey, $targetKey);
-            $createdFiles[] = ['driver' => $driver, 'key' => $targetKey];
-            $insert->execute([
-                'post_id' => (int) $newPostId,
-                'uploader_account_id' => (int) $attachment['uploader_account_id'],
-                'original_name' => (string) $attachment['original_name'],
-                'stored_name' => $storedName,
-                'storage_path' => 'storage/' . $targetKey,
-                'storage_driver' => $driver,
-                'storage_key' => $targetKey,
-                'mime_type' => (string) $attachment['mime_type'],
-                'size_bytes' => (int) $attachment['size_bytes'],
-                'checksum_sha256' => (string) $attachment['checksum_sha256'],
-                'width' => $attachment['width'] !== null ? (int) $attachment['width'] : null,
-                'height' => $attachment['height'] !== null ? (int) $attachment['height'] : null,
-                'status' => (string) ($attachment['status'] ?? 'active'),
-                'created_at' => (string) $attachment['created_at'],
-            ]);
-        }
-    }
 }

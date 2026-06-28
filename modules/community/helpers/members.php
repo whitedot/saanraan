@@ -66,21 +66,6 @@ function sr_community_member_nickname(PDO $pdo, int $accountId): string
     return $cache[$cacheKey];
 }
 
-function sr_community_set_member_nickname(PDO $pdo, int $accountId, string $nickname): void
-{
-    if ($accountId < 1) {
-        return;
-    }
-
-    $nickname = trim($nickname);
-    if (sr_community_member_nickname_exists($pdo, $nickname, $accountId)) {
-        throw new RuntimeException('community_nickname_duplicate');
-    }
-
-    sr_member_set_nickname($pdo, $accountId, $nickname);
-    sr_community_clear_member_nickname_cache($pdo, $accountId);
-}
-
 function sr_community_clear_member_nickname_cache(PDO $pdo, int $accountId): void
 {
     if (!isset($GLOBALS['sr_community_member_nickname_cache']) || !is_array($GLOBALS['sr_community_member_nickname_cache'])) {
@@ -131,94 +116,9 @@ function sr_community_public_account_summary_by_hash(PDO $pdo, array $config, st
     return $summary;
 }
 
-function sr_community_nickname_query_parts(array $filter = []): array
-{
-    $params = [];
-    $where = [
-        "a.status NOT IN ('withdrawn', 'anonymized')",
-        "n.nickname <> ''",
-    ];
-    $field = (string) ($filter['field'] ?? 'all');
-    $keyword = trim((string) ($filter['keyword'] ?? ''));
-    $accountId = (int) ($filter['account_id'] ?? 0);
-    $levelValue = $filter['level_value'] ?? null;
-
-    if ($keyword !== '') {
-        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
-        if ($field === 'hash') {
-            $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
-            if ($accountId > 0) {
-                $params['account_id'] = $accountId;
-            }
-        } elseif ($field === 'email') {
-            $where[] = "a.email LIKE :keyword_like ESCAPE '\\\\'";
-            $params['keyword_like'] = $like;
-        } elseif ($field === 'nickname') {
-            $where[] = "(a.status NOT IN ('withdrawn', 'anonymized') AND n.nickname LIKE :keyword_like ESCAPE '\\\\')";
-            $params['keyword_like'] = $like;
-        } else {
-            $clauses = [
-                "a.email LIKE :keyword_email_like ESCAPE '\\\\'",
-                "(a.status NOT IN ('withdrawn', 'anonymized') AND n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\')",
-            ];
-            $params['keyword_email_like'] = $like;
-            $params['keyword_nickname_like'] = $like;
-            if ($accountId > 0) {
-                $clauses[] = 'a.id = :account_id';
-                $params['account_id'] = $accountId;
-            }
-            $where[] = '(' . implode(' OR ', $clauses) . ')';
-        }
-    }
-    if (!empty($filter['level_enabled']) && $levelValue !== null) {
-        $where[] = 'COALESCE(l.level_value, 0) = :level_value';
-        $params['level_value'] = (int) $levelValue;
-    }
-
-    return [
-        'where' => $where,
-        'params' => $params,
-    ];
-}
-
-function sr_community_admin_nickname_sort_options(bool $levelEnabled = false): array
-{
-    $options = [
-        'email' => ['columns' => ['a.email', 'a.id']],
-        'nickname' => ['columns' => ['n.nickname', 'a.id']],
-        'status' => ['columns' => ['a.status', 'a.id']],
-        'updated_at' => ['columns' => ['n.updated_at', 'a.id']],
-        'created_at' => ['columns' => ['a.id']],
-    ];
-
-    if ($levelEnabled) {
-        $options['level_value'] = ['columns' => ['COALESCE(l.level_value, 0)', 'a.id']];
-    }
-
-    return $options;
-}
-
-function sr_community_admin_nickname_default_sort(): array
-{
-    return sr_admin_sort_default('created_at', 'desc');
-}
-
 function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $excludeAccountId = 0): bool
 {
     return sr_member_nickname_exists($pdo, $nickname, $excludeAccountId);
-}
-
-function sr_community_random_member_nickname(PDO $pdo, string $currentNickname = ''): string
-{
-    $currentNickname = trim($currentNickname);
-    for ($attempt = 0; $attempt < 50; $attempt++) {
-        $nickname = '회원' . (string) random_int(100000, 999999);
-        if ($nickname !== $currentNickname && !sr_community_member_nickname_exists($pdo, $nickname)) {
-            return $nickname;
-        }
-    }
-
-    return '회원' . bin2hex(random_bytes(4));
 }
 
 function sr_community_nickname_reset_reason_options(): array
@@ -230,12 +130,4 @@ function sr_community_nickname_reset_reason_options(): array
         'spam' => sr_t('community::nickname_reset_reason.spam'),
         'policy' => sr_t('community::nickname_reset_reason.policy'),
     ];
-}
-
-function sr_community_nickname_reset_reason_label(string $reason): string
-{
-    $reason = trim($reason);
-    $options = sr_community_nickname_reset_reason_options();
-
-    return isset($options[$reason]) ? (string) $options[$reason] : '';
 }

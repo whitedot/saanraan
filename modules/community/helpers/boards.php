@@ -1349,28 +1349,6 @@ function sr_community_set_board_setting(PDO $pdo, int $boardId, string $settingK
     sr_community_enabled_boards_file_cache_mark_stale();
 }
 
-function sr_community_board_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
-{
-    if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT setting_value
-         FROM sr_community_board_group_settings
-         WHERE group_id = :group_id
-           AND setting_key = :setting_key
-         LIMIT 1'
-    );
-    $stmt->execute([
-        'group_id' => $groupId,
-        'setting_key' => $settingKey,
-    ]);
-    $value = $stmt->fetchColumn();
-
-    return is_string($value) ? $value : null;
-}
-
 function sr_community_set_board_group_setting(PDO $pdo, int $groupId, string $settingKey, string $settingValue, string $valueType = 'string'): void
 {
     if ($groupId < 1 || !in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {

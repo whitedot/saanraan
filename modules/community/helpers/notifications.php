@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_community_notification_available(PDO $pdo): bool
-{
-    return sr_community_notification_create_function($pdo) !== '';
-}
-
 function sr_community_notification_create_function(PDO $pdo): string
 {
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');

@@ -300,58 +300,6 @@ function sr_community_home_debug_page_elapsed_ms(): float
     return max(0.0, (microtime(true) - (float) $startedAt) * 1000);
 }
 
-function sr_community_debug_query_panel_html(): string
-{
-    $queries = sr_community_home_debug_queries();
-    $timings = sr_community_home_debug_timings();
-    $pageElapsedMs = sr_community_home_debug_page_elapsed_ms();
-    $html = '<section class="community-home-query-debug"><h2>실행 쿼리</h2>';
-    $html .= '<p class="community-home-query-debug-meta">page load: ' . sr_e(number_format($pageElapsedMs, 3)) . ' ms / recorded queries: ' . sr_e(number_format(count($queries))) . '</p>';
-    if ($timings !== []) {
-        $html .= '<h3>timings</h3><ul class="community-home-query-debug-timings">';
-        foreach ($timings as $timing) {
-            if (!is_array($timing)) {
-                continue;
-            }
-            $label = (string) ($timing['label'] ?? 'stage');
-            $elapsedMs = is_numeric($timing['elapsed_ms'] ?? null) ? (float) $timing['elapsed_ms'] : 0.0;
-            $html .= '<li>' . sr_e($label . ': ' . number_format($elapsedMs, 3) . ' ms') . '</li>';
-        }
-        $html .= '</ul>';
-    }
-    if ($queries === []) {
-        return $html . '<p>기록된 커뮤니티 쿼리가 없습니다.</p></section>';
-    }
-
-    foreach ($queries as $index => $query) {
-        if (!is_array($query)) {
-            continue;
-        }
-
-        $paramsJson = json_encode($query['params'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        $meta = [];
-        if (is_numeric($query['elapsed_ms'] ?? null)) {
-            $meta[] = 'time: ' . number_format((float) $query['elapsed_ms'], 3) . ' ms';
-        } else {
-            $meta[] = 'time: n/a';
-        }
-        if (is_numeric($query['row_count'] ?? null)) {
-            $meta[] = 'rows: ' . number_format((int) $query['row_count']);
-        } else {
-            $meta[] = 'rows: n/a';
-        }
-        $html .= '<article class="community-home-query-debug-item">';
-        $html .= '<h3>' . sr_e(number_format($index + 1) . '. ' . (string) ($query['label'] ?? 'query') . ' [' . implode(' / ', $meta) . ']') . '</h3>';
-        $html .= '<pre><code>' . sr_e((string) ($query['sql'] ?? '')) . '</code></pre>';
-        $html .= '<h4>params</h4>';
-        $html .= '<pre><code>' . sr_e(is_string($paramsJson) ? $paramsJson : '[]') . '</code></pre>';
-        $html .= '</article>';
-    }
-    $html .= '</section>';
-
-    return $html;
-}
-
 function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
 {
     $posts = [];

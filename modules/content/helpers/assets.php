@@ -1199,31 +1199,3 @@ function sr_content_asset_settings_from_storage_for_audit(PDO $pdo, int $pageId)
         'files' => sr_content_files_asset_settings_for_audit($pdo, $pageId),
     ];
 }
-
-function sr_content_group_asset_settings_for_audit(array $settings): array
-{
-    $assetSettings = sr_content_normalize_asset_values($settings);
-    $fileAssetSettings = sr_content_normalize_file_asset_values([
-        'asset_download_enabled' => $settings['file_asset_download_enabled'] ?? 0,
-        'asset_module' => $settings['file_asset_module'] ?? '',
-        'asset_download_amount' => $settings['file_asset_download_amount'] ?? 0,
-        'asset_download_amounts_json' => $settings['file_asset_download_amounts_json'] ?? '',
-        'asset_download_group_policies_json' => $settings['file_asset_download_group_policies_json'] ?? '',
-        'asset_download_policy_set_id' => $settings['file_asset_download_policy_set_id'] ?? 0,
-        'asset_charge_policy' => $settings['file_asset_charge_policy'] ?? 'once',
-    ]);
-
-    $auditSettings = [];
-    foreach (sr_content_group_asset_setting_keys() as $settingKey) {
-        $auditSettings[$settingKey] = $assetSettings[$settingKey] ?? '';
-    }
-    $auditSettings['file_asset_download_enabled'] = (int) $fileAssetSettings['asset_download_enabled'];
-    $auditSettings['file_asset_module'] = (string) $fileAssetSettings['asset_module'];
-    $auditSettings['file_asset_download_amount'] = (int) $fileAssetSettings['asset_download_amount'];
-    $auditSettings['file_asset_download_amounts_json'] = (string) $fileAssetSettings['asset_download_amounts_json'];
-    $auditSettings['file_asset_download_group_policies_json'] = (string) $fileAssetSettings['asset_download_group_policies_json'];
-    $auditSettings['file_asset_download_policy_set_id'] = (int) $fileAssetSettings['asset_download_policy_set_id'];
-    $auditSettings['file_asset_charge_policy'] = (string) $fileAssetSettings['asset_charge_policy'];
-
-    return $auditSettings;
-}
