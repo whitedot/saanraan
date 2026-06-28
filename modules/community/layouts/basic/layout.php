@@ -476,6 +476,9 @@ if (
                 </div>
             </div>
         </div>
+        <?php if (function_exists('sr_community_debug_query_panel_html')) { ?>
+            <?php echo sr_community_debug_query_panel_html(); ?>
+        <?php } ?>
     </footer>
     <?php echo $layoutAfterLayoutHtml; ?>
     <?php echo sr_script_tags($layoutScripts); ?>

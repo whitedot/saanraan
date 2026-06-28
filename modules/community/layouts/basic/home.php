@@ -62,5 +62,4 @@ $communityFrameModifier = 'home';
                     <?php } ?>
                 <?php } ?>
     <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
-    <?php echo sr_community_home_debug_query_panel_html(); ?>
 <?php sr_public_layout_end(); ?>

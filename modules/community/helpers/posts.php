@@ -35,16 +35,20 @@ function sr_community_account_can_read_board(PDO $pdo, array $board, ?array $acc
     }
 
     if ($policy === 'member') {
-        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        $settings = sr_community_settings($pdo);
+        $minLevel = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'read_min_level', '0'), $settings);
         return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
+            'settings' => $settings,
             'min_level' => $minLevel,
         ])['allowed']);
     }
 
     if ($policy === 'group') {
-        $groupKeys = sr_community_board_group_keys($pdo, (int) $board['id'], 'read_group_keys');
-        $minLevel = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
+        $settings = sr_community_settings($pdo);
+        $groupKeys = sr_community_board_group_keys_from_effective_setting($pdo, $board, 'read_group_keys');
+        $minLevel = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'read_min_level', '0'), $settings);
         return !empty(sr_community_account_satisfies_access($pdo, $accountId, [
+            'settings' => $settings,
             'group_keys' => $groupKeys,
             'min_level' => $minLevel,
         ])['allowed']);

@@ -779,6 +779,15 @@ function sr_community_account_level_snapshot(PDO $pdo, int $accountId): array
         return sr_community_empty_account_level_snapshot($accountId);
     }
 
+    $cacheKey = (string) spl_object_id($pdo) . ':' . (string) $accountId;
+    $cache = $GLOBALS['sr_community_account_level_snapshot_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+    if (array_key_exists($cacheKey, $cache) && is_array($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $stmt = $pdo->prepare(
         'SELECT account_id, level_value, score_value, post_count, comment_count, evaluated_at, created_at, updated_at
          FROM sr_community_account_levels
@@ -788,7 +797,20 @@ function sr_community_account_level_snapshot(PDO $pdo, int $accountId): array
     $stmt->execute(['account_id' => $accountId]);
     $snapshot = $stmt->fetch();
 
-    return is_array($snapshot) ? $snapshot : sr_community_empty_account_level_snapshot($accountId);
+    $snapshot = is_array($snapshot) ? $snapshot : sr_community_empty_account_level_snapshot($accountId);
+    $cache[$cacheKey] = $snapshot;
+    $GLOBALS['sr_community_account_level_snapshot_runtime_cache'] = $cache;
+
+    return $snapshot;
+}
+
+function sr_community_clear_account_level_snapshot_runtime_cache(PDO $pdo, int $accountId): void
+{
+    if ($accountId < 1 || !isset($GLOBALS['sr_community_account_level_snapshot_runtime_cache']) || !is_array($GLOBALS['sr_community_account_level_snapshot_runtime_cache'])) {
+        return;
+    }
+
+    unset($GLOBALS['sr_community_account_level_snapshot_runtime_cache'][(string) spl_object_id($pdo) . ':' . (string) $accountId]);
 }
 
 function sr_community_delete_account_level_data(PDO $pdo, int $accountId): array
@@ -803,6 +825,7 @@ function sr_community_delete_account_level_data(PDO $pdo, int $accountId): array
     $stmt = $pdo->prepare('DELETE FROM sr_community_account_levels WHERE account_id = :account_id');
     $stmt->execute(['account_id' => $accountId]);
     $accountLevelDeleted = $stmt->rowCount() > 0;
+    sr_community_clear_account_level_snapshot_runtime_cache($pdo, $accountId);
 
     $stmt = $pdo->prepare('DELETE FROM sr_community_level_logs WHERE account_id = :account_id');
     $stmt->execute(['account_id' => $accountId]);
@@ -970,6 +993,8 @@ function sr_community_recalculate_account_level(PDO $pdo, int $accountId, ?array
         ], $reasonKey);
     }
 
+    sr_community_clear_account_level_snapshot_runtime_cache($pdo, $accountId);
+
     return sr_community_account_level_snapshot($pdo, $accountId);
 }
 
@@ -1034,6 +1059,8 @@ function sr_community_set_account_level(PDO $pdo, int $accountId, int $levelValu
             'score_value' => (int) ($before['score_value'] ?? 0),
         ], $reasonKey);
     }
+
+    sr_community_clear_account_level_snapshot_runtime_cache($pdo, $accountId);
 
     return sr_community_account_level_snapshot($pdo, $accountId);
 }

@@ -1936,6 +1936,18 @@ a.community-post-title:focus,
     margin: 0 0 8px;
 }
 
+.community-home-query-debug-timings {
+    color: var(--sr-muted, var(--text-muted, #666));
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0 0 12px;
+    padding-left: 18px;
+}
+
+.community-home-query-debug-timings li + li {
+    margin-top: 4px;
+}
+
 .community-home-query-debug pre {
     background: var(--sr-surface-muted, #f5f7fb);
     border: 1px solid var(--sr-border, #d9e0ea);

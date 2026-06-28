@@ -717,6 +717,11 @@ function sr_community_admin_board_status_counts(PDO $pdo, array $allowedStatuses
 
 function sr_community_enabled_boards(PDO $pdo): array
 {
+    $cachedBoards = sr_community_enabled_boards_file_cache_read();
+    if (is_array($cachedBoards)) {
+        return $cachedBoards;
+    }
+
     $stmt = $pdo->query(
         "SELECT " . sr_community_board_select_columns('b') . ",
                 g.group_key AS board_group_key,
@@ -729,12 +734,119 @@ function sr_community_enabled_boards(PDO $pdo): array
          ORDER BY COALESCE(g.sort_order, 1000000) ASC, g.id ASC, b.sort_order ASC, b.id ASC"
     );
 
+    $rows = $stmt->fetchAll();
+    sr_community_preload_board_settings_runtime_cache($pdo, array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $rows));
+
     $boards = [];
-    foreach ($stmt->fetchAll() as $board) {
+    foreach ($rows as $board) {
         $boards[] = sr_community_board_with_effective_settings($pdo, $board);
     }
+    sr_community_enabled_boards_file_cache_write($boards);
 
     return $boards;
+}
+
+function sr_community_board_file_cache_root(): string
+{
+    return rtrim((string) SR_ROOT, '/\\') . '/storage/cache/community-board';
+}
+
+function sr_community_enabled_boards_file_cache_path(): string
+{
+    return sr_community_board_file_cache_root() . '/enabled-boards.json';
+}
+
+function sr_community_enabled_boards_file_cache_read(): ?array
+{
+    $memoryRecord = $GLOBALS['sr_community_enabled_boards_file_cache_record'] ?? null;
+    if (is_array($memoryRecord)
+        && (string) ($memoryRecord['schema_version'] ?? '') === 'community_enabled_boards_file_cache_v1'
+        && (string) ($memoryRecord['cache_status'] ?? '') === 'fresh'
+        && is_array($memoryRecord['boards'] ?? null)
+    ) {
+        return $memoryRecord['boards'];
+    }
+
+    $path = sr_community_enabled_boards_file_cache_path();
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+
+    $json = file_get_contents($path);
+    if (!is_string($json)) {
+        return null;
+    }
+
+    $record = json_decode($json, true);
+    if (!is_array($record)
+        || (string) ($record['schema_version'] ?? '') !== 'community_enabled_boards_file_cache_v1'
+        || (string) ($record['cache_status'] ?? '') !== 'fresh'
+        || !is_array($record['boards'] ?? null)
+    ) {
+        return null;
+    }
+
+    $GLOBALS['sr_community_enabled_boards_file_cache_record'] = $record;
+
+    return $record['boards'];
+}
+
+function sr_community_enabled_boards_file_cache_write(array $boards): void
+{
+    $safeBoards = [];
+    foreach ($boards as $board) {
+        if (is_array($board)) {
+            $safeBoards[] = $board;
+        }
+    }
+
+    $record = [
+        'schema_version' => 'community_enabled_boards_file_cache_v1',
+        'cache_status' => 'fresh',
+        'board_count' => count($safeBoards),
+        'boards' => $safeBoards,
+        'generated_at' => sr_now(),
+    ];
+    $json = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($json)) {
+        return;
+    }
+
+    $root = sr_community_board_file_cache_root();
+    if (!is_dir($root) && !@mkdir($root, 0775, true) && !is_dir($root)) {
+        return;
+    }
+
+    $path = sr_community_enabled_boards_file_cache_path();
+    $temporaryPath = $path . '.tmp.' . bin2hex(random_bytes(6));
+    $handle = @fopen($temporaryPath, 'wb');
+    if ($handle === false) {
+        return;
+    }
+
+    $written = false;
+    if (flock($handle, LOCK_EX)) {
+        $written = fwrite($handle, $json . "\n") !== false;
+        fflush($handle);
+        flock($handle, LOCK_UN);
+    }
+    fclose($handle);
+    if (!$written || !@rename($temporaryPath, $path)) {
+        @unlink($temporaryPath);
+        return;
+    }
+
+    @chmod($path, 0664);
+    $GLOBALS['sr_community_enabled_boards_file_cache_record'] = $record;
+}
+
+function sr_community_enabled_boards_file_cache_mark_stale(): void
+{
+    unset($GLOBALS['sr_community_enabled_boards_file_cache_record']);
+    $path = sr_community_enabled_boards_file_cache_path();
+    if (is_file($path)) {
+        @unlink($path);
+    }
 }
 
 function sr_community_board_by_key(PDO $pdo, string $boardKey): ?array
@@ -949,6 +1061,8 @@ function sr_community_create_board(PDO $pdo, array $data): int
         'updated_at' => $now,
     ]);
 
+    sr_community_enabled_boards_file_cache_mark_stale();
+
     return (int) $pdo->lastInsertId();
 }
 
@@ -981,6 +1095,7 @@ function sr_community_update_board(PDO $pdo, int $boardId, array $data): void
         'updated_at' => sr_now(),
         'id' => $boardId,
     ]);
+    sr_community_enabled_boards_file_cache_mark_stale();
     if (function_exists('sr_community_mark_board_post_embed_targets_stale')) {
         sr_community_mark_board_post_embed_targets_stale($pdo, $boardId);
     }
@@ -1084,6 +1199,101 @@ function sr_community_use_board_settings_runtime_cache(bool $enabled = true): vo
     }
 }
 
+function sr_community_preload_board_settings_runtime_cache(PDO $pdo, array $boardIds): void
+{
+    if (!sr_community_board_settings_runtime_cache_enabled()) {
+        return;
+    }
+
+    $ids = [];
+    foreach ($boardIds as $boardId) {
+        $boardId = (int) $boardId;
+        if ($boardId > 0) {
+            $ids[$boardId] = $boardId;
+        }
+    }
+    if ($ids === []) {
+        return;
+    }
+
+    $settingsCache = $GLOBALS['sr_community_board_settings_runtime_cache'] ?? [];
+    if (!is_array($settingsCache)) {
+        $settingsCache = [];
+    }
+    $sourcesCache = $GLOBALS['sr_community_board_setting_sources_runtime_cache'] ?? [];
+    if (!is_array($sourcesCache)) {
+        $sourcesCache = [];
+    }
+
+    $missingSettingIds = [];
+    $missingSourceIds = [];
+    foreach ($ids as $boardId) {
+        if (!array_key_exists($boardId, $settingsCache)) {
+            $settingsCache[$boardId] = [];
+            $missingSettingIds[] = $boardId;
+        }
+        if (!array_key_exists($boardId, $sourcesCache)) {
+            $sourcesCache[$boardId] = [];
+            $missingSourceIds[] = $boardId;
+        }
+    }
+
+    if ($missingSettingIds !== []) {
+        $placeholders = [];
+        $params = [];
+        foreach ($missingSettingIds as $index => $boardId) {
+            $paramKey = 'board_id_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = $boardId;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT board_id, setting_key, setting_value
+             FROM sr_community_board_settings
+             WHERE board_id IN (' . implode(', ', $placeholders) . ')'
+        );
+        foreach ($params as $paramKey => $boardId) {
+            $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        foreach ($stmt->fetchAll() as $row) {
+            $boardId = (int) ($row['board_id'] ?? 0);
+            $settingKey = (string) ($row['setting_key'] ?? '');
+            if ($boardId > 0 && $settingKey !== '') {
+                $settingsCache[$boardId][$settingKey] = (string) ($row['setting_value'] ?? '');
+            }
+        }
+    }
+
+    if ($missingSourceIds !== []) {
+        $placeholders = [];
+        $params = [];
+        foreach ($missingSourceIds as $index => $boardId) {
+            $paramKey = 'source_board_id_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = $boardId;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT board_id, setting_key, source
+             FROM sr_community_board_setting_sources
+             WHERE board_id IN (' . implode(', ', $placeholders) . ')'
+        );
+        foreach ($params as $paramKey => $boardId) {
+            $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        foreach ($stmt->fetchAll() as $row) {
+            $boardId = (int) ($row['board_id'] ?? 0);
+            $settingKey = (string) ($row['setting_key'] ?? '');
+            if ($boardId > 0 && in_array($settingKey, sr_community_board_group_all_setting_keys(), true)) {
+                $sourcesCache[$boardId][$settingKey] = sr_community_normalize_board_setting_source((string) ($row['source'] ?? 'board'));
+            }
+        }
+    }
+
+    $GLOBALS['sr_community_board_settings_runtime_cache'] = $settingsCache;
+    $GLOBALS['sr_community_board_setting_sources_runtime_cache'] = $sourcesCache;
+}
+
 function sr_community_board_settings_map(PDO $pdo, int $boardId): array
 {
     if ($boardId < 1) {
@@ -1161,6 +1371,7 @@ function sr_community_set_board_setting(PDO $pdo, int $boardId, string $settingK
         'updated_at' => $now,
     ]);
     sr_community_clear_board_settings_runtime_cache($boardId);
+    sr_community_enabled_boards_file_cache_mark_stale();
 }
 
 function sr_community_board_group_setting_value(PDO $pdo, int $groupId, string $settingKey): ?string
@@ -1210,6 +1421,8 @@ function sr_community_set_board_group_setting(PDO $pdo, int $groupId, string $se
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    sr_community_clear_board_settings_runtime_cache();
+    sr_community_enabled_boards_file_cache_mark_stale();
 }
 
 function sr_community_board_group_settings(PDO $pdo, int $groupId): array
@@ -1325,6 +1538,7 @@ function sr_community_set_board_setting_source(PDO $pdo, int $boardId, string $s
         'updated_at' => $now,
     ]);
     sr_community_clear_board_settings_runtime_cache($boardId);
+    sr_community_enabled_boards_file_cache_mark_stale();
 }
 
 function sr_community_effective_board_setting(PDO $pdo, array $board, string $settingKey, mixed $default = ''): string

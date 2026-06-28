@@ -266,32 +266,82 @@ function sr_community_home_debug_queries(): array
     return is_array($queries) ? $queries : [];
 }
 
-function sr_community_home_debug_query_panel_html(): string
+function sr_community_home_debug_timing_add(string $label, float $elapsedMs): void
 {
-    $queries = sr_community_home_debug_queries();
-    if ($queries === []) {
-        return '<section class="community-home-query-debug"><h2>실행 쿼리</h2><p>기록된 커뮤니티 메인 쿼리가 없습니다.</p></section>';
+    $timings = $GLOBALS['sr_community_home_debug_timings'] ?? [];
+    if (!is_array($timings)) {
+        $timings = [];
     }
 
+    $timings[] = [
+        'label' => $label,
+        'elapsed_ms' => max(0.0, $elapsedMs),
+    ];
+    $GLOBALS['sr_community_home_debug_timings'] = $timings;
+}
+
+function sr_community_home_debug_timings(): array
+{
+    $timings = $GLOBALS['sr_community_home_debug_timings'] ?? [];
+
+    return is_array($timings) ? $timings : [];
+}
+
+function sr_community_home_debug_page_elapsed_ms(): float
+{
+    $startedAt = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
+    if (!is_numeric($startedAt)) {
+        $startedAt = $GLOBALS['sr_request_started_at'] ?? null;
+    }
+    if (!is_numeric($startedAt)) {
+        return 0.0;
+    }
+
+    return max(0.0, (microtime(true) - (float) $startedAt) * 1000);
+}
+
+function sr_community_debug_query_panel_html(): string
+{
+    $queries = sr_community_home_debug_queries();
+    $timings = sr_community_home_debug_timings();
+    $pageElapsedMs = sr_community_home_debug_page_elapsed_ms();
     $html = '<section class="community-home-query-debug"><h2>실행 쿼리</h2>';
+    $html .= '<p class="community-home-query-debug-meta">page load: ' . sr_e(number_format($pageElapsedMs, 3)) . ' ms / recorded queries: ' . sr_e(number_format(count($queries))) . '</p>';
+    if ($timings !== []) {
+        $html .= '<h3>timings</h3><ul class="community-home-query-debug-timings">';
+        foreach ($timings as $timing) {
+            if (!is_array($timing)) {
+                continue;
+            }
+            $label = (string) ($timing['label'] ?? 'stage');
+            $elapsedMs = is_numeric($timing['elapsed_ms'] ?? null) ? (float) $timing['elapsed_ms'] : 0.0;
+            $html .= '<li>' . sr_e($label . ': ' . number_format($elapsedMs, 3) . ' ms') . '</li>';
+        }
+        $html .= '</ul>';
+    }
+    if ($queries === []) {
+        return $html . '<p>기록된 커뮤니티 쿼리가 없습니다.</p></section>';
+    }
+
     foreach ($queries as $index => $query) {
         if (!is_array($query)) {
             continue;
         }
 
         $paramsJson = json_encode($query['params'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        $html .= '<article class="community-home-query-debug-item">';
-        $html .= '<h3>' . sr_e(number_format($index + 1) . '. ' . (string) ($query['label'] ?? 'query')) . '</h3>';
         $meta = [];
         if (is_numeric($query['elapsed_ms'] ?? null)) {
             $meta[] = 'time: ' . number_format((float) $query['elapsed_ms'], 3) . ' ms';
+        } else {
+            $meta[] = 'time: n/a';
         }
         if (is_numeric($query['row_count'] ?? null)) {
             $meta[] = 'rows: ' . number_format((int) $query['row_count']);
+        } else {
+            $meta[] = 'rows: n/a';
         }
-        if ($meta !== []) {
-            $html .= '<p class="community-home-query-debug-meta">' . sr_e(implode(' / ', $meta)) . '</p>';
-        }
+        $html .= '<article class="community-home-query-debug-item">';
+        $html .= '<h3>' . sr_e(number_format($index + 1) . '. ' . (string) ($query['label'] ?? 'query') . ' [' . implode(' / ', $meta) . ']') . '</h3>';
         $html .= '<pre><code>' . sr_e((string) ($query['sql'] ?? '')) . '</code></pre>';
         $html .= '<h4>params</h4>';
         $html .= '<pre><code>' . sr_e(is_string($paramsJson) ? $paramsJson : '[]') . '</code></pre>';
@@ -300,6 +350,11 @@ function sr_community_home_debug_query_panel_html(): string
     $html .= '</section>';
 
     return $html;
+}
+
+function sr_community_home_debug_query_panel_html(): string
+{
+    return sr_community_debug_query_panel_html();
 }
 
 function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
@@ -700,12 +755,18 @@ function sr_community_home_filter_rows_by_board_ids(array $rows, array $allowedB
 
 function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $settings, ?array $site = null, ?array $memberSettings = null): array
 {
+    $homeChromeStartedAt = microtime(true);
+    $stageStartedAt = $homeChromeStartedAt;
     $boardSettingsCacheWasEnabled = sr_community_board_settings_runtime_cache_enabled();
     sr_community_use_board_settings_runtime_cache(true);
 
     $boards = [];
     $summaryFeedBoards = [];
-    foreach (sr_community_enabled_boards($pdo) as $board) {
+    $enabledBoards = sr_community_enabled_boards($pdo);
+    sr_community_home_debug_timing_add('enabled boards load', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
+    foreach ($enabledBoards as $board) {
         if (sr_community_account_can_read_board($pdo, $board, $account)) {
             $boards[] = $board;
             if (sr_community_effective_board_summary_feed_enabled($pdo, $board)) {
@@ -713,6 +774,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             }
         }
     }
+    sr_community_home_debug_timing_add('board permissions', (microtime(true) - $stageStartedAt) * 1000);
 
     $latestPosts = [];
     $popularPosts = [];
@@ -720,7 +782,11 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $latestComments = [];
     $recentSeries = [];
     $homeSidebarMenuHtml = '';
+    $stageStartedAt = microtime(true);
     $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings, $memberSettings);
+    sr_community_home_debug_timing_add('member summary', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     $homeExcerptAllowedByBoardId = [];
     $communitySeriesSupported = sr_community_series_supported($pdo);
     foreach ($summaryFeedBoards as $board) {
@@ -728,8 +794,14 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         $homeExcerptAllowed = !sr_community_asset_event_required($paidReadConfig);
         $homeExcerptAllowedByBoardId[(int) ($board['id'] ?? 0)] = $homeExcerptAllowed;
     }
+    sr_community_home_debug_timing_add('feed policies', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     $latestPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
     $popularPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
+    sr_community_home_debug_timing_add('post feeds', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $summaryFeedBoards)));
     sort($readableBoardIds, SORT_NUMERIC);
     $publicFeedCacheBoardIds = sr_community_home_public_feed_cache_board_ids($summaryFeedBoards, $homeExcerptAllowedByBoardId);
@@ -738,10 +810,19 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
     }
+    sr_community_home_debug_timing_add('reaction counts', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     if ($readableBoardIds !== []) {
         $latestComments = sr_community_home_latest_comments($pdo, $readableBoardIds, $homeExcerptAllowedByBoardId, 10, $latestCommentsUsePublicCache);
     }
+    sr_community_home_debug_timing_add('latest comments', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId);
+    sr_community_home_debug_timing_add('public feed cache warm', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     if ($communitySeriesSupported && $readableBoardIds !== []) {
         $seriesPlaceholders = [];
         $seriesParams = [];
@@ -796,6 +877,9 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             }
         }
     }
+    sr_community_home_debug_timing_add('recent series', (microtime(true) - $stageStartedAt) * 1000);
+
+    $stageStartedAt = microtime(true);
     $latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds);
     $popularPosts = sr_community_home_filter_rows_by_board_ids($popularPosts, $readableBoardIds);
     $latestComments = sr_community_home_filter_rows_by_board_ids($latestComments, $readableBoardIds);
@@ -812,6 +896,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
             'menu_key' => $homeSidebarMenuKey,
         ]);
     }
+    sr_community_home_debug_timing_add('filter layout and sidebar', (microtime(true) - $stageStartedAt) * 1000);
 
     $data = [
         'boards' => $boards,
@@ -830,6 +915,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     if (!$boardSettingsCacheWasEnabled) {
         sr_community_use_board_settings_runtime_cache(false);
     }
+    sr_community_home_debug_timing_add('home chrome total', (microtime(true) - $homeChromeStartedAt) * 1000);
 
     return $data;
 }

@@ -181,6 +181,9 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
         }
         $pdo->prepare('DELETE FROM sr_community_boards WHERE id = :id')->execute(['id' => $boardId]);
         $pdo->commit();
+        if (function_exists('sr_community_enabled_boards_file_cache_mark_stale')) {
+            sr_community_enabled_boards_file_cache_mark_stale();
+        }
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -424,6 +427,9 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
         }
         $pdo->prepare('DELETE FROM sr_community_board_groups WHERE id = :id')->execute(['id' => $groupId]);
         $pdo->commit();
+        if (function_exists('sr_community_enabled_boards_file_cache_mark_stale')) {
+            sr_community_enabled_boards_file_cache_mark_stale();
+        }
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();

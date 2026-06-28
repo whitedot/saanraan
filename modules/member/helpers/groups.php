@@ -116,6 +116,15 @@ function sr_member_account_group_keys(PDO $pdo, int $accountId): array
         return [];
     }
 
+    $cacheKey = (string) spl_object_id($pdo) . ':' . (string) $accountId;
+    $cache = $GLOBALS['sr_member_account_group_keys_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+    if (array_key_exists($cacheKey, $cache) && is_array($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $stmt = $pdo->prepare(
         "SELECT DISTINCT g.group_key
          FROM sr_member_group_memberships m
@@ -136,7 +145,19 @@ function sr_member_account_group_keys(PDO $pdo, int $accountId): array
         $groupKeys[] = (string) $row['group_key'];
     }
 
+    $cache[$cacheKey] = $groupKeys;
+    $GLOBALS['sr_member_account_group_keys_runtime_cache'] = $cache;
+
     return $groupKeys;
+}
+
+function sr_member_clear_account_group_keys_runtime_cache(PDO $pdo, int $accountId): void
+{
+    if ($accountId < 1 || !isset($GLOBALS['sr_member_account_group_keys_runtime_cache']) || !is_array($GLOBALS['sr_member_account_group_keys_runtime_cache'])) {
+        return;
+    }
+
+    unset($GLOBALS['sr_member_account_group_keys_runtime_cache'][(string) spl_object_id($pdo) . ':' . (string) $accountId]);
 }
 
 function sr_member_account_in_group(PDO $pdo, int $accountId, string $groupKey): bool
@@ -491,6 +512,7 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
             $membershipId = (int) $pdo->lastInsertId();
         }
 
+        sr_member_clear_account_group_keys_runtime_cache($pdo, $accountId);
         sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_granted', $actorAccountId, 'Manual group membership granted.', []);
         return 'granted';
     }
@@ -527,6 +549,7 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
         'id' => $membershipId,
     ]);
 
+    sr_member_clear_account_group_keys_runtime_cache($pdo, $accountId);
     sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_revoked', $actorAccountId, 'Manual group membership revoked.', []);
     return 'revoked';
 }
@@ -1313,6 +1336,7 @@ function sr_member_group_grant_auto(PDO $pdo, int $accountId, array $rule, array
         $membershipId = (int) $pdo->lastInsertId();
     }
 
+    sr_member_clear_account_group_keys_runtime_cache($pdo, $accountId);
     sr_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_granted', null, 'Auto group membership granted.', [
         'source_module_key' => (string) $rule['source_module_key'],
         'source_rule_key' => (string) $rule['rule_key'],
@@ -1360,6 +1384,7 @@ function sr_member_group_revoke_auto(PDO $pdo, int $accountId, array $rule, arra
         'id' => $membershipId,
     ]);
 
+    sr_member_clear_account_group_keys_runtime_cache($pdo, $accountId);
     sr_member_group_log($pdo, (int) $rule['group_id'], $accountId, $membershipId, 'member.group.auto_revoked', null, 'Auto group membership revoked.', [
         'source_module_key' => (string) $rule['source_module_key'],
         'source_rule_key' => (string) $rule['rule_key'],
