@@ -79,58 +79,6 @@ function sr_community_categories(PDO $pdo, int $boardId, bool $enabledOnly = fal
     return $stmt->fetchAll();
 }
 
-function sr_community_categories_by_board_ids(PDO $pdo, array $boardIds, bool $enabledOnly = false): array
-{
-    if (!sr_community_categories_supported($pdo)) {
-        return [];
-    }
-
-    $ids = [];
-    foreach ($boardIds as $boardId) {
-        $id = (int) $boardId;
-        if ($id > 0) {
-            $ids[$id] = $id;
-        }
-    }
-    if ($ids === []) {
-        return [];
-    }
-
-    $placeholders = [];
-    $params = [];
-    foreach (array_values($ids) as $index => $boardId) {
-        $paramKey = 'board_id_' . (string) $index;
-        $placeholders[] = ':' . $paramKey;
-        $params[$paramKey] = $boardId;
-    }
-
-    $where = 'board_id IN (' . implode(', ', $placeholders) . ')';
-    if ($enabledOnly) {
-        $where .= " AND status = 'enabled'";
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT id, board_id, category_key, title, description, status, sort_order, created_at, updated_at
-         FROM sr_community_categories
-         WHERE ' . $where . '
-         ORDER BY board_id ASC, sort_order ASC, id ASC'
-    );
-    foreach ($params as $paramKey => $boardId) {
-        $stmt->bindValue($paramKey, $boardId, PDO::PARAM_INT);
-    }
-    $stmt->execute();
-
-    $categoriesByBoardId = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $boardId = (int) ($row['board_id'] ?? 0);
-        if ($boardId > 0) {
-            $categoriesByBoardId[$boardId][] = $row;
-        }
-    }
-
-    return $categoriesByBoardId;
-}
-
 function sr_community_category_by_id(PDO $pdo, int $categoryId): ?array
 {
     if ($categoryId < 1 || !sr_community_categories_supported($pdo)) {
@@ -252,11 +200,6 @@ function sr_community_board_category_enabled(PDO $pdo, int $boardId): bool
 {
     return sr_community_categories_supported($pdo)
         && (string) (sr_community_board_setting_value($pdo, $boardId, 'category_enabled') ?? '1') === '1';
-}
-
-function sr_community_effective_category_label(array $row): string
-{
-    return (string) ($row['category_title'] ?? $row['title'] ?? '');
 }
 
 function sr_community_post_category_validation_errors(PDO $pdo, array $board, array $values, ?array $existingPost = null): array

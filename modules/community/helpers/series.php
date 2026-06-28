@@ -32,11 +32,6 @@ function sr_community_series_visibility_label(string $visibility): string
     ][$visibility] ?? $visibility;
 }
 
-function sr_community_series_item_statuses(): array
-{
-    return ['active', 'hidden', 'removed'];
-}
-
 function sr_community_series_post_sort_order(string $key = 'series_sort_order'): ?int
 {
     $value = $_POST[$key] ?? '';

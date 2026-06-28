@@ -552,28 +552,6 @@ function sr_community_report_by_id(PDO $pdo, int $reportId): ?array
     return is_array($report) ? $report : null;
 }
 
-function sr_community_update_report_status(PDO $pdo, int $reportId, string $status, int $reviewerAccountId, string $reviewNote): void
-{
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_reports
-         SET status = :status,
-             reviewer_account_id = :reviewer_account_id,
-             review_note = :review_note,
-             updated_at = :updated_at,
-             reviewed_at = :reviewed_at
-         WHERE id = :id'
-    );
-    $stmt->execute([
-        'status' => $status,
-        'reviewer_account_id' => $reviewerAccountId,
-        'review_note' => $reviewNote,
-        'updated_at' => $now,
-        'reviewed_at' => $now,
-        'id' => $reportId,
-    ]);
-}
-
 function sr_community_apply_report_target_action(PDO $pdo, array $report, string $actionKey, int $adminAccountId, bool $requireAuditLog = false): array
 {
     $targetType = (string) ($report['target_type'] ?? '');

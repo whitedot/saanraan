@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
 
-function sr_community_board_copy_modes(): array
-{
-    return [
-        'settings' => '설정만 복사',
-        'full' => '게시글/댓글/첨부파일 포함',
-    ];
-}
-
 function sr_community_board_copy_scope_options(): array
 {
     return [
@@ -65,11 +57,6 @@ function sr_community_board_copy_scope_values(array $values): array
     }
 
     return array_values(array_unique($normalized));
-}
-
-function sr_community_board_copy_scope_has(array $values, string $scopeKey): bool
-{
-    return in_array($scopeKey, sr_community_board_copy_scope_values($values), true);
 }
 
 function sr_community_board_copy_scope_all_selected(array $values): bool
@@ -657,83 +644,6 @@ function sr_community_copy_board_categories(PDO $pdo, int $sourceBoardId, int $n
     return $map;
 }
 
-function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoardId, array $categoryMap, array &$createdFiles, string $now): array
-{
-    $postMap = [];
-    $stmt = $pdo->prepare('SELECT * FROM sr_community_posts WHERE board_id = :board_id ORDER BY id ASC');
-    $stmt->execute(['board_id' => $sourceBoardId]);
-    $categorySupported = sr_community_categories_supported($pdo);
-    $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
-    $categoryValueSql = $categorySupported ? ':category_id, ' : '';
-    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
-    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $reactionColumnSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key, reaction_comment_preset_key, ' : '';
-    $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
-    $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $summaryFeedCandidateColumnSql = sr_community_post_summary_feed_candidate_column_exists($pdo) ? 'summary_feed_candidate, ' : '';
-    $summaryFeedCandidateValueSql = $summaryFeedCandidateColumnSql !== '' ? ':summary_feed_candidate, ' : '';
-    $summaryFeedCandidate = sr_community_summary_feed_candidate_value_for_board($pdo, $newBoardId);
-    $insertPost = $pdo->prepare(
-        'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . $secretColumnSql . $summaryFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
-         VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . $secretValueSql . $summaryFeedCandidateValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
-    );
-    foreach ($stmt->fetchAll() as $post) {
-        $sourceCategoryId = (int) ($post['category_id'] ?? 0);
-        $params = [
-            'board_id' => $newBoardId,
-            'author_account_id' => (int) $post['author_account_id'],
-            'title' => (string) $post['title'],
-            'body_text' => (string) $post['body_text'],
-            'body_format' => (string) ($post['body_format'] ?? 'plain'),
-            'status' => (string) $post['status'],
-            'last_commented_at' => $post['last_commented_at'] ?? null,
-            'created_at' => (string) $post['created_at'],
-            'updated_at' => (string) $post['updated_at'],
-        ];
-        if ($categorySupported) {
-            $params['category_id'] = $sourceCategoryId > 0 && isset($categoryMap[$sourceCategoryId]) ? $categoryMap[$sourceCategoryId] : null;
-        }
-        if ($authorSnapshotColumnSql !== '') {
-            $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
-        }
-        if ($reactionColumnSql !== '') {
-            $params['reaction_preset_key'] = (string) ($post['reaction_preset_key'] ?? '');
-            $params['reaction_comment_preset_key'] = (string) ($post['reaction_comment_preset_key'] ?? '');
-        }
-        if ($secretColumnSql !== '') {
-            $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
-        }
-        if ($summaryFeedCandidateColumnSql !== '') {
-            $params['summary_feed_candidate'] = $summaryFeedCandidate;
-        }
-        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-            $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
-        }
-        $insertPost->execute($params);
-        $newPostId = (int) $pdo->lastInsertId();
-        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $params['body_text'], $createdFiles);
-            $bodyText = sr_community_sanitize_post_html($bodyText);
-            if ($bodyText !== (string) $params['body_text']) {
-                $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
-                    'body_text' => $bodyText,
-                    'updated_at' => $now,
-                    'id' => $newPostId,
-                ]);
-            }
-        }
-        $postMap[(int) $post['id']] = $newPostId;
-    }
-
-    sr_community_copy_board_comments($pdo, $postMap);
-    sr_community_copy_board_attachments($pdo, $postMap, $createdFiles);
-
-    return $postMap;
-}
-
 function sr_community_copy_board_comments(PDO $pdo, array $postMap): void
 {
     if ($postMap === []) {
@@ -770,83 +680,6 @@ function sr_community_copy_board_comments(PDO $pdo, array $postMap): void
             $insert->execute($params);
         }
     }
-}
-
-function sr_community_copy_board_series(PDO $pdo, int $sourceBoardId, int $newBoardId, array $postMap, int $accountId, string $now): array
-{
-    if ($sourceBoardId < 1 || $newBoardId < 1 || $postMap === [] || !sr_community_series_supported($pdo)) {
-        return ['series' => 0, 'items' => 0, 'excluded_items' => 0];
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT DISTINCT s.*
-         FROM sr_community_series s
-         INNER JOIN sr_community_series_items si ON si.series_id = s.id
-         INNER JOIN sr_community_posts p ON p.id = si.post_id
-         WHERE s.board_id = :board_id
-           AND p.board_id = :board_id_for_posts
-         ORDER BY s.id ASC'
-    );
-    $stmt->execute(['board_id' => $sourceBoardId, 'board_id_for_posts' => $sourceBoardId]);
-
-    $insertSeries = $pdo->prepare(
-        'INSERT INTO sr_community_series
-            (board_id, owner_account_id, title, description, status, visibility, admin_note, created_by, updated_by, moderated_by, moderated_at, created_at, updated_at)
-         VALUES
-            (:board_id, :owner_account_id, :title, :description, :status, :visibility, :admin_note, :created_by, :updated_by, :moderated_by, :moderated_at, :created_at, :updated_at)'
-    );
-    $insertItem = $pdo->prepare(
-        'INSERT INTO sr_community_series_items
-            (series_id, post_id, active_post_id, episode_label, item_status, sort_order, created_by, created_at, updated_at)
-         VALUES
-            (:series_id, :post_id, :active_post_id, :episode_label, :item_status, :sort_order, :created_by, :created_at, :updated_at)'
-    );
-
-    $result = ['series' => 0, 'items' => 0, 'excluded_items' => 0];
-    foreach ($stmt->fetchAll() as $series) {
-        $insertSeries->execute([
-            'board_id' => $newBoardId,
-            'owner_account_id' => (int) ($series['owner_account_id'] ?? 0),
-            'title' => sr_community_board_copy_series_option_title($sourceBoardId, (int) $series['id']) ?: sr_community_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160),
-            'description' => (string) ($series['description'] ?? ''),
-            'status' => (string) ($series['status'] ?? 'active'),
-            'visibility' => (string) ($series['visibility'] ?? 'public'),
-            'admin_note' => null,
-            'created_by' => $accountId,
-            'updated_by' => $accountId,
-            'moderated_by' => null,
-            'moderated_at' => null,
-            'created_at' => (string) ($series['created_at'] ?? $now),
-            'updated_at' => (string) ($series['updated_at'] ?? $now),
-        ]);
-        $newSeriesId = (int) $pdo->lastInsertId();
-        $result['series']++;
-
-        $items = $pdo->prepare('SELECT * FROM sr_community_series_items WHERE series_id = :series_id ORDER BY sort_order ASC, id ASC');
-        $items->execute(['series_id' => (int) $series['id']]);
-        foreach ($items->fetchAll() as $item) {
-            $sourcePostId = (int) ($item['post_id'] ?? 0);
-            if (!isset($postMap[$sourcePostId])) {
-                $result['excluded_items']++;
-                continue;
-            }
-            $newPostId = (int) $postMap[$sourcePostId];
-            $insertItem->execute([
-                'series_id' => $newSeriesId,
-                'post_id' => $newPostId,
-                'active_post_id' => $newPostId,
-                'episode_label' => (string) ($item['episode_label'] ?? ''),
-                'item_status' => (string) ($item['item_status'] ?? 'active'),
-                'sort_order' => (int) ($item['sort_order'] ?? 0),
-                'created_by' => $item['created_by'] !== null ? (int) $item['created_by'] : null,
-                'created_at' => (string) ($item['created_at'] ?? $now),
-                'updated_at' => (string) ($item['updated_at'] ?? $now),
-            ]);
-            $result['items']++;
-        }
-    }
-
-    return $result;
 }
 
 function sr_community_copy_board_attachments(PDO $pdo, array $postMap, array &$createdFiles): void

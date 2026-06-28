@@ -352,11 +352,6 @@ function sr_community_debug_query_panel_html(): string
     return $html;
 }
 
-function sr_community_home_debug_query_panel_html(): string
-{
-    return sr_community_debug_query_panel_html();
-}
-
 function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boardById, array $settings, array $homeExcerptAllowedByBoardId): array
 {
     $posts = [];

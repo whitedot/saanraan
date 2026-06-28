@@ -81,27 +81,6 @@ function sr_community_set_member_nickname(PDO $pdo, int $accountId, string $nick
     sr_community_clear_member_nickname_cache($pdo, $accountId);
 }
 
-function sr_community_create_member_nickname(PDO $pdo, int $accountId, string $nickname): void
-{
-    if ($accountId < 1) {
-        return;
-    }
-
-    sr_community_set_member_nickname($pdo, $accountId, $nickname);
-    sr_audit_log($pdo, [
-        'actor_account_id' => $accountId,
-        'actor_type' => 'member',
-        'event_type' => 'community.nickname.created',
-        'target_type' => 'member_account',
-        'target_id' => (string) $accountId,
-        'result' => 'success',
-        'message' => 'Community nickname created by member.',
-        'metadata' => [
-            'nickname_set' => true,
-        ],
-    ]);
-}
-
 function sr_community_clear_member_nickname_cache(PDO $pdo, int $accountId): void
 {
     if (!isset($GLOBALS['sr_community_member_nickname_cache']) || !is_array($GLOBALS['sr_community_member_nickname_cache'])) {
@@ -150,34 +129,6 @@ function sr_community_public_account_summary_by_hash(PDO $pdo, array $config, st
         : sr_community_member_nickname($pdo, (int) $summary['id']);
 
     return $summary;
-}
-
-function sr_community_nickname_filter(PDO $pdo, array $config, bool $levelFilterEnabled = false, ?array $settings = null): array
-{
-    $field = sr_get_string('field', 30);
-    $keyword = trim(sr_get_string('q', 120));
-    $allowedFields = ['all', 'hash', 'email', 'nickname'];
-    if (!in_array($field, $allowedFields, true)) {
-        $field = 'all';
-    }
-    $levelValue = null;
-    $levelInput = sr_get_string('level', 20);
-    if ($levelFilterEnabled && $levelInput !== '' && preg_match('/\A[0-9]+\z/', $levelInput) === 1) {
-        $levelValue = sr_community_normalize_level_value($levelInput, $settings);
-    }
-
-    $accountId = 0;
-    if ($field === 'all' || $field === 'hash') {
-        $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $field, $keyword);
-    }
-
-    return [
-        'field' => $field,
-        'keyword' => $keyword,
-        'account_id' => $accountId,
-        'level_value' => $levelValue,
-        'level_enabled' => $levelFilterEnabled,
-    ];
 }
 
 function sr_community_nickname_query_parts(array $filter = []): array
@@ -230,26 +181,6 @@ function sr_community_nickname_query_parts(array $filter = []): array
     ];
 }
 
-function sr_community_nickname_count(PDO $pdo, array $filter = []): int
-{
-    $queryParts = sr_community_nickname_query_parts($filter);
-    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
-    $levelJoinSql = !empty($filter['level_enabled']) && sr_community_level_tables_exist($pdo)
-        ? 'LEFT JOIN sr_community_account_levels l ON l.account_id = a.id'
-        : '';
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*) AS count_value
-         FROM sr_member_accounts a
-         INNER JOIN sr_member_nicknames n ON n.account_id = a.id
-         ' . $levelJoinSql . '
-         ' . $whereSql
-    );
-    $stmt->execute($queryParts['params']);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
-}
-
 function sr_community_admin_nickname_sort_options(bool $levelEnabled = false): array
 {
     $options = [
@@ -270,48 +201,6 @@ function sr_community_admin_nickname_sort_options(bool $levelEnabled = false): a
 function sr_community_admin_nickname_default_sort(): array
 {
     return sr_admin_sort_default('created_at', 'desc');
-}
-
-function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0, int $offset = 0, array $sort = []): array
-{
-    $queryParts = sr_community_nickname_query_parts($filter);
-    $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
-    $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
-    $includeLevel = !empty($filter['level_enabled']) && sr_community_level_tables_exist($pdo);
-    $sortOptions = sr_community_admin_nickname_sort_options($includeLevel);
-    $defaultSort = sr_community_admin_nickname_default_sort();
-    $levelSelectSql = $includeLevel
-        ? ',
-                COALESCE(l.level_value, 0) AS community_level_value,
-                COALESCE(l.score_value, 0) AS community_score_value,
-                COALESCE(l.post_count, 0) AS community_level_post_count,
-                COALESCE(l.comment_count, 0) AS community_level_comment_count,
-                l.evaluated_at AS community_level_evaluated_at'
-        : '';
-    $levelJoinSql = $includeLevel
-        ? 'LEFT JOIN sr_community_account_levels l ON l.account_id = a.id'
-        : '';
-    $stmt = $pdo->prepare(
-        'SELECT a.id, a.email, a.display_name, a.status, a.created_at,
-                CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN \'\' ELSE COALESCE(n.nickname, \'\') END AS nickname,
-                CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN NULL ELSE n.updated_at END AS nickname_updated_at
-                ' . $levelSelectSql . '
-         FROM sr_member_accounts a
-         INNER JOIN sr_member_nicknames n ON n.account_id = a.id
-         ' . $levelJoinSql . '
-         ' . $whereSql . '
-         ' . sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort) . $limitSql
-    );
-    foreach ($queryParts['params'] as $paramKey => $paramValue) {
-        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
-    }
-    if ($limit > 0) {
-        $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
-        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
-    }
-    $stmt->execute();
-
-    return $stmt->fetchAll();
 }
 
 function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $excludeAccountId = 0): bool
@@ -349,101 +238,4 @@ function sr_community_nickname_reset_reason_label(string $reason): string
     $options = sr_community_nickname_reset_reason_options();
 
     return isset($options[$reason]) ? (string) $options[$reason] : '';
-}
-
-function sr_community_handle_nickname_reset_post(PDO $pdo, array $account): array
-{
-    $errors = [];
-    $notice = '';
-    $targetAccountId = sr_admin_post_positive_int('account_id');
-    $resetReason = sr_post_string('reset_reason', 40);
-    $resetReasonLabel = sr_community_nickname_reset_reason_label($resetReason);
-
-    if ($targetAccountId <= 0) {
-        $errors[] = sr_t('member::action.admin.member_required');
-    }
-
-    if ($resetReasonLabel === '') {
-        $errors[] = sr_t('community::action.admin.nickname_reset_reason_required');
-    }
-
-    $targetAccount = null;
-    if ($errors === []) {
-        $targetAccount = sr_admin_member_by_id($pdo, $targetAccountId);
-        if (!is_array($targetAccount)) {
-            $errors[] = sr_t('member::action.admin.member_not_found');
-        } elseif (sr_community_nickname_status_blocks_identity((string) ($targetAccount['status'] ?? ''))) {
-            $errors[] = sr_t('community::action.admin.nickname_anonymized_disallowed');
-        }
-    }
-
-    $beforeNickname = '';
-    if ($errors === []) {
-        $beforeNickname = sr_community_member_nickname($pdo, $targetAccountId);
-        if ($beforeNickname === '') {
-            $errors[] = sr_t('community::action.admin.nickname_reset_requires_existing');
-        }
-    }
-
-    if ($errors === []) {
-        $nickname = '';
-        for ($attempt = 0; $attempt < 10; $attempt++) {
-            $nickname = sr_community_random_member_nickname($pdo, $beforeNickname);
-            try {
-                sr_community_set_member_nickname($pdo, $targetAccountId, $nickname);
-                break;
-            } catch (Throwable $exception) {
-                $isDuplicate = ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate')
-                    || ($exception instanceof PDOException && (string) $exception->getCode() === '23000');
-                if (!$isDuplicate || $attempt >= 9) {
-                    throw $exception;
-                }
-            }
-        }
-
-        $notificationAvailable = sr_community_notification_available($pdo);
-        $notificationSent = $notificationAvailable
-            ? sr_community_create_account_notification(
-                $pdo,
-                $targetAccountId,
-                sr_t('community::notification.nickname_reset.title'),
-                sr_t('community::notification.nickname_reset.body', [
-                    'nickname' => $nickname,
-                    'reason' => $resetReasonLabel,
-                ]),
-                '/account/notifications',
-                (int) $account['id']
-            )
-            : false;
-
-        sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'admin',
-            'event_type' => 'community.nickname.reset',
-            'target_type' => 'member_account',
-            'target_id' => (string) $targetAccountId,
-            'result' => 'success',
-            'message' => 'Community nickname reset by admin.',
-            'metadata' => [
-                'nickname_changed' => true,
-                'nickname_was_set' => $beforeNickname !== '',
-                'nickname_set' => $nickname !== '',
-                'previous_nickname' => $beforeNickname,
-                'reset_reason' => $resetReason,
-                'reset_reason_label' => $resetReasonLabel,
-                'notification_available' => $notificationAvailable,
-                'notification_sent' => $notificationSent,
-            ],
-        ]);
-
-        if ($notificationSent) {
-            $notice = sr_t('community::action.admin.nickname_reset');
-        } elseif ($notificationAvailable) {
-            $notice = sr_t('community::action.admin.nickname_reset_notification_failed');
-        } else {
-            $notice = sr_t('community::action.admin.nickname_reset_without_notification');
-        }
-    }
-
-    return sr_admin_action_result($errors, $notice);
 }

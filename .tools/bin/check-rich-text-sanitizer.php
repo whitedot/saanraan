@@ -232,11 +232,6 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 'if ($bodyFormat === \'html\' && is_string($bodyText))',
                 '$bodyText = sr_community_sanitize_post_html($bodyText);',
             ],
-            'modules/community/helpers/board-copy.php' => [
-                '$params[\'body_text\'] = sr_community_sanitize_post_html((string) $params[\'body_text\']);',
-                '$bodyText = sr_community_clone_body_files($pdo, (int) $post[\'id\'], $newPostId, (string) $params[\'body_text\'], $createdFiles);',
-                '$bodyText = sr_community_sanitize_post_html($bodyText);',
-            ],
             'modules/community/helpers/board-copy-jobs.php' => [
                 '$params[\'body_text\'] = sr_community_sanitize_post_html((string) $params[\'body_text\']);',
                 '$bodyText = sr_community_clone_body_files($pdo, (int) $post[\'id\'], $newPostId, (string) $params[\'body_text\'], $createdBodyFiles);',

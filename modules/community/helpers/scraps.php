@@ -214,8 +214,3 @@ function sr_community_scrap_row_can_view(array $scrap): bool
 {
     return !empty($scrap['can_view']);
 }
-
-function sr_community_scrap_row_is_public(array $scrap): bool
-{
-    return sr_community_scrap_row_can_view($scrap);
-}

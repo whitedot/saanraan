@@ -189,11 +189,6 @@ function sr_community_feed_cache_refresh_seconds(string $feedKey): int
     return 0;
 }
 
-function sr_community_feed_cache_ttl_seconds(string $feedKey): int
-{
-    return sr_community_feed_cache_refresh_seconds($feedKey);
-}
-
 function sr_community_feed_cache_refresh_policy_label(string $feedKey): string
 {
     $refreshSeconds = sr_community_feed_cache_refresh_seconds($feedKey);
@@ -250,21 +245,6 @@ function sr_community_feed_cache_context_for_home(array $boards, array $homeExce
         'locale' => 'ko',
         'policy_version' => 'summary-feed-candidate-v1',
     ]);
-}
-
-function sr_community_feed_cache_snapshot_json(array $snapshots): string
-{
-    $safeSnapshots = [];
-    foreach ($snapshots as $snapshot) {
-        if (!is_array($snapshot) || sr_community_feed_cache_snapshot_contains_forbidden_key($snapshot)) {
-            continue;
-        }
-        $safeSnapshots[] = $snapshot;
-    }
-
-    $json = json_encode($safeSnapshots, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-    return is_string($json) ? $json : '[]';
 }
 
 function sr_community_feed_cache_snapshots_from_json(string $json, array $allowedSchemaVersions = ['community_feed_card_snapshot_v1']): array

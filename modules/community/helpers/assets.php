@@ -288,25 +288,6 @@ function sr_community_save_asset_policy_set(PDO $pdo, array $values, int $accoun
     return (int) $pdo->lastInsertId();
 }
 
-function sr_community_asset_policy_set_select_html(string $id, string $name, array $policySets, int $selectedId): string
-{
-    $html = '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select">';
-    $html .= '<option value="0"' . ($selectedId === 0 ? ' selected' : '') . '>선택 안 함</option>';
-    foreach ($policySets as $policySet) {
-        $setId = (int) ($policySet['id'] ?? 0);
-        if ($setId < 1) {
-            continue;
-        }
-        $html .= '<option value="' . sr_e((string) $setId) . '"' . ($selectedId === $setId ? ' selected' : '') . '>';
-        $html .= sr_e((string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId));
-        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
-            $html .= ' (' . sr_e(sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status')) . ')';
-        }
-        $html .= '</option>';
-    }
-    return $html . '</select>';
-}
-
 function sr_community_asset_policy_set_ids_from_value(mixed $value): array
 {
     $rawValues = [];
@@ -362,11 +343,6 @@ function sr_community_asset_policy_set_selection_json_from_ids(array $setIds): s
 
     $json = json_encode(['policy_set_ids' => $setIds], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return is_string($json) ? $json : '';
-}
-
-function sr_community_asset_policy_set_selection_json_from_post(string $fieldName): string
-{
-    return sr_community_asset_policy_set_selection_json_from_ids(sr_community_asset_policy_set_ids_from_value($_POST[$fieldName] ?? []));
 }
 
 function sr_community_asset_policy_set_first_id(array $setIds): int
@@ -1114,20 +1090,6 @@ function sr_community_board_asset_settings_for_audit(PDO $pdo, int $boardId, boo
     return $auditSettings;
 }
 
-function sr_community_board_group_asset_settings_from_storage_for_audit(PDO $pdo, int $groupId): array
-{
-    if ($groupId < 1) {
-        return [];
-    }
-
-    $settings = [];
-    foreach (sr_community_board_group_asset_setting_keys() as $assetSettingKey) {
-        $settings[$assetSettingKey] = sr_community_board_group_setting_value($pdo, $groupId, (string) $assetSettingKey);
-    }
-
-    return sr_community_asset_settings_for_audit($settings);
-}
-
 function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountId): int
 {
     if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
@@ -1138,43 +1100,6 @@ function sr_community_asset_balance(PDO $pdo, string $assetModule, int $accountI
     $balanceFunction = (string) $module['balance_function'];
 
     return (int) $balanceFunction($pdo, $accountId);
-}
-
-function sr_community_asset_combined_balance(PDO $pdo, array $assetModules, int $accountId): int
-{
-    $balance = 0;
-    foreach (sr_community_asset_module_keys_from_value($assetModules, true) as $assetModule) {
-        $balance += sr_community_asset_balance($pdo, $assetModule, $accountId);
-    }
-
-    return $balance;
-}
-
-function sr_community_allocate_asset_use(PDO $pdo, array $assetModules, int $accountId, int $amount): array
-{
-    $remaining = max(0, $amount);
-    $allocations = [];
-    foreach (sr_community_asset_module_keys_from_value($assetModules, true) as $assetModule) {
-        if ($remaining <= 0) {
-            break;
-        }
-
-        $balance = sr_community_asset_balance($pdo, $assetModule, $accountId);
-        if ($balance <= 0) {
-            continue;
-        }
-
-        $useAmount = min($balance, $remaining);
-        if ($useAmount > 0) {
-            $allocations[] = [
-                'asset_module' => $assetModule,
-                'amount' => $useAmount,
-            ];
-            $remaining -= $useAmount;
-        }
-    }
-
-    return $remaining === 0 ? $allocations : [];
 }
 
 function sr_community_asset_amounts_from_value(mixed $value, array $assetModules = [], int $fallbackAmount = 0): array
@@ -1249,28 +1174,6 @@ function sr_community_asset_amount_input_values(mixed $amountsValue, array $asse
     return $amounts;
 }
 
-function sr_community_asset_amount_inputs_html(string $fieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, bool $syncSelected = false): string
-{
-    $amounts = sr_community_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
-    $html = '<div class="admin-asset-amount-grid"' . ($syncSelected ? ' data-admin-asset-amount-sync' : '') . '>';
-    foreach ($assetModuleOptions as $assetModule => $assetOption) {
-        $assetModule = (string) $assetModule;
-        $label = (string) ($assetOption['label'] ?? sr_community_asset_module_label($assetModule));
-        $unitLabel = (string) ($assetOption['unit_label'] ?? sr_community_asset_module_unit_label($assetModule));
-        $isSelected = in_array($assetModule, $selectedAssetModules, true);
-        $html .= '<div class="admin-asset-amount-field' . ($isSelected ? ' is-selected' : '') . '" data-admin-asset-amount-field data-admin-asset-module="' . sr_e($assetModule) . '">'
-            . '<div class="input-group admin-asset-grouped-input-group">'
-            . '<span class="input-group-text">' . sr_e($label) . '</span>'
-            . '<input type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '[' . sr_e($assetModule) . ']" value="' . sr_e((string) (int) ($amounts[$assetModule] ?? 0)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($labelPrefix . ' ' . $label) . '" data-admin-asset-amount-input>'
-            . ($unitLabel !== '' ? '<span class="input-group-text">' . sr_e($unitLabel) . '</span>' : '')
-            . '</div>'
-            . '</div>';
-    }
-    $html .= '</div>';
-
-    return $html;
-}
-
 function sr_community_asset_grouped_amount_inputs_html(string $id, string $moduleFieldName, string $amountFieldName, array $assetModuleOptions, array $selectedAssetModules, mixed $amountsValue, int $fallbackAmount, string $labelPrefix, string $emptyLabel): string
 {
     $amounts = sr_community_asset_amount_input_values($amountsValue, $selectedAssetModules, $fallbackAmount);
@@ -1316,26 +1219,6 @@ function sr_community_asset_grouped_amount_inputs_html(string $id, string $modul
 function sr_community_asset_amount_total(array $amounts, int $fallbackAmount = 0): int
 {
     return $amounts !== [] ? array_sum(array_map('intval', $amounts)) : max(0, $fallbackAmount);
-}
-
-function sr_community_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
-{
-    $allocations = [];
-    foreach (sr_community_asset_deduction_order() as $assetModule) {
-        $amount = (int) ($amounts[$assetModule] ?? 0);
-        if ($amount <= 0) {
-            continue;
-        }
-        if (sr_community_asset_balance($pdo, $assetModule, $accountId) < $amount) {
-            return [];
-        }
-        $allocations[] = [
-            'asset_module' => $assetModule,
-            'amount' => $amount,
-        ];
-    }
-
-    return $allocations;
 }
 
 function sr_community_asset_settlement_currency(PDO $pdo, array $source = []): string

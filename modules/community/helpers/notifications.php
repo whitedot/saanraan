@@ -210,16 +210,6 @@ function sr_community_create_admin_report_notifications(
     }
 }
 
-function sr_community_mention_tokens(string $bodyText): array
-{
-    $tokens = [];
-    foreach (sr_member_mention_token_rows($bodyText) as $row) {
-        $tokens[(string) $row['token']] = true;
-    }
-
-    return array_keys($tokens);
-}
-
 function sr_community_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
 {
     return sr_member_mention_account_ids($pdo, sr_runtime_config(), $bodyText, $excludeAccountIds);

@@ -8,16 +8,6 @@ require_once SR_ROOT . '/modules/community/helpers/posts-comments.php';
 require_once SR_ROOT . '/modules/community/helpers/posts-extra-fields.php';
 require_once SR_ROOT . '/modules/community/helpers/posts-writing.php';
 
-function sr_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
-{
-    $board = sr_community_board_by_key($pdo, $boardKey);
-    if (!is_array($board) || (string) $board['status'] !== 'enabled' || !sr_community_account_can_read_board($pdo, $board, null)) {
-        return null;
-    }
-
-    return $board;
-}
-
 function sr_community_account_can_read_board(PDO $pdo, array $board, ?array $account): bool
 {
     if ((string) ($board['status'] ?? '') !== 'enabled') {
@@ -257,11 +247,6 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
 function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest'): array
 {
     return sr_community_board_posts($pdo, $boardId, $limit, $offset, $keyword, $categoryId, $sort);
-}
-
-function sr_community_public_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0): int
-{
-    return sr_community_board_post_count($pdo, $boardId, $keyword, $categoryId);
 }
 
 function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null): array
@@ -541,54 +526,6 @@ function sr_community_author_label_from_row(array $row, array $config, bool $sho
     return sr_community_member_label_with_identifier($label, $config, (int) ($row['author_account_id'] ?? 0), $showIdentifier);
 }
 
-function sr_community_public_post(PDO $pdo, int $postId): ?array
-{
-    if ($postId < 1) {
-        return null;
-    }
-
-    $categorySupported = sr_community_categories_supported($pdo);
-    $categorySelectSql = $categorySupported
-        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
-        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
-    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
-    $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_preset_key, p.reaction_comment_preset_key,' : "'' AS reaction_preset_key, '' AS reaction_comment_preset_key,";
-    $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, " . $reactionPresetSelectSql . " p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
-         FROM sr_community_posts p
-         INNER JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
-         " . $categoryJoinSql . "
-         WHERE p.id = :id
-           AND p.status = 'published'
-           AND b.status = 'enabled'
-         LIMIT 1"
-    );
-    $stmt->execute(['id' => $postId]);
-    $post = $stmt->fetch();
-
-    if (!is_array($post)) {
-        return null;
-    }
-
-    $board = [
-        'id' => (int) $post['board_id'],
-        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
-        'status' => (string) $post['board_status'],
-        'read_policy' => (string) $post['read_policy'],
-    ];
-
-    if (!sr_community_account_can_read_board($pdo, $board, null)) {
-        return null;
-    }
-
-    $post['read_policy'] = sr_community_effective_board_policy($pdo, $board, 'read_policy');
-    return $post;
-}
-
 function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?array
 {
     if ($postId < 1) {
@@ -774,11 +711,6 @@ function sr_community_account_can_view_post_body(PDO $pdo, array $post, ?array $
     return $accountId > 0
         && ($accountId === (int) ($post['author_account_id'] ?? 0)
             || sr_community_account_can_manage_post_body($pdo, $post, $account));
-}
-
-function sr_community_relative_time_label(string $dateTime): string
-{
-    return sr_relative_time_label($dateTime);
 }
 
 function sr_community_post_statuses(): array

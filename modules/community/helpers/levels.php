@@ -1024,46 +1024,6 @@ function sr_community_maybe_recalculate_account_level(PDO $pdo, int $accountId, 
 }
 
 // Policy checks for manual edits live in the admin action; this helper only persists the requested snapshot.
-function sr_community_set_account_level(PDO $pdo, int $accountId, int $levelValue, string $reasonKey = 'admin_manual_level_update', ?array $settings = null): array
-{
-    if ($accountId < 1 || !sr_community_level_tables_exist($pdo)) {
-        return sr_community_empty_account_level_snapshot($accountId);
-    }
-
-    $levelValue = sr_community_normalize_level_value($levelValue, $settings);
-    $before = sr_community_account_level_snapshot($pdo, $accountId);
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_community_account_levels
-            (account_id, level_value, score_value, post_count, comment_count, evaluated_at, created_at, updated_at)
-         VALUES
-            (:account_id, :level_value, :score_value, :post_count, :comment_count, :evaluated_at, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE
-            level_value = VALUES(level_value),
-            updated_at = VALUES(updated_at)'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'level_value' => $levelValue,
-        'score_value' => (int) ($before['score_value'] ?? 0),
-        'post_count' => (int) ($before['post_count'] ?? 0),
-        'comment_count' => (int) ($before['comment_count'] ?? 0),
-        'evaluated_at' => $before['evaluated_at'] ?? null,
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
-
-    if ((int) ($before['level_value'] ?? 0) !== $levelValue) {
-        sr_community_log_level_change($pdo, $accountId, $before, [
-            'level_value' => $levelValue,
-            'score_value' => (int) ($before['score_value'] ?? 0),
-        ], $reasonKey);
-    }
-
-    sr_community_clear_account_level_snapshot_runtime_cache($pdo, $accountId);
-
-    return sr_community_account_level_snapshot($pdo, $accountId);
-}
 
 function sr_community_level_value_for_score(PDO $pdo, int $scoreValue, ?array $settings = null): int
 {

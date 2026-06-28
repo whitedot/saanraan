@@ -107,11 +107,6 @@ function sr_community_comment_thread_columns_exist(PDO $pdo): bool
     return $existsByConnection[$key];
 }
 
-function sr_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
-{
-    return sr_community_post_comments($pdo, $postId, $limit);
-}
-
 function sr_community_comment_secret_column_exists(PDO $pdo): bool
 {
     static $existsByConnection = [];

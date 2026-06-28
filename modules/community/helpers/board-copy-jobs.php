@@ -66,11 +66,6 @@ function sr_community_board_copy_job_stage_progress_label(string $stage): string
     return '(' . (string) $number . '/' . (string) sr_community_board_copy_job_stage_total() . ') ' . sr_community_board_copy_job_stage_label($stage);
 }
 
-function sr_community_board_copy_job_state_label(string $status, string $stage): string
-{
-    return sr_community_board_copy_job_status_label($status) . ' / ' . sr_community_board_copy_job_stage_label($stage);
-}
-
 function sr_community_board_copy_map_statuses(): array
 {
     return ['pending', 'copied', 'verified', 'failed', 'skipped', 'cleaned', 'cleanup_failed'];

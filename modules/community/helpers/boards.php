@@ -164,11 +164,6 @@ function sr_community_board_group_all_setting_keys(): array
     )));
 }
 
-function sr_community_board_group_copy_setting_keys_for_new_board(): array
-{
-    return array_values(array_diff(sr_community_board_group_all_setting_keys(), ['status', 'skin_key']));
-}
-
 function sr_community_board_group_default_settings(array $settings): array
 {
     $fileAllowedExtensions = $settings['file_allowed_extensions'] ?? ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'];

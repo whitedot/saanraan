@@ -77,11 +77,6 @@ function sr_community_consume_attachment_paid_read_bridge_created_at(int $accoun
     return 0;
 }
 
-function sr_community_consume_attachment_paid_read_bridge(int $accountId, int $attachmentId, string $fingerprint): bool
-{
-    return sr_community_consume_attachment_paid_read_bridge_created_at($accountId, $attachmentId, $fingerprint) > 0;
-}
-
 function sr_community_asset_dedupe_key(string $assetModule, int $accountId, string $eventKey, int $subjectId): string
 {
     return 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId;
@@ -1540,37 +1535,6 @@ function sr_community_asset_recovery_failure_statuses(): array
     return ['open', 'recovered', 'manually_resolved', 'cancelled'];
 }
 
-function sr_community_asset_recovery_failure_status_label(string $status): string
-{
-    return match ($status) {
-        'open' => '미회수',
-        'recovered' => '전액 회수',
-        'manually_resolved' => '수동 해소',
-        'resolved' => '해소',
-        'cancelled' => '취소',
-        default => $status,
-    };
-}
-
-function sr_community_asset_recovery_failure_by_id(PDO $pdo, int $failureId): ?array
-{
-    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT f.*, ma.email AS account_email, ma.display_name AS account_display_name
-         FROM sr_community_asset_recovery_failures f
-         LEFT JOIN sr_member_accounts ma ON ma.id = f.account_id
-         WHERE f.id = :id
-         LIMIT 1'
-    );
-    $stmt->execute(['id' => $failureId]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
-}
-
 function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $failureId): ?array
 {
     if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
@@ -1594,31 +1558,6 @@ function sr_community_asset_recovery_failure_by_id_for_update(PDO $pdo, int $fai
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
-}
-
-function sr_community_asset_recovery_failure_filters_from_request(): array
-{
-    $status = sr_get_string('status', 20);
-    if ($status !== '' && !in_array($status, sr_community_asset_recovery_failure_statuses(), true)) {
-        $status = '';
-    }
-    $subjectType = sr_get_string('subject_type', 60);
-    if ($subjectType !== '' && !in_array($subjectType, ['community.post', 'community.comment'], true)) {
-        $subjectType = '';
-    }
-    $assetModuleValue = strtolower(trim(sr_get_string('asset_module', 20)));
-    $assetModule = isset(sr_community_asset_modules()[$assetModuleValue]) ? $assetModuleValue : '';
-    $subjectIdValue = sr_get_string('subject_id', 20);
-
-    return [
-        'status' => $status,
-        'asset_module' => $assetModule,
-        'subject_type' => $subjectType,
-        'subject_id' => preg_match('/\A[1-9][0-9]*\z/', $subjectIdValue) === 1 ? (int) $subjectIdValue : 0,
-        'q' => trim(sr_get_string('q', 120)),
-        'created_from' => sr_get_string('created_from', 10),
-        'created_to' => sr_get_string('created_to', 10),
-    ];
 }
 
 function sr_community_asset_recovery_failure_where(array $filters, array &$params): string
@@ -1657,26 +1596,6 @@ function sr_community_asset_recovery_failure_where(array $filters, array &$param
     return implode(' AND ', $conditions);
 }
 
-function sr_community_asset_recovery_failure_count(PDO $pdo, array $filters): int
-{
-    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
-        return 0;
-    }
-
-    $params = [];
-    $where = sr_community_asset_recovery_failure_where($filters, $params);
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*) AS count_value
-         FROM sr_community_asset_recovery_failures f
-         LEFT JOIN sr_member_accounts ma ON ma.id = f.account_id
-         WHERE ' . $where
-    );
-    $stmt->execute($params);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
-}
-
 function sr_community_asset_recovery_failures(PDO $pdo, array $filters, int $limit, int $offset): array
 {
     if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
@@ -1696,46 +1615,4 @@ function sr_community_asset_recovery_failures(PDO $pdo, array $filters, int $lim
     $stmt->execute($params);
 
     return $stmt->fetchAll();
-}
-
-function sr_community_asset_recovery_failure_update_manual_status(PDO $pdo, int $failureId, string $status, int $actorAccountId, string $reason): void
-{
-    if (!sr_community_asset_recovery_failures_table_exists($pdo)) {
-        throw new RuntimeException('Community asset recovery failure table is not available.');
-    }
-
-    if (!in_array($status, ['manually_resolved', 'cancelled'], true)) {
-        throw new InvalidArgumentException('Invalid recovery failure status.');
-    }
-    $reason = trim($reason);
-    if ($reason === '') {
-        throw new InvalidArgumentException('Manual recovery status reason is required.');
-    }
-    $failureReason = $status === 'manually_resolved' ? 'manual_resolved' : 'manual_cancelled';
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_asset_recovery_failures
-         SET status = :status,
-             failure_reason = :failure_reason,
-             actor_account_id = :actor_account_id,
-             actor_type = \'admin\',
-             operation_context_json = :operation_context_json,
-             updated_at = :updated_at,
-             resolved_at = :resolved_at
-         WHERE id = :id
-           AND status = \'open\''
-    );
-    $contextJson = json_encode(['operation_event_key' => 'manual_' . $status, 'actor_type' => 'admin', 'route_context' => 'admin.community.recovery_failures'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $stmt->execute([
-        'status' => $status,
-        'failure_reason' => $failureReason,
-        'actor_account_id' => $actorAccountId,
-        'operation_context_json' => is_string($contextJson) ? $contextJson : '{}',
-        'updated_at' => $now,
-        'resolved_at' => $now,
-        'id' => $failureId,
-    ]);
-    if ($stmt->rowCount() < 1) {
-        throw new RuntimeException('미회수 row가 이미 처리되었거나 찾을 수 없습니다.');
-    }
 }
