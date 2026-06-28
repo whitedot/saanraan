@@ -760,6 +760,24 @@ function sr_community_admin_attachment_status_counts(PDO $pdo): array
     return $counts;
 }
 
+function sr_community_admin_filter_values(string $key, array $allowedValues): array
+{
+    $raw = $_GET[$key] ?? [];
+    if (!is_array($raw)) {
+        $raw = (string) $raw === '' ? [] : [(string) $raw];
+    }
+
+    $values = [];
+    foreach ($raw as $value) {
+        $value = (string) $value;
+        if (in_array($value, $allowedValues, true)) {
+            $values[$value] = $value;
+        }
+    }
+
+    return array_values($values);
+}
+
 function sr_community_admin_attachment_sort_options(): array
 {
     return [

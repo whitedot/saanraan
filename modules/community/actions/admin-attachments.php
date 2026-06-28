@@ -9,26 +9,6 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/attachments', sr_request_method() === 'POST' ? 'edit' : 'view');
 
-if (!function_exists('sr_community_admin_filter_values')) {
-    function sr_community_admin_filter_values(string $key, array $allowedValues): array
-    {
-        $raw = $_GET[$key] ?? [];
-        if (!is_array($raw)) {
-            $raw = (string) $raw === '' ? [] : [(string) $raw];
-        }
-
-        $values = [];
-        foreach ($raw as $value) {
-            $value = (string) $value;
-            if (in_array($value, $allowedValues, true)) {
-                $values[$value] = $value;
-            }
-        }
-
-        return array_values($values);
-    }
-}
-
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 

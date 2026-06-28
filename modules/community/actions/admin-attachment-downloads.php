@@ -9,26 +9,6 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/attachment-downloads', 'view');
 
-if (!function_exists('sr_community_admin_filter_values')) {
-    function sr_community_admin_filter_values(string $key, array $allowedValues): array
-    {
-        $raw = $_GET[$key] ?? [];
-        if (!is_array($raw)) {
-            $raw = (string) $raw === '' ? [] : [(string) $raw];
-        }
-
-        $values = [];
-        foreach ($raw as $value) {
-            $value = (string) $value;
-            if (in_array($value, $allowedValues, true)) {
-                $values[$value] = $value;
-            }
-        }
-
-        return array_values($values);
-    }
-}
-
 $filters = [
     'board_id' => (int) sr_get_string('board_id', 20),
     'post_id' => (int) sr_get_string('post_id', 20),
