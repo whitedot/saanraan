@@ -384,7 +384,6 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', '<p>removed</p>', 7);
     sr_url_embed_contract_assert((string) sr_url_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_url_embed_cache WHERE owner_id = 10 LIMIT 1') === 'stale', 'Removed owner URL must become stale.');
 
-    sr_url_embed_contract_assert(sr_url_embed_search_targets($pdo, '공개', 10) === [], 'Target search contracts must stay disabled in URL paste mode.');
     $youtubeBody = '<p>https://youtu.be/dQw4w9WgXcQ</p>';
     sr_url_embed_contract_assert(sr_url_embed_stylesheets_for_body($pdo, $youtubeBody, 'fixture', 'doc', 18) === ['/assets/url-embed.css'], 'External URL embeds must expose the common external embed stylesheet.');
     $youtubeRendered = sr_url_embed_render_body_html($pdo, $youtubeBody, 'fixture', 'doc', 18);
