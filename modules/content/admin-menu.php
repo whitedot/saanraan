@@ -55,6 +55,11 @@ return [
             'order' => 31,
         ],
         [
+            'label' => '임베드 캐시',
+            'path' => '/admin/content/embed-cache',
+            'order' => 32,
+        ],
+        [
             'label' => '회원 그룹별 설정',
             'path' => '/admin/content/asset-policy-sets',
             'order' => 40,

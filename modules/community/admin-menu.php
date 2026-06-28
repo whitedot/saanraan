@@ -50,6 +50,11 @@ return [
             'order' => 68,
         ],
         [
+            'label' => '임베드 캐시',
+            'path' => '/admin/community/embed-cache',
+            'order' => 69,
+        ],
+        [
             'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 70,

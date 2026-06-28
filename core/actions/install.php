@@ -149,7 +149,7 @@ $optionalModules = [
     ],
     'coupon' => [
         'name' => '쿠폰·이용권',
-        'version' => '2026.05.006',
+        'version' => '2026.06.008',
         'label' => '쿠폰·이용권',
         'description' => '회원별 쿠폰·이용권 종류, 지급, 사용 내역을 관리합니다.',
     ],
@@ -167,25 +167,25 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.06.023',
+        'version' => '2026.06.024',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.06.040',
+        'version' => '2026.06.041',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
-        'version' => '2026.06.017',
+        'version' => '2026.06.018',
         'label' => '퀴즈·테스트',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
     'survey' => [
         'name' => '설문·여론조사',
-        'version' => '2026.06.014',
+        'version' => '2026.06.015',
         'label' => '설문·여론조사',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],

@@ -35,6 +35,11 @@ return [
             'order' => 40,
         ],
         [
+            'label' => '임베드 캐시',
+            'path' => '/admin/surveys/embed-cache',
+            'order' => 45,
+        ],
+        [
             'label' => '매뉴얼',
             'path' => '/admin/surveys/manual',
             'order' => 50,

@@ -417,6 +417,8 @@ function sr_url_embed_contract_runtime_fixture(): void
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     $contractPath = 'modules/' . $moduleKey . '/url-embed-targets.php';
     $modulePath = 'modules/' . $moduleKey . '/module.php';
+    $adminMenuPath = 'modules/' . $moduleKey . '/admin-menu.php';
+    $pathsPath = 'modules/' . $moduleKey . '/paths.php';
     if (!is_file($contractPath)) {
         sr_url_embed_contract_error('URL embed contract is missing: ' . $contractPath);
         continue;
@@ -426,9 +428,23 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v1'"] as $needle) {
         sr_url_embed_contract_contains($contractPath, $needle);
     }
+    $adminPath = $moduleKey === 'survey' ? '/admin/surveys/embed-cache' : '/admin/' . $moduleKey . '/embed-cache';
+    sr_url_embed_contract_contains($adminMenuPath, "'" . $adminPath . "'");
+    sr_url_embed_contract_contains($pathsPath, "'GET " . $adminPath . "'");
+    sr_url_embed_contract_contains($pathsPath, "'POST " . $adminPath . "'");
+    sr_url_embed_contract_contains('modules/' . $moduleKey . '/actions/admin-embed-cache.php', "include SR_ROOT . '/core/actions/admin-url-embed-fragment-cache.php'");
 }
 
 sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', "'embed_stylesheet' => '/modules/coupon/assets/embed.css'");
+sr_url_embed_contract_contains('modules/coupon/admin-menu.php', "'/admin/coupons/embed-cache'");
+sr_url_embed_contract_contains('modules/coupon/paths.php', "'GET /admin/coupons/embed-cache'");
+sr_url_embed_contract_contains('modules/coupon/paths.php', "'POST /admin/coupons/embed-cache'");
+sr_url_embed_contract_contains('modules/coupon/actions/admin-embed-cache.php', "include SR_ROOT . '/core/actions/admin-url-embed-fragment-cache.php'");
+sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$urlEmbedCacheAdminPath, 'delete')");
+sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', 'sr_require_csrf()');
+sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', 'admin.url_embed_fragment_cache.cleaned');
+sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_fragment_cache_admin_scan');
+sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_fragment_cache_admin_cleanup');
 
 sr_url_embed_contract_runtime_fixture();
 

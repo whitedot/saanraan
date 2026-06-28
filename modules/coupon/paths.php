@@ -17,6 +17,8 @@ return [
     'POST /admin/coupons/campaigns/new' => 'actions/admin-coupons.php',
     'GET /admin/coupons/settings' => 'actions/admin-coupon-settings.php',
     'POST /admin/coupons/settings' => 'actions/admin-coupon-settings.php',
+    'GET /admin/coupons/embed-cache' => 'actions/admin-embed-cache.php',
+    'POST /admin/coupons/embed-cache' => 'actions/admin-embed-cache.php',
     'GET /admin/coupons/target-search' => 'actions/admin-coupon-target-search.php',
     'GET /admin/coupons/member-search' => 'actions/admin-coupon-member-search.php',
 ];

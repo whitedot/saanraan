@@ -29,5 +29,10 @@ return [
             'path' => '/admin/coupons/settings',
             'order' => 50,
         ],
+        [
+            'label' => '임베드 캐시',
+            'path' => '/admin/coupons/embed-cache',
+            'order' => 55,
+        ],
     ],
 ];

@@ -1411,6 +1411,254 @@ function sr_url_embed_fragment_cache_write(array $resolved, array $definition, a
     @rename($temporaryPath, $path);
 }
 
+function sr_url_embed_fragment_cache_admin_date_filter(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    return preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_url_embed_fragment_cache_admin_module_key(string $value): string
+{
+    return sr_url_embed_clean_identifier($value);
+}
+
+function sr_url_embed_fragment_cache_admin_filters_from_request(string $moduleKey): array
+{
+    return [
+        'module_key' => sr_url_embed_fragment_cache_admin_module_key($moduleKey),
+        'date_from' => sr_url_embed_fragment_cache_admin_date_filter(sr_get_string('date_from', 20)),
+        'date_to' => sr_url_embed_fragment_cache_admin_date_filter(sr_get_string('date_to', 20)),
+    ];
+}
+
+function sr_url_embed_fragment_cache_admin_filter_start_timestamp(string $date): int
+{
+    if (sr_url_embed_fragment_cache_admin_date_filter($date) === '') {
+        return 0;
+    }
+
+    $timestamp = strtotime($date . ' 00:00:00');
+    return is_int($timestamp) ? $timestamp : 0;
+}
+
+function sr_url_embed_fragment_cache_admin_filter_end_timestamp(string $date): int
+{
+    if (sr_url_embed_fragment_cache_admin_date_filter($date) === '') {
+        return 0;
+    }
+
+    $timestamp = strtotime($date . ' 23:59:59');
+    return is_int($timestamp) ? $timestamp : 0;
+}
+
+function sr_url_embed_fragment_cache_admin_cleanup_limit(): int
+{
+    return 200;
+}
+
+function sr_url_embed_fragment_cache_admin_empty_scan(): array
+{
+    return [
+        'rows' => [],
+        'summary' => [
+            'total_count' => 0,
+            'total_bytes' => 0,
+            'oldest_at' => '',
+            'newest_at' => '',
+            'date_counts' => [],
+            'date_bytes' => [],
+        ],
+    ];
+}
+
+function sr_url_embed_fragment_cache_admin_relative_path(string $rootRealPath, string $path): string
+{
+    $realPath = realpath($path);
+    if (!is_string($realPath)) {
+        return '';
+    }
+
+    $prefix = rtrim($rootRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (!str_starts_with($realPath, $prefix)) {
+        return '';
+    }
+
+    return str_replace(DIRECTORY_SEPARATOR, '/', substr($realPath, strlen($prefix)));
+}
+
+function sr_url_embed_fragment_cache_admin_parse_relative_path(string $relative): ?array
+{
+    if (preg_match('#\A([a-z][a-z0-9_]{1,59})/([a-f0-9]{2})/([a-f0-9]{64})\.html\z#', $relative, $matches) !== 1) {
+        return null;
+    }
+
+    return [
+        'module_key' => (string) $matches[1],
+        'hash_prefix' => (string) $matches[2],
+        'cache_hash' => (string) $matches[3],
+    ];
+}
+
+function sr_url_embed_fragment_cache_admin_preview(string $path): string
+{
+    if (!is_file($path) || filesize($path) > 262144) {
+        return '';
+    }
+
+    $html = file_get_contents($path);
+    if (!is_string($html)) {
+        return '';
+    }
+    $preview = trim(preg_replace('/\s+/', ' ', strip_tags($html)) ?? '');
+
+    return function_exists('mb_substr') ? mb_substr($preview, 0, 180) : substr($preview, 0, 180);
+}
+
+function sr_url_embed_fragment_cache_admin_scan(array $filters): array
+{
+    $moduleKey = sr_url_embed_fragment_cache_admin_module_key((string) ($filters['module_key'] ?? ''));
+    $root = sr_url_embed_fragment_cache_root();
+    if ($moduleKey === '' || !is_dir($root)) {
+        return sr_url_embed_fragment_cache_admin_empty_scan();
+    }
+
+    $rootRealPath = realpath($root);
+    if (!is_string($rootRealPath)) {
+        return sr_url_embed_fragment_cache_admin_empty_scan();
+    }
+
+    $modulePath = $rootRealPath . DIRECTORY_SEPARATOR . $moduleKey;
+    if (!is_dir($modulePath)) {
+        return sr_url_embed_fragment_cache_admin_empty_scan();
+    }
+
+    $rows = [];
+    $totalBytes = 0;
+    $dateCounts = [];
+    $dateBytes = [];
+    $oldestAt = '';
+    $newestAt = '';
+    $fromTimestamp = sr_url_embed_fragment_cache_admin_filter_start_timestamp((string) ($filters['date_from'] ?? ''));
+    $toTimestamp = sr_url_embed_fragment_cache_admin_filter_end_timestamp((string) ($filters['date_to'] ?? ''));
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($modulePath, FilesystemIterator::SKIP_DOTS));
+    foreach ($iterator as $fileInfo) {
+        if (!$fileInfo instanceof SplFileInfo || !$fileInfo->isFile()) {
+            continue;
+        }
+
+        $path = $fileInfo->getPathname();
+        $relative = sr_url_embed_fragment_cache_admin_relative_path($rootRealPath, $path);
+        $parsed = sr_url_embed_fragment_cache_admin_parse_relative_path($relative);
+        if ($parsed === null || (string) ($parsed['module_key'] ?? '') !== $moduleKey) {
+            continue;
+        }
+
+        $mtime = (int) $fileInfo->getMTime();
+        if (($fromTimestamp > 0 && $mtime < $fromTimestamp) || ($toTimestamp > 0 && $mtime > $toTimestamp)) {
+            continue;
+        }
+
+        $sizeBytes = max(0, (int) $fileInfo->getSize());
+        $modifiedAt = date('Y-m-d H:i:s', $mtime);
+        $dateKey = date('Y-m-d', $mtime);
+        $rows[] = [
+            'relative_path' => $relative,
+            'module_key' => $moduleKey,
+            'hash_prefix' => (string) $parsed['hash_prefix'],
+            'cache_hash' => (string) $parsed['cache_hash'],
+            'size_bytes' => $sizeBytes,
+            'modified_at' => $modifiedAt,
+            'preview' => sr_url_embed_fragment_cache_admin_preview($path),
+        ];
+        $totalBytes += $sizeBytes;
+        $dateCounts[$dateKey] = (int) ($dateCounts[$dateKey] ?? 0) + 1;
+        $dateBytes[$dateKey] = (int) ($dateBytes[$dateKey] ?? 0) + $sizeBytes;
+        if ($oldestAt === '' || $modifiedAt < $oldestAt) {
+            $oldestAt = $modifiedAt;
+        }
+        if ($newestAt === '' || $modifiedAt > $newestAt) {
+            $newestAt = $modifiedAt;
+        }
+    }
+
+    usort($rows, static function (array $left, array $right): int {
+        return [(string) $right['modified_at'], (string) $right['relative_path']] <=> [(string) $left['modified_at'], (string) $left['relative_path']];
+    });
+    krsort($dateCounts);
+    krsort($dateBytes);
+
+    return [
+        'rows' => $rows,
+        'summary' => [
+            'total_count' => count($rows),
+            'total_bytes' => $totalBytes,
+            'oldest_at' => $oldestAt,
+            'newest_at' => $newestAt,
+            'date_counts' => $dateCounts,
+            'date_bytes' => $dateBytes,
+        ],
+    ];
+}
+
+function sr_url_embed_fragment_cache_admin_cleanup(array $filters, int $limit = 0): array
+{
+    $moduleKey = sr_url_embed_fragment_cache_admin_module_key((string) ($filters['module_key'] ?? ''));
+    $limit = $limit > 0 ? $limit : sr_url_embed_fragment_cache_admin_cleanup_limit();
+    $scan = sr_url_embed_fragment_cache_admin_scan($filters);
+    $rows = isset($scan['rows']) && is_array($scan['rows']) ? $scan['rows'] : [];
+    $rootRealPath = realpath(sr_url_embed_fragment_cache_root());
+    $deletedCount = 0;
+    $deletedBytes = 0;
+    $errors = [];
+    $limitReached = false;
+    if ($moduleKey === '' || !is_string($rootRealPath)) {
+        return [
+            'deleted_count' => 0,
+            'deleted_bytes' => 0,
+            'errors' => [],
+            'limit' => $limit,
+            'limit_reached' => false,
+        ];
+    }
+
+    foreach ($rows as $row) {
+        if ($deletedCount >= $limit) {
+            $limitReached = true;
+            break;
+        }
+        $relative = (string) ($row['relative_path'] ?? '');
+        $parsed = sr_url_embed_fragment_cache_admin_parse_relative_path($relative);
+        if ($parsed === null || (string) ($parsed['module_key'] ?? '') !== $moduleKey) {
+            continue;
+        }
+        $path = $rootRealPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+        $realPath = realpath($path);
+        $prefix = rtrim($rootRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if (!is_string($realPath) || !str_starts_with($realPath, $prefix) || !is_file($realPath)) {
+            continue;
+        }
+        $sizeBytes = max(0, (int) filesize($realPath));
+        if (@unlink($realPath)) {
+            $deletedCount++;
+            $deletedBytes += $sizeBytes;
+        } else {
+            $errors[] = $relative;
+        }
+    }
+
+    return [
+        'deleted_count' => $deletedCount,
+        'deleted_bytes' => $deletedBytes,
+        'errors' => $errors,
+        'limit' => $limit,
+        'limit_reached' => $limitReached,
+    ];
+}
+
 function sr_url_embed_admin_cache_rows(PDO $pdo, array $filters, int $limit = 100): array
 {
     if (!sr_url_embed_cache_table_exists($pdo)) {

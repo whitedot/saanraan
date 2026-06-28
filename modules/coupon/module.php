@@ -2,7 +2,7 @@
 
 return [
     'name' => '쿠폰·이용권',
-    'version' => '2026.06.007',
+    'version' => '2026.06.008',
     'type' => 'module',
     'description' => '회원별 쿠폰 종류, 지급, 사용 내역을 관리합니다.',
     'admin' => [
