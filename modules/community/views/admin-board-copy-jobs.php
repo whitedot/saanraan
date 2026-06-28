@@ -1,6 +1,9 @@
 <?php
 
 $adminPageTitle = '게시판 배치 복사';
+if (is_array($job ?? null)) {
+    $adminPageTitle = sr_community_board_copy_job_stage_progress_label((string) ($job['stage'] ?? 'prepare')) . ' - 게시판 배치 복사';
+}
 $adminPageSubtitle = '대량 데이터는 배치로 이어서 실행됩니다.';
 $adminContainerClass = 'admin-community-board-copy-jobs admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -12,22 +15,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $counts = sr_community_board_copy_job_json($job, 'counts_json');
     $options = sr_community_board_copy_job_json($job, 'options_json');
+    $scopeLabels = [];
+    if (array_key_exists('copy_scope', $options) || array_key_exists('mode', $options)) {
+        $scopeLabels = sr_community_board_copy_scope_labels_for_values($options);
+    }
+    if ($scopeLabels === []) {
+        $scopeLabels = ['게시글+댓글', '첨부파일'];
+        if (!empty($options['copy_series'])) {
+            $scopeLabels[] = '시리즈';
+        }
+    }
+    $stageProgressLabel = sr_community_board_copy_job_stage_progress_label((string) ($job['stage'] ?? 'prepare'));
     $jobStatus = (string) ($job['status'] ?? '');
     $canRun = in_array($jobStatus, ['pending', 'running', 'cleanup_required'], true);
     $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
     $canCancel = in_array($jobStatus, ['pending', 'failed', 'paused'], true);
     ?>
     <section class="card">
-        <h2><?php echo sr_e('작업 #' . (string) (int) $job['id']); ?></h2>
+        <h2><?php echo sr_e('작업 #' . (string) (int) $job['id'] . ' - ' . $stageProgressLabel); ?></h2>
         <dl class="admin-meta-list">
             <dt><?php echo sr_e('상태'); ?></dt>
             <dd><?php echo sr_e(sr_community_board_copy_job_state_label((string) $job['status'], (string) $job['stage'])); ?></dd>
+            <dt><?php echo sr_e('현재 단계'); ?></dt>
+            <dd><?php echo sr_e($stageProgressLabel); ?></dd>
             <dt><?php echo sr_e('원본 / 대상'); ?></dt>
             <dd><?php echo sr_e((string) (int) $job['source_board_id'] . ' -> ' . (string) (int) $job['target_board_id']); ?></dd>
             <dt><?php echo sr_e('새 게시판'); ?></dt>
             <dd><?php echo sr_e((string) ($options['title'] ?? '') . ' (' . (string) ($options['board_key'] ?? '') . ')'); ?></dd>
+            <dt><?php echo sr_e('복사 범위'); ?></dt>
+            <dd><?php echo sr_e(implode(', ', $scopeLabels)); ?></dd>
             <dt><?php echo sr_e('복사 수'); ?></dt>
-            <dd><?php echo sr_e('게시글 ' . number_format((int) ($counts['posts'] ?? 0)) . ', 댓글 ' . number_format((int) ($counts['comments'] ?? 0)) . ', 첨부 ' . number_format((int) ($counts['attachments'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) ($counts['bytes'] ?? 0))); ?></dd>
+            <dd><?php echo sr_e('게시글 ' . number_format((int) ($counts['posts'] ?? 0)) . ', 댓글 ' . number_format((int) ($counts['comments'] ?? 0)) . ', 첨부 ' . number_format((int) ($counts['attachments'] ?? 0)) . ', 시리즈 ' . number_format((int) ($counts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) ($counts['bytes'] ?? 0))); ?></dd>
             <?php if ((string) ($job['last_error'] ?? '') !== '') { ?>
                 <dt><?php echo sr_e('마지막 오류'); ?></dt>
                 <dd><?php echo sr_e((string) $job['last_error']); ?></dd>

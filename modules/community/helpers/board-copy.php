@@ -12,6 +12,125 @@ function sr_community_board_copy_modes(): array
     ];
 }
 
+function sr_community_board_copy_scope_options(): array
+{
+    return [
+        'all' => '전체',
+        'settings' => '설정',
+        'posts_comments' => '게시글+댓글',
+        'attachments' => '첨부파일',
+        'series' => '시리즈',
+    ];
+}
+
+function sr_community_board_copy_scope_item_keys(): array
+{
+    return ['settings', 'posts_comments', 'attachments', 'series'];
+}
+
+function sr_community_board_copy_scope_values(array $values): array
+{
+    $scope = [];
+    if (array_key_exists('copy_scope', $values)) {
+        $rawScope = is_array($values['copy_scope']) ? $values['copy_scope'] : [(string) $values['copy_scope']];
+        foreach ($rawScope as $rawValue) {
+            $scope[] = (string) $rawValue;
+        }
+    } else {
+        $mode = (string) ($values['mode'] ?? 'settings');
+        $scope = $mode === 'full'
+            ? ['settings', 'posts_comments', 'attachments']
+            : ['settings'];
+        if (!empty($values['copy_series'])) {
+            $scope[] = 'series';
+        }
+    }
+
+    $scope = array_values(array_unique(array_filter(array_map(static function (string $value): string {
+        return strtolower(trim($value));
+    }, $scope), static function (string $value): bool {
+        return $value !== '';
+    })));
+
+    if (in_array('all', $scope, true)) {
+        return sr_community_board_copy_scope_item_keys();
+    }
+
+    $allowed = array_flip(sr_community_board_copy_scope_item_keys());
+    $normalized = [];
+    foreach ($scope as $value) {
+        if (isset($allowed[$value])) {
+            $normalized[] = $value;
+        }
+    }
+
+    return array_values(array_unique($normalized));
+}
+
+function sr_community_board_copy_scope_has(array $values, string $scopeKey): bool
+{
+    return in_array($scopeKey, sr_community_board_copy_scope_values($values), true);
+}
+
+function sr_community_board_copy_scope_all_selected(array $values): bool
+{
+    $selected = sr_community_board_copy_scope_values($values);
+    foreach (sr_community_board_copy_scope_item_keys() as $scopeKey) {
+        if (!in_array($scopeKey, $selected, true)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function sr_community_board_copy_scope_labels_for_values(array $values): array
+{
+    if (sr_community_board_copy_scope_all_selected($values)) {
+        return ['전체'];
+    }
+
+    $labels = sr_community_board_copy_scope_options();
+    $result = [];
+    foreach (sr_community_board_copy_scope_values($values) as $scopeKey) {
+        if (isset($labels[$scopeKey])) {
+            $result[] = (string) $labels[$scopeKey];
+        }
+    }
+
+    return $result;
+}
+
+function sr_community_board_copy_scope_errors(array $values): array
+{
+    $scope = sr_community_board_copy_scope_values($values);
+    $errors = [];
+    if ($scope === []) {
+        $errors[] = '복사 범위를 하나 이상 선택하세요.';
+    }
+    if (in_array('attachments', $scope, true) && !in_array('posts_comments', $scope, true)) {
+        $errors[] = '첨부파일을 복사하려면 게시글+댓글도 함께 선택하세요.';
+    }
+    if (in_array('series', $scope, true) && !in_array('posts_comments', $scope, true)) {
+        $errors[] = '시리즈를 복사하려면 게시글+댓글도 함께 선택하세요.';
+    }
+
+    return $errors;
+}
+
+function sr_community_board_copy_normalized_values(array $values): array
+{
+    $scope = sr_community_board_copy_scope_values($values);
+    $values['copy_scope'] = $scope;
+    $values['mode'] = in_array('posts_comments', $scope, true) ? 'full' : 'settings';
+    $values['copy_settings'] = in_array('settings', $scope, true);
+    $values['copy_posts_comments'] = in_array('posts_comments', $scope, true);
+    $values['copy_attachments'] = in_array('attachments', $scope, true);
+    $values['copy_series'] = in_array('series', $scope, true);
+
+    return $values;
+}
+
 function sr_community_board_copy_limits(): array
 {
     return [
@@ -45,7 +164,6 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     $counts = [
         'posts' => 0,
         'comments' => 0,
-        'legacy_link_card_tokens' => 0,
         'attachments' => 0,
         'bytes' => 0,
         'unsupported_storage' => false,
@@ -69,18 +187,6 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     );
     $stmt->execute(['board_id' => $boardId]);
     $counts['comments'] = (int) $stmt->fetchColumn();
-
-    $stmt = $pdo->prepare(
-        'SELECT body_text
-         FROM sr_community_posts
-         WHERE board_id = :board_id'
-    );
-    $stmt->execute(['board_id' => $boardId]);
-    foreach ($stmt->fetchAll() as $row) {
-        if (sr_link_card_token_rejection_errors((string) ($row['body_text'] ?? '')) !== []) {
-            $counts['legacy_link_card_tokens']++;
-        }
-    }
 
     $stmt = $pdo->prepare(
         'SELECT a.*
@@ -223,15 +329,20 @@ function sr_community_board_copy_batch_threshold_errors(array $counts): array
 
 function sr_community_board_copy_batch_block_errors(array $counts): array
 {
+    return sr_community_board_copy_batch_block_errors_for_values($counts, [
+        'copy_scope' => ['settings', 'posts_comments', 'attachments', 'series'],
+    ]);
+}
+
+function sr_community_board_copy_batch_block_errors_for_values(array $counts, array $values): array
+{
+    $values = sr_community_board_copy_normalized_values($values);
     $errors = [];
-    if (!empty($counts['unsupported_storage'])) {
+    if (!empty($values['copy_attachments']) && !empty($counts['unsupported_storage'])) {
         $errors[] = '현재 저장소 driver에서는 첨부파일 포함 복사를 지원하지 않습니다.';
     }
-    if (($counts['missing_files'] ?? []) !== []) {
+    if (!empty($values['copy_attachments']) && ($counts['missing_files'] ?? []) !== []) {
         $errors[] = '원본 첨부파일을 확인할 수 없어 복사를 시작하지 않았습니다.';
-    }
-    if ((int) ($counts['legacy_link_card_tokens'] ?? 0) > 0) {
-        $errors[] = 'legacy 링크 카드 토큰이 남아 있는 게시글이 있어 게시판 복사를 시작하지 않았습니다. 해당 게시글 본문에서 토큰을 제거한 뒤 다시 시도하세요.';
     }
 
     return $errors;
@@ -242,6 +353,116 @@ function sr_community_board_copy_batch_errors(array $counts): array
     return sr_community_board_copy_batch_block_errors($counts);
 }
 
+function sr_community_board_copy_batch_errors_for_values(array $counts, array $values): array
+{
+    return sr_community_board_copy_batch_block_errors_for_values($counts, $values);
+}
+
+function sr_community_board_copy_counts_for_values(array $counts, array $values): array
+{
+    $values = sr_community_board_copy_normalized_values($values);
+    $selected = $counts;
+
+    if (empty($values['copy_posts_comments'])) {
+        $selected['posts'] = 0;
+        $selected['comments'] = 0;
+    }
+    if (empty($values['copy_attachments'])) {
+        $selected['attachments'] = 0;
+        $selected['bytes'] = 0;
+        $selected['unsupported_storage'] = false;
+        $selected['missing_files'] = [];
+    }
+    if (empty($values['copy_series'])) {
+        $selected['series'] = 0;
+        $selected['series_items'] = 0;
+    }
+
+    return $selected;
+}
+
+function sr_community_board_copy_load_assessment(array $counts, array $values, bool $batchAvailable): array
+{
+    $values = sr_community_board_copy_normalized_values($values);
+    $copyPosts = !empty($values['copy_posts_comments']);
+    $posts = $copyPosts ? max(0, (int) ($counts['posts'] ?? 0)) : 0;
+    $comments = $copyPosts ? max(0, (int) ($counts['comments'] ?? 0)) : 0;
+    $attachments = !empty($values['copy_attachments']) ? max(0, (int) ($counts['attachments'] ?? 0)) : 0;
+    $bytes = !empty($values['copy_attachments']) ? max(0, (int) ($counts['bytes'] ?? 0)) : 0;
+    $series = !empty($values['copy_series']) ? max(0, (int) ($counts['series'] ?? 0)) : 0;
+    $seriesItems = !empty($values['copy_series']) ? max(0, (int) ($counts['series_items'] ?? 0)) : 0;
+    $targetRecords = $copyPosts ? $posts + $comments + $attachments + $series + $seriesItems : 1;
+    $limits = sr_community_board_copy_limits();
+
+    $grade = 'low';
+    if ($copyPosts) {
+        if (
+            !$batchAvailable
+            || $posts > (int) $limits['posts']
+            || $comments > (int) $limits['comments']
+            || $attachments > (int) $limits['attachments']
+            || $bytes > (int) $limits['bytes']
+        ) {
+            $grade = 'very_high';
+        } elseif (
+            $posts >= 200
+            || $comments >= 1000
+            || $attachments >= 100
+            || $bytes >= 104857600
+            || $seriesItems >= 500
+        ) {
+            $grade = 'high';
+        } elseif (
+            $posts >= 50
+            || $comments >= 200
+            || $attachments >= 20
+            || $bytes >= 20971520
+            || $seriesItems >= 100
+        ) {
+            $grade = 'caution';
+        }
+    }
+
+    return [
+        'grade' => $grade,
+        'label' => sr_community_board_copy_load_grade_label($grade),
+        'target_records' => $targetRecords,
+        'requires_confirmation' => in_array($grade, ['high', 'very_high'], true),
+        'requires_batch_review' => $grade === 'very_high',
+        'recommended_time' => sr_community_board_copy_load_recommended_time($grade),
+        'failure_state' => $copyPosts
+            ? '배치 작업은 처리된 항목을 유지하고 실패 상태와 다음 처리 위치를 작업 목록에 남깁니다.'
+            : '설정만 복사는 한 요청에서 처리되며, 실패하면 화면 오류와 감사 로그로 확인합니다.',
+    ];
+}
+
+function sr_community_board_copy_load_grade_label(string $grade): string
+{
+    if ($grade === 'very_high') {
+        return '매우 높음';
+    }
+    if ($grade === 'high') {
+        return '높음';
+    }
+    if ($grade === 'caution') {
+        return '주의';
+    }
+
+    return '낮음';
+}
+
+function sr_community_board_copy_load_recommended_time(string $grade): string
+{
+    if ($grade === 'low') {
+        return '일반 운영 시간에도 실행할 수 있습니다. 실행 직전 대상 수만 확인하세요.';
+    }
+    if ($grade === 'caution') {
+        return '일반 운영 시간에도 실행할 수 있지만, 변경 직전 대상 수와 저장소 여유를 확인하세요.';
+    }
+
+    return '방문자가 적은 시간에 실행하고, 가능하면 백업 또는 staging 검증 후 진행하세요.';
+}
+
 function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, int $accountId): int
 {
     $source = sr_community_board_by_id($pdo, $sourceBoardId);
@@ -249,16 +470,13 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
         throw new RuntimeException('복사할 게시판을 찾을 수 없습니다.');
     }
 
-    $mode = (string) ($values['mode'] ?? 'settings');
-    if (!isset(sr_community_board_copy_modes()[$mode])) {
-        throw new InvalidArgumentException('복사 범위가 올바르지 않습니다.');
-    }
-    if ($mode === 'full') {
+    $values = sr_community_board_copy_normalized_values($values);
+    if (!empty($values['copy_posts_comments'])) {
         throw new InvalidArgumentException('게시글/댓글/첨부파일 포함 복사는 게시판 복사 작업 경로로만 실행할 수 있습니다.');
     }
     $boardKey = strtolower(trim((string) ($values['board_key'] ?? '')));
     $title = sr_community_clean_single_line((string) ($values['title'] ?? ''), 120);
-    $errors = [];
+    $errors = sr_community_board_copy_scope_errors($values);
     if (!sr_community_board_key_is_valid($boardKey)) {
         $errors[] = '게시판 Key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
     } elseif (is_array(sr_community_board_by_key($pdo, $boardKey))) {
@@ -266,10 +484,6 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
     }
     if ($title === '') {
         $errors[] = '새 게시판 제목을 입력하세요.';
-    }
-    if ($mode === 'full') {
-        $errors = array_merge($errors, sr_community_board_copy_limit_errors(sr_community_board_copy_counts($pdo, $sourceBoardId)));
-        $errors = array_merge($errors, sr_community_board_copy_series_validate_options($pdo, $sourceBoardId, $values));
     }
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
@@ -293,13 +507,7 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
         ]);
 
         sr_community_copy_board_settings($pdo, $sourceBoardId, $newBoardId, $now);
-        $categoryMap = sr_community_copy_board_categories($pdo, $sourceBoardId, $newBoardId, $now);
-        if ($mode === 'full') {
-            $postMap = sr_community_copy_board_posts($pdo, $sourceBoardId, $newBoardId, $categoryMap, $createdFiles, $now);
-            if (!empty($values['copy_series'])) {
-                sr_community_copy_board_series($pdo, $sourceBoardId, $newBoardId, $postMap, $accountId, $now);
-            }
-        }
+        sr_community_copy_board_categories($pdo, $sourceBoardId, $newBoardId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
@@ -386,9 +594,6 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
             (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . $secretValueSql . $summaryFeedCandidateValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     foreach ($stmt->fetchAll() as $post) {
-        if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
-            throw new InvalidArgumentException('legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다. 해당 게시글 본문에서 토큰을 제거한 뒤 다시 시도하세요.');
-        }
         $sourceCategoryId = (int) ($post['category_id'] ?? 0);
         $params = [
             'board_id' => $newBoardId,

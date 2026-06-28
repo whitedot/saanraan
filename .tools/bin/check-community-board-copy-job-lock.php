@@ -73,6 +73,8 @@ if (!is_string($helper)) {
         'sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);',
         "'verified'",
         'AND EXISTS (',
+        'WHERE id = :lock_job_id',
+        '$params[\'lock_job_id\'] = $jobId;',
         'AND lock_token = :lock_token',
         'WHERE id = :id AND lock_token = :lock_token',
     ] as $marker) {

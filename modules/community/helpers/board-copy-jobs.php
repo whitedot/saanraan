@@ -45,6 +45,27 @@ function sr_community_board_copy_job_stage_label(string $stage): string
     return $labels[$stage] ?? $stage;
 }
 
+function sr_community_board_copy_job_stage_number(string $stage): int
+{
+    $index = array_search($stage, sr_community_board_copy_job_stages(), true);
+    return is_int($index) ? $index + 1 : 0;
+}
+
+function sr_community_board_copy_job_stage_total(): int
+{
+    return count(sr_community_board_copy_job_stages());
+}
+
+function sr_community_board_copy_job_stage_progress_label(string $stage): string
+{
+    $number = sr_community_board_copy_job_stage_number($stage);
+    if ($number < 1) {
+        return sr_community_board_copy_job_stage_label($stage);
+    }
+
+    return '(' . (string) $number . '/' . (string) sr_community_board_copy_job_stage_total() . ') ' . sr_community_board_copy_job_stage_label($stage);
+}
+
 function sr_community_board_copy_job_state_label(string $status, string $stage): string
 {
     return sr_community_board_copy_job_status_label($status) . ' / ' . sr_community_board_copy_job_stage_label($stage);
@@ -74,12 +95,18 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
         $errors[] = '새 게시판 제목을 입력하세요.';
     }
     $counts = sr_community_board_copy_counts($pdo, $sourceBoardId);
-    $errors = array_merge($errors, sr_community_board_copy_batch_block_errors($counts));
+    $values = sr_community_board_copy_normalized_values($values);
+    $errors = array_merge($errors, sr_community_board_copy_scope_errors($values));
+    if (empty($values['copy_posts_comments'])) {
+        $errors[] = '게시글+댓글을 포함한 복사는 게시판 복사 작업으로 만들어야 합니다.';
+    }
+    $errors = array_merge($errors, sr_community_board_copy_batch_block_errors_for_values($counts, $values));
     $errors = array_merge($errors, sr_community_board_copy_series_validate_options($pdo, $sourceBoardId, $values));
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
     }
 
+    $selectedCounts = sr_community_board_copy_counts_for_values($counts, $values);
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_board_copy_jobs
@@ -90,17 +117,21 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
     $stmt->execute([
         'source_board_id' => $sourceBoardId,
         'requested_by' => $accountId,
-        'mode' => 'posts_comments_attachments',
+        'mode' => !empty($values['copy_attachments']) ? 'posts_comments_attachments' : 'posts_comments',
         'status' => 'pending',
         'stage' => 'prepare',
         'source_snapshot_json' => json_encode($source, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'options_json' => json_encode([
             'board_key' => $boardKey,
             'title' => $title,
+            'copy_scope' => $values['copy_scope'],
+            'copy_settings' => !empty($values['copy_settings']),
+            'copy_posts_comments' => !empty($values['copy_posts_comments']),
+            'copy_attachments' => !empty($values['copy_attachments']),
             'copy_series' => !empty($values['copy_series']),
             'series_titles' => is_array($values['series_titles'] ?? null) ? $values['series_titles'] : [],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        'counts_json' => json_encode($counts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'counts_json' => json_encode($selectedCounts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'processed_json' => json_encode([], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'created_at' => $now,
         'updated_at' => $now,
@@ -125,6 +156,33 @@ function sr_community_board_copy_job_json(array $job, string $key): array
 {
     $decoded = json_decode((string) ($job[$key] ?? ''), true);
     return is_array($decoded) ? $decoded : [];
+}
+
+function sr_community_board_copy_job_option_enabled(array $job, string $optionKey, bool $default): bool
+{
+    $options = sr_community_board_copy_job_json($job, 'options_json');
+    if (array_key_exists($optionKey, $options)) {
+        return !empty($options[$optionKey]);
+    }
+
+    return $default;
+}
+
+function sr_community_board_copy_job_next_after_comments(array $job): string
+{
+    if (sr_community_board_copy_job_option_enabled($job, 'copy_attachments', true)) {
+        return 'attachments';
+    }
+    if (sr_community_board_copy_job_option_enabled($job, 'copy_series', false)) {
+        return 'series';
+    }
+
+    return 'verify';
+}
+
+function sr_community_board_copy_job_next_after_attachments(array $job): string
+{
+    return sr_community_board_copy_job_option_enabled($job, 'copy_series', false) ? 'series' : 'verify';
 }
 
 function sr_community_board_copy_jobs_recent(PDO $pdo, int $limit = 30): array
@@ -248,7 +306,7 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     }
     if ($stage === 'board') {
         sr_community_board_copy_job_create_board($pdo, $job, $lockToken);
-        return ['done' => false, 'stage' => 'posts', 'status' => 'running', 'message' => '대상 게시판과 카테고리를 만들었습니다.'];
+        return ['done' => false, 'stage' => 'posts', 'status' => 'running', 'message' => '대상 게시판을 만들고 다음 단계로 이동합니다.'];
     }
     if ($stage === 'posts') {
         return sr_community_board_copy_job_copy_posts($pdo, $job, (int) ($limits['posts'] ?? 50), $lockToken);
@@ -257,9 +315,15 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return sr_community_board_copy_job_copy_comments($pdo, $job, (int) ($limits['comments'] ?? 300), $lockToken);
     }
     if ($stage === 'attachments') {
+        if (!sr_community_board_copy_job_option_enabled($job, 'copy_attachments', true)) {
+            return ['done' => false, 'stage' => sr_community_board_copy_job_next_after_attachments($job), 'status' => 'running', 'message' => '첨부파일 복사를 선택하지 않아 다음 단계로 이동합니다.'];
+        }
         return sr_community_board_copy_job_copy_attachments($pdo, $job, (int) ($limits['attachments'] ?? 50), $lockToken);
     }
     if ($stage === 'series') {
+        if (!sr_community_board_copy_job_option_enabled($job, 'copy_series', false)) {
+            return ['done' => false, 'stage' => 'verify', 'status' => 'running', 'message' => '시리즈 복사를 선택하지 않아 검증 단계로 이동합니다.'];
+        }
         return sr_community_board_copy_job_copy_series($pdo, $job, $lockToken);
     }
     if ($stage === 'verify') {
@@ -304,16 +368,20 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockT
         'INSERT IGNORE INTO sr_community_board_copy_job_maps (job_id, entity_type, source_id, status, created_at, updated_at)
          VALUES (:job_id, :entity_type, :source_id, :status, :created_at, :updated_at)'
     );
-    $sources = [];
-    if (sr_community_categories_supported($pdo)) {
-        $sources['category'] = "SELECT c.id FROM sr_community_categories c WHERE c.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'category' AND m.source_id = c.id) ORDER BY c.id ASC";
-    }
-    $sources += [
-        'post' => "SELECT p.id FROM sr_community_posts p WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'post' AND m.source_id = p.id) ORDER BY p.id ASC",
-        'comment' => "SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'comment' AND m.source_id = c.id) ORDER BY c.id ASC",
-        'attachment' => "SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'attachment' AND m.source_id = a.id) ORDER BY a.id ASC",
-    ];
     $options = sr_community_board_copy_job_json($job, 'options_json');
+    $sources = [];
+    if (!array_key_exists('copy_settings', $options) || !empty($options['copy_settings'])) {
+        if (sr_community_categories_supported($pdo)) {
+            $sources['category'] = "SELECT c.id FROM sr_community_categories c WHERE c.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'category' AND m.source_id = c.id) ORDER BY c.id ASC";
+        }
+    }
+    if (!array_key_exists('copy_posts_comments', $options) || !empty($options['copy_posts_comments'])) {
+        $sources['post'] = "SELECT p.id FROM sr_community_posts p WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'post' AND m.source_id = p.id) ORDER BY p.id ASC";
+        $sources['comment'] = "SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'comment' AND m.source_id = c.id) ORDER BY c.id ASC";
+    }
+    if (!array_key_exists('copy_attachments', $options) || !empty($options['copy_attachments'])) {
+        $sources['attachment'] = "SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'attachment' AND m.source_id = a.id) ORDER BY a.id ASC";
+    }
     if (!empty($options['copy_series']) && sr_community_series_supported($pdo)) {
         $sources['series'] = "SELECT DISTINCT s.id FROM sr_community_series s INNER JOIN sr_community_series_items si ON si.series_id = s.id INNER JOIN sr_community_posts p ON p.id = si.post_id WHERE s.board_id = :board_id AND p.board_id = s.board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'series' AND m.source_id = s.id) ORDER BY s.id ASC";
         $sources['series_item'] = "SELECT si.id FROM sr_community_series_items si INNER JOIN sr_community_posts p ON p.id = si.post_id INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id AND p.board_id = s.board_id AND NOT EXISTS (SELECT 1 FROM sr_community_board_copy_job_maps m WHERE m.job_id = :job_id AND m.entity_type = 'series_item' AND m.source_id = si.id) ORDER BY si.id ASC";
@@ -390,23 +458,26 @@ function sr_community_board_copy_job_create_board(PDO $pdo, array $job, string $
     }
     $options = sr_community_board_copy_job_json($job, 'options_json');
     $now = sr_now();
+    $copySettings = !array_key_exists('copy_settings', $options) || !empty($options['copy_settings']);
     $pdo->beginTransaction();
     try {
         $newBoardId = sr_community_create_board($pdo, [
-            'board_group_id' => (int) ($source['board_group_id'] ?? 0),
+            'board_group_id' => $copySettings ? (int) ($source['board_group_id'] ?? 0) : 0,
             'board_key' => (string) ($options['board_key'] ?? ''),
             'title' => (string) ($options['title'] ?? ''),
-            'description' => (string) ($source['description'] ?? ''),
+            'description' => $copySettings ? (string) ($source['description'] ?? '') : '',
             'status' => 'disabled',
-            'read_policy' => (string) ($source['read_policy'] ?? 'public'),
-            'write_policy' => (string) ($source['write_policy'] ?? 'member'),
-            'comment_policy' => (string) ($source['comment_policy'] ?? 'member'),
-            'image_uploads_enabled' => (int) ($source['image_uploads_enabled'] ?? 1),
-            'sort_order' => (int) ($source['sort_order'] ?? 0),
+            'read_policy' => $copySettings ? (string) ($source['read_policy'] ?? 'public') : 'public',
+            'write_policy' => $copySettings ? (string) ($source['write_policy'] ?? 'member') : 'member',
+            'comment_policy' => $copySettings ? (string) ($source['comment_policy'] ?? 'member') : 'member',
+            'image_uploads_enabled' => $copySettings ? (int) ($source['image_uploads_enabled'] ?? 1) : 1,
+            'sort_order' => $copySettings ? (int) ($source['sort_order'] ?? 0) : 0,
         ]);
-        sr_community_copy_board_settings($pdo, (int) $job['source_board_id'], $newBoardId, $now);
+        if ($copySettings) {
+            sr_community_copy_board_settings($pdo, (int) $job['source_board_id'], $newBoardId, $now);
+        }
 
-        if (sr_community_categories_supported($pdo)) {
+        if ($copySettings && sr_community_categories_supported($pdo)) {
             $stmt = $pdo->prepare('SELECT * FROM sr_community_categories WHERE board_id = :board_id ORDER BY id ASC');
             $stmt->execute(['board_id' => (int) $job['source_board_id']]);
             $insert = $pdo->prepare(
@@ -543,10 +614,6 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', (int) $job['id'], $lockToken);
             continue;
         }
-        if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.', '', '', (int) $job['id'], $lockToken);
-            continue;
-        }
         $params = [
             'board_id' => $targetBoardId,
             'author_account_id' => (int) $post['author_account_id'],
@@ -560,7 +627,8 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
         ];
         if ($categorySupported) {
             $sourceCategoryId = (int) ($post['category_id'] ?? 0);
-            $params['category_id'] = $sourceCategoryId > 0 ? sr_community_board_copy_job_map_target($pdo, (int) $job['id'], 'category', $sourceCategoryId) : null;
+            $targetCategoryId = $sourceCategoryId > 0 ? sr_community_board_copy_job_map_target($pdo, (int) $job['id'], 'category', $sourceCategoryId) : 0;
+            $params['category_id'] = $targetCategoryId > 0 ? $targetCategoryId : null;
             if ((int) $params['category_id'] < 1) {
                 $params['category_id'] = null;
             }
@@ -664,7 +732,7 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
         $processed++;
     }
 
-    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'comment', 'attachments', $processed);
+    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'comment', sr_community_board_copy_job_next_after_comments($job), $processed);
 }
 
 function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int $limit, string $lockToken): array
@@ -723,8 +791,7 @@ function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int 
         }
     }
 
-    $options = sr_community_board_copy_job_json($job, 'options_json');
-    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'attachment', !empty($options['copy_series']) ? 'series' : 'verify', $processed);
+    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'attachment', sr_community_board_copy_job_next_after_attachments($job), $processed);
 }
 
 function sr_community_board_copy_job_copy_series(PDO $pdo, array $job, string $lockToken): array
@@ -835,7 +902,7 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
            AND EXISTS (
                SELECT 1
                FROM sr_community_board_copy_jobs
-               WHERE id = :job_id
+               WHERE id = :lock_job_id
                  AND status = 'running'
                  AND lock_token = :lock_token
            )" : '')
@@ -851,6 +918,7 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
     ];
     if ($jobId > 0) {
         $params['job_id'] = $jobId;
+        $params['lock_job_id'] = $jobId;
         $params['lock_token'] = $lockToken;
     }
     $stmt->execute($params);

@@ -10,7 +10,15 @@ $account = sr_member_require_login($pdo);
 $boardId = sr_request_method() === 'POST' ? (int) sr_post_string('board_id', 20) : (int) sr_get_string('id', 20);
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'edit');
-    if ((string) sr_post_string('mode', 20) === 'full' || (string) sr_post_string('intent', 30) === 'start_batch') {
+    $postedScopeInput = [
+        'mode' => sr_post_string('mode', 20),
+        'copy_series' => ($_POST['copy_series'] ?? '') === '1',
+    ];
+    if (array_key_exists('copy_scope', $_POST)) {
+        $postedScopeInput['copy_scope'] = is_array($_POST['copy_scope'] ?? null) ? $_POST['copy_scope'] : [];
+    }
+    $postedScopeValues = sr_community_board_copy_scope_values($postedScopeInput);
+    if (in_array('posts_comments', $postedScopeValues, true) || (string) sr_post_string('intent', 30) === 'start_batch') {
         sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
     }
     sr_require_csrf();
@@ -29,28 +37,28 @@ $values = [
     'board_key' => sr_request_method() === 'POST' ? sr_post_string('board_key', 60) : (string) $suggestion['board_key'],
     'title' => sr_request_method() === 'POST' ? sr_post_string('title', 120) : (string) $suggestion['title'],
     'mode' => sr_request_method() === 'POST' ? sr_post_string('mode', 20) : 'settings',
+    'copy_scope' => sr_request_method() === 'POST' ? (is_array($_POST['copy_scope'] ?? null) ? $_POST['copy_scope'] : []) : ['settings'],
     'copy_series' => ($_POST['copy_series'] ?? '') === '1',
     'series_titles' => is_array($_POST['community_series_titles'] ?? null) ? $_POST['community_series_titles'] : [],
 ];
+$values = sr_community_board_copy_normalized_values($values);
 $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
-$limitErrors = sr_community_board_copy_limit_errors($copyCounts);
-$batchErrors = sr_community_board_copy_batch_errors($copyCounts);
+$selectedCopyCounts = sr_community_board_copy_counts_for_values($copyCounts, $values);
+$batchErrors = !empty($values['copy_posts_comments']) ? sr_community_board_copy_batch_errors_for_values($copyCounts, $values) : [];
+$limitErrors = !empty($values['copy_posts_comments'])
+    ? array_merge(sr_community_board_copy_batch_threshold_errors($selectedCopyCounts), $batchErrors)
+    : [];
 $batchAvailable = $batchErrors === [];
-$copyModeIncludesData = (string) ($values['mode'] ?? 'settings') === 'full' || sr_post_string('intent', 30) === 'start_batch';
-$copyLoadTargetRecords = $copyModeIncludesData
-    ? (int) $copyCounts['posts'] + (int) $copyCounts['comments'] + (int) $copyCounts['attachments'] + (int) ($copyCounts['series'] ?? 0)
-    : 1;
-$loadAssessment = sr_admin_high_load_assessment([
-    'target_records' => $copyLoadTargetRecords,
-    'file_operations' => $copyModeIncludesData ? (int) $copyCounts['attachments'] : 0,
-    'table_count' => $copyModeIncludesData ? 5 : 2,
-    'batch_available' => $batchAvailable,
-]);
+$loadAssessment = sr_community_board_copy_load_assessment($selectedCopyCounts, $values, $batchAvailable);
 $errors = [];
 
 if (sr_request_method() === 'POST') {
     try {
-        if ((string) ($values['mode'] ?? '') === 'full') {
+        $scopeErrors = sr_community_board_copy_scope_errors($values);
+        if ($scopeErrors !== []) {
+            throw new InvalidArgumentException(implode("\n", $scopeErrors));
+        }
+        if (!empty($values['copy_posts_comments'])) {
             if ($batchErrors !== []) {
                 throw new InvalidArgumentException(implode("\n", $batchErrors));
             }
@@ -66,7 +74,8 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Community board copy job created.',
                 'metadata' => [
                     'source_board_id' => $boardId,
-                    'counts' => $copyCounts,
+                    'counts' => $selectedCopyCounts,
+                    'copy_scope' => $values['copy_scope'],
                     'batch' => true,
                     'failed_count' => 0,
                     'load_grade' => (string) $loadAssessment['grade'],
@@ -76,7 +85,7 @@ if (sr_request_method() === 'POST') {
             sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);
         }
         if (sr_post_string('intent', 30) === 'start_batch') {
-            throw new InvalidArgumentException('게시글/댓글/첨부파일 포함 복사를 선택한 뒤 작업을 만드세요.');
+            throw new InvalidArgumentException('게시글+댓글을 선택한 뒤 복사 작업을 만드세요.');
         }
         $newBoardId = sr_community_copy_board($pdo, $boardId, $values, (int) $account['id']);
         sr_audit_log($pdo, [
@@ -90,7 +99,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'source_board_id' => $boardId,
                 'mode' => (string) $values['mode'],
-                'counts' => $copyCounts,
+                'counts' => $selectedCopyCounts,
+                'copy_scope' => $values['copy_scope'],
                 'batch' => false,
                 'failed_count' => 0,
                 'load_grade' => (string) $loadAssessment['grade'],

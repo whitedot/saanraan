@@ -1622,27 +1622,6 @@ a.community-post-title:focus,
     font-weight: var(--font-weight-semibold);
 }
 
-.community-screen .sr-link-card-picker {
-    border: 1px solid var(--community-border, var(--sr-border, #d8dde6));
-    border-radius: 8px;
-    display: grid;
-    gap: 10px;
-    padding: 14px;
-}
-
-.community-screen .sr-link-card-picker-controls {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.community-screen .sr-link-card-picker-results {
-    color: var(--sr-muted, var(--text-muted, #6b6b6b));
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
-}
-
 .community-search-page-form {
     align-items: end;
     display: grid;
@@ -1733,10 +1712,6 @@ a.community-post-title:focus,
         position: static;
     }
 
-    .community-screen .sr-link-card-picker-controls {
-        align-items: stretch;
-    }
-
     .community-comments-panel {
         height: auto;
         overflow: visible;
@@ -1790,7 +1765,6 @@ a.community-post-title:focus,
 }
 
 .community-comment-secret,
-.community-screen .sr-link-card-picker-results,
 .community-search-summary,
 .community-search-empty,
 .community-search-result p,
@@ -1801,8 +1775,7 @@ a.community-post-title:focus,
 }
 
 .community-comments-panel,
-.community-screen fieldset,
-.community-screen .sr-link-card-picker {
+.community-screen fieldset {
     border-color: var(--community-border);
     border-radius: var(--community-radius);
 }

@@ -234,11 +234,9 @@ try {
     );
     m11_assert($publishedId > 0 && $hiddenId > 0 && $scheduledId > 0, '#145 status fixtures saved');
 
-    $linkToken = '{{sr_link_card module="content" entity_type="content" entity_id="' . $publishedId . '" variant="compact" slot="body" label="M11 카드"}}';
-    $linkTokenErrors = sr_link_card_token_rejection_errors($linkToken);
-    $linkPageId = sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>일반 링크</p>', 'published'), $adminId, (int) m11_value($pdo, "SELECT id FROM sr_content_items WHERE slug = 'm11-link-card' LIMIT 1"));
-    sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>카드 제거</p>', 'published'), $adminId, $linkPageId);
-    m11_assert($linkTokenErrors !== [] && $linkPageId > 0, '#146 legacy link card tokens are rejected without legacy ref tables');
+    $linkPageId = sr_content_save($pdo, m11_content_values('m11-url-embed', 'M11 URL 링크', '<p><a href="/content/m11-public">일반 링크</a></p>', 'published'), $adminId, (int) m11_value($pdo, "SELECT id FROM sr_content_items WHERE slug = 'm11-url-embed' LIMIT 1"));
+    sr_content_save($pdo, m11_content_values('m11-url-embed', 'M11 URL 링크', '<p>URL 링크 저장 유지</p>', 'published'), $adminId, $linkPageId);
+    m11_assert($linkPageId > 0, '#146 ordinary URL links save without legacy refs');
 
     foreach (['point', 'reward', 'deposit'] as $assetKey) {
         $function = 'sr_' . $assetKey . '_create_transaction';

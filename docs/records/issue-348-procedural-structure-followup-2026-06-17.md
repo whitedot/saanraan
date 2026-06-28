@@ -58,7 +58,7 @@
 - `modules/community/helpers/assets.php`의 게시자 보상 관리자 상태/필터/목록 조회 helper를 `modules/community/helpers/publisher-rewards.php`로 분리했다.
 - `modules/content/helpers.php`의 커버 이미지 업로드/저장소/렌더링 helper를 `modules/content/helpers/cover-images.php`로 분리했다.
 - `modules/content/helpers.php`의 회원 제출, 작성자 신청/권한, 작성자 보상 helper를 `modules/content/helpers/member-submissions.php`로 분리했다.
-- `modules/content/helpers.php`의 쿠폰 target, link-card 검색, banner/popup/member-group 참조 helper를 `modules/content/helpers/references.php`로 분리했다.
+- `modules/content/helpers.php`의 쿠폰 target, 과거 본문 연결 검색, banner/popup/member-group 참조 helper를 `modules/content/helpers/references.php`로 분리했다.
 - `modules/content/helpers.php`의 입력값 수집/검증, 저장, 복사, 숨김, 삭제 helper를 `modules/content/helpers/records.php`로 분리했다.
 - `modules/content/helpers.php`의 콘텐츠 그룹, 그룹 설정, 그룹 scope 적용, 그룹 삭제 참조 helper를 `modules/content/helpers/groups.php`로 분리해 1,500줄 미만으로 줄였다.
 - `modules/quiz/helpers.php`의 보상 provider, 보상 지급/재시도/회수, 쿠폰 보상 정의/참조 helper를 `modules/quiz/helpers/rewards.php`로 분리했다.

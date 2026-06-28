@@ -184,7 +184,6 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)) {
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_link_card_token_rejection_errors((string) ($values['body_text'] ?? '')));
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
@@ -270,9 +269,6 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
 function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 0): int
 {
     $values = sr_content_normalize_asset_values($values);
-    if (sr_link_card_token_rejection_errors((string) ($values['body_text'] ?? '')) !== []) {
-        throw new InvalidArgumentException('링크 카드 토큰은 콘텐츠 본문에 저장할 수 없습니다.');
-    }
 
     $now = sr_now();
     $startedTransaction = !$pdo->inTransaction();
@@ -579,9 +575,6 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         $errors[] = 'slug는 3-120자의 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.';
     } elseif (sr_content_slug_exists($pdo, $newSlug, 0)) {
         $errors[] = '이미 사용 중인 slug입니다.';
-    }
-    if (sr_link_card_token_rejection_errors((string) ($source['body_text'] ?? '')) !== []) {
-        $errors[] = 'legacy 링크 카드 토큰이 남아 있는 콘텐츠는 복사할 수 없습니다. 본문에서 토큰을 제거한 뒤 다시 시도하세요.';
     }
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));

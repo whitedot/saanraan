@@ -37,7 +37,7 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 
 실패 상세:
 
-- #184: `GET /admin/content/link-card-targets?target=community_post&q=test`가 500을 반환했다.
+- #184: 제거된 과거 본문 연결 대상 검색 요청이 500을 반환했다.
 - #186: `GET /admin/points/reference-search?q=qa`, `GET /admin/rewards/reference-search?q=qa`, `GET /admin/deposits/reference-search?q=qa`가 500을 반환했다.
 - #192: `GET /email/verified`가 500을 반환했다. 서버 로그 기준 `sr_member_settings()` 로드 누락이다.
 - #195: `POST /community/edit`가 존재하지 않는 id 없이 호출될 때 500을 반환했고, 서버 로그에 `POST action did not call sr_require_csrf()` 계약 위반이 남았다.
@@ -111,7 +111,7 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 - `SR_SMOKE_BASE_URL=http://127.0.0.1:44999 php .tools/bin/smoke-http.php`: 통과
 - `SR_SMOKE_BASE_URL=http://127.0.0.1:44999 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`: 통과
 - `php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:44999 admin 12341234`: 실패
-  - #184: `/admin/content/link-card-targets?target=community_post&q=test` 500
+  - #184: 과거 본문 연결 대상 검색 요청 500
   - #186: `/admin/points/reference-search?q=qa`, `/admin/rewards/reference-search?q=qa`, `/admin/deposits/reference-search?q=qa` 500
   - #192: `/email/verified` 500
   - #195: `POST /community/edit` 500
@@ -129,7 +129,7 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 
 수정한 항목:
 
-- #184: 커뮤니티 링크 카드 대상 검색에서 동일 PDO named placeholder를 반복 사용하던 쿼리를 고유 placeholder로 분리했다.
+- #184: 커뮤니티 본문 연결 대상 검색에서 동일 PDO named placeholder를 반복 사용하던 쿼리를 고유 placeholder로 분리했다.
 - #186: 포인트/리워드/예치금 reference 검색에서 동일 PDO named placeholder를 반복 사용하던 쿼리를 고유 placeholder로 분리했다.
 - #192: `/email/verified` 액션에서 회원 helper를 명시적으로 로드하도록 수정했다.
 - #195: `POST /community/edit` 요청은 글 조회 전에 CSRF를 먼저 검증하도록 수정해 누락된 `id` 요청이 500으로 끝나지 않게 했다.
@@ -189,13 +189,13 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 1차 실제 브라우저 실행 결과:
 
 - 28 passed, 2 failed
-- 실패 #195: `/community/link-card-targets?target=content&q=test`가 실제 브라우저에서 500을 반환했다.
+- 실패 #195: 과거 커뮤니티 본문 연결 대상 검색 요청이 실제 브라우저에서 500을 반환했다.
 - 실패 #191 보호 파일 테스트: 앱 문제가 아니라 Playwright 실패 영상 저장용 `ffmpeg` 미설치로 새 page 생성이 실패했다.
 
 추가 수정:
 
 - `modules/content/helpers.php`
-  - 콘텐츠 쿠폰 대상 검색과 콘텐츠 링크 카드 대상 검색의 반복 named placeholder를 고유 placeholder로 분리했다.
+  - 콘텐츠 쿠폰 대상 검색과 콘텐츠 본문 연결 대상 검색의 반복 named placeholder를 고유 placeholder로 분리했다.
 - Playwright 설정
   - 로컬에 `ffmpeg`가 없는 환경에서도 실패 분석이 가능하도록 실패 영상 저장을 끄고 screenshot 중심으로 조정했다.
   - 결과/스크린샷/test-results/node_modules 경로를 git 추적에서 제외했다.

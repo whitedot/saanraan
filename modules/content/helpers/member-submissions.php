@@ -631,9 +631,6 @@ function sr_content_save_member_submission(PDO $pdo, int $accountId, array $valu
     if ($values['body_text'] === '') {
         throw new InvalidArgumentException('본문을 입력하세요.');
     }
-    if (sr_link_card_token_rejection_errors((string) $values['body_text']) !== []) {
-        throw new InvalidArgumentException('링크 카드 토큰은 본문에 저장할 수 없습니다.');
-    }
 
     $existing = $submissionId > 0 ? sr_content_submission_by_id($pdo, $submissionId) : null;
     if ($submissionId > 0 && (!is_array($existing) || (int) ($existing['author_account_id'] ?? 0) !== $accountId || !in_array((string) ($existing['review_status'] ?? ''), ['member_draft', 'revision_requested', 'rejected'], true))) {

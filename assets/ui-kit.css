@@ -560,15 +560,6 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .badge-corner{position:absolute;inset-block-start:calc(var(--spacing) * -1);inset-inline-end:calc(var(--spacing) * -1)}
 .badge-dot{display:inline-flex;width:calc(var(--spacing) * 3);height:calc(var(--spacing) * 3);padding:0;border:1px solid var(--color-white);border-radius:9999px;background-color:var(--color-danger)}
 .badge-corner-dot{position:absolute;inset-block-start:calc(var(--spacing) * -1);inset-inline-end:calc(var(--spacing) * -1)}
-.sr-link-card-picker{display:grid;gap:calc(var(--spacing) * 2);margin-top:calc(var(--spacing) * 3);padding:calc(var(--spacing) * 3);border:1px solid var(--color-default-300);border-radius:var(--radius);background:color-mix(in oklab,var(--color-default-100) 72%,var(--color-card))}
-.sr-link-card-picker-controls{display:grid;grid-template-columns:minmax(12rem,1fr) auto auto;gap:calc(var(--spacing) * 2);align-items:center}
-.sr-link-card-picker-results{display:grid;gap:calc(var(--spacing) * 1.5);color:var(--text-muted);font-size:var(--type-caption-size);line-height:var(--type-caption-line-height)}
-.sr-link-card-picker-result{display:grid;gap:calc(var(--spacing) * .5);width:100%;padding:calc(var(--spacing) * 2);border:1px solid var(--color-default-300);border-radius:var(--radius);background:var(--color-card);color:var(--text-normal);text-align:left;cursor:pointer}
-.sr-link-card-picker-result strong{color:var(--text-strong);font-size:var(--type-small-size);line-height:var(--type-small-line-height)}
-.sr-link-card-picker-result span,.sr-link-card-picker-result small{color:var(--text-muted);font-size:var(--type-caption-size);line-height:var(--type-caption-line-height);overflow-wrap:anywhere}
-.sr-link-card-picker-result.is-selected{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 12%,transparent)}
-@media (max-width:720px){.sr-link-card-picker-controls{grid-template-columns:1fr}.sr-link-card-picker-controls>.btn{width:100%;justify-content:center}}
-
 .sr-time-tooltip {
     cursor: help;
     display: inline-flex;

@@ -145,7 +145,7 @@ URL 임베드 helper 유지 조건:
 - 공개 표시 HTML은 공통 관리 모듈 카드가 아니라 외부 provider renderer 또는 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
 - URL 임베드 helper는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.
-- legacy 링크 카드 토큰 감지/거부는 URL 임베드 helper의 호환 범위다. 신규 저장과 운영 복사에서는 `{{sr_link_card ...}}` 토큰 유입을 차단하지만, legacy refs 테이블(`sr_content_link_refs`, `sr_community_link_refs`)은 현재 초기 설치 기준의 저장 진실원이나 참조 원장이 아니므로 제거한다.
+- 토큰 기반 본문 연결 호환 레이어는 URL 임베드 범위에서 제거한다. 본문 연결은 저장된 일반 URL 또는 허용된 HTML 링크를 공개 렌더링 시점에 `url-embed-targets.php` 계약으로 해석하는 방식만 사용한다.
 
 퇴출 또는 이동 기준:
 

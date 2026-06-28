@@ -313,9 +313,6 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             ? (string) $values['body_format']
             : 'plain';
         $bodyText = trim((string) $values['body_text']);
-        if (sr_link_card_token_rejection_errors($bodyText) !== []) {
-            throw new InvalidArgumentException('링크 카드 토큰은 게시글 본문에 저장할 수 없습니다.');
-        }
 
         if ($bodyFormat === 'html') {
             $bodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $accountId, false, $createdBodyFiles, $finalizedTmpFiles);
@@ -525,9 +522,6 @@ function sr_community_validate_post_input(array $values): array
     } elseif (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         $errors[] = sr_t('community::action.error.post_body_required');
     }
-    if (is_string($bodyText)) {
-        $errors = array_merge($errors, sr_link_card_token_rejection_errors($bodyText));
-    }
 
     return $errors;
 }
@@ -542,9 +536,6 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         ? (string) $values['body_format']
         : 'plain';
     $bodyText = trim((string) ($values['body_text'] ?? ''));
-    if (sr_link_card_token_rejection_errors($bodyText) !== []) {
-        throw new InvalidArgumentException('링크 카드 토큰은 게시글 본문에 저장할 수 없습니다.');
-    }
 
     $now = sr_now();
     $categorySupported = sr_community_categories_supported($pdo);
