@@ -194,6 +194,10 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $baselineBoards = sr_community_feed_cache_public_baseline_boards($boards);
     $homeExcerptAllowed = array_fill_keys(sr_community_feed_cache_public_baseline_board_ids($baselineBoards), true);
     $settings = sr_community_default_settings();
+    sr_check_community_feed_cache_contract_assert(
+        sr_community_home_public_feed_cache_board_ids($boards, $homeExcerptAllowed) === [1, 5, 82],
+        'home public feed cache board ids must exclude member boards and boards without excerpt permission.'
+    );
 
     sr_community_feed_cache_mark_all_stale($pdo, 'fixture_reset');
     sr_community_home_warm_public_feed_cache($pdo, $boards, $settings, $homeExcerptAllowed);
@@ -433,6 +437,8 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     'sr_community_effective_board_summary_feed_enabled($pdo, $board)',
     'sr_community_home_latest_comment_rows_from_snapshots($cachedSnapshots, $readableBoardIds)',
     'function sr_community_home_warm_public_feed_cache',
+    'function sr_community_home_public_feed_cache_board_ids',
+    '$latestCommentsUsePublicCache = $readableBoardIds !== [] && $readableBoardIds === $publicFeedCacheBoardIds',
     'sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId)',
     'function sr_community_home_filter_rows_by_board_ids',
     '$latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds)',

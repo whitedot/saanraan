@@ -597,7 +597,7 @@ function sr_community_home_latest_comments(PDO $pdo, array $readableBoardIds, ar
     return $rows;
 }
 
-function sr_community_home_warm_public_feed_cache(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId): void
+function sr_community_home_public_feed_cache_boards(array $boards, array $homeExcerptAllowedByBoardId): array
 {
     $publicBoards = [];
     foreach ($boards as $board) {
@@ -612,15 +612,30 @@ function sr_community_home_warm_public_feed_cache(PDO $pdo, array $boards, array
 
         $publicBoards[] = $board;
     }
+
+    return $publicBoards;
+}
+
+function sr_community_home_public_feed_cache_board_ids(array $boards, array $homeExcerptAllowedByBoardId): array
+{
+    return sr_community_feed_cache_public_baseline_board_ids(
+        sr_community_home_public_feed_cache_boards($boards, $homeExcerptAllowedByBoardId)
+    );
+}
+
+function sr_community_home_warm_public_feed_cache(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId): void
+{
+    $publicBoards = sr_community_home_public_feed_cache_boards($boards, $homeExcerptAllowedByBoardId);
     if ($publicBoards === []) {
         return;
     }
 
+    $publicBoardIds = sr_community_feed_cache_public_baseline_board_ids($publicBoards);
     sr_community_home_post_feed($pdo, $publicBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
     sr_community_home_post_feed($pdo, $publicBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
     sr_community_home_latest_comments(
         $pdo,
-        sr_community_feed_cache_public_baseline_board_ids($publicBoards),
+        $publicBoardIds,
         $homeExcerptAllowedByBoardId,
         10,
         true
@@ -688,12 +703,15 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $latestPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 10, 'latest');
     $popularPosts = sr_community_home_post_feed($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId, 5, 'views');
     $readableBoardIds = array_values(array_unique(array_map(static fn (array $board): int => (int) ($board['id'] ?? 0), $summaryFeedBoards)));
+    sort($readableBoardIds, SORT_NUMERIC);
+    $publicFeedCacheBoardIds = sr_community_home_public_feed_cache_board_ids($summaryFeedBoards, $homeExcerptAllowedByBoardId);
+    $latestCommentsUsePublicCache = $readableBoardIds !== [] && $readableBoardIds === $publicFeedCacheBoardIds;
     if (!empty($settings['reaction_enabled']) && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
         require_once SR_ROOT . '/modules/reaction/helpers.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
     }
     if ($readableBoardIds !== []) {
-        $latestComments = sr_community_home_latest_comments($pdo, $readableBoardIds, $homeExcerptAllowedByBoardId, 10, !is_array($account));
+        $latestComments = sr_community_home_latest_comments($pdo, $readableBoardIds, $homeExcerptAllowedByBoardId, 10, $latestCommentsUsePublicCache);
     }
     sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId);
     if ($communitySeriesSupported && $readableBoardIds !== []) {
