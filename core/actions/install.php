@@ -948,7 +948,7 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
                 'table_prefix' => sr_table_prefix($config),
             ];
             $installedLockJson = json_encode($installedLock, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            if (!is_string($installedLockJson) || file_put_contents($storageDir . '/installed.lock', $installedLockJson . "\n", LOCK_EX) === false) {
+            if (!is_string($installedLockJson) || !sr_write_file_atomically($storageDir . '/installed.lock', $installedLockJson . "\n")) {
                 throw new RuntimeException('installed.lock cannot be written.');
             }
 

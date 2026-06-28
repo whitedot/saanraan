@@ -507,7 +507,7 @@ function sr_logo_manager_upload_svg_image(array $validated): array
     $storedName = sr_upload_random_filename('svg');
     $targetPath = sr_upload_safe_target_path($directory, $storedName);
     sr_upload_assert_target_path_writable($targetPath);
-    if (file_put_contents($targetPath, $svg['content']) === false) {
+    if (!sr_write_file_atomically($targetPath, (string) $svg['content'])) {
         throw new RuntimeException('SVG 파일을 저장할 수 없습니다.');
     }
 
