@@ -132,6 +132,11 @@ $communitySettingsHelp = [
         'title' => sr_t('community::help.layout.title'),
         'body' => $communitySettingsHelpBodyHtml(['community::help.layout.body.1', 'community::help.layout.body.2']),
     ],
+    'theme' => [
+        'id' => 'community_settings_help_theme',
+        'title' => sr_t('community::help.theme.title'),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.theme.body.1', 'community::help.theme.body.2']),
+    ],
     'level_min_score' => [
         'id' => 'community_settings_help_level_min_score',
         'title' => sr_t('community::help.level_min_score.title'),
@@ -542,16 +547,17 @@ $communitySettingsSectionNavItems = [
             <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
-                                    <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
-                                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
-                                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                                        </option>
-                                    <?php } ?>
-                                </select>
+                    <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
+                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">커뮤니티 공개 화면에 적용할 바깥 레이아웃입니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '커뮤니티 공개 테마', $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '커뮤니티 공개 테마', $communitySettingsHelp['theme']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <select id="community_admin_settings_theme_key" name="theme_key" class="form-select" required>
                     <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
@@ -563,7 +569,7 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">선택한 공개 레이아웃과 커뮤니티 스킨 위에 적용할 시각 테마입니다.</p>
+                <p class="form-help">레이아웃 구조와 별개로 커뮤니티 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
             </div>
         </div>
         <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>

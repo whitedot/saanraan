@@ -14,8 +14,16 @@ $surveySettingsHelp = [
         'id' => 'survey-settings-help-layout-key',
         'title' => '설문 공개 레이아웃',
         'body_html' => $surveySettingsHelpBodyHtml([
-            '설문 목록, 응답, 완료 화면에 적용할 공개 레이아웃입니다.',
-            '기본 레이아웃은 설문·여론조사 모듈 CSS 호출 기준을 따르고, 다른 레이아웃을 선택하면 해당 레이아웃의 호출 정책을 따릅니다.',
+            '설문 목록, 응답, 완료 화면에서 사용할 공개 화면 틀입니다.',
+            '레이아웃 변경은 기존 설문 데이터나 응답 기록을 바꾸지 않고, 화면 출력 방식만 바꿉니다.',
+        ]),
+    ],
+    'theme_key' => [
+        'id' => 'survey-settings-help-theme-key',
+        'title' => '설문 공개 테마',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '설문 공개 테마는 레이아웃 구조와 별개로 색, 표면, 테두리, 상호작용 상태를 적용하는 시각 설정입니다.',
+            '테마 변경은 설문 데이터나 응답 기록을 바꾸지 않고 공개 출력에 적용됩니다.',
         ]),
     ],
     'default_status' => [
@@ -99,7 +107,7 @@ $surveySettingsHelp = [
 
     <section class="card">
         <div class="card-header">
-            <h2 class="card-title">공개 화면/새 설문 기본값</h2>
+            <h2 class="card-title">공개 화면 구성과 새 설문 기본값</h2>
         </div>
         <div class="form-grid">
             <div class="form-row">
@@ -112,11 +120,11 @@ $surveySettingsHelp = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">설문 공개 화면의 바깥 레이아웃입니다.</p>
+                    <p class="form-help">설문 목록, 응답, 완료 화면에 적용할 공개 레이아웃입니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('survey_settings_theme_key', '설문 공개 테마', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('survey_settings_theme_key', '설문 공개 테마', $surveySettingsHelp['theme_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <select id="survey_settings_theme_key" name="theme_key" class="form-select" required>
                         <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
@@ -128,7 +136,7 @@ $surveySettingsHelp = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">선택한 공개 레이아웃과 설문 스킨 위에 적용할 시각 테마입니다.</p>
+                    <p class="form-help">레이아웃 구조와 별개로 설문 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
                 </div>
             </div>
             <div class="form-row">

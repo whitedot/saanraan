@@ -59,8 +59,16 @@ $quizSettingsHelp = [
         'id' => 'quiz-settings-help-layout-key',
         'title' => '퀴즈 공개 레이아웃',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '퀴즈 목록과 퀴즈 풀이 화면에서 사용할 공개 화면 틀입니다.',
+            '퀴즈 목록, 풀이, 결과 화면에서 사용할 공개 화면 틀입니다.',
             '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않고, 화면 출력 방식만 바꿉니다.',
+        ]),
+    ],
+    'theme_key' => [
+        'id' => 'quiz-settings-help-theme-key',
+        'title' => '퀴즈 공개 테마',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '퀴즈 공개 테마는 레이아웃 구조와 별개로 색, 표면, 테두리, 상호작용 상태를 적용하는 시각 설정입니다.',
+            '테마 변경은 퀴즈 데이터나 응시 기록을 바꾸지 않고 공개 출력에 적용됩니다.',
         ]),
     ],
     'skin_key' => [
@@ -244,11 +252,11 @@ $quizSettingsSectionNavItems = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">퀴즈 목록과 퀴즈 풀이 화면에 적용할 공개 레이아웃입니다.</p>
+                    <p class="form-help">퀴즈 목록, 풀이, 결과 화면에 적용할 공개 레이아웃입니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_theme_key', '퀴즈 공개 테마', $quizSettingsHelp['layout_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_theme_key', '퀴즈 공개 테마', $quizSettingsHelp['theme_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <select id="quiz_settings_theme_key" name="theme_key" class="form-select" required>
                         <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
@@ -260,7 +268,7 @@ $quizSettingsSectionNavItems = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">선택한 공개 레이아웃과 퀴즈 스킨 위에 적용할 시각 테마입니다.</p>
+                    <p class="form-help">레이아웃 구조와 별개로 퀴즈 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
                 </div>
             </div>
             <div class="form-row">

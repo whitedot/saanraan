@@ -110,7 +110,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>공개 화면 구성</h2>
         <div class="form-row">
-            <label class="form-label" for="content_admin_settings_layout_key">기본 콘텐츠 레이아웃 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="content_admin_settings_layout_key">콘텐츠 공개 레이아웃 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <select id="content_admin_settings_layout_key" name="layout_key" class="form-select" required>
                     <?php foreach ($contentLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -119,7 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">새 콘텐츠를 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠 값은 자동 변경되지 않습니다.</p>
+                <p class="form-help">콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다. 콘텐츠 데이터의 호환용 레이아웃 값을 일괄 수정하지 않고 공개 출력에 적용합니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">선택한 공개 레이아웃과 콘텐츠 스킨 위에 적용할 시각 테마입니다.</p>
+                <p class="form-help">레이아웃 구조와 별개로 콘텐츠 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
             </div>
         </div>
         <?php foreach ($contentLayoutMenuFields as $contentLayoutMenuSettingKey => $contentLayoutMenuField) { ?>

@@ -15,10 +15,6 @@ $seo = [
 if (sr_content_clean_cover_image_url((string) ($page['cover_image_url'] ?? '')) !== '') {
     $seo['og']['image'] = (string) $page['cover_image_url'];
 }
-$pageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ?? ''));
-if ($pageLayoutKey === '' || !isset(sr_public_layout_options($pdo ?? null)[$pageLayoutKey])) {
-    $pageLayoutKey = sr_public_layout_key($site ?? null, $pdo ?? null);
-}
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
@@ -55,7 +51,6 @@ if (
     );
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
-    'layout_key' => $pageLayoutKey,
     'stylesheets' => $contentStylesheets,
 ]));
 ?>

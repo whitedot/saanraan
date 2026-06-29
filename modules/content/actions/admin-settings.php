@@ -76,7 +76,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '기존 이용자 재결제 기준 값이 올바르지 않습니다.';
     }
     if (!isset($publicLayoutOptions[(string) $postedSettings['layout_key']])) {
-        $errors[] = '기본 콘텐츠 레이아웃 값이 올바르지 않습니다.';
+        $errors[] = '콘텐츠 공개 레이아웃 값이 올바르지 않습니다.';
     }
     if (!isset($publicThemeOptions[(string) $postedSettings['theme_key']])) {
         $errors[] = '기본 콘텐츠 테마 값이 올바르지 않습니다.';

@@ -453,6 +453,36 @@ sr_skin_theme_check_contains([
     '외부 테마',
 ], 'Public module theme setting UI');
 
+sr_skin_theme_check_contains('modules/community/views/admin-settings.php', [
+    'community_settings_help_theme',
+    "communitySettingsHelp['theme']['id']",
+], 'Community theme setting help UI');
+
+sr_skin_theme_check_contains('modules/quiz/views/admin-settings.php', [
+    'quiz-settings-help-theme-key',
+    "quizSettingsHelp['theme_key']['id']",
+], 'Quiz theme setting help UI');
+
+sr_skin_theme_check_contains('modules/survey/views/admin-settings.php', [
+    'survey-settings-help-theme-key',
+    "surveySettingsHelp['theme_key']['id']",
+], 'Survey theme setting help UI');
+
+sr_skin_theme_check_contains('modules/content/views/admin-settings.php', [
+    '콘텐츠 공개 레이아웃',
+    '콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다.',
+], 'Content public layout setting copy');
+
+sr_skin_theme_check_not_contains([
+    'modules/content/views/admin-settings.php',
+    'modules/content/views/content.php',
+], [
+    '새 콘텐츠를 만들 때 먼저 채울 공개 레이아웃입니다.',
+    '기존 콘텐츠 값은 자동 변경되지 않습니다.',
+    "\$page['layout_key']",
+    "'layout_key' => \$pageLayoutKey",
+], 'Content layout setting must be module-setting scoped');
+
 sr_skin_theme_check_contains('index.php', [
     "if (\$method === 'GET' && \$path === '/sr-package-asset')",
     'sr_package_send_asset_response(',
