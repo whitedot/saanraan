@@ -73,7 +73,7 @@ function sr_skin_theme_check_file_exists(string $path, string $label): void
     }
 }
 
-function sr_skin_theme_check_admin_skin_material_icons(): void
+function sr_skin_theme_check_admin_theme_material_icons(): void
 {
     global $errors;
     $settingsContent = sr_skin_theme_check_read('modules/admin/helpers/settings.php');
@@ -84,7 +84,7 @@ function sr_skin_theme_check_admin_skin_material_icons(): void
     preg_match_all("#'layout-header'\\s*=>\\s*SR_ROOT\\s*\\.\\s*'([^']+)'#", $settingsContent, $matches);
     $layoutHeaders = $matches[1] ?? [];
     if ($layoutHeaders === []) {
-        $errors[] = 'Admin skin options must declare layout-header view paths.';
+        $errors[] = 'Admin theme options must declare layout-header view paths.';
         return;
     }
 
@@ -96,15 +96,15 @@ function sr_skin_theme_check_admin_skin_material_icons(): void
         }
 
         if (!str_contains($content, 'sr_material_icon_html(') && !str_contains($content, 'sr_icon(')) {
-            $errors[] = 'Admin skin layout-header must render Material icons through the common helper: ' . $relativePath;
+            $errors[] = 'Admin theme layout-header must render Material icons through the common helper: ' . $relativePath;
         }
 
         if (!str_contains($content, 'sr_icon_bootstrap_script();')) {
-            $errors[] = 'Admin skin layout-header must load the Material icon readiness bootstrap: ' . $relativePath;
+            $errors[] = 'Admin theme layout-header must load the Material icon readiness bootstrap: ' . $relativePath;
         }
 
         if (preg_match('/<(?:svg|use)\b/', $content) === 1 || str_contains($content, 'admin-menu-icon-')) {
-            $errors[] = 'Admin skin layout-header must not render legacy SVG icon markup: ' . $relativePath;
+            $errors[] = 'Admin theme layout-header must not render legacy SVG icon markup: ' . $relativePath;
         }
     }
 }
@@ -133,35 +133,35 @@ function sr_skin_theme_check_admin_icon_contract_docs(): void
 
 $targets = [
     [
-        'label' => 'Admin skin',
+        'label' => 'Admin theme',
         'helper' => 'modules/admin/helpers/settings.php',
         'action' => 'modules/admin/actions/settings.php',
         'view' => 'modules/admin/views/settings.php',
         'render_views' => ['modules/admin/views/layout-header.php', 'modules/admin/views/layout-footer.php'],
-        'files' => ['modules/admin/skins/basic/layout-header.php', 'modules/admin/skins/basic/layout-footer.php'],
+        'files' => ['modules/admin/themes/basic/layout-header.php', 'modules/admin/themes/basic/layout-footer.php'],
         'helper_needles' => [
-            'function sr_admin_skin_options(): array',
+            'function sr_admin_theme_options(): array',
             'sr_filter_view_options([',
-            "'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php'",
-            "'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php'",
-            "], ['layout-header', 'layout-footer'], 'admin skin')",
-            '기본 관리자 스킨 view 파일이 누락되었습니다.',
+            "'layout-header' => SR_ROOT . '/modules/admin/themes/basic/layout-header.php'",
+            "'layout-footer' => SR_ROOT . '/modules/admin/themes/basic/layout-footer.php'",
+            "], ['layout-header', 'layout-footer'], 'admin theme')",
+            '기본 관리자 테마 view 파일이 누락되었습니다.',
         ],
         'action_needles' => [
-            '$adminSkinOptions = sr_admin_skin_options()',
-            "sr_post_string('admin_skin_key', 40)",
-            'if (!isset($adminSkinOptions[$postedSkinKey]))',
-            'sr_admin_save_skin_key($pdo, $postedSkinKey)',
-            "'admin_skin_key' => \$adminSkinKey",
+            '$adminThemeOptions = sr_admin_theme_options()',
+            "sr_post_string('admin_theme_key', 40)",
+            'if (!isset($adminThemeOptions[$postedThemeKey]))',
+            'sr_admin_save_theme_key($pdo, $postedThemeKey)',
+            "'admin_theme_key' => \$adminThemeKey",
         ],
         'view_needles' => [
-            "sr_admin_form_label_help_html('admin_settings_admin_skin_key'",
-            '<select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">',
-            'foreach ($adminSkinOptions as $skinKey => $skinOption)',
+            "sr_admin_form_label_help_html('admin_settings_admin_theme_key'",
+            '<select id="admin_settings_admin_theme_key" name="admin_theme_key" class="form-select">',
+            'foreach ($adminThemeOptions as $themeKey => $themeOption)',
         ],
         'render_needles' => [
-            "sr_admin_skin_view(sr_admin_skin_key(\$adminSettings), 'layout-header')",
-            "sr_admin_skin_view(sr_admin_skin_key(\$adminSettings), 'layout-footer')",
+            "sr_admin_theme_view(sr_admin_theme_key(\$adminSettings), 'layout-header')",
+            "sr_admin_theme_view(sr_admin_theme_key(\$adminSettings), 'layout-footer')",
         ],
     ],
     [
@@ -317,7 +317,7 @@ $targets = [
             'foreach ($communityLayoutOptions as $layoutKey => $layoutOption)',
         ],
         'render_needles' => [
-            '$communityLayoutKey = sr_community_layout_key($settings',
+            'sr_community_layout_key($settings,',
             'sr_community_layout_home_view($communityLayoutKey',
         ],
     ],
@@ -415,6 +415,26 @@ sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     'foreach ($publicLayoutOptions as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
 
+sr_skin_theme_check_not_contains([
+    'modules/admin/helpers/settings.php',
+    'modules/admin/actions/settings.php',
+    'modules/admin/views/settings.php',
+    'modules/admin/views/layout-header.php',
+    'modules/admin/views/layout-footer.php',
+    'modules/admin/module.php',
+    'docs/admin-ui-guide.md',
+    'docs/module-guide.md',
+    'docs/core-decisions.md',
+    'docs/operator-feature-list.md',
+    'core/actions/install.php',
+], [
+    'admin_' . 'skin_key',
+    'admin_' . 'skin',
+    'sr_admin_' . 'skin',
+    'modules/admin/' . 'skins',
+    '관리자 ' . '스킨',
+], 'Admin theme legacy naming');
+
 sr_skin_theme_check_contains('core/helpers/output.php', [
     'function sr_filter_view_options(array $options, array $requiredViewKeys, string $label): array',
     'function sr_view_option_has_required_views(array $option, array $requiredViewKeys): bool',
@@ -449,20 +469,20 @@ sr_skin_theme_check_contains('modules/admin/helpers/icons.php', [
     "'module_menu' => false",
 ], 'Admin icon common contract');
 
-sr_skin_theme_check_contains('modules/admin/skins/basic/layout-header.php', [
+sr_skin_theme_check_contains('modules/admin/themes/basic/layout-header.php', [
     'sr_icon(',
     'sr_icon_bootstrap_script();',
-], 'Admin skin Material icon rendering');
+], 'Admin theme Material icon rendering');
 
-sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', [
+sr_skin_theme_check_not_contains('modules/admin/themes/basic/layout-header.php', [
     '<svg',
     '<use',
     '<symbol id="admin-menu-icon-settings"',
     '<symbol id="admin-menu-icon-users"',
     'admin-menu-icon-',
-], 'Admin skin legacy SVG icon markup');
+], 'Admin theme legacy SVG icon markup');
 
-sr_skin_theme_check_admin_skin_material_icons();
+sr_skin_theme_check_admin_theme_material_icons();
 sr_skin_theme_check_admin_icon_contract_docs();
 
 sr_skin_theme_check_contains(['assets/ui-kit.css', 'modules/admin/assets/common.css'], [

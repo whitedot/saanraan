@@ -172,7 +172,7 @@ modules/board/
 - 모듈 layout은 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
 - 공개 레이아웃을 제공하는 모듈의 layout, UI-KIT, module, skin 파일은 `public-*`, `public-ui-*`, `sr-public-*` class/data namespace를 쓰지 않고 `content-*`, `community-*`, `quiz-*`, `survey-*`처럼 소유 모듈 namespace를 사용한다. `public-layout-*`와 `public-ui-*`는 공통 공개 레이아웃과 루트 공개 UI-KIT만 소유한다.
-- 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.
+- 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 theme이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.
 
 모듈은 DB에 view 파일 경로를 저장하지 않는다. `public_layout_key`, `layout_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist나 `layout-options.php` 계약에서 결정한다. 기존 공개 레이아웃 `basic` 값은 `common.basic`으로 정규화한다. 알 수 없는 사이트 공통 레이아웃 key는 기본 공통 레이아웃으로 fallback한다. 사이트 설정의 공통 레이아웃 선택지는 기본 공통 레이아웃을 먼저 표시하고, 모듈 제공 레이아웃은 관리자 사이드바의 모듈 순서대로 정렬한다. 콘텐츠, 커뮤니티, 퀴즈, 설문처럼 공개 레이아웃을 설정하는 모듈은 모듈 환경설정의 레이아웃 key를 메인, 그룹/게시판, 상세/응시/응답 하위 화면 전체에 적용한다.
 
@@ -231,7 +231,7 @@ return [
 
 `list`, `post`, `form`은 필수 view다. 필수 view 파일이 없거나 스킨 폴더 밖을 가리키면 그 스킨은 선택 가능한 스킨 목록에서 제외된다. 이미 DB에 저장된 스킨 key가 더 이상 유효하지 않으면 `basic`으로 fallback한다. `basic`의 필수 view가 누락되면 복구가 필요한 설치 오류로 보고 예외를 발생시킨다.
 
-커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 스킨, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 레이아웃은 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 기본 option으로 fallback한다. 기본 필수 view가 없으면 설치 오류로 본다. 회원 스킨처럼 자체 public layout이 없는 화면의 스킨은 사이트 설정의 공개 레이아웃을 바꾸지 않고 그 안쪽 화면만 렌더링하며, 스킨 option은 view와 선택적 `stylesheets`만 제공한다. 이런 스킨 stylesheet는 reset, layout shell, module body 스타일을 소유하지 않고 스킨 고유의 spacing과 화면 정리만 담당한다.
+커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 테마, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 레이아웃은 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 기본 option으로 fallback한다. 기본 필수 view가 없으면 설치 오류로 본다. 회원 스킨처럼 자체 public layout이 없는 화면의 스킨은 사이트 설정의 공개 레이아웃을 바꾸지 않고 그 안쪽 화면만 렌더링하며, 스킨 option은 view와 선택적 `stylesheets`만 제공한다. 이런 스킨 stylesheet는 reset, layout shell, module body 스타일을 소유하지 않고 스킨 고유의 spacing과 화면 정리만 담당한다.
 
 퀴즈와 설문 공개 화면도 모듈별 스킨 key를 설정으로 저장한다. 환경설정의 기본 key는 `basic`이고, 개별 퀴즈/설문의 `skin_key`가 비어 있으면 환경설정 기본값을 상속한다. 개별 값이 있으면 해당 모듈의 정적 허용 목록으로 검증한 뒤 공개 상세/응시/응답/완료 화면에서 개별값을 우선한다. 스킨 옵션 source of truth는 각각 `sr_quiz_skin_options()`, `sr_survey_skin_options()`다. 퀴즈 스킨 필수 view는 `home`, `view`, `result`이고, 설문 스킨 필수 view는 `home`, `view`, `complete`다. 공개 action은 설정된 `skin_key`와 내부 view 이름을 helper가 검증한 파일 경로로 매핑한 뒤 include한다. 스킨 또는 view 파일이 없으면 해당 view만 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file을 남긴다. 스킨 출력은 기존 공개 레이아웃 안쪽 본문을 대체하며, 퀴즈는 `quiz-skin-*`와 `sr-quiz-skin-*`, 설문은 `survey-skin-*` class hook을 유지해야 한다. 퀴즈 결과와 설문 완료 스킨은 보상 지급 결과 안내 surface를 빠뜨리지 않아야 한다.
 
@@ -877,9 +877,9 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 CKEditor처럼 독립 도메인 관리 화면이 아니라 다른 화면의 입력 경험을 보강하는 플러그인은 적용 대상과 도메인 정책을 자기 설정에 두지 않는다. 설정 route가 필요하면 `paths.php`로 URL을 소유하고, 접근성이 필요한 번들 플러그인은 `플러그인` 같은 별도 분류 아래 설정 메뉴를 제공할 수 있다.
 
-`admin.icon`은 모듈 메뉴 그룹의 기본 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `jpg`, `jpeg`, `png`, `gif`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다. 운영자가 `/admin/menu`에서 모듈 그룹 아이콘을 선택하면 해당 공용 아이콘 키 오버라이드가 이 기본 선언보다 우선한다.
+`admin.icon`은 모듈 메뉴 그룹의 기본 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin theme은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `jpg`, `jpeg`, `png`, `gif`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다. 운영자가 `/admin/menu`에서 모듈 그룹 아이콘을 선택하면 해당 공용 아이콘 키 오버라이드가 이 기본 선언보다 우선한다.
 
-`admin.stylesheets`는 모듈 관리자 본문에만 필요한 CSS 파일 목록이다. 파일은 자기 모듈의 `assets/` 아래 `.css` 파일만 선언한다. admin skin은 공용 UI kit과 공통 관리자 CSS 뒤에 현재 관리자 화면을 소유한 모듈의 stylesheet만 출력한다. `/admin` 대시보드는 실제 대시보드 섹션을 제공하는 모듈의 stylesheet만 추가한다. 따라서 모듈 CSS는 공통 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 재정의하지 않고 자기 모듈 class 또는 필요한 관리자 본문 class 아래로 범위를 좁힌다.
+`admin.stylesheets`는 모듈 관리자 본문에만 필요한 CSS 파일 목록이다. 파일은 자기 모듈의 `assets/` 아래 `.css` 파일만 선언한다. admin theme은 공용 UI kit과 공통 관리자 CSS 뒤에 현재 관리자 화면을 소유한 모듈의 stylesheet만 출력한다. `/admin` 대시보드는 실제 대시보드 섹션을 제공하는 모듈의 stylesheet만 추가한다. 따라서 모듈 CSS는 공통 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 재정의하지 않고 자기 모듈 class 또는 필요한 관리자 본문 class 아래로 범위를 좁힌다.
 
 공개 모듈 stylesheet는 해당 공개 화면의 `sr_public_layout_begin()` layout context에서 직접 요청한다. 파일은 자기 모듈의 `assets/` 아래 `.css` 파일이나 선택된 skin allowlist가 반환한 파일만 사용한다. 모듈 공개 CSS는 `{module_key}-*`, `sr-{module_key}-*`, 스킨 class처럼 소유권이 분명한 선택자만 사용한다.
 

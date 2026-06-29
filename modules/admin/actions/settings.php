@@ -15,8 +15,8 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $values = sr_admin_site_setting_values($site ?? null, $pdo);
 $adminSettings = sr_admin_settings($pdo);
-$adminSkinOptions = sr_admin_skin_options();
-$adminSkinKey = sr_admin_skin_key($adminSettings);
+$adminThemeOptions = sr_admin_theme_options();
+$adminThemeKey = sr_admin_theme_key($adminSettings);
 $adminColorScheme = sr_admin_color_scheme($adminSettings);
 $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
 $adminIconDefaults = sr_admin_material_icon_names();
@@ -25,7 +25,7 @@ $publicLayoutOptions = sr_admin_public_layout_options($pdo);
 $timezoneOptions = timezone_identifiers_list();
 $localeOptions = sr_available_locale_options($site ?? null);
 $values = array_merge($values, [
-    'admin_skin_key' => $adminSkinKey,
+    'admin_theme_key' => $adminThemeKey,
     'admin_color_scheme' => $adminColorScheme,
     'list_pagination_per_page' => $listPaginationPerPage,
 ]);
@@ -33,13 +33,13 @@ $values = array_merge($values, [
 if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'edit');
     sr_require_csrf();
-    $postedSkinKey = sr_post_string('admin_skin_key', 40);
+    $postedThemeKey = sr_post_string('admin_theme_key', 40);
     $postedColorScheme = sr_post_string('admin_color_scheme', 20);
     $postedListPaginationPerPageInput = trim(sr_post_string('list_pagination_per_page', 20));
     $postedListPaginationPerPage = null;
 
-    if (!isset($adminSkinOptions[$postedSkinKey])) {
-        $errors[] = '관리자 스킨 값이 올바르지 않습니다.';
+    if (!isset($adminThemeOptions[$postedThemeKey])) {
+        $errors[] = '관리자 테마 값이 올바르지 않습니다.';
     }
 
     if (!isset(sr_color_scheme_options()[$postedColorScheme])) {
@@ -57,11 +57,11 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 
     if ($errors !== []) {
         $values = array_merge(sr_admin_post_site_setting_values($site ?? null), [
-            'admin_skin_key' => $postedSkinKey,
+            'admin_theme_key' => $postedThemeKey,
             'admin_color_scheme' => $postedColorScheme,
             'list_pagination_per_page' => $postedListPaginationPerPageInput,
         ]);
-        $adminSkinKey = $postedSkinKey;
+        $adminThemeKey = $postedThemeKey;
         $adminColorScheme = $postedColorScheme;
         $listPaginationPerPage = $postedListPaginationPerPageInput;
     }
@@ -76,29 +76,29 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             $errors = $postResult['errors'];
             $notice = (string) $postResult['notice'];
             $values = array_merge($postResult['values'], [
-                'admin_skin_key' => $postedSkinKey,
+                'admin_theme_key' => $postedThemeKey,
                 'admin_color_scheme' => $postedColorScheme,
                 'list_pagination_per_page' => $postedListPaginationPerPageInput,
             ]);
             $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
 
             if ($errors === []) {
-                $previousSkinKey = $adminSkinKey;
+                $previousThemeKey = $adminThemeKey;
                 $previousColorScheme = $adminColorScheme;
                 $previousListPaginationPerPage = $listPaginationPerPage;
                 $adminSettingsBefore = [
-                    'admin_skin_key' => $previousSkinKey,
+                    'admin_theme_key' => $previousThemeKey,
                     'admin_color_scheme' => $previousColorScheme,
                     'list_pagination_per_page' => $previousListPaginationPerPage,
                 ];
                 $adminSettingsAfter = [
-                    'admin_skin_key' => $postedSkinKey,
+                    'admin_theme_key' => $postedThemeKey,
                     'admin_color_scheme' => $postedColorScheme,
                     'list_pagination_per_page' => (int) $postedListPaginationPerPage,
                 ];
 
-                if ($postedSkinKey !== $previousSkinKey) {
-                    sr_admin_save_skin_key($pdo, $postedSkinKey);
+                if ($postedThemeKey !== $previousThemeKey) {
+                    sr_admin_save_theme_key($pdo, $postedThemeKey);
                 }
 
                 if ($postedColorScheme !== $previousColorScheme) {
@@ -126,17 +126,17 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 }
 
                 $adminSettings = sr_admin_settings($pdo);
-                $adminSkinKey = sr_admin_skin_key($adminSettings);
+                $adminThemeKey = sr_admin_theme_key($adminSettings);
                 $adminColorScheme = sr_admin_color_scheme($adminSettings);
                 $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
                 $values = array_merge($values, [
-                    'admin_skin_key' => $adminSkinKey,
+                    'admin_theme_key' => $adminThemeKey,
                     'admin_color_scheme' => $adminColorScheme,
                     'list_pagination_per_page' => $listPaginationPerPage,
                 ]);
                 $notice = '설정을 저장했습니다.';
             } else {
-                $adminSkinKey = $postedSkinKey;
+                $adminThemeKey = $postedThemeKey;
                 $adminColorScheme = $postedColorScheme;
                 $listPaginationPerPage = $postedListPaginationPerPageInput;
             }
@@ -144,11 +144,11 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             sr_log_exception($exception, 'admin_settings_save_failed');
             $errors[] = '설정 저장 중 오류가 발생했습니다. 오류 로그를 확인해 주세요.';
             $values = array_merge(sr_admin_post_site_setting_values($site ?? null), [
-                'admin_skin_key' => $postedSkinKey,
+                'admin_theme_key' => $postedThemeKey,
                 'admin_color_scheme' => $postedColorScheme,
                 'list_pagination_per_page' => $postedListPaginationPerPageInput,
             ]);
-            $adminSkinKey = $postedSkinKey;
+            $adminThemeKey = $postedThemeKey;
             $adminColorScheme = $postedColorScheme;
             $listPaginationPerPage = $postedListPaginationPerPageInput;
         }

@@ -505,7 +505,7 @@ function sr_admin_settings(PDO $pdo): array
     $metadata = sr_module_metadata('admin');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
     $settings = sr_module_settings($pdo, 'admin');
-    $baseSettings = array_merge(['admin_skin_key' => 'basic', 'admin_color_scheme' => 'light'], $defaults);
+    $baseSettings = array_merge(['admin_theme_key' => 'basic', 'admin_color_scheme' => 'light'], $defaults);
 
     if (!isset($settings['admin_color_scheme'])) {
         $legacySiteSettings = sr_site_settings($pdo);
@@ -523,24 +523,24 @@ function sr_admin_settings(PDO $pdo): array
     return $mergedSettings;
 }
 
-function sr_admin_skin_options(): array
+function sr_admin_theme_options(): array
 {
     return sr_filter_view_options([
         'basic' => [
-            'label' => sr_t('admin::settings.skin.basic'),
+            'label' => sr_t('admin::settings.theme.basic'),
             'views' => [
-                'layout-header' => SR_ROOT . '/modules/admin/skins/basic/layout-header.php',
-                'layout-footer' => SR_ROOT . '/modules/admin/skins/basic/layout-footer.php',
+                'layout-header' => SR_ROOT . '/modules/admin/themes/basic/layout-header.php',
+                'layout-footer' => SR_ROOT . '/modules/admin/themes/basic/layout-footer.php',
             ],
         ],
-    ], ['layout-header', 'layout-footer'], 'admin skin');
+    ], ['layout-header', 'layout-footer'], 'admin theme');
 }
 
-function sr_admin_skin_key(array $settings): string
+function sr_admin_theme_key(array $settings): string
 {
-    $skinKey = (string) ($settings['admin_skin_key'] ?? 'basic');
+    $themeKey = (string) ($settings['admin_theme_key'] ?? 'basic');
 
-    return isset(sr_admin_skin_options()[$skinKey]) ? $skinKey : 'basic';
+    return isset(sr_admin_theme_options()[$themeKey]) ? $themeKey : 'basic';
 }
 
 function sr_admin_color_scheme(array $settings): string
@@ -557,10 +557,10 @@ function sr_admin_list_pagination_per_page(array $settings): int
     return max(5, min(500, (int) $perPage));
 }
 
-function sr_admin_skin_view(string $skinKey, string $viewKey): string
+function sr_admin_theme_view(string $themeKey, string $viewKey): string
 {
-    $options = sr_admin_skin_options();
-    $view = (string) ($options[$skinKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
+    $options = sr_admin_theme_options();
+    $view = (string) ($options[$themeKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
 
     if (is_file($view)) {
         return $view;
@@ -571,13 +571,13 @@ function sr_admin_skin_view(string $skinKey, string $viewKey): string
         return $fallback;
     }
 
-    throw new RuntimeException('기본 관리자 스킨 view 파일이 누락되었습니다.');
+    throw new RuntimeException('기본 관리자 테마 view 파일이 누락되었습니다.');
 }
 
-function sr_admin_save_skin_key(PDO $pdo, string $skinKey): void
+function sr_admin_save_theme_key(PDO $pdo, string $themeKey): void
 {
-    $skinKey = sr_admin_skin_key(['admin_skin_key' => $skinKey]);
-    sr_admin_save_module_setting($pdo, 'admin_skin_key', $skinKey);
+    $themeKey = sr_admin_theme_key(['admin_theme_key' => $themeKey]);
+    sr_admin_save_module_setting($pdo, 'admin_theme_key', $themeKey);
 }
 
 function sr_admin_save_color_scheme(PDO $pdo, string $colorScheme): void

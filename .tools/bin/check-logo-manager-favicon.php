@@ -677,7 +677,7 @@ if (is_string($logoManagerLang)) {
     );
 }
 
-$adminHeader = is_file('modules/admin/skins/basic/layout-header.php') ? file_get_contents('modules/admin/skins/basic/layout-header.php') : false;
+$adminHeader = is_file('modules/admin/themes/basic/layout-header.php') ? file_get_contents('modules/admin/themes/basic/layout-header.php') : false;
 sr_logo_manager_favicon_check_assert(is_string($adminHeader), 'admin layout header must be readable');
 if (is_string($adminHeader)) {
     sr_logo_manager_favicon_check_assert(

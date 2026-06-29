@@ -545,7 +545,7 @@ if (!is_string($adminSettingsView)) {
 } elseif (
     strpos($adminSettingsView, '<input type="hidden" name="intent" value="site">') === false
     || strpos($adminSettingsView, 'name="public_layout_key"') === false
-    || strpos($adminSettingsView, 'name="admin_skin_key"') === false
+    || strpos($adminSettingsView, 'name="admin_theme_key"') === false
 ) {
     $errors[] = 'Admin settings view must expose only the supported site settings form.';
 }
@@ -816,15 +816,15 @@ if (!is_string($adminNavigationHelper)) {
 $adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
 $adminLayoutHeader = file_get_contents($root . '/modules/admin/views/layout-header.php');
 if (!is_string($adminSettingsHelper) || !is_string($adminLayoutHeader)) {
-    $errors[] = 'Admin skin files cannot be read.';
+    $errors[] = 'Admin theme files cannot be read.';
 } elseif (
-    strpos($adminSettingsHelper, 'function sr_admin_skin_options(): array') === false
-    || strpos($adminSettingsHelper, 'function sr_admin_skin_view(string $skinKey, string $viewKey): string') === false
-    || strpos($adminLayoutHeader, "sr_admin_skin_view(sr_admin_skin_key(\$adminSettings), 'layout-header')") === false
-    || !is_file($root . '/modules/admin/skins/basic/layout-header.php')
-    || !is_file($root . '/modules/admin/skins/basic/layout-footer.php')
+    strpos($adminSettingsHelper, 'function sr_admin_theme_options(): array') === false
+    || strpos($adminSettingsHelper, 'function sr_admin_theme_view(string $themeKey, string $viewKey): string') === false
+    || strpos($adminLayoutHeader, "sr_admin_theme_view(sr_admin_theme_key(\$adminSettings), 'layout-header')") === false
+    || !is_file($root . '/modules/admin/themes/basic/layout-header.php')
+    || !is_file($root . '/modules/admin/themes/basic/layout-footer.php')
 ) {
-    $errors[] = 'Admin layout must render through explicit admin skin views with a basic fallback.';
+    $errors[] = 'Admin layout must render through explicit admin theme views with a basic fallback.';
 }
 
 $bannerHelper = file_get_contents($root . '/modules/banner/helpers.php');

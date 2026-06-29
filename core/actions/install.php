@@ -23,7 +23,7 @@ $requiredModules = [
     ],
     'admin' => [
         'name' => '관리자',
-        'version' => '2026.05.005',
+        'version' => '2026.06.002',
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],

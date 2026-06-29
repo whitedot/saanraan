@@ -95,12 +95,12 @@ $siteSettingsHelp = [
             'settings.help.ui_color_scheme.body.2',
         ]),
     ],
-    'admin_skin' => [
-        'id' => 'admin-settings-admin-skin-help-modal',
-        'title' => sr_t('admin::settings.help.admin_skin.title'),
+    'admin_theme' => [
+        'id' => 'admin-settings-admin-theme-help-modal',
+        'title' => sr_t('admin::settings.help.admin_theme.title'),
         'body_html' => $siteSettingsHelpBodyHtml([
-            'settings.help.admin_skin.body.1',
-            'settings.help.admin_skin.body.2',
+            'settings.help.admin_theme.body.1',
+            'settings.help.admin_theme.body.2',
         ]),
     ],
     'list_pagination_per_page' => [
@@ -405,12 +405,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('admin_settings_admin_skin_key', sr_t('admin::ui.admin.1465c5b7'), $siteSettingsHelp['admin_skin']['id'], $siteSettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('admin_settings_admin_theme_key', sr_t('admin::ui.admin.1465c5b7'), $siteSettingsHelp['admin_theme']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <select id="admin_settings_admin_skin_key" name="admin_skin_key" class="form-select">
-                    <?php foreach ($adminSkinOptions as $skinKey => $skinOption) { ?>
-                        <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $adminSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($skinOption['label'] ?? $skinKey)); ?>
+                <select id="admin_settings_admin_theme_key" name="admin_theme_key" class="form-select">
+                    <?php foreach ($adminThemeOptions as $themeKey => $themeOption) { ?>
+                        <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo $adminThemeKey === (string) $themeKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
                         </option>
                     <?php } ?>
                 </select>
