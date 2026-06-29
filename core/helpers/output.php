@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/common.php';
-require_once __DIR__ . '/packages.php';
 
 function sr_set_locale(string $locale): void
 {
@@ -1096,10 +1095,15 @@ function sr_public_layout_support_domains(array $supports): array
     return array_values($domains);
 }
 
+function sr_public_layout_domains(): array
+{
+    return ['site', 'content', 'community', 'quiz', 'survey'];
+}
+
 function sr_public_layout_support_targets(array $supports): array
 {
     $targets = [];
-    $allowed = array_fill_keys(sr_package_public_domains(), true);
+    $allowed = array_fill_keys(sr_public_layout_domains(), true);
     foreach ($supports as $support) {
         $support = is_string($support) ? strtolower(trim($support)) : '';
         if ($support === '') {
@@ -1135,7 +1139,7 @@ function sr_public_layout_target_domain(string $target): string
 
     $domain = strpos($target, '.') !== false ? strstr($target, '.', true) : $target;
     $domain = is_string($domain) ? $domain : '';
-    $allowed = array_fill_keys(sr_package_public_domains(), true);
+    $allowed = array_fill_keys(sr_public_layout_domains(), true);
 
     return isset($allowed[$domain]) ? $domain : '';
 }
@@ -1288,8 +1292,8 @@ function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModule
             'source_key' => 'common',
             'asset_owner' => 'core',
             'asset_owner_key' => 'common',
-            'supports' => sr_package_public_domains(),
-            'supports_domains' => sr_package_public_domains(),
+            'supports' => sr_public_layout_domains(),
+            'supports_domains' => sr_public_layout_domains(),
             'style_profile' => 'kit',
             'layout_contract' => '1.0',
             'is_valid' => true,
@@ -1692,7 +1696,7 @@ function sr_public_theme_options(?PDO $pdo = null, bool $includeInstalledModules
             'provider_label' => 'Saanraan',
             'asset_owner' => 'core',
             'asset_owner_key' => 'core',
-            'supports_domains' => sr_package_public_domains(),
+            'supports_domains' => sr_public_layout_domains(),
             'theme_contract' => '1.0',
             'views' => [],
             'asset_ids' => [],
@@ -1732,13 +1736,6 @@ function sr_public_theme_options(?PDO $pdo = null, bool $includeInstalledModules
         ];
     }
 
-    foreach (sr_package_external_theme_options() as $themeKey => $themeOption) {
-        if (isset($options[$themeKey]) || !is_array($themeOption)) {
-            continue;
-        }
-        $options[(string) $themeKey] = $themeOption;
-    }
-
     $cache[$cacheKey] = $options;
     $GLOBALS['sr_public_theme_options_runtime_cache'] = $cache;
 
@@ -1774,7 +1771,7 @@ function sr_public_theme_effective_key(string $themeKey, array $consumerDomains,
         return $defaultKey;
     }
 
-    $supportedDomains = array_fill_keys((array) ($options[$themeKey]['supports_domains'] ?? sr_package_public_domains()), true);
+    $supportedDomains = array_fill_keys((array) ($options[$themeKey]['supports_domains'] ?? sr_public_layout_domains()), true);
     foreach ($consumerDomains as $domain) {
         $domain = is_string($domain) ? $domain : '';
         if ($domain === '' || isset($supportedDomains[$domain])) {
@@ -1798,38 +1795,12 @@ function sr_public_theme_option(string $themeKey, ?PDO $pdo = null, bool $includ
 
 function sr_public_theme_stylesheets(string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
 {
-    $option = sr_public_theme_option($themeKey, $pdo, $includeInstalledModules);
-    if (!is_array($option) || (string) ($option['source_type'] ?? '') !== 'external_theme') {
-        return [];
-    }
-
-    $assets = isset($option['assets']) && is_array($option['assets']) ? $option['assets'] : [];
-    $stylesheets = [];
-    foreach (['theme_css', 'theme', 'style', 'stylesheet', 'layout_css'] as $assetId) {
-        if (is_array($assets[$assetId] ?? null) && (string) ($assets[$assetId]['extension'] ?? '') === 'css') {
-            $stylesheets[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $themeKey), $assetId);
-        }
-    }
-
-    return array_values(array_unique($stylesheets));
+    return [];
 }
 
 function sr_public_theme_scripts(string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
 {
-    $option = sr_public_theme_option($themeKey, $pdo, $includeInstalledModules);
-    if (!is_array($option) || (string) ($option['source_type'] ?? '') !== 'external_theme') {
-        return [];
-    }
-
-    $assets = isset($option['assets']) && is_array($option['assets']) ? $option['assets'] : [];
-    $scripts = [];
-    foreach (['theme_js', 'script', 'layout_js'] as $assetId) {
-        if (is_array($assets[$assetId] ?? null) && (string) ($assets[$assetId]['extension'] ?? '') === 'js') {
-            $scripts[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $themeKey), $assetId);
-        }
-    }
-
-    return array_values(array_unique($scripts));
+    return [];
 }
 
 function sr_public_theme_optional_view_file(string $themeKey, string $viewKey, ?PDO $pdo = null, bool $includeInstalledModules = false): ?string
@@ -1903,7 +1874,7 @@ function sr_public_layout_context_with_shell_assets(array $layoutContext, string
 function sr_public_route_domains(PDO $pdo, ?array $site = null): array
 {
     $domains = ['site' => 'site'];
-    $allowed = array_fill_keys(sr_package_public_domains(), true);
+    $allowed = array_fill_keys(sr_public_layout_domains(), true);
 
     foreach (sr_enabled_module_contract_files($pdo, 'paths.php', ['admin']) as $moduleKey => $pathsFile) {
         if (!isset($allowed[$moduleKey])) {
@@ -1937,7 +1908,7 @@ function sr_public_route_domains(PDO $pdo, ?array $site = null): array
     }
 
     $ordered = [];
-    foreach (sr_package_public_domains() as $domain) {
+    foreach (sr_public_layout_domains() as $domain) {
         if (isset($domains[$domain])) {
             $ordered[] = $domain;
         }
@@ -2062,7 +2033,7 @@ function sr_public_layout_health_warnings(PDO $pdo, ?array $site = null): array
         if ($stmt instanceof PDOStatement) {
             foreach ($stmt->fetchAll() as $row) {
                 $moduleKey = (string) ($row['module_key'] ?? '');
-                if (!in_array($moduleKey, sr_package_public_domains(), true) || $moduleKey === 'site') {
+                if (!in_array($moduleKey, sr_public_layout_domains(), true) || $moduleKey === 'site') {
                     continue;
                 }
                 $targets = sr_public_layout_module_setting_targets($moduleKey);

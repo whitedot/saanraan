@@ -210,7 +210,7 @@ foreach ([
 
 foreach ([
     'location /saanraan/assets/',
-    'location ~ ^/saanraan/(?:config|core|database|docs|examples|storage|modules|sr-packages|\.git|\.tools|\.claude)(?:/|$)',
+    'location ~ ^/saanraan/(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$)',
     'location ~ ^/saanraan/(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env(?:\..*)?)$',
     'try_files $uri $uri/ /saanraan/index.php?$query_string',
     'fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name',

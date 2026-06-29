@@ -882,12 +882,6 @@ function sr_community_skin_options(): array
 
         $options[(string) $skinKey] = $definition;
     }
-    foreach (sr_package_external_skin_options('community') as $skinKey => $definition) {
-        if (!isset($options[$skinKey]) && sr_community_skin_definition_is_valid((string) $skinKey, $definition)) {
-            $options[(string) $skinKey] = $definition;
-        }
-    }
-
     return $options;
 }
 

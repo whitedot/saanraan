@@ -93,6 +93,14 @@ function sr_skin_theme_check_file_exists(string $path, string $label): void
     }
 }
 
+function sr_skin_theme_check_file_missing(string $path, string $label): void
+{
+    global $root, $errors;
+    if (is_file($root . '/' . $path)) {
+        $errors[] = $label . ' file must not exist: ' . $path;
+    }
+}
+
 function sr_skin_theme_check_admin_theme_material_icons(): void
 {
     global $errors;
@@ -438,21 +446,10 @@ sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '$publicLayoutHealthWarnings',
 ], 'Public layout setting UI');
 
-sr_skin_theme_check_contains('core/helpers/packages.php', [
-    'function sr_package_theme_candidates(): array',
-    'function sr_package_skin_candidates(string $moduleKey): array',
-    'function sr_package_validate_theme_manifest(string $directoryKey, string $manifestFile, string $packageRoot): array',
-    'function sr_package_validate_skin_manifest(string $moduleKey, string $directoryKey, string $manifestFile, string $packageRoot): array',
-    'function sr_package_send_asset_response(string $packageType, string $packageKey, string $assetId, string $moduleKey = \'\', string $version = \'\'): void',
-    'provider_module_key',
-    'privileged_php',
-    'sr_package_asset_url_from_buster',
-    'sr_package_reference_summary',
-], 'External skin/theme package helper');
-
 sr_skin_theme_check_contains('core/helpers/output.php', [
     'function sr_public_layout_normalized_option(string $layoutKey, array $layoutOption, string $fallbackProviderKey = \'\'): array',
     'function sr_public_layout_support_targets(array $supports): array',
+    'function sr_public_layout_domains(): array',
     'function sr_public_layout_options_for_targets(?PDO $pdo, array $requiredTargets',
     'function sr_public_layout_context_consumer_targets(array $layoutContext',
     'function sr_public_layout_module_setting_targets(string $moduleKey): array',
@@ -467,12 +464,11 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
     "'/modules/' . \$moduleKey . '/theme/'",
     "SR_ROOT . '/core/views/theme'",
     'function sr_public_layout_context_with_theme_assets(array $layoutContext',
-    'sr_package_external_theme_options()',
     'function sr_public_route_domains(PDO $pdo',
     'function sr_public_layout_effective_key(string $layoutKey',
     'function sr_public_layout_health_warnings(PDO $pdo',
     "'unsupported_target' =>",
-], 'External theme/runtime helper');
+], 'Public module theme runtime helper');
 
 $publicModuleLayoutTargets = [
     'site',
@@ -785,27 +781,35 @@ sr_skin_theme_check_not_contains([
     "'layout_key' => \$pageLayoutKey",
 ], 'Content layout setting must be module-setting scoped');
 
-sr_skin_theme_check_contains('index.php', [
-    "if (\$method === 'GET' && \$path === '/sr-package-asset')",
-    'sr_package_send_asset_response(',
-], 'External package asset handler route');
+sr_skin_theme_check_file_missing('core/helpers/' . 'packages.php', 'External package helper');
+sr_skin_theme_check_file_missing('modules/admin/actions/' . 'packages.php', 'Admin package action');
+sr_skin_theme_check_file_missing('modules/admin/views/' . 'packages.php', 'Admin package view');
+sr_skin_theme_check_file_missing('docs/skin-theme-' . 'packages.md', 'External package guide');
 
-sr_skin_theme_check_contains('.htaccess', [
-    'sr-packages',
-], 'External package direct access block');
-
-sr_skin_theme_check_contains([
+sr_skin_theme_check_not_contains([
+    'index.php',
+    'core/helpers.php',
+    'core/helpers/output.php',
     'modules/admin/paths.php',
     'modules/admin/helpers/navigation.php',
-    'modules/admin/actions/packages.php',
-    'modules/admin/views/packages.php',
+    'modules/admin/views/settings.php',
+    'modules/community/helpers/presentation.php',
+    'modules/quiz/helpers.php',
+    'modules/survey/helpers.php',
+    '.htaccess',
 ], [
-    '/admin/packages',
-    'sr_package_theme_candidates()',
-    'sr_package_skin_candidates',
-    'sr_package_reference_summary',
-    'trust_warning',
-], 'Admin package manager UI');
+    '/sr-' . 'package-asset',
+    'sr_' . 'package_',
+    '/admin/' . 'packages',
+    'sr-' . 'packages',
+    'external_' . 'theme',
+], 'External package flow is not used');
+
+sr_skin_theme_check_contains('docs/public-module-themes.md', [
+    'modules/{module_key}/theme/{theme_key}/assets/',
+    '외부 package 디렉터리, 외부 manifest, 외부 package asset handler는 사용하지 않는다.',
+    '관리자 화면은 이 공개 theme 체계의 적용 대상이 아니다.',
+], 'Public module theme guide');
 
 sr_skin_theme_check_not_contains([
     'modules/admin/helpers/settings.php',

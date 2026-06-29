@@ -440,12 +440,6 @@ function sr_survey_skin_option_definitions(): array
         ];
     }
 
-    foreach (sr_package_external_skin_options('survey') as $skinKey => $definition) {
-        if (!isset($definitions[$skinKey])) {
-            $definitions[$skinKey] = $definition;
-        }
-    }
-
     return $definitions;
 }
 

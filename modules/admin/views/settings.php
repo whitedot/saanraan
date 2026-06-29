@@ -405,9 +405,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
                         <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo $values['public_theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
-                            <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
-                                <?php echo sr_e(' - 외부 테마'); ?>
-                            <?php } ?>
                         </option>
                     <?php } ?>
                 </select>

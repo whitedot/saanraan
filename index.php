@@ -157,16 +157,6 @@ if ($method === 'GET' && $path === '/service-worker.js') {
     exit;
 }
 
-if ($method === 'GET' && $path === '/sr-package-asset') {
-    sr_package_send_asset_response(
-        sr_get_string('type', 20),
-        sr_get_string('key', 80),
-        sr_get_string('asset', 80),
-        sr_get_string('module', 40),
-        sr_get_string('v', 80)
-    );
-}
-
 if (
     $site !== null
     && $site['status'] === 'maintenance'

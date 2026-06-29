@@ -359,12 +359,6 @@ function sr_quiz_skin_option_definitions(): array
         ];
     }
 
-    foreach (sr_package_external_skin_options('quiz') as $skinKey => $definition) {
-        if (!isset($definitions[$skinKey])) {
-            $definitions[$skinKey] = $definition;
-        }
-    }
-
     return $definitions;
 }
 

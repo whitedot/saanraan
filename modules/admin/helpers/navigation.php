@@ -146,7 +146,6 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => sr_t('admin::nav.dashboard'), 'path' => '/admin', 'order' => 10],
                 ['label' => sr_t('admin::nav.settings'), 'path' => '/admin/settings', 'order' => 20],
                 ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 30],
-                ['label' => '스킨·테마 패키지', 'path' => '/admin/packages', 'order' => 40],
                 ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 50],
                 ['label' => '운영 지연/실패 점검', 'path' => '/admin/operations', 'order' => 60],
                 ['label' => '썸네일 파일 캐시', 'path' => '/admin/storage-cache', 'order' => 70],

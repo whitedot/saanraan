@@ -24,7 +24,7 @@ Options -Indexes
     RewriteRule ^storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[a-f0-9]{16,64}\.(?:jpe?g|png|gif|webp)$ - [L,NC]
 
     # Block internal project directories.
-    RewriteRule ^(?:config|core|database|docs|examples|storage|modules|sr-packages|\.git|\.tools|\.claude)(?:/|$) - [F,L]
+    RewriteRule ^(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$) - [F,L]
 
     # Block root-only project metadata files.
     RewriteRule ^(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env(?:\..*)?)$ - [F,L]
