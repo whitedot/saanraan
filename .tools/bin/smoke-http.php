@@ -33,7 +33,7 @@ $checks = [
             'x-content-type-options' => 'nosniff',
             'x-frame-options' => 'SAMEORIGIN',
             'referrer-policy' => 'no-referrer',
-            'content-security-policy' => "default-src 'self'",
+            'content-security-policy' => ["default-src 'self'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
             'cache-control' => 'no-store',
         ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -46,7 +46,7 @@ $checks = [
             'x-content-type-options' => 'nosniff',
             'x-frame-options' => 'SAMEORIGIN',
             'referrer-policy' => 'no-referrer',
-            'content-security-policy' => "default-src 'self'",
+            'content-security-policy' => ["default-src 'self'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
             'cache-control' => 'no-store',
         ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -928,12 +928,15 @@ foreach ($checks as $check) {
         }
     }
 
-    foreach ($check['required_headers'] ?? [] as $headerName => $expectedValuePart) {
+    foreach ($check['required_headers'] ?? [] as $headerName => $expectedValueParts) {
         $headerName = strtolower(trim((string) $headerName));
-        $expectedValuePart = (string) $expectedValuePart;
+        $expectedValueParts = is_array($expectedValueParts) ? $expectedValueParts : [$expectedValueParts];
         $actualHeader = (string) ($headers[$headerName] ?? '');
-        if ($actualHeader === '' || !str_contains($actualHeader, $expectedValuePart)) {
-            $checkErrors[] = $label . ' missing required response header "' . $headerName . ': ' . $expectedValuePart . '" for ' . $url;
+        foreach ($expectedValueParts as $expectedValuePart) {
+            $expectedValuePart = (string) $expectedValuePart;
+            if ($actualHeader === '' || !str_contains($actualHeader, $expectedValuePart)) {
+                $checkErrors[] = $label . ' missing required response header "' . $headerName . ': ' . $expectedValuePart . '" for ' . $url;
+            }
         }
     }
 

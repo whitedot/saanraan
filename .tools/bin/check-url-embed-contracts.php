@@ -450,6 +450,7 @@ sr_url_embed_contract_runtime_fixture();
 sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_admin_cache_summary');
 sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_resolve_external_url');
 sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_render_external_url');
+sr_url_embed_contract_contains('core/helpers/runtime.php', "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com");
 sr_url_embed_contract_contains('modules/community/helpers/posts-writing.php', 'CAST(sr_url_embed_cache.target_id AS UNSIGNED)');
 
 if ($errors !== []) {

@@ -79,10 +79,23 @@ function sr_send_security_headers(?array $config = null): void
         return;
     }
 
+    $contentSecurityPolicy = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://cdn.ckeditor.com",
+        "connect-src 'self' https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.ckeditor.com",
+        "font-src 'self' https://cdn.jsdelivr.net data:",
+        "img-src 'self' https: data:",
+        "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+        "form-action 'self'",
+    ];
+
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: no-referrer');
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.ckeditor.com; connect-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.ckeditor.com; font-src 'self' https://cdn.jsdelivr.net data:; img-src 'self' https: data:; base-uri 'self'; frame-ancestors 'self'; form-action 'self'");
+    header('Content-Security-Policy: ' . implode('; ', $contentSecurityPolicy));
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
 

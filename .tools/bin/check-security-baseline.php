@@ -301,6 +301,7 @@ sr_security_baseline_require_markers('core/helpers/runtime.php', [
     'X-Content-Type-Options: nosniff',
     'X-Frame-Options: SAMEORIGIN',
     'Content-Security-Policy:',
+    "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
     'Strict-Transport-Security:',
     'function sr_rate_limit_count(',
     'function sr_rate_limit_increment(',
