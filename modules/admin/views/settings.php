@@ -89,10 +89,10 @@ $siteSettingsHelp = [
     ],
     'admin_color_scheme' => [
         'id' => 'admin-settings-admin-color-scheme-help-modal',
-        'title' => sr_t('admin::settings.help.ui_color_scheme.title'),
+        'title' => sr_t('admin::settings.help.admin_color_scheme.title'),
         'body_html' => $siteSettingsHelpBodyHtml([
-            'settings.help.ui_color_scheme.body.1',
-            'settings.help.ui_color_scheme.body.2',
+            'settings.help.admin_color_scheme.body.1',
+            'settings.help.admin_color_scheme.body.2',
         ]),
     ],
     'admin_theme' => [

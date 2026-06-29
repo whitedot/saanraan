@@ -503,9 +503,6 @@ function sr_admin_menu_overrides(PDO $pdo): array
         $sortOrder = (int) ($row['sort_order'] ?? 1000);
         $isHidden = !empty($row['is_hidden']);
         $iconName = sr_admin_normalize_menu_override_icon_name_for_save($pdo, (string) ($row['icon_name'] ?? ''));
-        if ($iconName === '' && sr_admin_menu_override_is_stale_default($scope, $targetKey, $sortOrder, $isHidden)) {
-            continue;
-        }
         if (!sr_admin_menu_target_can_hide($scope, $targetKey)) {
             $isHidden = false;
         }
@@ -518,44 +515,6 @@ function sr_admin_menu_overrides(PDO $pdo): array
     }
 
     return $overrides;
-}
-
-function sr_admin_menu_override_is_stale_default(string $scope, string $targetKey, int $sortOrder, bool $isHidden): bool
-{
-    if ($isHidden) {
-        return false;
-    }
-
-    if ($scope === 'group') {
-        $legacyDefaults = [
-            'point' => [30],
-            'reward' => [40, 50],
-            'deposit' => [30, 40],
-            'content' => [10, 20, 30],
-            'logo_manager' => [25],
-            'site_menu' => [20, 60],
-            'banner' => [20, 70],
-            'popup_layer' => [30, 80],
-            'seo' => [40, 90],
-        ];
-
-        return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
-    }
-
-    if ($scope === 'item') {
-        $legacyDefaults = [
-            sr_admin_menu_item_target_key('admin', '/admin/menu') => [30],
-            sr_admin_menu_item_target_key('admin', '/admin/modules') => [40],
-            sr_admin_menu_item_target_key('admin', '/admin/updates') => [50],
-            sr_admin_menu_item_target_key('admin', '/admin/roles') => [60],
-            sr_admin_menu_item_target_key('admin', '/admin/audit-logs') => [70],
-            sr_admin_menu_item_target_key('admin', '/admin/retention') => [80],
-        ];
-
-        return in_array($sortOrder, $legacyDefaults[$targetKey] ?? [], true);
-    }
-
-    return false;
 }
 
 function sr_admin_menu_target_can_hide(string $scope, string $targetKey): bool
@@ -1026,47 +985,6 @@ function sr_admin_ensure_menu_overrides_table(PDO $pdo): void
                 KEY idx_sr_admin_menu_overrides_scope_order (scope, sort_order)
             )'
         );
-    }
-    sr_admin_ensure_menu_overrides_icon_column($pdo);
-}
-
-function sr_admin_ensure_menu_overrides_icon_column(PDO $pdo): void
-{
-    if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-        $columns = $pdo->query('PRAGMA table_info(sr_admin_menu_overrides)')->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($columns as $column) {
-            if ((string) ($column['name'] ?? '') === 'icon_name') {
-                return;
-            }
-        }
-        $pdo->exec("ALTER TABLE sr_admin_menu_overrides ADD COLUMN icon_name TEXT NOT NULL DEFAULT ''");
-        return;
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            "SELECT CHARACTER_MAXIMUM_LENGTH
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = 'sr_admin_menu_overrides'
-               AND COLUMN_NAME = 'icon_name'"
-        );
-        $stmt->execute();
-        $length = $stmt->fetchColumn();
-        $stmt->closeCursor();
-        if ($length !== false) {
-            $length = (int) $length;
-            if ($length > 0 && $length < 80) {
-                $pdo->exec("ALTER TABLE sr_admin_menu_overrides MODIFY COLUMN icon_name VARCHAR(80) NOT NULL DEFAULT ''");
-            }
-            return;
-        }
-
-        $pdo->exec("ALTER TABLE sr_admin_menu_overrides ADD COLUMN icon_name VARCHAR(80) NOT NULL DEFAULT '' AFTER is_hidden");
-    } catch (PDOException $exception) {
-        if ((string) $exception->getCode() !== '42S21') {
-            throw $exception;
-        }
     }
 }
 

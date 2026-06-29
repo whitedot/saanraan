@@ -1638,7 +1638,7 @@ window.AdminShell = {
 
                 const bodyParams = new URLSearchParams();
                 bodyParams.set('csrf_token', csrfToken);
-                bodyParams.set('ui_color_scheme', nextScheme);
+                bodyParams.set('admin_color_scheme', nextScheme);
 
                 window.fetch(endpoint, {
                     method: 'POST',
@@ -1655,7 +1655,7 @@ window.AdminShell = {
 
                     return response.json();
                 }).then(payload => {
-                    const savedScheme = payload && payload.ui_color_scheme ? payload.ui_color_scheme : nextScheme;
+                    const savedScheme = payload && payload.admin_color_scheme ? payload.admin_color_scheme : nextScheme;
                     applyColorScheme(savedScheme);
                     colorSchemeControls.forEach(control => {
                         if (control.type === 'radio') {

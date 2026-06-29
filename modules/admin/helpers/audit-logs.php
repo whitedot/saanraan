@@ -13,41 +13,6 @@ function sr_admin_audit_log_filters(): array
     $ipAddress = sr_admin_audit_log_ip_filter(sr_get_string('ip_address', 45));
     $results = sr_admin_audit_log_result_filters($_GET['result'] ?? []);
 
-    if ($keyword === '') {
-        $legacyActorAccountId = sr_get_string('actor_account_id', 20);
-
-        if ($eventType !== '' && $targetType === '' && $targetId === '') {
-            $field = 'event_type';
-            $keyword = $eventType;
-            $eventType = '';
-        } elseif ($targetType !== '' && $eventType === '' && $targetId === '') {
-            $field = 'target_type';
-            $keyword = $targetType;
-            $targetType = '';
-        } elseif ($targetId !== '' && $eventType === '' && $targetType === '') {
-            $field = 'target_id';
-            $keyword = $targetId;
-            $targetId = '';
-        } elseif ($legacyActorAccountId !== '') {
-            $field = 'actor_account_id';
-            $keyword = $legacyActorAccountId;
-        }
-    } elseif ($field === 'actor_type') {
-        $legacyActorType = sr_admin_audit_log_identifier_filter($keyword, 40);
-        if ($legacyActorType !== '' && $actorTypes === []) {
-            $actorTypes = [$legacyActorType];
-            $field = 'event_type';
-            $keyword = '';
-        }
-    } elseif ($field === 'ip_address') {
-        $legacyIpAddress = sr_admin_audit_log_ip_filter($keyword);
-        if ($legacyIpAddress !== '' && $ipAddress === '') {
-            $ipAddress = $legacyIpAddress;
-            $field = 'event_type';
-            $keyword = '';
-        }
-    }
-
     return [
         'field' => $field,
         'q' => $keyword,

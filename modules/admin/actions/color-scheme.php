@@ -9,7 +9,7 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'edit');
 sr_require_csrf();
 
-$colorScheme = sr_post_string('ui_color_scheme', 20);
+$colorScheme = sr_post_string('admin_color_scheme', 20);
 $options = sr_color_scheme_options();
 
 if (!isset($options[$colorScheme])) {
@@ -45,5 +45,5 @@ if ($colorScheme !== $previousColorScheme) {
 
 sr_json_response([
     'ok' => true,
-    'ui_color_scheme' => $colorScheme,
+    'admin_color_scheme' => $colorScheme,
 ]);

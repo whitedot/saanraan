@@ -507,20 +507,7 @@ function sr_admin_settings(PDO $pdo): array
     $settings = sr_module_settings($pdo, 'admin');
     $baseSettings = array_merge(['admin_theme_key' => 'basic', 'admin_color_scheme' => 'light'], $defaults);
 
-    if (!isset($settings['admin_color_scheme'])) {
-        $legacySiteSettings = sr_site_settings($pdo);
-        $legacyColorScheme = (string) ($legacySiteSettings['ui_color_scheme'] ?? '');
-        if (isset(sr_color_scheme_options()[$legacyColorScheme])) {
-            $baseSettings['admin_color_scheme'] = $legacyColorScheme;
-        }
-    }
-
-    $mergedSettings = array_merge($baseSettings, $settings);
-    if (!isset($settings['list_pagination_per_page']) && isset($settings['audit_logs_per_page'])) {
-        $mergedSettings['list_pagination_per_page'] = $settings['audit_logs_per_page'];
-    }
-
-    return $mergedSettings;
+    return array_merge($baseSettings, $settings);
 }
 
 function sr_admin_theme_options(): array
@@ -552,7 +539,7 @@ function sr_admin_color_scheme(array $settings): string
 
 function sr_admin_list_pagination_per_page(array $settings): int
 {
-    $perPage = $settings['list_pagination_per_page'] ?? ($settings['audit_logs_per_page'] ?? 50);
+    $perPage = $settings['list_pagination_per_page'] ?? 50;
 
     return max(5, min(500, (int) $perPage));
 }
