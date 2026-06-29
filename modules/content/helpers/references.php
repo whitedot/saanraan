@@ -275,9 +275,11 @@ function sr_content_display_reference_item_rows(PDO $pdo, string $kind, int $tar
     }
 
     $conditions = [];
-    $params = ['target_id' => $targetId];
-    foreach ($columns as $column) {
-        $conditions[] = $column . ' = :target_id';
+    $params = [];
+    foreach ($columns as $index => $column) {
+        $paramKey = 'target_id_' . (string) $index;
+        $conditions[] = $column . ' = :' . $paramKey;
+        $params[$paramKey] = $targetId;
     }
 
     $stmt = $pdo->prepare(
@@ -419,11 +421,14 @@ function sr_content_member_group_reference_rows(PDO $pdo, array $target, array $
     $stmt = $pdo->prepare(
         'SELECT id, title, status, updated_at
          FROM sr_content_items
-         WHERE asset_access_group_policies_json LIKE :group_key ESCAPE \'\\\\\'
-            OR asset_action_group_policies_json LIKE :group_key ESCAPE \'\\\\\'
+         WHERE asset_access_group_policies_json LIKE :group_key_access ESCAPE \'\\\\\'
+            OR asset_action_group_policies_json LIKE :group_key_action ESCAPE \'\\\\\'
          ORDER BY id DESC'
     );
-    $stmt->execute(['group_key' => $like]);
+    $stmt->execute([
+        'group_key_access' => $like,
+        'group_key_action' => $like,
+    ]);
     foreach ($stmt->fetchAll() as $item) {
         $rows[] = [
             'consumer_module_key' => 'content',
