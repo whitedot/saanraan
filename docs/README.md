@@ -9,7 +9,7 @@
 | 프로젝트 소개 | [산란 특장점 소개](operator-feature-list.md), [산란 포지셔닝 기준](positioning.md) |
 | 설계 방향 | [핵심 설계 결정](core-decisions.md) |
 | 설치와 배포 | [배포 보호 기준](deployment-protection.md), [nginx 샘플 설정](deployment/nginx-saanraan.conf), [nginx 하위 경로 샘플 설정](deployment/nginx-saanraan-subdirectory.conf) |
-| 기여와 개발 | [기여자 작업 기준](contribution-guide.md), [모듈 작성 가이드](module-guide.md), [모듈 배치와 업데이트 기준](module-update-policy.md), [커스터마이징과 업데이트 충돌 가이드](customization-guide.md) |
+| 기여와 개발 | [기여자 작업 기준](contribution-guide.md), [모듈 작성 가이드](module-guide.md), [스킨·테마 패키지 기준](skin-theme-packages.md), [모듈 배치와 업데이트 기준](module-update-policy.md), [커스터마이징과 업데이트 충돌 가이드](customization-guide.md) |
 | 관리자 화면 작성 | [관리자 UI 작성 기준](admin-ui-guide.md), [관리자 목록 컬럼 기준](admin-list-columns.md), [모듈을 가로지르는 운영 흐름 가이드](cross-module-operations-guide.md) |
 | 보안과 정책 | [산란 보안 모델](security-model.md), [보안 체크리스트](security-checklist.md), [보안 제보와 처리 기준](security-response-policy.md), [DB 접근 정책](database-access-policy.md), [외부 의존성 배치 기준](dependency-policy.md) |
 | 운영 정책 | [성능과 캐시 기준](performance-policy.md), [개인정보 처리활동 기록 기준](privacy-processing-records.md), [Rich Text Sanitizer 정책](rich-text-sanitizer-policy.md) |
