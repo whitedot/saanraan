@@ -13,8 +13,9 @@ unset($_SESSION['sr_asset_exchange_flash']);
 $errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
 $notice = (string) ($flash['notice'] ?? '');
 $assets = sr_asset_exchange_assets($pdo);
+$exchangeEnabled = sr_asset_exchange_enabled($pdo);
 $policies = sr_asset_exchange_policies($pdo, true);
-$availablePolicies = sr_asset_exchange_available_policies($policies, $assets);
+$availablePolicies = $exchangeEnabled ? sr_asset_exchange_available_policies($policies, $assets) : [];
 $selectedPolicy = null;
 $quote = null;
 
@@ -23,15 +24,20 @@ if (sr_request_method() === 'POST') {
     $policyId = (int) sr_post_string('policy_id', 30);
     $amount = sr_asset_exchange_int_string(sr_post_string('amount', 30));
     $submitToken = sr_post_string_without_truncation('exchange_submit_token', 32) ?? '';
-    $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
-    if (!is_array($selectedPolicy)) {
-        $errors[] = '환전 정책을 선택하세요.';
-    } else {
-        try {
-            $quote = sr_asset_exchange_quote($pdo, $selectedPolicy, (int) $account['id'], $amount);
-        } catch (Throwable $exception) {
-            $quote = null;
-            $errors[] = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 예상 금액을 계산할 수 없습니다.';
+    if (!$exchangeEnabled) {
+        $errors[] = '환전 기능이 현재 사용 중지되어 있습니다.';
+    }
+    if ($errors === []) {
+        $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
+        if (!is_array($selectedPolicy)) {
+            $errors[] = '환전 정책을 선택하세요.';
+        } else {
+            try {
+                $quote = sr_asset_exchange_quote($pdo, $selectedPolicy, (int) $account['id'], $amount);
+            } catch (Throwable $exception) {
+                $quote = null;
+                $errors[] = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 예상 금액을 계산할 수 없습니다.';
+            }
         }
     }
 
@@ -77,7 +83,9 @@ if (sr_request_method() === 'POST') {
     }
 } else {
     $policyId = (int) ($_GET['policy_id'] ?? 0);
-    if ($policyId > 0) {
+    if ($policyId > 0 && !$exchangeEnabled) {
+        $errors[] = '환전 기능이 현재 사용 중지되어 있습니다.';
+    } elseif ($policyId > 0) {
         $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
         $amount = sr_asset_exchange_int_string($_GET['amount'] ?? 0);
         if (is_array($selectedPolicy) && $amount > 0) {

@@ -56,30 +56,37 @@ WHERE from_module_key IN ('point', 'reward', 'deposit')
 
 INSERT INTO sr_module_settings
     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+SELECT id, 'exchange_enabled', '1', 'string', NOW(), NOW()
+FROM sr_modules
+WHERE module_key = 'asset_exchange'
+ON DUPLICATE KEY UPDATE setting_value = sr_module_settings.setting_value;
+
+INSERT INTO sr_module_settings
+    (module_id, setting_key, setting_value, value_type, created_at, updated_at)
 SELECT id, 'relative_value_point', '1', 'string', NOW(), NOW()
 FROM sr_modules
 WHERE module_key = 'asset_exchange'
-ON DUPLICATE KEY UPDATE updated_at = updated_at;
+ON DUPLICATE KEY UPDATE setting_value = sr_module_settings.setting_value;
 
 INSERT INTO sr_module_settings
     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
 SELECT id, 'relative_value_reward', '1', 'string', NOW(), NOW()
 FROM sr_modules
 WHERE module_key = 'asset_exchange'
-ON DUPLICATE KEY UPDATE updated_at = updated_at;
+ON DUPLICATE KEY UPDATE setting_value = sr_module_settings.setting_value;
 
 INSERT INTO sr_module_settings
     (module_id, setting_key, setting_value, value_type, created_at, updated_at)
 SELECT id, 'relative_value_deposit', '1', 'string', NOW(), NOW()
 FROM sr_modules
 WHERE module_key = 'asset_exchange'
-ON DUPLICATE KEY UPDATE updated_at = updated_at;
+ON DUPLICATE KEY UPDATE setting_value = sr_module_settings.setting_value;
 
 DELETE ms
 FROM sr_module_settings AS ms
 INNER JOIN sr_modules AS m ON m.id = ms.module_id
 WHERE m.module_key = 'asset_exchange'
-  AND ms.setting_key = 'policy_default_rate_ratio';
+  AND ms.setting_key IN ('policy_default_rate_ratio', 'policy_default_sort_order');
 
 UPDATE sr_modules
 SET version = '2026.06.001',

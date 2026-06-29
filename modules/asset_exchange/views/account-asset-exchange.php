@@ -53,7 +53,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <h2 class="card-title">환전 신청</h2>
                 </div>
                 <div class="card-body ui-card-body-stack">
-                    <?php if ($availablePolicies === []) { ?>
+                    <?php if (empty($exchangeEnabled)) { ?>
+                        <p class="ui-feedback type-small">현재 환전 신청이 중지되어 있습니다.</p>
+                    <?php } elseif ($availablePolicies === []) { ?>
                         <p class="ui-feedback type-small">현재 신청 가능한 환전 정책이 없습니다.</p>
                     <?php } else { ?>
                         <form method="get" action="<?php echo sr_e(sr_url('/account/asset-exchange')); ?>" class="ui-inline-form">

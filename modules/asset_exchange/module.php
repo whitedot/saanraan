@@ -32,6 +32,7 @@ return [
         ],
     ],
     'settings' => [
+        'exchange_enabled' => '1',
         'policy_default_status' => 'disabled',
         'relative_value_point' => '1',
         'relative_value_reward' => '1',
@@ -46,6 +47,5 @@ return [
         'policy_default_fee_fixed_amount' => '0',
         'policy_default_fee_min_amount' => '',
         'policy_default_fee_max_amount' => '',
-        'policy_default_sort_order' => '0',
     ],
 ];

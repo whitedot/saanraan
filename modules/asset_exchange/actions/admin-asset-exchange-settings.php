@@ -19,21 +19,9 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/asset-exchange/settings', 'edit');
 
-    $postedSettings = [
-        'policy_default_status' => sr_post_string('policy_default_status', 20),
-        'policy_default_min_amount' => sr_post_string('policy_default_min_amount', 30),
-        'policy_default_max_amount' => sr_post_string('policy_default_max_amount', 30),
-        'policy_default_rounding_mode' => sr_post_string('policy_default_rounding_mode', 20),
-        'policy_default_fee_trigger' => sr_post_string('policy_default_fee_trigger', 20),
-        'policy_default_fee_basis' => sr_post_string('policy_default_fee_basis', 20),
-        'policy_default_fee_type' => sr_post_string('policy_default_fee_type', 20),
-        'policy_default_fee_rate_numerator' => sr_post_string('policy_default_fee_rate_numerator', 30),
-        'policy_default_fee_fixed_amount' => sr_post_string('policy_default_fee_fixed_amount', 30),
-        'policy_default_fee_min_amount' => sr_post_string('policy_default_fee_min_amount', 30),
-        'policy_default_fee_max_amount' => sr_post_string('policy_default_fee_max_amount', 30),
-        'policy_default_sort_order' => sr_post_string('policy_default_sort_order', 30),
-    ];
-    $settings = array_merge($settings, $postedSettings);
+    $postedSettings = $settings;
+    $postedSettings['exchange_enabled'] = sr_post_string('exchange_enabled', 1) === '1' ? '1' : '0';
+    $settings = $postedSettings;
 
     $postedNotificationCases = $_POST['notification_cases'] ?? [];
     $postedNotificationCases = is_array($postedNotificationCases) ? $postedNotificationCases : [];
@@ -104,14 +92,17 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Asset exchange settings updated.',
                 'metadata' => [
-                    'before' => $beforeSettings,
-                    'after' => $settings,
-                    'policy_update_applied' => true,
+                    'before' => [
+                        'exchange_enabled' => (string) ($beforeSettings['exchange_enabled'] ?? '1'),
+                    ],
+                    'after' => [
+                        'exchange_enabled' => (string) ($settings['exchange_enabled'] ?? '1'),
+                    ],
                     'notification_cases' => $notificationSettingsByModule,
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '환전 공통 조건을 저장하고 파생 정책에 반영했습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], '환전 환경설정을 저장했습니다.'));
             sr_redirect('/admin/asset-exchange/settings');
         } catch (Throwable $exception) {
             $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 환경설정 저장에 실패했습니다.';

@@ -171,6 +171,17 @@ function sr_asset_exchange_canonical_policy_pairs(): array
     return $pairs;
 }
 
+function sr_asset_exchange_canonical_policy_sort_order(string $fromModuleKey, string $toModuleKey): int
+{
+    foreach (sr_asset_exchange_canonical_policy_pairs() as $index => $pair) {
+        if ((string) $pair['from_module_key'] === $fromModuleKey && (string) $pair['to_module_key'] === $toModuleKey) {
+            return $index;
+        }
+    }
+
+    return 0;
+}
+
 function sr_asset_exchange_is_canonical_pair(string $fromModuleKey, string $toModuleKey): bool
 {
     $fromModuleKey = sr_asset_exchange_clean_module_key($fromModuleKey);
@@ -346,6 +357,7 @@ function sr_asset_exchange_notification_groups(PDO $pdo): array
 function sr_asset_exchange_default_settings(): array
 {
     return [
+        'exchange_enabled' => '1',
         'policy_default_status' => 'disabled',
         'relative_value_point' => '1',
         'relative_value_reward' => '1',
@@ -360,7 +372,6 @@ function sr_asset_exchange_default_settings(): array
         'policy_default_fee_fixed_amount' => '0',
         'policy_default_fee_min_amount' => '',
         'policy_default_fee_max_amount' => '',
-        'policy_default_sort_order' => '0',
     ];
 }
 
@@ -376,6 +387,8 @@ function sr_asset_exchange_normalize_settings(array $settings): array
 {
     $defaults = sr_asset_exchange_default_settings();
     $normalized = array_merge($defaults, $settings);
+
+    $normalized['exchange_enabled'] = sr_truthy($normalized['exchange_enabled'] ?? false) ? '1' : '0';
 
     $status = (string) ($normalized['policy_default_status'] ?? 'disabled');
     $normalized['policy_default_status'] = in_array($status, ['enabled', 'disabled'], true) ? $status : 'disabled';
@@ -416,7 +429,6 @@ function sr_asset_exchange_normalize_settings(array $settings): array
         'policy_default_min_amount',
         'policy_default_fee_rate_numerator',
         'policy_default_fee_fixed_amount',
-        'policy_default_sort_order',
     ] as $key) {
         $normalized[$key] = trim((string) ($normalized[$key] ?? $defaults[$key]));
     }
@@ -450,7 +462,6 @@ function sr_asset_exchange_policy_defaults_from_settings(array $settings): array
         'fee_fixed_amount' => (string) $settings['policy_default_fee_fixed_amount'],
         'fee_min_amount' => (string) $settings['policy_default_fee_min_amount'],
         'fee_max_amount' => (string) $settings['policy_default_fee_max_amount'],
-        'sort_order' => (string) $settings['policy_default_sort_order'],
     ];
 }
 
@@ -489,8 +500,6 @@ function sr_asset_exchange_validate_settings(array $settings): array
     if ($maxAmount !== null && $maxAmount < $minAmount) {
         throw new InvalidArgumentException('공통 최대 환전량은 공통 최소 환전량 이상이어야 합니다.');
     }
-
-    sr_asset_exchange_optional_int($settings['policy_default_sort_order'], 0, '공통 정렬순서는 정수로 입력하세요.');
 
     if ((string) $settings['policy_default_fee_trigger'] !== 'none') {
         if ((string) $settings['policy_default_fee_type'] === 'rate') {
@@ -576,6 +585,16 @@ function sr_asset_exchange_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('asset_exchange');
 }
 
+function sr_asset_exchange_enabled_from_settings(array $settings): bool
+{
+    return sr_truthy($settings['exchange_enabled'] ?? false);
+}
+
+function sr_asset_exchange_enabled(PDO $pdo): bool
+{
+    return sr_asset_exchange_enabled_from_settings(sr_asset_exchange_settings($pdo));
+}
+
 function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings): array
 {
     $settings = sr_asset_exchange_normalize_settings($settings);
@@ -591,7 +610,6 @@ function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings):
     $feeFixedAmount = sr_asset_exchange_optional_non_negative_int($settings['policy_default_fee_fixed_amount'] ?? null, 0, '공통 정액 수수료는 0 이상의 정수로 입력하세요.');
     $feeMinAmount = sr_asset_exchange_nullable_int($settings['policy_default_fee_min_amount'], '공통 최소 수수료는 0 이상의 정수로 입력하세요.');
     $feeMaxAmount = sr_asset_exchange_nullable_int($settings['policy_default_fee_max_amount'], '공통 최대 수수료는 0 이상의 정수로 입력하세요.');
-    $baseSortOrder = sr_asset_exchange_optional_int($settings['policy_default_sort_order'] ?? null, 0, '공통 정렬순서는 정수로 입력하세요.');
 
     if ($feeTrigger === 'none') {
         $feeBasis = 'to_amount';
@@ -626,7 +644,7 @@ function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings):
             'fee_fixed_amount' => $feeFixedAmount,
             'fee_min_amount' => $feeMinAmount,
             'fee_max_amount' => $feeMaxAmount,
-            'sort_order' => $baseSortOrder + $index,
+            'sort_order' => $index,
         ];
     }
 
@@ -829,6 +847,7 @@ function sr_asset_exchange_policy_by_slot(PDO $pdo, string $fromModuleKey, strin
 function sr_asset_exchange_policy_slots(PDO $pdo, array $assets): array
 {
     $slots = [];
+    $exchangeEnabled = sr_asset_exchange_enabled($pdo);
     foreach (sr_asset_exchange_canonical_policy_pairs() as $pair) {
         $fromModuleKey = (string) $pair['from_module_key'];
         $toModuleKey = (string) $pair['to_module_key'];
@@ -846,7 +865,7 @@ function sr_asset_exchange_policy_slots(PDO $pdo, array $assets): array
             'status' => $status,
             'from_active' => $fromActive,
             'to_active' => $toActive,
-            'executable' => $configured && $status === 'enabled' && $fromActive && $toActive,
+            'executable' => $exchangeEnabled && $configured && $status === 'enabled' && $fromActive && $toActive,
         ];
     }
 
@@ -998,7 +1017,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         'fee_fixed_amount' => $feeFixedAmount,
         'fee_min_amount' => $feeMinAmount,
         'fee_max_amount' => $feeMaxAmount,
-        'sort_order' => sr_asset_exchange_optional_int($data['sort_order'] ?? null, 0, '정렬순서는 정수로 입력하세요.'),
+        'sort_order' => sr_asset_exchange_canonical_policy_sort_order($fromModuleKey, $toModuleKey),
         'updated_at' => $now,
     ];
 
@@ -1176,6 +1195,9 @@ function sr_asset_exchange_quote(PDO $pdo, array $policy, int $accountId, int $a
 {
     if ($amount <= 0) {
         throw new InvalidArgumentException('환전 금액은 1 이상이어야 합니다.');
+    }
+    if (!sr_asset_exchange_enabled($pdo)) {
+        throw new InvalidArgumentException('환전 기능이 현재 사용 중지되어 있습니다.');
     }
     if ((string) ($policy['status'] ?? '') !== 'enabled') {
         throw new InvalidArgumentException('비활성 정책은 실행할 수 없습니다.');
@@ -1738,6 +1760,9 @@ function sr_asset_exchange_available_policies(array $policies, array $assets): a
 function sr_asset_exchange_member_has_available_policy(PDO $pdo, int $accountId): bool
 {
     if ($accountId <= 0) {
+        return false;
+    }
+    if (!sr_asset_exchange_enabled($pdo)) {
         return false;
     }
 

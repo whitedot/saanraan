@@ -668,6 +668,7 @@ function sr_asset_exchange_runtime_canonical_sync_case(): void
         sr_asset_exchange_runtime_assert((int) ($pointToReward['rate_numerator'] ?? 0) === 1, 'Asset exchange canonical sync must apply the source relative value.');
         sr_asset_exchange_runtime_assert((int) ($pointToReward['rate_denominator'] ?? 0) === 2, 'Asset exchange canonical sync must apply the destination relative value.');
         sr_asset_exchange_runtime_assert((int) ($pointToReward['min_amount'] ?? 0) === 5, 'Asset exchange canonical sync must apply common minimum amount.');
+        sr_asset_exchange_runtime_assert((int) ($pointToReward['sort_order'] ?? -1) === 0, 'Asset exchange canonical sync must apply fixed canonical sort order.');
     }
 
     $settings['policy_default_status'] = 'disabled';
@@ -679,7 +680,41 @@ function sr_asset_exchange_runtime_canonical_sync_case(): void
         sr_asset_exchange_runtime_assert((string) ($rewardToDeposit['status'] ?? '') === 'disabled', 'Asset exchange canonical sync must update common status.');
         sr_asset_exchange_runtime_assert((int) ($rewardToDeposit['rate_numerator'] ?? 0) === 4, 'Asset exchange canonical sync must update changed relative values.');
         sr_asset_exchange_runtime_assert((int) ($rewardToDeposit['rate_denominator'] ?? 0) === 3, 'Asset exchange canonical sync must keep destination relative values.');
+        sr_asset_exchange_runtime_assert((int) ($rewardToDeposit['sort_order'] ?? -1) === 3, 'Asset exchange canonical sync must keep fixed canonical sort order.');
     }
+}
+
+function sr_asset_exchange_runtime_disabled_setting_case(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+    sr_asset_exchange_runtime_seed($pdo, 123, 500);
+
+    sr_asset_exchange_sync_canonical_policies($pdo, array_merge(sr_asset_exchange_default_settings(), [
+        'policy_default_status' => 'enabled',
+    ]));
+    sr_asset_exchange_runtime_set_module_setting($pdo, 'asset_exchange', 'exchange_enabled', '0', 'string');
+
+    sr_asset_exchange_runtime_assert(!sr_asset_exchange_enabled($pdo), 'Asset exchange global setting must disable exchange execution.');
+    sr_asset_exchange_runtime_assert(!sr_asset_exchange_member_has_available_policy($pdo, 123), 'Asset exchange disabled setting must hide member exchange candidates.');
+
+    try {
+        sr_asset_exchange_quote($pdo, sr_asset_exchange_runtime_policy(), 123, 100);
+        sr_asset_exchange_runtime_error('Asset exchange quote must fail when global exchange setting is disabled.');
+    } catch (InvalidArgumentException $exception) {
+        sr_asset_exchange_runtime_assert(
+            str_contains($exception->getMessage(), '사용 중지'),
+            'Asset exchange disabled quote guard must explain that exchange is disabled.'
+        );
+    }
+
+    foreach (sr_asset_exchange_policy_slots($pdo, sr_asset_exchange_assets($pdo)) as $slot) {
+        sr_asset_exchange_runtime_assert(empty($slot['executable']), 'Asset exchange disabled setting must make every policy slot non-executable.');
+    }
+
+    sr_clear_module_settings_cache('asset_exchange');
 }
 
 function sr_asset_exchange_runtime_noncanonical_guard_case(): void
@@ -743,6 +778,7 @@ if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_notification_application_case();
     sr_asset_exchange_runtime_relative_value_case();
     sr_asset_exchange_runtime_canonical_sync_case();
+    sr_asset_exchange_runtime_disabled_setting_case();
     sr_asset_exchange_runtime_noncanonical_guard_case();
 }
 
