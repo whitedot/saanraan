@@ -521,6 +521,14 @@ sr_skin_theme_check_contains([
     'layout_options($pdo)',
 ], 'Public module layout setting target-filtered options');
 
+foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    sr_skin_theme_check_contains('modules/' . $moduleKey . '/actions/ui-kit.php', [
+        'layout_options($pdo, true)',
+        'theme_view_file',
+        '/theme/basic/ui-kit.php',
+    ], ucfirst($moduleKey) . ' UI kit layout/theme preview action');
+}
+
 sr_skin_theme_check_contains('modules/content/helpers.php', [
     'function sr_content_theme_options(): array',
     "SR_ROOT . '/modules/content/theme'",

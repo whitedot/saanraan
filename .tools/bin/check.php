@@ -1054,6 +1054,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         $uiKitActionSource = is_file($uiKitActionFile) ? file_get_contents($uiKitActionFile) : false;
         if (!is_string($uiKitActionSource)
             || !str_contains($uiKitActionSource, 'theme_view_file')
+            || !str_contains($uiKitActionSource, $layoutOptionsFunction . '($pdo, true)')
             || !str_contains($uiKitActionSource, '/modules/' . $moduleKey . '/theme/basic/ui-kit.php')
         ) {
             sr_check_add_error('Module UI kit action must include selected theme UI kit view: ' . $uiKitActionFile);
