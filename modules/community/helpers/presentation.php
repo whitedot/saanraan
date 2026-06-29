@@ -711,10 +711,6 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $popularPostReactionCounts = [];
     $latestComments = [];
     $recentSeries = [];
-    $homeSidebarMenuHtml = '';
-    $stageStartedAt = microtime(true);
-    $homeMemberSummary = sr_community_home_member_summary($pdo, $account, $settings, $memberSettings);
-    sr_community_home_debug_timing_add('member summary', (microtime(true) - $stageStartedAt) * 1000);
 
     $stageStartedAt = microtime(true);
     $homeExcerptAllowedByBoardId = [];
@@ -815,18 +811,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     $latestComments = sr_community_home_filter_rows_by_board_ids($latestComments, $readableBoardIds);
     $recentSeries = sr_community_home_filter_rows_by_board_ids($recentSeries, $readableBoardIds);
     $communityLayoutKey = sr_community_layout_key($settings, $site, $pdo);
-    $homeSidebarMenuKey = sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
-    if ($homeSidebarMenuKey === 'sr_community_board_groups' && function_exists('sr_community_layout_menu_html')) {
-        $homeSidebarMenuHtml = sr_community_layout_menu_html($pdo, $homeSidebarMenuKey, 'secondary_navigation');
-    } elseif ($homeSidebarMenuKey !== '') {
-        $homeSidebarMenuHtml = sr_render_output_slot($pdo, [
-            'module_key' => 'core',
-            'point_key' => 'site.community_home',
-            'slot_key' => 'secondary_navigation',
-            'menu_key' => $homeSidebarMenuKey,
-        ]);
-    }
-    sr_community_home_debug_timing_add('filter layout and sidebar', (microtime(true) - $stageStartedAt) * 1000);
+    sr_community_home_debug_timing_add('filter layout', (microtime(true) - $stageStartedAt) * 1000);
 
     $data = [
         'boards' => $boards,
@@ -836,8 +821,6 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
         'latestComments' => $latestComments,
         'recentSeries' => $recentSeries,
         'communitySeriesSupported' => $communitySeriesSupported,
-        'homeSidebarMenuHtml' => $homeSidebarMenuHtml,
-        'homeMemberSummary' => $homeMemberSummary,
         'homeExcerptAllowedByBoardId' => $homeExcerptAllowedByBoardId,
         'communityLayoutKey' => $communityLayoutKey,
     ];

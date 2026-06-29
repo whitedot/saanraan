@@ -43,10 +43,6 @@ function sr_community_default_settings(): array
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
-        'layout_secondary_menu_key' => is_string($settings['layout_secondary_menu_key'] ?? null) ? (string) $settings['layout_secondary_menu_key'] : '',
-        'layout_tertiary_menu_key' => is_string($settings['layout_tertiary_menu_key'] ?? null) ? (string) $settings['layout_tertiary_menu_key'] : '',
-        'layout_quaternary_menu_key' => is_string($settings['layout_quaternary_menu_key'] ?? null) ? (string) $settings['layout_quaternary_menu_key'] : '',
-        'layout_quinary_menu_key' => is_string($settings['layout_quinary_menu_key'] ?? null) ? (string) $settings['layout_quinary_menu_key'] : '',
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
@@ -130,10 +126,6 @@ function sr_community_layout_menu_slots(): array
 {
     return [
         'primary' => 'layout_primary_menu_key',
-        'secondary' => 'layout_secondary_menu_key',
-        'tertiary' => 'layout_tertiary_menu_key',
-        'quaternary' => 'layout_quaternary_menu_key',
-        'quinary' => 'layout_quinary_menu_key',
     ];
 }
 
@@ -195,6 +187,12 @@ function sr_community_settings(PDO $pdo): array
 function sr_community_normalize_settings(array $settings, ?array $site = null, ?PDO $pdo = null): array
 {
     $settings = array_merge(sr_community_default_settings(), $settings);
+    unset(
+        $settings['layout_secondary_menu_key'],
+        $settings['layout_tertiary_menu_key'],
+        $settings['layout_quaternary_menu_key'],
+        $settings['layout_quinary_menu_key']
+    );
     $settings['posts_per_page'] = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
     $settings['comments_per_page'] = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
     $settings['post_create_window_seconds'] = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
@@ -456,11 +454,14 @@ function sr_community_public_layout_context(array $settings, array $context = []
     foreach (sr_community_layout_menu_slots() as $slotKey => $settingKey) {
         $siteMenus[$slotKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
     }
-    foreach (['secondary', 'tertiary', 'quaternary', 'quinary'] as $footerSlotKey) {
-        $siteMenus[$footerSlotKey] = '';
-    }
-
-    $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+    $contextSiteMenus = is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [];
+    unset(
+        $contextSiteMenus['secondary'],
+        $contextSiteMenus['tertiary'],
+        $contextSiteMenus['quaternary'],
+        $contextSiteMenus['quinary']
+    );
+    $context['site_menus'] = array_merge($contextSiteMenus, $siteMenus);
 
     return $context;
 }

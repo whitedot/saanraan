@@ -2,19 +2,6 @@
 
 return [
     [
-        'point_key' => 'community.home',
-        'label' => '커뮤니티 초기화면',
-        'surface' => 'public',
-        'output' => true,
-        'slots' => [
-            [
-                'slot_key' => 'after_secondary_navigation',
-                'label' => sr_t('community::contract.slot.after_secondary_navigation'),
-                'kind' => 'content',
-            ],
-        ],
-    ],
-    [
         'point_key' => 'community.board.list',
         'label' => sr_t('community::contract.extension.board_list'),
         'surface' => 'public',

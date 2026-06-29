@@ -39,12 +39,6 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
         '/modules/reaction/assets/module.css',
     ], sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
 ]);
-$communityLayoutContext['site_menus'] = array_merge(is_array($communityLayoutContext['site_menus'] ?? null) ? $communityLayoutContext['site_menus'] : [], [
-    'secondary' => '',
-    'tertiary' => '',
-    'quaternary' => '',
-    'quinary' => '',
-]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
