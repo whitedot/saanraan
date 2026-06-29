@@ -49,6 +49,30 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_asset_exchange_policies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            from_module_key TEXT NOT NULL,
+            to_module_key TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'disabled',
+            rate_numerator INTEGER NOT NULL DEFAULT 1,
+            rate_denominator INTEGER NOT NULL DEFAULT 1,
+            min_amount INTEGER NOT NULL DEFAULT 1,
+            max_amount INTEGER NULL,
+            rounding_mode TEXT NOT NULL DEFAULT 'floor',
+            fee_trigger TEXT NOT NULL DEFAULT 'none',
+            fee_basis TEXT NOT NULL DEFAULT 'to_amount',
+            fee_rate_numerator INTEGER NOT NULL DEFAULT 0,
+            fee_rate_denominator INTEGER NOT NULL DEFAULT 100,
+            fee_fixed_amount INTEGER NOT NULL DEFAULT 0,
+            fee_min_amount INTEGER NULL,
+            fee_max_amount INTEGER NULL,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE (from_module_key, to_module_key)
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_member_accounts (
             id INTEGER PRIMARY KEY,
             email TEXT NOT NULL DEFAULT '',
@@ -535,6 +559,180 @@ function sr_asset_exchange_runtime_notification_application_case(): void
     sr_asset_exchange_runtime_assert(sr_point_transaction_type_label('exchange_fee') === '환전 수수료', 'Point exchange-fee notification metadata label must be localized.');
 }
 
+function sr_asset_exchange_runtime_relative_value_case(): void
+{
+    $settings = array_merge(sr_asset_exchange_default_settings(), [
+        'policy_default_status' => 'enabled',
+        'relative_value_point' => '1',
+        'relative_value_reward' => '2',
+        'relative_value_deposit' => '3',
+        'policy_default_min_amount' => '5',
+        'policy_default_rounding_mode' => 'floor',
+    ]);
+    $rowsBySlot = [];
+    foreach (sr_asset_exchange_canonical_policy_rows_from_settings($settings) as $row) {
+        $rowsBySlot[sr_asset_exchange_policy_slot_key((string) $row['from_module_key'], (string) $row['to_module_key'])] = $row;
+    }
+
+    sr_asset_exchange_runtime_assert(count($rowsBySlot) === 6, 'Asset exchange relative values must derive the fixed six canonical policy rows.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['point>reward']['rate_numerator'] ?? 0) === 1, 'Point to reward derived ratio must use the source relative value as numerator.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['point>reward']['rate_denominator'] ?? 0) === 2, 'Point to reward derived ratio must use the destination relative value as denominator.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['reward>point']['rate_numerator'] ?? 0) === 2, 'Reward to point derived ratio must invert the relative values.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['reward>point']['rate_denominator'] ?? 0) === 1, 'Reward to point derived ratio must invert the relative values.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['deposit>reward']['rate_numerator'] ?? 0) === 3, 'Deposit to reward derived ratio must use deposit relative value.');
+    sr_asset_exchange_runtime_assert((int) ($rowsBySlot['deposit>reward']['rate_denominator'] ?? 0) === 2, 'Deposit to reward derived ratio must use reward relative value.');
+
+    $invalidSettings = $settings;
+    $invalidSettings['policy_default_rounding_mode'] = 'ceil';
+    try {
+        sr_asset_exchange_validate_settings($invalidSettings);
+        sr_asset_exchange_runtime_error('Asset exchange relative values must reject enabled fee-free ceil cycles that increase value.');
+    } catch (InvalidArgumentException $exception) {
+        sr_asset_exchange_runtime_assert(
+            str_contains($exception->getMessage(), '반복 환전 가치가 증가'),
+            'Asset exchange relative value cycle rejection must explain the value-increasing cycle.'
+        );
+    }
+}
+
+function sr_asset_exchange_runtime_canonical_sync_case(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+
+    $now = sr_now();
+    $insertPolicy = $pdo->prepare(
+        'INSERT INTO sr_asset_exchange_policies
+            (from_module_key, to_module_key, status, rate_numerator, rate_denominator, min_amount, max_amount, rounding_mode,
+             fee_trigger, fee_basis, fee_rate_numerator, fee_rate_denominator, fee_fixed_amount, fee_min_amount, fee_max_amount,
+             sort_order, created_at, updated_at)
+         VALUES
+            (:from_module_key, :to_module_key, :status, :rate_numerator, :rate_denominator, :min_amount, NULL, :rounding_mode,
+             :fee_trigger, :fee_basis, 0, 100, 0, NULL, NULL, :sort_order, :created_at, :updated_at)'
+    );
+    $insertPolicy->execute([
+        'from_module_key' => 'coupon',
+        'to_module_key' => 'deposit',
+        'status' => 'enabled',
+        'rate_numerator' => 1,
+        'rate_denominator' => 1,
+        'min_amount' => 1,
+        'rounding_mode' => 'floor',
+        'fee_trigger' => 'none',
+        'fee_basis' => 'to_amount',
+        'sort_order' => 99,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $legacyPolicyId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        'INSERT INTO sr_asset_exchange_logs
+            (exchange_group_id, policy_id, account_id, from_module_key, to_module_key, request_amount,
+             rate_numerator, rate_denominator, rounding_mode, deposit_amount, fee_amount, fee_trigger, fee_basis,
+             status, failure_reason, created_at)
+         VALUES
+            (:exchange_group_id, :policy_id, 123, \'coupon\', \'deposit\', 10, 1, 1, \'floor\', 10, 0, \'none\', \'to_amount\', \'completed\', \'\', :created_at)'
+    )->execute([
+        'exchange_group_id' => 'legacy_policy_log',
+        'policy_id' => $legacyPolicyId,
+        'created_at' => $now,
+    ]);
+
+    $settings = array_merge(sr_asset_exchange_default_settings(), [
+        'policy_default_status' => 'enabled',
+        'relative_value_point' => '1',
+        'relative_value_reward' => '2',
+        'relative_value_deposit' => '3',
+        'policy_default_min_amount' => '5',
+    ]);
+    sr_asset_exchange_sync_canonical_policies($pdo, $settings);
+
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query("SELECT COUNT(*) FROM sr_asset_exchange_policies WHERE from_module_key = 'coupon'")->fetchColumn() === 0,
+        'Asset exchange canonical sync must remove noncanonical policy rows.'
+    );
+    sr_asset_exchange_runtime_assert(
+        $pdo->query("SELECT policy_id FROM sr_asset_exchange_logs WHERE exchange_group_id = 'legacy_policy_log'")->fetchColumn() === null,
+        'Asset exchange canonical sync must preserve old logs while clearing removed policy references.'
+    );
+    sr_asset_exchange_runtime_assert(
+        (int) $pdo->query('SELECT COUNT(*) FROM sr_asset_exchange_policies')->fetchColumn() === 6,
+        'Asset exchange canonical sync must keep exactly six policy rows.'
+    );
+    $pointToReward = $pdo->query("SELECT * FROM sr_asset_exchange_policies WHERE from_module_key = 'point' AND to_module_key = 'reward'")->fetch();
+    sr_asset_exchange_runtime_assert(is_array($pointToReward), 'Asset exchange canonical sync must create the point to reward row.');
+    if (is_array($pointToReward)) {
+        sr_asset_exchange_runtime_assert((string) ($pointToReward['status'] ?? '') === 'enabled', 'Asset exchange canonical sync must apply the common status.');
+        sr_asset_exchange_runtime_assert((int) ($pointToReward['rate_numerator'] ?? 0) === 1, 'Asset exchange canonical sync must apply the source relative value.');
+        sr_asset_exchange_runtime_assert((int) ($pointToReward['rate_denominator'] ?? 0) === 2, 'Asset exchange canonical sync must apply the destination relative value.');
+        sr_asset_exchange_runtime_assert((int) ($pointToReward['min_amount'] ?? 0) === 5, 'Asset exchange canonical sync must apply common minimum amount.');
+    }
+
+    $settings['policy_default_status'] = 'disabled';
+    $settings['relative_value_reward'] = '4';
+    sr_asset_exchange_sync_canonical_policies($pdo, $settings);
+    $rewardToDeposit = $pdo->query("SELECT * FROM sr_asset_exchange_policies WHERE from_module_key = 'reward' AND to_module_key = 'deposit'")->fetch();
+    sr_asset_exchange_runtime_assert(is_array($rewardToDeposit), 'Asset exchange canonical sync must keep reward to deposit row.');
+    if (is_array($rewardToDeposit)) {
+        sr_asset_exchange_runtime_assert((string) ($rewardToDeposit['status'] ?? '') === 'disabled', 'Asset exchange canonical sync must update common status.');
+        sr_asset_exchange_runtime_assert((int) ($rewardToDeposit['rate_numerator'] ?? 0) === 4, 'Asset exchange canonical sync must update changed relative values.');
+        sr_asset_exchange_runtime_assert((int) ($rewardToDeposit['rate_denominator'] ?? 0) === 3, 'Asset exchange canonical sync must keep destination relative values.');
+    }
+}
+
+function sr_asset_exchange_runtime_noncanonical_guard_case(): void
+{
+    $available = sr_asset_exchange_available_policies([
+        [
+            'id' => 1,
+            'from_module_key' => 'point',
+            'to_module_key' => 'reward',
+            'status' => 'enabled',
+            'min_amount' => 1,
+        ],
+        [
+            'id' => 2,
+            'from_module_key' => 'coupon',
+            'to_module_key' => 'deposit',
+            'status' => 'enabled',
+            'min_amount' => 1,
+        ],
+    ], [
+        'point' => [],
+        'reward' => [],
+        'deposit' => [],
+        'coupon' => [],
+    ]);
+    sr_asset_exchange_runtime_assert(count($available) === 1 && (int) ($available[0]['id'] ?? 0) === 1, 'Asset exchange available policies must exclude noncanonical rows.');
+
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+    try {
+        sr_asset_exchange_quote($pdo, [
+            'id' => 2,
+            'from_module_key' => 'coupon',
+            'to_module_key' => 'deposit',
+            'status' => 'enabled',
+            'rate_numerator' => 1,
+            'rate_denominator' => 1,
+            'min_amount' => 1,
+            'rounding_mode' => 'floor',
+            'fee_trigger' => 'none',
+            'fee_basis' => 'to_amount',
+        ], 0, 1);
+        sr_asset_exchange_runtime_error('Asset exchange quote must fail closed for noncanonical policy rows.');
+    } catch (InvalidArgumentException $exception) {
+        sr_asset_exchange_runtime_assert(
+            str_contains($exception->getMessage(), '고정 환전 조합이 아닌 정책'),
+            'Asset exchange noncanonical quote guard must explain the fixed-pair requirement.'
+        );
+    }
+}
+
 if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_error('pdo_sqlite extension is required for asset exchange runtime checks.');
 } else {
@@ -543,6 +741,9 @@ if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_failure_log_case();
     sr_asset_exchange_runtime_notification_settings_case();
     sr_asset_exchange_runtime_notification_application_case();
+    sr_asset_exchange_runtime_relative_value_case();
+    sr_asset_exchange_runtime_canonical_sync_case();
+    sr_asset_exchange_runtime_noncanonical_guard_case();
 }
 
 if ($errors !== []) {

@@ -21,7 +21,6 @@ if (sr_request_method() === 'POST') {
 
     $postedSettings = [
         'policy_default_status' => sr_post_string('policy_default_status', 20),
-        'policy_default_rate_ratio' => sr_post_string('policy_default_rate_ratio', 80),
         'policy_default_min_amount' => sr_post_string('policy_default_min_amount', 30),
         'policy_default_max_amount' => sr_post_string('policy_default_max_amount', 30),
         'policy_default_rounding_mode' => sr_post_string('policy_default_rounding_mode', 20),
@@ -107,12 +106,12 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'before' => $beforeSettings,
                     'after' => $settings,
-                    'policy_update_applied' => false,
+                    'policy_update_applied' => true,
                     'notification_cases' => $notificationSettingsByModule,
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '환전 환경설정을 저장했습니다. 기존 정책은 변경하지 않았습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], '환전 공통 조건을 저장하고 파생 정책에 반영했습니다.'));
             sr_redirect('/admin/asset-exchange/settings');
         } catch (Throwable $exception) {
             $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 환경설정 저장에 실패했습니다.';

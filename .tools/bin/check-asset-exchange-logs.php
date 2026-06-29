@@ -101,13 +101,78 @@ if (
 ) {
     $errors[] = 'Asset exchange reexchange fee lookup must have an account/to-module/status/created index in install and update SQL.';
 }
+
+$adminExchangeAction = file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange.php');
+$adminExchangeView = file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange.php');
+$adminExchangeSettingsAction = file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange-settings.php');
+$adminExchangeSettingsView = file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php');
+$assetExchangeModule = file_get_contents($root . '/modules/asset_exchange/module.php');
+$canonicalUpdate = file_get_contents($root . '/modules/asset_exchange/updates/2026.06.001.sql');
+if (
+    !is_string($helper)
+    || strpos($helper, 'function sr_asset_exchange_canonical_asset_keys(): array') === false
+    || strpos($helper, 'function sr_asset_exchange_relative_value_setting_keys(): array') === false
+    || strpos($helper, 'function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings): array') === false
+    || strpos($helper, 'function sr_asset_exchange_sync_canonical_policies(PDO $pdo, array $settings): void') === false
+    || strpos($helper, 'function sr_asset_exchange_remove_noncanonical_policies(PDO $pdo): void') === false
+    || strpos($helper, 'sr_asset_exchange_remove_noncanonical_policies($pdo);') === false
+    || strpos($helper, 'sr_asset_exchange_is_canonical_asset_key($moduleKey)') === false
+    || strpos($helper, 'sr_asset_exchange_is_canonical_pair((string) ($policy[\'from_module_key\'] ?? \'\'), (string) ($policy[\'to_module_key\'] ?? \'\'))') === false
+) {
+    $errors[] = 'Asset exchange must use point/reward/deposit relative values to synchronize fixed canonical exchange rows and filter execution candidates.';
+}
+if (
+    !is_string($adminExchangeAction)
+    || strpos($adminExchangeAction, 'sr_asset_exchange_relative_value_setting_keys()') === false
+    || strpos($adminExchangeAction, 'sr_asset_exchange_save_settings($pdo, $postedSettings)') === false
+    || strpos($adminExchangeAction, 'asset_exchange.relative_values.updated') === false
+    || strpos($adminExchangeAction, 'sr_asset_exchange_save_policy($pdo') !== false
+) {
+    $errors[] = 'Asset exchange admin action must save relative asset values only, not arbitrary policy rows.';
+}
+if (
+    !is_string($adminExchangeView)
+    || strpos($adminExchangeView, '자산별 상대 가치') === false
+    || strpos($adminExchangeView, '파생 환전표') === false
+    || strpos($adminExchangeView, 'sr_asset_exchange_relative_value_setting_keys()') === false
+    || strpos($adminExchangeView, 'name="from_module_key"') !== false
+    || strpos($adminExchangeView, 'name="to_module_key"') !== false
+    || strpos($adminExchangeView, '정책 등록') !== false
+) {
+    $errors[] = 'Asset exchange admin view must expose three relative value inputs and a derived table without from/to policy registration controls.';
+}
+if (
+    !is_string($adminExchangeSettingsAction)
+    || strpos($adminExchangeSettingsAction, 'policy_default_rate_ratio') !== false
+    || !is_string($adminExchangeSettingsView)
+    || strpos($adminExchangeSettingsView, 'policy_default_rate_ratio') !== false
+    || strpos($adminExchangeSettingsView, '공통 환전 조건') === false
+    || !is_string($assetExchangeModule)
+    || strpos($assetExchangeModule, 'policy_default_rate_ratio') !== false
+    || strpos($assetExchangeModule, "'relative_value_point' => '1'") === false
+) {
+    $errors[] = 'Asset exchange settings must use common conditions plus relative values, with the old default rate setting removed.';
+}
+if (
+    !is_string($installSql)
+    || strpos($installSql, "('point', 'reward', 'disabled'") === false
+    || strpos($installSql, "('deposit', 'reward', 'disabled'") === false
+    || !is_string($canonicalUpdate)
+    || strpos($canonicalUpdate, 'SET l.policy_id = NULL') === false
+    || strpos($canonicalUpdate, 'DELETE FROM sr_asset_exchange_policies') === false
+    || strpos($canonicalUpdate, "ms.setting_key = 'policy_default_rate_ratio'") === false
+    || strpos($canonicalUpdate, "'relative_value_deposit', '1'") === false
+) {
+    $errors[] = 'Asset exchange install/update SQL must seed canonical policy rows, drop noncanonical rows without preserving legacy policies, and migrate relative value settings.';
+}
 if (
     !is_string($helper)
     || strpos($helper, 'function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy): void') === false
-    || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value($policy, $reversePolicy)') === false
+    || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])') === false
+    || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])') === false
     || strpos($helper, '무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다') === false
 ) {
-    $errors[] = 'Asset exchange policy save must reject fee-free bidirectional cycles that can increase value.';
+    $errors[] = 'Asset exchange policy save must reject fee-free bidirectional and three-way cycles that can increase value.';
 }
 
 if (

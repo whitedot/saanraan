@@ -2,9 +2,9 @@
 
 return [
     'name' => '포인트/금액 환전',
-    'version' => '2026.05.007',
+    'version' => '2026.06.001',
     'type' => 'module',
-    'description' => '설치된 포인트/금액 항목 간 환전 정책과 실행 로그를 관리합니다.',
+    'description' => '포인트/금액 항목 간 환전 기준값, 실행 로그, 정정 흐름을 관리합니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',
@@ -33,7 +33,9 @@ return [
     ],
     'settings' => [
         'policy_default_status' => 'disabled',
-        'policy_default_rate_ratio' => '1:1',
+        'relative_value_point' => '1',
+        'relative_value_reward' => '1',
+        'relative_value_deposit' => '1',
         'policy_default_min_amount' => '1',
         'policy_default_max_amount' => '',
         'policy_default_rounding_mode' => 'floor',

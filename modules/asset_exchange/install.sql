@@ -23,6 +23,18 @@ CREATE TABLE IF NOT EXISTS sr_asset_exchange_policies (
     KEY idx_sr_asset_exchange_policies_status_sort (status, sort_order, id)
 );
 
+INSERT IGNORE INTO sr_asset_exchange_policies
+    (from_module_key, to_module_key, status, rate_numerator, rate_denominator, min_amount, max_amount, rounding_mode,
+     fee_trigger, fee_basis, fee_rate_numerator, fee_rate_denominator, fee_fixed_amount, fee_min_amount, fee_max_amount,
+     sort_order, created_at, updated_at)
+VALUES
+    ('point', 'reward', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 0, NOW(), NOW()),
+    ('point', 'deposit', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 1, NOW(), NOW()),
+    ('reward', 'point', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 2, NOW(), NOW()),
+    ('reward', 'deposit', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 3, NOW(), NOW()),
+    ('deposit', 'point', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 4, NOW(), NOW()),
+    ('deposit', 'reward', 'disabled', 1, 1, 1, NULL, 'floor', 'none', 'to_amount', 0, 100, 0, NULL, NULL, 5, NOW(), NOW());
+
 CREATE TABLE IF NOT EXISTS sr_asset_exchange_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     exchange_group_id VARCHAR(80) NOT NULL,
