@@ -166,7 +166,7 @@ function sr_admin_handle_privacy_request_create_post(PDO $pdo, array $account, a
             ],
         ]);
 
-        $notice = '개인정보 대응 기록을 추가했습니다.';
+        $notice = '개인정보 요청 대응 기록을 추가했습니다.';
     }
 
     return sr_admin_action_result($errors, $notice);
@@ -195,11 +195,11 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
     }
 
     if (!in_array($status, $allowedStatuses, true)) {
-        $errors[] = '처리 상태 값이 올바르지 않습니다.';
+        $errors[] = '대응 상태 값이 올바르지 않습니다.';
     }
 
     if ($status === 'completed' && (!$identityConfirmed || !$exportConfirmed || !$actionConfirmed)) {
-        $errors[] = '완료 처리 전 요청자 확인, 처리 자료 또는 처리 결과 확인, 처리 내용 확인이 필요합니다.';
+        $errors[] = '완료 전 요청자 확인, 사본 자료 또는 실제 조치 결과 확인, 대응 내용 확인이 필요합니다.';
     }
 
     if ($errors === []) {
@@ -208,7 +208,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
         $privacyRequest = $stmt->fetch();
 
         if (!is_array($privacyRequest)) {
-            $errors[] = '개인정보 처리 요청을 찾을 수 없습니다.';
+            $errors[] = '개인정보 요청 대응 기록을 찾을 수 없습니다.';
         }
     }
 
@@ -227,7 +227,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
         && in_array((string) $privacyRequest['status'], sr_admin_privacy_request_terminal_statuses(), true)
         && $status !== (string) $privacyRequest['status']
     ) {
-        $errors[] = '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.';
+        $errors[] = '종결된 개인정보 요청 대응 기록 상태는 다시 변경할 수 없습니다.';
     }
 
     if ($errors === []) {
@@ -277,7 +277,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
             ],
         ]);
 
-        $notice = '개인정보 처리 요청 상태를 저장했습니다.';
+        $notice = '개인정보 요청 대응 기록 상태를 저장했습니다.';
     }
 
     return sr_admin_action_result($errors, $notice);
@@ -595,7 +595,7 @@ function sr_admin_privacy_request_export_reauth_errors(PDO $pdo, array $account,
             'result' => 'failure',
             'message' => 'Privacy request export reauthentication failed.',
         ]);
-        return ['개인정보 처리 자료를 내려받기 전 관리자 비밀번호를 다시 입력하세요.'];
+        return ['개인정보 요청 대응 자료를 내려받기 전 관리자 비밀번호를 다시 입력하세요.'];
     }
 
     sr_member_log_auth($pdo, $accountId, 'privacy_request_export_reauth', 'success');

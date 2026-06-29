@@ -38,7 +38,7 @@
 | `point` | `export_retained` | 제공 | 없음 | 포인트 잔액, 원장, 만료 소비 매핑은 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `policy_documents` | `export_cleanup` | 제공 | 제공 | 약관/방침 변경 안내메일 delivery가 회원 계정과 연결되며, 탈퇴/익명화 시 계정 연결을 제거한다. |
 | `popup_layer` | `no_member_personal_data` | 없음 | 없음 | 팝업 설정과 노출 정책은 현재 회원 귀속 데이터가 아니다. |
-| `privacy` | `coordinator_direct` | 소비 | 없음 | 관리자 전용 개인정보 대응 기록과 사본 제공을 보조한다. `sr_privacy_export_data()`가 대응 기록을 직접 포함하고 다른 모듈 export 계약을 수집한다. |
+| `privacy` | `coordinator_direct` | 소비 | 없음 | 관리자 전용 개인정보 요청 대응 기록과 사본 제공을 보조한다. `sr_privacy_export_data()`가 대응 기록을 직접 포함하고 다른 모듈 export 계약을 수집한다. |
 | `quiz` | `export_cleanup` | 제공 | 제공 | 응시, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash를 가진다. |
 | `reaction` | `export_cleanup` | 제공 | 제공 | 계정별 target reaction 원장을 가지며, 탈퇴/익명화 시 해당 계정의 reaction record를 삭제한다. |
 | `reward` | `export_retained` | 제공 | 없음 | 적립금 잔액, 원장, 출금 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |

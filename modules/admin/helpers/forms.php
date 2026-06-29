@@ -370,11 +370,11 @@ function sr_admin_status_description_options(string $context, array $labels = []
             'dead' => '최대 시도 이후 자동 재시도에서 제외된 상태입니다.',
         ],
         'privacy_request_status' => [
-            'requested' => '회원 개인정보 요청이 접수되었습니다.',
-            'reviewing' => '관리자가 요청 내용을 검토 중입니다.',
-            'completed' => '요청 처리가 완료되었습니다.',
-            'rejected' => '검토 결과 요청을 거절했습니다.',
-            'cancelled' => '요청이 취소되어 더 처리하지 않습니다.',
+            'requested' => '개인정보 요청 대응 기록이 접수되었습니다.',
+            'reviewing' => '관리자가 요청 대응 기록을 검토 중입니다.',
+            'completed' => '요청 대응 기록이 완료되었습니다.',
+            'rejected' => '검토 결과 요청 대응 기록을 거절로 종결했습니다.',
+            'cancelled' => '요청 대응 기록이 취소되어 더 처리하지 않습니다.',
         ],
         'report_status' => [
             'open' => '신고가 접수되어 조치가 필요합니다.',

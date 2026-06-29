@@ -620,7 +620,7 @@ if ($adminPrivacyRequestsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_terminal_statuses') !== false
             && strpos($adminPrivacyRequestsHelper, "in_array((string) \$privacyRequest['status'], sr_admin_privacy_request_terminal_statuses(), true)") !== false
-            && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.') !== false,
+            && strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 대응 기록 상태는 다시 변경할 수 없습니다.') !== false,
         'Admin privacy request helper should prevent reopening terminal privacy request statuses.'
     );
     sr_member_auth_policy_assert(
@@ -684,9 +684,9 @@ if ($adminPrivacyRequestsView !== '') {
         'Admin privacy request view should provide a minimal manual record form for external contact cases.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminPrivacyRequestsView, '요청 유형은 대응 기록입니다.') !== false
-            && strpos($adminPrivacyRequestsView, '상태 변경은 대응 기록만 저장합니다.') !== false
-            && strpos($adminPrivacyRequestsView, '실제 정정, 처리 제한, 동의 철회 조치는 소유 모듈 화면에서 처리') !== false,
+        strpos($adminPrivacyRequestsView, '요청 유형은 접수 분류입니다.') !== false
+            && strpos($adminPrivacyRequestsView, '상태 변경은 요청 대응 이력만 저장합니다.') !== false
+            && strpos($adminPrivacyRequestsView, '정정, 삭제, 처리 제한, 처리 거부, 동의 철회는 데이터 소유 모듈에서 처리') !== false,
         'Admin privacy request view should explain that request status does not automatically propagate module actions.'
     );
     sr_member_auth_policy_assert(
