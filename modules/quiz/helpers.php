@@ -309,13 +309,48 @@ function sr_quiz_default_settings(): array
     ];
 }
 
-function sr_quiz_skin_options(): array
+function sr_quiz_skin_option_definitions(): array
 {
-    return [
+    $definitions = [];
+    foreach ([
         'basic' => '기본형',
         'card' => '카드형',
         'focus' => '집중형',
-    ];
+    ] as $skinKey => $label) {
+        $views = [];
+        foreach (sr_quiz_skin_views() as $view) {
+            $views[$view] = SR_ROOT . '/modules/quiz/skins/' . $skinKey . '/' . $view . '.php';
+        }
+        $definitions[$skinKey] = [
+            'skin_key' => $skinKey,
+            'label' => $label,
+            'source_type' => 'built_in_module',
+            'source_key' => 'quiz',
+            'module_key' => 'quiz',
+            'contract_version' => '1.0',
+            'views' => $views,
+            'stylesheets' => [],
+            'actions' => [],
+        ];
+    }
+
+    foreach (sr_package_external_skin_options('quiz') as $skinKey => $definition) {
+        if (!isset($definitions[$skinKey])) {
+            $definitions[$skinKey] = $definition;
+        }
+    }
+
+    return $definitions;
+}
+
+function sr_quiz_skin_options(): array
+{
+    $options = [];
+    foreach (sr_quiz_skin_option_definitions() as $skinKey => $definition) {
+        $options[(string) $skinKey] = (string) ($definition['label'] ?? $skinKey);
+    }
+
+    return $options;
 }
 
 function sr_quiz_skin_views(): array
@@ -541,22 +576,25 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $context['consumer_domain'] = 'quiz';
     $context['style_profile'] = 'module';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/quiz/assets/reset.css';
     $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
-    $layoutStylesheet = sr_public_layout_module_stylesheet($layoutKey);
-    if ($layoutStylesheet !== '') {
-        $stylesheets[] = $layoutStylesheet;
-    }
     $stylesheets[] = '/modules/quiz/assets/module.css';
     $stylesheets[] = '/modules/quiz/assets/skin.css';
+    $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
+    $skinDefinitions = sr_quiz_skin_option_definitions();
+    foreach ((array) ($skinDefinitions[$skinKey]['stylesheets'] ?? []) as $skinStylesheet) {
+        if (is_string($skinStylesheet)) {
+            $stylesheets[] = $skinStylesheet;
+        }
+    }
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
     $scripts[] = '/modules/quiz/assets/module.js';
     $context['scripts'] = array_values(array_unique($scripts));
-    $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' sr-quiz-skin-' . $skinKey . ' quiz-skin-' . $skinKey);
 
@@ -598,12 +636,13 @@ function sr_quiz_skin_view_file(array $settings, string $view): string
     }
 
     $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
-    $file = SR_ROOT . '/modules/quiz/skins/' . $skinKey . '/' . $view . '.php';
+    $definitions = sr_quiz_skin_option_definitions();
+    $file = (string) ($definitions[$skinKey]['views'][$view] ?? '');
     if ($skinKey !== 'basic' && is_file($file)) {
         return $file;
     }
 
-    $fallback = SR_ROOT . '/modules/quiz/skins/basic/' . $view . '.php';
+    $fallback = (string) ($definitions['basic']['views'][$view] ?? (SR_ROOT . '/modules/quiz/skins/basic/' . $view . '.php'));
     if ($skinKey !== 'basic' || !is_file($file)) {
         error_log('quiz_skin_fallback module=quiz skin_key=' . $skinKey . ' view=' . $view . ' fallback_file=' . $fallback);
     }

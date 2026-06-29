@@ -857,6 +857,11 @@ function sr_community_skin_options(): array
 
         $options[(string) $skinKey] = $definition;
     }
+    foreach (sr_package_external_skin_options('community') as $skinKey => $definition) {
+        if (!isset($options[$skinKey]) && sr_community_skin_definition_is_valid((string) $skinKey, $definition)) {
+            $options[(string) $skinKey] = $definition;
+        }
+    }
 
     return $options;
 }
@@ -900,6 +905,10 @@ function sr_community_skin_definition(string $skinKey): array
 
     $definition['skin_key'] = $skinKey;
     $definition['skin_dir'] = dirname($file);
+    $definition['source_type'] = 'built_in_module';
+    $definition['source_key'] = 'community';
+    $definition['module_key'] = 'community';
+    $definition['contract_version'] = '1.0';
 
     return $definition;
 }
@@ -911,13 +920,25 @@ function sr_community_skin_definition_is_valid(string $skinKey, array $definitio
     }
 
     $skinDir = (string) ($definition['skin_dir'] ?? '');
+    $sourceType = (string) ($definition['source_type'] ?? 'built_in_module');
     $views = isset($definition['views']) && is_array($definition['views']) ? $definition['views'] : [];
     foreach (sr_community_required_skin_view_keys() as $viewKey) {
         $view = (string) ($views[$viewKey] ?? '');
+        if ($sourceType === 'external_skin') {
+            if ($view === '' || !is_file($view)) {
+                error_log('[saanraan] community external skin required view is missing: skin=' . $skinKey . ' view=' . $viewKey);
+                return false;
+            }
+            continue;
+        }
         if (!sr_community_skin_file_is_inside($view, $skinDir)) {
             error_log('[saanraan] community skin required view is missing or outside skin dir: skin=' . $skinKey . ' view=' . $viewKey);
             return false;
         }
+    }
+
+    if ($sourceType === 'external_skin') {
+        return true;
     }
 
     $actions = isset($definition['actions']) && is_array($definition['actions']) ? $definition['actions'] : [];

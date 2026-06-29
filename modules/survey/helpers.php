@@ -392,11 +392,46 @@ function sr_survey_default_settings(): array
     ];
 }
 
+function sr_survey_skin_option_definitions(): array
+{
+    $definitions = [];
+    foreach ([
+        'basic' => '기본형',
+    ] as $skinKey => $label) {
+        $views = [];
+        foreach (sr_survey_skin_views() as $view) {
+            $views[$view] = SR_ROOT . '/modules/survey/skins/' . $skinKey . '/' . $view . '.php';
+        }
+        $definitions[$skinKey] = [
+            'skin_key' => $skinKey,
+            'label' => $label,
+            'source_type' => 'built_in_module',
+            'source_key' => 'survey',
+            'module_key' => 'survey',
+            'contract_version' => '1.0',
+            'views' => $views,
+            'stylesheets' => [],
+            'actions' => [],
+        ];
+    }
+
+    foreach (sr_package_external_skin_options('survey') as $skinKey => $definition) {
+        if (!isset($definitions[$skinKey])) {
+            $definitions[$skinKey] = $definition;
+        }
+    }
+
+    return $definitions;
+}
+
 function sr_survey_skin_options(): array
 {
-    return [
-        'basic' => '기본형',
-    ];
+    $options = [];
+    foreach (sr_survey_skin_option_definitions() as $skinKey => $definition) {
+        $options[(string) $skinKey] = (string) ($definition['label'] ?? $skinKey);
+    }
+
+    return $options;
 }
 
 function sr_survey_skin_views(): array
@@ -497,21 +532,24 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $context['consumer_domain'] = 'survey';
     $context['style_profile'] = 'module';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/survey/assets/reset.css';
     $stylesheets[] = '/modules/survey/assets/ui-kit.css';
-    $layoutStylesheet = sr_public_layout_module_stylesheet($layoutKey);
-    if ($layoutStylesheet !== '') {
-        $stylesheets[] = $layoutStylesheet;
-    }
     $stylesheets[] = '/modules/survey/assets/module.css';
+    $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
+    $skinDefinitions = sr_survey_skin_option_definitions();
+    foreach ((array) ($skinDefinitions[$skinKey]['stylesheets'] ?? []) as $skinStylesheet) {
+        if (is_string($skinStylesheet)) {
+            $stylesheets[] = $skinStylesheet;
+        }
+    }
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
     $scripts[] = '/modules/survey/assets/module.js';
     $context['scripts'] = array_values(array_unique($scripts));
-    $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' survey-skin-' . $skinKey);
 
@@ -547,12 +585,13 @@ function sr_survey_skin_view_file(array $settings, string $view): string
     }
 
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
-    $file = SR_ROOT . '/modules/survey/skins/' . $skinKey . '/' . $view . '.php';
+    $definitions = sr_survey_skin_option_definitions();
+    $file = (string) ($definitions[$skinKey]['views'][$view] ?? '');
     if ($skinKey !== 'basic' && is_file($file)) {
         return $file;
     }
 
-    $fallback = SR_ROOT . '/modules/survey/skins/basic/' . $view . '.php';
+    $fallback = (string) ($definitions['basic']['views'][$view] ?? (SR_ROOT . '/modules/survey/skins/basic/' . $view . '.php'));
     if ($skinKey !== 'basic' || !is_file($file)) {
         error_log('survey_skin_fallback module=survey skin_key=' . $skinKey . ' view=' . $view . ' fallback_file=' . $fallback);
     }

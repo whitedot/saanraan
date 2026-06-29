@@ -436,14 +436,11 @@ function sr_community_public_layout_context(array $settings, array $context = []
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $context['consumer_domain'] = 'community';
     $context['style_profile'] = 'module';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/community/assets/reset.css';
     $stylesheets[] = '/modules/community/assets/ui-kit.css';
-    $layoutStylesheet = sr_public_layout_module_stylesheet($layoutKey);
-    if ($layoutStylesheet !== '') {
-        $stylesheets[] = $layoutStylesheet;
-    }
     $stylesheets[] = '/modules/community/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
