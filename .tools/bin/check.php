@@ -926,8 +926,8 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             "'/modules/" . $moduleKey . "/assets/module.css'",
         ];
         if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
-            if (!str_contains($body, 'sr_public_layout_module_stylesheet($layoutKey)') || !str_contains($body, '$stylesheets[] = $layoutStylesheet')) {
-                sr_check_add_error('Module public layout context selected layout stylesheet helper is missing: ' . $helperFile);
+            if (!str_contains($body, "\$context['consumer_domain'] = '" . $moduleKey . "'")) {
+                sr_check_add_error('Module public layout context consumer domain is missing: ' . $helperFile);
             }
             if (!str_contains($body, "'/modules/" . $moduleKey . "/assets/module.js'") || !str_contains($body, '$context[\'scripts\']')) {
                 sr_check_add_error('Module public layout context module script is missing: ' . $helperFile);
@@ -943,12 +943,18 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             $lastIndex = $index;
         }
         if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
-            $uiKitIndex = strpos($body, "'/modules/" . $moduleKey . "/assets/ui-kit.css'");
-            $layoutIndex = strpos($body, '$stylesheets[] = $layoutStylesheet');
-            $moduleIndex = strpos($body, "'/modules/" . $moduleKey . "/assets/module.css'");
-            if ($uiKitIndex === false || $layoutIndex === false || $moduleIndex === false || $layoutIndex < $uiKitIndex || $layoutIndex > $moduleIndex) {
-                sr_check_add_error('Module public layout context selected layout stylesheet order is invalid: ' . $helperFile);
+            if (str_contains($body, 'sr_public_layout_module_stylesheet(') || str_contains($body, '$layoutStylesheet')) {
+                sr_check_add_error('Module public layout context should leave shell stylesheet injection to core output helpers: ' . $helperFile);
             }
+        }
+
+        $outputHelperSource = is_file('core/helpers/output.php') ? file_get_contents('core/helpers/output.php') : false;
+        if (!is_string($outputHelperSource)
+            || !str_contains($outputHelperSource, 'sr_public_layout_context_with_shell_assets')
+            || !str_contains($outputHelperSource, 'sr_public_layout_insert_before_module_asset')
+            || !str_contains($outputHelperSource, 'sr_public_layout_shell_stylesheets')
+        ) {
+            sr_check_add_error('Core public layout helper should inject selected shell assets before module assets.');
         }
 
         if ($moduleKey === 'quiz') {

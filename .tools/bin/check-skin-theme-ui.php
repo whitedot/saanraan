@@ -413,7 +413,51 @@ foreach (['modules', 'core'] as $viewRoot) {
 sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '<select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">',
     'foreach ($publicLayoutOptions as $layoutKey => $layoutOption)',
+    '$publicLayoutHealthWarnings',
 ], 'Public layout setting UI');
+
+sr_skin_theme_check_contains('core/helpers/packages.php', [
+    'function sr_package_theme_candidates(): array',
+    'function sr_package_skin_candidates(string $moduleKey): array',
+    'function sr_package_validate_theme_manifest(string $directoryKey, string $manifestFile, string $packageRoot): array',
+    'function sr_package_validate_skin_manifest(string $moduleKey, string $directoryKey, string $manifestFile, string $packageRoot): array',
+    'function sr_package_send_asset_response(string $packageType, string $packageKey, string $assetId, string $moduleKey = \'\', string $version = \'\'): void',
+    'provider_module_key',
+    'privileged_php',
+    'sr_package_asset_url_from_buster',
+    'sr_package_reference_summary',
+], 'External skin/theme package helper');
+
+sr_skin_theme_check_contains('core/helpers/output.php', [
+    'function sr_public_layout_normalized_option(string $layoutKey, array $layoutOption, string $fallbackProviderKey = \'\'): array',
+    'sr_package_external_theme_layout_options()',
+    'function sr_public_layout_shell_stylesheets(string $layoutKey',
+    'function sr_public_route_domains(PDO $pdo',
+    'function sr_public_layout_effective_key(string $layoutKey',
+    'function sr_public_layout_health_warnings(PDO $pdo',
+], 'External theme normalized layout/fallback helper');
+
+sr_skin_theme_check_contains('index.php', [
+    "if (\$method === 'GET' && \$path === '/sr-package-asset')",
+    'sr_package_send_asset_response(',
+], 'External package asset handler route');
+
+sr_skin_theme_check_contains('.htaccess', [
+    'sr-packages',
+], 'External package direct access block');
+
+sr_skin_theme_check_contains([
+    'modules/admin/paths.php',
+    'modules/admin/helpers/navigation.php',
+    'modules/admin/actions/packages.php',
+    'modules/admin/views/packages.php',
+], [
+    '/admin/packages',
+    'sr_package_theme_candidates()',
+    'sr_package_skin_candidates',
+    'sr_package_reference_summary',
+    'trust_warning',
+], 'Admin package manager UI');
 
 sr_skin_theme_check_not_contains([
     'modules/admin/helpers/settings.php',
