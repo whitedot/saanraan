@@ -475,10 +475,14 @@ sr_skin_theme_check_contains('modules/content/views/admin-settings.php', [
 
 sr_skin_theme_check_not_contains([
     'modules/content/views/admin-settings.php',
+    'modules/content/lang/ko.php',
     'modules/content/views/content.php',
 ], [
     '새 콘텐츠를 만들 때 먼저 채울 공개 레이아웃입니다.',
     '기존 콘텐츠 값은 자동 변경되지 않습니다.',
+    '콘텐츠 데이터의 호환용 레이아웃 값을 일괄 수정하지 않고 공개 출력에 적용합니다.',
+    '기존 데이터 호환을 위해 저장하는 콘텐츠별 레이아웃 값입니다.',
+    'revision 호환',
     "\$page['layout_key']",
     "'layout_key' => \$pageLayoutKey",
 ], 'Content layout setting must be module-setting scoped');

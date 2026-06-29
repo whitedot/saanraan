@@ -119,7 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다. 콘텐츠 데이터의 호환용 레이아웃 값을 일괄 수정하지 않고 공개 출력에 적용합니다.</p>
+                <p class="form-help">콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다.</p>
             </div>
         </div>
         <div class="form-row">
