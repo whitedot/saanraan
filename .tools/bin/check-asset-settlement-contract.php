@@ -41,6 +41,38 @@ function sr_asset_settlement_check_assert(bool $condition, string $message): voi
     }
 }
 
+function sr_asset_settlement_check_forbidden_exchange_refs(array $files): void
+{
+    global $errors;
+
+    $patterns = [
+        '/\bsr_asset_exchange_policies\b/' => 'asset exchange policy table/helper collection',
+        '/\bsr_asset_exchange_logs\b/' => 'asset exchange execution log table',
+        '/\bsr_asset_exchange_policy\s*\(/' => 'asset exchange policy helper',
+    ];
+
+    foreach ($files as $file) {
+        if (!is_file($file)) {
+            continue;
+        }
+
+        $contents = file_get_contents($file);
+        if (!is_string($contents)) {
+            $errors[] = 'cannot read asset settlement boundary file: ' . $file;
+            continue;
+        }
+
+        foreach ($patterns as $pattern => $label) {
+            if (preg_match_all($pattern, $contents, $matches, PREG_OFFSET_CAPTURE) !== false && $matches[0] !== []) {
+                foreach ($matches[0] as $match) {
+                    $line = substr_count(substr($contents, 0, (int) $match[1]), "\n") + 1;
+                    $errors[] = $file . ':' . $line . ' must not read ' . $label . ' from purchase_power settlement code.';
+                }
+            }
+        }
+    }
+}
+
 function sr_asset_settlement_check_runtime_fixture(): void
 {
     $pdo = new PDO('sqlite::memory:');
@@ -147,6 +179,7 @@ sr_asset_settlement_check_contains('docs/core-decisions.md', [
     '문구 존재를 보는 정적 체크는 계약 조항 삭제를 막는 가드일 뿐 transaction 동참, carry, overpay, lock 순서의 런타임 준수를 증명하지 못하므로',
     'InnoDB에서는 미커밋 unique claim row에 대한 중복 insert가 선행 트랜잭션의 commit/rollback까지 블록될 수 있으므로',
     'commit 후 duplicate-key, rollback 후 insert 성공, lock wait timeout 시 `processing` 응답을 모두 확인해야 합니다',
+    '환전 정책 row를 가격 환산이나 복합 차감 fallback으로 사용하지 않는다',
 ]);
 
 sr_asset_settlement_check_contains('docs/module-guide.md', [
@@ -170,6 +203,7 @@ sr_asset_settlement_check_contains('docs/module-guide.md', [
     '`free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함하고',
     '정적 체크는 계약 문구 회귀 방지용이며 transaction 동참, carry, overpay, lock 순서의 런타임 준수는 구현 시점 테스트 fixture로 검증한다',
     'InnoDB의 미커밋 unique claim 중복 insert는 선행 트랜잭션 commit/rollback까지 블록될 수 있으므로 commit 후 duplicate-key, rollback 후 insert 성공, lock wait timeout 시 `processing` 응답을 함께 확인한다',
+    '`purchase_power`는 콘텐츠/커뮤니티 같은 소비 모듈의 settlement 기준이며 환전 모듈 정책 row가 아니다',
 ]);
 
 sr_asset_settlement_check_contains('docs/smoke-test.md', [
@@ -263,6 +297,15 @@ foreach (['modules/content/updates/2026.06.020.sql', 'modules/community/updates/
         'REPLACE(REPLACE(purchase_power_snapshot_json, \'"policy_version":"asset_settlement_v1"\', \'"rounding_policy_version":"asset_settlement_rounding_v1"\'), \'"policy_version": "asset_settlement_v1"\', \'"rounding_policy_version": "asset_settlement_rounding_v1"\')',
     ]);
 }
+
+sr_asset_settlement_check_forbidden_exchange_refs([
+    'modules/member/helpers/assets.php',
+    'modules/content/helpers/assets.php',
+    'modules/content/helpers/files.php',
+    'modules/content/privacy-export.php',
+    'modules/community/helpers/assets.php',
+    'modules/community/privacy-export.php',
+]);
 
 sr_asset_settlement_check_runtime_fixture();
 
