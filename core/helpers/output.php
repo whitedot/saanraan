@@ -1115,24 +1115,16 @@ function sr_public_layout_normalized_option(string $layoutKey, array $layoutOpti
         $layoutOption['source_type'] = $sourceType;
     }
     if (!isset($layoutOption['source_key'])) {
-        $layoutOption['source_key'] = $sourceType === 'external_theme'
-            ? $layoutKey
-            : ($providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey);
+        $layoutOption['source_key'] = $providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey;
     }
     if ($assetOwner === '') {
-        $layoutOption['asset_owner'] = $sourceType === 'external_theme'
-            ? 'package'
-            : ($providerModuleKey === 'core' ? 'core' : 'module');
+        $layoutOption['asset_owner'] = $providerModuleKey === 'core' ? 'core' : 'module';
     }
     if (!isset($layoutOption['asset_owner_key'])) {
-        $layoutOption['asset_owner_key'] = $sourceType === 'external_theme'
-            ? $layoutKey
-            : ($providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey);
+        $layoutOption['asset_owner_key'] = $providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey;
     }
 
-    if ($sourceType !== 'external_theme') {
-        $layoutOption['provider_module_key'] = $providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey;
-    }
+    $layoutOption['provider_module_key'] = $providerModuleKey !== '' ? $providerModuleKey : $fallbackProviderKey;
 
     $supports = isset($layoutOption['supports']) && is_array($layoutOption['supports']) ? $layoutOption['supports'] : ['site'];
     $supportsDomains = isset($layoutOption['supports_domains']) && is_array($layoutOption['supports_domains'])
@@ -1228,13 +1220,6 @@ function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModule
         }
     }
 
-    foreach (sr_package_external_theme_layout_options() as $layoutKey => $layoutOption) {
-        if (isset($options[$layoutKey]) || !is_array($layoutOption)) {
-            continue;
-        }
-        $options[(string) $layoutKey] = sr_public_layout_normalized_option((string) $layoutKey, $layoutOption, '');
-    }
-
     $cache[$cacheKey] = sr_filter_view_options($options, ['layout'], 'public layout');
     $GLOBALS['sr_public_layout_options_runtime_cache'] = $cache;
 
@@ -1306,38 +1291,184 @@ function sr_public_layout_shell_stylesheets(string $layoutKey, ?PDO $pdo = null,
         return [];
     }
 
-    if ((string) ($option['source_type'] ?? '') === 'external_theme') {
-        $assets = isset($option['assets']) && is_array($option['assets']) ? $option['assets'] : [];
-        $stylesheets = [];
-        foreach (['layout_css', 'style', 'stylesheet'] as $assetId) {
-            if (is_array($assets[$assetId] ?? null) && (string) ($assets[$assetId]['extension'] ?? '') === 'css') {
-                $stylesheets[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $layoutKey), $assetId);
-            }
-        }
-
-        return array_values(array_unique($stylesheets));
-    }
-
     $stylesheet = sr_public_layout_module_stylesheet($layoutKey);
     return $stylesheet !== '' ? [$stylesheet] : [];
 }
 
 function sr_public_layout_shell_scripts(string $layoutKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
 {
-    $option = sr_public_layout_option($layoutKey, $pdo, $includeInstalledModules);
+    return [];
+}
+
+function sr_public_theme_default_key(): string
+{
+    return 'default';
+}
+
+function sr_public_theme_normalize_key(string $themeKey): string
+{
+    $themeKey = strtolower(trim($themeKey));
+    if ($themeKey === '' || $themeKey === sr_public_theme_default_key()) {
+        return sr_public_theme_default_key();
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\.[a-z][a-z0-9_]{1,39}\z/', $themeKey) === 1
+        ? $themeKey
+        : sr_public_theme_default_key();
+}
+
+function sr_public_theme_options(?PDO $pdo = null, bool $includeInstalledModules = false): array
+{
+    $cache = $GLOBALS['sr_public_theme_options_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+
+    $cacheKey = implode(':', [
+        $pdo instanceof PDO ? (string) spl_object_id($pdo) : 'no-pdo',
+        $includeInstalledModules ? 'installed' : 'enabled',
+        function_exists('sr_locale') ? sr_locale() : 'ko',
+    ]);
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    $options = [
+        sr_public_theme_default_key() => [
+            'theme_key' => sr_public_theme_default_key(),
+            'key' => sr_public_theme_default_key(),
+            'label' => '기본 테마',
+            'source_type' => 'core_default',
+            'source_key' => 'core',
+            'provider_label' => 'Saanraan',
+            'asset_owner' => 'core',
+            'asset_owner_key' => 'core',
+            'supports_domains' => sr_package_public_domains(),
+            'theme_contract' => '1.0',
+            'views' => [],
+            'asset_ids' => [],
+            'assets' => [],
+            'is_valid' => true,
+            'warnings' => [],
+        ],
+    ];
+
+    foreach (sr_package_external_theme_options() as $themeKey => $themeOption) {
+        if (isset($options[$themeKey]) || !is_array($themeOption)) {
+            continue;
+        }
+        $options[(string) $themeKey] = $themeOption;
+    }
+
+    $cache[$cacheKey] = $options;
+    $GLOBALS['sr_public_theme_options_runtime_cache'] = $cache;
+
+    return $cache[$cacheKey];
+}
+
+function sr_public_theme_key(?array $site = null, ?PDO $pdo = null): string
+{
+    $themeKey = is_array($site) && array_key_exists('public_theme_key', $site)
+        ? (string) ($site['public_theme_key'] ?? sr_public_theme_default_key())
+        : ($pdo instanceof PDO ? (string) sr_site_setting($pdo, 'public_theme_key', sr_public_theme_default_key()) : sr_public_theme_default_key());
+    $themeKey = sr_public_theme_normalize_key($themeKey);
+
+    return isset(sr_public_theme_options($pdo)[$themeKey]) ? $themeKey : sr_public_theme_default_key();
+}
+
+function sr_public_theme_effective_key(string $themeKey, array $consumerDomains, ?PDO $pdo = null, bool $includeInstalledModules = false, string $scope = 'site'): string
+{
+    $themeKey = sr_public_theme_normalize_key($themeKey);
+    $defaultKey = sr_public_theme_default_key();
+    $options = sr_public_theme_options($pdo, $includeInstalledModules);
+    if (!isset($options[$themeKey])) {
+        return $defaultKey;
+    }
+    if ($themeKey === $defaultKey) {
+        return $defaultKey;
+    }
+
+    $supportedDomains = array_fill_keys((array) ($options[$themeKey]['supports_domains'] ?? sr_package_public_domains()), true);
+    foreach ($consumerDomains as $domain) {
+        $domain = is_string($domain) ? $domain : '';
+        if ($domain === '' || isset($supportedDomains[$domain])) {
+            continue;
+        }
+
+        return $defaultKey;
+    }
+
+    return $themeKey;
+}
+
+function sr_public_theme_option(string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): ?array
+{
+    $themeKey = sr_public_theme_normalize_key($themeKey);
+    $options = sr_public_theme_options($pdo, $includeInstalledModules);
+    $option = $options[$themeKey] ?? null;
+
+    return is_array($option) ? $option : null;
+}
+
+function sr_public_theme_stylesheets(string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
+{
+    $option = sr_public_theme_option($themeKey, $pdo, $includeInstalledModules);
+    if (!is_array($option) || (string) ($option['source_type'] ?? '') !== 'external_theme') {
+        return [];
+    }
+
+    $assets = isset($option['assets']) && is_array($option['assets']) ? $option['assets'] : [];
+    $stylesheets = [];
+    foreach (['theme_css', 'theme', 'style', 'stylesheet', 'layout_css'] as $assetId) {
+        if (is_array($assets[$assetId] ?? null) && (string) ($assets[$assetId]['extension'] ?? '') === 'css') {
+            $stylesheets[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $themeKey), $assetId);
+        }
+    }
+
+    return array_values(array_unique($stylesheets));
+}
+
+function sr_public_theme_scripts(string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
+{
+    $option = sr_public_theme_option($themeKey, $pdo, $includeInstalledModules);
     if (!is_array($option) || (string) ($option['source_type'] ?? '') !== 'external_theme') {
         return [];
     }
 
     $assets = isset($option['assets']) && is_array($option['assets']) ? $option['assets'] : [];
     $scripts = [];
-    foreach (['layout_js', 'script'] as $assetId) {
+    foreach (['theme_js', 'script', 'layout_js'] as $assetId) {
         if (is_array($assets[$assetId] ?? null) && (string) ($assets[$assetId]['extension'] ?? '') === 'js') {
-            $scripts[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $layoutKey), $assetId);
+            $scripts[] = sr_package_asset_url('theme', (string) ($option['key'] ?? $themeKey), $assetId);
         }
     }
 
     return array_values(array_unique($scripts));
+}
+
+function sr_public_theme_optional_view_file(string $themeKey, string $viewKey, ?PDO $pdo = null, bool $includeInstalledModules = false): ?string
+{
+    if (preg_match('/\A[a-z0-9_]{1,40}\z/', $viewKey) !== 1) {
+        return null;
+    }
+
+    $option = sr_public_theme_option($themeKey, $pdo, $includeInstalledModules);
+    if (!is_array($option)) {
+        return null;
+    }
+
+    $viewFile = (string) ($option['views'][$viewKey] ?? '');
+    return $viewFile !== '' && is_file($viewFile) ? $viewFile : null;
+}
+
+function sr_public_layout_context_with_theme_assets(array $layoutContext, string $themeKey, ?PDO $pdo = null, bool $includeInstalledModules = false): array
+{
+    $stylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+    $scripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
+    $layoutContext['stylesheets'] = sr_public_layout_insert_before_module_asset($stylesheets, sr_public_theme_stylesheets($themeKey, $pdo, $includeInstalledModules));
+    $layoutContext['scripts'] = sr_public_layout_insert_before_module_asset($scripts, sr_public_theme_scripts($themeKey, $pdo, $includeInstalledModules));
+
+    return $layoutContext;
 }
 
 function sr_public_layout_insert_before_module_asset(array $assets, array $insertAssets): array
@@ -1632,8 +1763,17 @@ function sr_public_layout_end(): void
     $consumerDomains = $consumerDomain !== '' ? [$consumerDomain] : ($pdo instanceof PDO ? sr_public_route_domains($pdo, $site) : ['site']);
     $layoutScope = is_string($layoutContext['layout_scope'] ?? null) ? (string) $layoutContext['layout_scope'] : ($consumerDomain !== '' ? $consumerDomain . '.layout' : 'site.public_layout');
     $layoutKey = sr_public_layout_effective_key($layoutKey, $consumerDomains, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions, $layoutScope);
+    $themeKey = (string) ($layoutContext['theme_key'] ?? '');
+    if ($themeKey === '') {
+        $themeKey = sr_public_theme_key($site, $pdo instanceof PDO ? $pdo : null);
+    } else {
+        $themeKey = sr_public_theme_normalize_key($themeKey);
+    }
+    $themeScope = is_string($layoutContext['theme_scope'] ?? null) ? (string) $layoutContext['theme_scope'] : ($consumerDomain !== '' ? $consumerDomain . '.theme' : 'site.public_theme');
+    $themeKey = sr_public_theme_effective_key($themeKey, $consumerDomains, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions, $themeScope);
     $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
     $layoutContext['layout_key'] = $layoutKey;
+    $layoutContext['theme_key'] = $themeKey;
     if (!isset($layoutContext['style_profile'])) {
         $layoutOptions = sr_public_layout_options($pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
         $layoutProfile = (string) ($layoutOptions[$layoutKey]['style_profile'] ?? 'kit');
@@ -1643,6 +1783,7 @@ function sr_public_layout_end(): void
         $layoutContext['style_profile'] = sr_public_style_profile_key($layoutProfile);
     }
     $layoutContext = sr_public_layout_context_with_shell_assets($layoutContext, $layoutKey, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
+    $layoutContext = sr_public_layout_context_with_theme_assets($layoutContext, $themeKey, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
 
     include $layoutFile;
 }

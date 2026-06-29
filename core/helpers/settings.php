@@ -21,6 +21,7 @@ function sr_load_site(PDO $pdo): ?array
         'member_only_enabled' => in_array((string) ($settings['site.member_only_enabled'] ?? '0'), ['1', 'true', 'yes', 'on'], true),
         'home_path' => (string) ($settings['site.home_path'] ?? '/'),
         'public_layout_key' => $publicLayoutKey,
+        'public_theme_key' => (string) ($settings['public_theme_key'] ?? 'default'),
     ];
 }
 

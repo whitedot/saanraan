@@ -281,6 +281,7 @@ function sr_quiz_default_settings(): array
 {
     return [
         'layout_key' => 'quiz.basic',
+        'theme_key' => 'default',
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
@@ -413,6 +414,7 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized = array_merge($defaults, $settings);
 
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
+    $normalized['theme_key'] = sr_public_theme_normalize_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_quiz_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
@@ -474,6 +476,9 @@ function sr_quiz_settings(PDO $pdo): array
     if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
         $settings['layout_key'] = sr_public_layout_key(null, $pdo);
     }
+    if (!isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_public_theme_default_key();
+    }
 
     return $settings;
 }
@@ -485,6 +490,7 @@ function sr_quiz_settings_from_post(): array
     $rewardDedupeScope = sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20);
     $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
+        'theme_key' => sr_public_theme_normalize_key(sr_post_string('theme_key', 80)),
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
@@ -525,6 +531,9 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     $errors = [];
     if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
+    }
+    if (!isset(sr_public_theme_options($pdo)[(string) ($settings['theme_key'] ?? '')])) {
+        $errors[] = '퀴즈 공개 테마 값이 올바르지 않습니다.';
     }
     if (!isset(sr_quiz_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '퀴즈 스킨 값이 올바르지 않습니다.';
@@ -575,6 +584,10 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
+    }
+    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    if ($themeKey !== '') {
+        $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'quiz';
     $context['style_profile'] = 'module';

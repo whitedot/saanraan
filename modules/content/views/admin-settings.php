@@ -122,6 +122,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="form-help">새 콘텐츠를 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
+        <div class="form-row">
+            <label class="form-label" for="content_admin_settings_theme_key">기본 콘텐츠 테마 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <select id="content_admin_settings_theme_key" name="theme_key" class="form-select" required>
+                    <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
+                        <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'default') === (string) $themeKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                            <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
+                                <?php echo sr_e(' - 외부 테마'); ?>
+                            <?php } ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">선택한 공개 레이아웃과 콘텐츠 스킨 위에 적용할 시각 테마입니다.</p>
+            </div>
+        </div>
         <?php foreach ($contentLayoutMenuFields as $contentLayoutMenuSettingKey => $contentLayoutMenuField) { ?>
             <?php $contentLayoutMenuInputId = 'content_admin_settings_' . $contentLayoutMenuSettingKey; ?>
             <div class="form-row">

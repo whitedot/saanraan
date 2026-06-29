@@ -42,6 +42,7 @@ function sr_community_default_settings(): array
         'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
+        'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'default',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
@@ -228,6 +229,10 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0, $settings);
     $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
+    $settings['theme_key'] = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
+    if ($pdo instanceof PDO && !isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_public_theme_default_key();
+    }
     foreach (sr_community_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
@@ -435,6 +440,10 @@ function sr_community_public_layout_context(array $settings, array $context = []
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
+    }
+    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    if ($themeKey !== '') {
+        $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'community';
     $context['style_profile'] = 'module';

@@ -136,7 +136,7 @@ $packageReferenceHtml = static function (array $summary): string {
                         </td>
                         <td><?php echo sr_e($packageListText((array) ($candidate['supports_domains'] ?? []))); ?></td>
                         <td>
-                            <div>layout <?php echo sr_e((string) ($candidate['contract_version'] ?? '-')); ?></div>
+                            <div>theme <?php echo sr_e((string) ($candidate['contract_version'] ?? '-')); ?></div>
                             <div class="type-caption">min <?php echo sr_e((string) ($candidate['saanraan_min_version'] ?? '-')); ?></div>
                         </td>
                         <td>

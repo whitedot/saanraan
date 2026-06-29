@@ -28,7 +28,7 @@ sr-packages/
       - skin.json
 ```
 
-`vendor.theme`은 외부 공개 레이아웃 key가 되고, `vendor_package`는 모듈 스킨 key가 된다. 테마 key는 `common.*`, `core.*`, `common.basic`을 사용할 수 없다. 스킨 key는 설치된 모듈 아래 디렉터리명과 같은 `vendor_package` 형식이어야 한다.
+`vendor.theme`은 외부 공개 테마 key가 되고, `vendor_package`는 모듈 스킨 key가 된다. 테마 key는 `common.*`, `core.*`, `common.basic`을 사용할 수 없다. 스킨 key는 설치된 모듈 아래 디렉터리명과 같은 `vendor_package` 형식이어야 한다.
 
 ## 신뢰 모델
 
@@ -51,24 +51,22 @@ sr-packages/
   "saanraan": {
     "min_version": "2026.06.001"
   },
-  "layout_contract": "1.0",
-  "style_profile": "minimal",
+  "theme_contract": "1.0",
   "supports": ["site", "content", "community", "quiz", "survey"],
   "views": {
-    "layout": "layout.php",
     "home": "home.php"
   },
   "assets": {
-    "layout_css": "assets/layout.css",
-    "layout_js": "assets/layout.js",
+    "theme_css": "assets/theme.css",
+    "theme_js": "assets/theme.js",
     "preview": "assets/preview.png"
   }
 }
 ```
 
-필수 항목은 `manifest_version`, `type`, `key`, `saanraan.min_version`, `layout_contract`, `style_profile`, `supports`, `views.layout`이다. `manifest_version`은 `1` 또는 `1.0`, `layout_contract`는 `1.0`, `style_profile`은 `minimal` 또는 `kit`만 허용한다. `supports`는 `site`, `content`, `community`, `quiz`, `survey` 도메인 단위만 허용하며 개별 route 단위 allowlist는 v1 계약에 넣지 않는다. 외부 테마 manifest에는 `provider_module_key`를 사용할 수 없다.
+필수 항목은 `manifest_version`, `type`, `key`, `saanraan.min_version`, `theme_contract`, `supports`다. `manifest_version`은 `1` 또는 `1.0`, `theme_contract`는 `1.0`만 허용한다. `supports`는 `site`, `content`, `community`, `quiz`, `survey` 도메인 단위만 허용하며 개별 route 단위 allowlist는 v1 계약에 넣지 않는다. 외부 테마 manifest에는 `provider_module_key`를 사용할 수 없다. `views.home`은 선택 항목이며 사이트 초기화면이 `/`일 때 레이아웃 기본 home view보다 먼저 사용된다.
 
-테마는 `sr_public_layout_options()`에 정규화된 공개 레이아웃 option으로 합쳐진다. 정규화된 option은 `source_type=external_theme`, `source_key`, `asset_owner=package`, `asset_owner_key`, `supports_domains`, `layout_contract`, `style_profile`, `views`, `asset_ids`, `assets`를 가진다.
+테마는 `sr_public_theme_options()`에 정규화된 공개 테마 option으로 합쳐진다. 정규화된 option은 `source_type=external_theme`, `source_key`, `asset_owner=package`, `asset_owner_key`, `supports_domains`, `theme_contract`, `views`, `asset_ids`, `assets`를 가진다. 테마는 레이아웃 파일을 제공하지 않으며, 선택된 public layout shell과 모듈 body/skin 사이에서 CSS/JS와 선택적 초기화면 home view만 담당한다.
 
 ## 스킨 manifest
 
@@ -117,7 +115,7 @@ Asset은 manifest에 선언된 id로만 노출된다. 허용 확장자는 `css`,
 
 공개 route는 `site`, `content`, `community`, `quiz`, `survey` 도메인으로 분류된다. 선택된 레이아웃이 없는 경우, 유효하지 않은 경우, 현재 화면의 도메인을 지원하지 않는 경우에는 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 레이아웃으로 재귀 fallback하지 않는다.
 
-사이트 설정 화면은 현재 저장된 공개 레이아웃 값이 route 도메인과 맞지 않을 때 경고를 보여준다. `/admin/packages`는 외부 테마와 스킨 manifest 검증 결과, asset 목록, 미리보기 asset, 오류 그룹, 참조 요약, 레이아웃 fallback health를 read-only로 보여준다. 실제 적용은 사이트 설정 또는 각 모듈 환경설정의 레이아웃/스킨 선택에서 한다.
+사이트 설정 화면은 사이트 기본 공개 테마를, 콘텐츠/커뮤니티/퀴즈/설문 환경설정은 각 모듈 공개 테마를 별도 `theme_key`로 저장한다. `/admin/packages`는 외부 테마와 스킨 manifest 검증 결과, asset 목록, 미리보기 asset, 오류 그룹, 참조 요약, 레이아웃 fallback health를 read-only로 보여준다. 실제 적용은 사이트 설정 또는 각 모듈 환경설정의 테마/스킨 선택에서 한다.
 
 ## 검증
 

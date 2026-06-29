@@ -32,6 +32,7 @@ return [
         'reaction_comment_preset_key' => '',
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
+        'theme_key' => 'default',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
         'layout_tertiary_menu_key' => '',

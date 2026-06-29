@@ -22,6 +22,7 @@ $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
 $communityLayoutOptions = sr_public_layout_options($pdo);
+$communityThemeOptions = sr_public_theme_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
@@ -110,6 +111,7 @@ if (sr_request_method() === 'POST') {
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
+        $themeKey = sr_public_theme_normalize_key(sr_post_string('theme_key', 80));
         $layoutPrimaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60));
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $assetSettings = [];
@@ -191,6 +193,10 @@ if (sr_request_method() === 'POST') {
         if (!isset($communityLayoutOptions[$layoutKey])) {
             $errors[] = sr_t('community::action.admin.layout_invalid');
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
+        }
+        if (!isset($communityThemeOptions[$themeKey])) {
+            $errors[] = '커뮤니티 공개 테마 값이 올바르지 않습니다.';
+            $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
         }
         foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey, $layoutQuaternaryMenuKey, $layoutQuinaryMenuKey] as $layoutMenuKey) {
             if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey]) && !sr_community_layout_menu_key_is_builtin($layoutMenuKey)) {
@@ -338,6 +344,7 @@ if (sr_request_method() === 'POST') {
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
                 ['layout_key', $layoutKey, 'string'],
+                ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['post_editor', $postEditor, 'string'],
@@ -464,6 +471,7 @@ if (sr_request_method() === 'POST') {
                         'message_write_policy' => $messageWritePolicy,
                         'message_write_min_level' => $messageWriteMinLevel,
                         'layout_key' => $layoutKey,
+                        'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,

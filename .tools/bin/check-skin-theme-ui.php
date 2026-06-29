@@ -412,7 +412,9 @@ foreach (['modules', 'core'] as $viewRoot) {
 
 sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '<select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">',
+    '<select id="admin_settings_public_theme_key" name="public_theme_key" class="form-select">',
     'foreach ($publicLayoutOptions as $layoutKey => $layoutOption)',
+    'foreach ($publicThemeOptions as $themeKey => $themeOption)',
     '$publicLayoutHealthWarnings',
 ], 'Public layout setting UI');
 
@@ -430,12 +432,26 @@ sr_skin_theme_check_contains('core/helpers/packages.php', [
 
 sr_skin_theme_check_contains('core/helpers/output.php', [
     'function sr_public_layout_normalized_option(string $layoutKey, array $layoutOption, string $fallbackProviderKey = \'\'): array',
-    'sr_package_external_theme_layout_options()',
     'function sr_public_layout_shell_stylesheets(string $layoutKey',
+    'function sr_public_theme_options(?PDO $pdo = null',
+    'function sr_public_theme_key(?array $site = null',
+    'function sr_public_layout_context_with_theme_assets(array $layoutContext',
+    'sr_package_external_theme_options()',
     'function sr_public_route_domains(PDO $pdo',
     'function sr_public_layout_effective_key(string $layoutKey',
     'function sr_public_layout_health_warnings(PDO $pdo',
-], 'External theme normalized layout/fallback helper');
+], 'External theme/runtime helper');
+
+sr_skin_theme_check_contains([
+    'modules/content/views/admin-settings.php',
+    'modules/community/views/admin-settings.php',
+    'modules/quiz/views/admin-settings.php',
+    'modules/survey/views/admin-settings.php',
+], [
+    'name="theme_key"',
+    '공개 테마',
+    '외부 테마',
+], 'Public module theme setting UI');
 
 sr_skin_theme_check_contains('index.php', [
     "if (\$method === 'GET' && \$path === '/sr-package-asset')",

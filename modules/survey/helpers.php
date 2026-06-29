@@ -379,6 +379,7 @@ function sr_survey_default_settings(): array
 {
     return [
         'layout_key' => 'survey.basic',
+        'theme_key' => 'default',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
@@ -470,6 +471,7 @@ function sr_survey_normalize_settings(array $settings): array
     $defaults = sr_survey_default_settings();
     $normalized = array_merge($defaults, $settings);
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
+    $normalized['theme_key'] = sr_public_theme_normalize_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_survey_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
@@ -486,7 +488,12 @@ function sr_survey_normalize_settings(array $settings): array
 
 function sr_survey_settings(PDO $pdo): array
 {
-    return sr_survey_normalize_settings(sr_module_settings($pdo, 'survey'));
+    $settings = sr_survey_normalize_settings(sr_module_settings($pdo, 'survey'));
+    if (!isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_public_theme_default_key();
+    }
+
+    return $settings;
 }
 
 function sr_survey_settings_from_post(): array
@@ -494,6 +501,7 @@ function sr_survey_settings_from_post(): array
     $skinKey = sr_survey_clean_key(sr_post_string('skin_key', 40), 40);
     $settings = sr_survey_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
+        'theme_key' => sr_public_theme_normalize_key(sr_post_string('theme_key', 80)),
         'skin_key' => $skinKey,
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
@@ -516,6 +524,9 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
     if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '설문 공개 레이아웃 값이 올바르지 않습니다.';
     }
+    if (!isset(sr_public_theme_options($pdo)[(string) ($settings['theme_key'] ?? '')])) {
+        $errors[] = '설문 공개 테마 값이 올바르지 않습니다.';
+    }
     if (!isset(sr_survey_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '설문 스킨 값이 올바르지 않습니다.';
     }
@@ -531,6 +542,10 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
+    }
+    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    if ($themeKey !== '') {
+        $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'survey';
     $context['style_profile'] = 'module';

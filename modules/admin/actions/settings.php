@@ -22,6 +22,7 @@ $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
 $adminIconDefaults = sr_admin_material_icon_names();
 $adminIconOverrides = sr_admin_icon_custom_map($pdo);
 $publicLayoutOptions = sr_admin_public_layout_options($pdo);
+$publicThemeOptions = sr_public_theme_options($pdo);
 $timezoneOptions = timezone_identifiers_list();
 $localeOptions = sr_available_locale_options($site ?? null);
 $values = array_merge($values, [

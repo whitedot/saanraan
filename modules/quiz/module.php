@@ -23,6 +23,7 @@ return [
     ],
     'settings' => [
         'layout_key' => 'quiz.basic',
+        'theme_key' => 'default',
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',

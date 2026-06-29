@@ -373,9 +373,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                                            <?php if ((string) ($layoutOption['source_type'] ?? '') === 'external_theme') { ?>
-                                                <?php echo sr_e(' - 외부 테마'); ?>
-                                            <?php } ?>
                                         </option>
                                     <?php } ?>
                 </select>
@@ -399,6 +396,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </ul>
                     </div>
                 <?php } ?>
+            </div>
+        </div>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_public_theme_key', '공개 화면 테마', $siteSettingsHelp['public_layout']['id'], $siteSettingsHelpOpenLabel, true); ?>
+            <div class="form-field">
+                <select id="admin_settings_public_theme_key" name="public_theme_key" class="form-select">
+                    <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
+                        <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo $values['public_theme_key'] === (string) $themeKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                            <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
+                                <?php echo sr_e(' - 외부 테마'); ?>
+                            <?php } ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">초기화면과 사이트 기본 공개 화면에 적용할 시각 테마입니다. 모듈별 화면은 각 모듈 환경설정의 테마 값을 우선합니다.</p>
             </div>
         </div>
         <div class="form-row">

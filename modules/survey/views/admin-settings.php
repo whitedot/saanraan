@@ -116,6 +116,22 @@ $surveySettingsHelp = [
                 </div>
             </div>
             <div class="form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_theme_key', '설문 공개 테마', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="form-field">
+                    <select id="survey_settings_theme_key" name="theme_key" class="form-select" required>
+                        <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'default') === (string) $themeKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                                <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
+                                    <?php echo sr_e(' - 외부 테마'); ?>
+                                <?php } ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="form-help">선택한 공개 레이아웃과 설문 스킨 위에 적용할 시각 테마입니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_skin_key', '설문 스킨', $surveySettingsHelp['skin_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <select id="survey_settings_skin_key" name="skin_key" class="form-select" required>

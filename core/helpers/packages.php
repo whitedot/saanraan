@@ -395,17 +395,11 @@ function sr_package_validate_theme_manifest(string $directoryKey, string $manife
 
     sr_package_validate_common_manifest_fields($manifest, $result);
 
-    $layoutContract = sr_package_manifest_string($manifest, 'layout_contract', 20);
-    if ($layoutContract !== '1.0') {
-        sr_package_manifest_error($result, 'contract', 'theme layout_contract는 1.0이어야 합니다.');
+    $themeContract = sr_package_manifest_string($manifest, 'theme_contract', 20);
+    if ($themeContract !== '1.0') {
+        sr_package_manifest_error($result, 'contract', 'theme_contract는 1.0이어야 합니다.');
     }
-    $result['contract_version'] = $layoutContract;
-
-    $styleProfile = sr_package_manifest_string($manifest, 'style_profile', 20);
-    if (!in_array($styleProfile, ['minimal', 'kit'], true)) {
-        sr_package_manifest_error($result, 'structure', '외부 theme style_profile은 minimal 또는 kit이어야 합니다.');
-    }
-    $result['style_profile'] = $styleProfile !== '' ? $styleProfile : 'kit';
+    $result['contract_version'] = $themeContract;
 
     $supports = $manifest['supports'] ?? [];
     if (!is_array($supports) || $supports === []) {
@@ -423,7 +417,7 @@ function sr_package_validate_theme_manifest(string $directoryKey, string $manife
         $result['supports_domains'] = array_values($domains);
     }
 
-    $result['views'] = sr_package_normalize_view_map($manifest, $packageRoot, ['layout'], ['home'], $result);
+    $result['views'] = sr_package_normalize_view_map($manifest, $packageRoot, [], ['home'], $result);
     $result['assets'] = sr_package_normalize_assets($manifest, 'theme', (string) $result['key'], $packageRoot, '', $result);
     $result['asset_ids'] = array_keys($result['assets']);
     sr_package_apply_metadata_fields($manifest, $result);
@@ -510,6 +504,9 @@ function sr_package_validate_common_manifest_fields(array $manifest, array &$res
 function sr_package_normalize_view_map(array $manifest, string $packageRoot, array $requiredViewKeys, array $optionalViewKeys, array &$result): array
 {
     $rawViews = $manifest['views'] ?? [];
+    if ($rawViews === null || ($rawViews === [] && $requiredViewKeys === [])) {
+        return [];
+    }
     if (!is_array($rawViews)) {
         sr_package_manifest_error($result, 'contract', 'views는 view key와 파일 경로의 객체여야 합니다.');
         return [];
@@ -573,7 +570,7 @@ function sr_package_finalize_manifest_result(array &$result): void
     $result['status'] = $result['is_valid'] ? 'valid' : 'invalid';
 }
 
-function sr_package_external_theme_layout_options(): array
+function sr_package_external_theme_options(): array
 {
     $options = [];
     foreach (sr_package_theme_candidates() as $themeKey => $candidate) {
@@ -581,6 +578,7 @@ function sr_package_external_theme_layout_options(): array
             continue;
         }
         $options[(string) $themeKey] = [
+            'theme_key' => (string) $themeKey,
             'key' => (string) $themeKey,
             'label' => (string) ($candidate['label'] ?? $themeKey),
             'source_type' => 'external_theme',
@@ -590,8 +588,7 @@ function sr_package_external_theme_layout_options(): array
             'asset_owner_key' => (string) $themeKey,
             'supports' => (array) ($candidate['supports_domains'] ?? []),
             'supports_domains' => (array) ($candidate['supports_domains'] ?? []),
-            'style_profile' => (string) ($candidate['style_profile'] ?? 'kit'),
-            'layout_contract' => (string) ($candidate['contract_version'] ?? '1.0'),
+            'theme_contract' => (string) ($candidate['contract_version'] ?? '1.0'),
             'views' => (array) ($candidate['views'] ?? []),
             'asset_ids' => (array) ($candidate['asset_ids'] ?? []),
             'assets' => (array) ($candidate['assets'] ?? []),
@@ -727,8 +724,8 @@ function sr_package_theme_reference_summary(PDO $pdo, string $layoutKey): array
 {
     $rows = [];
     $checks = [
-        ['label' => '사이트 기본 공개 레이아웃', 'sql' => "SELECT COUNT(*) AS count_value FROM sr_site_settings WHERE setting_key = 'public_layout_key' AND setting_value = :key"],
-        ['label' => '모듈 공개 레이아웃 설정', 'sql' => "SELECT COUNT(*) AS count_value FROM sr_module_settings WHERE setting_key = 'layout_key' AND setting_value = :key"],
+        ['label' => '사이트 기본 공개 테마', 'sql' => "SELECT COUNT(*) AS count_value FROM sr_site_settings WHERE setting_key = 'public_theme_key' AND setting_value = :key"],
+        ['label' => '모듈 공개 테마 설정', 'sql' => "SELECT COUNT(*) AS count_value FROM sr_module_settings WHERE setting_key = 'theme_key' AND setting_value = :key"],
     ];
 
     foreach ($checks as $check) {
@@ -737,18 +734,6 @@ function sr_package_theme_reference_summary(PDO $pdo, string $layoutKey): array
             $rows[] = ['label' => (string) $check['label'], 'count' => $count];
         }
     }
-
-    foreach ([
-        ['table' => 'sr_content_groups', 'label' => '콘텐츠 그룹 레이아웃'],
-        ['table' => 'sr_content_items', 'label' => '콘텐츠 항목 레이아웃'],
-        ['table' => 'sr_community_board_settings', 'label' => '커뮤니티 게시판 레이아웃'],
-    ] as $check) {
-        $count = sr_package_reference_count_query($pdo, 'SELECT COUNT(*) AS count_value FROM ' . $check['table'] . " WHERE setting_key = 'layout_key' AND setting_value = :key", ['key' => $layoutKey]);
-        if ($count > 0) {
-            $rows[] = ['label' => (string) $check['label'], 'count' => $count];
-        }
-    }
-
     return ['total_count' => array_sum(array_map(static fn (array $row): int => (int) $row['count'], $rows)), 'rows' => $rows, 'errors' => []];
 }
 

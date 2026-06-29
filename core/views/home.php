@@ -1,6 +1,12 @@
 <?php
 
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
+$themeHomeViewFile = sr_public_theme_optional_view_file(sr_public_theme_key($site ?? null, $layoutPdo), 'home', $layoutPdo);
+if ($themeHomeViewFile !== null && realpath($themeHomeViewFile) !== realpath(__FILE__)) {
+    include $themeHomeViewFile;
+    return;
+}
+
 $homeViewFile = sr_public_layout_optional_view_file(sr_public_layout_key($site ?? null, $layoutPdo), 'home', $layoutPdo);
 if ($homeViewFile !== null && realpath($homeViewFile) !== realpath(__FILE__)) {
     include $homeViewFile;

@@ -123,7 +123,7 @@
 
 설문 공개 본문도 환경설정의 기본 `skin_key`와 개별 설문의 선택값으로 결정한다. 개별 설문의 `skin_key`가 비어 있으면 환경설정 기본값을 상속하고, 값이 있으면 허용 목록으로 검증된 개별값이 우선한다. `sr_survey_skin_options()`의 내장 목록과 유효한 외부 스킨 패키지 목록, `home`, `view`, `complete` 필수 view 목록으로 include 경로를 매핑한다. 스킨 또는 특정 view가 없으면 view 단위로 `modules/survey/skins/basic/*.php`에 fallback하고 운영 로그에 fallback 맥락을 남긴다. 설문 스킨은 `survey-skin-*` class hook을 유지하며, 완료 화면에서는 보상 지급 결과 안내 surface를 유지해야 한다.
 
-마일스톤 34 스킨·테마 패키지 v1은 `sr-packages/themes/{vendor.theme}/theme.json`과 `sr-packages/skins/{module}/{vendor_package}/skin.json` manifest를 검증해 외부 공개 테마와 community/quiz/survey 외부 스킨을 등록한다. 외부 테마는 `source_type=external_theme`인 정규화 공개 레이아웃 option으로 합쳐지고, route 도메인을 지원하지 않으면 `common.basic`으로 fallback한다. 외부 패키지 asset은 `/sr-package-asset` front controller가 manifest에 선언된 asset id만 제공하며, `sr-packages/` 직접 접근은 Apache/nginx 보호 기준에서 차단한다. `/admin/packages`는 manifest 상태, asset, 참조 요약, fallback health를 read-only로 보여주고, 상세 계약은 [스킨·테마 패키지 기준](skin-theme-packages.md)을 따른다.
+마일스톤 34 스킨·테마 패키지 v1은 `sr-packages/themes/{vendor.theme}/theme.json`과 `sr-packages/skins/{module}/{vendor_package}/skin.json` manifest를 검증해 외부 공개 테마와 community/quiz/survey 외부 스킨을 등록한다. 외부 테마는 `source_type=external_theme`인 정규화 공개 테마 option으로 합쳐지고, 사이트 설정의 `public_theme_key`와 콘텐츠/커뮤니티/퀴즈/설문 환경설정의 `theme_key`로 레이아웃과 별도로 선택한다. 외부 패키지 asset은 `/sr-package-asset` front controller가 manifest에 선언된 asset id만 제공하며, `sr-packages/` 직접 접근은 Apache/nginx 보호 기준에서 차단한다. `/admin/packages`는 manifest 상태, asset, 참조 요약, fallback health를 read-only로 보여주고, 상세 계약은 [스킨·테마 패키지 기준](skin-theme-packages.md)을 따른다.
 
 ## 검증 기준
 

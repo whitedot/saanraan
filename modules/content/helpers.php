@@ -109,6 +109,7 @@ function sr_content_default_settings(): array
         'secret_comments_enabled' => false,
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
+        'theme_key' => 'default',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
         'layout_tertiary_menu_key' => '',
@@ -209,6 +210,10 @@ function sr_content_settings(PDO $pdo): array
     if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
         $settings['layout_key'] = sr_public_layout_key(null, $pdo);
     }
+    $settings['theme_key'] = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
+    if (!isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_public_theme_default_key();
+    }
     foreach (sr_content_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
@@ -241,6 +246,10 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
+    }
+    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    if ($themeKey !== '') {
+        $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'content';
     $context['style_profile'] = 'module';
@@ -358,6 +367,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
+        ['theme_key', sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
         ['layout_secondary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')), 'string'],
         ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],

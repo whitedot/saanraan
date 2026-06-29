@@ -16,6 +16,7 @@ $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $surveyLayoutOptions = sr_public_layout_options($pdo);
+$publicThemeOptions = sr_public_theme_options($pdo);
 $settings = sr_survey_settings($pdo);
 
 if (sr_request_method() === 'POST') {

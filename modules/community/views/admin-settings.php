@@ -550,6 +550,22 @@ $communitySettingsSectionNavItems = [
                                 </select>
             </div>
         </div>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '커뮤니티 공개 테마', $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <div class="form-field">
+                <select id="community_admin_settings_theme_key" name="theme_key" class="form-select" required>
+                    <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
+                        <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'default') === (string) $themeKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
+                            <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
+                                <?php echo sr_e(' - 외부 테마'); ?>
+                            <?php } ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">선택한 공개 레이아웃과 커뮤니티 스킨 위에 적용할 시각 테마입니다.</p>
+            </div>
+        </div>
         <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>
             <?php $communityLayoutMenuInputId = 'community_admin_settings_' . $communityLayoutMenuSettingKey; ?>
             <div class="form-row">

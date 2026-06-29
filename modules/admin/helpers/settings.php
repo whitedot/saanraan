@@ -689,6 +689,7 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
         'meta_description' => (string) ($siteSettings['site.meta_description'] ?? ''),
         'og_image' => (string) ($siteSettings['site.og_image'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
+        'public_theme_key' => sr_public_theme_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
         'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
     ];
@@ -733,10 +734,6 @@ function sr_admin_public_layout_options(PDO $pdo, bool $includeInstalledModules 
 
 function sr_admin_public_layout_provider_module_key(string $layoutKey, array $layoutOption): string
 {
-    if ((string) ($layoutOption['source_type'] ?? '') === 'external_theme') {
-        return '~external_theme';
-    }
-
     $moduleKey = (string) ($layoutOption['provider_module_key'] ?? '');
     if (sr_is_safe_module_key($moduleKey) || $moduleKey === 'core') {
         return $moduleKey;
@@ -813,6 +810,7 @@ function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): 
         'meta_description' => (string) ($siteSettings['site.meta_description'] ?? ''),
         'og_image' => (string) ($siteSettings['site.og_image'] ?? ''),
         'public_layout_key' => sr_public_layout_key($site, $pdo),
+        'public_theme_key' => sr_public_theme_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
         'business_info_items' => sr_admin_normalize_business_info_items($siteSettings['site.business_info_items'] ?? []),
     ];
@@ -833,6 +831,7 @@ function sr_admin_post_site_setting_values(?array $site): array
         'meta_description' => sr_clean_single_line(sr_post_string('meta_description', 255), 255),
         'og_image' => sr_clean_single_line(sr_post_string('og_image', 255), 255),
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
+        'public_theme_key' => sr_public_theme_normalize_key(sr_post_string('public_theme_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
         'business_info_items' => sr_admin_post_business_info_items(),
     ];
@@ -1444,6 +1443,9 @@ function sr_admin_handle_settings_post(
         if (!isset(sr_admin_public_layout_options($pdo)[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
+        if (!isset(sr_public_theme_options($pdo)[$values['public_theme_key']])) {
+            $errors[] = '공통 테마 값이 올바르지 않습니다.';
+        }
 
         $homepageCandidates = sr_admin_homepage_candidate_options($pdo, (string) ($values['home_path'] ?? '/'));
         if (!isset($homepageCandidates[$values['home_path']]) || empty($homepageCandidates[$values['home_path']]['available'])) {
@@ -1511,6 +1513,7 @@ function sr_admin_handle_settings_post(
                 'site.meta_description' => ['value' => $values['meta_description'], 'type' => 'string'],
                 'site.og_image' => ['value' => $values['og_image'], 'type' => 'string'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
+                'public_theme_key' => ['value' => $values['public_theme_key'], 'type' => 'string'],
                 'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
                 'site.business_info_items' => [
                     'value' => (string) json_encode($values['business_info_items'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
