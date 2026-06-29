@@ -67,6 +67,42 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'content theme UI kit route',
+        'path' => '/content/ui-kit',
+        'allowed_statuses' => [200],
+        'must_contain_by_status' => [
+            200 => ['data-theme-ui-kit-view="content.'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community theme UI kit route',
+        'path' => '/community/ui-kit',
+        'allowed_statuses' => [200],
+        'must_contain_by_status' => [
+            200 => ['data-theme-ui-kit-view="community.'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'quiz theme UI kit route',
+        'path' => '/quiz/ui-kit',
+        'allowed_statuses' => [200],
+        'must_contain_by_status' => [
+            200 => ['data-theme-ui-kit-view="quiz.'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'survey theme UI kit route',
+        'path' => '/survey/ui-kit',
+        'allowed_statuses' => [200],
+        'must_contain_by_status' => [
+            200 => ['data-theme-ui-kit-view="survey.'],
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'favicon fallback endpoint',
         'path' => '/favicon.ico',
         'allowed_statuses' => [302, 404],
@@ -363,6 +399,14 @@ $checks = [
         ],
     ],
     [
+        'label' => 'site sample view theme stylesheet',
+        'path' => '/assets/theme/sample.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.example-site-theme',
+        ],
+    ],
+    [
         'label' => 'public layout script',
         'path' => '/assets/public-layout.js',
         'allowed_statuses' => [200],
@@ -389,24 +433,32 @@ $checks = [
         ],
     ],
     [
-        'label' => 'community reset stylesheet',
-        'path' => '/modules/community/assets/reset.css',
+        'label' => 'content sample view theme stylesheet',
+        'path' => '/modules/content/theme/sample/assets/theme.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.example-content-theme',
+        ],
+    ],
+    [
+        'label' => 'community theme reset stylesheet',
+        'path' => '/modules/community/theme/basic/assets/reset.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '--color-body-bg',
         ],
     ],
     [
-        'label' => 'community UI stylesheet',
-        'path' => '/modules/community/assets/ui-kit.css',
+        'label' => 'community theme UI stylesheet',
+        'path' => '/modules/community/theme/basic/assets/ui-kit.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-ui-scope',
         ],
     ],
     [
-        'label' => 'community layout stylesheet',
-        'path' => '/modules/community/assets/layout.css',
+        'label' => 'community theme layout stylesheet',
+        'path' => '/modules/community/theme/basic/assets/layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-layout-header',
@@ -415,24 +467,32 @@ $checks = [
         ],
     ],
     [
-        'label' => 'community public stylesheet',
-        'path' => '/modules/community/assets/module.css',
+        'label' => 'community theme public stylesheet',
+        'path' => '/modules/community/theme/basic/assets/module.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-screen',
         ],
     ],
     [
-        'label' => 'community UI kit layout stylesheet',
-        'path' => '/modules/community/assets/ui-kit-layout.css',
+        'label' => 'community sample view theme stylesheet',
+        'path' => '/modules/community/theme/sample/assets/theme.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.example-community-theme',
+        ],
+    ],
+    [
+        'label' => 'community theme UI kit layout stylesheet',
+        'path' => '/modules/community/theme/basic/assets/ui-kit-layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-ui-kit',
         ],
     ],
     [
-        'label' => 'quiz layout stylesheet',
-        'path' => '/modules/quiz/assets/layout.css',
+        'label' => 'quiz theme layout stylesheet',
+        'path' => '/modules/quiz/theme/basic/assets/layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.quiz-layout-header',
@@ -441,13 +501,29 @@ $checks = [
         ],
     ],
     [
-        'label' => 'survey layout stylesheet',
-        'path' => '/modules/survey/assets/layout.css',
+        'label' => 'quiz sample view theme stylesheet',
+        'path' => '/modules/quiz/theme/sample/assets/theme.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.example-quiz-theme',
+        ],
+    ],
+    [
+        'label' => 'survey theme layout stylesheet',
+        'path' => '/modules/survey/theme/basic/assets/layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.survey-layout-header',
             '.survey-layout-main',
             '.survey-layout-footer',
+        ],
+    ],
+    [
+        'label' => 'survey sample view theme stylesheet',
+        'path' => '/modules/survey/theme/sample/assets/theme.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.example-survey-theme',
         ],
     ],
     [

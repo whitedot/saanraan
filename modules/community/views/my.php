@@ -17,7 +17,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContex
 $communityMainLabel = $myTitle;
 $communityFrameModifier = 'account';
 ?>
-    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-start.php'; ?>
+    <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-start.php'; ?>
         <h1><?php echo sr_e($myTitle); ?></h1>
         <nav class="community-my-tabs" aria-label="<?php echo sr_e('내 커뮤니티 활동'); ?>">
             <a href="<?php echo sr_e(sr_url('/community/my?type=posts')); ?>"<?php echo $myType === 'posts' ? ' aria-current="page"' : ''; ?>>내 글</a>
@@ -98,5 +98,5 @@ $communityFrameModifier = 'account';
                 <?php } ?>
             </nav>
         <?php } ?>
-    <?php include SR_ROOT . '/modules/community/layouts/basic/home-frame-end.php'; ?>
+    <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-end.php'; ?>
 <?php sr_public_layout_end(); ?>

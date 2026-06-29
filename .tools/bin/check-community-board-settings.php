@@ -425,7 +425,7 @@ sr_check_community_board_settings_contains('modules/community/skins/basic/list.p
     '(int) $listExcerptLength',
     'sr_community_body_excerpt',
 ], 'community basic list excerpt rendering');
-sr_check_community_board_settings_contains('modules/community/layouts/basic/layout.php', [
+sr_check_community_board_settings_contains('modules/community/theme/basic/layout.php', [
     'data-community-layout-search-form',
     'data-community-layout-search-input',
     'data-community-layout-search-min-length="2"',

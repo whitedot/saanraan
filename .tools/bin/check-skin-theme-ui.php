@@ -298,15 +298,15 @@ $targets = [
         'action' => 'modules/community/actions/admin-settings.php',
         'view' => 'modules/community/views/admin-settings.php',
         'render_views' => ['modules/community/actions/home.php'],
-        'files' => ['modules/community/layouts/basic/home.php', 'modules/community/layout-options.php'],
+        'files' => ['modules/community/theme/basic/home.php', 'modules/community/layout-options.php'],
         'helper_needles' => [
             'function sr_community_layout_key(array $settings',
             'function sr_community_layout_home_view(string $layoutKey',
-            "SR_ROOT . '/modules/community/layouts/basic/home.php'",
+            "SR_ROOT . '/modules/community/theme/basic/home.php'",
             "sr_t('community::runtime.layout_home_view_missing')",
         ],
         'action_needles' => [
-            '$communityLayoutOptions = sr_public_layout_options($pdo)',
+            '$communityLayoutOptions = sr_community_layout_options($pdo)',
             "sr_post_string('layout_key', 80)",
             'if (!isset($communityLayoutOptions[$layoutKey]))',
             "['layout_key', \$layoutKey, 'string']",
@@ -432,15 +432,259 @@ sr_skin_theme_check_contains('core/helpers/packages.php', [
 
 sr_skin_theme_check_contains('core/helpers/output.php', [
     'function sr_public_layout_normalized_option(string $layoutKey, array $layoutOption, string $fallbackProviderKey = \'\'): array',
+    'function sr_public_layout_support_targets(array $supports): array',
+    'function sr_public_layout_options_for_targets(?PDO $pdo, array $requiredTargets',
+    'function sr_public_layout_context_consumer_targets(array $layoutContext',
+    'function sr_public_layout_module_setting_targets(string $moduleKey): array',
     'function sr_public_layout_shell_stylesheets(string $layoutKey',
+    'function sr_public_layout_theme_view_file(array $layoutOption',
+    'function sr_public_layout_module_theme_asset_url(string $moduleKey',
     'function sr_public_theme_options(?PDO $pdo = null',
     'function sr_public_theme_key(?array $site = null',
+    'function sr_view_theme_options(string $themeRoot',
+    'function sr_view_theme_file(string $themeRoot',
+    'function sr_module_view_theme_asset_url(string $moduleKey',
+    "'/modules/' . \$moduleKey . '/theme/'",
+    "SR_ROOT . '/core/views/theme'",
     'function sr_public_layout_context_with_theme_assets(array $layoutContext',
     'sr_package_external_theme_options()',
     'function sr_public_route_domains(PDO $pdo',
     'function sr_public_layout_effective_key(string $layoutKey',
     'function sr_public_layout_health_warnings(PDO $pdo',
+    "'unsupported_target' =>",
 ], 'External theme/runtime helper');
+
+foreach ([
+    'content' => ['content.home', 'content.group', 'content.view'],
+    'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
+    'quiz' => ['quiz.home', 'quiz.view', 'quiz.result'],
+    'survey' => ['survey.home', 'survey.view', 'survey.complete'],
+] as $moduleKey => $requiredTargets) {
+    sr_skin_theme_check_contains('modules/' . $moduleKey . '/helpers' . ($moduleKey === 'community' ? '/presentation' : '') . '.php', [
+        'function sr_' . $moduleKey . '_layout_required_targets(): array',
+        'function sr_' . $moduleKey . '_layout_options(PDO $pdo, bool $includeInstalledModules = false): array',
+        'sr_public_layout_options_for_targets($pdo, sr_' . $moduleKey . '_layout_required_targets(), $includeInstalledModules)',
+    ], ucfirst($moduleKey) . ' layout target helper');
+
+    sr_skin_theme_check_contains('modules/' . $moduleKey . '/layout-options.php', $requiredTargets, ucfirst($moduleKey) . ' layout support targets');
+}
+
+sr_skin_theme_check_not_contains('modules/community/layout-options.php', [
+    "'content.view'",
+    '"content.view"',
+], 'Community layout support targets');
+
+sr_skin_theme_check_contains([
+    'modules/content/actions/admin-settings.php',
+    'modules/community/actions/admin-settings.php',
+    'modules/quiz/actions/admin-settings.php',
+    'modules/survey/actions/admin-settings.php',
+], [
+    'layout_options($pdo)',
+], 'Public module layout setting target-filtered options');
+
+sr_skin_theme_check_contains('modules/content/helpers.php', [
+    'function sr_content_theme_options(): array',
+    "SR_ROOT . '/modules/content/theme'",
+    "['home.php' => true, 'group.php' => true, 'content.php' => true, 'ui-kit.php' => true]",
+    "sr_public_layout_module_theme_asset_url('content', \$themeKey, 'ui-kit.css')",
+    "sr_public_layout_module_theme_asset_url('content', \$themeKey, 'ui-kit-layout.css')",
+    "sr_module_view_theme_stylesheet_url('content'",
+], 'Content local view theme helper');
+
+sr_skin_theme_check_contains('modules/community/helpers/presentation.php', [
+    'function sr_community_theme_options(): array',
+    "SR_ROOT . '/modules/community/theme'",
+    "'search.php' => true",
+    "'ui-kit.php' => true",
+], 'Community local view theme helper');
+
+sr_skin_theme_check_contains('modules/community/helpers/levels.php', [
+    "sr_public_layout_module_theme_asset_url('community', \$themeKey, 'ui-kit.css')",
+    "sr_public_layout_module_theme_asset_url('community', \$themeKey, 'ui-kit-layout.css')",
+    "sr_module_view_theme_stylesheet_url('community'",
+], 'Community local view theme asset helper');
+
+sr_skin_theme_check_contains('modules/quiz/helpers.php', [
+    'function sr_quiz_theme_options(): array',
+    "SR_ROOT . '/modules/quiz/theme'",
+    "['home.php', 'view.php', 'result.php', 'ui-kit.php']",
+    "array_merge(sr_quiz_skin_views(), ['ui-kit'])",
+    "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'ui-kit.css')",
+    "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'ui-kit-layout.css')",
+    "sr_module_view_theme_stylesheet_url('quiz'",
+], 'Quiz local view theme helper');
+
+sr_skin_theme_check_contains('modules/survey/helpers.php', [
+    'function sr_survey_theme_options(): array',
+    "SR_ROOT . '/modules/survey/theme'",
+    "['home.php', 'view.php', 'complete.php', 'ui-kit.php']",
+    "array_merge(sr_survey_skin_views(), ['ui-kit'])",
+    "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'ui-kit.css')",
+    "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'ui-kit-layout.css')",
+    "sr_module_view_theme_stylesheet_url('survey'",
+], 'Survey local view theme helper');
+
+sr_skin_theme_check_contains([
+    'modules/content/actions/ui-kit.php',
+    'modules/community/actions/ui-kit.php',
+    'modules/quiz/actions/ui-kit.php',
+    'modules/survey/actions/ui-kit.php',
+], [
+    'theme_view_file',
+    '/theme/basic/ui-kit.php',
+], 'Module UI kit action selected theme view include');
+
+foreach ([
+    'core/views/theme/basic/home.php',
+    'modules/content/theme/basic/home.php',
+    'modules/content/theme/basic/group.php',
+    'modules/content/theme/basic/content.php',
+    'modules/content/theme/basic/ui-kit.php',
+    'modules/community/theme/basic/home.php',
+    'modules/community/theme/basic/group.php',
+    'modules/community/theme/basic/list.php',
+    'modules/community/theme/basic/post.php',
+    'modules/community/theme/basic/form.php',
+    'modules/community/theme/basic/search.php',
+    'modules/community/theme/basic/ui-kit.php',
+    'modules/quiz/theme/basic/home.php',
+    'modules/quiz/theme/basic/view.php',
+    'modules/quiz/theme/basic/result.php',
+    'modules/quiz/theme/basic/ui-kit.php',
+    'modules/survey/theme/basic/home.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/theme/basic/complete.php',
+    'modules/survey/theme/basic/ui-kit.php',
+    'core/views/theme/sample/home.php',
+    'modules/content/theme/sample/home.php',
+    'modules/content/theme/sample/group.php',
+    'modules/content/theme/sample/content.php',
+    'modules/content/theme/sample/ui-kit.php',
+    'modules/community/theme/sample/home.php',
+    'modules/community/theme/sample/group.php',
+    'modules/community/theme/sample/list.php',
+    'modules/community/theme/sample/post.php',
+    'modules/community/theme/sample/form.php',
+    'modules/community/theme/sample/search.php',
+    'modules/community/theme/sample/ui-kit.php',
+    'modules/quiz/theme/sample/home.php',
+    'modules/quiz/theme/sample/view.php',
+    'modules/quiz/theme/sample/result.php',
+    'modules/quiz/theme/sample/ui-kit.php',
+    'modules/survey/theme/sample/home.php',
+    'modules/survey/theme/sample/view.php',
+    'modules/survey/theme/sample/complete.php',
+    'modules/survey/theme/sample/ui-kit.php',
+    'assets/theme/sample.css',
+    'modules/content/theme/basic/layout.php',
+    'modules/content/theme/basic/assets/reset.css',
+    'modules/content/theme/basic/assets/ui-kit.css',
+    'modules/content/theme/basic/assets/ui-kit-layout.css',
+    'modules/content/theme/basic/assets/layout.css',
+    'modules/content/theme/basic/assets/module.css',
+    'modules/content/theme/sample/layout.php',
+    'modules/content/theme/sample/assets/reset.css',
+    'modules/content/theme/sample/assets/ui-kit.css',
+    'modules/content/theme/sample/assets/ui-kit-layout.css',
+    'modules/content/theme/sample/assets/layout.css',
+    'modules/content/theme/sample/assets/module.css',
+    'modules/content/theme/sample/assets/theme.css',
+    'modules/community/theme/basic/layout.php',
+    'modules/community/theme/basic/home.php',
+    'modules/community/theme/basic/assets/reset.css',
+    'modules/community/theme/basic/assets/ui-kit.css',
+    'modules/community/theme/basic/assets/ui-kit-layout.css',
+    'modules/community/theme/basic/assets/layout.css',
+    'modules/community/theme/basic/assets/module.css',
+    'modules/community/theme/sample/layout.php',
+    'modules/community/theme/sample/assets/reset.css',
+    'modules/community/theme/sample/assets/ui-kit.css',
+    'modules/community/theme/sample/assets/ui-kit-layout.css',
+    'modules/community/theme/sample/assets/layout.css',
+    'modules/community/theme/sample/assets/module.css',
+    'modules/community/theme/sample/assets/theme.css',
+    'modules/quiz/theme/basic/layout.php',
+    'modules/quiz/theme/basic/assets/reset.css',
+    'modules/quiz/theme/basic/assets/ui-kit.css',
+    'modules/quiz/theme/basic/assets/ui-kit-layout.css',
+    'modules/quiz/theme/basic/assets/layout.css',
+    'modules/quiz/theme/basic/assets/module.css',
+    'modules/quiz/theme/basic/assets/skin.css',
+    'modules/quiz/theme/sample/layout.php',
+    'modules/quiz/theme/sample/assets/reset.css',
+    'modules/quiz/theme/sample/assets/ui-kit.css',
+    'modules/quiz/theme/sample/assets/ui-kit-layout.css',
+    'modules/quiz/theme/sample/assets/layout.css',
+    'modules/quiz/theme/sample/assets/module.css',
+    'modules/quiz/theme/sample/assets/skin.css',
+    'modules/quiz/theme/sample/assets/theme.css',
+    'modules/survey/theme/basic/layout.php',
+    'modules/survey/theme/basic/assets/reset.css',
+    'modules/survey/theme/basic/assets/ui-kit.css',
+    'modules/survey/theme/basic/assets/ui-kit-layout.css',
+    'modules/survey/theme/basic/assets/layout.css',
+    'modules/survey/theme/basic/assets/module.css',
+    'modules/survey/theme/sample/layout.php',
+    'modules/survey/theme/sample/assets/reset.css',
+    'modules/survey/theme/sample/assets/ui-kit.css',
+    'modules/survey/theme/sample/assets/ui-kit-layout.css',
+    'modules/survey/theme/sample/assets/layout.css',
+    'modules/survey/theme/sample/assets/module.css',
+    'modules/survey/theme/sample/assets/theme.css',
+] as $themeFile) {
+    sr_skin_theme_check_file_exists($themeFile, 'Local public view theme');
+}
+
+sr_skin_theme_check_contains([
+    'modules/content/actions/home.php',
+    'modules/content/actions/group.php',
+    'modules/content/actions/view.php',
+    'modules/community/actions/home.php',
+    'modules/community/actions/group.php',
+    'modules/community/actions/list.php',
+    'modules/community/actions/view.php',
+    'modules/community/actions/write.php',
+    'modules/community/actions/edit.php',
+    'modules/community/actions/search.php',
+    'modules/quiz/actions/home.php',
+    'modules/quiz/actions/view.php',
+    'modules/survey/actions/home.php',
+    'modules/survey/actions/view.php',
+], [
+    'public_view_file',
+], 'Public module theme view-root include flow');
+
+sr_skin_theme_check_not_contains([
+    'modules/quiz/actions/home.php',
+    'modules/quiz/actions/view.php',
+    'modules/survey/actions/home.php',
+    'modules/survey/actions/view.php',
+], [
+    'render_skin(',
+], 'Public theme flow must not call skin renderer directly');
+
+sr_skin_theme_check_not_contains([
+    'modules/content/actions/home.php',
+    'modules/content/actions/group.php',
+    'modules/content/actions/view.php',
+    'modules/community/actions/home.php',
+    'modules/community/actions/group.php',
+    'modules/community/actions/list.php',
+    'modules/community/actions/view.php',
+    'modules/community/actions/write.php',
+    'modules/community/actions/edit.php',
+    'modules/community/actions/search.php',
+    'modules/quiz/actions/home.php',
+    'modules/quiz/actions/view.php',
+    'modules/survey/actions/home.php',
+    'modules/survey/actions/view.php',
+], [
+    'sr_content_include_public_view(',
+    'sr_community_include_public_view(',
+    'sr_quiz_include_public_view(',
+    'sr_survey_include_public_view(',
+], 'Public theme action include scope');
 
 sr_skin_theme_check_contains([
     'modules/content/views/admin-settings.php',
@@ -450,7 +694,6 @@ sr_skin_theme_check_contains([
 ], [
     'name="theme_key"',
     '공개 테마',
-    '외부 테마',
 ], 'Public module theme setting UI');
 
 sr_skin_theme_check_contains('modules/community/views/admin-settings.php', [

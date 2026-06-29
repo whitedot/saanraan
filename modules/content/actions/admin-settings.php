@@ -22,8 +22,8 @@ $assetModuleOptions = sr_content_asset_module_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_content_toolbar_preset_options();
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
-$publicLayoutOptions = sr_public_layout_options($pdo);
-$publicThemeOptions = sr_public_theme_options($pdo);
+$publicLayoutOptions = sr_content_layout_options($pdo);
+$publicThemeOptions = sr_content_theme_options();
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
@@ -41,6 +41,7 @@ if (sr_request_method() === 'POST') {
     $postedAuthorRewardEnabled = sr_post_string('member_submission_author_reward_enabled', 1) === '1';
     $postedAuthorRewardAssetModule = sr_content_clean_slug(sr_post_string('member_submission_author_reward_asset_module', 30));
     $postedAuthorRewardAmount = sr_admin_post_int_in_range('member_submission_author_reward_amount', 0, 999999999);
+    $postedThemeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
         'editor_toolbar_preset' => $postedToolbarPreset,
@@ -49,7 +50,7 @@ if (sr_request_method() === 'POST') {
         'secret_comments_enabled' => sr_post_string('secret_comments_enabled', 1) === '1',
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
-        'theme_key' => sr_public_theme_normalize_key(sr_post_string('theme_key', 80)),
+        'theme_key' => $postedThemeKey,
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
         'layout_tertiary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
@@ -77,9 +78,11 @@ if (sr_request_method() === 'POST') {
     }
     if (!isset($publicLayoutOptions[(string) $postedSettings['layout_key']])) {
         $errors[] = '콘텐츠 공개 레이아웃 값이 올바르지 않습니다.';
+        $postedSettings['layout_key'] = sr_content_fallback_layout_key($pdo, $site ?? null);
     }
     if (!isset($publicThemeOptions[(string) $postedSettings['theme_key']])) {
         $errors[] = '기본 콘텐츠 테마 값이 올바르지 않습니다.';
+        $postedSettings['theme_key'] = sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic'));
     }
     foreach (['reaction_preset_key' => '콘텐츠 리액션 프리셋', 'reaction_comment_preset_key' => '콘텐츠 댓글 리액션 프리셋'] as $reactionSettingKey => $reactionSettingLabel) {
         $reactionPresetKey = (string) ($postedSettings[$reactionSettingKey] ?? '');

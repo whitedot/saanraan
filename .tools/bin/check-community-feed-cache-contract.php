@@ -468,7 +468,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     'sr_community_feed_cache_write_snapshots(',
 ]);
 
-sr_check_community_feed_cache_contract_contains('modules/community/layouts/basic/home-frame-start.php', [
+sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-start.php', [
     '$communityFrameHomeBoardIds = array_map(\'intval\', array_keys($homeExcerptAllowedByBoardId));',
     '$latestPosts = isset($latestPosts) && is_array($latestPosts) ? sr_community_home_filter_rows_by_board_ids($latestPosts, $communityFrameHomeBoardIds) : [];',
     '$popularPosts = isset($popularPosts) && is_array($popularPosts) ? sr_community_home_filter_rows_by_board_ids($popularPosts, $communityFrameHomeBoardIds) : [];',

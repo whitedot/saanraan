@@ -11,7 +11,6 @@ sr-packages/
 - themes/
   - vendor.theme/
     - theme.json
-    - layout.php
     - assets/
 - skins/
   - community/
@@ -66,7 +65,51 @@ sr-packages/
 
 필수 항목은 `manifest_version`, `type`, `key`, `saanraan.min_version`, `theme_contract`, `supports`다. `manifest_version`은 `1` 또는 `1.0`, `theme_contract`는 `1.0`만 허용한다. `supports`는 `site`, `content`, `community`, `quiz`, `survey` 도메인 단위만 허용하며 개별 route 단위 allowlist는 v1 계약에 넣지 않는다. 외부 테마 manifest에는 `provider_module_key`를 사용할 수 없다. `views.home`은 선택 항목이며 사이트 초기화면이 `/`일 때 레이아웃 기본 home view보다 먼저 사용된다.
 
-테마는 `sr_public_theme_options()`에 정규화된 공개 테마 option으로 합쳐진다. 정규화된 option은 `source_type=external_theme`, `source_key`, `asset_owner=package`, `asset_owner_key`, `supports_domains`, `theme_contract`, `views`, `asset_ids`, `assets`를 가진다. 테마는 레이아웃 파일을 제공하지 않으며, 선택된 public layout shell과 모듈 body/skin 사이에서 CSS/JS와 선택적 초기화면 home view만 담당한다.
+외부 패키지 테마는 관리자 화면을 바꾸지 않고 사용자 공개 화면에만 적용된다. 외부 테마는 public layout shell 자체나 모듈별 body DOM을 교체하지 않는다. 모듈 공개 화면의 DOM 구조를 바꾸는 테마는 패키지 manifest가 아니라 각 소유 모듈의 `theme/{theme_key}` 디렉터리로 둔다.
+
+테마는 `sr_public_theme_options()`에 정규화된 공개 테마 option으로 합쳐진다. 정규화된 option은 `source_type=external_theme`, `source_key`, `asset_owner=package`, `asset_owner_key`, `supports_domains`, `theme_contract`, `views`, `asset_ids`, `assets`를 가진다. 외부 테마는 선택된 public layout shell과 모듈 body/skin 사이에서 CSS/JS와 선택적 사이트 초기화면 home view만 담당한다.
+
+## 모듈 내부 view theme
+
+초기화면과 번들 공개 모듈의 DOM 교체형 테마는 저장소 내부의 theme 디렉터리로 관리한다.
+
+```text
+core/views/theme/{theme_key}/home.php
+modules/content/theme/{theme_key}/home.php
+modules/content/theme/{theme_key}/group.php
+modules/content/theme/{theme_key}/content.php
+modules/content/theme/{theme_key}/ui-kit.php
+modules/community/theme/{theme_key}/home.php
+modules/community/theme/{theme_key}/group.php
+modules/community/theme/{theme_key}/list.php
+modules/community/theme/{theme_key}/post.php
+modules/community/theme/{theme_key}/form.php
+modules/community/theme/{theme_key}/search.php
+modules/community/theme/{theme_key}/ui-kit.php
+modules/quiz/theme/{theme_key}/home.php
+modules/quiz/theme/{theme_key}/view.php
+modules/quiz/theme/{theme_key}/result.php
+modules/quiz/theme/{theme_key}/ui-kit.php
+modules/survey/theme/{theme_key}/home.php
+modules/survey/theme/{theme_key}/view.php
+modules/survey/theme/{theme_key}/complete.php
+modules/survey/theme/{theme_key}/ui-kit.php
+```
+
+모듈 내부 view theme의 화면 body view, layout shell, theme별 정적 asset은 모두 `modules/{module_key}/theme/{theme_key}`가 소유한다. layout shell은 선택된 layout provider의 `theme/{theme_key}/layout.php`에서 찾고, 없으면 같은 provider의 `theme/basic/layout.php`로 fallback한다.
+
+```text
+assets/theme/{theme_key}.css
+modules/{module_key}/theme/{theme_key}/layout.php
+modules/{module_key}/theme/{theme_key}/assets/reset.css
+modules/{module_key}/theme/{theme_key}/assets/ui-kit.css
+modules/{module_key}/theme/{theme_key}/assets/ui-kit-layout.css
+modules/{module_key}/theme/{theme_key}/assets/layout.css
+modules/{module_key}/theme/{theme_key}/assets/module.css
+modules/{module_key}/theme/{theme_key}/assets/theme.css
+```
+
+`theme_key`는 lowercase letters, digits, `_`로 된 로컬 key다. `basic`은 배포판 기본 view theme이며, 기존 설정에 남아 있는 `default` 값은 호환을 위해 `basic`으로 해석한다. 콘텐츠, 커뮤니티, 퀴즈, 설문 환경설정의 `theme_key`는 각 모듈 helper가 자기 `theme/{theme_key}` 디렉터리만 스캔해 선택지를 만든다. 관리자 화면에는 적용하지 않는다. 스킨과 테마는 별도 레이어이며, 퀴즈/설문/커뮤니티에서 theme view가 없을 때만 기존 `skin_key` 기반 view로 fallback한다.
 
 ## 스킨 manifest
 
@@ -113,9 +156,11 @@ Asset은 manifest에 선언된 id로만 노출된다. 허용 확장자는 `css`,
 
 ## Fallback과 상태 점검
 
-공개 route는 `site`, `content`, `community`, `quiz`, `survey` 도메인으로 분류된다. 선택된 레이아웃이 없는 경우, 유효하지 않은 경우, 현재 화면의 도메인을 지원하지 않는 경우에는 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 레이아웃으로 재귀 fallback하지 않는다.
+공개 route는 `site`, `content`, `community`, `quiz`, `survey` 도메인으로 분류되며, 레이아웃 적용 시에는 `content.home`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 단위 `consumer_target`을 우선 사용한다. 선택된 레이아웃이 없는 경우, 유효하지 않은 경우, 현재 화면 target을 지원하지 않는 경우에는 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 레이아웃으로 재귀 fallback하지 않는다. 외부 테마 manifest의 `supports`는 v1에서 계속 도메인 단위만 허용하고, DOM을 바꾸는 모듈 내부 view theme은 각 화면 소유 모듈의 `theme/{theme_key}`가 담당한다.
 
 사이트 설정 화면은 사이트 기본 공개 테마를, 콘텐츠/커뮤니티/퀴즈/설문 환경설정은 각 모듈 공개 테마를 별도 `theme_key`로 저장한다. `/admin/packages`는 외부 테마와 스킨 manifest 검증 결과, asset 목록, 미리보기 asset, 오류 그룹, 참조 요약, 레이아웃 fallback health를 read-only로 보여준다. 실제 적용은 사이트 설정 또는 각 모듈 환경설정의 테마/스킨 선택에서 한다.
+
+저장소에는 기본 동작을 담은 `basic` view theme과 테마 로딩을 눈으로 확인하기 위한 `sample` view theme이 포함된다. `sample`을 선택하면 사용자 화면의 body DOM, layout shell 파일, 색상, 표면이 `basic` view/skin과 다르게 바뀔 수 있어야 한다. 샘플 asset은 `/assets/theme/sample.css`와 `/modules/{module_key}/theme/sample/assets/theme.css`에서 로드한다. 모듈 공개 화면의 reset, UI kit, UI-KIT 미리보기, layout, module stylesheet도 선택된 view theme 아래의 `theme/{theme_key}/assets/`를 먼저 사용한다.
 
 ## 검증
 
@@ -131,4 +176,4 @@ php .tools/bin/check.php
 php .tools/bin/check-skin-theme-ui.php
 ```
 
-로컬 또는 staging base URL이 있으면 `/sr-package-asset`이 raw path 없이 선언 asset만 응답하는지 확인한다. 샘플 패키지가 없는 환경에서는 관리자 `/admin/packages`가 빈 목록과 fallback health를 오류 없이 표시하는지 확인한다.
+로컬 또는 staging base URL이 있으면 `/sr-package-asset`이 raw path 없이 선언 asset만 응답하는지 확인한다. 외부 패키지가 없는 환경에서는 관리자 `/admin/packages`가 빈 목록과 fallback health를 오류 없이 표시하는지 확인한다.

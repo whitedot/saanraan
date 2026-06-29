@@ -10,9 +10,10 @@ $communityLayoutKey = sr_public_layout_normalize_key((string) ($communityRawSett
 if ($communityLayoutKey === '') {
     $communityLayoutKey = sr_community_layout_default_key();
 }
-$communityLayoutOptions = sr_public_layout_options($pdo, true);
+$communityLayoutOptions = sr_community_layout_options($pdo, true);
 if (isset($communityLayoutOptions[$communityLayoutKey])) {
     $communityLayoutSettings['layout_key'] = $communityLayoutKey;
 }
 
-include SR_ROOT . '/modules/community/views/ui-kit.php';
+$communityUiKitView = sr_community_theme_view_file($communityLayoutSettings, 'ui-kit.php') ?? SR_ROOT . '/modules/community/theme/basic/ui-kit.php';
+include $communityUiKitView;

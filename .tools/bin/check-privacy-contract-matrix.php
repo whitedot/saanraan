@@ -610,15 +610,15 @@ foreach ([
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
-    'modules/quiz/layouts/basic/layout.php' => [
+    'modules/quiz/theme/basic/layout.php' => [
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
-    'modules/content/layouts/basic/layout.php' => [
+    'modules/content/theme/basic/layout.php' => [
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
-    'modules/community/layouts/basic/layout.php' => [
+    'modules/community/theme/basic/layout.php' => [
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],

@@ -7,6 +7,32 @@ function sr_community_layout_default_key(): string
     return 'community.basic';
 }
 
+function sr_community_layout_required_targets(): array
+{
+    return ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'];
+}
+
+function sr_community_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
+{
+    return sr_public_layout_options_for_targets($pdo, sr_community_layout_required_targets(), $includeInstalledModules);
+}
+
+function sr_community_layout_fallback_key(?array $site = null, ?PDO $pdo = null): string
+{
+    if ($pdo instanceof PDO) {
+        $options = sr_community_layout_options($pdo);
+        $siteLayoutKey = sr_public_layout_key($site, $pdo);
+        if (isset($options[$siteLayoutKey])) {
+            return $siteLayoutKey;
+        }
+        if (isset($options[sr_community_layout_default_key()])) {
+            return sr_community_layout_default_key();
+        }
+    }
+
+    return sr_public_layout_default_key();
+}
+
 function sr_community_layout_key(array $settings, ?array $site = null, ?PDO $pdo = null): string
 {
     $layoutKey = (string) ($settings['layout_key'] ?? '');
@@ -20,13 +46,12 @@ function sr_community_layout_key(array $settings, ?array $site = null, ?PDO $pdo
     }
 
     if ($pdo instanceof PDO) {
-        $options = sr_public_layout_options($pdo);
+        $options = sr_community_layout_options($pdo);
         if (isset($options[$layoutKey])) {
             return $layoutKey;
         }
 
-        $siteLayoutKey = sr_public_layout_key($site, $pdo);
-        return isset($options[$siteLayoutKey]) ? $siteLayoutKey : sr_public_layout_default_key();
+        return sr_community_layout_fallback_key($site, $pdo);
     }
 
     return preg_match('/\A[a-z0-9][a-z0-9_]{0,39}\.[a-z0-9][a-z0-9_]{0,39}\z/', $layoutKey) === 1
@@ -43,7 +68,7 @@ function sr_community_layout_home_view(string $layoutKey, ?PDO $pdo = null): str
         return $view;
     }
 
-    $fallback = SR_ROOT . '/modules/community/layouts/basic/home.php';
+    $fallback = SR_ROOT . '/modules/community/theme/basic/home.php';
     if (is_file($fallback)) {
         return $fallback;
     }
@@ -888,6 +913,63 @@ function sr_community_skin_view(string $skinKey, string $viewKey): string
     }
 
     throw new RuntimeException(sr_t('community::runtime.skin_view_missing'));
+}
+
+function sr_community_theme_options(): array
+{
+    return sr_view_theme_options(
+        SR_ROOT . '/modules/community/theme',
+        ['home.php', 'group.php', 'list.php', 'post.php', 'form.php', 'search.php', 'ui-kit.php'],
+        '기본 커뮤니티 테마',
+        'community_view_theme',
+        false
+    );
+}
+
+function sr_community_theme_key(string $themeKey): string
+{
+    return sr_view_theme_key($themeKey, sr_community_theme_options());
+}
+
+function sr_community_theme_view_file(array $settings, string $viewFile): ?string
+{
+    $allowedFiles = [
+        'home.php' => true,
+        'group.php' => true,
+        'list.php' => true,
+        'post.php' => true,
+        'form.php' => true,
+        'search.php' => true,
+        'ui-kit.php' => true,
+    ];
+    if (!isset($allowedFiles[$viewFile])) {
+        return null;
+    }
+
+    return sr_view_theme_file(SR_ROOT . '/modules/community/theme', sr_community_theme_key((string) ($settings['theme_key'] ?? '')), $viewFile);
+}
+
+function sr_community_public_view_file(PDO $pdo, array $settings, string $viewFile, string $fallbackFile): string
+{
+    $allowedFiles = [
+        'home.php' => true,
+        'group.php' => true,
+        'list.php' => true,
+        'post.php' => true,
+        'form.php' => true,
+        'search.php' => true,
+    ];
+    if (!isset($allowedFiles[$viewFile])) {
+        return $fallbackFile;
+    }
+
+    $themeFile = sr_community_theme_view_file($settings, $viewFile);
+    return $themeFile !== null ? $themeFile : $fallbackFile;
+}
+
+function sr_community_include_public_view(PDO $pdo, array $settings, string $viewFile, string $fallbackFile): void
+{
+    include sr_community_public_view_file($pdo, $settings, $viewFile, $fallbackFile);
 }
 
 function sr_community_skin_definition(string $skinKey): array

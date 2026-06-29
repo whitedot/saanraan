@@ -26,4 +26,5 @@ foreach (sr_community_enabled_boards($pdo) as $board) {
     $groupBoards[] = $board;
 }
 
-include SR_ROOT . '/modules/community/views/group.php';
+$communityThemeFallbackViewFile = SR_ROOT . '/modules/community/views/group.php';
+include sr_community_public_view_file($pdo, $settings, 'group.php', $communityThemeFallbackViewFile);

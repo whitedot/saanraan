@@ -252,4 +252,5 @@ $postIdField = $postId;
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'form');
 
-include $skinView;
+$communityThemeFallbackViewFile = $skinView;
+include sr_community_public_view_file($pdo, $settings, 'form.php', $skinView);

@@ -11,8 +11,10 @@ if (!is_array($pageGroup)) {
 }
 
 $groupContents = sr_content_published_contents_for_group($pdo, (int) $pageGroup['id']);
+$contentLayoutSettings = sr_content_settings($pdo);
 $pageGroupLayoutKey = sr_content_default_layout_key($pdo, $site ?? null);
 $pageTitle = (string) ($pageGroup['title'] ?? '콘텐츠 그룹');
 $pageDescription = (string) ($pageGroup['description'] ?? '');
 
-include SR_ROOT . '/modules/content/views/group.php';
+$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/group.php';
+include sr_content_public_view_file($pdo, $contentLayoutSettings, 'group.php');

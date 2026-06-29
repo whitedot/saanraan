@@ -72,8 +72,8 @@ sr_mention_check_assert(is_string($mentionJs) && str_contains($mentionJs, "scrol
 
 foreach ([
     '/layouts/public/basic/layout.php',
-    '/modules/community/layouts/basic/layout.php',
-    '/modules/content/layouts/basic/layout.php',
+    '/modules/community/theme/basic/layout.php',
+    '/modules/content/theme/basic/layout.php',
 ] as $layoutPath) {
     $layout = file_get_contents($root . $layoutPath);
     sr_mention_check_assert(is_string($layout) && str_contains($layout, '/assets/mention-input.js'), 'public layout should load mention input asset: ' . $layoutPath);
@@ -100,7 +100,7 @@ sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notif
 sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notificationUpdateSql, "('survey', 'comment.mention'"), 'notification update SQL should seed survey comment mention template.');
 
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
-    $moduleCss = file_get_contents($root . '/modules/' . $moduleKey . '/assets/module.css');
+    $moduleCss = file_get_contents($root . '/modules/' . $moduleKey . '/theme/basic/assets/module.css');
     sr_mention_check_assert(is_string($moduleCss) && str_contains($moduleCss, '.sr-mention'), 'module CSS should define rendered mention styles: ' . $moduleKey);
 }
 

@@ -93,5 +93,7 @@ $memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_arra
     ? $_SESSION['sr_member_follow_feedback']
     : ['notice' => '', 'errors' => []];
 unset($_SESSION['sr_member_follow_feedback']);
+$contentLayoutSettings = $contentSettings;
 
-include SR_ROOT . '/modules/content/views/content.php';
+$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/content.php';
+include sr_content_public_view_file($pdo, $contentLayoutSettings, 'content.php');

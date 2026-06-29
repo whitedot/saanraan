@@ -15,6 +15,7 @@ $seo = [
 ];
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
+    'consumer_target' => 'quiz.home',
     'body_class' => 'sr-quiz-page',
     'stylesheets' => ['/modules/popup_layer/assets/module.css'],
 ]));

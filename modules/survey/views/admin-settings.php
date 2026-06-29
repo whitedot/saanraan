@@ -128,11 +128,8 @@ $surveySettingsHelp = [
                 <div class="form-field">
                     <select id="survey_settings_theme_key" name="theme_key" class="form-select" required>
                         <?php foreach ($publicThemeOptions as $themeKey => $themeOption) { ?>
-                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'default') === (string) $themeKey ? ' selected' : ''; ?>>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'basic') === (string) $themeKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) ($themeOption['label'] ?? $themeKey)); ?>
-                                <?php if ((string) ($themeOption['source_type'] ?? '') === 'external_theme') { ?>
-                                    <?php echo sr_e(' - 외부 테마'); ?>
-                                <?php } ?>
                             </option>
                         <?php } ?>
                     </select>

@@ -109,7 +109,7 @@ function sr_content_default_settings(): array
         'secret_comments_enabled' => false,
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
-        'theme_key' => 'default',
+        'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
         'layout_tertiary_menu_key' => '',
@@ -207,12 +207,12 @@ function sr_content_settings(PDO $pdo): array
     $settings['secret_comments_enabled'] = sr_content_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic'));
-    if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
-        $settings['layout_key'] = sr_public_layout_key(null, $pdo);
+    if (!isset(sr_content_layout_options($pdo)[$settings['layout_key']])) {
+        $settings['layout_key'] = sr_content_fallback_layout_key($pdo, null);
     }
-    $settings['theme_key'] = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
-    if (!isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
-        $settings['theme_key'] = sr_public_theme_default_key();
+    $settings['theme_key'] = sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic'));
+    if (!isset(sr_content_theme_options()[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_content_theme_key('');
     }
     foreach (sr_content_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
@@ -231,14 +231,38 @@ function sr_content_settings(PDO $pdo): array
     return $settings;
 }
 
+function sr_content_layout_required_targets(): array
+{
+    return ['content.home', 'content.group', 'content.view'];
+}
+
+function sr_content_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
+{
+    return sr_public_layout_options_for_targets($pdo, sr_content_layout_required_targets(), $includeInstalledModules);
+}
+
+function sr_content_fallback_layout_key(PDO $pdo, ?array $site = null): string
+{
+    $options = sr_content_layout_options($pdo);
+    $siteLayoutKey = sr_public_layout_key($site, $pdo);
+    if (isset($options[$siteLayoutKey])) {
+        return $siteLayoutKey;
+    }
+    if (isset($options['content.basic'])) {
+        return 'content.basic';
+    }
+
+    return sr_public_layout_default_key();
+}
+
 function sr_content_default_layout_key(PDO $pdo, ?array $site = null): string
 {
     $layoutKey = sr_public_layout_normalize_key((string) (sr_content_settings($pdo)['layout_key'] ?? ''));
-    if ($layoutKey !== '' && isset(sr_public_layout_options($pdo)[$layoutKey])) {
+    if ($layoutKey !== '' && isset(sr_content_layout_options($pdo)[$layoutKey])) {
         return $layoutKey;
     }
 
-    return sr_public_layout_key($site, $pdo);
+    return sr_content_fallback_layout_key($pdo, $site);
 }
 
 function sr_content_public_layout_context(array $settings, array $context = []): array
@@ -247,16 +271,24 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
-    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    $themeKey = sr_content_theme_key((string) ($settings['theme_key'] ?? ''));
     if ($themeKey !== '') {
         $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'content';
     $context['style_profile'] = 'module';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/content/assets/reset.css';
-    $stylesheets[] = '/modules/content/assets/ui-kit.css';
-    $stylesheets[] = '/modules/content/assets/module.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'reset.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'module.css');
+    $themeStylesheet = sr_module_view_theme_stylesheet_url('content', $themeKey);
+    if ($themeStylesheet !== '') {
+        $stylesheets[] = $themeStylesheet;
+    }
+    if ($themeKey !== sr_public_theme_default_key()) {
+        $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
+        $context['body_class'] = trim($bodyClass . ' content-view-theme-' . $themeKey);
+    }
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
     $scripts[] = '/modules/content/assets/module.js';
@@ -272,12 +304,53 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     return $context;
 }
 
+function sr_content_theme_options(): array
+{
+    return sr_view_theme_options(SR_ROOT . '/modules/content/theme', ['home.php', 'group.php', 'content.php', 'ui-kit.php'], '기본 콘텐츠 테마', 'content_view_theme', false);
+}
+
+function sr_content_theme_key(string $themeKey): string
+{
+    return sr_view_theme_key($themeKey, sr_content_theme_options());
+}
+
+function sr_content_theme_view_file(array $settings, string $viewFile): ?string
+{
+    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true, 'ui-kit.php' => true];
+    if (!isset($allowedFiles[$viewFile])) {
+        return null;
+    }
+
+    return sr_view_theme_file(SR_ROOT . '/modules/content/theme', sr_content_theme_key((string) ($settings['theme_key'] ?? '')), $viewFile);
+}
+
+function sr_content_public_view_file(PDO $pdo, array $settings, string $viewFile): string
+{
+    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true];
+    if (!isset($allowedFiles[$viewFile])) {
+        return SR_ROOT . '/modules/content/views/content.php';
+    }
+
+    $file = sr_content_theme_view_file($settings, $viewFile);
+    if ($file !== null) {
+        return $file;
+    }
+
+    return SR_ROOT . '/modules/content/views/' . $viewFile;
+}
+
+function sr_content_include_public_view(PDO $pdo, array $settings, string $viewFile): void
+{
+    include sr_content_public_view_file($pdo, $settings, $viewFile);
+}
+
 function sr_content_ui_kit_layout_context(array $settings, array $context = []): array
 {
     $context = sr_content_public_layout_context($settings, $context);
+    $themeKey = sr_content_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/content/assets/ui-kit.css';
-    $stylesheets[] = '/modules/content/assets/ui-kit-layout.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;
@@ -367,7 +440,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
-        ['theme_key', sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default')), 'string'],
+        ['theme_key', sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
         ['layout_secondary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')), 'string'],
         ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],

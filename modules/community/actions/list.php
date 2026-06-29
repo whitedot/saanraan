@@ -66,4 +66,5 @@ unset($_SESSION['sr_member_follow_feedback']);
 $skinKey = sr_community_board_skin_key($pdo, $board);
 $skinView = sr_community_skin_view($skinKey, 'list');
 
-include $skinView;
+$communityThemeFallbackViewFile = $skinView;
+include sr_community_public_view_file($pdo, $settings, 'list.php', $skinView);

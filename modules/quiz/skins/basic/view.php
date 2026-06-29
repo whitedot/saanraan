@@ -166,8 +166,10 @@ if ($canPreviewAsAdmin) {
     $seo['robots'] = 'noindex, nofollow';
 }
 $quizShareUrl = sr_absolute_url($site ?? null, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')));
+$quizConsumerTarget = $submitResult !== null ? 'quiz.result' : 'quiz.view';
 
 $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
+    'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
     'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
 ]);

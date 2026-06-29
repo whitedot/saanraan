@@ -21,8 +21,8 @@ $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySett
 $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
-$communityLayoutOptions = sr_public_layout_options($pdo);
-$communityThemeOptions = sr_public_theme_options($pdo);
+$communityLayoutOptions = sr_community_layout_options($pdo);
+$communityThemeOptions = sr_community_theme_options();
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
@@ -111,8 +111,12 @@ if (sr_request_method() === 'POST') {
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
-        $themeKey = sr_public_theme_normalize_key(sr_post_string('theme_key', 80));
+        $themeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
         $layoutPrimaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60));
+        $layoutSecondaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60));
+        $layoutTertiaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60));
+        $layoutQuaternaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60));
+        $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $assetSettings = [];
         foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
@@ -196,7 +200,7 @@ if (sr_request_method() === 'POST') {
         }
         if (!isset($communityThemeOptions[$themeKey])) {
             $errors[] = '커뮤니티 공개 테마 값이 올바르지 않습니다.';
-            $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
+            $themeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? 'basic'));
         }
         foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey, $layoutQuaternaryMenuKey, $layoutQuinaryMenuKey] as $layoutMenuKey) {
             if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey]) && !sr_community_layout_menu_key_is_builtin($layoutMenuKey)) {

@@ -307,4 +307,5 @@ unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'post');
 
-include $skinView;
+$communityThemeFallbackViewFile = $skinView;
+include sr_community_public_view_file($pdo, $settings, 'post.php', $skinView);

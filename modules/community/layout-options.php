@@ -5,11 +5,12 @@ return [
         'label' => sr_t('community::ui.community.8f453af4'),
         'provider_module_key' => 'community',
         'provider_label' => sr_t('community::ui.community.4a285775'),
-        'supports' => ['site', 'community.home', 'content.view'],
+        'supports' => ['site', 'community', 'community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
         'style_profile' => 'minimal',
         'views' => [
-            'layout' => SR_ROOT . '/modules/community/layouts/basic/layout.php',
-            'community_home' => SR_ROOT . '/modules/community/layouts/basic/home.php',
+            'layout' => SR_ROOT . '/modules/community/theme/basic/layout.php',
+            'community_home' => SR_ROOT . '/modules/community/theme/basic/home.php',
+            'ui_kit' => SR_ROOT . '/modules/community/theme/basic/ui-kit.php',
         ],
     ],
 ];

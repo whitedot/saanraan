@@ -154,7 +154,7 @@ sr_site_menu_check_assert(sr_site_menu_clean_url('') === '', 'Site menu URL clea
 sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#', 'Site menu href helper must fail closed for unsafe URLs.');
 
 $publicLayoutCss = (string) file_get_contents(SR_ROOT . '/assets/layout.css');
-$communityLayoutCss = (string) file_get_contents(SR_ROOT . '/modules/community/assets/layout.css');
+$communityLayoutCss = (string) file_get_contents(SR_ROOT . '/modules/community/theme/basic/assets/layout.css');
 sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/assets/module.css'), 'Site menu module must not own a public stylesheet.');
 sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/updates/2026.04.003.sql'), 'Site menu version-only update must stay removed from the current fresh-install baseline.');
 sr_site_menu_check_assert(str_contains($publicLayoutCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Public layout CSS must support site menu dropdown open state.');

@@ -15,8 +15,8 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
-$surveyLayoutOptions = sr_public_layout_options($pdo);
-$publicThemeOptions = sr_public_theme_options($pdo);
+$surveyLayoutOptions = sr_survey_layout_options($pdo);
+$publicThemeOptions = sr_survey_theme_options();
 $settings = sr_survey_settings($pdo);
 
 if (sr_request_method() === 'POST') {

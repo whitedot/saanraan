@@ -42,7 +42,7 @@ function sr_community_default_settings(): array
         'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
-        'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'default',
+        'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
@@ -229,9 +229,9 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0, $settings);
     $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
-    $settings['theme_key'] = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? 'default'));
-    if ($pdo instanceof PDO && !isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
-        $settings['theme_key'] = sr_public_theme_default_key();
+    $settings['theme_key'] = sr_community_theme_key((string) ($settings['theme_key'] ?? 'basic'));
+    if (!isset(sr_community_theme_options()[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_community_theme_key('');
     }
     foreach (sr_community_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
@@ -441,16 +441,24 @@ function sr_community_public_layout_context(array $settings, array $context = []
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
-    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    $themeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? ''));
     if ($themeKey !== '') {
         $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'community';
     $context['style_profile'] = 'module';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/community/assets/reset.css';
-    $stylesheets[] = '/modules/community/assets/ui-kit.css';
-    $stylesheets[] = '/modules/community/assets/module.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'reset.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'module.css');
+    $themeStylesheet = sr_module_view_theme_stylesheet_url('community', $themeKey);
+    if ($themeStylesheet !== '') {
+        $stylesheets[] = $themeStylesheet;
+    }
+    if ($themeKey !== sr_public_theme_default_key()) {
+        $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
+        $context['body_class'] = trim($bodyClass . ' community-view-theme-' . $themeKey);
+    }
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
     $scripts[] = '/modules/community/assets/module.js';
@@ -475,9 +483,10 @@ function sr_community_public_layout_context(array $settings, array $context = []
 function sr_community_ui_kit_layout_context(array $settings, array $context = []): array
 {
     $context = sr_community_public_layout_context($settings, $context);
+    $themeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/community/assets/ui-kit.css';
-    $stylesheets[] = '/modules/community/assets/ui-kit-layout.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;

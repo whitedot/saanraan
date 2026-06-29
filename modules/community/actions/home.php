@@ -21,4 +21,5 @@ $homeExcerptAllowedByBoardId = is_array($homeData['homeExcerptAllowedByBoardId']
 $communityLayoutKey = (string) ($homeData['communityLayoutKey'] ?? sr_community_layout_key($settings, $site ?? null, $pdo));
 $layoutHomeView = sr_community_layout_home_view($communityLayoutKey, $pdo);
 
-include $layoutHomeView;
+$communityThemeFallbackViewFile = $layoutHomeView;
+include sr_community_public_view_file($pdo, $settings, 'home.php', $layoutHomeView);

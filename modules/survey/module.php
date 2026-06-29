@@ -23,7 +23,7 @@ return [
     ],
     'settings' => [
         'layout_key' => 'survey.basic',
-        'theme_key' => 'default',
+        'theme_key' => 'basic',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,

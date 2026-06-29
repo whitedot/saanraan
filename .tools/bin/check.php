@@ -802,25 +802,51 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         sr_check_add_error('Public layout stylesheet is missing or invalid: assets/layout.css');
     }
 
+    $modulePublicTargetViews = [
+        'content' => [
+            'content.home' => ['modules/content/views/home.php', 'modules/content/theme/basic/home.php', 'modules/content/theme/sample/home.php'],
+            'content.group' => ['modules/content/views/group.php', 'modules/content/theme/basic/group.php', 'modules/content/theme/sample/group.php'],
+            'content.view' => ['modules/content/views/content.php', 'modules/content/theme/basic/content.php', 'modules/content/theme/sample/content.php'],
+        ],
+        'community' => [
+            'community.home' => ['modules/community/theme/basic/home.php', 'modules/community/theme/sample/home.php'],
+            'community.group' => ['modules/community/views/group.php', 'modules/community/theme/basic/group.php', 'modules/community/theme/sample/group.php'],
+            'community.list' => ['modules/community/skins/basic/list.php', 'modules/community/theme/basic/list.php', 'modules/community/theme/sample/list.php'],
+            'community.post' => ['modules/community/skins/basic/view.php', 'modules/community/theme/basic/post.php', 'modules/community/theme/sample/post.php'],
+            'community.form' => ['modules/community/skins/basic/form.php', 'modules/community/theme/basic/form.php', 'modules/community/theme/sample/form.php'],
+            'community.search' => ['modules/community/views/search.php', 'modules/community/theme/basic/search.php', 'modules/community/theme/sample/search.php'],
+        ],
+        'quiz' => [
+            'quiz.home' => ['modules/quiz/skins/basic/home.php', 'modules/quiz/theme/basic/home.php', 'modules/quiz/theme/sample/home.php'],
+            'quiz.view' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php', 'modules/quiz/theme/sample/view.php'],
+            'quiz.result' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php', 'modules/quiz/theme/sample/view.php'],
+        ],
+        'survey' => [
+            'survey.home' => ['modules/survey/skins/basic/home.php', 'modules/survey/theme/basic/home.php', 'modules/survey/theme/sample/home.php'],
+            'survey.view' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php', 'modules/survey/theme/sample/view.php'],
+            'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php', 'modules/survey/theme/sample/view.php'],
+        ],
+    ];
+
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
-        $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/assets/reset.css';
+        $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/reset.css';
         $sourceReset = is_file('assets/reset.css') ? file_get_contents('assets/reset.css') : false;
         $moduleReset = is_file($moduleResetStylesheetPath) ? file_get_contents($moduleResetStylesheetPath) : false;
         if (is_string($sourceReset) && is_string($moduleReset)) {
             $sourceReset = str_replace('url("fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $sourceReset);
-            $moduleReset = str_replace('url("../../../assets/fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $moduleReset);
+            $moduleReset = str_replace('url("../../../../../assets/fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $moduleReset);
         }
         if (!is_string($sourceReset) || !is_string($moduleReset) || $sourceReset !== $moduleReset) {
             sr_check_add_error('Module reset stylesheet copy must match source: ' . $moduleResetStylesheetPath . ' -> assets/reset.css');
         }
 
-        $moduleUiStylesheetPath = 'modules/' . $moduleKey . '/assets/ui-kit.css';
+        $moduleUiStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/ui-kit.css';
         $moduleUiStylesheet = is_file($moduleUiStylesheetPath) ? file_get_contents($moduleUiStylesheetPath) : false;
         if (!is_string($moduleUiStylesheet) || !str_contains($moduleUiStylesheet, '.' . $moduleKey . '-ui-scope') || str_contains($moduleUiStylesheet, '.public-ui-') || str_contains($moduleUiStylesheet, '--public-ui-')) {
             sr_check_add_error('Module UI kit stylesheet must use module UI namespace: ' . $moduleUiStylesheetPath);
         }
 
-        $moduleUiKitLayoutPath = 'modules/' . $moduleKey . '/assets/ui-kit-layout.css';
+        $moduleUiKitLayoutPath = 'modules/' . $moduleKey . '/theme/basic/assets/ui-kit-layout.css';
         $moduleUiKitLayout = is_file($moduleUiKitLayoutPath) ? file_get_contents($moduleUiKitLayoutPath) : false;
         if (!is_string($moduleUiKitLayout) || !str_contains($moduleUiKitLayout, '.' . $moduleKey . '-ui-kit') || str_contains($moduleUiKitLayout, '.public-ui-kit')) {
             sr_check_add_error('Module UI kit layout stylesheet must use module UI kit namespace: ' . $moduleUiKitLayoutPath);
@@ -833,14 +859,14 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
         }
 
-        if (!is_file('modules/' . $moduleKey . '/assets/module.css')) {
-            sr_check_add_error('Module public stylesheet is missing: modules/' . $moduleKey . '/assets/module.css');
+        if (!is_file('modules/' . $moduleKey . '/theme/basic/assets/module.css')) {
+            sr_check_add_error('Module public stylesheet is missing: modules/' . $moduleKey . '/theme/basic/assets/module.css');
         }
         if (!is_file('modules/' . $moduleKey . '/assets/module.js')) {
             sr_check_add_error('Module public script is missing: modules/' . $moduleKey . '/assets/module.js');
         }
 
-        $moduleCssPath = 'modules/' . $moduleKey . '/assets/module.css';
+        $moduleCssPath = 'modules/' . $moduleKey . '/theme/basic/assets/module.css';
         $moduleCss = is_file($moduleCssPath) ? file_get_contents($moduleCssPath) : false;
         if (is_string($moduleCss) && str_contains($moduleCss, '.' . $moduleKey . '-layout-')) {
             sr_check_add_error('Module public stylesheet must not own layout selectors: ' . $moduleCssPath);
@@ -850,7 +876,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         }
 
         if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
-            $moduleLayoutCssPath = 'modules/' . $moduleKey . '/assets/layout.css';
+            $moduleLayoutCssPath = 'modules/' . $moduleKey . '/theme/basic/assets/layout.css';
             $moduleLayoutCss = is_file($moduleLayoutCssPath) ? file_get_contents($moduleLayoutCssPath) : false;
             if (!is_string($moduleLayoutCss)) {
                 sr_check_add_error('Module public layout stylesheet is missing: ' . $moduleLayoutCssPath);
@@ -867,12 +893,48 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!is_file($moduleLayoutScriptPath)) {
                 sr_check_add_error('Module public layout script is missing: ' . $moduleLayoutScriptPath);
             }
+
+            $layoutOptionsPath = 'modules/' . $moduleKey . '/layout-options.php';
+            $layoutOptionsSource = is_file($layoutOptionsPath) ? file_get_contents($layoutOptionsPath) : false;
+            if (!is_string($layoutOptionsSource)) {
+                sr_check_add_error('Module public layout options are missing: ' . $layoutOptionsPath);
+            } else {
+                foreach (array_keys($modulePublicTargetViews[$moduleKey] ?? []) as $requiredTarget) {
+                    if (!str_contains($layoutOptionsSource, "'" . $requiredTarget . "'") && !str_contains($layoutOptionsSource, '"' . $requiredTarget . '"')) {
+                        sr_check_add_error('Module public layout option support target is missing: ' . $layoutOptionsPath . ' ' . $requiredTarget);
+                    }
+                }
+                if ($moduleKey === 'community' && (str_contains($layoutOptionsSource, "'content.view'") || str_contains($layoutOptionsSource, '"content.view"'))) {
+                    sr_check_add_error('Community layout option must not advertise content.view support: ' . $layoutOptionsPath);
+                }
+            }
+
+            $settingsActionPath = 'modules/' . $moduleKey . '/actions/admin-settings.php';
+            $settingsActionSource = is_file($settingsActionPath) ? file_get_contents($settingsActionPath) : false;
+            $layoutOptionsFunction = 'sr_' . $moduleKey . '_layout_options';
+            if (!is_string($settingsActionSource) || !str_contains($settingsActionSource, $layoutOptionsFunction . '($pdo')) {
+                sr_check_add_error('Module admin layout setting must use target-filtered layout options: ' . $settingsActionPath);
+            }
+
+            foreach ($modulePublicTargetViews[$moduleKey] ?? [] as $requiredTarget => $targetViewFiles) {
+                foreach ($targetViewFiles as $targetViewFile) {
+                    $targetViewSource = is_file($targetViewFile) ? file_get_contents($targetViewFile) : false;
+                    if (!is_string($targetViewSource)) {
+                        sr_check_add_error('Module public target view cannot be read: ' . $targetViewFile);
+                        continue;
+                    }
+                    if (!str_contains($targetViewSource, 'consumer_target') || !str_contains($targetViewSource, $requiredTarget)) {
+                        sr_check_add_error('Module public view consumer target is missing: ' . $targetViewFile . ' ' . $requiredTarget);
+                    }
+                }
+            }
         }
 
         foreach ([
             'modules/' . $moduleKey . '/assets',
             'modules/' . $moduleKey . '/layouts',
             'modules/' . $moduleKey . '/skins',
+            'modules/' . $moduleKey . '/theme',
         ] as $modulePublicNamespaceRoot) {
             foreach (sr_check_files($modulePublicNamespaceRoot, 'php') as $modulePublicNamespaceFile) {
                 $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
@@ -893,14 +955,20 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 }
             }
         }
-        $moduleUiKitView = 'modules/' . $moduleKey . '/views/ui-kit.php';
-        $moduleUiKitViewSource = is_file($moduleUiKitView) ? file_get_contents($moduleUiKitView) : false;
-        if (is_string($moduleUiKitViewSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $moduleUiKitViewSource) === 1) {
-            sr_check_add_error('Module UI kit view must not use public-prefixed classes: ' . $moduleUiKitView);
+        foreach (['basic', 'sample'] as $moduleThemeKey) {
+            $moduleUiKitView = 'modules/' . $moduleKey . '/theme/' . $moduleThemeKey . '/ui-kit.php';
+            $moduleUiKitViewSource = is_file($moduleUiKitView) ? file_get_contents($moduleUiKitView) : false;
+            if (!is_string($moduleUiKitViewSource)) {
+                sr_check_add_error('Module UI kit view must live in theme directory: ' . $moduleUiKitView);
+                continue;
+            }
+            if (preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $moduleUiKitViewSource) === 1) {
+                sr_check_add_error('Module UI kit view must not use public-prefixed classes: ' . $moduleUiKitView);
+            }
         }
 
-        if ($moduleKey === 'quiz' && !is_file('modules/quiz/assets/skin.css')) {
-            sr_check_add_error('Module public skin stylesheet is missing: modules/quiz/assets/skin.css');
+        if ($moduleKey === 'quiz' && !is_file('modules/quiz/theme/basic/assets/skin.css')) {
+            sr_check_add_error('Module public skin stylesheet is missing: modules/quiz/theme/basic/assets/skin.css');
         }
 
         $helperFile = $moduleKey === 'community'
@@ -921,9 +989,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
         $body = (string) ($matches['body'] ?? '');
         $expectedOrder = [
-            "'/modules/" . $moduleKey . "/assets/reset.css'",
-            "'/modules/" . $moduleKey . "/assets/ui-kit.css'",
-            "'/modules/" . $moduleKey . "/assets/module.css'",
+            "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'reset.css')",
+            "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'ui-kit.css')",
+            "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'module.css')",
         ];
         if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
             if (!str_contains($body, "\$context['consumer_domain'] = '" . $moduleKey . "'")) {
@@ -931,6 +999,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
             if (!str_contains($body, "'/modules/" . $moduleKey . "/assets/module.js'") || !str_contains($body, '$context[\'scripts\']')) {
                 sr_check_add_error('Module public layout context module script is missing: ' . $helperFile);
+            }
+            if (!str_contains($body, "sr_module_view_theme_stylesheet_url('" . $moduleKey . "'")) {
+                sr_check_add_error('Module public layout context theme stylesheet helper is missing: ' . $helperFile);
             }
         }
         $lastIndex = -1;
@@ -953,21 +1024,32 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             || !str_contains($outputHelperSource, 'sr_public_layout_context_with_shell_assets')
             || !str_contains($outputHelperSource, 'sr_public_layout_insert_before_module_asset')
             || !str_contains($outputHelperSource, 'sr_public_layout_shell_stylesheets')
+            || !str_contains($outputHelperSource, 'sr_public_layout_options_for_targets')
+            || !str_contains($outputHelperSource, 'sr_public_layout_context_consumer_targets')
         ) {
             sr_check_add_error('Core public layout helper should inject selected shell assets before module assets.');
         }
 
         if ($moduleKey === 'quiz') {
-            $skinMarker = "'/modules/quiz/assets/skin.css'";
+            $skinMarker = "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'skin.css')";
             $skinIndex = strpos($body, $skinMarker);
             if ($skinIndex === false || $skinIndex < $lastIndex) {
                 sr_check_add_error('Module public skin stylesheet order is invalid: ' . $helperFile . ' ' . $skinMarker);
             }
         }
 
-        $uiKitLayoutMarker = "'/modules/" . $moduleKey . "/assets/ui-kit-layout.css'";
+        $uiKitLayoutMarker = "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'ui-kit-layout.css')";
         if (!str_contains($source, $uiKitLayoutMarker)) {
             sr_check_add_error('Module UI kit layout stylesheet is missing from helper: ' . $helperFile . ' ' . $uiKitLayoutMarker);
+        }
+
+        $uiKitActionFile = 'modules/' . $moduleKey . '/actions/ui-kit.php';
+        $uiKitActionSource = is_file($uiKitActionFile) ? file_get_contents($uiKitActionFile) : false;
+        if (!is_string($uiKitActionSource)
+            || !str_contains($uiKitActionSource, 'theme_view_file')
+            || !str_contains($uiKitActionSource, '/modules/' . $moduleKey . '/theme/basic/ui-kit.php')
+        ) {
+            sr_check_add_error('Module UI kit action must include selected theme UI kit view: ' . $uiKitActionFile);
         }
 
         if (preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $source) === 1) {
@@ -977,10 +1059,10 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
     foreach ([
         'layouts/public/basic/layout.php' => '/assets/public-layout.js',
-        'modules/content/layouts/basic/layout.php' => '/modules/content/assets/layout.js',
-        'modules/community/layouts/basic/layout.php' => '/modules/community/assets/layout.js',
-        'modules/quiz/layouts/basic/layout.php' => '/modules/quiz/assets/layout.js',
-        'modules/survey/layouts/basic/layout.php' => '/modules/survey/assets/layout.js',
+        'modules/content/theme/basic/layout.php' => '/modules/content/assets/layout.js',
+        'modules/community/theme/basic/layout.php' => '/modules/community/assets/layout.js',
+        'modules/quiz/theme/basic/layout.php' => '/modules/quiz/assets/layout.js',
+        'modules/survey/theme/basic/layout.php' => '/modules/survey/assets/layout.js',
     ] as $layoutFile => $layoutScript) {
         $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
         if (!is_string($layoutSource)) {
@@ -1021,7 +1103,7 @@ function sr_check_banner_public_layout_slots(): void
     }
 
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
-        $layoutFile = 'modules/' . $moduleKey . '/layouts/basic/layout.php';
+        $layoutFile = 'modules/' . $moduleKey . '/theme/basic/layout.php';
         $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
         if (!is_string($layoutSource)) {
             sr_check_add_error('Module public layout template cannot be read for banner slots: ' . $layoutFile);

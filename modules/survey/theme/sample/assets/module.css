@@ -1,0 +1,442 @@
+/*
+ * Saanraan survey public module layer.
+ * Owns this module public service screen styles.
+ */
+
+.sr-survey-page .survey-page-main {
+    padding: clamp(28px, 5vw, 72px) 16px 78px;
+}
+
+.sr-survey-page .survey-page-section {
+    width: min(1360px, 100%);
+    margin: 0 auto;
+}
+
+.sr-survey-page .survey-page-container {
+    display: grid;
+    gap: 24px;
+}
+
+.sr-survey-page .survey-page-main h1 {
+    margin: 0;
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    font-family: var(--font-secondary);
+    font-size: clamp(var(--type-page-title-size), 4vw, var(--type-page-title-fluid-max-size));
+    line-height: var(--type-page-title-line-height);
+    letter-spacing: 0;
+}
+
+.sr-survey-page .survey-page-main h2 {
+    margin: 0 0 12px;
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    font-family: var(--font-secondary);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
+    letter-spacing: 0;
+}
+
+.sr-survey-page .survey-page-main p {
+    margin: 0;
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    line-height: 1.7;
+}
+
+.sr-survey-home-header {
+    display: grid;
+    gap: 8px;
+}
+
+.sr-survey-home-empty {
+    padding: 20px 0;
+}
+
+.sr-survey-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    margin: 0;
+    padding: 10px 0 72px;
+}
+
+.sr-survey-card {
+    height: 100%;
+    min-width: 0;
+    min-height: 100%;
+}
+
+.sr-survey-card-media {
+    display: block;
+    min-width: 0;
+    text-decoration: none;
+}
+
+.sr-survey-card-image,
+.sr-survey-card-placeholder {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1.72 / 1;
+    height: auto;
+    object-fit: cover;
+}
+
+.sr-survey-card-copy {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    padding: 16px 16px 14px;
+}
+
+.sr-survey-card-meta {
+    color: var(--sr-muted, #47505c);
+    font-size: var(--type-meta-size);
+    line-height: 1.3;
+    margin: 0 0 10px;
+}
+
+.sr-survey-page .sr-survey-card-copy h2 {
+    margin: 0;
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    font-size: var(--type-body-size);
+    font-weight: 750;
+    letter-spacing: 0;
+    line-height: 1.28;
+}
+
+.sr-survey-page .sr-survey-card-copy h2 a {
+    color: inherit;
+    display: inline;
+    text-decoration: none;
+}
+
+.sr-survey-card-summary {
+    color: var(--sr-muted, #47505c);
+    font-size: var(--type-small-size);
+    line-height: 1.5;
+    margin: 14px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.sr-survey-card-footer {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+.sr-survey-card-footer span {
+    border-radius: var(--radius);
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    display: inline-flex;
+    font-size: var(--type-meta-size);
+    line-height: 1;
+    max-width: 65%;
+    overflow: hidden;
+    padding: 8px 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sr-survey-card-footer time {
+    color: var(--sr-muted, #47505c);
+    flex: 0 0 auto;
+    font-size: var(--type-meta-size);
+    line-height: 1;
+}
+
+.sr-survey-form {
+    display: grid;
+    gap: 18px;
+}
+
+.sr-survey-question {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 18px;
+    border: 0;
+    border-radius: var(--radius);
+}
+
+.sr-survey-question legend {
+    padding: 0;
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.sr-survey-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-height: 44px;
+    padding: 12px 14px;
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    cursor: pointer;
+    transition: background-color var(--default-transition-duration) var(--default-transition-timing-function),
+        border-color var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+.sr-survey-choice input {
+    margin-top: 3px;
+}
+
+.sr-survey-choice:has(input:checked) {
+    border-color: var(--color-primary);
+    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.sr-survey-other-input {
+    display: block;
+    margin-top: 8px;
+    max-width: 28rem;
+    width: 100%;
+}
+
+.sr-survey-question :is(input[type="text"], input[type="number"], textarea),
+.sr-survey-other-input {
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    color: var(--sr-text, var(--text-strong, #20242a));
+    line-height: var(--type-body-line-height);
+    padding: 10px 12px;
+}
+
+.sr-survey-info,
+.sr-survey-result,
+.sr-survey-page .sr-form-errors {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border-radius: var(--radius);
+}
+
+.sr-survey-info {
+    border: 0;
+    background: color-mix(in oklab, var(--color-info) 10%, transparent);
+}
+
+.sr-survey-result {
+    background: #fff;
+    border: 0;
+}
+
+.sr-survey-comments {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 18px;
+    border: 0;
+    border-radius: var(--radius);
+}
+
+[data-color-scheme="dark"] .sr-survey-result,
+[data-color-scheme="dark"] .sr-survey-comments {
+    background: var(--sr-surface, var(--color-card, #111827));
+}
+
+.sr-survey-comments-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: -18px -18px 0;
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--sr-border, var(--color-default-300));
+}
+
+.sr-survey-comment-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sr-survey-comment-list > li {
+    display: grid;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--sr-border, var(--color-default-300));
+}
+
+.sr-survey-comment-list > li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.sr-survey-comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    font-size: var(--type-meta-size);
+    line-height: 1.45;
+}
+
+.sr-survey-comment-meta strong {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+}
+
+.sr-survey-comment-secret {
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+}
+
+.sr-survey-comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.sr-survey-comment-actions details,
+.sr-survey-comment-actions form,
+.sr-survey-comment-form {
+    display: grid;
+    gap: 10px;
+}
+
+.sr-survey-comment-actions summary {
+    list-style: none;
+}
+
+.sr-survey-comment-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.sr-survey-comment-actions .btn {
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
+    padding-inline: 0.625rem;
+}
+
+.sr-survey-comment-reply-source {
+    color: var(--sr-muted-strong, var(--text-muted, var(--color-default-600)));
+    margin-bottom: 14px;
+    margin-top: 4px;
+}
+
+.sr-survey-comment-reply-source-label {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    display: block;
+    font-weight: var(--font-weight-semibold, 600);
+    line-height: 1.35;
+    margin-top: 0;
+}
+
+.sr-survey-comment-reply-source:where([data-theme=dark] *, [data-color-scheme=dark] *) {
+    color: var(--color-default-700, #d4d4d8);
+}
+
+.sr-survey-comment-reply-source-label:where([data-theme=dark] *, [data-color-scheme=dark] *) {
+    color: var(--color-default-900, #f4f4f5);
+}
+
+.sr-survey-comments textarea {
+    width: 100%;
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    line-height: 1.5;
+    padding: 12px;
+}
+
+.sr-survey-comment-secret-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+}
+
+.sr-survey-page .sr-form-errors {
+    border: 1px solid color-mix(in oklab, var(--color-danger) 28%, transparent);
+    background: color-mix(in oklab, var(--color-danger) 10%, transparent);
+}
+
+.sr-survey-comment-depth-2,
+.sr-survey-comment-depth-3 {
+    border-left: 3px solid var(--sr-border, var(--color-default-300));
+    padding-left: 14px;
+}
+
+.sr-survey-comment-depth-2 {
+    margin-left: 18px;
+}
+
+.sr-survey-comment-depth-3 {
+    margin-left: 36px;
+}
+
+@media (max-width: 640px) {
+    .sr-survey-page .survey-page-main {
+        padding: 22px 12px 42px;
+    }
+
+    .sr-survey-page .survey-page-main h1 {
+        font-size: var(--type-display-size);
+    }
+
+    .sr-survey-comment-depth-2,
+    .sr-survey-comment-depth-3 {
+        margin-left: 8px;
+        padding-left: 10px;
+    }
+}
+
+@media (max-width: 900px) {
+    .sr-survey-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .sr-survey-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sr-survey-cover-image {
+    display: block;
+    width: 100%;
+    max-height: 360px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.sr-survey-cover-image {
+    margin: 1rem 0;
+}
+
+/* Shared mention UI used by this module comment flows. */
+.sr-mention-list{border:1px solid var(--sr-border,color-mix(in oklab,var(--color-default-500,#777) 24%,transparent));border-radius:8px;color:var(--sr-text,var(--text-strong,#242424));display:grid;gap:2px;max-height:240px;overflow:auto;padding:4px;position:fixed;z-index:1200}
+.sr-mention-list[hidden]{display:none}
+.sr-mention-option{align-items:center;background:transparent;border-radius:6px;color:inherit;display:flex;gap:8px;justify-content:space-between;min-height:36px;padding:7px 9px;text-align:left;width:100%}
+.sr-mention-option span{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-mention-option code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold);white-space:nowrap}
+.sr-mention-dropdown:not([hidden]){display:grid;gap:2px;opacity:1;visibility:visible;z-index:3000}.sr-mention-dropdown .sr-mention-option{border:0;text-align:left;white-space:normal}.sr-mention-dropdown .sr-mention-option.active code{color:currentColor}.community-recipient-option-avatar{font-size: var(--type-meta-size);width:2rem}.community-recipient-option-text{display:grid;gap:1px;min-width:0}.community-recipient-option-text strong{font-weight:var(--font-weight-semibold,600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.community-recipient-option-text code{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-meta-size,.78rem);font-weight:var(--font-weight-semibold,600)}.community-recipient-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
+.sr-mention-empty{color:var(--sr-muted,var(--text-muted,#666));font-size:var(--type-small-size,.875rem);line-height:var(--type-small-line-height,1.45);padding:9px 10px}
+.sr-mention{border-radius:4px;color:var(--sr-text,var(--text-strong,#242424));font-weight:var(--font-weight-semibold)}
+.sr-mention-prefix{color:var(--sr-muted,var(--text-muted,#666));font-family:var(--default-mono-font-family,ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace);font-size: var(--type-meta-size);font-weight:var(--font-weight-medium);margin-left:1px}
+
+.survey-toast-stack {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    z-index: 1300;
+    display: grid;
+    gap: 10px;
+    width: min(420px, calc(100vw - 36px));
+    transform: translateX(-50%);
+}
+
+.survey-toast {
+    overflow-wrap: anywhere;
+}

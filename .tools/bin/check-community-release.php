@@ -333,7 +333,7 @@ $requiredPackageEntries = [
     'antispam-targets.php',
     'sitemap.php',
     'skins',
-    'layouts',
+    'theme',
     'views',
     'coupon-targets.php',
     'member-group-references.php',

@@ -281,7 +281,7 @@ function sr_quiz_default_settings(): array
 {
     return [
         'layout_key' => 'quiz.basic',
-        'theme_key' => 'default',
+        'theme_key' => 'basic',
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
@@ -308,6 +308,30 @@ function sr_quiz_default_settings(): array
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
     ];
+}
+
+function sr_quiz_layout_required_targets(): array
+{
+    return ['quiz.home', 'quiz.view', 'quiz.result'];
+}
+
+function sr_quiz_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
+{
+    return sr_public_layout_options_for_targets($pdo, sr_quiz_layout_required_targets(), $includeInstalledModules);
+}
+
+function sr_quiz_fallback_layout_key(PDO $pdo, ?array $site = null): string
+{
+    $options = sr_quiz_layout_options($pdo);
+    $siteLayoutKey = sr_public_layout_key($site, $pdo);
+    if (isset($options[$siteLayoutKey])) {
+        return $siteLayoutKey;
+    }
+    if (isset($options['quiz.basic'])) {
+        return 'quiz.basic';
+    }
+
+    return sr_public_layout_default_key();
 }
 
 function sr_quiz_skin_option_definitions(): array
@@ -408,13 +432,33 @@ function sr_quiz_clean_layout_menu_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_quiz_theme_options(): array
+{
+    return sr_view_theme_options(SR_ROOT . '/modules/quiz/theme', ['home.php', 'view.php', 'result.php', 'ui-kit.php'], '기본 퀴즈 테마', 'quiz_view_theme', false);
+}
+
+function sr_quiz_theme_key(string $themeKey): string
+{
+    return sr_view_theme_key($themeKey, sr_quiz_theme_options());
+}
+
+function sr_quiz_theme_view_file(array $settings, string $view): ?string
+{
+    $allowedViews = array_fill_keys(array_merge(sr_quiz_skin_views(), ['ui-kit']), true);
+    if (!isset($allowedViews[$view])) {
+        return null;
+    }
+
+    return sr_view_theme_file(SR_ROOT . '/modules/quiz/theme', sr_quiz_theme_key((string) ($settings['theme_key'] ?? '')), $view . '.php');
+}
+
 function sr_quiz_normalize_settings(array $settings): array
 {
     $defaults = sr_quiz_default_settings();
     $normalized = array_merge($defaults, $settings);
 
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
-    $normalized['theme_key'] = sr_public_theme_normalize_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
+    $normalized['theme_key'] = sr_quiz_theme_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_quiz_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
@@ -473,11 +517,11 @@ function sr_quiz_normalize_settings(array $settings): array
 function sr_quiz_settings(PDO $pdo): array
 {
     $settings = sr_quiz_normalize_settings(sr_module_settings($pdo, 'quiz'));
-    if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
-        $settings['layout_key'] = sr_public_layout_key(null, $pdo);
+    if (!isset(sr_quiz_layout_options($pdo)[$settings['layout_key']])) {
+        $settings['layout_key'] = sr_quiz_fallback_layout_key($pdo, null);
     }
-    if (!isset(sr_public_theme_options($pdo)[$settings['theme_key']])) {
-        $settings['theme_key'] = sr_public_theme_default_key();
+    if (!isset(sr_quiz_theme_options()[$settings['theme_key']])) {
+        $settings['theme_key'] = sr_quiz_theme_key('');
     }
 
     return $settings;
@@ -486,11 +530,12 @@ function sr_quiz_settings(PDO $pdo): array
 function sr_quiz_settings_from_post(): array
 {
     $skinKey = sr_quiz_clean_option_key(sr_post_string('skin_key', 40));
+    $themeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
     $rewardProvider = sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30);
     $rewardDedupeScope = sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20);
     $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
-        'theme_key' => sr_public_theme_normalize_key(sr_post_string('theme_key', 80)),
+        'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
@@ -517,6 +562,7 @@ function sr_quiz_settings_from_post(): array
         'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
+    $settings['theme_key'] = $themeKey;
     $settings['skin_key'] = $skinKey;
     $settings['default_reward_provider'] = $rewardProvider;
     if ($rewardProvider !== 'none') {
@@ -529,10 +575,10 @@ function sr_quiz_settings_from_post(): array
 function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $assetOptions): array
 {
     $errors = [];
-    if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
+    if (!isset(sr_quiz_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
     }
-    if (!isset(sr_public_theme_options($pdo)[(string) ($settings['theme_key'] ?? '')])) {
+    if (!isset(sr_quiz_theme_options()[(string) ($settings['theme_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 테마 값이 올바르지 않습니다.';
     }
     if (!isset(sr_quiz_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
@@ -585,7 +631,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
-    $themeKey = sr_public_theme_normalize_key((string) ($settings['theme_key'] ?? ''));
+    $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? ''));
     if ($themeKey !== '') {
         $context['theme_key'] = $themeKey;
     }
@@ -593,15 +639,23 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $context['style_profile'] = 'module';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/quiz/assets/reset.css';
-    $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
-    $stylesheets[] = '/modules/quiz/assets/module.css';
-    $stylesheets[] = '/modules/quiz/assets/skin.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'reset.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'module.css');
+    $themeStylesheet = sr_module_view_theme_stylesheet_url('quiz', $themeKey);
+    if ($themeStylesheet !== '') {
+        $stylesheets[] = $themeStylesheet;
+    }
     $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
-    $skinDefinitions = sr_quiz_skin_option_definitions();
-    foreach ((array) ($skinDefinitions[$skinKey]['stylesheets'] ?? []) as $skinStylesheet) {
-        if (is_string($skinStylesheet)) {
-            $stylesheets[] = $skinStylesheet;
+    $includeSkinAssets = !array_key_exists('include_skin_assets', $context) || !empty($context['include_skin_assets']);
+    unset($context['include_skin_assets']);
+    if ($includeSkinAssets) {
+        $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'skin.css');
+        $skinDefinitions = sr_quiz_skin_option_definitions();
+        foreach ((array) ($skinDefinitions[$skinKey]['stylesheets'] ?? []) as $skinStylesheet) {
+            if (is_string($skinStylesheet)) {
+                $stylesheets[] = $skinStylesheet;
+            }
         }
     }
     $context['stylesheets'] = array_values(array_unique($stylesheets));
@@ -609,7 +663,12 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $scripts[] = '/modules/quiz/assets/module.js';
     $context['scripts'] = array_values(array_unique($scripts));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
-    $context['body_class'] = trim($bodyClass . ' sr-quiz-skin-' . $skinKey . ' quiz-skin-' . $skinKey);
+    $context['body_class'] = $includeSkinAssets
+        ? trim($bodyClass . ' sr-quiz-skin-' . $skinKey . ' quiz-skin-' . $skinKey)
+        : $bodyClass;
+    if ($themeKey !== sr_public_theme_default_key()) {
+        $context['body_class'] = trim((string) $context['body_class'] . ' quiz-view-theme-' . $themeKey);
+    }
 
     $siteMenus = [];
     foreach (sr_quiz_layout_menu_slots() as $slotKey => $settingKey) {
@@ -623,9 +682,10 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
 function sr_quiz_ui_kit_layout_context(array $settings, array $context = []): array
 {
     $context = sr_quiz_public_layout_context($settings, $context);
+    $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
-    $stylesheets[] = '/modules/quiz/assets/ui-kit-layout.css';
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;
@@ -664,6 +724,23 @@ function sr_quiz_skin_view_file(array $settings, string $view): string
     }
 
     return $fallback;
+}
+
+function sr_quiz_public_view_file(PDO $pdo, array $settings, string $view): string
+{
+    if (!in_array($view, sr_quiz_skin_views(), true)) {
+        throw new InvalidArgumentException('Unknown quiz public view.');
+    }
+
+    $themeFile = sr_quiz_theme_view_file($settings, $view);
+    return $themeFile !== null ? $themeFile : sr_quiz_skin_view_file($settings, $view);
+}
+
+function sr_quiz_include_public_view(PDO $pdo, array $settings, string $view): void
+{
+    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
+
+    include sr_quiz_public_view_file($pdo, $settings, $view);
 }
 
 function sr_quiz_render_skin(PDO $pdo, array $settings, string $view): void

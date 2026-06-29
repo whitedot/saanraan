@@ -1,0 +1,58 @@
+/*
+ * Saanraan quiz public skin layer.
+ * Owns selectable quiz public skin adjustments only.
+ */
+
+.sr-quiz-skin-card .quiz-page-main .quiz-page-container {
+    padding: clamp(22px, 4vw, 42px);
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+}
+
+.sr-quiz-skin-focus .quiz-layout-main {
+    background: transparent;
+}
+
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main h1,
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main h2 {
+    color: #fff;
+}
+
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main p {
+    color: #d6deef;
+}
+
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main h1,
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main h2 {
+    color: var(--sr-text, var(--text-strong, #172033));
+}
+
+.sr-quiz-embed-page.sr-quiz-skin-focus .quiz-page-main p {
+    color: var(--sr-muted, var(--text-muted, #4d5b73));
+}
+
+.sr-quiz-skin-focus .sr-quiz-result h2 {
+    color: var(--sr-text, #172033);
+}
+
+.sr-quiz-skin-focus .sr-quiz-result p,
+.sr-quiz-skin-focus .sr-quiz-question p,
+.sr-quiz-skin-focus .sr-quiz-comments p {
+    color: var(--sr-muted, #4d5b73);
+}
+
+.sr-quiz-skin-focus .sr-quiz-question,
+.sr-quiz-skin-focus .sr-quiz-result,
+.sr-quiz-skin-focus .sr-quiz-comments {
+    border-color: var(--sr-border-soft, rgba(255, 255, 255, 0.14));
+}
+
+.sr-quiz-skin-focus .sr-quiz-preview-notice {
+    border-color: rgba(125, 211, 252, 0.38);
+}
+
+@media (max-width: 640px) {
+    .sr-quiz-skin-card .quiz-page-main .quiz-page-container {
+        padding: 18px;
+    }
+}

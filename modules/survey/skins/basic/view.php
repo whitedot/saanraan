@@ -157,7 +157,9 @@ if ((int) ($survey['estimated_minutes'] ?? 0) > 0 || (int) ($survey['target_samp
     $hasSurveyInfo = true;
 }
 $surveyShareUrl = sr_absolute_url($site ?? null, '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')));
+$surveyConsumerTarget = ($submittedScreen || $submitResult !== null) ? 'survey.complete' : 'survey.view';
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
+    'consumer_target' => $surveyConsumerTarget,
     'body_class' => 'sr-survey-page',
     'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
 ]));

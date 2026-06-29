@@ -10,4 +10,5 @@ $contentHomeComments = sr_content_recent_comments($pdo, 8);
 $contentLayoutSettings = sr_content_settings($pdo);
 $contentHomeLayoutKey = sr_content_default_layout_key($pdo, $site ?? null);
 
-include SR_ROOT . '/modules/content/views/home.php';
+$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/home.php';
+include sr_content_public_view_file($pdo, $contentLayoutSettings, 'home.php');

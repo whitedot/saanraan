@@ -50,4 +50,5 @@ foreach ($posts as $postIndex => $post) {
 }
 $communityLayoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
 
-include SR_ROOT . '/modules/community/views/search.php';
+$communityThemeFallbackViewFile = SR_ROOT . '/modules/community/views/search.php';
+include sr_community_public_view_file($pdo, $settings, 'search.php', $communityThemeFallbackViewFile);

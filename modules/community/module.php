@@ -86,7 +86,7 @@ return [
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,
         'layout_key' => 'community.basic',
-        'theme_key' => 'default',
+        'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'post_editor' => 'textarea',
         'post_toolbar_preset' => 'community_post_basic',
