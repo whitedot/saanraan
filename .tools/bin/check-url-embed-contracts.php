@@ -80,7 +80,9 @@ if (!function_exists('sr_module_metadata')) {
 if (!function_exists('sr_site_setting')) {
     function sr_site_setting(PDO $pdo, string $key, mixed $default = null): mixed
     {
-        return $key === 'site.base_url' ? 'https://example.test' : $default;
+        return $key === 'site.base_url'
+            ? (string) ($GLOBALS['sr_url_embed_contract_site_base_url'] ?? 'https://example.test')
+            : $default;
     }
 }
 
@@ -115,6 +117,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                     'default_variant' => 'summary',
                     'embed_stylesheet' => '/modules/fixture/assets/embed.css',
                     'fragment_cache_public' => !empty($GLOBALS['sr_url_embed_contract_fragment_cache_public']),
+                    'fragment_cache_schema' => (string) ($GLOBALS['sr_url_embed_contract_fragment_cache_schema'] ?? 'custom_tag_v1'),
                     'resolve_url' => static function (PDO $pdo, array $context): ?array {
                         $GLOBALS['sr_url_embed_contract_resolve_count'] = (int) ($GLOBALS['sr_url_embed_contract_resolve_count'] ?? 0) + 1;
                         $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
@@ -162,7 +165,12 @@ if (!function_exists('sr_load_module_contract_file')) {
                         if ($image !== '') {
                             $html .= '<img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" />';
                         }
-                        $html .= '<strong><a href="/fixture/' . sr_e((string) (int) ($row['id'] ?? 0)) . '">' . sr_e((string) ($row['label_snapshot'] ?? '')) . '</a></strong>';
+                        $canonicalUrl = '/fixture/' . (string) (int) ($row['id'] ?? 0);
+                        $displayUrl = sr_url_embed_absolute_url($pdo, $canonicalUrl, (string) ($embed['source_url'] ?? ''));
+                        $html .= '<strong><a href="' . sr_e($canonicalUrl) . '">' . sr_e((string) ($row['label_snapshot'] ?? '')) . '</a></strong>';
+                        if ($displayUrl !== '') {
+                            $html .= '<a class="fixture-embed-summary-url" href="' . sr_e($displayUrl) . '">' . sr_e($displayUrl) . '</a>';
+                        }
                         $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></sr-content-embed>';
                         return ['html' => $html, 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                     },
@@ -194,6 +202,14 @@ function sr_url_embed_contract_contains(string $path, string $needle): void
     $contents = file_get_contents($path);
     if (!is_string($contents) || !str_contains($contents, $needle)) {
         sr_url_embed_contract_error($path . ' missing marker: ' . $needle);
+    }
+}
+
+function sr_url_embed_contract_not_contains(string $path, string $needle): void
+{
+    $contents = file_get_contents($path);
+    if (is_string($contents) && str_contains($contents, $needle)) {
+        sr_url_embed_contract_error($path . ' must not contain marker: ' . $needle);
     }
 }
 
@@ -292,6 +308,14 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert($stylesheets === ['/modules/fixture/assets/embed.css'], 'Fresh internal URL cache hit must expose the target module embed stylesheet.');
     sr_url_embed_contract_assert(str_contains($rendered, 'fixture-embed-summary'), 'URL render must use target module renderer HTML.');
     sr_url_embed_contract_assert(str_contains($rendered, '공개 항목'), 'URL render must include target label.');
+    sr_url_embed_contract_assert(str_contains($rendered, 'fixture-embed-summary-url'), 'URL render must include a visible canonical URL line.');
+    sr_url_embed_contract_assert(str_contains($rendered, 'https://example.test/fixture/1'), 'URL render must show canonical URL line as an absolute URL.');
+    $GLOBALS['sr_url_embed_contract_site_base_url'] = '';
+    sr_url_embed_contract_assert(
+        sr_url_embed_absolute_url($pdo, '/fixture/1', 'https://source.example.test/base/fixture/1') === 'https://source.example.test/base/fixture/1',
+        'Visible canonical URL must fall back to the pasted absolute source URL base when site.base_url is empty.'
+    );
+    unset($GLOBALS['sr_url_embed_contract_site_base_url']);
     sr_url_embed_contract_assert(str_contains($rendered, '/fixture/image.webp'), 'URL render must include public image snapshot.');
     sr_url_embed_contract_assert(str_contains($rendered, '문장 안의'), 'Inline URL link paragraph must remain in body.');
     sr_url_embed_contract_assert(str_contains($rendered, '/fixture/2'), 'Inline URL link must remain a link in standalone-only scope.');
@@ -313,9 +337,19 @@ function sr_url_embed_contract_runtime_fixture(): void
     $GLOBALS['sr_url_embed_contract_render_count'] = 0;
     sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'fixture-embed-summary'), 'Public fragment cache hit must render from the file cache.');
     sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 0, 'Public fragment cache hit must skip the target renderer.');
+    $GLOBALS['sr_url_embed_contract_fragment_cache_schema'] = 'custom_tag_v2';
+    $GLOBALS['sr_url_embed_contract_render_count'] = 0;
+    sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'https://example.test/fixture/1'), 'Public fragment cache schema change must keep rendering the visible absolute URL.');
+    sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 1, 'Public fragment cache schema change must regenerate the fragment.');
+    $GLOBALS['sr_url_embed_contract_site_base_url'] = 'https://alt.example.test';
+    $GLOBALS['sr_url_embed_contract_render_count'] = 0;
+    sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'https://alt.example.test/fixture/1'), 'Public fragment cache base URL change must render the current visible absolute URL.');
+    sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 1, 'Public fragment cache base URL change must regenerate the fragment.');
+    unset($GLOBALS['sr_url_embed_contract_site_base_url']);
     sr_url_embed_mark_target_url_cache_stale($pdo, 'fixture', 'item', 1);
     $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'private', updated_at = '2026-06-11 12:03:00' WHERE id = 1");
     sr_url_embed_contract_assert(!str_contains(sr_url_embed_render_body_html($pdo, $fragmentBody, 'fixture', 'doc', 17), 'fixture-embed-summary'), 'Stale target URL cache must prevent serving an old public fragment after target becomes private.');
+    unset($GLOBALS['sr_url_embed_contract_fragment_cache_schema']);
     unset($GLOBALS['sr_url_embed_contract_fragment_cache_public']);
     $pdo->exec("UPDATE sr_fixture_embed_targets SET status = 'active', updated_at = '2026-06-11 12:04:00' WHERE id = 1");
     sr_url_embed_mark_target_url_cache_stale($pdo, 'fixture', 'item', 1);
@@ -360,7 +394,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 14, 'body', $allLinksBody, 7);
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
     $allLinksRendered = sr_url_embed_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
-    sr_url_embed_contract_assert(substr_count($allLinksRendered, 'fixture-embed-summary') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
+    sr_url_embed_contract_assert(substr_count($allLinksRendered, 'data-content-embed="summary"') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
     $dedupeBody = '<p><a href="/fixture/1">/fixture/1</a></p><p><a href="/fixture/1?tracking=1">/fixture/1?tracking=1</a></p>';
@@ -369,7 +403,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_id = 15') === 1, 'Request cache dedupe fixture must store one canonical row for multiple source URLs.');
     $GLOBALS['sr_url_embed_contract_render_count'] = 0;
     $dedupeRendered = sr_url_embed_render_body_html($pdo, $dedupeBody, 'fixture', 'doc', 15);
-    sr_url_embed_contract_assert(substr_count($dedupeRendered, 'fixture-embed-summary') === 2, 'Multiple source URLs for one canonical URL must still replace each occurrence.');
+    sr_url_embed_contract_assert(substr_count($dedupeRendered, 'data-content-embed="summary"') === 2, 'Multiple source URLs for one canonical URL must still replace each occurrence.');
     sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 1, 'Multiple source URLs for one canonical cache row must render once per request.');
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
@@ -415,6 +449,7 @@ function sr_url_embed_contract_runtime_fixture(): void
 
 foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     $contractPath = 'modules/' . $moduleKey . '/url-embed-targets.php';
+    $stylesheetPath = 'modules/' . $moduleKey . '/assets/embed.css';
     $modulePath = 'modules/' . $moduleKey . '/module.php';
     $adminMenuPath = 'modules/' . $moduleKey . '/admin-menu.php';
     $pathsPath = 'modules/' . $moduleKey . '/paths.php';
@@ -424,9 +459,21 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     }
 
     sr_url_embed_contract_contains($modulePath, "'url-embed-targets.php'");
-    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v1'"] as $needle) {
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_display_base_url');
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_display_base_url_from_source');
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_absolute_url');
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', "'display_base_url'");
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', "'source_base_url'");
+    sr_url_embed_contract_contains('core/helpers/url-embed.php', "'site.base_url'");
+    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v3'", $moduleKey . "-embed-summary-url"] as $needle) {
         sr_url_embed_contract_contains($contractPath, $needle);
     }
+    if ($moduleKey === 'survey') {
+        sr_url_embed_contract_not_contains($contractPath, 'public_listed');
+        sr_url_embed_contract_not_contains($contractPath, 'login_required');
+        sr_url_embed_contract_not_contains($contractPath, 'member_group_keys');
+    }
+    sr_url_embed_contract_contains($stylesheetPath, '.' . $moduleKey . '-embed-summary-url');
     $adminPath = $moduleKey === 'survey' ? '/admin/surveys/embed-cache' : '/admin/' . $moduleKey . '/embed-cache';
     sr_url_embed_contract_contains($adminMenuPath, "'" . $adminPath . "'");
     sr_url_embed_contract_contains($pathsPath, "'GET " . $adminPath . "'");

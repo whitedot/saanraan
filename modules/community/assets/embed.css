@@ -22,3 +22,9 @@ sr-community-embed,
     margin: 0;
     color: var(--sr-muted, var(--color-default-600, #666));
 }
+
+.community-embed-summary-url {
+    color: var(--sr-muted, var(--color-default-600, #666));
+    font-size: .875rem;
+    overflow-wrap: anywhere;
+}

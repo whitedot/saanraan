@@ -15,7 +15,7 @@ return [
             'default_variant' => 'summary',
             'embed_stylesheet' => '/modules/survey/assets/embed.css',
             'fragment_cache_public' => true,
-            'fragment_cache_schema' => 'custom_tag_v1',
+            'fragment_cache_schema' => 'custom_tag_v3',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $path = (string) parse_url((string) ($context['url'] ?? ''), PHP_URL_PATH);
                 if (!str_starts_with($path, '/survey/')) {
@@ -33,9 +33,6 @@ return [
                 }
                 $public = empty($row['deleted_at'])
                     && (string) ($row['status'] ?? '') === 'active'
-                    && (int) ($row['public_listed'] ?? 0) === 1
-                    && (int) ($row['login_required'] ?? 0) !== 1
-                    && sr_survey_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
                     && sr_survey_public_window_is_open($row);
                 return [
                     'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -59,14 +56,12 @@ return [
                 $public = is_array($row)
                     && empty($row['deleted_at'])
                     && (string) ($row['status'] ?? '') === 'active'
-                    && (int) ($row['public_listed'] ?? 0) === 1
-                    && (int) ($row['login_required'] ?? 0) !== 1
-                    && sr_survey_member_group_keys_from_value($row['member_group_keys_json'] ?? '') === []
                     && sr_survey_public_window_is_open($row);
                 if (!$public) {
                     return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = '/survey/' . (string) ($row['survey_key'] ?? '');
+                $displayUrl = sr_url_embed_absolute_url($pdo, $canonicalUrl, (string) ($embed['source_url'] ?? ''));
                 $label = (string) ($row['title'] ?? '');
                 $summary = sr_url_embed_clean_summary((string) ($row['description'] ?? ''));
                 $image = sr_url_embed_safe_url(sr_survey_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')));
@@ -75,6 +70,9 @@ return [
                     $html .= '<a class="survey-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
                 $html .= '<strong><a href="' . sr_e($canonicalUrl) . '">' . sr_e($label) . '</a></strong>';
+                if ($displayUrl !== '') {
+                    $html .= '<a class="survey-embed-summary-url" href="' . sr_e($displayUrl) . '">' . sr_e($displayUrl) . '</a>';
+                }
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }

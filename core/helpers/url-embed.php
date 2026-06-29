@@ -100,6 +100,90 @@ function sr_url_embed_safe_url(string $value): string
     return '';
 }
 
+function sr_url_embed_display_base_url(PDO $pdo): string
+{
+    $baseUrl = '';
+    if (function_exists('sr_site_setting')) {
+        try {
+            $baseUrl = trim((string) sr_site_setting($pdo, 'site.base_url', ''));
+        } catch (Throwable $exception) {
+            $baseUrl = '';
+        }
+    }
+    if ($baseUrl === '' && function_exists('sr_current_base_url')) {
+        $baseUrl = trim((string) sr_current_base_url());
+    }
+
+    $baseUrl = rtrim($baseUrl, '/');
+    if ($baseUrl !== '') {
+        $validBaseUrl = function_exists('sr_is_site_base_url')
+            ? sr_is_site_base_url($baseUrl)
+            : (sr_is_http_url($baseUrl) && parse_url($baseUrl, PHP_URL_QUERY) === null && parse_url($baseUrl, PHP_URL_FRAGMENT) === null);
+        if ($validBaseUrl) {
+            return $baseUrl;
+        }
+    }
+
+    return '';
+}
+
+function sr_url_embed_display_base_url_from_source(string $sourceUrl, string $canonicalUrl): string
+{
+    $sourceUrl = sr_url_embed_safe_url($sourceUrl);
+    $canonicalUrl = sr_url_embed_safe_url($canonicalUrl);
+    if ($sourceUrl === '' || $canonicalUrl === '' || !sr_is_http_url($sourceUrl) || !sr_is_safe_relative_url($canonicalUrl)) {
+        return '';
+    }
+
+    $sourceParts = parse_url($sourceUrl);
+    $canonicalParts = parse_url($canonicalUrl);
+    if (!is_array($sourceParts) || !is_array($canonicalParts)) {
+        return '';
+    }
+
+    $sourcePath = (string) ($sourceParts['path'] ?? '/');
+    $canonicalPath = (string) ($canonicalParts['path'] ?? '/');
+    if ($canonicalPath === '' || !str_ends_with($sourcePath, $canonicalPath)) {
+        return '';
+    }
+
+    $prefixPath = substr($sourcePath, 0, strlen($sourcePath) - strlen($canonicalPath));
+    $prefixPath = $prefixPath === '/' ? '' : rtrim($prefixPath, '/');
+    $scheme = strtolower((string) ($sourceParts['scheme'] ?? ''));
+    $host = (string) ($sourceParts['host'] ?? '');
+    if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
+        return '';
+    }
+
+    $port = isset($sourceParts['port']) ? ':' . (string) (int) $sourceParts['port'] : '';
+    $baseUrl = $scheme . '://' . $host . $port . $prefixPath;
+    $validBaseUrl = function_exists('sr_is_site_base_url')
+        ? sr_is_site_base_url($baseUrl)
+        : (sr_is_http_url($baseUrl) && parse_url($baseUrl, PHP_URL_QUERY) === null && parse_url($baseUrl, PHP_URL_FRAGMENT) === null);
+
+    return $validBaseUrl ? rtrim($baseUrl, '/') : '';
+}
+
+function sr_url_embed_absolute_url(PDO $pdo, string $url, string $sourceUrl = ''): string
+{
+    $url = sr_url_embed_safe_url($url);
+    if ($url === '') {
+        return '';
+    }
+    if (sr_is_http_url($url)) {
+        return $url;
+    }
+    if (!sr_is_safe_relative_url($url)) {
+        return '';
+    }
+
+    $baseUrl = sr_url_embed_display_base_url($pdo);
+    if ($baseUrl === '') {
+        $baseUrl = sr_url_embed_display_base_url_from_source($sourceUrl, $url);
+    }
+    return $baseUrl !== '' ? $baseUrl . '/' . ltrim($url, '/') : '';
+}
+
 function sr_url_embed_default_settings(): array
 {
     return [
@@ -1137,6 +1221,8 @@ function sr_url_embed_fragment_cache_key(array $resolved, array $definition, arr
         'canonical_url_hash' => (string) ($resolved['canonical_url_hash'] ?? ''),
         'render_variant' => (string) ($resolved['render_variant'] ?? 'summary'),
         'target_cache_version' => (string) ($resolved['target_cache_version'] ?? ''),
+        'display_base_url' => (string) ($context['display_base_url'] ?? ''),
+        'source_base_url' => sr_url_embed_display_base_url_from_source((string) ($resolved['source_url'] ?? ''), (string) ($resolved['canonical_url'] ?? '')),
         'locale' => $locale,
     ];
 
@@ -1599,6 +1685,10 @@ function sr_url_embed_dom_fragment_from_html(DOMDocument $targetDom, string $htm
 
 function sr_url_embed_render_url(PDO $pdo, string $url, array $context): string
 {
+    if (!array_key_exists('display_base_url', $context)) {
+        $context['display_base_url'] = sr_url_embed_display_base_url($pdo);
+    }
+
     $cacheRows = isset($context['url_cache_by_source']) && is_array($context['url_cache_by_source'])
         ? $context['url_cache_by_source']
         : [];

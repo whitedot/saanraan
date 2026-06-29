@@ -22,3 +22,9 @@ sr-content-embed,
     margin: 0;
     color: var(--sr-muted, var(--color-default-600, #666));
 }
+
+.content-embed-summary-url {
+    color: var(--sr-muted, var(--color-default-600, #666));
+    font-size: .875rem;
+    overflow-wrap: anywhere;
+}

@@ -14,7 +14,7 @@ return [
             'default_variant' => 'summary',
             'embed_stylesheet' => '/modules/community/assets/embed.css',
             'fragment_cache_public' => true,
-            'fragment_cache_schema' => 'custom_tag_v1',
+            'fragment_cache_schema' => 'custom_tag_v3',
             'resolve_url' => static function (PDO $pdo, array $context): ?array {
                 $url = (string) ($context['url'] ?? '');
                 $path = (string) parse_url($url, PHP_URL_PATH);
@@ -94,6 +94,7 @@ return [
                     return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                 }
                 $canonicalUrl = '/community/post?id=' . rawurlencode((string) (int) ($row['id'] ?? 0));
+                $displayUrl = sr_url_embed_absolute_url($pdo, $canonicalUrl, (string) ($embed['source_url'] ?? ''));
                 $label = (string) ($row['title'] ?? '');
                 $summary = sr_url_embed_clean_summary((string) ($row['body_text'] ?? ''));
                 $image = function_exists('sr_community_post_og_image_url') ? sr_community_post_og_image_url($pdo, $row) : '';
@@ -102,6 +103,9 @@ return [
                     $html .= '<a class="community-embed-summary-image" href="' . sr_e($canonicalUrl) . '"><img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" /></a>';
                 }
                 $html .= '<strong><a href="' . sr_e($canonicalUrl) . '">' . sr_e($label) . '</a></strong>';
+                if ($displayUrl !== '') {
+                    $html .= '<a class="community-embed-summary-url" href="' . sr_e($displayUrl) . '">' . sr_e($displayUrl) . '</a>';
+                }
                 if ($summary !== '') {
                     $html .= '<p>' . sr_e($summary) . '</p>';
                 }
