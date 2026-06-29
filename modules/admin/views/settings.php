@@ -373,9 +373,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                                            <?php if ((string) ($layoutOption['source_type'] ?? '') === 'external_theme') { ?>
+                                                <?php echo sr_e(' - 외부 테마'); ?>
+                                            <?php } ?>
                                         </option>
                                     <?php } ?>
                 </select>
+                <?php $layoutWarnings = is_array($publicLayoutHealthWarnings ?? null) ? $publicLayoutHealthWarnings : []; ?>
+                <?php if ($layoutWarnings !== []) { ?>
+                    <div class="alert alert-warning admin-inline-alert">
+                        <strong>레이아웃 fallback</strong>
+                        <ul>
+                            <?php foreach ($layoutWarnings as $layoutWarning) { ?>
+                                <li>
+                                    <code><?php echo sr_e((string) ($layoutWarning['scope'] ?? '')); ?></code>
+                                    <?php echo sr_e('에서 '); ?>
+                                    <code><?php echo sr_e((string) ($layoutWarning['layout_key'] ?? '')); ?></code>
+                                    <?php echo sr_e('가 '); ?>
+                                    <code><?php echo sr_e((string) ($layoutWarning['unsupported_domain'] ?? '')); ?></code>
+                                    <?php echo sr_e(' 도메인을 지원하지 않아 '); ?>
+                                    <code><?php echo sr_e((string) ($layoutWarning['fallback_layout_key'] ?? sr_public_layout_default_key())); ?></code>
+                                    <?php echo sr_e('로 렌더링됩니다.'); ?>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">

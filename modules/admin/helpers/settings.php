@@ -733,6 +733,10 @@ function sr_admin_public_layout_options(PDO $pdo, bool $includeInstalledModules 
 
 function sr_admin_public_layout_provider_module_key(string $layoutKey, array $layoutOption): string
 {
+    if ((string) ($layoutOption['source_type'] ?? '') === 'external_theme') {
+        return '~external_theme';
+    }
+
     $moduleKey = (string) ($layoutOption['provider_module_key'] ?? '');
     if (sr_is_safe_module_key($moduleKey) || $moduleKey === 'core') {
         return $moduleKey;

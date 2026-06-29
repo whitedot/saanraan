@@ -385,6 +385,7 @@ if (sr_request_method() === 'POST') {
 $localeOptions = sr_available_locale_options($site ?? null);
 $homepageCandidates = sr_admin_homepage_candidate_options($pdo, (string) ($values['home_path'] ?? '/'));
 $currentHomepageAvailable = sr_site_home_path_is_available($pdo, (string) ($values['home_path'] ?? '/'));
+$publicLayoutHealthWarnings = sr_public_layout_health_warnings($pdo, $site);
 $siteNameReadReferences = sr_read_reference_collect($pdo, 'site-setting-references.php', [
     'owner_module_key' => 'admin',
     'target_type' => 'site_setting',
