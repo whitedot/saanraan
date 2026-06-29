@@ -156,7 +156,7 @@ Asset은 manifest에 선언된 id로만 노출된다. 허용 확장자는 `css`,
 
 ## Fallback과 상태 점검
 
-공개 route는 `site`, `content`, `community`, `quiz`, `survey` 도메인으로 분류되며, 레이아웃 적용 시에는 `content.home`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 단위 `consumer_target`을 우선 사용한다. 선택된 레이아웃이 없는 경우, 유효하지 않은 경우, 현재 화면 target을 지원하지 않는 경우에는 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 레이아웃으로 재귀 fallback하지 않는다. 외부 테마 manifest의 `supports`는 v1에서 계속 도메인 단위만 허용하고, DOM을 바꾸는 모듈 내부 view theme은 각 화면 소유 모듈의 `theme/{theme_key}`가 담당한다.
+공개 route는 `site`, `content`, `community`, `quiz`, `survey` 도메인으로 분류되며, 레이아웃 적용 시에는 `content.home`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 단위 `consumer_target`을 우선 사용한다. 선택된 레이아웃이 없는 경우, 유효하지 않은 경우, 현재 화면 target을 지원하지 않는 경우에는 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 레이아웃으로 재귀 fallback하지 않는다. 번들 `content.basic`, `community.basic`, `quiz.basic`, `survey.basic` 레이아웃은 콘텐츠/커뮤니티/퀴즈/설문 공개 화면 target 전체를 `supports`에 선언해 각 모듈 환경설정에서 서로 다른 모듈 레이아웃을 선택할 수 있다. 외부 테마 manifest의 `supports`는 v1에서 계속 도메인 단위만 허용하고, DOM을 바꾸는 모듈 내부 view theme은 각 화면 소유 모듈의 `theme/{theme_key}`가 담당한다.
 
 사이트 설정 화면은 사이트 기본 공개 테마를, 콘텐츠/커뮤니티/퀴즈/설문 환경설정은 각 모듈 공개 테마를 별도 `theme_key`로 저장한다. `/admin/packages`는 외부 테마와 스킨 manifest 검증 결과, asset 목록, 미리보기 asset, 오류 그룹, 참조 요약, 레이아웃 fallback health를 read-only로 보여준다. 실제 적용은 사이트 설정 또는 각 모듈 환경설정의 테마/스킨 선택에서 한다.
 

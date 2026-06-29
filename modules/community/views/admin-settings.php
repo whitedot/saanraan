@@ -544,19 +544,6 @@ $communitySettingsSectionNavItems = [
     <section id="community-settings-section-display" class="card" data-admin-section-anchor>
         <h2>공개 화면 구성</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
-            <div class="form-field">
-                <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
-                    <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
-                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <p class="form-help">커뮤니티 공개 화면에 적용할 바깥 레이아웃입니다.</p>
-            </div>
-        </div>
-        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '커뮤니티 공개 테마', $communitySettingsHelp['theme']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <select id="community_admin_settings_theme_key" name="theme_key" class="form-select" required>
@@ -566,7 +553,20 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">레이아웃 구조와 별개로 커뮤니티 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+                <p class="form-help">커뮤니티 공개 화면의 본문 구조, 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <div class="form-field">
+                <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
+                    <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
+                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) $settings['layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">선택한 테마 아래에서 커뮤니티 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
             </div>
         </div>
         <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>

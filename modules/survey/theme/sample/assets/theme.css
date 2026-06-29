@@ -546,3 +546,148 @@
         position: static;
     }
 }
+
+/*
+ * Module identity override: survey sample is a research lab notebook.
+ */
+.example-survey-layout-shell {
+    --sr-text: #18302e;
+    --sr-muted: #5d7470;
+    --sr-muted-strong: #2b4a46;
+    --sr-border: #7eb7ad;
+    --sr-border-soft: #cfe5df;
+    --sr-surface: #fbfffc;
+    --sr-surface-muted: #edf7f2;
+    --sr-surface-soft: #f5fbf8;
+    --sr-primary: #006d77;
+    --sr-on-primary: #ffffff;
+    --color-body-bg: #f3f7f1;
+    --color-body-color: #18302e;
+    --color-card: #fbfffc;
+    --color-primary: #006d77;
+    --survey-border: #7eb7ad;
+    --survey-text: #18302e;
+    --survey-muted: #5d7470;
+    background:
+        linear-gradient(90deg, rgba(0, 109, 119, .08) 1px, transparent 1px),
+        linear-gradient(#f3f7f1 0 31px, rgba(255, 183, 77, .3) 31px 32px);
+    background-size: 32px 32px, 100% 32px;
+    color: var(--sr-text);
+}
+
+[data-color-scheme="dark"] .example-survey-layout-shell,
+[data-color-scheme="system"] .example-survey-layout-shell {
+    --sr-text: #d9fff6;
+    --sr-muted: #98c9c0;
+    --sr-muted-strong: #c4fff2;
+    --sr-border: #65d8c5;
+    --sr-border-soft: #264f4a;
+    --sr-surface: #102220;
+    --sr-surface-muted: #17312e;
+    --sr-surface-soft: #142a27;
+    --sr-primary: #65d8c5;
+    --sr-on-primary: #06201d;
+    --color-body-bg: #081614;
+    --color-body-color: #d9fff6;
+    --color-card: #102220;
+    --color-primary: #65d8c5;
+    --survey-border: #65d8c5;
+    --survey-text: #d9fff6;
+    --survey-muted: #98c9c0;
+    background:
+        linear-gradient(90deg, rgba(101, 216, 197, .08) 1px, transparent 1px),
+        linear-gradient(#081614 0 31px, rgba(101, 216, 197, .16) 31px 32px);
+    background-size: 32px 32px, 100% 32px;
+}
+
+@media (prefers-color-scheme: light) {
+    [data-color-scheme="system"] .example-survey-layout-shell {
+        --sr-text: #18302e;
+        --sr-muted: #5d7470;
+        --sr-muted-strong: #2b4a46;
+        --sr-border: #7eb7ad;
+        --sr-border-soft: #cfe5df;
+        --sr-surface: #fbfffc;
+        --sr-surface-muted: #edf7f2;
+        --sr-surface-soft: #f5fbf8;
+        --sr-primary: #006d77;
+        --sr-on-primary: #ffffff;
+        --color-body-bg: #f3f7f1;
+        --color-body-color: #18302e;
+        --color-card: #fbfffc;
+        --color-primary: #006d77;
+        --survey-border: #7eb7ad;
+        --survey-text: #18302e;
+        --survey-muted: #5d7470;
+        background:
+            linear-gradient(90deg, rgba(0, 109, 119, .08) 1px, transparent 1px),
+            linear-gradient(#f3f7f1 0 31px, rgba(255, 183, 77, .3) 31px 32px);
+        background-size: 32px 32px, 100% 32px;
+    }
+}
+
+.example-survey-layout-shell :is(.survey-layout-header, .survey-layout-footer) {
+    background: var(--sr-surface);
+    border-color: var(--sr-border-soft);
+    box-shadow: 0 1px 0 var(--sr-border-soft);
+}
+
+.example-survey-theme {
+    color: var(--sr-text);
+    max-width: 1040px;
+}
+
+.example-survey-theme :is(.example-survey-hero, .example-survey-panel, .example-survey-card, .example-survey-result, .survey-ui-kit-summary, .survey-ui-kit-section) {
+    background: var(--sr-surface);
+    border: 1px solid var(--sr-border-soft);
+    border-left: 8px solid var(--sr-primary);
+    border-radius: 6px;
+    box-shadow: 0 14px 36px rgba(24, 48, 46, .08);
+}
+
+.example-survey-theme .example-survey-hero {
+    display: grid;
+    gap: 12px;
+    padding: clamp(24px, 5vw, 56px);
+}
+
+.example-survey-theme .example-survey-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.example-survey-theme .example-survey-card {
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+}
+
+.example-survey-theme .example-survey-card::before,
+.example-survey-theme .example-survey-question::before {
+    color: var(--sr-primary);
+    content: "field note";
+    display: block;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.example-survey-theme :is(.example-survey-question, .example-survey-question-stack) {
+    background: var(--sr-surface-muted);
+    border: 1px solid var(--sr-border-soft);
+    border-radius: 6px;
+    padding: 18px;
+}
+
+.example-survey-theme :is(input, select, textarea) {
+    background: var(--sr-surface);
+    border: 1px solid var(--sr-border);
+    border-radius: 4px;
+    color: var(--sr-text);
+}
+
+.example-survey-theme :is(.btn, button[type="submit"]) {
+    border-radius: 4px;
+    font-weight: 800;
+}

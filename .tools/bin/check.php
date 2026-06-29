@@ -827,6 +827,16 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php', 'modules/survey/theme/sample/view.php'],
         ],
     ];
+    $publicModuleLayoutTargets = ['site'];
+    foreach ($modulePublicTargetViews as $publicTargetViews) {
+        foreach (array_keys($publicTargetViews) as $publicTarget) {
+            $publicModuleLayoutTargets[$publicTarget] = $publicTarget;
+            $targetDomain = strpos($publicTarget, '.') !== false ? strstr($publicTarget, '.', true) : $publicTarget;
+            if (is_string($targetDomain) && $targetDomain !== '') {
+                $publicModuleLayoutTargets[$targetDomain] = $targetDomain;
+            }
+        }
+    }
 
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
         $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/reset.css';
@@ -899,13 +909,10 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!is_string($layoutOptionsSource)) {
                 sr_check_add_error('Module public layout options are missing: ' . $layoutOptionsPath);
             } else {
-                foreach (array_keys($modulePublicTargetViews[$moduleKey] ?? []) as $requiredTarget) {
+                foreach ($publicModuleLayoutTargets as $requiredTarget) {
                     if (!str_contains($layoutOptionsSource, "'" . $requiredTarget . "'") && !str_contains($layoutOptionsSource, '"' . $requiredTarget . '"')) {
                         sr_check_add_error('Module public layout option support target is missing: ' . $layoutOptionsPath . ' ' . $requiredTarget);
                     }
-                }
-                if ($moduleKey === 'community' && (str_contains($layoutOptionsSource, "'content.view'") || str_contains($layoutOptionsSource, '"content.view"'))) {
-                    sr_check_add_error('Community layout option must not advertise content.view support: ' . $layoutOptionsPath);
                 }
             }
 

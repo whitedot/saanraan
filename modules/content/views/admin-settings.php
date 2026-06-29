@@ -110,19 +110,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>공개 화면 구성</h2>
         <div class="form-row">
-            <label class="form-label" for="content_admin_settings_layout_key">콘텐츠 공개 레이아웃 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <select id="content_admin_settings_layout_key" name="layout_key" class="form-select" required>
-                    <?php foreach ($contentLayoutOptions as $layoutKey => $layoutOption) { ?>
-                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <p class="form-help">콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다.</p>
-            </div>
-        </div>
-        <div class="form-row">
             <label class="form-label" for="content_admin_settings_theme_key">기본 콘텐츠 테마 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <select id="content_admin_settings_theme_key" name="theme_key" class="form-select" required>
@@ -132,7 +119,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">레이아웃 구조와 별개로 콘텐츠 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+                <p class="form-help">콘텐츠 공개 화면의 본문 구조, 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="content_admin_settings_layout_key">콘텐츠 공개 레이아웃 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <select id="content_admin_settings_layout_key" name="layout_key" class="form-select" required>
+                    <?php foreach ($contentLayoutOptions as $layoutKey => $layoutOption) { ?>
+                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">선택한 테마 아래에서 콘텐츠 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
             </div>
         </div>
         <?php foreach ($contentLayoutMenuFields as $contentLayoutMenuSettingKey => $contentLayoutMenuField) { ?>

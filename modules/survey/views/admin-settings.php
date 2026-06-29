@@ -14,16 +14,16 @@ $surveySettingsHelp = [
         'id' => 'survey-settings-help-layout-key',
         'title' => '설문 공개 레이아웃',
         'body_html' => $surveySettingsHelpBodyHtml([
-            '설문 목록, 응답, 완료 화면에서 사용할 공개 화면 틀입니다.',
-            '레이아웃 변경은 기존 설문 데이터나 응답 기록을 바꾸지 않고, 화면 출력 방식만 바꿉니다.',
+            '선택한 테마 아래에서 설문 목록, 응답, 완료 화면을 감싸는 공개 화면 틀입니다.',
+            '공통 레이아웃과 설문 공개 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.',
         ]),
     ],
     'theme_key' => [
         'id' => 'survey-settings-help-theme-key',
         'title' => '설문 공개 테마',
         'body_html' => $surveySettingsHelpBodyHtml([
-            '설문 공개 테마는 레이아웃 구조와 별개로 색, 표면, 테두리, 상호작용 상태를 적용하는 시각 설정입니다.',
-            '테마 변경은 설문 데이터나 응답 기록을 바꾸지 않고 공개 출력에 적용됩니다.',
+            '설문 공개 테마는 설문 공개 화면의 본문 구조, 색, 표면, 테두리, 상호작용 상태를 적용하는 설정입니다.',
+            '테마 변경은 설문 데이터나 응답 기록을 바꾸지 않고 선택한 theme 디렉터리의 공개 view와 asset을 공개 출력에 적용합니다.',
         ]),
     ],
     'default_status' => [
@@ -111,19 +111,6 @@ $surveySettingsHelp = [
         </div>
         <div class="form-grid">
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('survey_settings_layout_key', '설문 공개 레이아웃', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
-                <div class="form-field">
-                    <select id="survey_settings_layout_key" name="layout_key" class="form-select" required>
-                        <?php foreach ($surveyLayoutOptions as $layoutKey => $layoutOption) { ?>
-                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    <p class="form-help">설문 목록, 응답, 완료 화면에 적용할 공개 레이아웃입니다.</p>
-                </div>
-            </div>
-            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_theme_key', '설문 공개 테마', $surveySettingsHelp['theme_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <select id="survey_settings_theme_key" name="theme_key" class="form-select" required>
@@ -133,7 +120,20 @@ $surveySettingsHelp = [
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">레이아웃 구조와 별개로 설문 공개 화면의 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+                    <p class="form-help">설문 공개 화면의 본문 구조, 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_layout_key', '설문 공개 레이아웃', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="form-field">
+                    <select id="survey_settings_layout_key" name="layout_key" class="form-select" required>
+                        <?php foreach ($surveyLayoutOptions as $layoutKey => $layoutOption) { ?>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="form-help">선택한 테마 아래에서 설문 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row">

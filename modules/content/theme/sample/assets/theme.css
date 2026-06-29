@@ -546,3 +546,34 @@
         position: static;
     }
 }
+
+/*
+ * Module identity override: content sample is an electric zine.
+ */
+.example-content-layout-shell {
+    background:
+        repeating-linear-gradient(90deg, rgba(16, 16, 16, .08) 0 2px, transparent 2px 18px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .22) 0 1px, transparent 1px 14px),
+        var(--color-body-bg);
+}
+
+.example-content-layout-shell .content-layout-header {
+    border-block-end: 5px solid var(--sr-border);
+}
+
+.example-content-theme .example-content-hero {
+    background:
+        linear-gradient(90deg, var(--sr-surface) 0 68%, var(--sr-surface-muted) 68%),
+        var(--sr-surface);
+    transform: rotate(-1deg);
+}
+
+.example-content-theme :is(.example-content-panel, .example-content-timeline-item, .example-content-reader-main, .example-content-reader-rail, .example-content-body) {
+    border-radius: 0;
+}
+
+.example-content-theme :is(.example-content-index a, .example-content-panel a) {
+    background: color-mix(in srgb, var(--sr-surface-muted) 58%, transparent);
+    border: 3px solid var(--sr-border);
+    padding: 12px;
+}

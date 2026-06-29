@@ -65,6 +65,26 @@ function sr_skin_theme_check_not_contains($path, array $needles, string $label):
     }
 }
 
+function sr_skin_theme_check_order(string $path, string $firstNeedle, string $secondNeedle, string $label): void
+{
+    global $errors;
+    $content = sr_skin_theme_check_read($path);
+    if ($content === '') {
+        return;
+    }
+
+    $firstPosition = strpos($content, $firstNeedle);
+    $secondPosition = strpos($content, $secondNeedle);
+    if ($firstPosition === false || $secondPosition === false) {
+        $errors[] = $label . ' cannot verify field order.';
+        return;
+    }
+
+    if ($firstPosition > $secondPosition) {
+        $errors[] = $label . ' must place theme before layout.';
+    }
+}
+
 function sr_skin_theme_check_file_exists(string $path, string $label): void
 {
     global $root, $errors;
@@ -454,6 +474,29 @@ sr_skin_theme_check_contains('core/helpers/output.php', [
     "'unsupported_target' =>",
 ], 'External theme/runtime helper');
 
+$publicModuleLayoutTargets = [
+    'site',
+    'content',
+    'content.home',
+    'content.group',
+    'content.view',
+    'community',
+    'community.home',
+    'community.group',
+    'community.list',
+    'community.post',
+    'community.form',
+    'community.search',
+    'quiz',
+    'quiz.home',
+    'quiz.view',
+    'quiz.result',
+    'survey',
+    'survey.home',
+    'survey.view',
+    'survey.complete',
+];
+
 foreach ([
     'content' => ['content.home', 'content.group', 'content.view'],
     'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
@@ -466,13 +509,8 @@ foreach ([
         'sr_public_layout_options_for_targets($pdo, sr_' . $moduleKey . '_layout_required_targets(), $includeInstalledModules)',
     ], ucfirst($moduleKey) . ' layout target helper');
 
-    sr_skin_theme_check_contains('modules/' . $moduleKey . '/layout-options.php', $requiredTargets, ucfirst($moduleKey) . ' layout support targets');
+    sr_skin_theme_check_contains('modules/' . $moduleKey . '/layout-options.php', $publicModuleLayoutTargets, ucfirst($moduleKey) . ' cross-module layout support targets');
 }
-
-sr_skin_theme_check_not_contains('modules/community/layout-options.php', [
-    "'content.view'",
-    '"content.view"',
-], 'Community layout support targets');
 
 sr_skin_theme_check_contains([
     'modules/content/actions/admin-settings.php',
@@ -696,6 +734,15 @@ sr_skin_theme_check_contains([
     '공개 테마',
 ], 'Public module theme setting UI');
 
+foreach ([
+    'modules/content/views/admin-settings.php',
+    'modules/community/views/admin-settings.php',
+    'modules/quiz/views/admin-settings.php',
+    'modules/survey/views/admin-settings.php',
+] as $settingsViewPath) {
+    sr_skin_theme_check_order($settingsViewPath, 'name="theme_key"', 'name="layout_key"', 'Public module theme/layout setting order: ' . $settingsViewPath);
+}
+
 sr_skin_theme_check_contains('modules/community/views/admin-settings.php', [
     'community_settings_help_theme',
     "communitySettingsHelp['theme']['id']",
@@ -713,7 +760,7 @@ sr_skin_theme_check_contains('modules/survey/views/admin-settings.php', [
 
 sr_skin_theme_check_contains('modules/content/views/admin-settings.php', [
     '콘텐츠 공개 레이아웃',
-    '콘텐츠 메인, 그룹 목록, 상세 화면에 적용할 공개 화면 틀입니다.',
+    '필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.',
 ], 'Content public layout setting copy');
 
 sr_skin_theme_check_not_contains([

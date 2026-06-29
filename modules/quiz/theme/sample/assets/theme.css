@@ -546,3 +546,144 @@
         position: static;
     }
 }
+
+/*
+ * Module identity override: quiz sample is an arcade game show.
+ */
+.example-quiz-layout-shell {
+    --sr-text: #fff9d7;
+    --sr-muted: #b8cffb;
+    --sr-muted-strong: #ffffff;
+    --sr-border: #ffd400;
+    --sr-border-soft: #5b46c9;
+    --sr-surface: #17104a;
+    --sr-surface-muted: #2d1d7a;
+    --sr-surface-soft: #20165d;
+    --sr-primary: #ff7a1a;
+    --sr-on-primary: #1a0b00;
+    --color-body-bg: #080529;
+    --color-body-color: #fff9d7;
+    --color-card: #17104a;
+    --color-primary: #ff7a1a;
+    --quiz-border: #ffd400;
+    --quiz-text: #fff9d7;
+    --quiz-muted: #b8cffb;
+    background:
+        radial-gradient(circle at 20px 20px, rgba(255, 212, 0, .36) 0 3px, transparent 4px),
+        linear-gradient(135deg, #080529, #21135f 52%, #4a115c);
+    background-size: 44px 44px, auto;
+    color: var(--sr-text);
+}
+
+[data-color-scheme="light"] .example-quiz-layout-shell,
+[data-color-scheme="system"] .example-quiz-layout-shell {
+    --sr-text: #180d42;
+    --sr-muted: #4c3f8f;
+    --sr-muted-strong: #23135e;
+    --sr-border: #6a2cff;
+    --sr-border-soft: #f0c620;
+    --sr-surface: #fff7c7;
+    --sr-surface-muted: #ffe38f;
+    --sr-surface-soft: #fff0b0;
+    --sr-primary: #e24a00;
+    --sr-on-primary: #ffffff;
+    --color-body-bg: #fff0a8;
+    --color-body-color: #180d42;
+    --color-card: #fff7c7;
+    --color-primary: #e24a00;
+    --quiz-border: #6a2cff;
+    --quiz-text: #180d42;
+    --quiz-muted: #4c3f8f;
+    background:
+        radial-gradient(circle at 20px 20px, rgba(106, 44, 255, .2) 0 3px, transparent 4px),
+        linear-gradient(135deg, #fff0a8, #ffd6ef 55%, #bcf4ff);
+    background-size: 44px 44px, auto;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-color-scheme="system"] .example-quiz-layout-shell {
+        --sr-text: #fff9d7;
+        --sr-muted: #b8cffb;
+        --sr-muted-strong: #ffffff;
+        --sr-border: #ffd400;
+        --sr-border-soft: #5b46c9;
+        --sr-surface: #17104a;
+        --sr-surface-muted: #2d1d7a;
+        --sr-surface-soft: #20165d;
+        --sr-primary: #ff7a1a;
+        --sr-on-primary: #1a0b00;
+        --color-body-bg: #080529;
+        --color-body-color: #fff9d7;
+        --color-card: #17104a;
+        --color-primary: #ff7a1a;
+        --quiz-border: #ffd400;
+        --quiz-text: #fff9d7;
+        --quiz-muted: #b8cffb;
+        background:
+            radial-gradient(circle at 20px 20px, rgba(255, 212, 0, .36) 0 3px, transparent 4px),
+            linear-gradient(135deg, #080529, #21135f 52%, #4a115c);
+        background-size: 44px 44px, auto;
+    }
+}
+
+.example-quiz-layout-shell :is(.quiz-layout-header, .quiz-layout-footer) {
+    background: var(--sr-surface);
+    border-color: var(--sr-border);
+    box-shadow: 0 8px 0 var(--sr-primary);
+}
+
+.example-quiz-theme {
+    color: var(--sr-text);
+    max-width: 1220px;
+}
+
+.example-quiz-theme :is(.example-quiz-hero, .example-quiz-panel, .example-quiz-card, .example-quiz-result, .quiz-ui-kit-summary, .quiz-ui-kit-section) {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 40%),
+        var(--sr-surface);
+    border: 4px solid var(--sr-border);
+    border-radius: 22px;
+    box-shadow: 0 10px 0 var(--sr-primary), 0 24px 42px rgba(8, 5, 41, .34);
+}
+
+.example-quiz-theme .example-quiz-hero {
+    align-items: center;
+    display: grid;
+    min-height: 260px;
+    text-align: center;
+}
+
+.example-quiz-theme .example-quiz-hero h1 {
+    color: var(--sr-border);
+    text-shadow: 0 4px 0 #120733;
+}
+
+.example-quiz-theme .example-quiz-grid {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.example-quiz-theme .example-quiz-card {
+    overflow: hidden;
+    padding: 18px;
+}
+
+.example-quiz-theme .example-quiz-card-image,
+.example-quiz-theme .example-quiz-cover-image {
+    border: 3px solid var(--sr-border);
+    border-radius: 18px;
+}
+
+.example-quiz-theme :is(.example-quiz-question, .example-quiz-question-stack) {
+    background: var(--sr-surface-muted);
+    border: 2px dashed var(--sr-border);
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.example-quiz-theme :is(.btn, button[type="submit"]) {
+    border-radius: 999px;
+    box-shadow: 0 5px 0 var(--sr-border);
+    font-weight: 900;
+}
