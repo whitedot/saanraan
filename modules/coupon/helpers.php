@@ -442,6 +442,61 @@ function sr_coupon_definition_benefit_label(array $definition): string
     return sr_coupon_type_label($couponType);
 }
 
+function sr_coupon_discount_application(array $issue, array $pricing): array
+{
+    $couponType = (string) ($issue['coupon_type'] ?? 'access');
+    if ($couponType === 'access') {
+        $priceAmount = !empty($pricing['ok']) ? max(0, (int) ($pricing['price_amount'] ?? 0)) : 0;
+        return [
+            'ok' => true,
+            'discount_amount' => $priceAmount,
+            'remaining_amount' => 0,
+            'full_coverage' => true,
+            'coupon_type' => $couponType,
+        ];
+    }
+
+    if (empty($pricing['ok'])) {
+        return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '쿠폰 사용처 가격을 확인할 수 없습니다.'];
+    }
+
+    $priceAmount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    if ($priceAmount <= 0) {
+        return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '할인할 결제 금액이 없습니다.'];
+    }
+
+    $discountAmount = 0;
+    if ($couponType === 'fixed_discount') {
+        $priceCurrency = strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3));
+        $discountCurrency = strtoupper(sr_coupon_clean_key((string) ($issue['discount_currency_code'] ?? ''), 3));
+        if ($discountCurrency === '') {
+            $discountCurrency = 'KRW';
+        }
+        if ($priceCurrency === '' || $priceCurrency !== $discountCurrency) {
+            return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => $priceAmount, 'message' => '쿠폰 할인 통화가 결제 통화와 일치하지 않습니다.'];
+        }
+        $discountAmount = max(0, (int) ($issue['discount_amount'] ?? 0));
+    } elseif ($couponType === 'percent_discount') {
+        $percent = max(0, min(100, (int) ($issue['discount_percent'] ?? 0)));
+        $discountAmount = intdiv($priceAmount * $percent, 100);
+    } else {
+        return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => $priceAmount, 'message' => '지원하지 않는 쿠폰 혜택 유형입니다.'];
+    }
+
+    $discountAmount = min($priceAmount, $discountAmount);
+    if ($discountAmount <= 0) {
+        return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => $priceAmount, 'message' => '적용 가능한 쿠폰 할인액이 없습니다.'];
+    }
+
+    return [
+        'ok' => true,
+        'discount_amount' => $discountAmount,
+        'remaining_amount' => max(0, $priceAmount - $discountAmount),
+        'full_coverage' => $discountAmount >= $priceAmount,
+        'coupon_type' => $couponType,
+    ];
+}
+
 function sr_coupon_time_html(?string $value, string $emptyText = ''): string
 {
     return sr_relative_time_html($value, $emptyText);
@@ -3109,9 +3164,6 @@ function sr_coupon_active_account_target_issues(PDO $pdo, int $accountId, string
 
     $matched = [];
     foreach (sr_coupon_active_account_issues($pdo, $accountId, max(100, $limit * 5)) as $issue) {
-        if ((string) ($issue['coupon_type'] ?? '') !== 'access') {
-            continue;
-        }
         if (!sr_coupon_issue_matches_target($issue, $targetType, $targetId)) {
             continue;
         }
@@ -3285,6 +3337,13 @@ function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, strin
         'policy_summary' => sr_coupon_clean_text((string) ($pricing['policy_summary'] ?? ''), 255),
         'priced_at' => sr_coupon_clean_text((string) ($pricing['priced_at'] ?? sr_now()), 30),
     ];
+    foreach (['coupon_type', 'discount_amount', 'remaining_amount'] as $optionalKey) {
+        if (array_key_exists($optionalKey, $pricing)) {
+            $snapshot[$optionalKey] = $optionalKey === 'coupon_type'
+                ? sr_coupon_clean_key((string) $pricing[$optionalKey], 40)
+                : max(0, (int) $pricing[$optionalKey]);
+        }
+    }
 
     return [
         'amount' => $snapshot['amount'],
@@ -3801,14 +3860,16 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
 
     try {
         $issueIdCondition = $requestedIssueId > 0 ? ' AND i.id = :issue_id' : '';
+        $discountColumns = sr_coupon_definition_discount_columns_available($pdo)
+            ? 'd.discount_amount, d.discount_percent, d.discount_currency_code'
+            : '0 AS discount_amount, 0 AS discount_percent, \'\' AS discount_currency_code';
         $stmt = $pdo->prepare(
-            "SELECT i.*, d.coupon_key, d.title, d.target_type, d.target_id, d.max_uses_per_issue, d.refundable_policy
+            "SELECT i.*, d.coupon_key, d.title, d.coupon_type, " . $discountColumns . ", d.target_type, d.target_id, d.max_uses_per_issue, d.refundable_policy
              FROM sr_coupon_issues i
              INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
              WHERE i.account_id = :account_id
                AND i.status = 'active'
                AND d.status IN ('active', 'issue_stopped')
-               AND d.coupon_type = 'access'
                AND (i.expires_at IS NULL OR i.expires_at >= :now_value)" . $issueIdCondition . "
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
             . sr_coupon_for_update_clause($pdo)
@@ -3837,6 +3898,15 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
         }
 
         $pricing = sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context);
+        if (array_key_exists('price_amount', $context)) {
+            $pricing['price_amount'] = max(0, (int) $context['price_amount']);
+        }
+        if (array_key_exists('currency_code', $context)) {
+            $pricing['currency_code'] = strtoupper(sr_coupon_clean_key((string) $context['currency_code'], 3));
+        }
+        if (array_key_exists('policy_summary', $context)) {
+            $pricing['policy_summary'] = sr_coupon_clean_text((string) $context['policy_summary'], 255);
+        }
         if (!empty($pricing['ok']) && !empty($pricing['already_entitled'])) {
             if ($startedTransaction && $pdo->inTransaction()) {
                 $pdo->commit();
@@ -3849,6 +3919,21 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
                 'message' => '',
             ];
         }
+        $discountApplication = sr_coupon_discount_application($selectedIssue, $pricing);
+        if (empty($discountApplication['ok'])) {
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->commit();
+            }
+
+            return [
+                'allowed' => false,
+                'processed' => false,
+                'message' => (string) ($discountApplication['message'] ?? ''),
+            ];
+        }
+        $pricing['coupon_type'] = (string) ($discountApplication['coupon_type'] ?? ($selectedIssue['coupon_type'] ?? 'access'));
+        $pricing['discount_amount'] = (int) ($discountApplication['discount_amount'] ?? 0);
+        $pricing['remaining_amount'] = (int) ($discountApplication['remaining_amount'] ?? 0);
 
         $now = sr_now();
         $redemptionColumns = [
@@ -3936,6 +4021,10 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             'coupon_issue_id' => (int) $selectedIssue['id'],
             'coupon_definition_id' => (int) $selectedIssue['coupon_definition_id'],
             'coupon_title' => (string) $selectedIssue['title'],
+            'coupon_type' => (string) ($selectedIssue['coupon_type'] ?? 'access'),
+            'discount_amount' => (int) ($discountApplication['discount_amount'] ?? 0),
+            'remaining_amount' => (int) ($discountApplication['remaining_amount'] ?? 0),
+            'full_coverage' => !empty($discountApplication['full_coverage']),
             'message' => '',
         ];
     } catch (Throwable $exception) {

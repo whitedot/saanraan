@@ -636,13 +636,25 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
     }
 
+    $mixedCouponResult = [];
+    $mixedCouponTransactionOpen = false;
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
     }
         try {
-            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy, $couponIssueId) : ['allowed' => false, 'processed' => false];
+            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_access($pdo, $pageId, $accountId, $chargePolicy, $couponIssueId, [
+                'price_amount' => $amount,
+                'currency_code' => $settlementCurrency,
+                'policy_summary' => '콘텐츠 열람 ' . number_format($amount) . $settlementCurrency,
+            ]) : ['allowed' => false, 'processed' => false];
             if (!empty($couponResult['allowed'])) {
+                $remainingAmount = max(0, (int) ($couponResult['remaining_amount'] ?? 0));
+                if ($remainingAmount > 0) {
+                    $mixedCouponResult = $couponResult;
+                    $mixedCouponTransactionOpen = $startedTransaction && $pdo->inTransaction();
+                    $amount = $remainingAmount;
+                } else {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
                 }
@@ -662,11 +674,12 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
                 'message' => '',
                 'confirmation_fingerprint' => $confirmationFingerprint,
             ];
+                }
         }
-        if ($startedTransaction && $pdo->inTransaction()) {
+        if ($mixedCouponResult === [] && $startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        if ($couponIssueId > 0) {
+        if ($mixedCouponResult === [] && $couponIssueId > 0) {
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 쿠폰을 사용할 수 없습니다.', [
                 'error_key' => 'asset_confirmation_required',
                 'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
@@ -694,6 +707,10 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
         if ($assetExchangeSuggestion !== []) {
             if (!$assetExchangeConfirmed) {
+                if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                    $mixedCouponTransactionOpen = false;
+                }
                 return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_member_asset_settlement_exchange_message($pdo, sr_content_asset_modules($pdo), $assetExchangeSuggestion, sr_content_asset_confirmation_required_message()), [
                     'error_key' => 'asset_confirmation_required',
                     'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
@@ -704,6 +721,10 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
                 ]);
             }
         } else {
+            if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+                $pdo->rollBack();
+                $mixedCouponTransactionOpen = false;
+            }
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '콘텐츠를 열람할 수 없습니다.', '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.'));
         }
     }
@@ -774,17 +795,17 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         }
 
         if ($pendingAccessCharges === []) {
-            if ($startedTransaction) {
+            if ($startedTransaction || $mixedCouponTransactionOpen) {
                 $pdo->commit();
             }
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint]);
         }
 
-        if ($startedTransaction) {
+        if ($startedTransaction || $mixedCouponTransactionOpen) {
             $pdo->commit();
         }
     } catch (Throwable $exception) {
-        if ($startedTransaction && $pdo->inTransaction()) {
+        if (($startedTransaction || $mixedCouponTransactionOpen) && $pdo->inTransaction()) {
             $pdo->rollBack();
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
@@ -799,10 +820,16 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 콘텐츠를 열람할 수 없습니다.');
     }
 
-    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'asset_exchange_log_id' => $assetExchangeLogId ?? 0]);
+    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', [
+        'confirmation_fingerprint' => $confirmationFingerprint,
+        'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
+        'coupon_used' => !empty($mixedCouponResult['processed']),
+        'coupon_title' => (string) ($mixedCouponResult['coupon_title'] ?? ''),
+        'coupon_discount_amount' => (int) ($mixedCouponResult['discount_amount'] ?? 0),
+    ]);
 }
 
-function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0): array
+function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0, array $pricingContext = []): array
 {
     if ($pageId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return ['allowed' => false, 'processed' => false];
@@ -827,6 +854,7 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, str
     if ($couponIssueId > 0) {
         $context['coupon_issue_id'] = $couponIssueId;
     }
+    $context = array_merge($context, $pricingContext);
 
     $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content', (string) $pageId, $context);
     $result['dedupe_key'] = $dedupeKey;
@@ -834,7 +862,7 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, str
     return $result;
 }
 
-function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0): array
+function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0, array $pricingContext = []): array
 {
     if ($fileId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return ['allowed' => false, 'processed' => false];
@@ -859,6 +887,7 @@ function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accou
     if ($couponIssueId > 0) {
         $context['coupon_issue_id'] = $couponIssueId;
     }
+    $context = array_merge($context, $pricingContext);
 
     $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content_file', (string) $fileId, $context);
     $result['dedupe_key'] = $dedupeKey;
@@ -979,13 +1008,25 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
     }
 
+    $mixedCouponResult = [];
+    $mixedCouponTransactionOpen = false;
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
     }
         try {
-            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy, $couponIssueId) : ['allowed' => false, 'processed' => false];
+            $couponResult = $couponIssueId > 0 ? sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy, $couponIssueId, [
+                'price_amount' => $amount,
+                'currency_code' => $settlementCurrency,
+                'policy_summary' => '콘텐츠 다운로드 ' . number_format($amount) . $settlementCurrency,
+            ]) : ['allowed' => false, 'processed' => false];
             if (!empty($couponResult['allowed'])) {
+                $remainingAmount = max(0, (int) ($couponResult['remaining_amount'] ?? 0));
+                if ($remainingAmount > 0) {
+                    $mixedCouponResult = $couponResult;
+                    $mixedCouponTransactionOpen = $startedTransaction && $pdo->inTransaction();
+                    $amount = $remainingAmount;
+                } else {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
                 }
@@ -1006,11 +1047,12 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
                 'confirmation_fingerprint' => $confirmationFingerprint,
                 'access_log_ids' => [],
             ];
+                }
         }
-        if ($startedTransaction && $pdo->inTransaction()) {
+        if ($mixedCouponResult === [] && $startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        if ($couponIssueId > 0) {
+        if ($mixedCouponResult === [] && $couponIssueId > 0) {
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 쿠폰을 사용할 수 없습니다.', [
                 'error_key' => 'asset_confirmation_required',
                 'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
@@ -1038,6 +1080,10 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
         if ($assetExchangeSuggestion !== []) {
             if (!$assetExchangeConfirmed) {
+                if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                    $mixedCouponTransactionOpen = false;
+                }
                 return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_member_asset_settlement_exchange_message($pdo, sr_content_asset_modules($pdo), $assetExchangeSuggestion, sr_content_asset_confirmation_required_message()), [
                     'error_key' => 'asset_confirmation_required',
                     'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
@@ -1048,6 +1094,10 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
                 ]);
             }
         } else {
+            if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+                $pdo->rollBack();
+                $mixedCouponTransactionOpen = false;
+            }
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '파일을 다운로드할 수 없습니다.', '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.'));
         }
     }
@@ -1124,17 +1174,17 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         }
 
         if ($pendingDownloadCharges === []) {
-            if ($startedTransaction) {
+            if ($startedTransaction || $mixedCouponTransactionOpen) {
                 $pdo->commit();
             }
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
         }
 
-        if ($startedTransaction) {
+        if ($startedTransaction || $mixedCouponTransactionOpen) {
             $pdo->commit();
         }
     } catch (Throwable $exception) {
-        if ($startedTransaction && $pdo->inTransaction()) {
+        if (($startedTransaction || $mixedCouponTransactionOpen) && $pdo->inTransaction()) {
             $pdo->rollBack();
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
@@ -1149,5 +1199,12 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 파일을 다운로드할 수 없습니다.');
     }
 
-    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds)), 'asset_exchange_log_id' => $assetExchangeLogId ?? 0]);
+    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', [
+        'confirmation_fingerprint' => $confirmationFingerprint,
+        'access_log_ids' => array_values(array_filter($accessLogIds)),
+        'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
+        'coupon_used' => !empty($mixedCouponResult['processed']),
+        'coupon_title' => (string) ($mixedCouponResult['coupon_title'] ?? ''),
+        'coupon_discount_amount' => (int) ($mixedCouponResult['discount_amount'] ?? 0),
+    ]);
 }

@@ -394,7 +394,7 @@ function sr_community_available_attachment_download_coupon_issues(PDO $pdo, int 
 
 // This helper owns its transaction boundary so fallback coupon targets cannot
 // commit partial redemption work from a previous target attempt.
-function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey, int $couponIssueId = 0): array
+function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, array $post, array $paidReadConfig, string $couponDedupeKey, int $couponIssueId = 0, array $pricingContext = []): array
 {
     $postId = (int) ($post['id'] ?? 0);
     $boardId = (int) ($post['board_id'] ?? 0);
@@ -439,10 +439,14 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
         'reference_module' => 'community',
         'reference_type' => 'community.post',
         'reference_id' => (string) $postId,
+        'price_amount' => (int) $policyAmounts['amount'],
+        'currency_code' => $settlementCurrency,
+        'policy_summary' => '게시글 열람 ' . number_format((int) $policyAmounts['amount']) . $settlementCurrency,
     ];
     if ($couponIssueId > 0) {
         $couponContext['coupon_issue_id'] = $couponIssueId;
     }
+    $couponContext = array_merge($couponContext, $pricingContext);
 
     foreach ([['community_post', (string) $postId], ['community_board', (string) $boardId]] as $target) {
         if ((string) $target[1] === '0') {
@@ -457,7 +461,15 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
         try {
             $couponResult = sr_coupon_redeem_for_target($pdo, $accountId, (string) $target[0], (string) $target[1], $couponContext);
             if (!empty($couponResult['allowed'])) {
-                if (empty($couponResult['already_entitled'])) {
+                $remainingAmount = max(0, (int) ($couponResult['remaining_amount'] ?? 0));
+                if ($remainingAmount > 0 && $startedTransaction) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+
+                    return ['allowed' => false, 'processed' => false, 'message' => '할인 쿠폰은 자산 결제와 함께 처리해야 합니다.'];
+                }
+                if ($remainingAmount <= 0 && empty($couponResult['already_entitled'])) {
                     sr_community_grant_access_entitlement($pdo, $accountId, 'community.post', $postId, 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
                 }
                 if ($startedTransaction) {
@@ -484,7 +496,7 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
     return ['allowed' => false, 'processed' => false];
 }
 
-function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accountId, int|array $attachment, array $downloadConfig, string $couponDedupeKey, int $couponIssueId = 0): array
+function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accountId, int|array $attachment, array $downloadConfig, string $couponDedupeKey, int $couponIssueId = 0, array $pricingContext = []): array
 {
     $attachmentId = is_array($attachment) ? (int) ($attachment['id'] ?? 0) : (int) $attachment;
     if ($accountId <= 0 || $attachmentId <= 0 || $couponDedupeKey === '') {
@@ -528,10 +540,14 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
         'reference_module' => 'community',
         'reference_type' => 'community.attachment.download',
         'reference_id' => (string) $attachmentId,
+        'price_amount' => (int) $policyAmounts['amount'],
+        'currency_code' => $settlementCurrency,
+        'policy_summary' => '첨부 다운로드 ' . number_format((int) $policyAmounts['amount']) . $settlementCurrency,
     ];
     if ($couponIssueId > 0) {
         $couponContext['coupon_issue_id'] = $couponIssueId;
     }
+    $couponContext = array_merge($couponContext, $pricingContext);
 
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
@@ -541,7 +557,15 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
     try {
         $couponResult = sr_coupon_redeem_for_target($pdo, $accountId, 'community_attachment', (string) $attachmentId, $couponContext);
         if (!empty($couponResult['allowed'])) {
-            if (empty($couponResult['already_entitled'])) {
+            $remainingAmount = max(0, (int) ($couponResult['remaining_amount'] ?? 0));
+            if ($remainingAmount > 0 && $startedTransaction) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                return ['allowed' => false, 'processed' => false, 'message' => '할인 쿠폰은 자산 결제와 함께 처리해야 합니다.'];
+            }
+            if ($remainingAmount <= 0 && empty($couponResult['already_entitled'])) {
                 sr_community_grant_access_entitlement($pdo, $accountId, 'community.attachment', $attachmentId, 'attachment_download', 'coupon', '', (string) ($downloadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
             }
             if ($startedTransaction) {
@@ -660,14 +684,14 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
     ]);
 }
 
-function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
+function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null): array
 {
-    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed): array {
-        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed);
+    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride): array {
+        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride);
     });
 }
 
-function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
+function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null): array
 {
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
@@ -715,6 +739,9 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
     $amounts = $amounts !== [] ? $policyAmounts['amounts'] : [];
     $amount = (int) $policyAmounts['amount'];
+    if ($direction === 'use' && $settlementAmountOverride !== null) {
+        $amount = max(0, $settlementAmountOverride);
+    }
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_community_asset_settlement_currency($pdo, $config);
     $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);

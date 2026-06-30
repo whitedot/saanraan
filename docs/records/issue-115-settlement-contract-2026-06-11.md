@@ -26,7 +26,7 @@
 ## 구현 적용 상태
 
 - 콘텐츠/커뮤니티 update SQL은 기존 `legacy 1:1 assumed` settlement snapshot과 `legacy_unknown` 차감 로그를 보존하지 않고 삭제한다. 장기 조회와 export는 신규 settlement snapshot row만 기준으로 삼는다.
-- 콘텐츠/커뮤니티 유료 접근에서 선택된 쿠폰은 `access` 쿠폰일 때만 전체 접근권으로 먼저 처리한다. 쿠폰 사용이 성공하면 자산 settlement plan, 자산 원장 거래, 도메인 자산 차감 로그를 만들지 않고 쿠폰 redemption 가격 snapshot과 접근권만 남긴다. `fixed_discount`/`percent_discount`를 복합 차감 일부 금액으로 섞는 계산은 별도 소비 도메인 가격 계약이 붙기 전까지 열지 않는다.
+- 콘텐츠/커뮤니티 유료 접근에서 선택된 `access` 쿠폰이나 전액 할인 쿠폰이 성공하면 자산 settlement plan, 자산 원장 거래, 도메인 자산 차감 로그를 만들지 않고 쿠폰 redemption 가격 snapshot과 접근권만 남긴다. 일부 `fixed_discount`/`percent_discount` 쿠폰은 할인액과 남은 결제액을 redemption snapshot에 남기고, 남은 금액만 자산 settlement plan, 자산 원장 거래, 도메인 자산 차감 로그로 기록한다.
 - 관리자 설정/로드 시점에 구매력 필드 형식, 가격 통화와 자산 settlement 통화 불일치를 설정 오류로 노출한다.
 - 개인정보 export는 raw `purchase_power_snapshot_json`과 함께 `settlement_summary`를 제공해 자산 모듈, 자산 단위 금액, 기준 settlement 금액/통화, snapshot/rounding 버전을 사람이 읽을 수 있게 한다. 유료 파일/첨부 다운로드 이력은 연결 차감 로그 ID만 노출하지 않고, 같은 기준의 `settlement_summaries`를 함께 제공한다.
 - USD-cent 같은 sub-unit 통화성 자산은 asset amount 저장 단위 결정을 별도 이슈로 다룬다.

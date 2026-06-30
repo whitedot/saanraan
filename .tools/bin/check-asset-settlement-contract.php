@@ -624,7 +624,8 @@ sr_asset_settlement_check_contains('docs/smoke-test.md', [
     '구매력/통화 min-unit/`rounding_policy_version`이 바뀌면 snapshot drift 사유로 별도 기록하며',
     'settlement 로그에는 `settlement_kind`, `snapshot_schema_version`, `rounding_policy_version`이 저장되어야 하며',
     '기존 `legacy 1:1 assumed` 또는 `legacy_unknown` 차감 로그는 업데이트에서 삭제되어야 한다',
-    '선택된 `access` 쿠폰이 있으면 쿠폰 redemption과 접근권만 남기고 자산 원장 거래와 settlement 차감 로그를 만들지 않아야 한다',
+    '선택된 `access` 쿠폰이나 전액 할인 쿠폰이 있으면 쿠폰 redemption과 접근권만 남기고 자산 원장 거래와 settlement 차감 로그를 만들지 않아야 한다',
+    '일부 할인 쿠폰은 할인액과 남은 결제액을 redemption snapshot에 남기고',
     '다중 자산 row lock은 `deduction_order`와 `asset_module` tiebreak 순서로 잡는지 확인한다',
     '`asset_units`/`settlement_units` 양의 정수 여부와 `settlement_currency`의 min-unit registry 존재 여부는 설정 저장 또는 관리자 config 로드 시점에 setup 오류로 드러나야 한다',
     '통화 min-unit 또는 rounding/carry `rounding_policy_version` 변경 직후 기존 확인 화면의 in-flight 요청은 fail-closed 재확인으로 떨어질 수 있음을 운영 워크플로에서 확인한다',
@@ -641,7 +642,7 @@ sr_asset_settlement_check_contains('docs/records/issue-115-settlement-contract-2
     '런타임 통화 불변식은 `price.currency == 각 참여 자산의 purchase_power.settlement_currency`이며',
     '통화 최소단위 미만 rational 값은 row별로 올림하지 않고 다음 allocation으로 carry하며',
     '기존 `legacy 1:1 assumed` settlement snapshot과 `legacy_unknown` 차감 로그를 보존하지 않고 삭제한다',
-    '쿠폰 redemption 가격 snapshot과 접근권만 남긴다',
+    '일부 `fixed_discount`/`percent_discount` 쿠폰은 할인액과 남은 결제액을 redemption snapshot에 남기고',
     '개인정보 export는 raw `purchase_power_snapshot_json`과 함께 `settlement_summary`를 제공해',
     '같은 기준의 `settlement_summaries`를 함께 제공한다',
     '`member-assets.php` 거래 helper는 같은 PDO transaction에 동참해야 하며 내부 commit이나 별도 connection을 쓰면 복합 차감 후보에서 제외한다',
@@ -943,7 +944,7 @@ sr_asset_settlement_check_contains('modules/community/updates/2026.06.044.sql', 
 ]);
 
 sr_asset_settlement_check_contains('modules/coupon/helpers.php', [
-    "AND d.coupon_type = 'access'",
+    'sr_coupon_discount_application($selectedIssue, $pricing)',
     'sr_coupon_redemption_pricing_snapshot_from_result($pricing, $targetType, $targetId)',
 ]);
 

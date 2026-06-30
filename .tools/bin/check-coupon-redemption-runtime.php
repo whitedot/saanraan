@@ -296,6 +296,15 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         expired_at TEXT,
         created_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_point_expiration_consumptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        consume_transaction_id INTEGER NOT NULL,
+        source_transaction_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        source_expires_at TEXT,
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("CREATE TABLE sr_community_access_entitlements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER NOT NULL,
@@ -624,7 +633,7 @@ function sr_coupon_runtime_check_model_decision(): void
     sr_coupon_runtime_assert(!str_contains($installSql, 'sr_coupon_balance_ledger'), 'coupon v1 must not introduce a partial-use balance ledger.');
     sr_coupon_runtime_assert(str_contains($adminView, 'data-coupon-type-select'), 'coupon admin form must expose coupon benefit type selection.');
     sr_coupon_runtime_assert(str_contains($coreDecisions, '`access`, `fixed_discount`, `percent_discount`'), 'core decisions must pin the supported coupon benefit models.');
-    sr_coupon_runtime_assert(str_contains($moduleGuide, '`fixed_discount`와 `percent_discount`는 정의와 지급까지 저장'), 'module guide must describe stored discount coupon definitions.');
+    sr_coupon_runtime_assert(str_contains($moduleGuide, '`fixed_discount`와 `percent_discount`는 콘텐츠 유료 열람'), 'module guide must describe discount coupon mixed payment runtime.');
 }
 
 function sr_coupon_runtime_discount_schema_detection_fixture(): void
@@ -1442,6 +1451,102 @@ function sr_coupon_runtime_fixture(): void
     $attachmentRefund = sr_coupon_refund_redemption($pdo, $attachmentRedemptionId, 1, 'community attachment coupon access revoke');
     sr_coupon_runtime_assert((int) ($attachmentRefund['revoked_access_count'] ?? -1) === 1, 'community attachment download fixture should revoke coupon access entitlement through refund helper.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.attachment' AND subject_id = 8801 AND event_key = 'attachment_download'")->fetchColumn() === 0, 'community attachment download fixture should remove coupon-backed attachment entitlement on refund.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_content_items
+            (id, title, slug, status, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_settlement_currency, asset_charge_policy, updated_at)
+         VALUES
+            (7801, 'Mixed paid content', 'mixed-paid-content', 'published', 1, 'point', 100, '{\"point\":100}', 'KRW', 'once', :updated_at)"
+    )->execute(['updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('content_fixed_mixed', 'Content fixed mixed', '', 'active', 'fixed_discount', 40, 0, 'KRW', 'content', '7801', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $contentMixedDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $contentMixedDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $contentMixedIssueId = (int) $pdo->lastInsertId();
+    $mixedPage = [
+        'id' => 7801,
+        'asset_access_enabled' => 1,
+        'asset_module' => 'point',
+        'asset_access_amount' => 100,
+        'asset_access_amounts_json' => '{"point":100}',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
+        'asset_access_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $mixedContentResult = sr_content_charge_view_access($pdo, $mixedPage, 7, true, '', $contentMixedIssueId, true, true, false);
+    sr_coupon_runtime_assert(!empty($mixedContentResult['allowed']) && !empty($mixedContentResult['charged']), 'content mixed coupon fixture should allow access and charge remaining assets.');
+    sr_coupon_runtime_assert(!empty($mixedContentResult['coupon_used']), 'content mixed coupon fixture should report coupon_used.');
+    sr_coupon_runtime_assert((int) ($mixedContentResult['amount'] ?? -1) === 60, 'content mixed coupon fixture should charge only the remaining settlement amount.');
+    sr_coupon_runtime_assert((int) ($mixedContentResult['coupon_discount_amount'] ?? -1) === 40, 'content mixed coupon fixture should report the fixed coupon discount amount.');
+    $contentMixedIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $contentMixedIssueId]);
+    sr_coupon_runtime_assert((string) ($contentMixedIssue['status'] ?? '') === 'used' && (int) ($contentMixedIssue['used_count'] ?? -1) === 1, 'content mixed coupon fixture should consume the discount coupon once.');
+    $contentMixedTransaction = sr_coupon_runtime_row($pdo, "SELECT amount, reference_type, reference_id FROM sr_point_transactions WHERE reference_type = 'content.view' AND reference_id = '7801' LIMIT 1");
+    sr_coupon_runtime_assert((int) ($contentMixedTransaction['amount'] ?? 0) === -60, 'content mixed coupon fixture should create a point transaction for the remaining amount.');
+    $contentMixedAssetLog = sr_coupon_runtime_row($pdo, "SELECT amount, settlement_amount, settlement_currency FROM sr_content_asset_access_logs WHERE content_id = 7801 LIMIT 1");
+    sr_coupon_runtime_assert((int) ($contentMixedAssetLog['amount'] ?? 0) === 60 && (int) ($contentMixedAssetLog['settlement_amount'] ?? 0) === 60, 'content mixed coupon fixture should store remaining asset and settlement amounts.');
+    $contentMixedRedemption = sr_coupon_runtime_row($pdo, "SELECT target_snapshot_json FROM sr_coupon_redemptions WHERE reference_type = 'content.view' AND reference_id = '7801' LIMIT 1");
+    $contentMixedSnapshot = json_decode((string) ($contentMixedRedemption['target_snapshot_json'] ?? ''), true);
+    sr_coupon_runtime_assert(is_array($contentMixedSnapshot) && (int) ($contentMixedSnapshot['discount_amount'] ?? -1) === 40 && (int) ($contentMixedSnapshot['remaining_amount'] ?? -1) === 60, 'content mixed coupon fixture should store discount and remaining amounts in the redemption snapshot.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_community_posts
+            (id, board_id, status, title, created_at, updated_at)
+         VALUES
+            (9903, 9902, 'published', 'Mixed paid post', :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('community_percent_mixed', 'Community percent mixed', '', 'active', 'percent_discount', 0, 50, '', 'community_post', '9903', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $communityMixedDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $communityMixedDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $communityMixedIssueId = (int) $pdo->lastInsertId();
+    $pdo->beginTransaction();
+    $communityMixedCoupon = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9903, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9903', $communityMixedIssueId);
+    $communityMixedRemaining = max(0, (int) ($communityMixedCoupon['remaining_amount'] ?? 0));
+    $communityMixedResult = !empty($communityMixedCoupon['allowed'])
+        ? sr_community_run_asset_event($pdo, $communityPaidReadConfig, 7, 'post_read', 'community.post', 9903, 'use', 'community.post.read', true, '', true, true, false, $communityMixedRemaining)
+        : ['allowed' => false, 'processed' => false];
+    if (!empty($communityMixedResult['allowed'])) {
+        $pdo->commit();
+    } else {
+        $pdo->rollBack();
+    }
+    sr_coupon_runtime_assert(!empty($communityMixedCoupon['allowed']) && !empty($communityMixedCoupon['processed']), 'community mixed coupon fixture should consume the discount coupon.');
+    sr_coupon_runtime_assert($communityMixedRemaining === 75, 'community mixed coupon fixture should calculate the percent discount remaining amount.');
+    sr_coupon_runtime_assert(!empty($communityMixedResult['allowed']) && !empty($communityMixedResult['processed']), 'community mixed coupon fixture should charge the remaining assets.');
+    $communityMixedLog = sr_coupon_runtime_row($pdo, "SELECT amount, settlement_amount FROM sr_community_asset_logs WHERE subject_type = 'community.post' AND subject_id = 9903 LIMIT 1");
+    sr_coupon_runtime_assert((int) ($communityMixedLog['amount'] ?? 0) === 75 && (int) ($communityMixedLog['settlement_amount'] ?? 0) === 75, 'community mixed coupon fixture should store the remaining charge in the asset log.');
+    $communityMixedRedemption = sr_coupon_runtime_row($pdo, "SELECT target_snapshot_json FROM sr_coupon_redemptions WHERE reference_type = 'community.post' AND reference_id = '9903' LIMIT 1");
+    $communityMixedSnapshot = json_decode((string) ($communityMixedRedemption['target_snapshot_json'] ?? ''), true);
+    sr_coupon_runtime_assert(is_array($communityMixedSnapshot) && (int) ($communityMixedSnapshot['discount_amount'] ?? -1) === 75 && (int) ($communityMixedSnapshot['remaining_amount'] ?? -1) === 75, 'community mixed coupon fixture should store percent discount and remaining amounts in the redemption snapshot.');
 }
 
 sr_coupon_runtime_check_model_decision();

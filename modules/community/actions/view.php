@@ -141,29 +141,72 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                 false
             );
         } else {
-            $couponReadResult = $couponIssueId > 0
-                ? sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId)
-                : ['allowed' => false, 'processed' => false];
-            if (!empty($couponReadResult['allowed'])) {
-                $paidReadResult = [
-                    'allowed' => true,
-                    'processed' => false,
-                    'coupon_used' => !empty($couponReadResult['processed']),
-                    'confirmation_fingerprint' => (string) ($couponReadResult['confirmation_fingerprint'] ?? ''),
-                ];
-            } elseif ($couponIssueId > 0) {
-                $paidReadResult = sr_community_run_asset_event(
-                    $pdo,
-                    $paidReadConfig,
-                    (int) $account['id'],
-                    'post_read',
-                    'community.post',
-                    (int) $post['id'],
-                    'use',
-                    'community.post.read',
-                    false
-                );
-                $paidReadResult['message'] = '선택한 쿠폰을 사용할 수 없습니다.';
+            if ($couponIssueId > 0) {
+                $couponStartedTransaction = !$pdo->inTransaction();
+                if ($couponStartedTransaction) {
+                    $pdo->beginTransaction();
+                }
+                try {
+                    $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey, $couponIssueId);
+                    if (!empty($couponReadResult['allowed'])) {
+                        $remainingAmount = max(0, (int) ($couponReadResult['remaining_amount'] ?? 0));
+                        if ($remainingAmount > 0) {
+                            $paidReadResult = sr_community_run_asset_event(
+                                $pdo,
+                                $paidReadConfig,
+                                (int) $account['id'],
+                                'post_read',
+                                'community.post',
+                                (int) $post['id'],
+                                'use',
+                                'community.post.read',
+                                sr_request_method() === 'POST',
+                                sr_post_string_without_truncation('asset_request_token', 64) ?? '',
+                                true,
+                                $assetConfirmedPost,
+                                $assetExchangeConfirmed,
+                                $remainingAmount
+                            );
+                            $paidReadResult['coupon_used'] = !empty($couponReadResult['processed']);
+                            $paidReadResult['coupon_discount_amount'] = (int) ($couponReadResult['discount_amount'] ?? 0);
+                        } else {
+                            $paidReadResult = [
+                                'allowed' => true,
+                                'processed' => false,
+                                'coupon_used' => !empty($couponReadResult['processed']),
+                                'confirmation_fingerprint' => (string) ($couponReadResult['confirmation_fingerprint'] ?? ''),
+                            ];
+                        }
+                        if (!empty($paidReadResult['allowed'])) {
+                            if ($couponStartedTransaction && $pdo->inTransaction()) {
+                                $pdo->commit();
+                            }
+                        } elseif ($couponStartedTransaction && $pdo->inTransaction()) {
+                            $pdo->rollBack();
+                        }
+                    } else {
+                        if ($couponStartedTransaction && $pdo->inTransaction()) {
+                            $pdo->rollBack();
+                        }
+                        $paidReadResult = [
+                            'allowed' => false,
+                            'processed' => false,
+                            'message' => '선택한 쿠폰을 사용할 수 없습니다.',
+                        ];
+                    }
+                } catch (Throwable $exception) {
+                    if ($couponStartedTransaction && $pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    if (function_exists('sr_log_exception')) {
+                        sr_log_exception($exception, 'community_paid_read_coupon_asset_mixed_failed');
+                    }
+                    $paidReadResult = [
+                        'allowed' => false,
+                        'processed' => false,
+                        'message' => sr_t('community::action.error.paid_read_post_failed'),
+                    ];
+                }
             } else {
                 $paidReadResult = sr_community_run_asset_event(
                     $pdo,
