@@ -108,6 +108,7 @@ $adminExchangeSettingsAction = file_get_contents($root . '/modules/asset_exchang
 $adminExchangeSettingsView = file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php');
 $assetExchangeModule = file_get_contents($root . '/modules/asset_exchange/module.php');
 $canonicalUpdate = file_get_contents($root . '/modules/asset_exchange/updates/2026.06.001.sql');
+$coreDecisions = file_get_contents($root . '/docs/core-decisions.md');
 if (
     !is_string($helper)
     || strpos($helper, 'function sr_asset_exchange_canonical_asset_keys(): array') === false
@@ -194,6 +195,7 @@ if (
     !is_string($installSql)
     || strpos($installSql, "('point', 'reward', 'disabled'") === false
     || strpos($installSql, "('deposit', 'reward', 'disabled'") === false
+    || strpos($installSql, 'UNIQUE KEY uq_sr_asset_exchange_policies_pair (from_module_key, to_module_key)') === false
     || !is_string($canonicalUpdate)
     || strpos($canonicalUpdate, 'SET l.policy_id = NULL') === false
     || strpos($canonicalUpdate, 'DELETE FROM sr_asset_exchange_policies') === false
@@ -204,6 +206,22 @@ if (
     || strpos($canonicalUpdate, 'updated_at = updated_at') !== false
 ) {
     $errors[] = 'Asset exchange install/update SQL must seed canonical rows, drop noncanonical rows, migrate settings, and avoid ambiguous no-op updates.';
+}
+$policyReferenceResetPosition = is_string($canonicalUpdate) ? strpos($canonicalUpdate, 'SET l.policy_id = NULL') : false;
+$noncanonicalDeletePosition = is_string($canonicalUpdate) ? strpos($canonicalUpdate, 'DELETE FROM sr_asset_exchange_policies') : false;
+if (
+    $policyReferenceResetPosition === false
+    || $noncanonicalDeletePosition === false
+    || $policyReferenceResetPosition > $noncanonicalDeletePosition
+) {
+    $errors[] = 'Asset exchange canonical migration must clear log policy references before deleting noncanonical policy rows.';
+}
+if (
+    !is_string($coreDecisions)
+    || strpos($coreDecisions, '임의 자산 조합 정책 row는 보존하지 않으며') === false
+    || strpos($coreDecisions, '단순 `(from_module_key, to_module_key)` unique 모델을 유지') === false
+) {
+    $errors[] = 'Core decisions must document the current asset exchange legacy-row cleanup and simple pair-unique policy.';
 }
 if (
     !is_string($helper)
