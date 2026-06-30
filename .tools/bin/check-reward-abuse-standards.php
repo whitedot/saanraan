@@ -243,6 +243,63 @@ function sr_reward_abuse_runtime_check(): void
     if (sr_reward_validate_reclaim_transaction($pdo, 7, -4000, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== null) {
         $errors[] = 'reward reclaim runtime fixture must allow locked reclaim amounts up to the remaining target.';
     }
+    if (!sr_reward_account_can_request_withdrawal($pdo, 7)) {
+        $errors[] = 'reward withdrawal runtime fixture must treat an empty normalized group list as all logged-in members.';
+    }
+
+    $expiringGrantId = sr_reward_create_transaction($pdo, [
+        'account_id' => 8,
+        'amount' => 500,
+        'transaction_type' => 'grant',
+        'reason' => 'runtime expiring grant',
+        'reference_type' => 'fixture',
+        'reference_id' => 'expiring-grant-1',
+        'created_by_account_id' => 99,
+        'expires_at' => '2026-06-13 12:00:00',
+    ]);
+    $expiringUseId = sr_reward_create_transaction($pdo, [
+        'account_id' => 8,
+        'amount' => -200,
+        'transaction_type' => 'use',
+        'reason' => 'runtime expiring use',
+        'reference_type' => 'fixture',
+        'reference_id' => 'expiring-use-1',
+        'created_by_account_id' => 99,
+    ]);
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT expires_remaining FROM sr_reward_transactions WHERE id = :id', ['id' => $expiringGrantId]) !== 300) {
+        $errors[] = 'reward expiration runtime fixture must consume the earliest expiring grant remaining amount.';
+    }
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT amount FROM sr_reward_expiration_consumptions WHERE consume_transaction_id = :id', ['id' => $expiringUseId]) !== 200) {
+        $errors[] = 'reward expiration runtime fixture must record consumption mapping for negative transactions.';
+    }
+
+    $dueGrantId = sr_reward_create_transaction($pdo, [
+        'account_id' => 9,
+        'amount' => 400,
+        'transaction_type' => 'grant',
+        'reason' => 'runtime due grant',
+        'reference_type' => 'fixture',
+        'reference_id' => 'due-grant-1',
+        'created_by_account_id' => 99,
+        'expires_at' => '2026-06-13 12:00:00',
+    ]);
+    $expirationResult = sr_reward_expire_due_account_transactions($pdo, 9, 10, '2026-06-14 12:00:00');
+    if ((int) ($expirationResult['expired_count'] ?? 0) !== 1 || (int) ($expirationResult['expired_amount'] ?? 0) !== 400) {
+        $errors[] = 'reward expiration runtime fixture must expire due grant remaining amounts.';
+    }
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT balance FROM sr_reward_balances WHERE account_id = 9') !== 0) {
+        $errors[] = 'reward expiration runtime fixture must subtract expired rewards from balance.';
+    }
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT expires_remaining FROM sr_reward_transactions WHERE id = :id', ['id' => $dueGrantId]) !== 0) {
+        $errors[] = 'reward expiration runtime fixture must close expired source remaining amount.';
+    }
+    if ((string) sr_reward_abuse_runtime_scalar($pdo, 'SELECT reference_type FROM sr_reward_transactions WHERE account_id = 9 AND transaction_type = \'expire\' ORDER BY id DESC LIMIT 1') !== 'reward_expiration') {
+        $errors[] = 'reward expiration runtime fixture must create a linked expiration transaction.';
+    }
+    $secondExpirationResult = sr_reward_expire_due_account_transactions($pdo, 9, 10, '2026-06-14 12:00:00');
+    if ((int) ($secondExpirationResult['expired_count'] ?? 0) !== 0 || (int) ($secondExpirationResult['expired_amount'] ?? 0) !== 0) {
+        $errors[] = 'reward expiration runtime fixture must not expire the same grant twice.';
+    }
 
     $withdrawalRequestId = sr_reward_create_withdrawal_request($pdo, 7, [
         'amount' => 3000,
@@ -296,6 +353,9 @@ function sr_reward_abuse_runtime_check(): void
         'reference_id' => 'deposit-1',
         'created_by_account_id' => 99,
     ]);
+    if (!sr_deposit_account_can_request_refund($pdo, 7)) {
+        $errors[] = 'deposit refund runtime fixture must treat an empty normalized group list as all logged-in members.';
+    }
     $requestId = sr_deposit_create_refund_request($pdo, 7, [
         'amount' => 6000,
         'bank_name' => 'Bank',
