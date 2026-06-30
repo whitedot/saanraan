@@ -1487,33 +1487,3 @@ function sr_quiz_content_quizzes(PDO $pdo, int $contentId): array
 
     return $stmt->fetchAll();
 }
-
-function sr_quiz_community_post_quizzes(PDO $pdo, int $postId): array
-{
-    if ($postId < 1) {
-        return [];
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT q.id, q.quiz_key, q.title, q.description, q.member_group_keys_json, s.cta_label
-         FROM sr_quiz_sources s
-         INNER JOIN sr_quiz_sets q ON q.id = s.quiz_id
-         WHERE s.source_module = \'community\'
-           AND s.source_type = \'community_post\'
-           AND s.source_id = :post_id
-           AND s.status = \'active\'
-           AND q.status = \'active\'
-           AND q.deleted_at IS NULL
-           AND (q.starts_at IS NULL OR q.starts_at <= :now_start)
-           AND (q.ends_at IS NULL OR q.ends_at >= :now_end)
-         ORDER BY s.sort_order ASC, q.updated_at DESC, q.id DESC'
-    );
-    $now = sr_now();
-    $stmt->execute([
-        'post_id' => $postId,
-        'now_start' => $now,
-        'now_end' => $now,
-    ]);
-
-    return $stmt->fetchAll();
-}

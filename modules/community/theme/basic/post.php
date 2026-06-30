@@ -36,7 +36,6 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
         '/modules/banner/assets/module.css',
         '/modules/popup_layer/assets/module.css',
-        sr_public_layout_module_theme_asset_url('quiz', 'basic', 'module.css'),
         '/modules/reaction/assets/module.css',
     ], sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
 ]);
@@ -305,17 +304,6 @@ unset($_SESSION['sr_member_follow_feedback']);
             </div>
             <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
                 <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
-            <?php } ?>
-
-            <?php if (is_array($communityQuizQuizzes ?? null) && $communityQuizQuizzes !== []) { ?>
-                <?php
-                $sourceQuizzes = $communityQuizQuizzes;
-                $sourceModule = 'community';
-                $sourceType = 'community_post';
-                $sourceId = (int) $post['id'];
-                $returnTo = '/community/post?id=' . rawurlencode((string) (int) $post['id']);
-                include SR_ROOT . '/modules/quiz/views/source-quizzes.php';
-                ?>
             <?php } ?>
 
             <?php if ($fileAttachments !== []) { ?>

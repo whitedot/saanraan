@@ -13,7 +13,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
     'stylesheets' => array_merge([
         '/modules/banner/assets/module.css',
         '/modules/popup_layer/assets/module.css',
-        sr_public_layout_module_theme_asset_url('quiz', 'basic', 'module.css'),
         '/modules/reaction/assets/module.css',
     ], sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
 ]));

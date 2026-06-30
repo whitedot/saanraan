@@ -31,18 +31,6 @@
     border: 0;
 }
 
-.sr-quiz-source-links {
-    display: grid;
-    gap: 12px;
-    margin: 24px 0;
-}
-
-.sr-quiz-source-link {
-    padding: 16px;
-    border: 0;
-    border-radius: var(--radius);
-}
-
 .sr-quiz-preview-notice {
     margin: 16px 0;
     padding: 14px 16px;
