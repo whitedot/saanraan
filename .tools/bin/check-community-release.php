@@ -731,7 +731,7 @@ sr_community_release_file_contains('modules/community/helpers/posts-extra-fields
     'function sr_community_sync_group_board_field_definitions',
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');
-sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
+sr_community_release_file_contains('modules/community/helpers/admin-boards.php', [
     '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
     '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
 ], 'Community admin board extra field definition validation');
@@ -845,6 +845,8 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     '$allowedReadPolicies = sr_community_policy_values(\'read\')',
     '$allowedWritePolicies = sr_community_policy_values(\'write\')',
     '$allowedCommentPolicies = sr_community_policy_values(\'comment\')',
+], 'Community admin board action policy setup');
+sr_community_release_file_contains('modules/community/helpers/admin-boards.php', [
     'sr_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
     'sr_admin_post_int_in_range(\'write_min_level\', 0, $maxLevel)',
     'sr_admin_post_int_in_range(\'comment_min_level\', 0, $maxLevel)',
@@ -854,7 +856,7 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     'sr_community_set_board_setting($pdo, $boardId, \'file_allowed_extensions\', implode(\',\', $fileAllowedExtensions), \'string\')',
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
-], 'Community admin board policy');
+], 'Community admin board save policy');
 sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     'data-community-extra-fields-builder',
     'data-community-extra-field-modal',

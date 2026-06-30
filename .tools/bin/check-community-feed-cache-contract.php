@@ -507,7 +507,7 @@ sr_check_community_feed_cache_contract_contains('modules/community/views/admin-b
     '게시판 목록 밖에서 모아 보여 주는 피드 후보',
 ]);
 
-sr_check_community_feed_cache_contract_contains('modules/community/actions/admin-boards.php', [
+sr_check_community_feed_cache_contract_contains('modules/community/helpers/admin-boards.php', [
     'sr_community_feed_cache_mark_all_stale($pdo, \'board_settings_changed\')',
 ]);
 

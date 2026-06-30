@@ -2,6 +2,77 @@
 
 declare(strict_types=1);
 
+function sr_survey_admin_list_state(PDO $pdo): array
+{
+    $listStatus = sr_survey_clean_key(sr_get_string('status', 30), 30);
+    if ($listStatus !== '' && !in_array($listStatus, sr_survey_statuses(), true)) {
+        $listStatus = '';
+    }
+    $listAvailability = sr_survey_clean_key(sr_get_string('availability', 30), 30);
+    if (!in_array($listAvailability, ['open', 'closed'], true)) {
+        $listAvailability = '';
+    }
+    $listKeyword = sr_survey_clean_single_line(sr_get_string('q', 120), 120);
+    $listWhere = ['s.deleted_at IS NULL'];
+    $listParams = [];
+    if ($listStatus !== '') {
+        $listWhere[] = 's.status = :status';
+        $listParams['status'] = $listStatus;
+    }
+    if ($listAvailability === 'open') {
+        $listParams['now_start'] = sr_now();
+        $listParams['now_end'] = sr_now();
+        $listWhere[] = "s.status = 'active'";
+        $listWhere[] = '(s.starts_at IS NULL OR s.starts_at <= :now_start)';
+        $listWhere[] = '(s.ends_at IS NULL OR s.ends_at >= :now_end)';
+    } elseif ($listAvailability === 'closed') {
+        $listParams['now_start'] = sr_now();
+        $listParams['now_end'] = sr_now();
+        $listWhere[] = "(s.status <> 'active' OR (s.starts_at IS NOT NULL AND s.starts_at > :now_start) OR (s.ends_at IS NOT NULL AND s.ends_at < :now_end))";
+    }
+    if ($listKeyword !== '') {
+        $listWhere[] = '(s.survey_key LIKE :keyword OR s.title LIKE :keyword OR s.description LIKE :keyword)';
+        $listParams['keyword'] = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $listKeyword) . '%';
+    }
+
+    $surveyStatusOptions = [];
+    foreach (sr_survey_statuses() as $statusKey) {
+        $surveyStatusOptions[$statusKey] = sr_survey_status_label($statusKey);
+    }
+    $surveySortOptions = sr_survey_admin_survey_sort_options();
+    $surveyDefaultSort = sr_survey_admin_survey_default_sort();
+    $surveySort = sr_admin_sort_from_request($surveySortOptions, $surveyDefaultSort);
+    $surveyOrderSql = sr_admin_sort_order_sql($surveySortOptions, $surveySort, $surveyDefaultSort);
+    if ($surveyOrderSql === '') {
+        $surveyOrderSql = ' ORDER BY s.updated_at DESC, s.id DESC';
+    } else {
+        $surveyOrderSql .= ', s.id DESC';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
+         FROM sr_survey_forms s
+         LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
+         WHERE ' . implode(' AND ', $listWhere) . '
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at
+         ' . $surveyOrderSql . '
+         LIMIT 200'
+    );
+    $stmt->execute($listParams);
+
+    return [
+        'list_status' => $listStatus,
+        'list_availability' => $listAvailability,
+        'list_keyword' => $listKeyword,
+        'filter_open' => $listStatus !== '' || $listAvailability !== '',
+        'status_options' => $surveyStatusOptions,
+        'sort_options' => $surveySortOptions,
+        'default_sort' => $surveyDefaultSort,
+        'sort' => $surveySort,
+        'surveys' => $stmt->fetchAll(),
+    ];
+}
+
 function sr_survey_replace_questions(PDO $pdo, int $surveyId, array $questions, string $now): void
 {
     $oldStmt = $pdo->prepare('SELECT id FROM sr_survey_questions WHERE survey_id = :survey_id');
@@ -177,4 +248,481 @@ function sr_survey_replace_reward_policy(PDO $pdo, int $surveyId, bool $enabled,
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+}
+
+function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $assetOptions, array $enabledMemberGroupKeys): void
+{
+    $errors = [];
+    $surveyId = (int) sr_post_string('survey_id', 20);
+    $surveyKey = sr_survey_clean_key(sr_post_string('survey_key', 64), 64);
+    $title = sr_survey_clean_single_line(sr_post_string('title', 190), 190);
+    $description = sr_survey_clean_text(sr_post_string('description', 2000), 2000);
+    $coverImageUrl = sr_survey_clean_cover_image_url(sr_post_string('cover_image_url', 255));
+    $skinKey = sr_survey_optional_option_key_from_post(sr_post_string('skin_key', 40), sr_survey_skin_options());
+    $researchPurpose = sr_survey_clean_text(sr_post_string('research_purpose', 4000), 4000);
+    $targetPopulation = sr_survey_clean_text(sr_post_string('target_population', 2000), 2000);
+    $recruitmentMethod = sr_survey_clean_text(sr_post_string('recruitment_method', 2000), 2000);
+    $projectBrief = sr_survey_clean_text(sr_post_string('project_brief', 4000), 4000);
+    $sponsorName = sr_survey_clean_single_line(sr_post_string('sponsor_name', 190), 190);
+    $researchRegion = sr_survey_clean_single_line(sr_post_string('research_region', 120), 120);
+    $researchLanguage = sr_survey_clean_single_line(sr_post_string('research_language', 60), 60);
+    $fieldworkMethod = sr_survey_clean_single_line(sr_post_string('fieldwork_method', 120), 120);
+    $sampleFrame = sr_survey_clean_text(sr_post_string('sample_frame', 3000), 3000);
+    $sampleMethod = sr_survey_clean_single_line(sr_post_string('sample_method', 190), 190);
+    $targetSampleSizeInput = trim(sr_post_string('target_sample_size', 20));
+    $targetSampleSize = $targetSampleSizeInput === '' ? null : max(0, (int) $targetSampleSizeInput);
+    $quotaPolicy = sr_survey_clean_text(sr_post_string('quota_policy', 3000), 3000);
+    $responseRateBasis = sr_survey_clean_text(sr_post_string('response_rate_basis', 3000), 3000);
+    $analysisPlan = sr_survey_clean_text(sr_post_string('analysis_plan', 4000), 4000);
+    $weightingPolicy = sr_survey_clean_text(sr_post_string('weighting_policy', 3000), 3000);
+    $marginErrorNote = sr_survey_clean_text(sr_post_string('margin_error_note', 2000), 2000);
+    $methodologyDisclosure = sr_survey_clean_text(sr_post_string('methodology_disclosure', 4000), 4000);
+    $ethicsNote = sr_survey_clean_text(sr_post_string('ethics_note', 4000), 4000);
+    $sensitiveDataPolicy = sr_survey_clean_text(sr_post_string('sensitive_data_policy', 3000), 3000);
+    $recontactPolicy = sr_survey_clean_text(sr_post_string('recontact_policy', 3000), 3000);
+    $withdrawalPolicy = sr_survey_clean_text(sr_post_string('withdrawal_policy', 3000), 3000);
+    $vendorName = sr_survey_clean_single_line(sr_post_string('vendor_name', 190), 190);
+    $externalChannelPolicy = sr_survey_clean_text(sr_post_string('external_channel_policy', 3000), 3000);
+    $inviteTokenPolicy = sr_survey_clean_text(sr_post_string('invite_token_policy', 3000), 3000);
+    $qaStatus = sr_survey_clean_key(sr_post_string('qa_status', 30), 30);
+    if (!in_array($qaStatus, sr_survey_qa_statuses(), true)) {
+        $qaStatus = 'unchecked';
+    }
+    $qaNote = sr_survey_clean_text(sr_post_string('qa_note', 3000), 3000);
+    $revisionLocked = ($_POST['revision_locked'] ?? '') === '1';
+    $estimatedMinutes = max(0, min(10080, (int) sr_post_string('estimated_minutes', 20)));
+    $organizerName = sr_survey_clean_single_line(sr_post_string('organizer_name', 120), 120);
+    $contactText = sr_survey_clean_single_line(sr_post_string('contact_text', 190), 190);
+    $consentRequired = ($_POST['consent_required'] ?? '') === '1';
+    $consentText = sr_survey_clean_text(sr_post_string('consent_text', 4000), 4000);
+    $privacyNotice = sr_survey_clean_text(sr_post_string('privacy_notice', 4000), 4000);
+    $anonymousAllowed = ($_POST['anonymous_allowed'] ?? '') === '1';
+    $loginRequired = ($_POST['login_required'] ?? '') === '1';
+    $publicListed = ($_POST['public_listed'] ?? '') === '1';
+    $robotsPolicy = sr_survey_clean_key(sr_post_string('robots_policy', 30), 30);
+    if (!in_array($robotsPolicy, ['auto', 'index', 'noindex'], true)) {
+        $robotsPolicy = 'auto';
+    }
+    $status = sr_post_string('status', 20);
+    $startsAtInput = sr_post_string('starts_at', 30);
+    $endsAtInput = sr_post_string('ends_at', 30);
+    $startsAt = sr_survey_clean_admin_datetime($startsAtInput);
+    $endsAt = sr_survey_clean_admin_datetime($endsAtInput);
+    $responseLimitPolicy = sr_survey_clean_key(sr_post_string('response_limit_policy', 30), 30);
+    if (!in_array($responseLimitPolicy, sr_survey_response_limit_policies(), true)) {
+        $responseLimitPolicy = 'per_survey_once';
+    }
+    $responseLimitPeriodSeconds = max(0, (int) sr_post_string('response_limit_period_seconds', 20));
+    $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
+    $commentsEnabled = ($_POST['comments_enabled'] ?? '') === '1';
+    $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+    $reactionPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
+    $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+    $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
+    $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
+    $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
+    $rewardCouponDefinitionId = (int) sr_post_string('reward_coupon_definition_id', 20);
+    $rewardAmount = (int) sr_post_string('reward_amount', 20);
+    $rewardDedupeScope = sr_survey_clean_key(sr_post_string('reward_dedupe_scope', 20), 20);
+    $existingSurveyForSave = $surveyId > 0 ? sr_survey_by_id($pdo, $surveyId) : null;
+    $beforeCoverImageUrl = is_array($existingSurveyForSave) ? sr_survey_clean_cover_image_url((string) ($existingSurveyForSave['cover_image_url'] ?? '')) : '';
+    if (sr_post_string('cover_image_delete', 1) === '1') {
+        $coverImageUrl = '';
+    }
+    $uploadedCoverImage = null;
+    $coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
+    if (sr_survey_cover_image_upload_was_provided($coverImageUploadFile)) {
+        if (!is_array($coverImageUploadFile)) {
+            $errors[] = '커버 이미지 업로드 값을 확인하세요.';
+        } else {
+            try {
+                $uploadedCoverImage = sr_survey_upload_cover_image($coverImageUploadFile);
+                if (is_array($uploadedCoverImage)) {
+                    $coverImageUrl = (string) $uploadedCoverImage['url'];
+                }
+            } catch (Throwable $exception) {
+                $errors[] = $exception instanceof RuntimeException ? (string) $exception->getMessage() : '커버 이미지 업로드 중 오류가 발생했습니다.';
+            }
+        }
+    }
+
+    if (!sr_survey_key_is_valid($surveyKey)) {
+        $errors[] = '설문 Key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+    } elseif (sr_survey_key_is_reserved($surveyKey)) {
+        $errors[] = '예약된 설문 Key입니다.';
+    } else {
+        $stmt = $pdo->prepare('SELECT id FROM sr_survey_forms WHERE survey_key = :survey_key AND id <> :id LIMIT 1');
+        $stmt->execute(['survey_key' => $surveyKey, 'id' => $surveyId]);
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 사용 중인 설문 Key입니다.';
+        }
+    }
+    if ($title === '') {
+        $errors[] = '설문 제목을 입력하세요.';
+    }
+    if ($skinKey !== '' && !isset(sr_survey_skin_options()[$skinKey])) {
+        $errors[] = '설문 스킨 값이 올바르지 않습니다.';
+    }
+    if ($surveyId > 0 && !is_array($existingSurveyForSave)) {
+        $errors[] = '수정할 설문을 찾을 수 없습니다.';
+    }
+    if (!in_array($status, sr_survey_statuses(), true)) {
+        $errors[] = '상태 값이 올바르지 않습니다.';
+    }
+    if (trim($startsAtInput) !== '' && $startsAt === null) {
+        $errors[] = '공개 시작일시 형식이 올바르지 않습니다.';
+    }
+    if (trim($endsAtInput) !== '' && $endsAt === null) {
+        $errors[] = '공개 종료일시 형식이 올바르지 않습니다.';
+    }
+    if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
+        $errors[] = '공개 종료일시는 시작일시 이후여야 합니다.';
+    }
+    if ($consentRequired && $consentText === '') {
+        $errors[] = '참여 동의가 필수이면 동의 문구를 입력해야 합니다.';
+    }
+    if (!$loginRequired && !$anonymousAllowed) {
+        $errors[] = '로그인이 필요 없으면 익명 응답 허용을 함께 켜야 합니다.';
+    }
+    if ($rewardEnabled && !$loginRequired) {
+        $errors[] = '참여 보상은 로그인 필요 설문에서만 사용할 수 있습니다.';
+    }
+    if ($memberGroupKeys !== [] && !$loginRequired) {
+        $errors[] = '회원 그룹 제한 설문은 로그인 필요 상태에서만 저장할 수 있습니다.';
+    }
+    foreach ($memberGroupKeys as $memberGroupKey) {
+        if (empty($enabledMemberGroupKeys[$memberGroupKey])) {
+            $errors[] = '참여 대상 회원 그룹을 확인하세요: ' . $memberGroupKey;
+        }
+    }
+    if ($responseLimitPolicy === 'per_period' && $responseLimitPeriodSeconds < 1) {
+        $errors[] = '기간당 1회 제한은 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    if ($rewardEnabled) {
+        if (!in_array($rewardProvider, sr_survey_reward_providers(), true)) {
+            $errors[] = '보상 공급자 값이 올바르지 않습니다.';
+        }
+        if (!in_array($rewardDedupeScope, sr_survey_reward_dedupe_scopes(), true)) {
+            $errors[] = '보상 중복 기준 값이 올바르지 않습니다.';
+        }
+        if ($rewardProvider === 'ledger_asset') {
+            if ($rewardModule === '' || !isset($assetOptions[$rewardModule])) {
+                $errors[] = '보상 자산을 선택하세요.';
+            }
+            if ($rewardAmount < 1) {
+                $errors[] = '보상 금액은 1 이상이어야 합니다.';
+            }
+        } elseif ($rewardProvider === 'coupon' && !sr_survey_coupon_definition_is_available($pdo, $rewardCouponDefinitionId)) {
+            $errors[] = '보상으로 사용할 수 있는 쿠폰을 선택하세요.';
+        }
+    }
+
+    $questions = [];
+    $questionKeys = $_POST['question_key'] ?? [];
+    $questionTypes = $_POST['question_type'] ?? [];
+    $questionPrompts = $_POST['question_prompt'] ?? [];
+    $questionAnalysisNotes = $_POST['question_analysis_note'] ?? [];
+    $questionRequired = $_POST['question_required'] ?? [];
+    $questionMinChoices = $_POST['question_min_choices'] ?? [];
+    $questionMaxChoices = $_POST['question_max_choices'] ?? [];
+    $questionScalePoints = $_POST['question_scale_points'] ?? [];
+    $questionScaleMinLabels = $_POST['question_scale_min_label'] ?? [];
+    $questionScaleMaxLabels = $_POST['question_scale_max_label'] ?? [];
+    $questionNumberUnits = $_POST['question_number_unit'] ?? [];
+    $questionNumberMins = $_POST['question_number_min'] ?? [];
+    $questionNumberMaxes = $_POST['question_number_max'] ?? [];
+    $questionAllowDecimal = $_POST['question_allow_decimal'] ?? [];
+    $questionAllowOther = $_POST['question_allow_other'] ?? [];
+    $questionNonresponsePolicies = $_POST['question_nonresponse_policy'] ?? [];
+    $choiceLabels = $_POST['choice_labels'] ?? [];
+    if (is_array($questionKeys)) {
+        foreach ($questionKeys as $index => $questionKeyValue) {
+            $questionKey = sr_survey_clean_key((string) $questionKeyValue, 64);
+            $questionType = is_array($questionTypes) ? (string) ($questionTypes[$index] ?? 'single_choice') : 'single_choice';
+            $prompt = is_array($questionPrompts) ? sr_survey_clean_text((string) ($questionPrompts[$index] ?? ''), 2000) : '';
+            $analysisNote = is_array($questionAnalysisNotes) ? sr_survey_clean_text((string) ($questionAnalysisNotes[$index] ?? ''), 2000) : '';
+            if ($questionKey === '' && $prompt === '') {
+                continue;
+            }
+            if ($questionKey === '') {
+                $questionKey = 'q' . (string) ((int) $index + 1);
+            }
+            $labelsText = is_array($choiceLabels) ? (string) ($choiceLabels[$index] ?? '') : '';
+            $choices = [];
+            foreach (preg_split('/\r\n|\r|\n/', $labelsText) ?: [] as $choiceIndex => $label) {
+                $label = sr_survey_clean_single_line((string) $label, 255);
+                if ($label !== '') {
+                    $choices[] = ['choice_key' => 'c' . (string) ((int) $choiceIndex + 1), 'label' => $label];
+                }
+            }
+            $questions[] = [
+                'question_key' => $questionKey,
+                'question_type' => in_array($questionType, sr_survey_question_types(), true) ? $questionType : 'single_choice',
+                'prompt' => $prompt,
+                'analysis_note' => $analysisNote,
+                'required' => is_array($questionRequired) && in_array((string) $index, array_map('strval', $questionRequired), true) ? 1 : 0,
+                'min_choices' => is_array($questionMinChoices) && trim((string) ($questionMinChoices[$index] ?? '')) !== '' ? max(0, (int) $questionMinChoices[$index]) : null,
+                'max_choices' => is_array($questionMaxChoices) && trim((string) ($questionMaxChoices[$index] ?? '')) !== '' ? max(0, (int) $questionMaxChoices[$index]) : null,
+                'scale_points' => is_array($questionScalePoints) && trim((string) ($questionScalePoints[$index] ?? '')) !== '' ? max(2, min(11, (int) $questionScalePoints[$index])) : null,
+                'scale_min_label' => is_array($questionScaleMinLabels) ? sr_survey_clean_single_line((string) ($questionScaleMinLabels[$index] ?? ''), 120) : '',
+                'scale_max_label' => is_array($questionScaleMaxLabels) ? sr_survey_clean_single_line((string) ($questionScaleMaxLabels[$index] ?? ''), 120) : '',
+                'number_unit' => is_array($questionNumberUnits) ? sr_survey_clean_single_line((string) ($questionNumberUnits[$index] ?? ''), 60) : '',
+                'number_min' => is_array($questionNumberMins) && trim((string) ($questionNumberMins[$index] ?? '')) !== '' && is_numeric((string) $questionNumberMins[$index]) ? (string) $questionNumberMins[$index] : null,
+                'number_max' => is_array($questionNumberMaxes) && trim((string) ($questionNumberMaxes[$index] ?? '')) !== '' && is_numeric((string) $questionNumberMaxes[$index]) ? (string) $questionNumberMaxes[$index] : null,
+                'allow_decimal' => is_array($questionAllowDecimal) && in_array((string) $index, array_map('strval', $questionAllowDecimal), true) ? 1 : 0,
+                'allow_other' => is_array($questionAllowOther) && in_array((string) $index, array_map('strval', $questionAllowOther), true) ? 1 : 0,
+                'nonresponse_policy' => is_array($questionNonresponsePolicies) ? sr_survey_clean_key((string) ($questionNonresponsePolicies[$index] ?? 'none'), 30) : 'none',
+                'choices' => $choices,
+            ];
+        }
+    }
+    if ($questions === []) {
+        $errors[] = '문항을 1개 이상 입력하세요.';
+    }
+    foreach ($questions as $index => $question) {
+        if (!sr_survey_key_is_valid((string) $question['question_key'])) {
+            $errors[] = '문항 ' . (string) ($index + 1) . '의 Key가 올바르지 않습니다.';
+        }
+        if ((string) $question['prompt'] === '') {
+            $errors[] = '문항 ' . (string) ($index + 1) . '의 내용을 입력하세요.';
+        }
+        if (in_array((string) $question['question_type'], ['single_choice', 'multiple_choice'], true) && count((array) $question['choices']) < 2) {
+            $errors[] = '선택형 문항 ' . (string) ($index + 1) . '에는 선택지를 2개 이상 입력하세요.';
+        }
+        if ((string) $question['question_type'] === 'multiple_choice' && $question['min_choices'] !== null && $question['max_choices'] !== null && (int) $question['min_choices'] > (int) $question['max_choices']) {
+            $errors[] = '복수 선택 문항 ' . (string) ($index + 1) . '의 최대 선택 수는 최소 선택 수 이상이어야 합니다.';
+        }
+        if (in_array((string) $question['question_type'], ['number', 'rating', 'scale'], true) && $question['number_min'] !== null && $question['number_max'] !== null && (float) $question['number_min'] > (float) $question['number_max']) {
+            $errors[] = '숫자/척도 문항 ' . (string) ($index + 1) . '의 최대값은 최소값 이상이어야 합니다.';
+        }
+    }
+    if (is_array($existingSurveyForSave) && (int) ($existingSurveyForSave['revision_locked'] ?? 0) === 1) {
+        $existingQuestionSignature = sr_survey_admin_question_signature(sr_survey_questions_with_choices($pdo, $surveyId));
+        $postedQuestionSignature = sr_survey_admin_question_signature($questions);
+        if ($existingQuestionSignature !== $postedQuestionSignature) {
+            $errors[] = '설문지 잠금 상태에서는 문항을 수정할 수 없습니다.';
+        }
+    }
+
+    if ($errors === []) {
+        $now = sr_now();
+        $pdo->beginTransaction();
+        try {
+            if ($surveyId > 0) {
+                $existingSurvey = is_array($existingSurveyForSave) ? $existingSurveyForSave : sr_survey_by_id($pdo, $surveyId);
+                $nextQuestionnaireVersion = max(1, (int) ($existingSurvey['questionnaire_version'] ?? 1)) + 1;
+                $pdo->prepare(
+                    'UPDATE sr_survey_forms
+                     SET survey_key = :survey_key, title = :title, description = :description,
+                         cover_image_url = :cover_image_url,
+                         skin_key = :skin_key,
+                         research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
+                         project_brief = :project_brief, sponsor_name = :sponsor_name, research_region = :research_region, research_language = :research_language,
+                         fieldwork_method = :fieldwork_method, sample_frame = :sample_frame, sample_method = :sample_method, target_sample_size = :target_sample_size,
+                         quota_policy = :quota_policy, response_rate_basis = :response_rate_basis, analysis_plan = :analysis_plan, weighting_policy = :weighting_policy,
+                         margin_error_note = :margin_error_note, methodology_disclosure = :methodology_disclosure, ethics_note = :ethics_note,
+                         sensitive_data_policy = :sensitive_data_policy, recontact_policy = :recontact_policy, withdrawal_policy = :withdrawal_policy,
+                         vendor_name = :vendor_name, external_channel_policy = :external_channel_policy, invite_token_policy = :invite_token_policy,
+                         qa_status = :qa_status, qa_note = :qa_note, questionnaire_version = :questionnaire_version, revision_locked = :revision_locked,
+                         estimated_minutes = :estimated_minutes, organizer_name = :organizer_name, contact_text = :contact_text,
+                         consent_required = :consent_required, consent_text = :consent_text, privacy_notice = :privacy_notice,
+                         anonymous_allowed = :anonymous_allowed, login_required = :login_required, public_listed = :public_listed, robots_policy = :robots_policy,
+                         status = :status, starts_at = :starts_at, ends_at = :ends_at,
+                         response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds, member_group_keys_json = :member_group_keys_json,
+                         comments_enabled = :comments_enabled, secret_comments_enabled = :secret_comments_enabled,
+                         reaction_preset_key = :reaction_preset_key, reaction_comment_preset_key = :reaction_comment_preset_key,
+                         reward_enabled = :reward_enabled,
+                         updated_by_account_id = :updated_by_account_id, updated_at = :updated_at
+                     WHERE id = :id AND deleted_at IS NULL'
+                )->execute([
+                    'survey_key' => $surveyKey,
+                    'title' => $title,
+                    'description' => $description,
+                    'cover_image_url' => $coverImageUrl,
+                    'skin_key' => $skinKey,
+                    'research_purpose' => $researchPurpose,
+                    'target_population' => $targetPopulation,
+                    'recruitment_method' => $recruitmentMethod,
+                    'project_brief' => $projectBrief,
+                    'sponsor_name' => $sponsorName,
+                    'research_region' => $researchRegion,
+                    'research_language' => $researchLanguage,
+                    'fieldwork_method' => $fieldworkMethod,
+                    'sample_frame' => $sampleFrame,
+                    'sample_method' => $sampleMethod,
+                    'target_sample_size' => $targetSampleSize,
+                    'quota_policy' => $quotaPolicy,
+                    'response_rate_basis' => $responseRateBasis,
+                    'analysis_plan' => $analysisPlan,
+                    'weighting_policy' => $weightingPolicy,
+                    'margin_error_note' => $marginErrorNote,
+                    'methodology_disclosure' => $methodologyDisclosure,
+                    'ethics_note' => $ethicsNote,
+                    'sensitive_data_policy' => $sensitiveDataPolicy,
+                    'recontact_policy' => $recontactPolicy,
+                    'withdrawal_policy' => $withdrawalPolicy,
+                    'vendor_name' => $vendorName,
+                    'external_channel_policy' => $externalChannelPolicy,
+                    'invite_token_policy' => $inviteTokenPolicy,
+                    'qa_status' => $qaStatus,
+                    'qa_note' => $qaNote,
+                    'questionnaire_version' => $nextQuestionnaireVersion,
+                    'revision_locked' => $revisionLocked ? 1 : 0,
+                    'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
+                    'organizer_name' => $organizerName,
+                    'contact_text' => $contactText,
+                    'consent_required' => $consentRequired ? 1 : 0,
+                    'consent_text' => $consentText,
+                    'privacy_notice' => $privacyNotice,
+                    'anonymous_allowed' => $anonymousAllowed ? 1 : 0,
+                    'login_required' => $loginRequired ? 1 : 0,
+                    'public_listed' => $publicListed ? 1 : 0,
+                    'robots_policy' => $robotsPolicy,
+                    'status' => $status,
+                    'starts_at' => $startsAt,
+                    'ends_at' => $endsAt,
+                    'response_limit_policy' => $responseLimitPolicy,
+                    'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
+                    'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
+                    'comments_enabled' => $commentsEnabled ? 1 : 0,
+                    'secret_comments_enabled' => $secretCommentsEnabled ? 1 : 0,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
+                    'reward_enabled' => $rewardEnabled ? 1 : 0,
+                    'updated_by_account_id' => (int) ($account['id'] ?? 0),
+                    'updated_at' => $now,
+                    'id' => $surveyId,
+                ]);
+            } else {
+                $pdo->prepare(
+                    'INSERT INTO sr_survey_forms
+                        (survey_key, title, description, cover_image_url, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
+                         project_brief, sponsor_name, research_region, research_language, fieldwork_method, sample_frame, sample_method, target_sample_size,
+                         quota_policy, response_rate_basis, analysis_plan, weighting_policy, margin_error_note, methodology_disclosure, ethics_note,
+                         sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
+                         qa_status, qa_note, questionnaire_version, revision_locked,
+                         organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
+                         created_by_account_id, updated_by_account_id, created_at, updated_at)
+                     VALUES
+                        (:survey_key, :title, :description, :cover_image_url, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                         :project_brief, :sponsor_name, :research_region, :research_language, :fieldwork_method, :sample_frame, :sample_method, :target_sample_size,
+                         :quota_policy, :response_rate_basis, :analysis_plan, :weighting_policy, :margin_error_note, :methodology_disclosure, :ethics_note,
+                         :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
+                         :qa_status, :qa_note, 1, :revision_locked,
+                         :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :reward_enabled,
+                         :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
+                )->execute([
+                    'survey_key' => $surveyKey,
+                    'title' => $title,
+                    'description' => $description,
+                    'cover_image_url' => $coverImageUrl,
+                    'skin_key' => $skinKey,
+                    'research_purpose' => $researchPurpose,
+                    'target_population' => $targetPopulation,
+                    'recruitment_method' => $recruitmentMethod,
+                    'project_brief' => $projectBrief,
+                    'sponsor_name' => $sponsorName,
+                    'research_region' => $researchRegion,
+                    'research_language' => $researchLanguage,
+                    'fieldwork_method' => $fieldworkMethod,
+                    'sample_frame' => $sampleFrame,
+                    'sample_method' => $sampleMethod,
+                    'target_sample_size' => $targetSampleSize,
+                    'quota_policy' => $quotaPolicy,
+                    'response_rate_basis' => $responseRateBasis,
+                    'analysis_plan' => $analysisPlan,
+                    'weighting_policy' => $weightingPolicy,
+                    'margin_error_note' => $marginErrorNote,
+                    'methodology_disclosure' => $methodologyDisclosure,
+                    'ethics_note' => $ethicsNote,
+                    'sensitive_data_policy' => $sensitiveDataPolicy,
+                    'recontact_policy' => $recontactPolicy,
+                    'withdrawal_policy' => $withdrawalPolicy,
+                    'vendor_name' => $vendorName,
+                    'external_channel_policy' => $externalChannelPolicy,
+                    'invite_token_policy' => $inviteTokenPolicy,
+                    'qa_status' => $qaStatus,
+                    'qa_note' => $qaNote,
+                    'revision_locked' => $revisionLocked ? 1 : 0,
+                    'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
+                    'organizer_name' => $organizerName,
+                    'contact_text' => $contactText,
+                    'consent_required' => $consentRequired ? 1 : 0,
+                    'consent_text' => $consentText,
+                    'privacy_notice' => $privacyNotice,
+                    'anonymous_allowed' => $anonymousAllowed ? 1 : 0,
+                    'login_required' => $loginRequired ? 1 : 0,
+                    'public_listed' => $publicListed ? 1 : 0,
+                    'robots_policy' => $robotsPolicy,
+                    'status' => $status,
+                    'starts_at' => $startsAt,
+                    'ends_at' => $endsAt,
+                    'response_limit_policy' => $responseLimitPolicy,
+                    'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
+                    'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
+                    'comments_enabled' => $commentsEnabled ? 1 : 0,
+                    'secret_comments_enabled' => $secretCommentsEnabled ? 1 : 0,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
+                    'reward_enabled' => $rewardEnabled ? 1 : 0,
+                    'created_by_account_id' => (int) ($account['id'] ?? 0),
+                    'updated_by_account_id' => (int) ($account['id'] ?? 0),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $surveyId = (int) $pdo->lastInsertId();
+            }
+            sr_survey_replace_questions($pdo, $surveyId, $questions, $now);
+            sr_survey_replace_reward_policy($pdo, $surveyId, $rewardEnabled, $rewardProvider, $rewardModule, $rewardCouponDefinitionId, $rewardAmount, $rewardDedupeScope, $now);
+            $afterCoverImageUrl = sr_survey_clean_cover_image_url($coverImageUrl);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) ($account['id'] ?? 0),
+                'actor_type' => 'admin',
+                'event_type' => 'survey.form.saved',
+                'target_type' => 'survey.form',
+                'target_id' => (string) $surveyId,
+                'result' => 'success',
+                'message' => 'Survey form saved.',
+                'metadata' => [
+                    'survey_key' => $surveyKey,
+                    'status' => $status,
+                    'qa_status' => $qaStatus,
+                    'member_group_keys' => $memberGroupKeys,
+                    'comments_enabled' => $commentsEnabled,
+                    'secret_comments_enabled' => $secretCommentsEnabled,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
+                    'reward_enabled' => $rewardEnabled,
+                    'cover_image_changed' => $beforeCoverImageUrl !== $afterCoverImageUrl,
+                    'cover_image_uploaded' => sr_survey_cover_image_upload_was_provided($coverImageUploadFile),
+                    'cover_image_deleted' => $beforeCoverImageUrl !== '' && $afterCoverImageUrl === '',
+                ],
+            ]);
+            $pdo->commit();
+            sr_url_embed_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
+            if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+                sr_survey_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $surveyId);
+            }
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            if (is_array($uploadedCoverImage)) {
+                sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+            }
+            throw $exception;
+        }
+        sr_admin_flash_result(sr_admin_action_result([], '설문을 저장했습니다.'));
+        sr_redirect('/admin/surveys?mode=edit&id=' . (string) $surveyId);
+    } elseif (is_array($uploadedCoverImage)) {
+        sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+    }
+
+    $redirectPath = $surveyId > 0
+        ? '/admin/surveys?mode=edit&id=' . (string) $surveyId
+        : '/admin/surveys?mode=new';
+    sr_admin_flash_result(sr_admin_action_result($errors, ''));
+    sr_redirect($redirectPath);
 }

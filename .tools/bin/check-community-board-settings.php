@@ -338,7 +338,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts-writ
 sr_check_community_board_settings_contains('modules/community/helpers/posts-comments.php', [
     'sr_community_validate_comment_body_length',
 ], 'community comment runtime setting helpers');
-sr_check_community_board_settings_contains('modules/community/actions/admin-boards.php', array_merge($settingKeys, [
+sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', array_merge($settingKeys, [
     'sr_community_post_body_setting_max_length()',
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',

@@ -842,7 +842,7 @@ sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
     "\$keys[] = \$prefix . '_settlement_currency';",
 ]);
 
-sr_asset_settlement_check_contains('modules/community/actions/admin-boards.php', [
+sr_asset_settlement_check_contains('modules/community/helpers/admin-boards.php', [
     "\$assetSettings[\$assetPrefix . '_settlement_currency'] = sr_community_asset_settlement_currency",
     "\$assetPrefix . '_settlement_currency'",
 ]);

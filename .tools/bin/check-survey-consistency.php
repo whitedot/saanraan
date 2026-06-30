@@ -371,17 +371,21 @@ foreach ([
     'sr_survey_admin_question_signature',
     '설문지 잠금 상태에서는 문항을 수정할 수 없습니다.',
     '수정할 설문을 찾을 수 없습니다.',
-    'name="skin_key"',
     'skin_key = :skin_key',
     'comments_enabled',
     'sr_survey_key_is_reserved',
 ] as $needle) {
     sr_survey_check_contains(
-        'modules/survey/actions/admin-surveys.php',
+        'modules/survey/helpers/admin-surveys.php',
         $needle,
         'Survey admin save/delete validation must remain enforced'
     );
 }
+sr_survey_check_contains(
+    'modules/survey/actions/admin-surveys.php',
+    'name="skin_key"',
+    'Survey admin form must keep individual skin key input'
+);
 foreach (['POST /survey/comment', 'POST /survey/comment/edit', 'POST /survey/comment/delete', 'GET /admin/surveys/comments'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/paths.php',

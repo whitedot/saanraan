@@ -65,7 +65,7 @@ $mustContain('modules/community/helpers/boards.php', [
     'privacy_consent_require_comment',
     'privacy_consent_require_attachment_upload',
 ]);
-$mustContain('modules/community/actions/admin-boards.php', [
+$mustContain('modules/community/helpers/admin-boards.php', [
     'privacy_consent_enabled',
     'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
     'array_key_exists($privacyConsentDocumentSettingKey, $_POST)',

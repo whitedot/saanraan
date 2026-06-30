@@ -117,9 +117,11 @@ sr_view_count_runtime_file_contains('modules/quiz/actions/admin-quiz.php', [
 sr_view_count_runtime_file_contains('modules/survey/helpers.php', [
     "'view_count' => ['columns' => ['s.view_count', 's.id']]",
 ], 'Survey admin list sort');
-sr_view_count_runtime_file_contains('modules/survey/actions/admin-surveys.php', [
+sr_view_count_runtime_file_contains('modules/survey/helpers/admin-surveys.php', [
     's.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at',
     'GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at',
+], 'Survey admin view count query');
+sr_view_count_runtime_file_contains('modules/survey/actions/admin-surveys.php', [
     "sr_admin_sort_header_html('조회수', 'view_count'",
     "number_format((int) (\$survey['view_count'] ?? 0))",
 ], 'Survey admin view count column');
