@@ -18,11 +18,13 @@ return static function (PDO $pdo, int $accountId): array {
     if ($availableAmount < sr_deposit_refund_min_amount()) {
         return [];
     }
+    $displayName = sr_deposit_display_name($pdo);
+    $unitLabel = sr_deposit_unit_label($pdo);
 
     return [
         [
-            'label' => '예치금 환불 신청',
-            'value' => number_format($availableAmount) . '원 가능',
+            'label' => $displayName . ' 환불 신청',
+            'value' => number_format($availableAmount) . $unitLabel . ' 가능',
             'url' => '/account/deposits#deposit-refund-request',
         ],
     ];

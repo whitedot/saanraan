@@ -35,7 +35,13 @@ function sr_member_asset_contract_label(PDO $pdo, string $moduleKey, array $cont
 {
     $labelFunction = (string) ($contract['label_function'] ?? '');
     if ($labelFunction !== '' && function_exists($labelFunction)) {
-        return (string) $labelFunction($pdo);
+        try {
+            $label = trim((string) $labelFunction($pdo));
+            if ($label !== '') {
+                return $label;
+            }
+        } catch (Throwable) {
+        }
     }
 
     $label = trim((string) ($contract['label'] ?? ''));
@@ -46,7 +52,10 @@ function sr_member_asset_contract_unit_label(PDO $pdo, array $contract): string
 {
     $unitFunction = (string) ($contract['unit_function'] ?? '');
     if ($unitFunction !== '' && function_exists($unitFunction)) {
-        return (string) $unitFunction($pdo);
+        try {
+            return (string) $unitFunction($pdo);
+        } catch (Throwable) {
+        }
     }
 
     return (string) ($contract['unit_label'] ?? '');

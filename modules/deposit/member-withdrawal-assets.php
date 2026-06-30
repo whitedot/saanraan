@@ -3,7 +3,9 @@
 return [
     'helpers' => 'helpers.php',
     'label' => '예치금',
+    'label_function' => 'sr_deposit_display_name',
     'unit_label' => '원',
+    'unit_function' => 'sr_deposit_unit_label',
     'available_function' => 'sr_deposit_usage_enabled',
     'balance_table' => 'sr_deposit_balances',
     'transaction_table' => 'sr_deposit_transactions',

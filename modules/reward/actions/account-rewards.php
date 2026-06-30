@@ -7,6 +7,11 @@ require_once SR_ROOT . '/modules/reward/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_member_group_evaluate_account($pdo, (int) $account['id']);
+$rewardDisplayName = sr_reward_display_name($pdo);
+$rewardUnitLabel = sr_reward_unit_label($pdo);
+$rewardAmountLabel = static function (int $amount) use ($rewardUnitLabel): string {
+    return number_format($amount) . $rewardUnitLabel;
+};
 $errors = [];
 $notice = '';
 
@@ -16,9 +21,9 @@ if (sr_request_method() === 'POST') {
 
     if ($intent === 'withdrawal_request') {
         if (!sr_reward_withdrawal_requests_enabled($pdo)) {
-            $errors[] = '현재 적립금 출금 신청을 받지 않습니다.';
+            $errors[] = '현재 ' . $rewardDisplayName . ' 출금 신청을 받지 않습니다.';
         } elseif (!sr_reward_account_can_request_withdrawal($pdo, (int) $account['id'])) {
-            $errors[] = '적립금 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
+            $errors[] = $rewardDisplayName . ' 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
         }
         $amountInput = sr_post_string('amount', 30);
         if (preg_match('/\A\d+\z/', $amountInput) !== 1) {
@@ -26,10 +31,10 @@ if (sr_request_method() === 'POST') {
         }
         $amount = (int) $amountInput;
         if ($amount < sr_reward_withdrawal_min_amount()) {
-            $errors[] = '출금 신청 금액은 최소 ' . number_format(sr_reward_withdrawal_min_amount()) . '원 이상이어야 합니다.';
+            $errors[] = '출금 신청 금액은 최소 ' . $rewardAmountLabel(sr_reward_withdrawal_min_amount()) . ' 이상이어야 합니다.';
         }
         if ($amount > sr_reward_withdrawal_max_amount()) {
-            $errors[] = '출금 신청 금액은 최대 ' . number_format(sr_reward_withdrawal_max_amount()) . '원을 초과할 수 없습니다.';
+            $errors[] = '출금 신청 금액은 최대 ' . $rewardAmountLabel(sr_reward_withdrawal_max_amount()) . '을 초과할 수 없습니다.';
         }
 
         if ($errors === []) {
@@ -51,19 +56,19 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Reward withdrawal request created.',
                     'metadata' => ['amount' => $amount],
                 ]);
-                $_SESSION['sr_reward_flash'] = ['notice' => '적립금 출금 신청을 접수했습니다.', 'errors' => []];
+                $_SESSION['sr_reward_flash'] = ['notice' => $rewardDisplayName . ' 출금 신청을 접수했습니다.', 'errors' => []];
                 sr_redirect('/account/rewards');
             } catch (Throwable $exception) {
                 if ($exception->getMessage() === 'Reward withdrawal amount exceeds available balance.') {
-                    $errors[] = '신청 가능 적립금 잔액을 초과했습니다.';
+                    $errors[] = '신청 가능 ' . $rewardDisplayName . ' 잔액을 초과했습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal bank fields are required.') {
                     $errors[] = '은행명, 계좌번호, 예금주를 모두 입력하세요.';
                 } elseif ($exception->getMessage() === 'Reward usage is disabled.') {
-                    $errors[] = '현재 적립금을 사용하지 않습니다.';
+                    $errors[] = '현재 ' . $rewardDisplayName . '을 사용하지 않습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal requests are disabled.') {
-                    $errors[] = '현재 적립금 출금 신청을 받지 않습니다.';
+                    $errors[] = '현재 ' . $rewardDisplayName . ' 출금 신청을 받지 않습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal account is not in an allowed group.') {
-                    $errors[] = '적립금 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
+                    $errors[] = $rewardDisplayName . ' 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
                 } else {
                     sr_log_exception($exception, 'reward_withdrawal_request_create');
                     $errors[] = '출금 신청 접수 중 오류가 발생했습니다.';
@@ -83,7 +88,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Reward withdrawal request canceled.',
             ]);
-            $_SESSION['sr_reward_flash'] = ['notice' => '적립금 출금 신청을 취소했습니다.', 'errors' => []];
+            $_SESSION['sr_reward_flash'] = ['notice' => $rewardDisplayName . ' 출금 신청을 취소했습니다.', 'errors' => []];
             sr_redirect('/account/rewards');
         } catch (Throwable $exception) {
             $errors[] = '취소할 수 있는 출금 신청을 찾지 못했습니다.';

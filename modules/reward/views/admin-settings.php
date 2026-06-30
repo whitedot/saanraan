@@ -7,6 +7,8 @@ $notificationCases = isset($notificationCases) && is_array($notificationCases) ?
 $notificationCaseSettings = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 $notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
+$rewardDisplayName = (string) ($settings['display_name'] ?? '적립금');
+$rewardUnitLabel = (string) ($settings['unit_label'] ?? '원');
 $allNotificationCasesEnabled = $notificationCases !== [];
 foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
     $notificationCaseKey = (string) $notificationCaseKey;
@@ -83,10 +85,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
         <div class="form-row">
-            <label class="form-label" for="reward_usage_enabled">적립금 사용 여부</label>
+            <label class="form-label" for="reward_display_name">표시명 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="reward_display_name" type="text" name="display_name" value="<?php echo sr_e($rewardDisplayName); ?>" class="form-input" maxlength="40" required>
+                <p class="form-help">관리자와 회원 화면에서 이 항목을 부르는 이름입니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="reward_unit_label">단위</label>
+            <div class="form-field">
+                <input id="reward_unit_label" type="text" name="unit_label" value="<?php echo sr_e($rewardUnitLabel); ?>" class="form-input" maxlength="20">
+                <p class="form-help">금액 뒤에 표시할 짧은 단위입니다. 비워두면 원을 사용합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="reward_usage_enabled"><?php echo sr_e($rewardDisplayName); ?> 사용 여부</label>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('reward_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
-                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 적립금을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 <?php echo sr_e($rewardDisplayName); ?>을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
             </div>
         </div>
     </section>

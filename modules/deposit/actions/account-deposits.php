@@ -6,6 +6,11 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/deposit/helpers.php';
 
 $account = sr_member_require_login($pdo);
+$depositDisplayName = sr_deposit_display_name($pdo);
+$depositUnitLabel = sr_deposit_unit_label($pdo);
+$depositAmountLabel = static function (int $amount) use ($depositUnitLabel): string {
+    return number_format($amount) . $depositUnitLabel;
+};
 $errors = [];
 $notice = '';
 
@@ -20,10 +25,10 @@ if (sr_request_method() === 'POST') {
         }
         $amount = (int) $amountInput;
         if ($amount < sr_deposit_refund_min_amount()) {
-            $errors[] = '환불 신청 금액은 최소 ' . number_format(sr_deposit_refund_min_amount()) . '원 이상이어야 합니다.';
+            $errors[] = '환불 신청 금액은 최소 ' . $depositAmountLabel(sr_deposit_refund_min_amount()) . ' 이상이어야 합니다.';
         }
         if ($amount > sr_deposit_refund_max_amount()) {
-            $errors[] = '환불 신청 금액은 최대 ' . number_format(sr_deposit_refund_max_amount()) . '원을 초과할 수 없습니다.';
+            $errors[] = '환불 신청 금액은 최대 ' . $depositAmountLabel(sr_deposit_refund_max_amount()) . '을 초과할 수 없습니다.';
         }
 
         if ($errors === []) {
@@ -45,19 +50,19 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Deposit refund request created.',
                     'metadata' => ['amount' => $amount],
                 ]);
-                $_SESSION['sr_deposit_flash'] = ['notice' => '예치금 환불 신청을 접수했습니다.', 'errors' => []];
+                $_SESSION['sr_deposit_flash'] = ['notice' => $depositDisplayName . ' 환불 신청을 접수했습니다.', 'errors' => []];
                 sr_redirect('/account/deposits');
             } catch (Throwable $exception) {
                 if ($exception->getMessage() === 'Deposit refund amount exceeds available balance.') {
-                    $errors[] = '신청 가능 예치금 잔액을 초과했습니다.';
+                    $errors[] = '신청 가능 ' . $depositDisplayName . ' 잔액을 초과했습니다.';
                 } elseif ($exception->getMessage() === 'Deposit refund bank fields are required.') {
                     $errors[] = '은행명, 계좌번호, 예금주를 모두 입력하세요.';
                 } elseif ($exception->getMessage() === 'Deposit usage is disabled.') {
-                    $errors[] = '현재 예치금을 사용하지 않습니다.';
+                    $errors[] = '현재 ' . $depositDisplayName . '을 사용하지 않습니다.';
                 } elseif ($exception->getMessage() === 'Deposit refund requests are disabled.') {
-                    $errors[] = '현재 예치금 환불 신청을 받지 않습니다.';
+                    $errors[] = '현재 ' . $depositDisplayName . ' 환불 신청을 받지 않습니다.';
                 } elseif ($exception->getMessage() === 'Deposit refund account is not in an allowed group.') {
-                    $errors[] = '예치금 환불 신청 대상이 아닙니다.';
+                    $errors[] = $depositDisplayName . ' 환불 신청 대상이 아닙니다.';
                 } else {
                     sr_log_exception($exception, 'deposit_refund_request_create');
                     $errors[] = '환불 신청 접수 중 오류가 발생했습니다.';
@@ -77,7 +82,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Deposit refund request canceled.',
             ]);
-            $_SESSION['sr_deposit_flash'] = ['notice' => '예치금 환불 신청을 취소했습니다.', 'errors' => []];
+            $_SESSION['sr_deposit_flash'] = ['notice' => $depositDisplayName . ' 환불 신청을 취소했습니다.', 'errors' => []];
             sr_redirect('/account/deposits');
         } catch (Throwable $exception) {
             $errors[] = '취소할 수 있는 환불 신청을 찾지 못했습니다.';

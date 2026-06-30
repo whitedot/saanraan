@@ -2347,6 +2347,119 @@ function sr_public_layout_member_action_rows(PDO $pdo, int $accountId): array
     return $rows;
 }
 
+function sr_public_layout_member_asset_rows(PDO $pdo, int $accountId): array
+{
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    $rows = [];
+    $assetDefinitions = [
+        'point' => [
+            'helpers' => 'modules/point/helpers.php',
+            'usage_function' => 'sr_point_usage_enabled',
+            'label_function' => 'sr_point_display_name',
+            'unit_function' => 'sr_point_unit_label',
+            'balance_function' => 'sr_point_balance',
+            'fallback_label' => '포인트',
+            'fallback_unit' => 'P',
+            'url' => '/account/points',
+            'icon' => 'database',
+        ],
+        'reward' => [
+            'helpers' => 'modules/reward/helpers.php',
+            'usage_function' => 'sr_reward_usage_enabled',
+            'label_function' => 'sr_reward_display_name',
+            'unit_function' => 'sr_reward_unit_label',
+            'balance_function' => 'sr_reward_balance',
+            'fallback_label' => '적립금',
+            'fallback_unit' => '원',
+            'url' => '/account/rewards',
+            'icon' => 'savings',
+        ],
+        'deposit' => [
+            'helpers' => 'modules/deposit/helpers.php',
+            'usage_function' => 'sr_deposit_usage_enabled',
+            'label_function' => 'sr_deposit_display_name',
+            'unit_function' => 'sr_deposit_unit_label',
+            'balance_function' => 'sr_deposit_balance',
+            'fallback_label' => '예치금',
+            'fallback_unit' => '원',
+            'url' => '/account/deposits',
+            'icon' => 'payments',
+        ],
+    ];
+
+    foreach ($assetDefinitions as $moduleKey => $definition) {
+        if (!sr_module_enabled($pdo, (string) $moduleKey)) {
+            continue;
+        }
+
+        $helperPath = SR_ROOT . '/' . (string) ($definition['helpers'] ?? '');
+        if (!is_file($helperPath)) {
+            continue;
+        }
+        require_once $helperPath;
+
+        $label = (string) ($definition['fallback_label'] ?? $moduleKey);
+        $unit = (string) ($definition['fallback_unit'] ?? '');
+        $balance = 0;
+        try {
+            $usageFunction = (string) ($definition['usage_function'] ?? '');
+            if ($usageFunction !== '' && function_exists($usageFunction) && !$usageFunction($pdo)) {
+                continue;
+            }
+
+            $labelFunction = (string) ($definition['label_function'] ?? '');
+            if ($labelFunction !== '' && function_exists($labelFunction)) {
+                $resolvedLabel = trim((string) $labelFunction($pdo));
+                if ($resolvedLabel !== '') {
+                    $label = $resolvedLabel;
+                }
+            }
+
+            $unitFunction = (string) ($definition['unit_function'] ?? '');
+            if ($unitFunction !== '' && function_exists($unitFunction)) {
+                $unit = (string) $unitFunction($pdo);
+            }
+
+            $balanceFunction = (string) ($definition['balance_function'] ?? '');
+            if ($balanceFunction !== '' && function_exists($balanceFunction)) {
+                $balance = (int) $balanceFunction($pdo, $accountId);
+            }
+        } catch (Throwable $exception) {
+            $label = (string) ($definition['fallback_label'] ?? $moduleKey);
+            $unit = (string) ($definition['fallback_unit'] ?? '');
+            $balance = 0;
+        }
+
+        $rows[] = [
+            'label' => $label,
+            'value' => number_format($balance) . $unit,
+            'url' => sr_url((string) ($definition['url'] ?? '/account')),
+            'icon' => (string) ($definition['icon'] ?? 'account_balance_wallet'),
+        ];
+    }
+
+    if (sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        require_once SR_ROOT . '/modules/coupon/helpers.php';
+        try {
+            if (!function_exists('sr_coupon_usage_enabled') || sr_coupon_usage_enabled($pdo)) {
+                $rows[] = [
+                    'label' => '쿠폰·이용권',
+                    'value' => number_format(function_exists('sr_coupon_active_account_issue_count') ? sr_coupon_active_account_issue_count($pdo, $accountId) : 0) . '개',
+                    'url' => sr_url('/account/coupons'),
+                    'icon' => 'confirmation_number',
+                ];
+            }
+        } catch (Throwable $exception) {
+            $rows[] = ['label' => '쿠폰·이용권', 'value' => '0개', 'url' => sr_url('/account/coupons'), 'icon' => 'confirmation_number'];
+        }
+    }
+
+    return $rows;
+}
+
 function sr_render_output_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');

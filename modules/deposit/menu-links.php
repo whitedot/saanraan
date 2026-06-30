@@ -11,7 +11,7 @@ return static function (PDO $pdo): array {
 
     return [
         [
-            'label' => '예치금',
+            'label' => sr_deposit_display_name($pdo),
             'url' => '/account/deposits',
         ],
     ];

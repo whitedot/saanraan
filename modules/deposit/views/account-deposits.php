@@ -1,6 +1,11 @@
 <?php
 
-$pageTitle = '예치금 거래 내역';
+$depositDisplayName = isset($depositDisplayName) && $depositDisplayName !== '' ? (string) $depositDisplayName : '예치금';
+$depositUnitLabel = isset($depositUnitLabel) && $depositUnitLabel !== '' ? (string) $depositUnitLabel : '원';
+$depositAmountLabel = static function (int $amount) use ($depositUnitLabel): string {
+    return number_format($amount) . $depositUnitLabel;
+};
+$pageTitle = $depositDisplayName . ' 거래 내역';
 $seo = [
     'title' => $pageTitle,
     'canonical' => sr_canonical_url($site, '/account/deposits'),
@@ -23,16 +28,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         <?php } ?>
         <section class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">현재 잔액</h2>
-            <p><?php echo sr_e(number_format((int) $balance)); ?>원</p>
-            <p>대기 중 환불 신청액: <?php echo sr_e(number_format((int) $pendingRefundAmount)); ?>원</p>
-            <p>환불 신청 가능액: <?php echo sr_e(number_format((int) $availableRefundAmount)); ?>원</p>
+            <p><?php echo sr_e($depositAmountLabel((int) $balance)); ?></p>
+            <p>대기 중 환불 신청액: <?php echo sr_e($depositAmountLabel((int) $pendingRefundAmount)); ?></p>
+            <p>환불 신청 가능액: <?php echo sr_e($depositAmountLabel((int) $availableRefundAmount)); ?></p>
         </div></section>
         <section id="deposit-refund-request" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">환불 신청</h2>
             <?php if (empty($refundRequestsEnabled)) { ?>
-                <p>현재 예치금 환불 신청을 받지 않습니다.</p>
+                <p>현재 <?php echo sr_e($depositDisplayName); ?> 환불 신청을 받지 않습니다.</p>
             <?php } elseif (empty($canRequestRefund)) { ?>
-                <p>현재 예치금 환불 신청 대상이 아닙니다.</p>
+                <p>현재 <?php echo sr_e($depositDisplayName); ?> 환불 신청 대상이 아닙니다.</p>
             <?php } elseif ((int) $availableRefundAmount < sr_deposit_refund_min_amount()) { ?>
                 <p>환불 신청 가능액이 최소 신청 금액보다 적습니다.</p>
             <?php } else { ?>
@@ -44,7 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <span>신청 금액 <span class="sr-required-label">(필수)</span></span>
                             <input id="deposit_refund_amount" type="number" name="amount" min="<?php echo sr_e((string) sr_deposit_refund_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_deposit_refund_max_amount(), (int) $availableRefundAmount)); ?>" step="1" required class="form-input">
                         </label>
-                        <small>최소 <?php echo sr_e(number_format(sr_deposit_refund_min_amount())); ?>원, 최대 <?php echo sr_e(number_format(sr_deposit_refund_max_amount())); ?>원까지 신청할 수 있습니다.</small>
+                        <small>최소 <?php echo sr_e($depositAmountLabel(sr_deposit_refund_min_amount())); ?>, 최대 <?php echo sr_e($depositAmountLabel(sr_deposit_refund_max_amount())); ?>까지 신청할 수 있습니다.</small>
                     </p>
                 <p>
                     <label for="deposit_refund_bank_name">
@@ -96,7 +101,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                         <?php foreach ($refundRequests as $request) { ?>
                             <tr>
                                 <td><?php echo sr_deposit_time_html((string) $request['requested_at']); ?></td>
-                                <td><?php echo sr_e(number_format((int) $request['amount'])); ?>원</td>
+                                <td><?php echo sr_e($depositAmountLabel((int) $request['amount'])); ?></td>
                                 <td><?php echo sr_e((string) $request['bank_name']); ?> <?php echo sr_e((string) $request['bank_account_number']); ?> <?php echo sr_e((string) $request['bank_account_holder']); ?></td>
                                 <td><?php echo sr_e(sr_deposit_request_status_label((string) $request['status'])); ?></td>
                                 <td><?php echo sr_e((string) $request['admin_note']); ?></td>
@@ -140,8 +145,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <tr>
                                 <td><?php echo sr_deposit_time_html((string) $transaction['created_at']); ?></td>
                                 <td><?php echo sr_e(sr_deposit_transaction_type_label((string) $transaction['transaction_type'])); ?></td>
-                                <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?></td>
-                                <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?></td>
+                                <td><?php echo sr_e($depositAmountLabel((int) $transaction['amount'])); ?></td>
+                                <td><?php echo sr_e($depositAmountLabel((int) $transaction['balance_after'])); ?></td>
                                 <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             </tr>
                         <?php } ?>

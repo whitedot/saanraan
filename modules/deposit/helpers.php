@@ -53,6 +53,8 @@ function sr_deposit_default_settings(): array
 {
     return [
         'usage_enabled' => true,
+        'display_name' => '예치금',
+        'unit_label' => '원',
         'refund_requests_enabled' => false,
         'refund_allowed_group_keys_json' => '[]',
         'notification_cases' => sr_deposit_default_notification_case_settings(),
@@ -246,6 +248,14 @@ function sr_deposit_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_deposit_default_settings(), sr_module_settings($pdo, 'deposit'));
     $settings['usage_enabled'] = sr_deposit_truthy($settings['usage_enabled'] ?? true);
+    $settings['display_name'] = sr_deposit_clean_text((string) ($settings['display_name'] ?? '예치금'), 40);
+    if ($settings['display_name'] === '') {
+        $settings['display_name'] = '예치금';
+    }
+    $settings['unit_label'] = sr_deposit_clean_text((string) ($settings['unit_label'] ?? '원'), 20);
+    if ($settings['unit_label'] === '') {
+        $settings['unit_label'] = '원';
+    }
     $settings['refund_requests_enabled'] = sr_deposit_truthy($settings['refund_requests_enabled'] ?? false);
     $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
         sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
@@ -265,9 +275,17 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
     }
 
     $allowedGroupKeys = sr_deposit_normalize_group_keys($settings['refund_allowed_group_keys'] ?? []);
+    $displayName = sr_deposit_clean_text((string) ($settings['display_name'] ?? ''), 40);
+    $unitLabel = sr_deposit_clean_text((string) ($settings['unit_label'] ?? '원'), 20);
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_deposit_truthy($settings['usage_enabled'])
         : sr_deposit_usage_enabled($pdo);
+    if ($displayName === '') {
+        throw new InvalidArgumentException('Deposit display name is required.');
+    }
+    if ($unitLabel === '') {
+        $unitLabel = '원';
+    }
     $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_deposit_refund_all_members_key()) {
@@ -301,6 +319,22 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         'setting_key' => 'usage_enabled',
         'setting_value' => $usageEnabled ? '1' : '0',
         'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'display_name',
+        'setting_value' => $displayName,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'unit_label',
+        'setting_value' => $unitLabel,
+        'value_type' => 'string',
         'created_at' => $now,
         'updated_at' => $now,
     ]);
@@ -346,6 +380,18 @@ function sr_deposit_usage_enabled(PDO $pdo): bool
     }
 
     return !empty($settings['usage_enabled']);
+}
+
+function sr_deposit_display_name(PDO $pdo): string
+{
+    $settings = sr_deposit_settings($pdo);
+    return (string) $settings['display_name'];
+}
+
+function sr_deposit_unit_label(PDO $pdo): string
+{
+    $settings = sr_deposit_settings($pdo);
+    return (string) $settings['unit_label'];
 }
 
 function sr_deposit_json_array(string $json): array
@@ -1115,7 +1161,7 @@ function sr_deposit_notify_transaction_created(PDO $pdo, int $transactionId): ?i
             'module_key' => 'deposit',
             'event_key' => $eventKey,
             'created_by_account_id' => (int) ($transaction['created_by_account_id'] ?? 0),
-            'metadata' => sr_deposit_transaction_notification_metadata($transaction),
+            'metadata' => sr_deposit_transaction_notification_metadata($transaction, $pdo),
         ];
         if ($channels !== []) {
             $payload['channels'] = $channels;
@@ -1133,15 +1179,23 @@ function sr_deposit_notification_event_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
 }
 
-function sr_deposit_transaction_notification_metadata(array $transaction): array
+function sr_deposit_transaction_notification_metadata(array $transaction, ?PDO $pdo = null): array
 {
     $amount = (int) ($transaction['amount'] ?? 0);
     $transactionType = (string) ($transaction['transaction_type'] ?? '');
     $referenceType = (string) ($transaction['reference_type'] ?? '');
+    $assetLabel = '예치금';
+    if ($pdo instanceof PDO) {
+        try {
+            $assetLabel = sr_deposit_display_name($pdo);
+        } catch (Throwable) {
+            $assetLabel = '예치금';
+        }
+    }
 
     return [
         'transaction_id' => (int) ($transaction['id'] ?? 0),
-        'asset_label' => '예치금',
+        'asset_label' => $assetLabel,
         'amount' => number_format($amount),
         'amount_abs' => number_format(abs($amount)),
         'amount_signed' => ($amount > 0 ? '+' : '') . number_format($amount),

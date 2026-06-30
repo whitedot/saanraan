@@ -116,6 +116,10 @@ if (
     || strpos($helper, 'function sr_asset_exchange_enabled(PDO $pdo): bool') === false
     || strpos($helper, 'function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings): array') === false
     || strpos($helper, 'function sr_asset_exchange_sync_canonical_policies(PDO $pdo, array $settings): void') === false
+    || strpos($helper, 'function sr_asset_exchange_validate_policy_positive_result(array $policy): void') === false
+    || strpos($helper, 'return [$values[$toModuleKey], $values[$fromModuleKey]];') === false
+    || strpos($helper, "'rate_numerator' => \$values[\$toModuleKey]") === false
+    || strpos($helper, "'rate_denominator' => \$values[\$fromModuleKey]") === false
     || strpos($helper, 'function sr_asset_exchange_remove_noncanonical_policies(PDO $pdo): void') === false
     || strpos($helper, 'sr_asset_exchange_remove_noncanonical_policies($pdo);') === false
     || strpos($helper, 'sr_asset_exchange_is_canonical_asset_key($moduleKey)') === false
@@ -128,24 +132,45 @@ if (
     !is_string($adminExchangeAction)
     || strpos($adminExchangeAction, 'sr_asset_exchange_relative_value_setting_keys()') === false
     || strpos($adminExchangeAction, 'sr_asset_exchange_save_settings($pdo, $postedSettings)') === false
-    || strpos($adminExchangeAction, 'policy_default_fee_trigger') === false
+    || strpos($adminExchangeAction, "\$intent === 'save_all'") === false
+    || strpos($adminExchangeAction, "\$_POST['policies']") === false
+    || strpos($adminExchangeAction, "\$intent === 'save_relative_values'") === false
+    || strpos($adminExchangeAction, "\$intent === 'save_policy'") === false
     || strpos($adminExchangeAction, 'asset_exchange.policies.updated') === false
-    || strpos($adminExchangeAction, 'sr_asset_exchange_save_policy($pdo') !== false
+    || strpos($adminExchangeAction, 'asset_exchange.relative_values.updated') === false
+    || strpos($adminExchangeAction, 'asset_exchange.policy.updated') === false
+    || strpos($adminExchangeAction, 'sr_asset_exchange_save_policy($pdo, $postedPolicy)') === false
 ) {
-    $errors[] = 'Asset exchange admin action must save relative asset values and common policy conditions, not arbitrary policy rows.';
+    $errors[] = 'Asset exchange admin action must support one-shot saves for relative values and all per-direction policies.';
 }
 if (
     !is_string($adminExchangeView)
-    || strpos($adminExchangeView, '자산별 상대 가치') === false
-    || strpos($adminExchangeView, '환전 조건') === false
-    || strpos($adminExchangeView, '파생 환전표') === false
+    || strpos($adminExchangeView, '환산 기준') === false
+    || strpos($adminExchangeView, 'sticky-tabs anchor-tabs tab-nav-justified') === false
+    || strpos($adminExchangeView, 'asset-exchange-section-values') === false
+    || strpos($adminExchangeView, 'data-admin-section-anchor') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-policy-form') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-policy-section') === false
+    || strpos($adminExchangeView, 'form-sticky-actions form-actions form-actions-primary form-actions-split') === false
+    || strpos($adminExchangeView, '<input type="hidden" name="intent" value="save_all">') === false
+    || strpos($adminExchangeView, '$assetExchangePolicyTitleLabel($policy, $assets)') === false
+    || strpos($adminExchangeView, '$assetExchangePolicyTitleLabel($assetExchangeNavPolicy, $assets)') === false
+    || substr_count($adminExchangeView, 'type="submit"') !== 1
+    || strpos($adminExchangeView, 'alert-info') !== false
+    || strpos($adminExchangeView, 'admin-asset-exchange-policy-rate-alert') !== false
+    || strpos($adminExchangeView, '<span class="form-label">실행 상태</span>') !== false
+    || strpos($adminExchangeView, '<span class="form-label">실행 단위</span>') !== false
+    || strpos($adminExchangeView, 'modal-overlay') !== false
+    || strpos($adminExchangeView, 'data-overlay') !== false
+    || strpos($adminExchangeView, 'asset-exchange-relative-values-modal') !== false
     || strpos($adminExchangeView, 'sr_asset_exchange_relative_value_setting_keys()') === false
-    || strpos($adminExchangeView, 'name="from_module_key"') !== false
-    || strpos($adminExchangeView, 'name="to_module_key"') !== false
+    || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_from_module_key"') !== false
+    || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_to_module_key"') !== false
     || strpos($adminExchangeView, '정책 등록') !== false
+    || strpos($adminExchangeView, '파생 환전표') !== false
     || strpos($adminExchangeView, 'policy_default_sort_order') !== false
 ) {
-    $errors[] = 'Asset exchange admin view must expose relative value inputs, common conditions, and a derived table without from/to or sort-order controls.';
+    $errors[] = 'Asset exchange admin view must expose one sticky-save form with inline relative value editing and per-direction policy sections, without modal editors or arbitrary from/to and sort-order controls.';
 }
 if (
     !is_string($adminExchangeSettingsAction)

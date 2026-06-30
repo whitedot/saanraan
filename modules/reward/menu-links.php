@@ -11,7 +11,7 @@ return static function (PDO $pdo): array {
 
     return [
         [
-            'label' => '적립금',
+            'label' => sr_reward_display_name($pdo),
             'url' => '/account/rewards',
         ],
     ];

@@ -18,11 +18,13 @@ return static function (PDO $pdo, int $accountId): array {
     if ($availableAmount < sr_reward_withdrawal_min_amount()) {
         return [];
     }
+    $displayName = sr_reward_display_name($pdo);
+    $unitLabel = sr_reward_unit_label($pdo);
 
     return [
         [
-            'label' => '적립금 출금 신청',
-            'value' => number_format($availableAmount) . '원 가능',
+            'label' => $displayName . ' 출금 신청',
+            'value' => number_format($availableAmount) . $unitLabel . ' 가능',
             'url' => '/account/rewards#reward-withdrawal-request',
         ],
     ];

@@ -60,6 +60,26 @@
     width: fit-content;
 }
 
+.admin-asset-exchange-value-card .card-header,
+.admin-asset-exchange-policy-card .card-header {
+    align-items: center;
+}
+
+.admin-asset-exchange-policy-card {
+    min-width: 0;
+}
+
+.admin-asset-exchange-policy-card-title {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 1.5);
+}
+
+.admin-asset-exchange-policy-card.is-executable {
+    border-color: var(--sr-success-border, var(--color-success-300));
+}
+
 @media (max-width: 1023px) {
     .admin-asset-exchange-filter,
     .admin-asset-exchange-log-filter,
@@ -79,6 +99,20 @@
     }
 
     .admin-asset-exchange-log-search-grid .filtering-submit {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 767px) {
+    .admin-asset-exchange-value-card .card-header,
+    .admin-asset-exchange-policy-card .card-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-asset-exchange-policy-card .form-check,
+    .admin-asset-exchange-policy-card .btn {
         width: 100%;
     }
 }

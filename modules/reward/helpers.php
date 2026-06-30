@@ -53,6 +53,8 @@ function sr_reward_default_settings(): array
 {
     return [
         'usage_enabled' => true,
+        'display_name' => '적립금',
+        'unit_label' => '원',
         'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
         'notification_cases' => sr_reward_default_notification_case_settings(),
@@ -259,6 +261,14 @@ function sr_reward_settings(PDO $pdo): array
     $storedSettings = sr_module_settings($pdo, 'reward');
     $settings = array_merge(sr_reward_default_settings(), $storedSettings);
     $settings['usage_enabled'] = sr_reward_truthy($settings['usage_enabled'] ?? true);
+    $settings['display_name'] = sr_reward_clean_text((string) ($settings['display_name'] ?? '적립금'), 40);
+    if ($settings['display_name'] === '') {
+        $settings['display_name'] = '적립금';
+    }
+    $settings['unit_label'] = sr_reward_clean_text((string) ($settings['unit_label'] ?? '원'), 20);
+    if ($settings['unit_label'] === '') {
+        $settings['unit_label'] = '원';
+    }
     $settings['withdrawal_allowed_group_keys'] = sr_reward_normalize_group_keys(
         sr_reward_json_array((string) ($settings['withdrawal_allowed_group_keys_json'] ?? '[]'))
     );
@@ -280,9 +290,17 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     }
 
     $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
+    $displayName = sr_reward_clean_text((string) ($settings['display_name'] ?? ''), 40);
+    $unitLabel = sr_reward_clean_text((string) ($settings['unit_label'] ?? '원'), 20);
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_reward_truthy($settings['usage_enabled'])
         : sr_reward_usage_enabled($pdo);
+    if ($displayName === '') {
+        throw new InvalidArgumentException('Reward display name is required.');
+    }
+    if ($unitLabel === '') {
+        $unitLabel = '원';
+    }
     if (array_key_exists('withdrawal_requests_enabled', $settings)) {
         $withdrawalRequestsEnabled = sr_reward_truthy($settings['withdrawal_requests_enabled']);
     } else {
@@ -328,6 +346,22 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     ]);
     $stmt->execute([
         'module_id' => (int) $module['id'],
+        'setting_key' => 'display_name',
+        'setting_value' => $displayName,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'unit_label',
+        'setting_value' => $unitLabel,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
         'setting_key' => 'withdrawal_allowed_group_keys_json',
         'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'value_type' => 'string',
@@ -368,6 +402,18 @@ function sr_reward_usage_enabled(PDO $pdo): bool
     }
 
     return !empty($settings['usage_enabled']);
+}
+
+function sr_reward_display_name(PDO $pdo): string
+{
+    $settings = sr_reward_settings($pdo);
+    return (string) $settings['display_name'];
+}
+
+function sr_reward_unit_label(PDO $pdo): string
+{
+    $settings = sr_reward_settings($pdo);
+    return (string) $settings['unit_label'];
 }
 
 function sr_reward_json_array(string $json): array
@@ -1339,7 +1385,7 @@ function sr_reward_notify_transaction_created(PDO $pdo, int $transactionId): ?in
             'module_key' => 'reward',
             'event_key' => $eventKey,
             'created_by_account_id' => (int) ($transaction['created_by_account_id'] ?? 0),
-            'metadata' => sr_reward_transaction_notification_metadata($transaction),
+            'metadata' => sr_reward_transaction_notification_metadata($transaction, $pdo),
         ];
         if ($channels !== []) {
             $payload['channels'] = $channels;
@@ -1357,15 +1403,23 @@ function sr_reward_notification_event_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
 }
 
-function sr_reward_transaction_notification_metadata(array $transaction): array
+function sr_reward_transaction_notification_metadata(array $transaction, ?PDO $pdo = null): array
 {
     $amount = (int) ($transaction['amount'] ?? 0);
     $transactionType = (string) ($transaction['transaction_type'] ?? '');
     $referenceType = (string) ($transaction['reference_type'] ?? '');
+    $assetLabel = '적립금';
+    if ($pdo instanceof PDO) {
+        try {
+            $assetLabel = sr_reward_display_name($pdo);
+        } catch (Throwable) {
+            $assetLabel = '적립금';
+        }
+    }
 
     return [
         'transaction_id' => (int) ($transaction['id'] ?? 0),
-        'asset_label' => '적립금',
+        'asset_label' => $assetLabel,
         'amount' => number_format($amount),
         'amount_abs' => number_format(abs($amount)),
         'amount_signed' => ($amount > 0 ? '+' : '') . number_format($amount),

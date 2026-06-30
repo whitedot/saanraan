@@ -23,6 +23,8 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
     $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
+    $displayName = sr_reward_clean_text(sr_post_string('display_name', 80), 40);
+    $unitLabel = sr_reward_clean_text(sr_post_string('unit_label', 40), 20);
     $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_reward_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
@@ -54,6 +56,12 @@ if (sr_request_method() === 'POST') {
     if ($withdrawalRequestsEnabled && $allowedGroupKeys === []) {
         $errors[] = '출금 신청을 사용하려면 출금 신청 허용 대상을 선택하세요.';
     }
+    if ($displayName === '') {
+        $errors[] = '적립금 표시명을 입력하세요.';
+    }
+    if ($unitLabel === '') {
+        $unitLabel = '원';
+    }
     $enabledGroupKeys = [];
     foreach ($memberGroups as $group) {
         if ((string) ($group['status'] ?? '') === 'enabled') {
@@ -74,6 +82,8 @@ if (sr_request_method() === 'POST') {
         try {
             sr_reward_save_settings($pdo, [
                 'usage_enabled' => $usageEnabled,
+                'display_name' => $displayName,
+                'unit_label' => $unitLabel,
                 'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                 'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                 'notification_cases' => $caseSettings,
@@ -91,6 +101,8 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Reward settings updated.',
                 'metadata' => [
                     'usage_enabled' => $usageEnabled,
+                    'display_name' => (string) ($settings['display_name'] ?? $displayName),
+                    'unit_label' => (string) ($settings['unit_label'] ?? $unitLabel),
                     'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                     'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),
@@ -108,6 +120,6 @@ if (sr_request_method() === 'POST') {
     sr_redirect($permissionPath);
 }
 
-$adminPageTitle = '적립금 환경설정';
+$adminPageTitle = sr_reward_display_name($pdo) . ' 환경설정';
 
 include SR_ROOT . '/modules/reward/views/admin-settings.php';

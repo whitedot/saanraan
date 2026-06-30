@@ -260,40 +260,73 @@ function sr_admin_module_menu_groups(PDO $pdo): array
 
 function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, array $menu): array
 {
-    if ($moduleKey !== 'point') {
+    $assetMenus = [
+        'point' => [
+            'default_label' => '포인트',
+            'helper' => 'modules/point/helpers.php',
+            'display_function' => 'sr_point_display_name',
+            'paths' => [
+                '/admin/points/balances' => ' 잔액',
+                '/admin/points/transactions' => ' 거래 내역',
+                '/admin/points/settings' => ' 환경설정',
+            ],
+        ],
+        'reward' => [
+            'default_label' => '적립금',
+            'helper' => 'modules/reward/helpers.php',
+            'display_function' => 'sr_reward_display_name',
+            'paths' => [
+                '/admin/rewards/balances' => ' 잔액',
+                '/admin/rewards/transactions' => ' 거래 내역',
+                '/admin/rewards/withdrawal-requests' => ' 출금 신청',
+                '/admin/rewards/settings' => ' 환경설정',
+            ],
+        ],
+        'deposit' => [
+            'default_label' => '예치금',
+            'helper' => 'modules/deposit/helpers.php',
+            'display_function' => 'sr_deposit_display_name',
+            'paths' => [
+                '/admin/deposits/balances' => ' 잔액',
+                '/admin/deposits/transactions' => ' 거래 내역',
+                '/admin/deposits/refund-requests' => ' 환불 신청',
+                '/admin/deposits/settings' => ' 환경설정',
+            ],
+        ],
+    ];
+    $assetMenu = $assetMenus[$moduleKey] ?? null;
+    if (!is_array($assetMenu)) {
         return $menu;
     }
 
-    $pointDisplayName = '포인트';
-    $helperFile = SR_ROOT . '/modules/point/helpers.php';
+    $displayName = (string) ($assetMenu['default_label'] ?? $moduleKey);
+    $helperFile = SR_ROOT . '/' . (string) ($assetMenu['helper'] ?? '');
     if (is_file($helperFile)) {
         require_once $helperFile;
     }
-    if (function_exists('sr_point_display_name')) {
+    $displayFunction = (string) ($assetMenu['display_function'] ?? '');
+    if ($displayFunction !== '' && function_exists($displayFunction)) {
         try {
-            $pointDisplayName = trim((string) sr_point_display_name($pdo));
+            $displayName = trim((string) $displayFunction($pdo));
         } catch (Throwable $exception) {
-            $pointDisplayName = '포인트';
+            $displayName = (string) ($assetMenu['default_label'] ?? $moduleKey);
         }
     }
-    if ($pointDisplayName === '') {
-        $pointDisplayName = '포인트';
+    if ($displayName === '') {
+        $displayName = (string) ($assetMenu['default_label'] ?? $moduleKey);
     }
 
     if (isset($menu['items']) && is_array($menu['items'])) {
-        $menu['label'] = $pointDisplayName;
+        $menu['label'] = $displayName;
+        $pathSuffixes = isset($assetMenu['paths']) && is_array($assetMenu['paths']) ? $assetMenu['paths'] : [];
         foreach ($menu['items'] as $index => $item) {
             if (!is_array($item)) {
                 continue;
             }
 
             $path = (string) ($item['path'] ?? '');
-            if ($path === '/admin/points/balances') {
-                $menu['items'][$index]['label'] = $pointDisplayName . ' 잔액';
-            } elseif ($path === '/admin/points/transactions') {
-                $menu['items'][$index]['label'] = $pointDisplayName . ' 거래 내역';
-            } elseif ($path === '/admin/points/settings') {
-                $menu['items'][$index]['label'] = $pointDisplayName . ' 환경설정';
+            if (isset($pathSuffixes[$path])) {
+                $menu['items'][$index]['label'] = $displayName . (string) $pathSuffixes[$path];
             }
         }
     }
