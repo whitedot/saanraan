@@ -28,6 +28,8 @@ return [
             'homepage-candidates.php',
             'site-setting-references.php',
             'admin-notification-events.php',
+            'operational-status.php',
+            'retention-targets.php',
         ],
     ],
     'settings' => [

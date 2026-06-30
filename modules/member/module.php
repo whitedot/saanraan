@@ -22,6 +22,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'retention-targets.php',
             'extension-points.php',
             'menu-links.php',
             'privacy-export.php',

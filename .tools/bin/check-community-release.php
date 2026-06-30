@@ -325,11 +325,13 @@ $requiredPackageEntries = [
     'member-group-rules.php',
     'menu-links.php',
     'module.php',
+    'operational-status.php',
     'paths.php',
     'popup-layer-references.php',
     'privacy-cleanup.php',
     'privacy-export.php',
     'reaction-targets.php',
+    'retention-targets.php',
     'antispam-targets.php',
     'sitemap.php',
     'skins',
@@ -371,6 +373,8 @@ $requiredContracts = [
     'member-group-references.php',
     'url-embed-targets.php',
     'reaction-targets.php',
+    'operational-status.php',
+    'retention-targets.php',
     'antispam-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])

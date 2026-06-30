@@ -25,6 +25,8 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'retention-targets.php',
+            'operational-status.php',
             'menu-links.php',
             'privacy-export.php',
             'privacy-cleanup.php',

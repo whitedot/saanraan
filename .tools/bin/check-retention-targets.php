@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 
+require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers/retention.php';
 
 $errors = [];
@@ -41,6 +42,39 @@ function sr_retention_check_remove_path(string $path): void
     rmdir($path);
 }
 
+function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    foreach (['member', 'content', 'community', 'banner', 'notification'] as $moduleKey) {
+        $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
+        $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
+    }
+
+    if ($withTables) {
+        foreach ([
+            'sr_member_auth_logs',
+            'sr_member_password_resets',
+            'sr_member_email_verifications',
+            'sr_member_sessions',
+            'sr_banner_clicks',
+            'sr_notifications',
+            'sr_notification_deliveries',
+            'sr_notification_reads',
+            'sr_admin_notifications',
+            'sr_admin_notification_reads',
+        ] as $tableName) {
+            $pdo->exec('CREATE TABLE ' . $tableName . ' (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+        }
+        $pdo->exec('CREATE TABLE sr_content_asset_access_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
+        $pdo->exec('CREATE TABLE sr_content_asset_action_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
+        $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
+    }
+
+    return $pdo;
+}
+
 $expectedKeys = [
     'auth_logs',
     'audit_logs',
@@ -62,8 +96,13 @@ $expectedKeys = [
     'module_backups',
 ];
 
-$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true, true, true);
-if (array_keys($targets) !== $expectedKeys) {
+$retentionPdo = sr_retention_check_contract_fixture_pdo(true);
+$targets = sr_admin_retention_target_definitions(false, false, true, true, false, false, false, false, $retentionPdo);
+$targetKeys = array_keys($targets);
+sort($targetKeys);
+$sortedExpectedTargetKeys = $expectedKeys;
+sort($sortedExpectedTargetKeys);
+if ($targetKeys !== $sortedExpectedTargetKeys) {
     sr_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
 
@@ -109,8 +148,9 @@ foreach ($targets as $key => $target) {
     }
 }
 
-$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false, false);
-foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'banner_clicks', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
+$disabledPdo = sr_retention_check_contract_fixture_pdo(false);
+$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false, false, false, $disabledPdo);
+foreach (['auth_logs', 'password_resets', 'email_verifications', 'sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'banner_clicks', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         sr_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }

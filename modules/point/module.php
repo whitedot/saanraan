@@ -24,6 +24,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'operational-status.php',
             'menu-links.php',
             'privacy-export.php',
             'asset-exchange.php',

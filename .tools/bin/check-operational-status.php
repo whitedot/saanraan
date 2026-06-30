@@ -432,6 +432,13 @@ $helper = is_file($helperFile) ? file_get_contents($helperFile) : false;
 $paths = is_file($pathsFile) ? file_get_contents($pathsFile) : false;
 $navigation = is_file($navigationFile) ? file_get_contents($navigationFile) : false;
 $view = is_file($viewFile) ? file_get_contents($viewFile) : false;
+$operationalContractSource = '';
+foreach (glob('modules/*/operational-status.php') ?: [] as $contractFile) {
+    $contractContents = file_get_contents($contractFile);
+    if (is_string($contractContents)) {
+        $operationalContractSource .= "\n" . $contractContents;
+    }
+}
 
 if (!is_string($doc)) {
     sr_operational_status_error('Operational status document is missing or unreadable.');
@@ -477,8 +484,8 @@ foreach ($signals as $signal) {
     if (is_string($doc) && !str_contains($doc, $signal)) {
         sr_operational_status_error('Operational status document is missing signal: ' . $signal);
     }
-    if (is_string($helper) && !str_contains($helper, $signal)) {
-        sr_operational_status_error('Operational status helper is missing signal: ' . $signal);
+    if (!str_contains($operationalContractSource, $signal)) {
+        sr_operational_status_error('Operational status contract is missing signal: ' . $signal);
     }
 }
 
@@ -548,8 +555,9 @@ foreach ([
 }
 
 foreach ([
-    'function sr_admin_operational_status_checks(): array',
+    'function sr_admin_operational_status_checks(?PDO $pdo = null): array',
     'function sr_admin_operational_status_rows(PDO $pdo): array',
+    "sr_enabled_module_contract_files(\$pdo, 'operational-status.php')",
     'sr_module_enabled($pdo',
     'delay_tolerance',
     'warn_after_seconds',

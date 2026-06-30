@@ -825,6 +825,8 @@ function sr_module_known_contract_files(): array
         'oauth-providers.php',
         'url-embed-targets.php',
         'reaction-targets.php',
+        'operational-status.php',
+        'retention-targets.php',
     ];
 }
 

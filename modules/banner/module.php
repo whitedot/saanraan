@@ -25,6 +25,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'retention-targets.php',
             'output-slots.php',
         ],
         'consumes' => [

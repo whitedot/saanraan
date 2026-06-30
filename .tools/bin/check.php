@@ -365,6 +365,8 @@ function sr_check_module_lifecycle_metadata(): void
         'oauth-providers.php' => true,
         'url-embed-targets.php' => true,
         'reaction-targets.php' => true,
+        'operational-status.php' => true,
+        'retention-targets.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {
@@ -531,6 +533,8 @@ function sr_check_module_contract_files(): void
         'oauth-providers.php',
         'url-embed-targets.php',
         'reaction-targets.php',
+        'operational-status.php',
+        'retention-targets.php',
     ];
     $requiredConsumes = [
         'admin' => [
