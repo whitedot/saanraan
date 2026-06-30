@@ -878,6 +878,36 @@ function sr_coupon_runtime_fixture(): void
     ]);
     sr_coupon_runtime_assert(empty($wrongSelectedChoice['allowed']) && empty($wrongSelectedChoice['processed']), 'selected coupon redemption should reject an issue for a different target.');
 
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('auto_discount_not_access', 'Auto discount should not be implicit', '', 'active', 'fixed_discount', 30, 0, 'KRW', 'content', '45', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $autoDiscountDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $autoDiscountDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $autoDiscountIssueId = (int) $pdo->lastInsertId();
+    $discountChoices = sr_coupon_active_account_target_issues($pdo, 7, 'content', '45', 10);
+    sr_coupon_runtime_assert(isset($discountChoices[0]) && (int) ($discountChoices[0]['id'] ?? 0) === $autoDiscountIssueId, 'target coupon choices should include matching discount coupon issues.');
+    $implicitDiscount = sr_coupon_redeem_for_target($pdo, 7, 'content', '45', [
+        'dedupe_key' => 'content:view:45:account:7:intent:implicit-discount',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '45',
+    ]);
+    sr_coupon_runtime_assert(empty($implicitDiscount['allowed']), 'implicit coupon redemption without a selected issue should not consume discount coupons.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $autoDiscountIssueId, 'implicit discount coupon choice');
+
     $first = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
         'dedupe_key' => 'content:view:42:account:7:intent:abc',
         'reference_module' => 'content',

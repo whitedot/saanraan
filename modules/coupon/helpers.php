@@ -3860,6 +3860,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
 
     try {
         $issueIdCondition = $requestedIssueId > 0 ? ' AND i.id = :issue_id' : '';
+        $couponTypeCondition = $requestedIssueId > 0 ? '' : " AND d.coupon_type = 'access'";
         $discountColumns = sr_coupon_definition_discount_columns_available($pdo)
             ? 'd.discount_amount, d.discount_percent, d.discount_currency_code'
             : '0 AS discount_amount, 0 AS discount_percent, \'\' AS discount_currency_code';
@@ -3870,7 +3871,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
              WHERE i.account_id = :account_id
                AND i.status = 'active'
                AND d.status IN ('active', 'issue_stopped')
-               AND (i.expires_at IS NULL OR i.expires_at >= :now_value)" . $issueIdCondition . "
+               AND (i.expires_at IS NULL OR i.expires_at >= :now_value)" . $issueIdCondition . $couponTypeCondition . "
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
             . sr_coupon_for_update_clause($pdo)
         );

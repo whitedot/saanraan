@@ -756,6 +756,27 @@ function sr_community_record_attachment_download(PDO $pdo, array $attachment, ?i
             $accessLogIds[$accessLogId] = $accessLogId;
         }
     }
+    $processedLogs = is_array($accessResult['processed_logs'] ?? null) ? $accessResult['processed_logs'] : [];
+    if ($processedLogs === [] && is_array($accessResult['logs'] ?? null)) {
+        $processedLogs = $accessResult['logs'];
+    }
+    foreach ($processedLogs as $processedLog) {
+        $dedupeKey = is_array($processedLog) ? (string) ($processedLog['dedupe_key'] ?? '') : '';
+        if ($dedupeKey === '') {
+            continue;
+        }
+        try {
+            $assetLog = function_exists('sr_community_asset_log') ? sr_community_asset_log($pdo, $dedupeKey) : null;
+            $assetLogId = is_array($assetLog) ? (int) ($assetLog['id'] ?? 0) : 0;
+            if ($assetLogId > 0) {
+                $accessLogIds[$assetLogId] = $assetLogId;
+            }
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'community_attachment_download_asset_log_link_failed');
+            }
+        }
+    }
     $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $downloadType = !empty($accessResult['paid']) || $accessLogIds !== [] ? 'paid' : 'free';
     $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;

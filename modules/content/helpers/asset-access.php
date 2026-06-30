@@ -810,7 +810,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
         }
-        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+        if (($startedTransaction || $mixedCouponTransactionOpen) && sr_content_asset_is_retryable_transaction_exception($exception)) {
             throw $exception;
         }
         if (function_exists('sr_log_exception')) {
@@ -1189,7 +1189,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
         }
-        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+        if (($startedTransaction || $mixedCouponTransactionOpen) && sr_content_asset_is_retryable_transaction_exception($exception)) {
             throw $exception;
         }
         if (function_exists('sr_log_exception')) {

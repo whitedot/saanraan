@@ -785,10 +785,28 @@ sr_asset_settlement_check_contains('modules/content/views/asset-confirmation-mod
     '$assetConfirmationExchangeSuggestion',
     'sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)',
 ]);
+sr_asset_settlement_check_assert(
+    substr_count((string) file_get_contents('modules/content/views/asset-confirmation-modal.php'), 'sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)') >= 2,
+    'content confirmation modal coupon and asset payment forms must both preserve exchange confirmation.'
+);
 sr_asset_settlement_check_contains('modules/community/views/asset-confirmation-modal.php', [
     '$assetConfirmationExchangeSuggestion',
     'sr_community_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)',
 ]);
+sr_asset_settlement_check_assert(
+    substr_count((string) file_get_contents('modules/community/views/asset-confirmation-modal.php'), 'sr_community_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)') >= 2,
+    'community confirmation modal coupon and asset payment forms must both preserve exchange confirmation.'
+);
+sr_asset_settlement_check_contains('modules/community/helpers/attachments.php', [
+    '$accessResult[\'processed_logs\']',
+    '$accessResult[\'logs\']',
+    'sr_community_asset_log($pdo, $dedupeKey)',
+]);
+sr_asset_settlement_check_assert(
+    preg_match('/if \(\(\$startedTransaction \|\| \$mixedCouponTransactionOpen\) && sr_content_asset_is_retryable_transaction_exception\(\$exception\)\) \{\s*throw \$exception;\s*\}\s*if \(function_exists\(\'sr_log_exception\'\)\) \{\s*sr_log_exception\(\$exception, \'content_asset_access_charge_failed\'\);/s', (string) file_get_contents('modules/content/helpers/asset-access.php')) === 1
+        && preg_match('/if \(\(\$startedTransaction \|\| \$mixedCouponTransactionOpen\) && sr_content_asset_is_retryable_transaction_exception\(\$exception\)\) \{\s*throw \$exception;\s*\}\s*if \(function_exists\(\'sr_log_exception\'\)\) \{\s*sr_log_exception\(\$exception, \'content_file_download_charge_failed\'\);/s', (string) file_get_contents('modules/content/helpers/asset-access.php')) === 1,
+    'content mixed coupon asset settlement must preserve retryable transaction exceptions for view and download charges.'
+);
 
 sr_asset_settlement_check_contains('modules/content/helpers/asset-actions.php', [
     '$pendingActionCharges = [];',

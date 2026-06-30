@@ -45,6 +45,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
                         <?php } ?>
                         <input type="hidden" name="asset_confirm" value="1">
+                        <?php echo sr_community_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion); ?>
                         <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
                         <fieldset>
                             <legend>쿠폰 선택</legend>
