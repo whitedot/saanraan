@@ -120,6 +120,9 @@ function sr_reward_abuse_runtime_pdo(): PDO
             reference_type TEXT NOT NULL DEFAULT \'\',
             reference_id TEXT NOT NULL DEFAULT \'\',
             created_by_account_id INTEGER NULL,
+            expires_at TEXT NULL,
+            expires_remaining INTEGER NOT NULL DEFAULT 0,
+            expired_at TEXT NULL,
             created_at TEXT NOT NULL
         )'
     );
@@ -139,6 +142,17 @@ function sr_reward_abuse_runtime_pdo(): PDO
             requested_at TEXT NOT NULL,
             processed_at TEXT NULL,
             updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_reward_expiration_consumptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            consume_transaction_id INTEGER NOT NULL,
+            source_transaction_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            source_expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL
         )'
     );
     $pdo->exec(

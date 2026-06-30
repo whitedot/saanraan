@@ -208,6 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('transaction_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.5cf2792b'), 'transaction_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('amount', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.5c705e1a'), 'amount', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('balance_after', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.87f9c4c8'), 'balance_after', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th><?php echo sr_e(sr_t('reward::ui.text.expiration')); ?></th>
                     <th<?php echo sr_admin_sort_aria('reason', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.ab9442a2'), 'reason', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('reference_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.fbc8ad58'), 'reference_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('created_at', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('reward::ui.text.5efd3ddd'), 'created_at', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
@@ -217,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('reward::ui.text.b1a1ff6f')); ?></td>
+                        <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('reward::ui.text.b1a1ff6f')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
@@ -227,6 +228,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></td>
+                            <td>
+                                <?php if ((string) ($transaction['expires_at'] ?? '') !== '') { ?>
+                                    <?php echo sr_reward_time_html((string) $transaction['expires_at']); ?><br>
+                                    <span class="text-muted"><?php echo sr_e(sr_t('reward::ui.text.expires_remaining')); ?> <?php echo sr_e(number_format((int) ($transaction['expires_remaining'] ?? 0))); ?> <?php echo sr_e(sr_t('reward::ui.text.c19fd678')); ?></span>
+                                    <?php if ((string) ($transaction['expired_at'] ?? '') !== '') { ?>
+                                        <br><span class="text-muted"><?php echo sr_e(sr_t('reward::ui.text.expired_at')); ?> <?php echo sr_reward_time_html((string) $transaction['expired_at']); ?></span>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <span class="text-muted">-</span>
+                                <?php } ?>
+                            </td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['reference_type'], 'reference_type')); ?></td>
                             <td><?php echo sr_reward_time_html((string) $transaction['created_at']); ?></td>

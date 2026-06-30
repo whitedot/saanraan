@@ -25,6 +25,8 @@ if (sr_request_method() === 'POST') {
     $usageEnabled = sr_post_string('usage_enabled', 1) === '1';
     $displayName = sr_reward_clean_text(sr_post_string('display_name', 80), 40);
     $unitLabel = sr_reward_clean_text(sr_post_string('unit_label', 40), 20);
+    $defaultExpirationDaysInput = sr_post_string('default_expiration_days', 20);
+    $defaultExpirationDays = sr_reward_normalize_expiration_days($defaultExpirationDaysInput);
     $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_reward_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
@@ -53,14 +55,14 @@ if (sr_request_method() === 'POST') {
             $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
         }
     }
-    if ($withdrawalRequestsEnabled && $allowedGroupKeys === []) {
-        $errors[] = '출금 신청을 사용하려면 출금 신청 허용 대상을 선택하세요.';
-    }
     if ($displayName === '') {
         $errors[] = '적립금 표시명을 입력하세요.';
     }
     if ($unitLabel === '') {
         $unitLabel = '원';
+    }
+    if ($defaultExpirationDaysInput !== '' && (preg_match('/\A\d+\z/', $defaultExpirationDaysInput) !== 1 || (int) $defaultExpirationDaysInput > 3650)) {
+        $errors[] = '적립금 유효기간은 0 이상의 정수로 입력하세요.';
     }
     $enabledGroupKeys = [];
     foreach ($memberGroups as $group) {
@@ -69,9 +71,6 @@ if (sr_request_method() === 'POST') {
         }
     }
     foreach ($allowedGroupKeys as $groupKey) {
-        if ($groupKey === sr_reward_withdrawal_all_members_key()) {
-            continue;
-        }
         if (!isset($enabledGroupKeys[$groupKey])) {
             $errors[] = '출금 가능 회원 그룹 선택값이 올바르지 않습니다.';
             break;
@@ -84,6 +83,7 @@ if (sr_request_method() === 'POST') {
                 'usage_enabled' => $usageEnabled,
                 'display_name' => $displayName,
                 'unit_label' => $unitLabel,
+                'default_expiration_days' => $defaultExpirationDays,
                 'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                 'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                 'notification_cases' => $caseSettings,
@@ -103,6 +103,7 @@ if (sr_request_method() === 'POST') {
                     'usage_enabled' => $usageEnabled,
                     'display_name' => (string) ($settings['display_name'] ?? $displayName),
                     'unit_label' => (string) ($settings['unit_label'] ?? $unitLabel),
+                    'default_expiration_days' => (string) ($settings['default_expiration_days'] ?? $defaultExpirationDays),
                     'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                     'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),

@@ -44,7 +44,7 @@
 | 영역 | 유지 기준 |
 | --- | --- |
 | 포인트/적립금/예치금 | 잔액 `account_id` unique, 거래 `account_id, created_at`, 참조 `reference_type, reference_id`, 출금/환불 요청 `status, requested_at` |
-| 포인트 만료 | 만료 대상 조회용 `expires_at, expires_remaining`, 만료 소비 연결용 source/consume transaction 인덱스 |
+| 포인트/적립금 만료 | 만료 대상 조회용 `expires_at, expires_remaining`, 만료 소비 연결용 source/consume transaction 인덱스 |
 | 쿠폰 | 쿠폰 정의 `status, target_type, target_id`, 회원 쿠폰 `account_id, status, expires_at`, 사용 dedupe unique, 참조 회수 `reference_module, reference_type, reference_id` |
 | 알림/운영 알림 | 회원 알림 `account_id, status, read_at`, delivery queue `channel, status`, 운영 알림 `status, severity, updated_at`, 이벤트 템플릿 unique |
 | 개인정보 대응 기록 | `account_id`, `status`, `created_at` 기준 관리자 목록과 사본 제공 조회 |

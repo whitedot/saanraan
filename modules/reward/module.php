@@ -2,7 +2,7 @@
 
 return [
     'name' => '적립금',
-    'version' => '2026.06.002',
+    'version' => '2026.06.003',
     'type' => 'module',
     'description' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
     'admin' => [
@@ -39,6 +39,9 @@ return [
         ],
     ],
     'settings' => [
+        'display_name' => '적립금',
+        'unit_label' => '원',
+        'default_expiration_days' => '0',
         'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
     ],

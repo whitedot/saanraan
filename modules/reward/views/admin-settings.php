@@ -9,6 +9,7 @@ $notificationChannelOptions = isset($notificationChannelOptions) && is_array($no
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $rewardDisplayName = (string) ($settings['display_name'] ?? '적립금');
 $rewardUnitLabel = (string) ($settings['unit_label'] ?? '원');
+$rewardDefaultExpirationDays = (string) sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
 $allNotificationCasesEnabled = $notificationCases !== [];
 foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
     $notificationCaseKey = (string) $notificationCaseKey;
@@ -24,13 +25,7 @@ foreach ($memberGroups as $memberGroup) {
         $enabledMemberGroups[] = $memberGroup;
     }
 }
-$allMembersKey = sr_reward_withdrawal_all_members_key();
-$withdrawalTargetOptions = [
-    $allMembersKey => [
-        'label' => '전체 회원',
-        'summary' => '활성 회원 전체',
-    ],
-];
+$withdrawalTargetOptions = [];
 foreach ($enabledMemberGroups as $memberGroup) {
     $groupKey = (string) ($memberGroup['group_key'] ?? '');
     if ($groupKey === '') {
@@ -70,8 +65,8 @@ $rewardSettingsHelp = [
         'title' => '출금 신청 허용',
         'body_html' => $rewardSettingsHelpBodyHtml([
             '출금 신청을 사용할 때 신청할 수 있는 회원 범위를 정합니다.',
-            '전체 회원을 선택하면 모든 활성 회원이 신청할 수 있고, 회원 그룹을 선택하면 해당 그룹 중 하나에 속한 회원만 신청할 수 있습니다.',
-            '출금 신청 사용이 켜져 있으면 최소 하나의 허용 대상을 선택해야 합니다.',
+            '회원 그룹을 선택하면 해당 그룹 중 하나에 속한 회원만 신청할 수 있습니다.',
+            '회원 그룹을 선택하지 않으면 전체 로그인 회원이 신청할 수 있습니다.',
         ]),
     ],
 ];
@@ -84,6 +79,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
+        <div class="form-row">
+            <label class="form-label" for="reward_usage_enabled"><?php echo sr_e($rewardDisplayName); ?> 사용 여부</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('reward_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
+                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 <?php echo sr_e($rewardDisplayName); ?>을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+            </div>
+        </div>
         <div class="form-row">
             <label class="form-label" for="reward_display_name">표시명 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
@@ -99,10 +101,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="reward_usage_enabled"><?php echo sr_e($rewardDisplayName); ?> 사용 여부</label>
+            <label class="form-label" for="reward_default_expiration_days">유효기간</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('reward_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
-                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 <?php echo sr_e($rewardDisplayName); ?>을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+                <div class="input-group admin-input-unit">
+                    <input id="reward_default_expiration_days" type="number" name="default_expiration_days" value="<?php echo sr_e($rewardDefaultExpirationDays); ?>" class="form-input" min="0" max="3650" step="1">
+                    <span class="input-group-text">일</span>
+                </div>
+                <p class="form-help">새 지급 거래에 적용할 유효기간 일수입니다. 0이면 적립금 만료를 사용하지 않습니다.</p>
             </div>
         </div>
     </section>
@@ -121,12 +126,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e('출금 신청 허용 ' . $rewardSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e((string) $rewardSettingsHelp['withdrawal_allowed_group_keys']['id']); ?>" data-overlay="#<?php echo sr_e((string) $rewardSettingsHelp['withdrawal_allowed_group_keys']['id']); ?>">
                     <?php echo sr_material_icon_html('help'); ?>
                 </button>
-                <label for="reward_withdrawal_allowed_group_keys_select">출금 신청 허용 <span class="sr-required-label" data-reward-withdrawal-targets-required-label<?php echo $withdrawalRequestsEnabled ? '' : ' hidden'; ?>>(필수)</span></label>
+                <label for="reward_withdrawal_allowed_group_keys_select">출금 신청 허용</label>
             </div>
             <div class="form-field">
-                <?php echo sr_admin_select_badge_list_html('reward_withdrawal_allowed_group_keys', 'withdrawal_allowed_group_keys', $withdrawalTargetOptions, $allowedGroupKeys, '선택 가능한 대상이 없습니다.', '대상 선택', ' data-reward-withdrawal-targets data-reward-withdrawal-all-key="' . sr_e($allMembersKey) . '"'); ?>
-                <p class="form-help">전체 회원을 선택하면 모든 활성 회원이 적립금 출금 신청을 할 수 있습니다. 전체 회원 뱃지를 제거하면 회원 그룹을 다시 선택할 수 있습니다.</p>
-                <p class="form-help">아무 대상도 선택하지 않으면 회원이 적립금 출금 신청을 할 수 없습니다.</p>
+                <?php echo sr_admin_select_badge_list_html('reward_withdrawal_allowed_group_keys', 'withdrawal_allowed_group_keys', $withdrawalTargetOptions, $allowedGroupKeys, '활성 회원 그룹 없음', '그룹 선택', ' data-reward-withdrawal-targets'); ?>
+                <p class="form-help">회원 그룹을 선택하지 않으면 전체 로그인 회원이 적립금 출금 신청을 할 수 있습니다.</p>
+                <p class="form-help">회원 그룹을 선택하면 해당 그룹 중 하나에 속한 회원만 신청할 수 있습니다.</p>
             </div>
         </div>
     </section>
@@ -187,50 +192,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
 
-    var allKey = root.getAttribute('data-reward-withdrawal-all-key') || '';
     var enabled = document.querySelector('[data-reward-withdrawal-enabled]');
-    var requiredLabel = document.querySelector('[data-reward-withdrawal-targets-required-label]');
-    function selectedItems() {
-        return Array.prototype.slice.call(root.querySelectorAll('[data-admin-select-badge-item]'));
-    }
-    function itemValue(item) {
-        var input = item.querySelector('[data-admin-select-badge-value]');
-        return input ? input.value : '';
-    }
     function syncAllSelectionState() {
-        var items = selectedItems();
-        var allItem = null;
-        items.forEach(function (item) {
-            if (itemValue(item) === allKey) {
-                allItem = item;
-            }
-        });
         var select = root.querySelector('[data-admin-select-badge-list-select]');
-        if (requiredLabel) {
-            requiredLabel.hidden = !!(enabled && !enabled.checked);
-        }
         if (select) {
             var withdrawalEnabled = !(enabled && !enabled.checked);
-            var hasSelection = items.length > 0;
-            select.disabled = !!allItem || !withdrawalEnabled;
-            select.required = withdrawalEnabled && !hasSelection;
-            select.setCustomValidity(withdrawalEnabled && !hasSelection ? '출금 신청 허용 대상을 선택하세요.' : '');
-            Array.prototype.forEach.call(select.options, function (option) {
-                if (!option.value) {
-                    return;
-                }
-                if (option.value === allKey && !allItem) {
-                    option.hidden = false;
-                    option.disabled = false;
-                }
-            });
-        }
-        if (allItem) {
-            items.forEach(function (item) {
-                if (item !== allItem) {
-                    item.remove();
-                }
-            });
+            select.disabled = !withdrawalEnabled;
+            select.required = false;
+            select.setCustomValidity('');
         }
     }
 

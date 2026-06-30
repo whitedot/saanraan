@@ -272,10 +272,11 @@ $communitySettingsSectionNavItems = [
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('community::ui.member.69b1363d') . ' ' . $communitySettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySettingsHelp['message_group']['id']); ?>" data-overlay="#<?php echo sr_e($communitySettingsHelp['message_group']['id']); ?>">
                     <?php echo sr_material_icon_html('help'); ?>
                 </button>
-                <label for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?> <span class="sr-required-label" data-community-message-group-required-label<?php echo (string) ($settings['message_write_policy'] ?? 'member') === 'group' ? '' : ' hidden'; ?>>(필수)</span></label>
+                <label for="community_admin_settings_message_write_group_keys"><?php echo sr_e(sr_t('community::ui.member.69b1363d')); ?></label>
             </div>
             <div class="form-field" data-community-message-group-controls>
                 <?php echo sr_admin_member_group_key_badge_select_html('community_admin_settings_message_write_group_keys', 'message_write_group_keys', is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : [], $enabledMemberGroups); ?>
+                <p class="form-help">선택하지 않으면 최소 레벨 조건에 맞는 전체 회원이 쪽지를 보낼 수 있습니다.</p>
             </div>
         </div>
         <div class="form-row"<?php echo (string) ($settings['message_write_policy'] ?? 'member') !== 'disabled' ? '' : ' hidden'; ?> data-community-message-dependent-field>
@@ -763,7 +764,6 @@ $communitySettingsSectionNavItems = [
     var requiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-required-label]'));
     var groupField = document.querySelector('[data-community-message-group-field]');
     var groupControls = document.querySelector('[data-community-message-group-controls]');
-    var groupRequiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-message-group-required-label]'));
     if (!enabled || dependentFields.length < 1) {
         return;
     }
@@ -803,9 +803,6 @@ $communitySettingsSectionNavItems = [
         if (groupControls) {
             setControlsDisabled(groupControls, !groupRequired);
         }
-        groupRequiredLabels.forEach(function (label) {
-            label.hidden = !groupRequired;
-        });
     }
 
     enabled.addEventListener('change', syncMessageFields);

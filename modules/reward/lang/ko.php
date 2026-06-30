@@ -119,4 +119,7 @@ return [
     'ui.text.f7cd7185' => '회수',
     'ui.text.f99f4979' => '적립금 잔액이 없습니다.',
     'ui.text.fbc8ad58' => '참조',
+    'ui.text.expiration' => '유효기간',
+    'ui.text.expires_remaining' => '만료 가능 잔여',
+    'ui.text.expired_at' => '만료 처리',
 ];

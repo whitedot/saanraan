@@ -106,7 +106,7 @@
 
 현재 공유 도메인 패턴은 코어 primitive와 공식 선택 모듈을 구분한다. `asset_ledger`는 자산 원장 primitive를 소유하는 공식 선택 모듈이고, 본문 URL 임베드는 별도 관리 모듈 없이 `core/helpers/url-embed.php`의 좁은 helper가 맡는다.
 
-회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 거래 insert만 `asset_ledger` 공식 선택 모듈의 helper로 줄이고, 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
+회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 일반 거래 insert는 `asset_ledger` 공식 선택 모듈의 helper로 줄이되, 만료 잔여량처럼 모듈 소유 정책 필드가 함께 바뀌는 경우에는 해당 자산 모듈이 같은 트랜잭션 안에서 자체 insert helper를 둘 수 있다. 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 
 자산 간 환전은 `asset_exchange` 선택 모듈이 실행, 파생 정책 row, 실행 로그, 정정 흐름을 소유한다. 코어는 통합 자산 테이블을 만들지 않고, 환전 모듈은 활성 자산 모듈의 `asset-exchange.php` 계약에서 잔액 조회 함수와 원장 거래 생성 함수를 읽어 호출한다. 관리자는 `/admin/asset-exchange`에서 포인트, 적립금, 예치금의 상대 가치 3개와 환전 조건을 저장하고, 모듈은 이 값에서 6개 환전 방향을 동기화한다. `/admin/asset-exchange/settings`는 전역 환전 사용 여부와 회원 알림만 저장하며, 환전 사용 여부를 끄면 파생 정책이 사용 상태여도 회원 신청, 예상 금액 계산, 실행 helper가 모두 거부된다. 환전 실행은 하나의 DB transaction 안에서 출금 원장, 입금 원장, 선택 수수료 원장을 같은 `reference_type=asset_exchange`와 환전 묶음 ID로 연결한다. 비율, 반올림, 수수료 조건은 실행 로그에 스냅샷으로 남기고 설정 변경은 이후 요청에만 적용한다. 임의 자산 조합 정책 row는 보존하지 않으며, 업데이트와 설정 동기화에서 기존 로그의 정책 참조만 비운 뒤 제거한다. 콘텐츠/커뮤니티 구매력과 settlement 차감은 `member-assets.php`의 `purchase_power` 계약을 기준으로 하며, 환전 정책 row를 가격 환산이나 복합 차감 fallback으로 사용하지 않는다.
 
@@ -118,12 +118,12 @@
 - `point`, `reward`, `deposit` 중 하나라도 활성 상태이면 `asset_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
 - 자동 설치/활성화는 감사 로그의 `module.foundation.installed` 또는 `module.foundation.enabled` 이벤트로 남기고, 관리자 처리 결과에는 기반 모듈이 함께 준비되었다고 표시한다.
 - `asset_ledger`는 통합 balance/transaction 테이블을 만들지 않는다. 실제 자산 테이블은 계속 각 자산 모듈이 소유한다.
-- 테이블명은 호출 모듈이 명시적으로 넘기되, helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_reward_balances`/`sr_reward_transactions`, `sr_deposit_balances`/`sr_deposit_transactions`다.
+- 테이블명은 호출 모듈이 명시적으로 넘기되, helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_deposit_balances`/`sr_deposit_transactions`다.
 - 음수 허용, 거래 유형, 사유, 참조 의미, 관리자 권한, 환불/취소/만료 정책은 호출 모듈이 책임진다.
 - 환전 가능 여부와 환금성 여부는 자산 모듈의 좁은 계약과 환전 모듈 정책으로 판단하고, 코어나 회원 테이블에 자산 도메인 컬럼을 추가하지 않는다.
 - helper는 원자적 balance update와 transaction insert 같은 좁은 DB primitive에 머문다.
 - 원장 조회 UI, 정산, 만료, 지급 정책, 통계, 외부 결제 연동은 코어에 넣지 않는다.
-- `point`는 만료와 소비 매핑 정책 때문에 `asset_ledger`의 공통 transaction helper를 쓰지 않는다. `sr_ledger_nullable_positive_int()` 같은 작은 입력 보정만 공유할 수 있다.
+- `point`와 `reward`는 만료와 소비 매핑 정책 때문에 `asset_ledger`의 공통 transaction helper를 쓰지 않는다. `sr_ledger_nullable_positive_int()` 같은 작은 입력 보정만 공유할 수 있다.
 - 보상 회수 실패 큐는 `asset_ledger`의 공통 운영 기반으로 둔다. `sr_asset_recovery_failures`는 정상 지급 로그가 아니라 실패한 회수 작업만 저장하며, dedupe key는 `source:{source_module}:{source_log_id}:rev:{reversal_event_key}` 형식을 사용한다. 공통 관리자 화면은 포인트/금액 미회수 관리 화면으로 제공하고, 지급 로그는 각 자산/도메인 모듈의 읽기 전용 로그 화면에 둔다.
 - 회수 실패 상태는 `open`, `recovered`, `manually_resolved`, `cancelled`를 사용한다. `recovered`는 전액 회수 종결, `manually_resolved`는 운영자의 오프라인 처리 또는 회수 포기 인정, `cancelled`는 회수 대상 제외다. 수동 해소와 취소는 남은 `unrecovered_amount`를 0으로 만들지 않고 보존한다. 부분 회수 원장 거래는 `sr_asset_recovery_reversal_links`로 회수 row와 연결한다.
 - 회수 실패 큐의 개인정보 export/cleanup은 `asset_ledger`가 소유한다. `operation_context_json`은 allowlist 키만 저장하고, `failure_reason`은 enum/code로 기록한다.

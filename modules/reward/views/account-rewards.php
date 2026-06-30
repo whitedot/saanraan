@@ -137,6 +137,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <th>유형</th>
                             <th>변동</th>
                             <th>잔액</th>
+                            <th>유효기간</th>
                             <th>사유</th>
                         </tr>
                     </thead>
@@ -147,6 +148,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 <td><?php echo sr_e(sr_reward_transaction_type_label((string) $transaction['transaction_type'])); ?></td>
                                 <td><?php echo sr_e($rewardAmountLabel((int) $transaction['amount'])); ?></td>
                                 <td><?php echo sr_e($rewardAmountLabel((int) $transaction['balance_after'])); ?></td>
+                                <td>
+                                    <?php if ((string) ($transaction['expires_at'] ?? '') !== '') { ?>
+                                        <?php echo sr_reward_time_html((string) $transaction['expires_at']); ?>
+                                    <?php } elseif ((string) ($transaction['transaction_type'] ?? '') === 'expire' && (string) ($transaction['created_at'] ?? '') !== '') { ?>
+                                        <?php echo sr_reward_time_html((string) $transaction['created_at']); ?>
+                                    <?php } else { ?>
+                                        -
+                                    <?php } ?>
+                                </td>
                                 <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             </tr>
                         <?php } ?>

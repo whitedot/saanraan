@@ -179,6 +179,9 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
             reference_type TEXT NOT NULL DEFAULT '',
             reference_id TEXT NOT NULL DEFAULT '',
             created_by_account_id INTEGER NULL,
+            expires_at TEXT NULL,
+            expires_remaining INTEGER NOT NULL DEFAULT 0,
+            expired_at TEXT NULL,
             created_at TEXT NOT NULL
         )"
     );
@@ -189,6 +192,17 @@ function sr_asset_exchange_runtime_schema(PDO $pdo, bool $includeDepositTransact
             balance INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_reward_expiration_consumptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            consume_transaction_id INTEGER NOT NULL,
+            source_transaction_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            source_expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL
         )"
     );
     if ($includeDepositTransactions) {

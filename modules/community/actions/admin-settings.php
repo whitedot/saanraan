@@ -321,10 +321,6 @@ if (sr_request_method() === 'POST') {
         if ($unknownGroupKeys !== []) {
             $errors[] = sr_t('community::action.admin.message_group_keys_inactive', ['keys' => implode(', ', $unknownGroupKeys)]);
         }
-        if ($messageEnabled && $messageWritePolicy === 'group' && $messageWriteGroupKeys === []) {
-            $errors[] = '쪽지 권한을 회원 그룹으로 제한하려면 보낼 수 있는 회원 그룹을 하나 이상 선택해 주세요.';
-        }
-
         if ($errors === []) {
             $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
             $stmt->execute();

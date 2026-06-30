@@ -314,7 +314,7 @@ $transactionSort = sr_admin_sort_from_request(sr_admin_asset_transaction_sort_op
 $transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'transactions') {
     $transactionPagination = sr_admin_pagination_from_total($pdo, sr_admin_asset_transaction_count($pdo, 'sr_reward_transactions', $accountIdFilter));
-    $transactions = sr_admin_asset_transaction_rows($pdo, $runtimeConfig, 'sr_reward_transactions', $transactionSort, $transactionPagination, $accountIdFilter);
+    $transactions = sr_reward_admin_transaction_rows($pdo, $runtimeConfig, $transactionSort, $transactionPagination, $accountIdFilter);
     $rewardReclaimRemainingAmounts = sr_reward_reclaim_remaining_amounts_for_transactions($pdo, $transactions);
 }
 

@@ -7,6 +7,9 @@ require_once SR_ROOT . '/modules/reward/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_member_group_evaluate_account($pdo, (int) $account['id']);
+if (sr_reward_usage_enabled($pdo)) {
+    sr_reward_expire_due_account_transactions($pdo, (int) $account['id']);
+}
 $rewardDisplayName = sr_reward_display_name($pdo);
 $rewardUnitLabel = sr_reward_unit_label($pdo);
 $rewardAmountLabel = static function (int $amount) use ($rewardUnitLabel): string {
@@ -117,7 +120,7 @@ $withdrawalRequestsEnabled = sr_reward_withdrawal_requests_enabled($pdo);
 $canRequestWithdrawal = sr_reward_account_can_request_withdrawal($pdo, (int) $account['id']);
 $withdrawalRequests = sr_reward_withdrawal_requests_for_account($pdo, (int) $account['id']);
 $stmt = $pdo->prepare(
-    'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_at
+    'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, expires_at, expires_remaining, expired_at, created_at
      FROM sr_reward_transactions
      WHERE account_id = :account_id
      ORDER BY id DESC

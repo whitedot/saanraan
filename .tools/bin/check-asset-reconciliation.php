@@ -46,14 +46,13 @@ sr_asset_reconciliation_check_file_contains('modules/asset_ledger/helpers.php', 
     'nonzero_balance_without_transactions',
     'balance_after_sequence_mismatch',
     'function sr_asset_reconcile_sequence_mismatches',
-    "'sr_reward_balances' => 'sr_reward_transactions'",
     "'sr_deposit_balances' => 'sr_deposit_transactions'",
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/reward/helpers.php', [
-    'sr_ledger_create_transaction($pdo',
-    "'balance_table' => 'sr_reward_balances'",
-    "'transaction_table' => 'sr_reward_transactions'",
+    'function sr_reward_insert_ledger_transaction',
+    'expires_remaining',
+    'sr_reward_transactions',
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/deposit/helpers.php', [
@@ -200,14 +199,14 @@ if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true))
         sr_asset_reconciliation_check_error('fixture summary flags mismatch.');
     }
 
-    if (!sr_ledger_table_pair_is_allowed('sr_reward_balances', 'sr_reward_transactions')) {
-        sr_asset_reconciliation_check_error('reward ledger table pair should be allowed.');
-    }
     if (!sr_ledger_table_pair_is_allowed('sr_deposit_balances', 'sr_deposit_transactions')) {
         sr_asset_reconciliation_check_error('deposit ledger table pair should be allowed.');
     }
     if (sr_ledger_table_pair_is_allowed('sr_point_balances', 'sr_point_transactions')) {
         sr_asset_reconciliation_check_error('point ledger table pair should stay outside the generic ledger helper because point has expiration fields.');
+    }
+    if (sr_ledger_table_pair_is_allowed('sr_reward_balances', 'sr_reward_transactions')) {
+        sr_asset_reconciliation_check_error('reward ledger table pair should stay outside the generic ledger helper because reward has expiration fields.');
     }
     if (sr_ledger_table_pair_is_allowed('sr_reward_transactions', 'sr_reward_balances')) {
         sr_asset_reconciliation_check_error('reversed ledger table pair should not be allowed.');

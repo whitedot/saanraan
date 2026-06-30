@@ -55,6 +55,7 @@ function sr_reward_default_settings(): array
         'usage_enabled' => true,
         'display_name' => '적립금',
         'unit_label' => '원',
+        'default_expiration_days' => '0',
         'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
         'notification_cases' => sr_reward_default_notification_case_settings(),
@@ -269,6 +270,7 @@ function sr_reward_settings(PDO $pdo): array
     if ($settings['unit_label'] === '') {
         $settings['unit_label'] = '원';
     }
+    $settings['default_expiration_days'] = (string) sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
     $settings['withdrawal_allowed_group_keys'] = sr_reward_normalize_group_keys(
         sr_reward_json_array((string) ($settings['withdrawal_allowed_group_keys_json'] ?? '[]'))
     );
@@ -292,6 +294,7 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
     $displayName = sr_reward_clean_text((string) ($settings['display_name'] ?? ''), 40);
     $unitLabel = sr_reward_clean_text((string) ($settings['unit_label'] ?? '원'), 20);
+    $defaultExpirationDays = sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
     $usageEnabled = array_key_exists('usage_enabled', $settings)
         ? sr_reward_truthy($settings['usage_enabled'])
         : sr_reward_usage_enabled($pdo);
@@ -362,6 +365,14 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     ]);
     $stmt->execute([
         'module_id' => (int) $module['id'],
+        'setting_key' => 'default_expiration_days',
+        'setting_value' => (string) $defaultExpirationDays,
+        'value_type' => 'integer',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
         'setting_key' => 'withdrawal_allowed_group_keys_json',
         'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         'value_type' => 'string',
@@ -416,6 +427,85 @@ function sr_reward_unit_label(PDO $pdo): string
     return (string) $settings['unit_label'];
 }
 
+function sr_reward_default_expiration_days(PDO $pdo): int
+{
+    $settings = sr_reward_settings($pdo);
+    return sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
+}
+
+function sr_reward_normalize_expiration_days(mixed $value): int
+{
+    if (is_string($value)) {
+        $value = trim($value);
+    }
+    if ($value === '' || $value === null) {
+        return 0;
+    }
+    if (is_string($value) && preg_match('/\A\d+\z/', $value) !== 1) {
+        return 0;
+    }
+
+    $days = (int) $value;
+    if ($days < 0) {
+        return 0;
+    }
+    if ($days > 3650) {
+        return 3650;
+    }
+
+    return $days;
+}
+
+function sr_reward_normalize_expires_at(mixed $value): ?string
+{
+    if (!is_string($value)) {
+        return null;
+    }
+    $value = trim($value);
+    if ($value === '') {
+        return null;
+    }
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1) {
+        $value .= ' 23:59:59';
+    }
+    if (preg_match('/\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/', $value) !== 1) {
+        return null;
+    }
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return null;
+    }
+
+    return date('Y-m-d H:i:s', $timestamp);
+}
+
+function sr_reward_transaction_expires_at(PDO $pdo, array $data): ?string
+{
+    $amount = (int) ($data['amount'] ?? 0);
+    $transactionType = (string) ($data['transaction_type'] ?? '');
+    if ($amount <= 0 || !in_array($transactionType, ['grant', 'refund'], true)) {
+        return null;
+    }
+
+    $postedExpiresAt = sr_reward_normalize_expires_at($data['expires_at'] ?? null);
+    if ($postedExpiresAt !== null) {
+        return $postedExpiresAt;
+    }
+
+    $days = sr_reward_default_expiration_days($pdo);
+    if ($days <= 0) {
+        return null;
+    }
+
+    $createdAt = (string) ($data['created_at'] ?? sr_now());
+    $timestamp = strtotime($createdAt . ' +' . $days . ' days');
+    if ($timestamp === false) {
+        return null;
+    }
+
+    return date('Y-m-d H:i:s', $timestamp);
+}
+
 function sr_reward_json_array(string $json): array
 {
     return sr_json_array($json);
@@ -431,7 +521,7 @@ function sr_reward_normalize_group_keys(mixed $groupKeys): array
     foreach ($groupKeys as $groupKey) {
         $groupKey = (string) $groupKey;
         if ($groupKey === sr_reward_withdrawal_all_members_key()) {
-            return [sr_reward_withdrawal_all_members_key()];
+            return [];
         }
         if (sr_member_group_key_is_valid($groupKey)) {
             $normalized[$groupKey] = true;
@@ -509,10 +599,6 @@ function sr_reward_account_can_request_withdrawal(PDO $pdo, int $accountId): boo
 
     $allowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
     if ($allowedGroupKeys === []) {
-        return false;
-    }
-
-    if (in_array(sr_reward_withdrawal_all_members_key(), $allowedGroupKeys, true)) {
         return true;
     }
 
@@ -569,6 +655,7 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
     $referenceType = sr_reward_clean_key((string) ($data['reference_type'] ?? ''), 60);
     $referenceId = sr_reward_clean_reference_id((string) ($data['reference_id'] ?? ''), 120);
     $createdByAccountId = isset($data['created_by_account_id']) ? (int) $data['created_by_account_id'] : null;
+    $skipExpirationConsumption = !empty($data['skip_expiration_consumption']);
 
     if ($accountId <= 0) {
         throw new InvalidArgumentException('Account id is required.');
@@ -591,12 +678,22 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
     }
 
     try {
-        $transactionId = sr_ledger_create_transaction($pdo, [
-            'balance_table' => 'sr_reward_balances',
-            'transaction_table' => 'sr_reward_transactions',
-            'balance_row_error' => 'Reward balance row was not created.',
-            'negative_balance_error' => 'Reward balance cannot be negative.',
-        ], [
+        $now = sr_now();
+        if ($transactionType !== 'expire') {
+            sr_reward_expire_due_account_transactions($pdo, $accountId, 100, $now);
+        }
+
+        $expiresAt = sr_reward_transaction_expires_at($pdo, [
+            'transaction_type' => $transactionType,
+            'amount' => $amount,
+            'expires_at' => $data['expires_at'] ?? null,
+            'created_at' => $now,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+        ]);
+        $expiresRemaining = $expiresAt !== null ? $amount : 0;
+
+        $transactionId = sr_reward_insert_ledger_transaction($pdo, [
             'account_id' => $accountId,
             'amount' => $amount,
             'transaction_type' => $transactionType,
@@ -604,7 +701,17 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
             'reference_type' => $referenceType,
             'reference_id' => $referenceId,
             'created_by_account_id' => $createdByAccountId,
+            'created_at' => $now,
+            'expires_at' => $expiresAt,
+            'expires_remaining' => $expiresRemaining,
         ]);
+
+        if ($amount < 0 && !$skipExpirationConsumption) {
+            sr_reward_consume_expiring_grants($pdo, $accountId, abs($amount), $transactionId, $now);
+        }
+        if ($amount > 0 && $expiresAt !== null && strtotime($expiresAt) !== false && strtotime($expiresAt) <= strtotime($now)) {
+            sr_reward_expire_grant_transaction($pdo, $transactionId, $now);
+        }
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -621,6 +728,304 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
     }
 
     return $transactionId;
+}
+
+function sr_reward_insert_ledger_transaction(PDO $pdo, array $data): int
+{
+    $accountId = (int) ($data['account_id'] ?? 0);
+    $amount = (int) ($data['amount'] ?? 0);
+    $transactionType = (string) ($data['transaction_type'] ?? 'adjustment');
+    $reason = (string) ($data['reason'] ?? '');
+    $referenceType = (string) ($data['reference_type'] ?? '');
+    $referenceId = (string) ($data['reference_id'] ?? '');
+    $createdByAccountId = sr_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
+    $createdAt = (string) ($data['created_at'] ?? sr_now());
+    $expiresAt = $data['expires_at'] ?? null;
+    $expiresRemaining = max(0, (int) ($data['expires_remaining'] ?? 0));
+
+    $stmt = $pdo->prepare(
+        sr_ledger_insert_ignore_into_clause($pdo) . ' sr_reward_balances (account_id, balance, created_at, updated_at)
+         VALUES (:account_id, 0, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'created_at' => $createdAt,
+        'updated_at' => $createdAt,
+    ]);
+
+    $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
+    $stmt->execute(['account_id' => $accountId]);
+    $balanceRow = $stmt->fetch();
+    if (!is_array($balanceRow)) {
+        throw new RuntimeException('Reward balance row was not created.');
+    }
+
+    $balanceAfter = (int) $balanceRow['balance'] + $amount;
+    if ($balanceAfter < 0) {
+        throw new RuntimeException('Reward balance cannot be negative.');
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_reward_balances
+         SET balance = :balance, updated_at = :updated_at
+         WHERE account_id = :account_id'
+    );
+    $stmt->execute([
+        'balance' => $balanceAfter,
+        'updated_at' => $createdAt,
+        'account_id' => $accountId,
+    ]);
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_reward_transactions
+            (account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at)
+         VALUES
+            (:account_id, :amount, :balance_after, :transaction_type, :reason, :reference_type, :reference_id, :created_by_account_id, :expires_at, :expires_remaining, NULL, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'amount' => $amount,
+        'balance_after' => $balanceAfter,
+        'transaction_type' => $transactionType,
+        'reason' => $reason,
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+        'created_by_account_id' => $createdByAccountId,
+        'expires_at' => $expiresAt,
+        'expires_remaining' => $expiresRemaining,
+        'created_at' => $createdAt,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_reward_consume_expiring_grants(PDO $pdo, int $accountId, int $amount, int $consumeTransactionId = 0, ?string $now = null): int
+{
+    if ($accountId <= 0 || $amount <= 0) {
+        return 0;
+    }
+
+    $now = $now ?? sr_now();
+    $remainingToConsume = $amount;
+    $consumed = 0;
+
+    $stmt = $pdo->prepare(
+        'SELECT id, expires_at, expires_remaining
+         FROM sr_reward_transactions
+         WHERE account_id = :account_id
+           AND amount > 0
+           AND expires_at IS NOT NULL
+           AND expires_at > :now_value
+           AND expires_remaining > 0
+         ORDER BY expires_at ASC, id ASC'
+         . sr_ledger_for_update_clause($pdo)
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'now_value' => $now,
+    ]);
+
+    $updateStmt = $pdo->prepare(
+        'UPDATE sr_reward_transactions
+         SET expires_remaining = :expires_remaining
+         WHERE id = :id'
+    );
+    $insertConsumptionStmt = $pdo->prepare(
+        'INSERT INTO sr_reward_expiration_consumptions
+            (account_id, consume_transaction_id, source_transaction_id, amount, source_expires_at, created_at)
+         VALUES
+            (:account_id, :consume_transaction_id, :source_transaction_id, :amount, :source_expires_at, :created_at)'
+    );
+    foreach ($stmt->fetchAll() as $row) {
+        if ($remainingToConsume <= 0) {
+            break;
+        }
+
+        $rowRemaining = (int) ($row['expires_remaining'] ?? 0);
+        if ($rowRemaining <= 0) {
+            continue;
+        }
+
+        $consumeAmount = min($rowRemaining, $remainingToConsume);
+        $sourceTransactionId = (int) $row['id'];
+        $updateStmt->execute([
+            'expires_remaining' => $rowRemaining - $consumeAmount,
+            'id' => $sourceTransactionId,
+        ]);
+        if ($consumeTransactionId > 0) {
+            $insertConsumptionStmt->execute([
+                'account_id' => $accountId,
+                'consume_transaction_id' => $consumeTransactionId,
+                'source_transaction_id' => $sourceTransactionId,
+                'amount' => $consumeAmount,
+                'source_expires_at' => (string) $row['expires_at'],
+                'created_at' => $now,
+            ]);
+        }
+        $remainingToConsume -= $consumeAmount;
+        $consumed += $consumeAmount;
+    }
+
+    return $consumed;
+}
+
+function sr_reward_expire_due_account_transactions(PDO $pdo, int $accountId, int $limit = 100, ?string $now = null): array
+{
+    if ($accountId <= 0) {
+        return ['expired_count' => 0, 'expired_amount' => 0];
+    }
+
+    $limit = max(1, min(1000, $limit));
+    $now = $now ?? sr_now();
+    $expiredCount = 0;
+    $expiredAmount = 0;
+    do {
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_reward_transactions
+             WHERE account_id = :account_id
+               AND amount > 0
+               AND expires_at IS NOT NULL
+               AND expires_at <= :now_value
+               AND expires_remaining > 0
+             ORDER BY expires_at ASC, id ASC
+             LIMIT ' . $limit
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'now_value' => $now,
+        ]);
+        $rows = $stmt->fetchAll();
+
+        foreach ($rows as $row) {
+            $result = sr_reward_expire_grant_transaction($pdo, (int) ($row['id'] ?? 0), $now);
+            if ($result['transaction_id'] > 0) {
+                $expiredCount++;
+                $expiredAmount += (int) $result['amount'];
+            }
+        }
+    } while (count($rows) === $limit && $expiredCount < 10000);
+
+    if ($expiredCount >= 10000) {
+        throw new RuntimeException('Too many due reward expiration transactions for one account.');
+    }
+
+    return [
+        'expired_count' => $expiredCount,
+        'expired_amount' => $expiredAmount,
+    ];
+}
+
+function sr_reward_expire_grant_transaction(PDO $pdo, int $sourceTransactionId, string $now): array
+{
+    if ($sourceTransactionId <= 0) {
+        return ['transaction_id' => 0, 'amount' => 0];
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $sourceAccountStmt = $pdo->prepare(
+            'SELECT account_id
+             FROM sr_reward_transactions
+             WHERE id = :id
+               AND amount > 0
+               AND expires_at IS NOT NULL
+               AND expires_at <= :now_value
+               AND expires_remaining > 0
+             LIMIT 1'
+        );
+        $sourceAccountStmt->execute([
+            'id' => $sourceTransactionId,
+            'now_value' => $now,
+        ]);
+        $sourceAccount = $sourceAccountStmt->fetch();
+        if (!is_array($sourceAccount)) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['transaction_id' => 0, 'amount' => 0];
+        }
+
+        $accountId = (int) ($sourceAccount['account_id'] ?? 0);
+        if ($accountId <= 0) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['transaction_id' => 0, 'amount' => 0];
+        }
+
+        $balanceLockStmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
+        $balanceLockStmt->execute(['account_id' => $accountId]);
+
+        $sourceStmt = $pdo->prepare(
+            'SELECT id, account_id, expires_remaining
+             FROM sr_reward_transactions
+             WHERE id = :id
+               AND amount > 0
+               AND expires_at IS NOT NULL
+               AND expires_at <= :now_value
+               AND expires_remaining > 0
+             LIMIT 1'
+             . sr_ledger_for_update_clause($pdo)
+        );
+        $sourceStmt->execute([
+            'id' => $sourceTransactionId,
+            'now_value' => $now,
+        ]);
+        $source = $sourceStmt->fetch();
+        if (!is_array($source)) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['transaction_id' => 0, 'amount' => 0];
+        }
+
+        $expireAmount = (int) ($source['expires_remaining'] ?? 0);
+        if ($expireAmount <= 0 || $accountId <= 0) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['transaction_id' => 0, 'amount' => 0];
+        }
+
+        $transactionId = sr_reward_create_transaction($pdo, [
+            'account_id' => $accountId,
+            'amount' => -$expireAmount,
+            'transaction_type' => 'expire',
+            'reason' => '적립금 유효기간 만료',
+            'reference_type' => 'reward_expiration',
+            'reference_id' => 'reward_transaction:' . $sourceTransactionId,
+            'created_by_account_id' => null,
+            'skip_expiration_consumption' => true,
+        ]);
+
+        $updateStmt = $pdo->prepare(
+            'UPDATE sr_reward_transactions
+             SET expires_remaining = 0,
+                 expired_at = :expired_at
+             WHERE id = :id'
+        );
+        $updateStmt->execute([
+            'expired_at' => $now,
+            'id' => $sourceTransactionId,
+        ]);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return ['transaction_id' => $transactionId, 'amount' => $expireAmount];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_reward_defer_transaction_notification(PDO $pdo, int $transactionId): void
@@ -684,6 +1089,7 @@ function sr_reward_reference_type_label(string $referenceType): string
         'payment' => '결제',
         'refund' => '환불',
         'reclaim' => '회수',
+        'reward_expiration' => '적립금 만료',
         'support_ticket' => '고객문의',
         'event' => '이벤트',
         'migration' => '데이터 이관',
@@ -1317,7 +1723,7 @@ function sr_reward_transaction_by_id(PDO $pdo, int $transactionId): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at
+        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at
          FROM sr_reward_transactions
          WHERE id = :id
          LIMIT 1'
@@ -1337,7 +1743,7 @@ function sr_reward_transaction_by_reference(PDO $pdo, string $referenceType, str
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at
+        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at
          FROM sr_reward_transactions
          WHERE reference_type = :reference_type
            AND reference_id = :reference_id
@@ -1351,6 +1757,39 @@ function sr_reward_transaction_by_reference(PDO $pdo, string $referenceType, str
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_reward_admin_transaction_rows(PDO $pdo, array $config, array $sort, array $pagination, int $accountId = 0): array
+{
+    $sql = 'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.expires_at, t.expires_remaining, t.expired_at, t.created_at,
+                   a.email, a.display_name
+            FROM sr_reward_transactions t
+            INNER JOIN sr_member_accounts a ON a.id = t.account_id';
+    if ($accountId > 0) {
+        $stmt = $pdo->prepare(
+            $sql . '
+             WHERE t.account_id = :account_id
+             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $sort, sr_admin_asset_transaction_default_sort()) . '
+             LIMIT :limit_value OFFSET :offset_value'
+        );
+        $stmt->bindValue('account_id', $accountId, PDO::PARAM_INT);
+        $stmt->bindValue('limit_value', (int) $pagination['per_page'], PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', sr_admin_pagination_offset($pagination), PDO::PARAM_INT);
+        $stmt->execute();
+    } else {
+        $stmt = $pdo->query(
+            $sql . '
+             ' . sr_admin_sort_order_sql(sr_admin_asset_transaction_sort_options(), $sort, sr_admin_asset_transaction_default_sort()) . '
+             LIMIT ' . (int) $pagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($pagination)
+        );
+    }
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $rows[] = sr_admin_member_row_with_public_hash($config, $row);
+    }
+
+    return $rows;
 }
 
 function sr_reward_notify_transaction_created(PDO $pdo, int $transactionId): ?int
@@ -1430,6 +1869,9 @@ function sr_reward_transaction_notification_metadata(array $transaction, ?PDO $p
         'reference_type' => $referenceType,
         'reference_type_label' => sr_reward_reference_type_label($referenceType),
         'reference_id' => (string) ($transaction['reference_id'] ?? ''),
+        'expires_at' => (string) ($transaction['expires_at'] ?? ''),
+        'expires_remaining' => number_format((int) ($transaction['expires_remaining'] ?? 0)),
+        'expired_at' => (string) ($transaction['expired_at'] ?? ''),
         'created_at' => (string) ($transaction['created_at'] ?? ''),
     ];
 }

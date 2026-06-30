@@ -53,7 +53,7 @@
 | `privacy` | 개인정보 요청 기록, requester, admin note, handler, export 조정 | 관리자 메모 최소화, 민감정보 redaction, 처리 상태와 실제 조치의 정합성을 기록한다. |
 | `quiz` | 퀴즈, 시도, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash | 답안/결과 snapshot과 접속 hash, 보상 grant, 댓글 작성자 cleanup을 표면별로 기록한다. |
 | `reaction` | 계정별 target reaction 원장과 알림 연결 | 리액션 원장 삭제 cleanup, target owner 알림 no-op 조건, target resolver 접근 정책을 기록한다. |
-| `reward` | 적립금 잔액/원장, 출금 신청 계좌 | 금액성 증빙과 출금 계좌 마스킹 시점, 처리자 접근 범위를 기록한다. |
+| `reward` | 적립금 잔액/원장, 만료 소비 매핑, 출금 신청 계좌 | 금액성 증빙으로 보존하고 만료 source/consume 연결, 출금 계좌 마스킹 시점, 처리자 접근 범위를 기록한다. |
 | `seo` | sitemap/robots/default meta 설정 | 현재 회원 귀속 개인정보 없음. 콘텐츠별 SEO 개인정보는 소유 모듈 책임이다. |
 | `site_menu` | 메뉴 구조와 링크 자산 | 현재 회원 귀속 개인정보 없음. 연결 대상 개인정보는 소유 모듈 책임이다. |
 | `survey` | 설문, 응답, 답변/metadata/consent snapshot, 댓글, 보상 grant, IP/UA hash | 응답 동의, 익명 허용, 답변 snapshot, 민감정보 입력 가능성, 보상 grant cleanup을 표면별로 기록한다. |

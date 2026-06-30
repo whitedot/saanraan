@@ -53,9 +53,6 @@ if (sr_request_method() === 'POST') {
             $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
         }
     }
-    if ($refundRequestsEnabled && $allowedGroupKeys === []) {
-        $errors[] = '환불 신청을 사용하려면 환불 신청 허용 대상을 선택하세요.';
-    }
     if ($displayName === '') {
         $errors[] = '예치금 표시명을 입력하세요.';
     }
@@ -69,9 +66,6 @@ if (sr_request_method() === 'POST') {
         }
     }
     foreach ($allowedGroupKeys as $groupKey) {
-        if ($groupKey === sr_deposit_refund_all_members_key()) {
-            continue;
-        }
         if (!isset($enabledGroupKeys[$groupKey])) {
             $errors[] = '환불 신청 가능 회원 그룹 선택값이 올바르지 않습니다.';
             break;

@@ -409,7 +409,7 @@ function sr_deposit_normalize_group_keys(mixed $groupKeys): array
     foreach ($groupKeys as $groupKey) {
         $groupKey = (string) $groupKey;
         if ($groupKey === sr_deposit_refund_all_members_key()) {
-            return [sr_deposit_refund_all_members_key()];
+            return [];
         }
         if (sr_member_group_key_is_valid($groupKey)) {
             $normalized[$groupKey] = true;
@@ -487,10 +487,6 @@ function sr_deposit_account_can_request_refund(PDO $pdo, int $accountId): bool
 
     $allowedGroupKeys = sr_deposit_refund_allowed_group_keys($pdo);
     if ($allowedGroupKeys === []) {
-        return false;
-    }
-
-    if (in_array(sr_deposit_refund_all_members_key(), $allowedGroupKeys, true)) {
         return true;
     }
 
