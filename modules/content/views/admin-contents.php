@@ -635,6 +635,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-asset-setting-scope">
                             <?php echo $pageSettingSourceRadioHtml('source_asset_module', $pageSettingSource($values, 'asset_module'), true); ?>
                             <input type="hidden" name="source_asset_access_amount" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
+                            <input type="hidden" name="source_asset_access_settlement_currency" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
                             <input type="hidden" name="source_asset_access_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_module')); ?>" data-admin-setting-source-mirror>
                         </div>
                     </div>
@@ -704,6 +705,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-asset-setting-scope">
                             <?php echo $pageSettingSourceRadioHtml('source_asset_action_module', $pageSettingSource($values, 'asset_action_module'), true); ?>
                             <input type="hidden" name="source_asset_action_amount" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_module')); ?>" data-admin-setting-source-mirror>
+                            <input type="hidden" name="source_asset_action_settlement_currency" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_module')); ?>" data-admin-setting-source-mirror>
                             <input type="hidden" name="source_asset_action_amounts_json" value="<?php echo sr_e($pageSettingSource($values, 'asset_action_module')); ?>" data-admin-setting-source-mirror>
                         </div>
                     </div>

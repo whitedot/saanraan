@@ -187,6 +187,7 @@ function sr_community_settings(PDO $pdo): array
 
 function sr_community_normalize_settings(array $settings, ?array $site = null, ?PDO $pdo = null): array
 {
+    $rawSettings = $settings;
     $settings = array_merge(sr_community_default_settings(), $settings);
     unset(
         $settings['layout_secondary_menu_key'],
@@ -278,14 +279,14 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
             : sr_community_asset_module_key_or_empty((string) ($settings[$assetPrefix . '_asset_module'] ?? ''));
         $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
         if (in_array($assetPrefix, sr_community_asset_composite_prefixes(), true)) {
-            $settlementCurrency = (string) ($settings[$assetPrefix . '_settlement_currency'] ?? '');
+            $settlementCurrencyKey = $assetPrefix . '_settlement_currency';
+            $settlementCurrency = array_key_exists($settlementCurrencyKey, $rawSettings)
+                ? (string) ($rawSettings[$settlementCurrencyKey] ?? '')
+                : '';
             $settings[$assetPrefix . '_settlement_currency'] = $pdo instanceof PDO
                 ? sr_community_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency])
                 : (function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency)));
-            if (
-                (string) $settings[$assetPrefix . '_settlement_currency'] === ''
-                || (function_exists('sr_currency_is_known') && !sr_currency_is_known((string) $settings[$assetPrefix . '_settlement_currency']))
-            ) {
+            if ((string) $settings[$assetPrefix . '_settlement_currency'] === '') {
                 $settings[$assetPrefix . '_settlement_currency'] = 'KRW';
             }
         }

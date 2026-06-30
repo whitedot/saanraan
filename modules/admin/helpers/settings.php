@@ -1190,12 +1190,12 @@ function sr_admin_currency_change_asset_purchase_power_summary(PDO $pdo): array
     }
 
     require_once $assetHelperPath;
-    if (!function_exists('sr_member_assets')) {
+    if (!function_exists('sr_member_ledger_asset_definitions')) {
         return $assetRows;
     }
 
     try {
-        $assets = sr_member_assets($pdo);
+        $assets = sr_member_ledger_asset_definitions($pdo);
     } catch (Throwable $exception) {
         return $assetRows;
     }

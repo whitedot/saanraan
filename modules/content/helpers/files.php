@@ -1097,17 +1097,14 @@ function sr_content_admin_file_download_logs_with_access_summaries(PDO $pdo, arr
             ) {
                 continue;
             }
-            $summaryLines[] = implode(':', [
-                (string) ($accessLog['asset_module'] ?? ''),
-                (string) (int) ($accessLog['transaction_id'] ?? 0),
-                (string) (int) ($accessLog['amount'] ?? 0),
-                (string) (int) ($accessLog['settlement_amount'] ?? 0),
-                (string) ($accessLog['settlement_currency'] ?? 'KRW'),
+            $assetModule = (string) ($accessLog['asset_module'] ?? '');
+            $summaryLines[] = trim(implode(' · ', array_filter([
+                sr_content_asset_module_labels($assetModule, $pdo) . ' ' . number_format((int) ($accessLog['amount'] ?? 0)),
+                '기준 ' . number_format((int) ($accessLog['settlement_amount'] ?? 0)) . ' ' . (string) ($accessLog['settlement_currency'] ?? 'KRW'),
                 (string) ($accessLog['settlement_kind'] ?? 'legacy_unknown'),
-                (string) ($accessLog['snapshot_schema_version'] ?? 'asset_settlement_snapshot_v1'),
-                (string) ($accessLog['rounding_policy_version'] ?? 'asset_settlement_rounding_v1'),
-                (string) ($accessLog['group_policy_snapshot_json'] ?? ''),
-            ]);
+                'snapshot ' . (string) ($accessLog['snapshot_schema_version'] ?? 'asset_settlement_snapshot_v1'),
+                'rounding ' . (string) ($accessLog['rounding_policy_version'] ?? 'asset_settlement_rounding_v1'),
+            ], static fn (string $part): bool => $part !== '')));
         }
         $downloadLogs[$index]['access_log_summary'] = implode("\n", $summaryLines);
     }

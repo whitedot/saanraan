@@ -51,8 +51,16 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
 {
     $settlementAmount = max(0, $settlementAmount);
     $settlementKind = sr_content_asset_settlement_kind_for_action($direction, $amount, $settlementAmount, $purchasePowerSnapshotJson);
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_content_asset_action_logs
+        $insertVerb . ' INTO sr_content_asset_action_logs
             (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
             (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
@@ -181,6 +189,20 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     $amount = (int) $policyAmounts['amount'];
     $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($page['asset_action_settlement_currency'] ?? '')]);
     if ($amount <= 0) {
+        if ($direction === 'use') {
+            $configErrorMessage = sr_content_asset_settlement_config_error_message($pdo, $assetModules, $accountId, 0, $settlementCurrency, '완료 처리할 수 없습니다.');
+            if ($configErrorMessage !== '') {
+                return [
+                    'allowed' => false,
+                    'completed' => false,
+                    'asset_module' => $assetModuleValue,
+                    'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+                    'amount' => $amount,
+                    'message' => $configErrorMessage,
+                ];
+            }
+        }
+
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
         $startedTransaction = !$pdo->inTransaction();
@@ -249,6 +271,7 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     }
 
     try {
+        $pendingActionCharges = [];
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
@@ -258,9 +281,41 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
             $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
             $inserted = sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey, sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
-                continue;
+                $existingLog = sr_content_asset_action_log($pdo, $dedupeKey);
+                if (is_array($existingLog) && (string) ($existingLog['log_status'] ?? '') === sr_content_asset_log_status_completed()) {
+                    continue;
+                }
+                throw new RuntimeException('Content asset action is still processing.');
             }
 
+            $pendingActionCharges[] = [
+                'asset_module' => $assetModule,
+                'amount' => $allocatedAmount,
+                'dedupe_key' => $dedupeKey,
+            ];
+        }
+
+        if ($pendingActionCharges === []) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            return [
+                'allowed' => true,
+                'completed' => true,
+                'already_processed' => true,
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => $amount,
+                'direction' => $direction,
+                'message' => '',
+            ];
+        }
+
+        foreach ($pendingActionCharges as $pendingActionCharge) {
+            $assetModule = (string) $pendingActionCharge['asset_module'];
+            $allocatedAmount = (int) $pendingActionCharge['amount'];
+            $dedupeKey = (string) $pendingActionCharge['dedupe_key'];
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $signedAmount = $direction === 'grant' ? $allocatedAmount : -$allocatedAmount;
             $transactionType = $direction === 'grant'

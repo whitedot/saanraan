@@ -406,13 +406,13 @@ foreach ([
         'sr_content_asset_confirmation_request_token_valid',
     ],
     'modules/content/helpers/asset-access.php' => [
-        'INSERT IGNORE INTO sr_content_asset_access_logs',
+        '$insertVerb . \' INTO sr_content_asset_access_logs',
         'sr_content_asset_log_status_pending()',
         'sr_content_asset_log_status_completed()',
         'sr_content_delete_asset_access_placeholder',
     ],
     'modules/content/helpers/asset-actions.php' => [
-        'INSERT IGNORE INTO sr_content_asset_action_logs',
+        '$insertVerb . \' INTO sr_content_asset_action_logs',
         'sr_content_asset_log_status_pending()',
         'sr_content_asset_log_status_completed()',
         'sr_content_delete_asset_action_placeholder',
@@ -458,7 +458,9 @@ if (str_contains(sr_asset_idempotency_file('modules/asset_exchange/actions/accou
 $contentAccessHelpers = 'modules/content/helpers/asset-access.php';
 foreach ([
     'sr_content_insert_asset_access_placeholder' => [
-        'INSERT IGNORE INTO sr_content_asset_access_logs',
+        "\$insertVerb = 'INSERT IGNORE';",
+        "\$insertVerb = 'INSERT OR IGNORE';",
+        '$insertVerb . \' INTO sr_content_asset_access_logs',
         'transaction_id, reference_type',
         'sr_content_asset_log_status_pending()',
         'return $stmt->rowCount() > 0;',
@@ -485,7 +487,9 @@ foreach ([
 $contentActionHelpers = 'modules/content/helpers/asset-actions.php';
 foreach ([
     'sr_content_insert_asset_action_placeholder' => [
-        'INSERT IGNORE INTO sr_content_asset_action_logs',
+        "\$insertVerb = 'INSERT IGNORE';",
+        "\$insertVerb = 'INSERT OR IGNORE';",
+        '$insertVerb . \' INTO sr_content_asset_action_logs',
         'sr_content_asset_log_status_pending()',
         'return $stmt->rowCount() > 0;',
     ],
@@ -529,6 +533,19 @@ foreach ([
     $body = sr_asset_idempotency_function_body($functionFile, $functionName);
     foreach ($orders as $order) {
         sr_asset_idempotency_order($functionFile . ' function ' . $functionName, $body, $order[0], $order[1]);
+    }
+}
+
+$contentActionRunBody = sr_asset_idempotency_function_body($contentActionHelpers, 'sr_content_run_asset_action_once');
+foreach ([
+    'sr_content_asset_action_log($pdo, $dedupeKey)',
+    '($existingLog[\'log_status\'] ?? \'\') === sr_content_asset_log_status_completed()',
+    'throw new RuntimeException(\'Content asset action is still processing.\');',
+    '$pendingActionCharges === []',
+    "'already_processed' => true",
+] as $marker) {
+    if (!str_contains($contentActionRunBody, $marker)) {
+        sr_asset_idempotency_error($contentActionHelpers . ' function sr_content_run_asset_action_once is missing duplicate action guard marker: ' . $marker);
     }
 }
 

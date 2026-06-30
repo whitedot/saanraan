@@ -142,6 +142,9 @@ function sr_community_board_group_asset_setting_keys(): array
         $keys[] = $prefix . '_enabled';
         $keys[] = $prefix . '_asset_module';
         $keys[] = $prefix . '_amount';
+        if (in_array($prefix, sr_community_asset_composite_prefixes(), true)) {
+            $keys[] = $prefix . '_settlement_currency';
+        }
         $keys[] = $prefix . '_group_policies_json';
         $keys[] = $prefix . '_policy_set_id';
         if (in_array($prefix, sr_community_asset_composite_prefixes(), true)) {
@@ -995,6 +998,11 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
         $board[$assetPrefix . '_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_enabled', !empty($settings[$assetPrefix . '_enabled']) ? '1' : '0');
         $board[$assetPrefix . '_asset_module'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_asset_module', (string) ($settings[$assetPrefix . '_asset_module'] ?? ''));
         $board[$assetPrefix . '_amount'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_amount', (string) ($settings[$assetPrefix . '_amount'] ?? 0));
+        if (in_array($assetPrefix, sr_community_asset_composite_prefixes(), true)) {
+            $board[$assetPrefix . '_settlement_currency'] = sr_community_asset_settlement_currency($pdo, [
+                'asset_settlement_currency' => sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_settlement_currency', (string) ($settings[$assetPrefix . '_settlement_currency'] ?? '')),
+            ]);
+        }
         $board[$assetPrefix . '_group_policies_json'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_group_policies_json', (string) ($settings[$assetPrefix . '_group_policies_json'] ?? ''));
         $board[$assetPrefix . '_policy_set_id'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_policy_set_id', (string) ($settings[$assetPrefix . '_policy_set_id'] ?? 0));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {

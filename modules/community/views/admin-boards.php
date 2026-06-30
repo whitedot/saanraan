@@ -1144,6 +1144,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_asset_module', $boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>
+                                <?php if ($usesCompositeAsset) { ?>
+                                    <input type="hidden" name="<?php echo sr_e('source_' . (string) $assetPrefix . '_settlement_currency'); ?>" value="<?php echo sr_e($boardSettingSource($formBoard, (string) $assetPrefix . '_asset_module')); ?>" data-admin-setting-source-mirror>
+                                <?php } ?>
                             </div>
                         </div>
                     </div>

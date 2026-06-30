@@ -569,6 +569,12 @@ if (sr_request_method() === 'POST') {
             $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($policySetIds);
             $assetSettings[$assetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($policySetIds);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+                $existingSettlementCurrency = is_array($existingBoard ?? null)
+                    ? sr_community_asset_board_setting($pdo, $existingBoard, $settings, $assetPrefix . '_settlement_currency', '')
+                    : '';
+                $assetSettings[$assetPrefix . '_settlement_currency'] = sr_community_asset_settlement_currency($pdo, [
+                    'asset_settlement_currency' => (string) $existingSettlementCurrency,
+                ]);
                 $assetModules = sr_community_asset_module_keys_from_value($assetSettings[$assetPrefix . '_asset_module'], true);
                 $assetSettings[$assetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map(
                     sr_community_asset_amounts_from_post($assetPrefix . '_amounts', $assetModules, (int) ($assetSettings[$assetPrefix . '_amount'] ?? 0))
@@ -591,7 +597,7 @@ if (sr_request_method() === 'POST') {
             $assetModuleSource = sr_post_string('source_' . $assetPrefix . '_asset_module', 20);
             foreach (sr_community_asset_prefix_setting_keys((string) $assetPrefix) as $settingKey) {
                 $postedSettingSource = sr_post_string('source_' . $settingKey, 20);
-                if ($postedSettingSource === '' && in_array($settingKey, [$assetPrefix . '_amount', $assetPrefix . '_amounts_json'], true)) {
+                if ($postedSettingSource === '' && in_array($settingKey, [$assetPrefix . '_amount', $assetPrefix . '_settlement_currency', $assetPrefix . '_amounts_json'], true)) {
                     $postedSettingSource = $assetModuleSource;
                 }
                 $assetSettingSources[$settingKey] = sr_community_normalize_board_setting_source($postedSettingSource !== '' ? $postedSettingSource : $legacyPrefixSource);

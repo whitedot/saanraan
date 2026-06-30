@@ -116,6 +116,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                     $memberPublicHash = $downloadAccountId > 0 && function_exists('sr_admin_member_public_hash')
                         ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $downloadAccountId)
                         : '';
+                    $assetLogSummary = trim((string) ($downloadLog['asset_log_summary'] ?? ''));
                     ?>
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($downloadLog['created_at'] ?? '')); ?></td>
@@ -147,6 +148,11 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                                 <?php echo sr_e(sr_community_asset_module_labels((string) ($downloadLog['asset_module'] ?? ''), $pdo)); ?>
                                 <?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?>
                                 · <?php echo sr_e((string) (sr_community_asset_charge_policies()[(string) ($downloadLog['charge_policy'] ?? 'once')] ?? $downloadLog['charge_policy'] ?? '')); ?>
+                                <?php if ($assetLogSummary !== '') { ?>
+                                    <p class="form-help"><?php echo sr_e(str_replace("\n", ' / ', $assetLogSummary)); ?></p>
+                                <?php } elseif (sr_community_attachment_download_log_access_log_ids($downloadLog) !== []) { ?>
+                                    <p class="form-help">연결된 차감 로그를 확인할 수 없음</p>
+                                <?php } ?>
                             <?php } else { ?>
                                 차감 없음
                             <?php } ?>

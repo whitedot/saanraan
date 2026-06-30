@@ -118,6 +118,7 @@ if (sr_request_method() === 'POST') {
         $layoutQuaternaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60));
         $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
+        $defaultSettlementCurrency = sr_site_default_currency($pdo);
         $assetSettings = [];
         foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
             $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST[$assetPrefix . '_policy_set_ids'] ?? []);
@@ -126,6 +127,9 @@ if (sr_request_method() === 'POST') {
                 ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($_POST[$assetPrefix . '_asset_module'] ?? '', true), true)
                 : sr_community_asset_module_key_or_empty(sr_post_string($assetPrefix . '_asset_module', 20));
             $assetSettings[$assetPrefix . '_amount'] = sr_admin_post_int_in_range($assetPrefix . '_amount', 0, 999999999);
+            $assetSettings[$assetPrefix . '_settlement_currency'] = sr_community_asset_settlement_currency($pdo, [
+                'asset_settlement_currency' => (string) ($settings[$assetPrefix . '_settlement_currency'] ?? $defaultSettlementCurrency),
+            ]);
             $assetSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($policySetIds);
             $assetSettings[$assetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($policySetIds);
             if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
@@ -331,7 +335,6 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($communityModule ?? null)) {
-            $defaultSettlementCurrency = sr_site_default_currency($pdo);
             $rows = [
                 ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
                 ['level_display_name', $levelDisplayName, 'string'],
@@ -389,28 +392,28 @@ if (sr_request_method() === 'POST') {
                 ['write_charge_enabled', $assetSettings['write_charge_enabled'] ? '1' : '0', 'bool'],
                 ['write_charge_asset_module', (string) $assetSettings['write_charge_asset_module'], 'string'],
                 ['write_charge_amount', (string) $assetSettings['write_charge_amount'], 'int'],
-                ['write_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['write_charge_settlement_currency', (string) $assetSettings['write_charge_settlement_currency'], 'string'],
                 ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
                 ['write_charge_group_policies_json', (string) $assetSettings['write_charge_group_policies_json'], 'json'],
                 ['write_charge_policy_set_id', (string) $assetSettings['write_charge_policy_set_id'], 'int'],
                 ['message_charge_enabled', $assetSettings['message_charge_enabled'] ? '1' : '0', 'bool'],
                 ['message_charge_asset_module', (string) $assetSettings['message_charge_asset_module'], 'string'],
                 ['message_charge_amount', (string) $assetSettings['message_charge_amount'], 'int'],
-                ['message_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['message_charge_settlement_currency', (string) $assetSettings['message_charge_settlement_currency'], 'string'],
                 ['message_charge_amounts_json', (string) $assetSettings['message_charge_amounts_json'], 'json'],
                 ['message_charge_group_policies_json', (string) $assetSettings['message_charge_group_policies_json'], 'json'],
                 ['message_charge_policy_set_id', (string) $assetSettings['message_charge_policy_set_id'], 'int'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
-                ['comment_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['comment_charge_settlement_currency', (string) $assetSettings['comment_charge_settlement_currency'], 'string'],
                 ['comment_charge_amounts_json', (string) $assetSettings['comment_charge_amounts_json'], 'json'],
                 ['comment_charge_group_policies_json', (string) $assetSettings['comment_charge_group_policies_json'], 'json'],
                 ['comment_charge_policy_set_id', (string) $assetSettings['comment_charge_policy_set_id'], 'int'],
                 ['paid_read_enabled', $assetSettings['paid_read_enabled'] ? '1' : '0', 'bool'],
                 ['paid_read_asset_module', (string) $assetSettings['paid_read_asset_module'], 'string'],
                 ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
-                ['paid_read_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['paid_read_settlement_currency', (string) $assetSettings['paid_read_settlement_currency'], 'string'],
                 ['paid_read_amounts_json', (string) $assetSettings['paid_read_amounts_json'], 'json'],
                 ['paid_read_group_policies_json', (string) $assetSettings['paid_read_group_policies_json'], 'json'],
                 ['paid_read_policy_set_id', (string) $assetSettings['paid_read_policy_set_id'], 'int'],
@@ -419,7 +422,7 @@ if (sr_request_method() === 'POST') {
                 ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
                 ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
-                ['paid_attachment_download_settlement_currency', $defaultSettlementCurrency, 'string'],
+                ['paid_attachment_download_settlement_currency', (string) $assetSettings['paid_attachment_download_settlement_currency'], 'string'],
                 ['paid_attachment_download_amounts_json', (string) $assetSettings['paid_attachment_download_amounts_json'], 'json'],
                 ['paid_attachment_download_group_policies_json', (string) $assetSettings['paid_attachment_download_group_policies_json'], 'json'],
                 ['paid_attachment_download_policy_set_id', (string) $assetSettings['paid_attachment_download_policy_set_id'], 'int'],

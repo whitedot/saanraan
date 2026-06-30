@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 chdir($root);
 
 require_once $root . '/core/helpers.php';
+require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/community/helpers.php';
 
 $errors = [];
@@ -45,6 +46,20 @@ function sr_community_attachment_runtime_row(PDO $pdo, string $sql, array $param
 function sr_community_attachment_runtime_schema(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE sr_site_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string")');
+    $pdo->exec('CREATE TABLE sr_modules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        version TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT "disabled"
+    )');
+    $pdo->exec('CREATE TABLE sr_module_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_id INTEGER NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT,
+        value_type TEXT NOT NULL DEFAULT "string"
+    )');
     $pdo->exec('CREATE TABLE sr_community_asset_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER NOT NULL,
@@ -84,7 +99,49 @@ function sr_community_attachment_runtime_schema(PDO $pdo): void
         created_at TEXT NOT NULL,
         UNIQUE(account_id, subject_type, subject_id, event_key)
     )');
+    $pdo->exec('CREATE TABLE sr_community_boards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        board_key TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        status TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        original_name TEXT NOT NULL,
+        status TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_member_accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        display_name TEXT NOT NULL,
+        email TEXT NOT NULL
+    )');
+    $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL,
+        post_id INTEGER NOT NULL,
+        attachment_id INTEGER NOT NULL,
+        account_id INTEGER,
+        download_type TEXT NOT NULL,
+        charge_policy TEXT NOT NULL DEFAULT "once",
+        asset_module TEXT NOT NULL DEFAULT "",
+        amount INTEGER NOT NULL DEFAULT 0,
+        asset_access_log_ids_json TEXT,
+        post_title_snapshot TEXT NOT NULL DEFAULT "",
+        attachment_original_name_snapshot TEXT NOT NULL DEFAULT "",
+        created_at TEXT NOT NULL
+    )');
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, name, version, status) VALUES (1, 'point', '포인트', '1.0.0', 'enabled')");
+    $pdo->exec("INSERT INTO sr_community_boards (id, title, board_key) VALUES (33, 'Fixture board', 'fixture')");
+    $pdo->exec("INSERT INTO sr_community_posts (id, board_id, title, status) VALUES (77, 33, 'Fixture post', 'published')");
+    $pdo->exec("INSERT INTO sr_community_attachments (id, post_id, original_name, status) VALUES (9901, 77, 'fixture.txt', 'active')");
+    $pdo->exec("INSERT INTO sr_member_accounts (id, display_name, email) VALUES (10, 'Fixture member', 'fixture@example.test')");
 }
 
 $pdo = new PDO('sqlite::memory:');
@@ -122,6 +179,25 @@ sr_community_attachment_runtime_assert((string) ($log['log_status'] ?? '') === '
 sr_community_attachment_runtime_assert((string) ($log['settlement_kind'] ?? '') === 'paid_settled_zero', 'community attachment fixture should classify zero-amount settlement kind.');
 sr_community_attachment_runtime_assert((string) ($log['snapshot_schema_version'] ?? '') === sr_community_asset_snapshot_schema_version(), 'community attachment fixture should store snapshot schema version.');
 sr_community_attachment_runtime_assert((string) ($log['rounding_policy_version'] ?? '') === sr_community_asset_rounding_policy_version(), 'community attachment fixture should store rounding policy version.');
+
+$pdo->prepare(
+    'INSERT INTO sr_community_attachment_download_logs
+        (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, post_title_snapshot, attachment_original_name_snapshot, created_at)
+     VALUES
+        (33, 77, 9901, 10, "paid", "once", "point", 0, :asset_access_log_ids_json, "Fixture post", "fixture.txt", :created_at)'
+)->execute([
+    'asset_access_log_ids_json' => json_encode([(int) sr_community_attachment_runtime_scalar($pdo, 'SELECT id FROM sr_community_asset_logs WHERE dedupe_key = :dedupe_key', ['dedupe_key' => $dedupeKey])]),
+    'created_at' => sr_now(),
+]);
+$downloadLogs = sr_community_admin_attachment_download_logs($pdo, [], 10, 0, sr_community_admin_attachment_download_log_default_sort());
+$downloadLogCount = count($downloadLogs);
+$downloadLogIds = $downloadLogCount > 0 ? sr_community_attachment_download_log_access_log_ids($downloadLogs[0]) : [];
+$downloadSummary = (string) ($downloadLogs[0]['asset_log_summary'] ?? '');
+sr_community_attachment_runtime_assert($downloadLogCount === 1, 'community attachment admin download logs should return the fixture row. count=' . (string) $downloadLogCount);
+sr_community_attachment_runtime_assert($downloadLogIds !== [], 'community attachment admin download logs should preserve linked asset log ids.');
+sr_community_attachment_runtime_assert(str_contains($downloadSummary, '기준 0 KRW'), 'community attachment admin download logs should include settlement amount and currency summary. summary=' . $downloadSummary);
+sr_community_attachment_runtime_assert(str_contains($downloadSummary, 'snapshot ' . sr_community_asset_snapshot_schema_version()), 'community attachment admin download logs should include snapshot schema version summary. summary=' . $downloadSummary);
+sr_community_attachment_runtime_assert(str_contains($downloadSummary, 'rounding ' . sr_community_asset_rounding_policy_version()), 'community attachment admin download logs should include rounding policy version summary. summary=' . $downloadSummary);
 
 sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'point', 'once', $dedupeKey);
 sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'point', 'once', $dedupeKey . ':duplicate');
