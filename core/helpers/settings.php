@@ -805,6 +805,7 @@ function sr_module_known_contract_files(): array
         'asset-exchange.php',
         'member-assets.php',
         'member-withdrawal-assets.php',
+        'member-summary-rows.php',
         'member-action-rows.php',
         'member-only-routes.php',
         'member-registration.php',

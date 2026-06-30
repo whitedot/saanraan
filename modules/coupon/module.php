@@ -28,6 +28,7 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'member-withdrawal-assets.php',
+            'member-summary-rows.php',
             'coupon-references.php',
             'dashboard.php',
             'url-embed-targets.php',

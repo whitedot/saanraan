@@ -8,6 +8,8 @@ return [
     'unit_function' => 'sr_reward_unit_label',
     'available_function' => 'sr_reward_usage_enabled',
     'balance_function' => 'sr_reward_balance',
+    'summary_url' => '/account/rewards',
+    'summary_icon' => 'savings',
     'transaction_function' => 'sr_reward_create_transaction',
     'transaction_lookup_function' => 'sr_reward_transaction_by_reference',
     'transaction_table' => 'sr_reward_transactions',

@@ -345,6 +345,7 @@ function sr_check_module_lifecycle_metadata(): void
         'sitemap.php' => true,
         'member-assets.php' => true,
         'member-withdrawal-assets.php' => true,
+        'member-summary-rows.php' => true,
         'member-action-rows.php' => true,
         'member-only-routes.php' => true,
         'member-registration.php' => true,
@@ -510,6 +511,7 @@ function sr_check_module_contract_files(): void
         'sitemap.php',
         'member-assets.php',
         'member-withdrawal-assets.php',
+        'member-summary-rows.php',
         'member-action-rows.php',
         'member-only-routes.php',
         'member-registration.php',
@@ -593,11 +595,11 @@ function sr_check_module_contract_files(): void
             $contractContents = file_get_contents($contractPath);
             $contractContents = is_string($contractContents) ? $contractContents : '';
             if (
-                $contractFile === 'member-action-rows.php'
+                in_array($contractFile, ['member-action-rows.php', 'member-summary-rows.php'], true)
                 && preg_match('/return\s+(?:static\s+)?function\s*\(\s*PDO\s+\$pdo\s*,\s*int\s+\$accountId\s*\)\s*:\s*array/', $contractContents) !== 1
                 && preg_match('/[\'"]rows_function[\'"]\s*=>/', $contractContents) !== 1
             ) {
-                sr_check_add_error('Module member-action-rows.php must expose a rows provider shape: ' . $contractPath);
+                sr_check_add_error('Module ' . $contractFile . ' must expose a rows provider shape: ' . $contractPath);
             }
             if (
                 $contractFile === 'member-only-routes.php'

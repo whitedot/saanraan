@@ -8,6 +8,8 @@ return [
     'unit_function' => 'sr_deposit_unit_label',
     'available_function' => 'sr_deposit_usage_enabled',
     'balance_function' => 'sr_deposit_balance',
+    'summary_url' => '/account/deposits',
+    'summary_icon' => 'payments',
     'transaction_function' => 'sr_deposit_create_transaction',
     'transaction_lookup_function' => 'sr_deposit_transaction_by_reference',
     'transaction_table' => 'sr_deposit_transactions',

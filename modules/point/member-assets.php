@@ -8,6 +8,8 @@ return [
     'unit_function' => 'sr_point_unit_label',
     'available_function' => 'sr_point_usage_enabled',
     'balance_function' => 'sr_point_balance',
+    'summary_url' => '/account/points',
+    'summary_icon' => 'database',
     'transaction_function' => 'sr_point_create_transaction',
     'transaction_lookup_function' => 'sr_point_transaction_by_reference',
     'transaction_table' => 'sr_point_transactions',

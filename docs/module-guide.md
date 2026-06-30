@@ -79,6 +79,7 @@ modules/{module_key}/
 - output-slots.php (optional)
 - extension-points.php (optional)
 - logo-positions.php (optional)
+- member-summary-rows.php (optional)
 - member-action-rows.php (optional)
 - member-only-routes.php (optional)
 - privacy-export.php (optional)
@@ -133,6 +134,8 @@ modules/sample/
 운영 지연/실패 점검에 노출할 고부하 작업은 job row를 첫 영속 작업으로 만든 뒤에만 도메인 데이터나 파일 변경을 시작한다. job row에는 운영자가 대상을 식별할 수 있는 값, `status`, `stage` 또는 처리 위치, `updated_at`, 완료/실패 시각, 실패 사유를 남긴다. row 생성 전 실패하고 부작용도 없는 경우는 작업 시작 실패로 즉시 안내하고, 운영 점검 대상에 넣지 않는다. row 생성 전 이미 부작용이 생기는 흐름은 운영 점검 추가보다 작업 순서 수정이 우선이다.
 
 공개 레이아웃의 회원 요약 영역에 계정별 행동 row를 노출해야 하는 모듈은 `member-action-rows.php` 계약을 둘 수 있다. 이 파일은 callable 또는 `rows_function` callable을 반환하고, callable은 `PDO $pdo, int $accountId`를 받아 `label`, `value`, `url`을 가진 row 배열을 반환한다. 코어는 활성 모듈의 계약을 순회하고 relative URL만 허용해 출력한다. 적립금 출금, 예치금 환불, 환전 가능 여부처럼 row의 의미와 노출 조건은 각 모듈 helper가 판단한다.
+
+공개 레이아웃의 회원 보유 요약에 금액성 원장 외 보유 row를 노출해야 하는 모듈은 `member-summary-rows.php` 계약을 둔다. 이 파일은 callable 또는 `rows_function` callable을 반환하고, callable은 `PDO $pdo, int $accountId`를 받아 `label`, `value`, `url`, 선택 `icon`을 가진 row 배열을 반환한다. 코어는 활성 모듈의 계약을 순회하고 relative URL만 허용해 출력한다. 쿠폰·이용권처럼 금액성 자산이 아닌 보유 상태와 노출 조건은 소유 모듈 helper가 판단한다.
 
 사이트 회원전용 모드에서 모듈 공개 화면을 로그인 대상으로 돌려야 하면 `member-only-routes.php` 계약을 둔다. 이 파일은 `protected_routes`, `public_routes`, `public_path_prefixes` 배열을 반환한다. `protected_routes`는 비로그인 사용자에게 redirect 대신 403을 반환할 method/path 목록이고, `public_routes`는 `paths.php`의 route key 또는 실제 method/path key이며, `public_path_prefixes`는 모듈 공개 prefix 목록이다. 코어는 이 shape만 알고, 어떤 공개 화면이 회원전용 모드에서 막혀야 하는지는 화면 소유 모듈이 선언한다.
 
@@ -1016,6 +1019,7 @@ return [
 - 배열을 반환한다.
 - 콘텐츠와 커뮤니티가 금액성 회원 자산 후보를 읽을 때 사용한다.
 - 자산 모듈 폴더 기준 `helpers`, `balance_function`, `transaction_function`, 선택 `transaction_table`, 표시용 `label` 또는 `label_function`, `unit_label` 또는 `unit_function`을 제공한다.
+- 공개 레이아웃 회원 보유 요약에 표시할 금액성 자산은 선택 `summary_url`, `summary_icon`을 제공한다. 코어는 relative URL만 허용하고, 사용 가능 여부와 잔액 조회는 자산 계약의 `available_function`, `balance_function`에 위임한다.
 - `transaction_lookup_function`은 `reference_type`과 `reference_id`로 기존 원장 거래를 조회하는 callable이다. 보상 복구, 중복 처리, 운영 reconciliation 보조 흐름에서 사용하므로 금액성 원장 자산은 제공해야 한다.
 - `use_type`, `credit_type`, `refund_type`으로 소비 모듈이 원장에 넘길 거래 유형을 선언한다.
 - `deduction_order`는 여러 자산을 함께 선택했을 때 기본 차감 순서에 사용한다.
@@ -1143,6 +1147,7 @@ return [
 | `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
 | `member-assets.php` | `content`, `community` 모듈 | 자산 정책 화면과 금액성 자산 처리 | 금액성 회원 자산 후보와 원장 호출 정보 |
 | `member-withdrawal-assets.php` | `member` 모듈 | 회원 탈퇴/정리 처리 | 탈퇴 시 정리할 회원 자산 후보와 처리 함수 |
+| `member-summary-rows.php` | core public layout helper | 공개 레이아웃 회원 보유 요약 영역 | 금액성 자산 외 계정별 보유 row 후보 |
 | `member-action-rows.php` | core public layout helper | 공개 레이아웃 회원 요약 영역 | 계정별 행동 row 후보 |
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
@@ -1183,7 +1188,7 @@ return [
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
 | `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `coupon-references.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php` | `member-assets.php`, `notification-events.php` |
 | `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `layout-options.php`, `coupon-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php` | `member-assets.php`, `notification-events.php` |
