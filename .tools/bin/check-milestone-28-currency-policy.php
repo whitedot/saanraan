@@ -71,8 +71,8 @@ sr_milestone_28_check_contains('core/actions/install.php', [
     '$values[\'default_currency\'] = sr_normalize_currency_code($values[\'default_currency\']);',
     'if (!sr_currency_is_known($values[\'default_currency\']))',
     '\'site.default_currency\' => [\'value\' => $values[\'default_currency\'], \'type\' => \'string\']',
-    '\'content\' => [' . "\n" . '        \'name\' => \'콘텐츠\',' . "\n" . '        \'version\' => \'2026.06.024\'',
-    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.06.042\'',
+    '\'content\' => [' . "\n" . '        \'name\' => \'콘텐츠\',' . "\n" . '        \'version\' => \'2026.06.026\'',
+    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.06.044\'',
 ]);
 
 sr_milestone_28_check_contains('modules/content/helpers/records.php', [
@@ -88,6 +88,8 @@ sr_milestone_28_check_contains('modules/content/helpers/files.php', [
 
 sr_milestone_28_check_contains('modules/community/actions/admin-settings.php', [
     '$defaultSettlementCurrency = sr_site_default_currency($pdo);',
+    '$assetSettings[$assetPrefix . \'_settlement_currency\'] = sr_community_asset_settlement_currency($pdo',
+    '$settings[$assetPrefix . \'_settlement_currency\'] ?? $defaultSettlementCurrency',
     'write_charge_settlement_currency',
     'paid_attachment_download_settlement_currency',
 ]);
@@ -106,6 +108,22 @@ sr_milestone_28_check_contains('modules/community/updates/2026.06.021.sql', [
     "c.setting_key = 'site.default_currency'",
     "'write_charge_settlement_currency'",
     "SET version = '2026.06.021'",
+]);
+
+sr_milestone_28_check_contains('modules/content/updates/2026.06.025.sql', [
+    "setting_key = 'site.default_currency'",
+    'asset_access_settlement_currency = @sr_content_asset_settlement_default_currency',
+    'asset_download_settlement_currency = @sr_content_asset_settlement_default_currency',
+    'purchase_power_snapshot_json = CONCAT(',
+    "SET version = '2026.06.025'",
+]);
+
+sr_milestone_28_check_contains('modules/community/updates/2026.06.043.sql', [
+    "setting_key = 'site.default_currency'",
+    'message_charge_settlement_currency',
+    's.setting_value = @sr_community_asset_settlement_default_currency',
+    'purchase_power_snapshot_json = CONCAT(',
+    "SET version = '2026.06.043'",
 ]);
 
 foreach (['modules/point/member-assets.php', 'modules/reward/member-assets.php', 'modules/deposit/member-assets.php'] as $memberAssetFile) {
