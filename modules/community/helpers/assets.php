@@ -814,7 +814,7 @@ function sr_community_asset_confirmation_request_token_valid(string $eventKey, s
         && hash_equals((string) ($session['token'] ?? ''), $token);
 }
 
-function sr_community_asset_confirmation_fingerprint(string $eventKey, string $subjectType, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = ''): string
+function sr_community_asset_confirmation_fingerprint(string $eventKey, string $subjectType, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = '', string $settlementCurrency = ''): string
 {
     ksort($amounts, SORT_STRING);
     $amountParts = [];
@@ -822,7 +822,9 @@ function sr_community_asset_confirmation_fingerprint(string $eventKey, string $s
         $amountParts[] = (string) $assetModule . ':' . (string) max(0, (int) $assetAmount);
     }
 
-    return hash('sha256', implode('|', [$eventKey, $subjectType, $chargePolicy, $assetModuleValue, (string) max(0, $amount), implode(',', $amountParts), $policySnapshotJson]));
+    $settlementCurrency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+
+    return hash('sha256', implode('|', [$eventKey, $subjectType, $chargePolicy, $assetModuleValue, (string) max(0, $amount), $settlementCurrency, implode(',', $amountParts), $policySnapshotJson]));
 }
 
 function sr_community_mark_asset_confirmation_session(string $eventKey, string $subjectType, int $accountId, int $subjectId, string $fingerprint): void
@@ -919,6 +921,7 @@ function sr_community_asset_prefix_setting_keys(string $prefix): array
         $prefix . '_policy_set_id',
     ];
     if (sr_community_asset_prefix_uses_composite($prefix)) {
+        $keys[] = $prefix . '_settlement_currency';
         $keys[] = $prefix . '_amounts_json';
     }
 
@@ -1028,6 +1031,11 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($moduleValue, true), true)
             : sr_community_asset_module_key_or_empty($moduleValue);
         $auditSettings[$assetPrefix . '_amount'] = max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0));
+        if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
+            $auditSettings[$assetPrefix . '_settlement_currency'] = function_exists('sr_normalize_currency_code')
+                ? sr_normalize_currency_code((string) ($settings[$assetPrefix . '_settlement_currency'] ?? ''))
+                : strtoupper(trim((string) ($settings[$assetPrefix . '_settlement_currency'] ?? '')));
+        }
         $auditSettings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_value($settings[$assetPrefix . '_group_policies_json'] ?? '');
         $auditSettings[$assetPrefix . '_policy_set_id'] = max(0, (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
@@ -1229,7 +1237,7 @@ function sr_community_asset_settlement_currency(PDO $pdo, array $source = []): s
     }
     $currency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($currency) : strtoupper(trim($currency));
 
-    return function_exists('sr_currency_is_known') && sr_currency_is_known($currency) ? $currency : 'KRW';
+    return $currency !== '' ? $currency : 'KRW';
 }
 
 function sr_community_asset_purchase_power_snapshot_json(array $snapshot): string
@@ -1256,22 +1264,94 @@ function sr_community_allocate_asset_settlement_use(PDO $pdo, array $assetModule
     return !empty($plan['ok']) ? (array) ($plan['allocations'] ?? []) : [];
 }
 
+function sr_community_asset_settlement_exchange_suggestion(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $assets = sr_community_asset_modules($pdo);
+    $assetModuleKeys = sr_community_asset_module_keys_from_value($assetModules, true);
+
+    return sr_member_asset_settlement_exchange_suggestion(
+        $pdo,
+        $assets,
+        static function (PDO $pdo, string $assetModule) use ($accountId): int {
+            return sr_community_asset_balance($pdo, $assetModule, $accountId);
+        },
+        $assetModuleKeys,
+        $accountId,
+        $settlementAmount,
+        $settlementCurrency
+    );
+}
+
+function sr_community_asset_settlement_exchange_confirmation_extra(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    if (sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $settlementAmount, $settlementCurrency) !== []) {
+        return [];
+    }
+
+    $suggestion = sr_community_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $settlementAmount, $settlementCurrency);
+    if ($suggestion === []) {
+        return [];
+    }
+
+    return [
+        'asset_exchange_suggestion' => $suggestion,
+        'asset_exchange_confirmation_required' => true,
+        'message' => sr_member_asset_settlement_exchange_message($pdo, sr_community_asset_modules($pdo), $suggestion, sr_community_asset_confirmation_required_message()),
+    ];
+}
+
+function sr_community_asset_settlement_exchange_hidden_inputs_html(array $suggestion): string
+{
+    if ($suggestion === []) {
+        return '';
+    }
+
+    return '<input type="hidden" name="asset_exchange_confirm" value="1">';
+}
+
 function sr_community_asset_balance_shortage_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix, string $fallbackMessage): string
 {
     require_once SR_ROOT . '/modules/member/helpers/assets.php';
 
+    $assets = sr_community_asset_modules($pdo);
+    $assetModuleKeys = sr_community_asset_module_keys_from_value($assetModules, true);
+    $balanceFunction = static function (PDO $pdo, string $assetModule) use ($accountId): int {
+        return sr_community_asset_balance($pdo, $assetModule, $accountId);
+    };
+    $plan = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, $assetModuleKeys, $settlementAmount, $settlementCurrency);
+    $configErrorMessage = sr_member_asset_settlement_config_error_message($plan, $suffix);
+    if ($configErrorMessage !== '') {
+        return $configErrorMessage;
+    }
+
     $shortage = sr_member_asset_settlement_shortage(
         $pdo,
-        sr_community_asset_modules($pdo),
-        static function (PDO $pdo, string $assetModule) use ($accountId): int {
-            return sr_community_asset_balance($pdo, $assetModule, $accountId);
-        },
-        sr_community_asset_module_keys_from_value($assetModules, true),
+        $assets,
+        $balanceFunction,
+        $assetModuleKeys,
         $settlementAmount,
         $settlementCurrency
     );
 
     return sr_member_asset_balance_shortage_message($shortage, $suffix, $fallbackMessage);
+}
+
+function sr_community_asset_settlement_config_error_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix): string
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $assets = sr_community_asset_modules($pdo);
+    $assetModuleKeys = sr_community_asset_module_keys_from_value($assetModules, true);
+    $balanceFunction = static function (PDO $pdo, string $assetModule) use ($accountId): int {
+        return sr_community_asset_balance($pdo, $assetModule, $accountId);
+    };
+    $plan = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, $assetModuleKeys, $settlementAmount, $settlementCurrency);
+
+    return sr_member_asset_settlement_config_error_message($plan, $suffix);
 }
 
 function sr_community_asset_config_balance_shortage_message(PDO $pdo, array $config, int $accountId, string $suffix, string $fallbackMessage): string
@@ -1290,6 +1370,9 @@ function sr_community_asset_use_balance_available(PDO $pdo, array $config, int $
     $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
     $amount = $amounts !== [] ? sr_community_asset_amount_total($amounts) : (int) ($config['amount'] ?? 0);
     $settlementCurrency = sr_community_asset_settlement_currency($pdo, $config);
+    if (sr_community_asset_settlement_config_error_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '') !== '') {
+        return false;
+    }
 
     return $amount <= 0 || sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency) !== [];
 }

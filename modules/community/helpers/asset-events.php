@@ -422,6 +422,7 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
     $amounts = is_array($paidReadConfig['amounts'] ?? null) ? $paidReadConfig['amounts'] : [];
     $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($paidReadConfig['amount'] ?? 0), $paidReadConfig['group_policies_json'] ?? '', (int) ($paidReadConfig['policy_set_id'] ?? 0), 'use');
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $settlementCurrency = sr_community_asset_settlement_currency($pdo, $paidReadConfig);
     $confirmationFingerprint = sr_community_asset_confirmation_fingerprint(
         'post_read',
         'community.post',
@@ -429,7 +430,8 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
         $assetModuleValue,
         (int) $policyAmounts['amount'],
         is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [],
-        $policySnapshotJson
+        $policySnapshotJson,
+        $settlementCurrency
     );
 
     $couponContext = [
@@ -509,6 +511,7 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
     $amounts = is_array($downloadConfig['amounts'] ?? null) ? $downloadConfig['amounts'] : [];
     $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($downloadConfig['amount'] ?? 0), $downloadConfig['group_policies_json'] ?? '', (int) ($downloadConfig['policy_set_id'] ?? 0), 'use');
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $settlementCurrency = sr_community_asset_settlement_currency($pdo, $downloadConfig);
     $confirmationFingerprint = sr_community_asset_confirmation_fingerprint(
         'attachment_download',
         'community.attachment',
@@ -516,7 +519,8 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
         $assetModuleValue,
         (int) $policyAmounts['amount'],
         is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [],
-        $policySnapshotJson
+        $policySnapshotJson,
+        $settlementCurrency
     );
 
     $couponContext = [
@@ -656,14 +660,14 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
     ]);
 }
 
-function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
-    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost): array {
-        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost);
+    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed): array {
+        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed);
     });
 }
 
-function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
@@ -671,7 +675,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $amount = $amounts !== [] ? sr_community_asset_amount_total($amounts) : (int) ($config['amount'] ?? 0);
     $chargePolicy = (string) ($config['charge_policy'] ?? 'once');
 
-    if ($accountId <= 0 || $subjectId <= 0 || $amount <= 0 || $assetModules === []) {
+    if ($accountId <= 0 || $subjectId <= 0 || $assetModules === []) {
         return ['allowed' => true, 'processed' => false, 'message' => ''];
     }
 
@@ -713,7 +717,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_community_asset_settlement_currency($pdo, $config);
-    $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);
     $confirmationRequired = $direction === 'use'
         && in_array($eventKey, ['post_read', 'attachment_download'], true)
         && sr_community_asset_policy_requires_confirmation($chargePolicy);
@@ -731,7 +735,9 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             ];
         }
 
-        return [
+        $extra = sr_community_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+
+        return array_merge([
             'allowed' => false,
             'processed' => false,
             'error_key' => 'asset_confirmation_required',
@@ -740,10 +746,12 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'amount' => $amount,
             'confirmation_fingerprint' => $confirmationFingerprint,
             'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
-            'message' => sr_community_asset_confirmation_required_message(),
-        ];
+            'message' => (string) ($extra['message'] ?? sr_community_asset_confirmation_required_message()),
+        ], $extra);
     } elseif ($confirmationRequired && $process && !$confirmedPost) {
-        return [
+        $extra = sr_community_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+
+        return array_merge([
             'allowed' => false,
             'processed' => false,
             'error_key' => 'asset_confirmation_required',
@@ -752,16 +760,39 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'amount' => $amount,
             'confirmation_fingerprint' => $confirmationFingerprint,
             'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
-            'message' => sr_community_asset_confirmation_required_message(),
-        ];
+            'message' => (string) ($extra['message'] ?? sr_community_asset_confirmation_required_message()),
+        ], $extra);
     }
 
     if ($amount <= 0) {
+        if ($direction === 'use') {
+            $zeroAmountSuffix = match ($eventKey) {
+                'post_read' => '게시글을 열람할 수 없습니다.',
+                'attachment_download' => '첨부 파일을 다운로드할 수 없습니다.',
+                'post_write_charge' => '글을 작성할 수 없습니다.',
+                'comment_write_charge' => '댓글을 작성할 수 없습니다.',
+                'message_send_charge' => '쪽지를 보낼 수 없습니다.',
+                default => '처리할 수 없습니다.',
+            };
+            $configErrorMessage = sr_community_asset_settlement_config_error_message($pdo, $assetModules, $accountId, 0, $settlementCurrency, $zeroAmountSuffix);
+            if ($configErrorMessage !== '') {
+                return [
+                    'allowed' => false,
+                    'processed' => false,
+                    'error_key' => 'asset_settlement_config_error',
+                    'asset_module' => $assetModuleValue,
+                    'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                    'amount' => $amount,
+                    'message' => $configErrorMessage,
+                ];
+            }
+        }
+
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $stableRequestToken = preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
         $dedupeKey = $once
             ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
-            : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $stableRequestToken;
+            : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':0:' . $settlementCurrency . ':' . $stableRequestToken;
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
             $pdo->beginTransaction();
@@ -822,10 +853,31 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
         ];
     }
 
+    $assetExchangeSuggestion = [];
     $allocations = $direction === 'use'
         ? sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency)
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
     if ($direction === 'use' && $allocations === []) {
+        $assetExchangeSuggestion = sr_community_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+        if ($assetExchangeSuggestion !== [] && $confirmationRequired) {
+            if (!$assetExchangeConfirmed) {
+                return [
+                    'allowed' => false,
+                    'processed' => false,
+                    'error_key' => 'asset_confirmation_required',
+                    'asset_module' => $assetModuleValue,
+                    'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                    'amount' => $amount,
+                    'confirmation_fingerprint' => $confirmationFingerprint,
+                    'confirmation_request_token' => sr_community_asset_confirmation_request_token($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint),
+                    'asset_exchange_suggestion' => $assetExchangeSuggestion,
+                    'asset_exchange_confirmation_required' => true,
+                    'message' => sr_member_asset_settlement_exchange_message($pdo, sr_community_asset_modules($pdo), $assetExchangeSuggestion, sr_community_asset_confirmation_required_message()),
+                ];
+            }
+        } else {
+            $assetExchangeSuggestion = [];
+        }
         $balanceLowSuffix = match ($eventKey) {
             'post_read' => '게시글을 열람할 수 없습니다.',
             'attachment_download' => '첨부 파일을 다운로드할 수 없습니다.',
@@ -834,16 +886,18 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'message_send_charge' => '쪽지를 보낼 수 없습니다.',
             default => '처리할 수 없습니다.',
         };
-        return [
-            'allowed' => false,
-            'processed' => false,
-            'error_key' => 'asset_balance_low',
-            'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
-            'amount' => $amount,
-            'confirmation_fingerprint' => $confirmationFingerprint,
-            'message' => sr_community_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, $balanceLowSuffix, sr_t('community::action.error.asset_balance_low')),
-        ];
+        if ($assetExchangeSuggestion === []) {
+            return [
+                'allowed' => false,
+                'processed' => false,
+                'error_key' => 'asset_balance_low',
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => $amount,
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'message' => sr_community_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, $balanceLowSuffix, sr_t('community::action.error.asset_balance_low')),
+            ];
+        }
     }
 
     $processed = false;
@@ -855,17 +909,26 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     }
 
     try {
+        $assetExchangeLogId = 0;
+        if ($direction === 'use' && $assetExchangeSuggestion !== [] && $assetExchangeConfirmed) {
+            $assetExchangeLogId = sr_member_asset_settlement_execute_exchange_suggestion($pdo, $assetExchangeSuggestion, $accountId);
+            $allocations = sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+            if ($allocations === []) {
+                throw new RuntimeException('Automatic asset exchange did not create a payable community settlement plan.');
+            }
+        }
+
+        $pendingAssetEvents = [];
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
             $allocatedSettlementAmount = $direction === 'use' ? (int) ($allocation['settlement_amount'] ?? 0) : 0;
             $allocationSettlementCurrency = $direction === 'use' ? (string) ($allocation['settlement_currency'] ?? $settlementCurrency) : $settlementCurrency;
             $purchasePowerSnapshotJson = $direction === 'use' ? sr_community_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []) : '';
-            $module = sr_community_asset_modules($pdo)[$assetModule];
             $stableRequestToken = preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
             $dedupeKey = $once
                 ? sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId)
-                : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $stableRequestToken;
+                : 'community.' . $eventKey . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . (string) max(0, $amount) . ':' . $settlementCurrency . ':' . $stableRequestToken;
             $inserted = sr_community_insert_asset_log_placeholder($pdo, [
                 'account_id' => $accountId,
                 'asset_module' => $assetModule,
@@ -887,9 +950,37 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
                 if ($once) {
                     throw new RuntimeException('Incomplete or duplicate community asset event.');
                 }
-                continue;
+                $existingLog = sr_community_asset_log($pdo, $dedupeKey);
+                if (is_array($existingLog) && (string) ($existingLog['log_status'] ?? '') === sr_community_asset_log_status_completed()) {
+                    $transactionId = (int) ($existingLog['transaction_id'] ?? 0);
+                    if ($direction === 'use' && $transactionId > 0 && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
+                        sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+                    }
+                    $processedLogs[] = [
+                        'dedupe_key' => $dedupeKey,
+                        'asset_module' => $assetModule,
+                        'transaction_id' => $transactionId,
+                        'amount' => (int) ($existingLog['amount'] ?? $allocatedAmount),
+                        'settlement_amount' => (int) ($existingLog['settlement_amount'] ?? $allocatedSettlementAmount),
+                        'settlement_currency' => (string) ($existingLog['settlement_currency'] ?? $allocationSettlementCurrency),
+                    ];
+                    continue;
+                }
+                throw new RuntimeException('Community asset event is still processing.');
             }
 
+            $pendingAssetEvents[] = [
+                'asset_module' => $assetModule,
+                'amount' => $allocatedAmount,
+                'dedupe_key' => $dedupeKey,
+            ];
+        }
+
+        foreach ($pendingAssetEvents as $pendingAssetEvent) {
+            $assetModule = (string) $pendingAssetEvent['asset_module'];
+            $allocatedAmount = (int) $pendingAssetEvent['amount'];
+            $dedupeKey = (string) $pendingAssetEvent['dedupe_key'];
+            $module = sr_community_asset_modules($pdo)[$assetModule];
             $signedAmount = $direction === 'use' ? -$allocatedAmount : $allocatedAmount;
             $transactionType = $direction === 'use'
                 ? (string) ($module['use_type'] ?? 'use')
@@ -907,15 +998,33 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
                 sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
             }
+            $assetLog = sr_community_asset_log($pdo, $dedupeKey);
             $processedLogs[] = [
                 'dedupe_key' => $dedupeKey,
                 'asset_module' => $assetModule,
                 'transaction_id' => $transactionId,
                 'amount' => $allocatedAmount,
-                'settlement_amount' => $allocatedSettlementAmount,
-                'settlement_currency' => $allocationSettlementCurrency,
+                'settlement_amount' => is_array($assetLog) ? (int) ($assetLog['settlement_amount'] ?? 0) : 0,
+                'settlement_currency' => is_array($assetLog) ? (string) ($assetLog['settlement_currency'] ?? $settlementCurrency) : $settlementCurrency,
             ];
             $processed = true;
+        }
+
+        if ($pendingAssetEvents === [] && $processedLogs !== []) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'allowed' => true,
+                'processed' => false,
+                'already_processed' => true,
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => $amount,
+                'direction' => $direction,
+                'logs' => $processedLogs,
+                'message' => '',
+            ];
         }
 
         if ($startedTransaction) {
@@ -954,6 +1063,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
         'direction' => $direction,
         'processed_logs' => $processedLogs,
         'confirmation_fingerprint' => $confirmationFingerprint,
+        'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
         'message' => '',
     ];
 }

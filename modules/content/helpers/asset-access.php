@@ -416,8 +416,16 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
 {
     $settlementAmount = max(0, $settlementAmount);
     $settlementKind = sr_content_asset_settlement_kind_for_use($amount, $settlementAmount, $purchasePowerSnapshotJson);
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_content_asset_access_logs
+        $insertVerb . ' INTO sr_content_asset_access_logs
             (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
             (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
@@ -515,24 +523,26 @@ function sr_content_available_coupon_issues(PDO $pdo, int $accountId, string $ta
     return sr_coupon_active_account_target_issues($pdo, $accountId, $targetType, (string) $targetId, $limit);
 }
 
-function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, string $referenceType, string $assetModule, int $accountId, int $subjectId, string $accessKind = 'view', string $requestToken = ''): string
+function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, string $referenceType, string $assetModule, int $accountId, int $subjectId, string $accessKind = 'view', string $requestToken = '', int $settlementAmount = 0, string $settlementCurrency = ''): string
 {
     if ($chargePolicy === 'once') {
         return sr_content_asset_access_dedupe_key($assetModule, $accountId, $subjectId, $accessKind);
     }
 
     $requestToken = preg_match('/\A[a-f0-9]{32}(?:[a-f0-9]{32})?\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
-    return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $requestToken;
+    $settlementCurrency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+
+    return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . (string) max(0, $settlementAmount) . ':' . $settlementCurrency . ':' . $requestToken;
 }
 
-function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost): array {
-        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed);
     });
 }
 
-function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
@@ -558,7 +568,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($page['asset_access_settlement_currency'] ?? '')]);
-    $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('view', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('view', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
     }
@@ -568,26 +578,37 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+        $extra = [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
             'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
-        ]);
+        ];
+        $extra = array_merge($extra, sr_content_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency));
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, (string) ($extra['message'] ?? sr_content_asset_confirmation_required_message()), $extra);
     }
 
     if ($couponIssueId <= 0 && sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+        $extra = [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
             'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
-        ]);
+        ];
+        $extra = array_merge($extra, sr_content_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency));
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, (string) ($extra['message'] ?? sr_content_asset_confirmation_required_message()), $extra);
     }
 
     if ($amount <= 0) {
+        $configErrorMessage = sr_content_asset_settlement_config_error_message($pdo, $assetModules, $accountId, 0, $settlementCurrency, '콘텐츠를 열람할 수 없습니다.');
+        if ($configErrorMessage !== '') {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, $configErrorMessage);
+        }
+
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
-        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken);
+        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken, 0, $settlementCurrency);
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
             $pdo->beginTransaction();
@@ -667,9 +688,24 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '쿠폰 접근권 처리에 실패했습니다.');
     }
 
+    $assetExchangeSuggestion = [];
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '콘텐츠를 열람할 수 없습니다.', '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.'));
+        $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+        if ($assetExchangeSuggestion !== []) {
+            if (!$assetExchangeConfirmed) {
+                return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_member_asset_settlement_exchange_message($pdo, sr_content_asset_modules($pdo), $assetExchangeSuggestion, sr_content_asset_confirmation_required_message()), [
+                    'error_key' => 'asset_confirmation_required',
+                    'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
+                    'confirmation_fingerprint' => $confirmationFingerprint,
+                    'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content', $pageId),
+                    'asset_exchange_suggestion' => $assetExchangeSuggestion,
+                    'asset_exchange_confirmation_required' => true,
+                ]);
+            }
+        } else {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '콘텐츠를 열람할 수 없습니다.', '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.'));
+        }
     }
 
     $dedupeKey = '';
@@ -679,22 +715,51 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     }
 
     try {
+        $assetExchangeLogId = 0;
+        if ($assetExchangeSuggestion !== [] && $assetExchangeConfirmed) {
+            $assetExchangeLogId = sr_member_asset_settlement_execute_exchange_suggestion($pdo, $assetExchangeSuggestion, $accountId);
+            $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+            if ($allocations === []) {
+                throw new RuntimeException('Automatic asset exchange did not create a payable settlement plan.');
+            }
+        }
+
+        $pendingAccessCharges = [];
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
             $allocatedSettlementAmount = (int) ($allocation['settlement_amount'] ?? 0);
             $allocationSettlementCurrency = (string) ($allocation['settlement_currency'] ?? $settlementCurrency);
             $purchasePowerSnapshotJson = sr_content_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []);
-            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
-            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken);
+            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken, $amount, $settlementCurrency);
             $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.view', null, 'view', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
                 if ($chargePolicy === 'once') {
                     throw new RuntimeException('Incomplete or duplicate content asset access.');
                 }
-                continue;
+                $existingLog = sr_content_asset_access_log($pdo, $dedupeKey);
+                if (is_array($existingLog) && (string) ($existingLog['log_status'] ?? '') === sr_content_asset_log_status_completed()) {
+                    $transactionId = (int) ($existingLog['transaction_id'] ?? 0);
+                    if ($transactionId > 0) {
+                        sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+                    }
+                    continue;
+                }
+                throw new RuntimeException('Content asset access is still processing.');
             }
 
+            $pendingAccessCharges[] = [
+                'asset_module' => $assetModule,
+                'amount' => $allocatedAmount,
+                'dedupe_key' => $dedupeKey,
+            ];
+        }
+
+        foreach ($pendingAccessCharges as $pendingAccessCharge) {
+            $assetModule = (string) $pendingAccessCharge['asset_module'];
+            $allocatedAmount = (int) $pendingAccessCharge['amount'];
+            $dedupeKey = (string) $pendingAccessCharge['dedupe_key'];
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $transactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
                 'account_id' => $accountId,
                 'amount' => -$allocatedAmount,
@@ -706,6 +771,13 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             ]);
             sr_content_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+        }
+
+        if ($pendingAccessCharges === []) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint]);
         }
 
         if ($startedTransaction) {
@@ -727,7 +799,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 콘텐츠를 열람할 수 없습니다.');
     }
 
-    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint]);
+    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'asset_exchange_log_id' => $assetExchangeLogId ?? 0]);
 }
 
 function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, string $chargePolicy = 'once', int $couponIssueId = 0): array
@@ -800,14 +872,14 @@ function sr_content_file_download_required(array $file): bool
         && (int) ($file['asset_download_amount'] ?? 0) > 0;
 }
 
-function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost): array {
-        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken, $couponIssueId, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed);
     });
 }
 
-function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false): array
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = '', int $couponIssueId = 0, bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -834,7 +906,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($file['asset_download_settlement_currency'] ?? '')]);
-    $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('download', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('download', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
     }
@@ -844,26 +916,37 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+        $extra = [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
             'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
-        ]);
+        ];
+        $extra = array_merge($extra, sr_content_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency));
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, (string) ($extra['message'] ?? sr_content_asset_confirmation_required_message()), $extra);
     }
 
     if ($couponIssueId <= 0 && sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !$confirmedPost) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+        $extra = [
             'error_key' => 'asset_confirmation_required',
             'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
             'confirmation_fingerprint' => $confirmationFingerprint,
             'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
-        ]);
+        ];
+        $extra = array_merge($extra, sr_content_asset_settlement_exchange_confirmation_extra($pdo, $assetModules, $accountId, $amount, $settlementCurrency));
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, (string) ($extra['message'] ?? sr_content_asset_confirmation_required_message()), $extra);
     }
 
     if ($amount <= 0) {
+        $configErrorMessage = sr_content_asset_settlement_config_error_message($pdo, $assetModules, $accountId, 0, $settlementCurrency, '파일을 다운로드할 수 없습니다.');
+        if ($configErrorMessage !== '') {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, $configErrorMessage);
+        }
+
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
-        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken);
+        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken, 0, $settlementCurrency);
         $accessLogIds = [];
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
@@ -949,9 +1032,24 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '쿠폰 접근권 처리에 실패했습니다.');
     }
 
+    $assetExchangeSuggestion = [];
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '파일을 다운로드할 수 없습니다.', '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.'));
+        $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+        if ($assetExchangeSuggestion !== []) {
+            if (!$assetExchangeConfirmed) {
+                return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_member_asset_settlement_exchange_message($pdo, sr_content_asset_modules($pdo), $assetExchangeSuggestion, sr_content_asset_confirmation_required_message()), [
+                    'error_key' => 'asset_confirmation_required',
+                    'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
+                    'confirmation_fingerprint' => $confirmationFingerprint,
+                    'coupon_issues' => sr_content_available_coupon_issues($pdo, $accountId, 'content_file', $fileId),
+                    'asset_exchange_suggestion' => $assetExchangeSuggestion,
+                    'asset_exchange_confirmation_required' => true,
+                ]);
+            }
+        } else {
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_balance_shortage_message($pdo, $assetModules, $accountId, $amount, $settlementCurrency, '파일을 다운로드할 수 없습니다.', '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.'));
+        }
     }
 
     $dedupeKey = '';
@@ -962,22 +1060,52 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     }
 
     try {
+        $assetExchangeLogId = 0;
+        if ($assetExchangeSuggestion !== [] && $assetExchangeConfirmed) {
+            $assetExchangeLogId = sr_member_asset_settlement_execute_exchange_suggestion($pdo, $assetExchangeSuggestion, $accountId);
+            $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+            if ($allocations === []) {
+                throw new RuntimeException('Automatic asset exchange did not create a payable file settlement plan.');
+            }
+        }
+
+        $pendingDownloadCharges = [];
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
             $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
             $allocatedSettlementAmount = (int) ($allocation['settlement_amount'] ?? 0);
             $allocationSettlementCurrency = (string) ($allocation['settlement_currency'] ?? $settlementCurrency);
             $purchasePowerSnapshotJson = sr_content_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []);
-            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
-            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken);
+            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken, $amount, $settlementCurrency);
             $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
                 if ($chargePolicy === 'once') {
                     throw new RuntimeException('Incomplete or duplicate content file asset access.');
                 }
-                continue;
+                $existingLog = sr_content_asset_access_log($pdo, $dedupeKey);
+                if (is_array($existingLog) && (string) ($existingLog['log_status'] ?? '') === sr_content_asset_log_status_completed()) {
+                    $accessLogIds[] = (int) ($existingLog['id'] ?? 0);
+                    $transactionId = (int) ($existingLog['transaction_id'] ?? 0);
+                    if ($transactionId > 0) {
+                        sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+                    }
+                    continue;
+                }
+                throw new RuntimeException('Content file asset access is still processing.');
             }
 
+            $pendingDownloadCharges[] = [
+                'asset_module' => $assetModule,
+                'amount' => $allocatedAmount,
+                'dedupe_key' => $dedupeKey,
+            ];
+        }
+
+        foreach ($pendingDownloadCharges as $pendingDownloadCharge) {
+            $assetModule = (string) $pendingDownloadCharge['asset_module'];
+            $allocatedAmount = (int) $pendingDownloadCharge['amount'];
+            $dedupeKey = (string) $pendingDownloadCharge['dedupe_key'];
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $transactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
                 'account_id' => $accountId,
                 'amount' => -$allocatedAmount,
@@ -993,6 +1121,13 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             if (is_array($accessLog)) {
                 $accessLogIds[] = (int) ($accessLog['id'] ?? 0);
             }
+        }
+
+        if ($pendingDownloadCharges === []) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
         }
 
         if ($startedTransaction) {
@@ -1014,5 +1149,5 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 파일을 다운로드할 수 없습니다.');
     }
 
-    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
+    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds)), 'asset_exchange_log_id' => $assetExchangeLogId ?? 0]);
 }

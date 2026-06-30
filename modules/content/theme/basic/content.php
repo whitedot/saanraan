@@ -95,7 +95,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php
                     $assetConfirmationAssetLabel = (string) ($pageAccess['asset_label'] ?? '');
                     $assetConfirmationAmount = (int) ($pageAccess['amount'] ?? 0);
-                    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?';
+                    $assetConfirmationMessage = (string) (($pageAccess['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?'));
                     $assetConfirmationAction = sr_content_path((string) $page['slug']);
                     $assetConfirmationId = 0;
                     $assetConfirmationContentId = 0;
@@ -103,6 +103,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     $assetConfirmationTitle = '콘텐츠 열람 확인';
                     $assetConfirmationSubmitLabel = sr_t('content::ui.text.ac5b575f');
                     $assetConfirmationCouponIssues = is_array($pageAccess['coupon_issues'] ?? null) ? $pageAccess['coupon_issues'] : [];
+                    $assetConfirmationExchangeSuggestion = is_array($pageAccess['asset_exchange_suggestion'] ?? null) ? $pageAccess['asset_exchange_suggestion'] : [];
                     $assetConfirmationModalId = 'content_asset_access_confirmation_modal';
                     $assetConfirmationCloseOnSubmit = false;
                     include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';
@@ -260,7 +261,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <?php
                                         $assetConfirmationAssetLabel = (string) ($contentFileDownloadAccess['asset_label'] ?? '');
                                         $assetConfirmationAmount = (int) ($contentFileDownloadAccess['amount'] ?? 0);
-                                        $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 파일을 다운로드하시겠습니까?';
+                                        $assetConfirmationMessage = (string) (($contentFileDownloadAccess['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 파일을 다운로드하시겠습니까?'));
                                         $assetConfirmationAction = '/content/download';
                                         $assetConfirmationId = (int) $contentFile['id'];
                                         $assetConfirmationContentId = (int) ($page['id'] ?? 0);
@@ -268,6 +269,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         $assetConfirmationTitle = (string) ($contentFile['title'] ?? sr_t('content::ui.text.0a4ca9bc'));
                                         $assetConfirmationSubmitLabel = sr_t('content::ui.text.0a4ca9bc');
                                         $assetConfirmationCouponIssues = is_array($contentFileDownloadAccess['coupon_issues'] ?? null) ? $contentFileDownloadAccess['coupon_issues'] : [];
+                                        $assetConfirmationExchangeSuggestion = is_array($contentFileDownloadAccess['asset_exchange_suggestion'] ?? null) ? $contentFileDownloadAccess['asset_exchange_suggestion'] : [];
                                         $assetConfirmationModalId = 'content_file_download_confirmation_' . (string) (int) ($contentFile['id'] ?? 0);
                                         $assetConfirmationOpen = false;
                                         $assetConfirmationCancelUrl = '';

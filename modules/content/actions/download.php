@@ -66,9 +66,10 @@ if (sr_content_file_download_required($file)) {
     $downloadAccountId = (int) $account['id'];
     $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 64) ?? '';
     $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
+    $assetExchangeConfirmed = $assetConfirmedPost && sr_post_string('asset_exchange_confirm', 1) === '1';
     $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
     $couponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId, true, $assetConfirmedPost);
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken, $couponIssueId, true, $assetConfirmedPost, $assetExchangeConfirmed);
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             if ($contentPath !== '') {

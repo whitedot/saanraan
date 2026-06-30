@@ -107,7 +107,7 @@ if (is_array($board)) {
             $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
             $amounts = is_array($paidReadConfig['amounts'] ?? null) ? $paidReadConfig['amounts'] : [];
             $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, (int) $account['id'], $assetModules, $amounts, (int) ($paidReadConfig['amount'] ?? 0), $paidReadConfig['group_policies_json'] ?? '', (int) ($paidReadConfig['policy_set_id'] ?? 0), 'use');
-            $paidReadConfirmationFingerprint = sr_community_asset_confirmation_fingerprint('post_read', 'community.post', $paidReadChargePolicy, $assetModuleValue, (int) $policyAmounts['amount'], is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [], sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+            $paidReadConfirmationFingerprint = sr_community_asset_confirmation_fingerprint('post_read', 'community.post', $paidReadChargePolicy, $assetModuleValue, (int) $policyAmounts['amount'], is_array($policyAmounts['amounts'] ?? null) ? $policyAmounts['amounts'] : [], sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']), sr_community_asset_settlement_currency($pdo, $paidReadConfig));
             $paidReadBridgeCreatedAt = sr_community_asset_modules_available($pdo, $assetModules)
                 ? sr_community_consume_attachment_paid_read_bridge_created_at((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint)
                 : 0;
@@ -117,6 +117,7 @@ if (is_array($board)) {
         }
         if (!$skipPaidReadCharge) {
             $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
+            $assetExchangeConfirmed = $assetConfirmedPost && sr_post_string('asset_exchange_confirm', 1) === '1';
             $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
             $couponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
             $couponReadResult = ['allowed' => false, 'processed' => false];
@@ -168,7 +169,8 @@ if (is_array($board)) {
                         sr_request_method() === 'POST',
                         sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                         true,
-                        $assetConfirmedPost
+                        $assetConfirmedPost,
+                        $assetExchangeConfirmed
                     );
                 }
             }
@@ -203,6 +205,7 @@ if ($disposition === 'attachment' && is_array($board)) {
             $downloadCouponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
         $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
+        $assetExchangeConfirmed = $assetConfirmedPost && sr_post_string('asset_exchange_confirm', 1) === '1';
         $downloadCouponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
         $downloadCouponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $downloadCouponIssueIdValue) === 1 ? (int) $downloadCouponIssueIdValue : 0;
         $downloadCouponResult = $downloadCouponIssueId > 0
@@ -248,7 +251,8 @@ if ($disposition === 'attachment' && is_array($board)) {
                 sr_request_method() === 'POST',
                 sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                 true,
-                $assetConfirmedPost
+                $assetConfirmedPost,
+                $assetExchangeConfirmed
             );
             $downloadResult['paid'] = true;
             $downloadResult['charge_policy'] = (string) ($downloadConfig['charge_policy'] ?? 'once');

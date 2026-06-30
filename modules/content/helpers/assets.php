@@ -223,7 +223,7 @@ function sr_content_asset_confirmation_request_token_valid(string $accessKind, i
         && hash_equals((string) ($session['token'] ?? ''), $token);
 }
 
-function sr_content_asset_confirmation_fingerprint(string $accessKind, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = ''): string
+function sr_content_asset_confirmation_fingerprint(string $accessKind, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = '', string $settlementCurrency = ''): string
 {
     ksort($amounts, SORT_STRING);
     $amountParts = [];
@@ -231,7 +231,9 @@ function sr_content_asset_confirmation_fingerprint(string $accessKind, string $c
         $amountParts[] = (string) $assetModule . ':' . (string) max(0, (int) $assetAmount);
     }
 
-    return hash('sha256', implode('|', [$accessKind, $chargePolicy, $assetModuleValue, (string) max(0, $amount), implode(',', $amountParts), $policySnapshotJson]));
+    $settlementCurrency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+
+    return hash('sha256', implode('|', [$accessKind, $chargePolicy, $assetModuleValue, (string) max(0, $amount), $settlementCurrency, implode(',', $amountParts), $policySnapshotJson]));
 }
 
 function sr_content_entry_access_context(PDO $pdo, array $page, ?array $account = null, string $instanceKey = ''): array
@@ -301,7 +303,7 @@ function sr_content_entry_access_modal(PDO $pdo, array $page, array $context): s
     $access = is_array($context['access'] ?? null) ? $context['access'] : [];
     $assetConfirmationAssetLabel = (string) ($access['asset_label'] ?? '');
     $assetConfirmationAmount = (int) ($access['amount'] ?? 0);
-    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?';
+    $assetConfirmationMessage = (string) (($access['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 콘텐츠를 열람하시겠습니까?'));
     $assetConfirmationAction = (string) ($context['path'] ?? sr_content_path((string) ($page['slug'] ?? '')));
     $assetConfirmationId = 0;
     $assetConfirmationContentId = 0;
@@ -309,6 +311,7 @@ function sr_content_entry_access_modal(PDO $pdo, array $page, array $context): s
     $assetConfirmationTitle = '콘텐츠 열람 확인';
     $assetConfirmationSubmitLabel = sr_t('content::ui.text.ac5b575f');
     $assetConfirmationCouponIssues = is_array($access['coupon_issues'] ?? null) ? $access['coupon_issues'] : [];
+    $assetConfirmationExchangeSuggestion = is_array($access['asset_exchange_suggestion'] ?? null) ? $access['asset_exchange_suggestion'] : [];
     $assetConfirmationModalId = (string) $context['modal_id'];
     $assetConfirmationOpen = false;
     $assetConfirmationCancelUrl = '';
@@ -1046,7 +1049,7 @@ function sr_content_asset_settlement_currency(PDO $pdo, array $source = []): str
     }
     $currency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($currency) : strtoupper(trim($currency));
 
-    return function_exists('sr_currency_is_known') && sr_currency_is_known($currency) ? $currency : 'KRW';
+    return $currency !== '' ? $currency : 'KRW';
 }
 
 function sr_content_asset_purchase_power_snapshot_json(array $snapshot): string
@@ -1074,17 +1077,89 @@ function sr_content_allocate_asset_settlement_use(PDO $pdo, array $assetModules,
     return !empty($plan['ok']) ? (array) ($plan['allocations'] ?? []) : [];
 }
 
+function sr_content_asset_settlement_exchange_suggestion(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $assets = sr_content_asset_modules($pdo);
+    $assetModuleKeys = sr_content_asset_module_keys_from_value($assetModules);
+
+    return sr_member_asset_settlement_exchange_suggestion(
+        $pdo,
+        $assets,
+        static function (PDO $pdo, string $assetModule) use ($accountId): int {
+            return sr_content_asset_balance($pdo, $assetModule, $accountId);
+        },
+        $assetModuleKeys,
+        $accountId,
+        $settlementAmount,
+        $settlementCurrency
+    );
+}
+
+function sr_content_asset_settlement_exchange_confirmation_extra(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    if (sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $settlementAmount, $settlementCurrency) !== []) {
+        return [];
+    }
+
+    $suggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $settlementAmount, $settlementCurrency);
+    if ($suggestion === []) {
+        return [];
+    }
+
+    return [
+        'asset_exchange_suggestion' => $suggestion,
+        'asset_exchange_confirmation_required' => true,
+        'message' => sr_member_asset_settlement_exchange_message($pdo, sr_content_asset_modules($pdo), $suggestion, sr_content_asset_confirmation_required_message()),
+    ];
+}
+
+function sr_content_asset_settlement_exchange_hidden_inputs_html(array $suggestion): string
+{
+    if ($suggestion === []) {
+        return '';
+    }
+
+    return '<input type="hidden" name="asset_exchange_confirm" value="1">';
+}
+
+function sr_content_asset_settlement_config_error_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix): string
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $assets = sr_content_asset_modules($pdo);
+    $assetModuleKeys = sr_content_asset_module_keys_from_value($assetModules);
+    $balanceFunction = static function (PDO $pdo, string $assetModule) use ($accountId): int {
+        return sr_content_asset_balance($pdo, $assetModule, $accountId);
+    };
+    $plan = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, $assetModuleKeys, $settlementAmount, $settlementCurrency);
+
+    return sr_member_asset_settlement_config_error_message($plan, $suffix);
+}
+
 function sr_content_asset_balance_shortage_message(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency, string $suffix, string $fallbackMessage): string
 {
     require_once SR_ROOT . '/modules/member/helpers/assets.php';
 
+    $assets = sr_content_asset_modules($pdo);
+    $assetModuleKeys = sr_content_asset_module_keys_from_value($assetModules);
+    $balanceFunction = static function (PDO $pdo, string $assetModule) use ($accountId): int {
+        return sr_content_asset_balance($pdo, $assetModule, $accountId);
+    };
+    $plan = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, $assetModuleKeys, $settlementAmount, $settlementCurrency);
+    $configErrorMessage = sr_member_asset_settlement_config_error_message($plan, $suffix);
+    if ($configErrorMessage !== '') {
+        return $configErrorMessage;
+    }
+
     $shortage = sr_member_asset_settlement_shortage(
         $pdo,
-        sr_content_asset_modules($pdo),
-        static function (PDO $pdo, string $assetModule) use ($accountId): int {
-            return sr_content_asset_balance($pdo, $assetModule, $accountId);
-        },
-        sr_content_asset_module_keys_from_value($assetModules),
+        $assets,
+        $balanceFunction,
+        $assetModuleKeys,
         $settlementAmount,
         $settlementCurrency
     );

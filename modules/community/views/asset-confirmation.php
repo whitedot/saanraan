@@ -5,6 +5,7 @@ $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/community');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '');
 $assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
+$assetConfirmationExchangeSuggestion = is_array($assetConfirmationExchangeSuggestion ?? null) ? $assetConfirmationExchangeSuggestion : [];
 $assetConfirmationTitle = is_array($post ?? null)
     ? (string) (($post['title'] ?? '') ?: sr_t('community::ui.community.4a285775'))
     : sr_t('community::ui.community.4a285775');

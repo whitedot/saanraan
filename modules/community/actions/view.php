@@ -122,6 +122,7 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
             $couponDedupeKey .= ':' . bin2hex(random_bytes(8));
         }
         $assetConfirmedPost = sr_request_method() === 'POST' && sr_post_string('asset_confirm', 1) === '1';
+        $assetExchangeConfirmed = $assetConfirmedPost && sr_post_string('asset_exchange_confirm', 1) === '1';
         $couponIssueIdValue = sr_request_method() === 'POST' ? (sr_post_string('coupon_issue_id', 20) ?? '') : '';
         $couponIssueId = $assetConfirmedPost && preg_match('/\A[1-9][0-9]*\z/', $couponIssueIdValue) === 1 ? (int) $couponIssueIdValue : 0;
         $couponReadResult = ['allowed' => false, 'processed' => false];
@@ -176,7 +177,8 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                     sr_request_method() === 'POST',
                     sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                     true,
-                    $assetConfirmedPost
+                    $assetConfirmedPost,
+                    $assetExchangeConfirmed
                 );
             }
         }

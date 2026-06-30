@@ -65,13 +65,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php
                     $assetConfirmationAssetLabel = (string) ($paidReadConfirmationResult['asset_label'] ?? '');
                     $assetConfirmationAmount = (int) ($paidReadConfirmationResult['amount'] ?? 0);
-                    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 게시글을 열람하시겠습니까?';
+                    $assetConfirmationMessage = (string) (($paidReadConfirmationResult['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 게시글을 열람하시겠습니까?'));
                     $assetConfirmationAction = '/community/post';
                     $assetConfirmationId = (int) ($post['id'] ?? 0);
                     $assetConfirmationRequestToken = (string) ($paidReadConfirmationRequestToken ?? '');
                     $assetConfirmationTitle = '게시글 열람 확인';
                     $assetConfirmationSubmitLabel = sr_t('community::ui.text.ac5b575f');
                     $assetConfirmationCouponIssues = is_array($paidReadConfirmationCouponIssues ?? null) ? $paidReadConfirmationCouponIssues : [];
+                    $assetConfirmationExchangeSuggestion = is_array($paidReadConfirmationResult['asset_exchange_suggestion'] ?? null) ? $paidReadConfirmationResult['asset_exchange_suggestion'] : [];
                     $assetConfirmationModalId = 'example_community_paid_read_confirmation_modal';
                     $assetConfirmationCloseOnSubmit = false;
                     include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';

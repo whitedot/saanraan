@@ -10,6 +10,7 @@ $assetConfirmationAssetLabel = (string) ($assetConfirmationAssetLabel ?? '');
 $assetConfirmationAmount = (int) ($assetConfirmationAmount ?? 0);
 $assetConfirmationSubmitLabel = (string) ($assetConfirmationSubmitLabel ?? sr_t('content::ui.text.ac5b575f'));
 $assetConfirmationCouponIssues = is_array($assetConfirmationCouponIssues ?? null) ? $assetConfirmationCouponIssues : [];
+$assetConfirmationExchangeSuggestion = is_array($assetConfirmationExchangeSuggestion ?? null) ? $assetConfirmationExchangeSuggestion : [];
 $assetConfirmationModalId = (string) ($assetConfirmationModalId ?? 'content_asset_confirmation_modal');
 $assetConfirmationOpen = !isset($assetConfirmationOpen) || !empty($assetConfirmationOpen);
 $assetConfirmationCancelUrl = (string) ($assetConfirmationCancelUrl ?? '/');
@@ -25,6 +26,9 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
             </div>
             <div class="modal-body">
                 <p class="content-asset-confirmation-message"><?php echo sr_e($assetConfirmationMessage); ?></p>
+                <?php if ($assetConfirmationExchangeSuggestion !== []) { ?>
+                    <p class="content-asset-confirmation-message">환전 후 결제를 진행합니다.</p>
+                <?php } ?>
                 <?php if ($assetConfirmationAssetLabel !== '' || $assetConfirmationAmount > 0) { ?>
                     <p class="content-asset-confirmation-price">
                         <?php if ($assetConfirmationAssetLabel !== '') { ?>
@@ -85,6 +89,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                         <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
                     <?php } ?>
                     <input type="hidden" name="asset_confirm" value="1">
+                    <?php echo sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion); ?>
                     <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
                     <?php if ($assetConfirmationContentId > 0) { ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
