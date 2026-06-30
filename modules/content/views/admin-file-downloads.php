@@ -235,7 +235,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                         <div class="form-field">
                             <select id="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy" name="refund_expiration_policy" class="form-select">
                                 <option value="original">환불 참조 원거래의 유효기간</option>
-                                <option value="reset">환불 시점부터 기본 유효기간 계산</option>
+                                <option value="reset">환불 시점부터 유효기간 계산</option>
                             </select>
                             <p class="form-help">포인트 차감 환불에 적용합니다. 다른 포인트/금액 항목 환불에는 영향이 없습니다.</p>
                         </div>
