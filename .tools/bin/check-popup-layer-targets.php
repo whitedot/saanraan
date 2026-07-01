@@ -148,7 +148,9 @@ function sr_banner_check_runtime_fixture(): array
         'CREATE TABLE sr_banners (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
+            content_type TEXT NOT NULL DEFAULT \'text\',
             body_text TEXT,
+            html_code TEXT,
             link_url TEXT NOT NULL DEFAULT \'\',
             image_url TEXT NOT NULL DEFAULT \'\',
             status TEXT NOT NULL DEFAULT \'draft\',
@@ -186,9 +188,9 @@ function sr_banner_check_runtime_fixture(): array
     ];
     $bannerStmt = $pdo->prepare(
         'INSERT INTO sr_banners
-            (id, title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
+            (id, title, content_type, body_text, html_code, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
          VALUES
-            (:id, :title, :body_text, \'\', \'\', :status, \'basic\', :starts_at, :ends_at, :sort_order, 0, :created_at, :updated_at)'
+            (:id, :title, \'text\', :body_text, \'\', \'\', \'\', :status, \'basic\', :starts_at, :ends_at, :sort_order, 0, :created_at, :updated_at)'
     );
     foreach ($bannerRows as [$id, $title, $status, $startsAt, $endsAt, $sortOrder]) {
         $bannerStmt->execute([

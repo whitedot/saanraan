@@ -16,9 +16,8 @@ function sr_member_empty_profile(): array
 
 function sr_member_profile(PDO $pdo, int $accountId): array
 {
-    $isAdultSelectSql = sr_member_profile_is_adult_column_exists($pdo) ? 'is_adult' : 'NULL AS is_adult';
     $stmt = $pdo->prepare(
-        'SELECT birth_date, ' . $isAdultSelectSql . ', avatar_path
+        'SELECT birth_date, is_adult, avatar_path
          FROM sr_member_profiles
          WHERE account_id = :account_id
          LIMIT 1'
@@ -46,10 +45,8 @@ function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
     }
     $isAdult = trim((string) ($profile['is_adult'] ?? ''));
     $isAdult = $isAdult === '' ? null : ($isAdult === '1' ? 1 : 0);
-    $hasIsAdultColumn = sr_member_profile_is_adult_column_exists($pdo);
 
-    $sql = $hasIsAdultColumn
-        ? 'INSERT INTO sr_member_profiles
+    $sql = 'INSERT INTO sr_member_profiles
             (account_id, birth_date, is_adult, avatar_path, created_at, updated_at)
          VALUES
             (:account_id, :birth_date, :is_adult, :avatar_path, :created_at, :updated_at)
@@ -57,25 +54,15 @@ function sr_member_save_profile(PDO $pdo, int $accountId, array $profile): void
             birth_date = VALUES(birth_date),
             is_adult = VALUES(is_adult),
             avatar_path = VALUES(avatar_path),
-            updated_at = VALUES(updated_at)'
-        : 'INSERT INTO sr_member_profiles
-            (account_id, birth_date, avatar_path, created_at, updated_at)
-         VALUES
-            (:account_id, :birth_date, :avatar_path, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE
-            birth_date = VALUES(birth_date),
-            avatar_path = VALUES(avatar_path),
             updated_at = VALUES(updated_at)';
     $params = [
         'account_id' => $accountId,
         'birth_date' => $birthDate,
+        'is_adult' => $isAdult,
         'avatar_path' => trim((string) ($profile['avatar_path'] ?? '')),
         'created_at' => $now,
         'updated_at' => $now,
     ];
-    if ($hasIsAdultColumn) {
-        $params['is_adult'] = $isAdult;
-    }
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 }
@@ -85,44 +72,6 @@ function sr_member_delete_profile(PDO $pdo, int $accountId): void
     $stmt = $pdo->prepare('DELETE FROM sr_member_profiles WHERE account_id = :account_id');
     $stmt->execute(['account_id' => $accountId]);
     sr_member_delete_profile_field_values($pdo, $accountId);
-}
-
-function sr_member_profile_is_adult_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_member_profiles)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'is_adult') {
-                    $existsByConnection[$key] = true;
-                    return true;
-                }
-            }
-            $existsByConnection[$key] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = \'sr_member_profiles\'
-               AND COLUMN_NAME = \'is_adult\''
-        );
-        $stmt->execute();
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
 }
 
 function sr_member_profile_values_from_post(array $policies, array $baseProfile): array

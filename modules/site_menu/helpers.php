@@ -47,32 +47,6 @@ function sr_site_menu_layout_slot_menu_key(string $slotKey): string
     return (string) ($map[$slotKey] ?? '');
 }
 
-function sr_site_menu_items_icon_name_column_exists(PDO $pdo): bool
-{
-    static $cache = [];
-
-    $cacheKey = (string) spl_object_id($pdo);
-    if (array_key_exists($cacheKey, $cache)) {
-        return (bool) $cache[$cacheKey];
-    }
-
-    try {
-        $stmt = $pdo->query(
-            "SELECT COUNT(*) AS column_count
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = 'sr_site_menu_items'
-               AND COLUMN_NAME = 'icon_name'"
-        );
-        $row = $stmt->fetch();
-        $cache[$cacheKey] = is_array($row) && (int) ($row['column_count'] ?? 0) > 0;
-    } catch (Throwable $exception) {
-        $cache[$cacheKey] = false;
-    }
-
-    return (bool) $cache[$cacheKey];
-}
-
 function sr_site_menu_icon_allowed(PDO $pdo, string $name): bool
 {
     $name = trim($name);
@@ -258,10 +232,9 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
             );
             $stmt->execute(['menu_id' => $menuId]);
 
-            $iconColumnSql = sr_site_menu_items_icon_name_column_exists($pdo) ? 'icon_name, ' : "'' AS icon_name, ";
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_site_menu_draft_items (id, menu_id, parent_id, label, url, icon_name, target, status, sort_order, created_at, updated_at)
-                 SELECT id, menu_id, parent_id, label, url, ' . $iconColumnSql . 'target, status, sort_order, created_at, updated_at
+                 SELECT id, menu_id, parent_id, label, url, icon_name, target, status, sort_order, created_at, updated_at
                  FROM sr_site_menu_items
                  WHERE menu_id = :menu_id
                  ON DUPLICATE KEY UPDATE
@@ -554,9 +527,8 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
         return $cache[$pdoCacheKey][$menuKey];
     }
 
-    $iconNameSelect = sr_site_menu_items_icon_name_column_exists($pdo) ? 'i.icon_name' : "'' AS icon_name";
     $stmt = $pdo->prepare(
-        "SELECT m.id AS menu_id, i.id, i.parent_id, i.label, i.url, " . $iconNameSelect . ", i.target
+        "SELECT m.id AS menu_id, i.id, i.parent_id, i.label, i.url, i.icon_name, i.target
          FROM sr_site_menus m
          LEFT JOIN sr_site_menu_items i ON i.menu_id = m.id AND i.status = 'enabled'
          WHERE m.menu_key = :menu_key

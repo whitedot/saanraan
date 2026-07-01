@@ -46,63 +46,10 @@ function sr_banner_html_code_is_safe_to_store(string $value): bool
     return $value === '' || preg_match('/<\?(?:php|=)?/i', $value) !== 1;
 }
 
-function sr_banner_table_column_exists(PDO $pdo, string $columnName): bool
-{
-    if (preg_match('/\A[a-z0-9_]{1,64}\z/', $columnName) !== 1) {
-        return false;
-    }
-
-    static $cache = [];
-    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-    $cacheKey = $driver . '|sr_banners|' . $columnName;
-    if (array_key_exists($cacheKey, $cache)) {
-        return (bool) $cache[$cacheKey];
-    }
-
-    try {
-        if ($driver === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_banners)');
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                if ((string) ($row['name'] ?? '') === $columnName) {
-                    $cache[$cacheKey] = true;
-                    return true;
-                }
-            }
-            $cache[$cacheKey] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*) AS count_value
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => 'sr_banners',
-            'column_name' => $columnName,
-        ]);
-        $row = $stmt->fetch();
-        $cache[$cacheKey] = is_array($row) && (int) ($row['count_value'] ?? 0) > 0;
-        return (bool) $cache[$cacheKey];
-    } catch (Throwable $exception) {
-        $cache[$cacheKey] = false;
-        return false;
-    }
-}
-
 function sr_banner_content_select_sql(PDO $pdo, string $alias = 'b'): string
 {
     $alias = preg_match('/\A[a-z][a-z0-9_]*\z/i', $alias) === 1 ? $alias : 'b';
-    $contentTypeSql = sr_banner_table_column_exists($pdo, 'content_type')
-        ? $alias . '.content_type'
-        : "CASE WHEN " . $alias . ".image_url <> '' THEN 'image' ELSE 'text' END";
-    $htmlCodeSql = sr_banner_table_column_exists($pdo, 'html_code')
-        ? $alias . '.html_code'
-        : "''";
-
-    return $contentTypeSql . ' AS content_type, ' . $alias . '.body_text, ' . $htmlCodeSql . ' AS html_code';
+    return $alias . '.content_type AS content_type, ' . $alias . '.body_text, ' . $alias . '.html_code AS html_code';
 }
 
 function sr_banner_clean_url(string $value): string

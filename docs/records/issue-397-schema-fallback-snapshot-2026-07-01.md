@@ -169,3 +169,20 @@ Remaining named schema guards are limited to non-download admin/profile surfaces
 - member profile adult flag
 
 The generic optional guard manual resolution queue remains unchanged at 6 entries.
+
+## Current Snapshot After Remaining Named Guard Removal Pass
+
+Generated after removing the remaining current-schema named guards for site menu item icon names, banner content fields, member profile adult flag, and an unused community asset log metadata helper:
+
+```sh
+php .tools/bin/snapshot-schema-fallbacks.php
+```
+
+- `schema_unavailable` occurrences: 0
+- `legacy_unknown` SQL alias occurrences: 0
+- other `legacy_unknown` occurrences: 4
+- named schema guard calls: 0
+- unique named schema guard helpers: 0
+- generic optional guard calls: 58
+
+The generic optional guard manual resolution queue remains unchanged at 6 entries.
