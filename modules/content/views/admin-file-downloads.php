@@ -148,6 +148,10 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                                     <?php echo sr_e(number_format($downloadAmount)); ?>
                                     · <?php echo sr_e((string) (sr_content_asset_download_charge_policies()[(string) ($downloadLog['charge_policy'] ?? 'once')] ?? $downloadLog['charge_policy'] ?? '')); ?>
                                 <?php } ?>
+                                <?php if ((int) ($downloadLog['coupon_redemption_id'] ?? 0) > 0) { ?>
+                                    <p class="form-help">쿠폰 redemption #<?php echo sr_e((string) (int) ($downloadLog['coupon_redemption_id'] ?? 0)); ?></p>
+                                <?php } ?>
+                                <p class="form-help">환불 계약 <?php echo sr_e((string) ($downloadLog['refund_policy_version'] ?? '')); ?></p>
                                 <?php if ($accessSummary !== '') { ?>
                                     <p class="form-help"><?php echo sr_e(str_replace("\n", ' / ', $accessSummary)); ?></p>
                                 <?php } elseif (!$hasRefundAccessLogs && $downloadAmount > 0) { ?>

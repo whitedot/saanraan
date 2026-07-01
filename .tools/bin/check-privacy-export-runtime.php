@@ -440,12 +440,15 @@ function sr_privacy_export_runtime_check_content(): void
             asset_module TEXT NOT NULL,
             amount INTEGER NOT NULL,
             asset_access_log_ids_json TEXT NOT NULL,
+            coupon_redemption_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT "",
             refund_status TEXT NOT NULL DEFAULT "",
             refund_transaction_ids_json TEXT NOT NULL DEFAULT "[]",
             refund_note TEXT NOT NULL DEFAULT "",
             refunded_by_account_id INTEGER NULL,
             refunded_at TEXT NULL,
             access_revoked_at TEXT NULL,
+            refund_policy_version TEXT NOT NULL DEFAULT "content_file_download_refund_v1",
             created_at TEXT NOT NULL
         )'
     );
@@ -544,11 +547,11 @@ function sr_privacy_export_runtime_check_content(): void
     );
     $legacyPdo->exec("INSERT INTO sr_content_items (id, slug, title) VALUES (101, 'legacy-download', 'Legacy Download')");
     $legacyPdo->exec("INSERT INTO sr_content_files (id, title, original_name) VALUES (201, 'Legacy File', 'legacy.pdf')");
-    $legacyPdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, created_at) VALUES (101, 201, 7, 'paid', 'once', 'point', 30, '[]', '', '[]', '', '')");
+    $legacyPdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refund_policy_version, created_at) VALUES (101, 201, 7, 'paid', 'once', 'point', 30, '[]', 701, 'content.download:coupon:7:201', '', '[]', '', 'content_file_download_refund_v1', '')");
     $legacyResult = $export($legacyPdo, 7);
-    sr_privacy_export_runtime_assert(count($legacyResult['file_download_logs'] ?? []) === 1, 'content export must include legacy file download rows without refund columns.');
-    sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_status'] ?? 'missing') === '', 'content export must fallback legacy file download refund_status.');
-    sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_transaction_ids_json'] ?? '') === '[]', 'content export must fallback legacy file download refund transaction ids.');
+    sr_privacy_export_runtime_assert(count($legacyResult['file_download_logs'] ?? []) === 1, 'content export must include file download rows.');
+    sr_privacy_export_runtime_assert((int) ($legacyResult['file_download_logs'][0]['coupon_redemption_id'] ?? 0) === 701, 'content export must include file download coupon redemption link.');
+    sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_policy_version'] ?? '') === 'content_file_download_refund_v1', 'content export must include file download refund policy version.');
 
     $pdo = sr_privacy_export_runtime_pdo();
     $pdo->exec('CREATE TABLE sr_content_items (id INTEGER PRIMARY KEY, slug TEXT NOT NULL, title TEXT NOT NULL)');
@@ -629,12 +632,15 @@ function sr_privacy_export_runtime_check_content(): void
             asset_module TEXT NOT NULL,
             amount INTEGER NOT NULL,
             asset_access_log_ids_json TEXT NOT NULL,
+            coupon_redemption_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT "",
             refund_status TEXT NOT NULL,
             refund_transaction_ids_json TEXT NOT NULL,
             refund_note TEXT NOT NULL,
             refunded_by_account_id INTEGER NULL,
             refunded_at TEXT NULL,
             access_revoked_at TEXT NULL,
+            refund_policy_version TEXT NOT NULL DEFAULT "content_file_download_refund_v1",
             created_at TEXT NOT NULL
         )'
     );
@@ -768,7 +774,7 @@ function sr_privacy_export_runtime_check_content(): void
     $pdo->exec("INSERT INTO sr_content_asset_action_logs (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at) VALUES (10, 7, 'point', 201, 'content', '10', 'download', 'debit', 50, 50, 'KRW', '{\"asset_units\":50,\"settlement_units\":50,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', ''), (20, 8, 'point', 202, 'content', '20', 'download', 'debit', 60, 60, 'KRW', '{}', '{}', '')");
     $pdo->exec("INSERT INTO sr_content_files (id, title, original_name) VALUES (5, 'File A', 'a.pdf'), (6, 'File B', 'b.pdf')");
     $pdo->exec("INSERT INTO sr_content_view_payment_logs (content_id, account_id, payment_type, settlement_kind, charge_policy, asset_module, payable_amount, settlement_amount, settlement_currency, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, payment_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refund_policy_version, created_at) VALUES (10, 7, 'asset_only', 'paid', 'once', 'point', 100, 100, 'KRW', '[1]', NULL, '', 'content.view:payment-unit:target', '', '[]', '', 'content_view_refund_v1', ''), (20, 8, 'asset_only', 'paid', 'once', 'point', 200, 200, 'KRW', '[2]', NULL, '', 'content.view:payment-unit:other', '', '[]', '', 'content_view_refund_v1', '')");
-    $pdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, created_at) VALUES (10, 5, 7, 'paid', 'once', 'point', 50, '[3]', 'none', '[]', '', NULL, NULL, NULL, ''), (20, 6, 8, 'paid', 'once', 'point', 60, '[2]', 'none', '[]', '', NULL, NULL, NULL, '')");
+    $pdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, refund_policy_version, created_at) VALUES (10, 5, 7, 'paid', 'once', 'point', 50, '[3]', 7001, 'content.download:coupon:7:5', 'none', '[]', '', NULL, NULL, NULL, 'content_file_download_refund_v1', ''), (20, 6, 8, 'paid', 'once', 'point', 60, '[2]', NULL, '', 'none', '[]', '', NULL, NULL, NULL, 'content_file_download_refund_v1', '')");
     $pdo->exec("INSERT INTO sr_content_submissions (content_id, content_group_id, author_account_id, slug, title, summary, body_text, body_format, review_status, publish_target_status, review_note, reviewed_by, reviewed_at, created_at, updated_at) VALUES (10, 1, 7, 'sub-a', 'Sub A', 'sum', 'body', 'html', 'approved', 'published', '', NULL, NULL, '', ''), (20, 1, 8, 'sub-b', 'Sub B', 'sum', 'body', 'html', 'approved', 'published', '', NULL, NULL, '', '')");
     $pdo->exec("INSERT INTO sr_content_author_applications (account_id, application_note, status, review_note, reviewed_by, reviewed_at, created_at, updated_at) VALUES (7, 'apply7', 'approved', '', NULL, NULL, '', ''), (8, 'apply8', 'approved', '', NULL, NULL, '', '')");
     $pdo->exec("INSERT INTO sr_content_author_reward_logs (submission_id, content_id, author_account_id, asset_module, amount, transaction_id, status, failure_reason, created_by_account_id, created_at, updated_at) VALUES (1, 10, 7, 'point', 30, 301, 'granted', '', NULL, '', ''), (2, 20, 8, 'point', 40, 302, 'granted', '', NULL, '', '')");
@@ -793,6 +799,8 @@ function sr_privacy_export_runtime_check_content(): void
     sr_privacy_export_runtime_assert(($result['view_payment_logs'][0]['refund_policy_version'] ?? '') === 'content_view_refund_v1', 'content export must include view payment refund policy version.');
     sr_privacy_export_runtime_assert(($result['file_download_logs'][0]['original_name'] ?? '') === 'a.pdf', 'content export must include joined file original name.');
     sr_privacy_export_runtime_assert(($result['file_download_logs'][0]['settlement_summaries'][0]['purchase_power']['asset_units'] ?? null) === 50, 'content export must attach linked file download settlement summary.');
+    sr_privacy_export_runtime_assert((int) ($result['file_download_logs'][0]['coupon_redemption_id'] ?? 0) === 7001, 'content export must include file download coupon redemption link.');
+    sr_privacy_export_runtime_assert(($result['file_download_logs'][0]['refund_policy_version'] ?? '') === 'content_file_download_refund_v1', 'content export must include file download refund policy version.');
     sr_privacy_export_runtime_assert(($result['comments'][0]['author_public_name_snapshot'] ?? '') === 'name7', 'content export must include comment author public name snapshot.');
     sr_privacy_export_runtime_assert((int) ($result['comments'][0]['is_secret'] ?? -1) === 1, 'content export must include comment secret flag.');
 }

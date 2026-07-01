@@ -250,6 +250,44 @@ function sr_content_revoke_file_download_access_entitlement(PDO $pdo, int $accou
     return $stmt->rowCount();
 }
 
+function sr_content_revoke_access_entitlement_by_source(PDO $pdo, int $accountId, int $contentId, string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceReference): int
+{
+    if (
+        $accountId <= 0
+        || $contentId <= 0
+        || $subjectType === ''
+        || $subjectId <= 0
+        || $accessKind === ''
+        || $sourceKind === ''
+        || $sourceReference === ''
+        || !sr_content_access_entitlements_table_exists($pdo)
+    ) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_content_access_entitlements
+         WHERE account_id = :account_id
+           AND content_id = :content_id
+           AND subject_type = :subject_type
+           AND subject_id = :subject_id
+           AND access_kind = :access_kind
+           AND source_kind = :source_kind
+           AND source_reference = :source_reference'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'content_id' => $contentId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'access_kind' => $accessKind,
+        'source_kind' => $sourceKind,
+        'source_reference' => $sourceReference,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function sr_content_anonymize_access_entitlements(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_content_access_entitlements_table_exists($pdo)) {
@@ -1301,6 +1339,8 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
                     'message' => '',
                     'confirmation_fingerprint' => $confirmationFingerprint,
                     'access_log_ids' => [],
+                    'coupon_redemption_id' => (int) ($couponResult['coupon_redemption_id'] ?? 0),
+                    'coupon_dedupe_key' => (string) ($couponResult['dedupe_key'] ?? ''),
                 ];
             }
         }
@@ -1523,5 +1563,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         'coupon_used' => !empty($mixedCouponResult['processed']),
         'coupon_title' => (string) ($mixedCouponResult['coupon_title'] ?? ''),
         'coupon_discount_amount' => (int) ($mixedCouponResult['discount_amount'] ?? 0),
+        'coupon_redemption_id' => (int) ($mixedCouponResult['coupon_redemption_id'] ?? 0),
+        'coupon_dedupe_key' => (string) ($mixedCouponResult['dedupe_key'] ?? ''),
     ]);
 }

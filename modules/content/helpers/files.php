@@ -750,12 +750,13 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
     $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $downloadType = (int) ($file['asset_download_enabled'] ?? 0) === 1 ? 'paid' : 'free';
     $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
+    $couponRedemptionId = (int) ($accessResult['coupon_redemption_id'] ?? 0);
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_file_download_logs
-            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at, content_title_snapshot, content_slug_snapshot, file_title_snapshot, file_original_name_snapshot)
+            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_policy_version, created_at, content_title_snapshot, content_slug_snapshot, file_title_snapshot, file_original_name_snapshot)
          VALUES
-            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at, :content_title_snapshot, :content_slug_snapshot, :file_title_snapshot, :file_original_name_snapshot)'
+            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :coupon_redemption_id, :coupon_dedupe_key, :refund_policy_version, :created_at, :content_title_snapshot, :content_slug_snapshot, :file_title_snapshot, :file_original_name_snapshot)'
     );
     $params = [
         'content_id' => (int) ($file['content_id'] ?? 0),
@@ -766,6 +767,9 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
         'asset_module' => (string) ($accessResult['asset_module'] ?? $file['asset_module'] ?? ''),
         'amount' => $amount,
         'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
+        'coupon_redemption_id' => $couponRedemptionId > 0 ? $couponRedemptionId : null,
+        'coupon_dedupe_key' => sr_content_clean_single_line((string) ($accessResult['coupon_dedupe_key'] ?? ''), 160),
+        'refund_policy_version' => sr_content_file_download_refund_policy_version(),
         'created_at' => sr_now(),
         'content_title_snapshot' => sr_content_clean_single_line((string) ($file['content_title'] ?? ''), 160),
         'content_slug_snapshot' => sr_content_clean_slug((string) ($file['slug'] ?? '')),
@@ -773,6 +777,11 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
         'file_original_name_snapshot' => sr_content_clean_single_line((string) ($file['original_name'] ?? ''), 160),
     ];
     $stmt->execute($params);
+}
+
+function sr_content_file_download_refund_policy_version(): string
+{
+    return 'content_file_download_refund_v1';
 }
 
 function sr_content_admin_file_download_log_sort_options(): array
@@ -907,6 +916,9 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 d.asset_module,
                 d.amount,
                 d.asset_access_log_ids_json,
+                d.coupon_redemption_id,
+                d.coupon_dedupe_key,
+                d.refund_policy_version,
                 d.refund_status,
                 d.refund_transaction_ids_json,
                 d.refund_note,
@@ -1097,6 +1109,41 @@ function sr_content_file_download_access_logs_for_refund(PDO $pdo, array $downlo
     return $stmt->fetchAll();
 }
 
+function sr_content_file_download_access_revoke_sources(array $downloadLog, array $accessLogs): array
+{
+    $sources = [];
+    $couponDedupeKey = sr_content_clean_single_line((string) ($downloadLog['coupon_dedupe_key'] ?? ''), 160);
+    if ($couponDedupeKey !== '') {
+        $sources['coupon:' . $couponDedupeKey] = [
+            'source_kind' => 'coupon',
+            'source_reference' => $couponDedupeKey,
+        ];
+    }
+
+    foreach ($accessLogs as $accessLog) {
+        $assetModule = sr_content_clean_key((string) ($accessLog['asset_module'] ?? ''));
+        $transactionId = (int) ($accessLog['transaction_id'] ?? 0);
+        if ($assetModule !== '' && $transactionId > 0) {
+            $sourceReference = $assetModule . ':' . (string) $transactionId;
+            $sources['asset:' . $sourceReference] = [
+                'source_kind' => 'asset',
+                'source_reference' => $sourceReference,
+            ];
+            continue;
+        }
+
+        $dedupeKey = sr_content_clean_single_line((string) ($accessLog['dedupe_key'] ?? ''), 160);
+        if ($dedupeKey !== '') {
+            $sources['asset_group_policy:' . $dedupeKey] = [
+                'source_kind' => 'asset_group_policy',
+                'source_reference' => $dedupeKey,
+            ];
+        }
+    }
+
+    return array_values($sources);
+}
+
 function sr_content_mark_payment_ledger_items_reversed_if_available(PDO $pdo, int $accountId, array $references, string $reason): array
 {
     if ($references === [] || !function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
@@ -1210,7 +1257,18 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
 
         $accessRevoked = false;
         if ((string) ($downloadLog['charge_policy'] ?? '') === 'once' || (int) ($downloadLog['amount'] ?? 0) <= 0) {
-            $accessRevoked = sr_content_revoke_file_download_access_entitlement($pdo, $accountId, $contentId, $fileId) > 0;
+            foreach (sr_content_file_download_access_revoke_sources($downloadLog, $accessLogs) as $source) {
+                $accessRevoked = sr_content_revoke_access_entitlement_by_source(
+                    $pdo,
+                    $accountId,
+                    $contentId,
+                    'content_file',
+                    $fileId,
+                    'download',
+                    (string) ($source['source_kind'] ?? ''),
+                    (string) ($source['source_reference'] ?? '')
+                ) > 0 || $accessRevoked;
+            }
         }
         if ($accessRevoked || $refundTransactionIds !== []) {
             $paymentLedgerReferences[] = [

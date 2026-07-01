@@ -433,18 +433,22 @@ CREATE TABLE IF NOT EXISTS sr_content_file_download_logs (
     asset_module VARCHAR(60) NOT NULL DEFAULT '',
     amount BIGINT NOT NULL DEFAULT 0,
     asset_access_log_ids_json TEXT NULL,
+    coupon_redemption_id BIGINT UNSIGNED NULL,
+    coupon_dedupe_key VARCHAR(160) NOT NULL DEFAULT '',
     refund_status VARCHAR(20) NOT NULL DEFAULT '',
     refund_transaction_ids_json TEXT NULL,
     refund_note VARCHAR(255) NOT NULL DEFAULT '',
     refunded_by_account_id BIGINT UNSIGNED NULL,
     refunded_at DATETIME NULL,
     access_revoked_at DATETIME NULL,
+    refund_policy_version VARCHAR(40) NOT NULL DEFAULT 'content_file_download_refund_v1',
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_content_file_downloads_content (content_id, created_at),
     KEY idx_sr_content_file_downloads_file (file_id, created_at),
     KEY idx_sr_content_file_downloads_account (account_id, created_at),
     KEY idx_sr_content_file_downloads_type (download_type, created_at),
+    KEY idx_sr_content_file_downloads_coupon (coupon_redemption_id),
     KEY idx_sr_content_file_downloads_refund (refund_status, refunded_at)
 );
 

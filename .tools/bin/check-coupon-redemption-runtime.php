@@ -404,12 +404,15 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         asset_module TEXT NOT NULL DEFAULT '',
         amount INTEGER NOT NULL DEFAULT 0,
         asset_access_log_ids_json TEXT,
+        coupon_redemption_id INTEGER,
+        coupon_dedupe_key TEXT NOT NULL DEFAULT '',
         refund_status TEXT NOT NULL DEFAULT '',
         refund_transaction_ids_json TEXT,
         refund_note TEXT NOT NULL DEFAULT '',
         refunded_by_account_id INTEGER,
         refunded_at TEXT,
         access_revoked_at TEXT,
+        refund_policy_version TEXT NOT NULL DEFAULT 'content_file_download_refund_v1',
         created_at TEXT NOT NULL
     )");
     $pdo->exec("CREATE TABLE sr_point_balances (
@@ -1673,10 +1676,13 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentDownloadPaymentId, 'coupon_redemption') === 1, 'content paid download payment ledger should include the coupon redemption item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentDownloadPaymentId, 'access_entitlement') === 1, 'content paid download payment ledger should include the access entitlement item.');
     sr_content_record_file_download($pdo, $paidFile, 7, $downloadResult);
-    $downloadLog = sr_coupon_runtime_row($pdo, 'SELECT download_type, amount, asset_access_log_ids_json FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1');
+    $downloadLog = sr_coupon_runtime_row($pdo, 'SELECT download_type, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_policy_version FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1');
     sr_coupon_runtime_assert((string) ($downloadLog['download_type'] ?? '') === 'paid', 'content paid download fixture should record coupon-backed downloads as paid downloads.');
     sr_coupon_runtime_assert((int) ($downloadLog['amount'] ?? -1) === 0, 'content paid download fixture should record zero asset amount for coupon-backed downloads.');
     sr_coupon_runtime_assert((string) ($downloadLog['asset_access_log_ids_json'] ?? '') === '[]', 'content paid download fixture should not attach asset log ids to coupon-backed downloads.');
+    sr_coupon_runtime_assert((int) ($downloadLog['coupon_redemption_id'] ?? 0) > 0, 'content paid download fixture should link the coupon redemption on the download log.');
+    sr_coupon_runtime_assert((string) ($downloadLog['coupon_dedupe_key'] ?? '') === 'content.download:coupon:7:501', 'content paid download fixture should store the coupon dedupe key on the download log.');
+    sr_coupon_runtime_assert((string) ($downloadLog['refund_policy_version'] ?? '') === 'content_file_download_refund_v1', 'content paid download fixture should stamp the file download refund policy version.');
 
     $downloadRepeat = sr_content_charge_file_download($pdo, $paidFile, 7, true, $downloadToken);
     sr_coupon_runtime_assert(!empty($downloadRepeat['allowed']) && empty($downloadRepeat['charged']) && !empty($downloadRepeat['already_paid']), 'content paid download fixture should reuse existing coupon entitlement without another charge.');
@@ -1708,6 +1714,13 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($contentDownloadPaymentAfterRevoke['status'] ?? '') === 'paid', 'content paid download access revoke should keep the payment record paid while the coupon item remains used.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $contentDownloadPaymentId, 'access_entitlement', 'reversed') === 1, 'content paid download access revoke should mark the access entitlement payment item reversed.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $contentDownloadPaymentId, 'coupon_redemption', 'none') === 1, 'content paid download access revoke should not reverse the coupon redemption payment item.');
+
+    sr_content_grant_access_entitlement($pdo, 7, 77, 'content_file', 501, 'download', 'coupon', '', 'once', 'content.download:coupon:7:501:current');
+    $pdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, refund_policy_version, created_at) VALUES (77, 501, 7, 'paid', 'once', '', 0, '[]', 999, 'content.download:coupon:7:501:stale', '', '[]', '', NULL, NULL, NULL, 'content_file_download_refund_v1', '')");
+    $staleDownloadLogId = (int) $pdo->lastInsertId();
+    $staleRevokeResult = sr_content_refund_file_download($pdo, $staleDownloadLogId, 1, 'stale coupon access revoke');
+    sr_coupon_runtime_assert(empty($staleRevokeResult['ok']), 'content paid download refund helper should fail closed when source-scope access does not match.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_content_access_entitlements WHERE account_id = 7 AND subject_type = 'content_file' AND subject_id = 501 AND access_kind = 'download' AND source_reference = 'content.download:coupon:7:501:current'")->fetchColumn() === 1, 'content paid download source-scope mismatch must leave the current entitlement intact.');
 
     $communityIssueId = sr_coupon_runtime_issue($pdo, 'community_priority', 'community_post', '9901', 7);
     $pdo->prepare(

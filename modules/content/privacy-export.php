@@ -336,8 +336,9 @@ return static function (PDO $pdo, int $accountId): array {
                     d.file_id, COALESCE(NULLIF(f.title, \'\'), NULLIF(d.file_title_snapshot, \'\')) AS file_title,
                     COALESCE(NULLIF(f.original_name, \'\'), NULLIF(d.file_original_name_snapshot, \'\')) AS original_name,
                     d.account_id, d.download_type, d.charge_policy,
-                    d.asset_module, d.amount, d.asset_access_log_ids_json,
+                    d.asset_module, d.amount, d.asset_access_log_ids_json, d.coupon_redemption_id, d.coupon_dedupe_key,
                     d.refund_status, d.refund_transaction_ids_json, d.refund_note, d.refunded_by_account_id, d.refunded_at, d.access_revoked_at,
+                    d.refund_policy_version,
                     d.created_at
              FROM sr_content_file_download_logs d
              LEFT JOIN sr_content_items p ON p.id = d.content_id

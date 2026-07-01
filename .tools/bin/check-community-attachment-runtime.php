@@ -304,6 +304,10 @@ sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'a
 sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'point', 'once', $dedupeKey . ':duplicate');
 sr_community_attachment_runtime_assert((int) sr_community_attachment_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 10 AND subject_type = "community.attachment" AND subject_id = 9901 AND event_key = "attachment_download"') === 1, 'community attachment fixture should keep one entitlement per account/attachment/event.');
 sr_community_attachment_runtime_assert(sr_community_has_access_entitlement($pdo, ['point'], 10, 'attachment_download', 'community.attachment', 9901, '', 'all_access'), 'community attachment fixture should find granted attachment download entitlement.');
+sr_community_attachment_runtime_assert(sr_community_revoke_access_entitlement_by_source($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'missing-source') === 0, 'community attachment source-scope revoke should ignore mismatched source references.');
+sr_community_attachment_runtime_assert((int) sr_community_attachment_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 10 AND subject_type = "community.attachment" AND subject_id = 9901 AND event_key = "attachment_download"') === 1, 'community attachment source-scope mismatch should leave the entitlement intact.');
+sr_community_attachment_runtime_assert(sr_community_revoke_access_entitlement_by_source($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', $dedupeKey) === 1, 'community attachment source-scope revoke should remove the matching entitlement.');
+sr_community_attachment_runtime_assert((int) sr_community_attachment_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 10 AND subject_type = "community.attachment" AND subject_id = 9901 AND event_key = "attachment_download"') === 0, 'community attachment source-scope revoke should leave no matching entitlement.');
 
 $refundDedupeKey = $dedupeKey . ':refund-fixture';
 $pdo->exec("INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at) VALUES (10, 30, '2026-06-30 00:00:00', '2026-06-30 00:00:00')");
@@ -320,6 +324,7 @@ $pdo->prepare(
     'created_at' => sr_now(),
 ]);
 $refundAssetLogId = (int) $pdo->lastInsertId();
+sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset', 'point', 'once', 'point:501');
 $pdo->prepare(
     'INSERT INTO sr_community_attachment_download_logs
         (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, refund_policy_version, post_title_snapshot, attachment_original_name_snapshot, created_at)

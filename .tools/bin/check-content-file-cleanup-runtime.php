@@ -191,12 +191,15 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         asset_module TEXT NOT NULL DEFAULT "",
         amount INTEGER NOT NULL DEFAULT 0,
         asset_access_log_ids_json TEXT,
+        coupon_redemption_id INTEGER,
+        coupon_dedupe_key TEXT NOT NULL DEFAULT "",
         refund_status TEXT NOT NULL DEFAULT "",
         refund_transaction_ids_json TEXT,
         refund_note TEXT NOT NULL DEFAULT "",
         refunded_by_account_id INTEGER,
         refunded_at TEXT,
         access_revoked_at TEXT,
+        refund_policy_version TEXT NOT NULL DEFAULT "content_file_download_refund_v1",
         created_at TEXT NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_content_series (

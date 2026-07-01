@@ -265,6 +265,7 @@ $requiredIndexMarkers = [
         'UNIQUE KEY uq_sr_content_asset_access_dedupe (dedupe_key)',
         'UNIQUE KEY uq_sr_content_view_payments_dedupe (payment_dedupe_key)',
         'KEY idx_sr_content_view_payments_refund (refund_status, refunded_at)',
+        'KEY idx_sr_content_file_downloads_coupon (coupon_redemption_id)',
         'KEY idx_sr_content_file_downloads_refund (refund_status, refunded_at)',
         'UNIQUE KEY uq_sr_content_access_entitlements_account_subject (account_id, subject_type, subject_id, access_kind)',
     ],

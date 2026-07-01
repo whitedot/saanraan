@@ -230,6 +230,41 @@ function sr_community_revoke_coupon_access_entitlements(PDO $pdo, int $accountId
     return $stmt->rowCount();
 }
 
+function sr_community_revoke_access_entitlement_by_source(PDO $pdo, int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceReference): int
+{
+    if (
+        $accountId <= 0
+        || $subjectType === ''
+        || $subjectId <= 0
+        || $eventKey === ''
+        || $sourceKind === ''
+        || $sourceReference === ''
+        || !sr_community_access_entitlements_table_exists($pdo)
+    ) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_community_access_entitlements
+         WHERE account_id = :account_id
+           AND subject_type = :subject_type
+           AND subject_id = :subject_id
+           AND event_key = :event_key
+           AND source_kind = :source_kind
+           AND source_reference = :source_reference'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'subject_type' => $subjectType,
+        'subject_id' => $subjectId,
+        'event_key' => $eventKey,
+        'source_kind' => $sourceKind,
+        'source_reference' => $sourceReference,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function sr_community_record_payment_ledger_if_available(PDO $pdo, array $record, array $items): int
 {
     if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {

@@ -513,7 +513,7 @@ sr_reward_check_file('modules/content/helpers/asset-access.php', [
 ]);
 sr_reward_check_file('modules/content/helpers/files.php', [
     'sr_content_refund_file_download',
-    'sr_content_revoke_file_download_access_entitlement',
+    'sr_content_revoke_access_entitlement_by_source',
 ]);
 sr_reward_check_order('modules/content/actions/download.php', 'sr_content_charge_file_download(', 'sr_redirect_trusted_external($downloadUrl)');
 sr_reward_check_order('modules/content/actions/download.php', 'sr_content_charge_file_download(', 'readfile($filePath)');

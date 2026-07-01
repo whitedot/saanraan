@@ -1361,6 +1361,42 @@ function sr_community_attachment_download_access_logs_for_refund(PDO $pdo, array
     return $stmt->fetchAll();
 }
 
+function sr_community_attachment_download_access_revoke_sources(array $downloadLog, array $accessLogs): array
+{
+    $sources = [];
+    $couponDedupeKey = sr_clean_single_line((string) ($downloadLog['coupon_dedupe_key'] ?? ''), 160);
+    if ($couponDedupeKey !== '') {
+        $sources['coupon:' . $couponDedupeKey] = [
+            'source_kind' => 'coupon',
+            'source_reference' => $couponDedupeKey,
+        ];
+    }
+
+    foreach ($accessLogs as $accessLog) {
+        $assetModule = preg_replace('/[^a-zA-Z0-9_]/', '', (string) ($accessLog['asset_module'] ?? ''));
+        $assetModule = is_string($assetModule) ? $assetModule : '';
+        $transactionId = (int) ($accessLog['transaction_id'] ?? 0);
+        if ($assetModule !== '' && $transactionId > 0) {
+            $sourceReference = $assetModule . ':' . (string) $transactionId;
+            $sources['asset:' . $sourceReference] = [
+                'source_kind' => 'asset',
+                'source_reference' => $sourceReference,
+            ];
+            continue;
+        }
+
+        $dedupeKey = sr_clean_single_line((string) ($accessLog['dedupe_key'] ?? ''), 160);
+        if ($dedupeKey !== '') {
+            $sources['asset_group_policy:' . $dedupeKey] = [
+                'source_kind' => 'asset_group_policy',
+                'source_reference' => $dedupeKey,
+            ];
+        }
+    }
+
+    return array_values($sources);
+}
+
 function sr_community_revoke_attachment_download_access_entitlement(PDO $pdo, int $accountId, int $attachmentId): int
 {
     if ($accountId <= 0 || $attachmentId <= 0 || !sr_community_access_entitlements_table_exists($pdo)) {
@@ -1493,7 +1529,17 @@ function sr_community_refund_attachment_download(PDO $pdo, int $downloadLogId, i
 
         $accessRevoked = false;
         if ((string) ($downloadLog['charge_policy'] ?? '') === 'once' || (int) ($downloadLog['amount'] ?? 0) <= 0) {
-            $accessRevoked = sr_community_revoke_attachment_download_access_entitlement($pdo, $accountId, $attachmentId) > 0;
+            foreach (sr_community_attachment_download_access_revoke_sources($downloadLog, $accessLogs) as $source) {
+                $accessRevoked = sr_community_revoke_access_entitlement_by_source(
+                    $pdo,
+                    $accountId,
+                    'community.attachment',
+                    $attachmentId,
+                    'attachment_download',
+                    (string) ($source['source_kind'] ?? ''),
+                    (string) ($source['source_reference'] ?? '')
+                ) > 0 || $accessRevoked;
+            }
         }
         if ($accessRevoked || $refundTransactionIds !== []) {
             $paymentLedgerReferences[] = [
