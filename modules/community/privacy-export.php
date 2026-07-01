@@ -159,6 +159,100 @@ if (!function_exists('sr_community_privacy_add_attachment_download_settlement_su
     }
 }
 
+if (!function_exists('sr_community_privacy_add_post_read_payment_settlement_summaries')) {
+    function sr_community_privacy_add_post_read_payment_settlement_summaries(PDO $pdo, array $rows): array
+    {
+        foreach ($rows as &$row) {
+            if (is_array($row)) {
+                $row['settlement_summaries'] = [];
+            }
+        }
+        unset($row);
+
+        if ($rows === [] || !function_exists('sr_community_asset_log_columns')) {
+            return $rows;
+        }
+
+        $idsByLogIndex = [];
+        $allIds = [];
+        foreach ($rows as $index => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $ids = sr_community_privacy_log_ids_from_json($row['asset_access_log_ids_json'] ?? '[]');
+            if ($ids === []) {
+                continue;
+            }
+            $idsByLogIndex[(int) $index] = $ids;
+            foreach ($ids as $id) {
+                $allIds[$id] = $id;
+            }
+        }
+        if ($allIds === []) {
+            return $rows;
+        }
+
+        $columns = sr_community_asset_log_columns($pdo);
+        foreach (['id', 'account_id', 'asset_module', 'reference_type', 'subject_type', 'subject_id', 'event_key', 'amount'] as $requiredColumn) {
+            if (!isset($columns[$requiredColumn])) {
+                return $rows;
+            }
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach (array_values($allIds) as $index => $id) {
+            $key = 'id_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = (int) $id;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT id, account_id, asset_module, reference_type, subject_type, subject_id, event_key, amount,
+                    settlement_amount,
+                    settlement_currency,
+                    purchase_power_snapshot_json,
+                    settlement_kind,
+                    snapshot_schema_version,
+                    rounding_policy_version
+             FROM sr_community_asset_logs
+             WHERE id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY id ASC'
+        );
+        $stmt->execute($params);
+
+        $assetLogsById = [];
+        foreach ($stmt->fetchAll() as $assetLog) {
+            $assetLogsById[(int) ($assetLog['id'] ?? 0)] = $assetLog;
+        }
+
+        foreach ($idsByLogIndex as $index => $ids) {
+            $summaries = [];
+            $paymentLog = $rows[$index] ?? [];
+            if (!is_array($paymentLog)) {
+                continue;
+            }
+            foreach ($ids as $id) {
+                $assetLog = $assetLogsById[$id] ?? null;
+                if (!is_array($assetLog)) {
+                    continue;
+                }
+                if ((int) ($assetLog['account_id'] ?? 0) !== (int) ($paymentLog['account_id'] ?? 0)
+                    || (string) ($assetLog['reference_type'] ?? '') !== 'community.post'
+                    || (string) ($assetLog['subject_type'] ?? '') !== 'community.post'
+                    || (int) ($assetLog['subject_id'] ?? 0) !== (int) ($paymentLog['post_id'] ?? 0)
+                    || (string) ($assetLog['event_key'] ?? '') !== 'post_read') {
+                    continue;
+                }
+                $summaries[] = sr_community_privacy_asset_settlement_summary($assetLog);
+            }
+            $rows[$index]['settlement_summaries'] = $summaries;
+        }
+
+        return $rows;
+    }
+}
+
 if (!function_exists('sr_community_privacy_export_row_limit')) {
     function sr_community_privacy_export_row_limit(): int
     {
@@ -196,6 +290,7 @@ return static function (PDO $pdo, int $accountId): array {
         'comments' => [],
         'attachments' => [],
         'attachment_download_logs' => [],
+        'post_read_payment_logs' => [],
         'reports' => [],
         'report_auto_actions' => [],
         'account_guard_events' => [],
@@ -297,6 +392,22 @@ return static function (PDO $pdo, int $accountId): array {
             sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'attachment_download_logs', $sectionLimits)
         );
     }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, board_id, post_id, post_title_snapshot, account_id, payment_type, settlement_kind,
+                charge_policy, asset_module, payable_amount, settlement_amount, settlement_currency,
+                asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, payment_dedupe_key,
+                refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at,
+                access_revoked_at, refund_policy_version, created_at
+         FROM sr_community_post_read_payment_logs
+         WHERE account_id = :account_id
+         ORDER BY id ASC
+         LIMIT 1001'
+    );
+    $empty['post_read_payment_logs'] = sr_community_privacy_add_post_read_payment_settlement_summaries(
+        $pdo,
+        sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'post_read_payment_logs', $sectionLimits)
+    );
 
     $stmt = $pdo->prepare(
         'SELECT id, target_type, target_id,
@@ -606,6 +717,7 @@ return static function (PDO $pdo, int $accountId): array {
         $empty['asset_recovery_failures'] = [];
         $empty['publisher_reward_logs'] = [];
         $empty['attachment_download_logs'] = [];
+        $empty['post_read_payment_logs'] = [];
         $empty['report_auto_actions'] = [];
         $empty['submission_consents'] = [];
     }

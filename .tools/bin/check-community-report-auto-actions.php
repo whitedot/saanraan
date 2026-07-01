@@ -53,14 +53,14 @@ sr_community_report_auto_action_check_contains('modules/community/updates/2026.0
 ]);
 
 sr_community_report_auto_action_check_contains('modules/community/module.php', [
-    "'version' => '2026.06.047'",
+    "'version' => '2026.06.048'",
     "'report_auto_action_enabled' => false",
     "'report_auto_action_threshold' => 5",
     "'report_auto_action_public_mode' => 'exclude'",
 ]);
 
 sr_community_report_auto_action_check_contains('core/actions/install.php', [
-    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.06.047'",
+    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.06.048'",
 ]);
 
 sr_community_report_auto_action_check_contains('modules/community/helpers/levels.php', [

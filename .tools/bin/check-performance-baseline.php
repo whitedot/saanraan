@@ -273,6 +273,8 @@ $requiredIndexMarkers = [
         'KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, parent_comment_id, id)',
         'KEY idx_sr_community_board_copy_jobs_status_stage_updated (status, stage, updated_at, id)',
         'UNIQUE KEY uq_sr_community_asset_logs_dedupe (dedupe_key)',
+        'UNIQUE KEY uq_sr_comm_post_read_payments_dedupe (payment_dedupe_key)',
+        'KEY idx_sr_comm_post_read_payments_refund (refund_status, refunded_at)',
         'UNIQUE KEY uq_sr_community_access_entitlements_account_subject (account_id, subject_type, subject_id, event_key)',
     ],
     'modules/asset_exchange/install.sql' => [

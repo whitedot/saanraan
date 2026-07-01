@@ -162,6 +162,8 @@ if (is_array($board)) {
                                     [
                                         'coupon_result' => $couponReadResult,
                                         'payable_amount' => $remainingAmount + max(0, (int) ($couponReadResult['discount_amount'] ?? 0)),
+                                        'board_id' => (int) ($post['board_id'] ?? 0),
+                                        'post_title_snapshot' => (string) ($post['title'] ?? ''),
                                     ]
                                 );
                                 $paidReadResult['coupon_used'] = !empty($couponReadResult['processed']);
@@ -217,7 +219,12 @@ if (is_array($board)) {
                         sr_post_string_without_truncation('asset_request_token', 64) ?? '',
                         true,
                         $assetConfirmedPost,
-                        $assetExchangeConfirmed
+                        $assetExchangeConfirmed,
+                        null,
+                        [
+                            'board_id' => (int) ($post['board_id'] ?? 0),
+                            'post_title_snapshot' => (string) ($post['title'] ?? ''),
+                        ]
                     );
                 }
             }

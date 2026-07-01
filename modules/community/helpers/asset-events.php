@@ -315,6 +315,108 @@ function sr_community_payment_access_item(string $subjectType, int $subjectId, s
     ];
 }
 
+function sr_community_post_read_payment_refund_policy_version(): string
+{
+    return 'community_post_read_refund_v1';
+}
+
+function sr_community_post_read_payment_clean_text(string $value, int $maxLength): string
+{
+    $value = trim(preg_replace('/\s+/u', ' ', $value) ?? '');
+
+    return substr($value, 0, max(1, $maxLength));
+}
+
+function sr_community_post_read_payment_clean_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9_]/', '_', $value) ?? '';
+    $value = preg_replace('/_+/', '_', $value) ?? '';
+
+    return trim($value, '_');
+}
+
+function sr_community_post_read_payment_type(array $couponResult, bool $hasAssetSettlement): string
+{
+    if (!empty($couponResult['processed'])) {
+        if ($hasAssetSettlement) {
+            return 'coupon_partial_discount_asset';
+        }
+
+        return (string) ($couponResult['coupon_type'] ?? '') === 'access'
+            ? 'coupon_access'
+            : 'coupon_full_discount';
+    }
+
+    return $hasAssetSettlement ? 'asset_only' : 'settled_zero';
+}
+
+function sr_community_record_post_read_payment_log(PDO $pdo, array $row): void
+{
+    $postId = max(0, (int) ($row['post_id'] ?? 0));
+    $accountId = max(0, (int) ($row['account_id'] ?? 0));
+    $paymentDedupeKey = sr_community_post_read_payment_clean_text((string) ($row['payment_dedupe_key'] ?? ''), 190);
+    if ($postId <= 0 || $accountId <= 0 || $paymentDedupeKey === '') {
+        throw new InvalidArgumentException('커뮤니티 게시글 열람 결제 단위 로그의 필수 값이 없습니다.');
+    }
+
+    $assetLogIds = [];
+    foreach ((array) ($row['asset_access_log_ids'] ?? []) as $assetLogId) {
+        $assetLogId = (int) $assetLogId;
+        if ($assetLogId > 0) {
+            $assetLogIds[$assetLogId] = $assetLogId;
+        }
+    }
+    $assetLogIdsJson = json_encode(array_values($assetLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    $paymentType = sr_community_post_read_payment_clean_key((string) ($row['payment_type'] ?? 'asset_only'));
+    $allowedPaymentTypes = ['asset_only', 'coupon_access', 'coupon_full_discount', 'coupon_partial_discount_asset', 'settled_zero'];
+    if (!in_array($paymentType, $allowedPaymentTypes, true)) {
+        $paymentType = 'asset_only';
+    }
+
+    $settlementKind = sr_community_post_read_payment_clean_key((string) ($row['settlement_kind'] ?? ''));
+    $allowedSettlementKinds = ['paid', 'free', 'paid_settled_zero', 'preview_test_zero'];
+    if (!in_array($settlementKind, $allowedSettlementKinds, true)) {
+        $settlementKind = max(0, (int) ($row['settlement_amount'] ?? 0)) > 0 ? 'paid' : 'paid_settled_zero';
+    }
+
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
+
+    $stmt = $pdo->prepare(
+        $insertVerb . ' INTO sr_community_post_read_payment_logs
+            (board_id, post_id, post_title_snapshot, account_id, payment_type, settlement_kind, charge_policy, asset_module, payable_amount, settlement_amount, settlement_currency, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, payment_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refund_policy_version, created_at)
+         VALUES
+            (:board_id, :post_id, :post_title_snapshot, :account_id, :payment_type, :settlement_kind, :charge_policy, :asset_module, :payable_amount, :settlement_amount, :settlement_currency, :asset_access_log_ids_json, :coupon_redemption_id, :coupon_dedupe_key, :payment_dedupe_key, \'\', \'[]\', \'\', :refund_policy_version, :created_at)'
+    );
+    $stmt->execute([
+        'board_id' => max(0, (int) ($row['board_id'] ?? 0)),
+        'post_id' => $postId,
+        'post_title_snapshot' => sr_community_post_read_payment_clean_text((string) ($row['post_title_snapshot'] ?? ''), 160),
+        'account_id' => $accountId,
+        'payment_type' => $paymentType,
+        'settlement_kind' => $settlementKind,
+        'charge_policy' => sr_community_post_read_payment_clean_key((string) ($row['charge_policy'] ?? 'once')),
+        'asset_module' => sr_community_post_read_payment_clean_text((string) ($row['asset_module'] ?? ''), 60),
+        'payable_amount' => max(0, (int) ($row['payable_amount'] ?? 0)),
+        'settlement_amount' => max(0, (int) ($row['settlement_amount'] ?? 0)),
+        'settlement_currency' => sr_community_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($row['settlement_currency'] ?? 'KRW')]),
+        'asset_access_log_ids_json' => is_string($assetLogIdsJson) ? $assetLogIdsJson : '[]',
+        'coupon_redemption_id' => (int) ($row['coupon_redemption_id'] ?? 0) > 0 ? (int) $row['coupon_redemption_id'] : null,
+        'coupon_dedupe_key' => sr_community_post_read_payment_clean_text((string) ($row['coupon_dedupe_key'] ?? ''), 160),
+        'payment_dedupe_key' => $paymentDedupeKey,
+        'refund_policy_version' => sr_community_post_read_payment_refund_policy_version(),
+        'created_at' => sr_now(),
+    ]);
+}
+
 function sr_community_anonymize_access_entitlements(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_community_access_entitlements_table_exists($pdo)) {
@@ -552,6 +654,23 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
                             'coupon_covered_amount' => (int) $policyAmounts['amount'],
                         ],
                     ], $paymentItems);
+                    sr_community_record_post_read_payment_log($pdo, [
+                        'board_id' => $boardId,
+                        'post_id' => $postId,
+                        'post_title_snapshot' => (string) ($post['title'] ?? ''),
+                        'account_id' => $accountId,
+                        'payment_type' => sr_community_post_read_payment_type($couponResult, false),
+                        'settlement_kind' => 'paid_settled_zero',
+                        'charge_policy' => (string) ($paidReadConfig['charge_policy'] ?? 'once'),
+                        'asset_module' => '',
+                        'payable_amount' => (int) $policyAmounts['amount'],
+                        'settlement_amount' => 0,
+                        'settlement_currency' => $settlementCurrency,
+                        'asset_access_log_ids' => [],
+                        'coupon_redemption_id' => (int) ($couponResult['coupon_redemption_id'] ?? 0),
+                        'coupon_dedupe_key' => (string) ($couponResult['dedupe_key'] ?? $couponDedupeKey),
+                        'payment_dedupe_key' => 'community.post.read:payment-unit:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
+                    ]);
                 }
                 if ($startedTransaction) {
                     $pdo->commit();
@@ -949,6 +1068,24 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
                 sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
             }
+            if ($direction === 'use' && $eventKey === 'post_read' && $subjectType === 'community.post') {
+                $zeroAssetLog = sr_community_asset_log($pdo, $dedupeKey);
+                sr_community_record_post_read_payment_log($pdo, [
+                    'board_id' => (int) ($paymentContext['board_id'] ?? 0),
+                    'post_id' => $subjectId,
+                    'post_title_snapshot' => (string) ($paymentContext['post_title_snapshot'] ?? ''),
+                    'account_id' => $accountId,
+                    'payment_type' => 'settled_zero',
+                    'settlement_kind' => 'paid_settled_zero',
+                    'charge_policy' => $chargePolicy,
+                    'asset_module' => $assetModule,
+                    'payable_amount' => $paymentPayableAmount,
+                    'settlement_amount' => 0,
+                    'settlement_currency' => $settlementCurrency,
+                    'asset_access_log_ids' => is_array($zeroAssetLog) && (int) ($zeroAssetLog['id'] ?? 0) > 0 ? [(int) $zeroAssetLog['id']] : [],
+                    'payment_dedupe_key' => 'community.post.read:payment-unit:' . sha1($dedupeKey),
+                ]);
+            }
             if ($startedTransaction) {
                 $pdo->commit();
             }
@@ -1146,6 +1283,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
         if ($direction === 'use' && $processed && $processedLogs !== []) {
             $paymentItems = [];
             $paymentDedupeParts = [];
+            $assetLogIds = [];
             $couponResult = is_array($paymentContext['coupon_result'] ?? null) ? $paymentContext['coupon_result'] : [];
             $couponPaymentItem = sr_community_payment_coupon_item($couponResult, $settlementCurrency);
             if ($couponPaymentItem !== []) {
@@ -1181,6 +1319,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
 
                 $assetLog = sr_community_asset_log($pdo, $logDedupeKey);
                 if (is_array($assetLog) && (int) ($assetLog['id'] ?? 0) > 0) {
+                    $assetLogIds[] = (int) $assetLog['id'];
                     $paymentItems[] = [
                         'item_kind' => 'asset_access_log',
                         'owner_module' => 'community',
@@ -1224,6 +1363,25 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
                         'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
                     ],
                 ], $paymentItems);
+                if ($eventKey === 'post_read' && $subjectType === 'community.post') {
+                    sr_community_record_post_read_payment_log($pdo, [
+                        'board_id' => (int) ($paymentContext['board_id'] ?? 0),
+                        'post_id' => $subjectId,
+                        'post_title_snapshot' => (string) ($paymentContext['post_title_snapshot'] ?? ''),
+                        'account_id' => $accountId,
+                        'payment_type' => sr_community_post_read_payment_type($couponResult, true),
+                        'settlement_kind' => 'paid',
+                        'charge_policy' => $chargePolicy,
+                        'asset_module' => $assetModuleValue,
+                        'payable_amount' => $paymentPayableAmount,
+                        'settlement_amount' => $amount,
+                        'settlement_currency' => $settlementCurrency,
+                        'asset_access_log_ids' => $assetLogIds,
+                        'coupon_redemption_id' => (int) ($couponResult['coupon_redemption_id'] ?? 0),
+                        'coupon_dedupe_key' => (string) ($couponResult['dedupe_key'] ?? ''),
+                        'payment_dedupe_key' => 'community.post.read:payment-unit:' . sha1(implode('|', $paymentDedupeParts)),
+                    ]);
+                }
             }
         }
 

@@ -540,6 +540,32 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         dedupe_key TEXT NOT NULL UNIQUE,
         created_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_community_post_read_payment_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL DEFAULT 0,
+        post_id INTEGER NOT NULL,
+        post_title_snapshot TEXT NOT NULL DEFAULT '',
+        account_id INTEGER,
+        payment_type TEXT NOT NULL DEFAULT 'asset_only',
+        settlement_kind TEXT NOT NULL DEFAULT 'paid',
+        charge_policy TEXT NOT NULL DEFAULT 'once',
+        asset_module TEXT NOT NULL DEFAULT '',
+        payable_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        asset_access_log_ids_json TEXT,
+        coupon_redemption_id INTEGER,
+        coupon_dedupe_key TEXT NOT NULL DEFAULT '',
+        payment_dedupe_key TEXT NOT NULL UNIQUE,
+        refund_status TEXT NOT NULL DEFAULT '',
+        refund_transaction_ids_json TEXT,
+        refund_note TEXT NOT NULL DEFAULT '',
+        refunded_by_account_id INTEGER,
+        refunded_at TEXT,
+        access_revoked_at TEXT,
+        refund_policy_version TEXT NOT NULL DEFAULT 'community_post_read_refund_v1',
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('notification', 'enabled'), ('payment_ledger', 'enabled')");
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
     $pdo->exec("INSERT INTO sr_member_accounts (id, email, status) VALUES (7, 'member7@example.test', 'active'), (8, 'member8@example.test', 'active')");
@@ -1738,7 +1764,7 @@ function sr_coupon_runtime_fixture(): void
         'policy_set_id' => 0,
         'charge_policy' => 'once',
     ];
-    $communityResult = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
+    $communityResult = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902, 'title' => 'Paid post'], $communityPaidReadConfig, 'community.post:coupon:7:9901');
     sr_coupon_runtime_assert(!empty($communityResult['allowed']), 'community paid read fixture should allow coupon-backed access.');
     sr_coupon_runtime_assert(!empty($communityResult['processed']), 'community paid read fixture should process the first coupon-backed access.');
     sr_coupon_runtime_assert((string) ($communityResult['coupon_title'] ?? '') === 'community_priority', 'community paid read fixture should return the coupon title that backed access.');
@@ -1782,10 +1808,20 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityReadPaymentId, 'coupon_redemption') === 1, 'community paid read payment ledger should include the coupon redemption item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityReadPaymentId, 'access_entitlement') === 1, 'community paid read payment ledger should include the access entitlement item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_reference($pdo, $communityReadPaymentId, 'access_entitlement') === 'community.post:9901:post_read', 'community paid read payment ledger access item should not embed the account id.');
+    $communityReadUnit = sr_coupon_runtime_row($pdo, 'SELECT board_id, post_title_snapshot, payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id, refund_policy_version FROM sr_community_post_read_payment_logs WHERE post_id = 9901 LIMIT 1');
+    $communityReadLogIds = json_decode((string) ($communityReadUnit['asset_access_log_ids_json'] ?? '[]'), true);
+    sr_coupon_runtime_assert((int) ($communityReadUnit['board_id'] ?? 0) === 9902 && (string) ($communityReadUnit['post_title_snapshot'] ?? '') === 'Paid post', 'community paid read payment-unit should store post snapshots.');
+    sr_coupon_runtime_assert((string) ($communityReadUnit['payment_type'] ?? '') === 'coupon_access', 'community paid read payment-unit should classify full access coupon payments.');
+    sr_coupon_runtime_assert((string) ($communityReadUnit['settlement_kind'] ?? '') === 'paid_settled_zero', 'community paid read payment-unit should classify zero settlement.');
+    sr_coupon_runtime_assert((int) ($communityReadUnit['payable_amount'] ?? -1) === 150 && (int) ($communityReadUnit['settlement_amount'] ?? -1) === 0, 'community paid read payment-unit should separate payable amount from zero settlement.');
+    sr_coupon_runtime_assert(is_array($communityReadLogIds) && $communityReadLogIds === [], 'community paid read payment-unit should store an empty asset log list for full coupon payments.');
+    sr_coupon_runtime_assert((int) ($communityReadUnit['coupon_redemption_id'] ?? 0) > 0, 'community paid read payment-unit should link the coupon redemption.');
+    sr_coupon_runtime_assert((string) ($communityReadUnit['refund_policy_version'] ?? '') === 'community_post_read_refund_v1', 'community paid read payment-unit should stamp the refund policy version.');
 
-    $communityRepeat = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
+    $communityRepeat = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902, 'title' => 'Paid post'], $communityPaidReadConfig, 'community.post:coupon:7:9901');
     sr_coupon_runtime_assert(!empty($communityRepeat['allowed']) && empty($communityRepeat['processed']) && !empty($communityRepeat['already_redeemed']), 'community paid read fixture should reuse existing coupon entitlement without another redemption.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9901'")->fetchColumn() === 1, 'community paid read fixture should not create another coupon redemption for once access.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_post_read_payment_logs WHERE post_id = 9901')->fetchColumn() === 1, 'community paid read repeat should not create another payment-unit row for existing entitlement.');
 
     $alreadyEntitledCommunityIssueId = sr_coupon_runtime_issue($pdo, 'community_already_entitled', 'community_post', '9901', 7);
     $alreadyEntitledCommunity = sr_coupon_redeem_for_target($pdo, 7, 'community_post', '9901', [
@@ -1874,6 +1910,30 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($communityAttachmentPaymentAfterRefund['status'] ?? '') === 'refunded', 'community attachment coupon refund should mark the payment record refunded.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'coupon_redemption', 'reversed') === 1, 'community attachment coupon refund should mark the coupon payment item reversed.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'access_entitlement', 'reversed') === 1, 'community attachment coupon refund should mark the access payment item reversed.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_community_posts
+            (id, board_id, status, title, created_at, updated_at)
+         VALUES
+            (9904, 9902, 'published', 'Asset paid post', :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $communityAssetOnlyConfig = $communityPaidReadConfig;
+    $communityAssetOnlyConfig['amount'] = 80;
+    $communityAssetOnlyConfig['amounts'] = ['point' => 80];
+    $communityAssetOnlyResult = sr_community_run_asset_event($pdo, $communityAssetOnlyConfig, 7, 'post_read', 'community.post', 9904, 'use', 'community.post.read', true, '', true, true, false, null, [
+        'board_id' => 9902,
+        'post_title_snapshot' => 'Asset paid post',
+    ]);
+    sr_coupon_runtime_assert(!empty($communityAssetOnlyResult['allowed']) && !empty($communityAssetOnlyResult['processed']), 'community asset-only paid read fixture should charge assets.');
+    $communityAssetOnlyUnit = sr_coupon_runtime_row($pdo, 'SELECT board_id, post_title_snapshot, payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id, refund_policy_version FROM sr_community_post_read_payment_logs WHERE post_id = 9904 LIMIT 1');
+    $communityAssetOnlyLogIds = json_decode((string) ($communityAssetOnlyUnit['asset_access_log_ids_json'] ?? '[]'), true);
+    sr_coupon_runtime_assert((int) ($communityAssetOnlyUnit['board_id'] ?? 0) === 9902 && (string) ($communityAssetOnlyUnit['post_title_snapshot'] ?? '') === 'Asset paid post', 'community asset-only paid read payment-unit should store post snapshots.');
+    sr_coupon_runtime_assert((string) ($communityAssetOnlyUnit['payment_type'] ?? '') === 'asset_only', 'community asset-only paid read payment-unit should classify asset payments.');
+    sr_coupon_runtime_assert((string) ($communityAssetOnlyUnit['settlement_kind'] ?? '') === 'paid', 'community asset-only paid read payment-unit should classify paid settlement.');
+    sr_coupon_runtime_assert((int) ($communityAssetOnlyUnit['payable_amount'] ?? -1) === 80 && (int) ($communityAssetOnlyUnit['settlement_amount'] ?? -1) === 80, 'community asset-only paid read payment-unit should store payable and settlement amounts.');
+    sr_coupon_runtime_assert(is_array($communityAssetOnlyLogIds) && count($communityAssetOnlyLogIds) === 1, 'community asset-only paid read payment-unit should link one community asset log.');
+    sr_coupon_runtime_assert((int) ($communityAssetOnlyUnit['coupon_redemption_id'] ?? 0) === 0, 'community asset-only paid read payment-unit should not link a coupon redemption.');
+    sr_coupon_runtime_assert((string) ($communityAssetOnlyUnit['refund_policy_version'] ?? '') === 'community_post_read_refund_v1', 'community asset-only paid read payment-unit should stamp the refund policy version.');
 
     $assetOnlyPage = [
         'id' => 78,
@@ -1991,12 +2051,14 @@ function sr_coupon_runtime_fixture(): void
     ]);
     $communityMixedIssueId = (int) $pdo->lastInsertId();
     $pdo->beginTransaction();
-    $communityMixedCoupon = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9903, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9903', $communityMixedIssueId);
+    $communityMixedCoupon = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9903, 'board_id' => 9902, 'title' => 'Mixed paid post'], $communityPaidReadConfig, 'community.post:coupon:7:9903', $communityMixedIssueId);
     $communityMixedRemaining = max(0, (int) ($communityMixedCoupon['remaining_amount'] ?? 0));
     $communityMixedResult = !empty($communityMixedCoupon['allowed'])
         ? sr_community_run_asset_event($pdo, $communityPaidReadConfig, 7, 'post_read', 'community.post', 9903, 'use', 'community.post.read', true, '', true, true, false, $communityMixedRemaining, [
             'coupon_result' => $communityMixedCoupon,
             'payable_amount' => $communityMixedRemaining + max(0, (int) ($communityMixedCoupon['discount_amount'] ?? 0)),
+            'board_id' => 9902,
+            'post_title_snapshot' => 'Mixed paid post',
         ])
         : ['allowed' => false, 'processed' => false];
     if (!empty($communityMixedResult['allowed'])) {
@@ -2021,6 +2083,15 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'asset_access_log') === 1, 'community mixed coupon payment ledger should include community asset log item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'access_entitlement') === 1, 'community mixed coupon payment ledger should include access entitlement item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_reference($pdo, $communityMixedPaymentId, 'access_entitlement') === 'community.post:9903:post_read', 'community mixed coupon payment ledger access item should not embed the account id.');
+    $communityMixedUnit = sr_coupon_runtime_row($pdo, 'SELECT board_id, post_title_snapshot, payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id, refund_policy_version FROM sr_community_post_read_payment_logs WHERE post_id = 9903 LIMIT 1');
+    $communityMixedLogIds = json_decode((string) ($communityMixedUnit['asset_access_log_ids_json'] ?? '[]'), true);
+    sr_coupon_runtime_assert((int) ($communityMixedUnit['board_id'] ?? 0) === 9902 && (string) ($communityMixedUnit['post_title_snapshot'] ?? '') === 'Mixed paid post', 'community mixed coupon payment-unit should store post snapshots.');
+    sr_coupon_runtime_assert((string) ($communityMixedUnit['payment_type'] ?? '') === 'coupon_partial_discount_asset', 'community mixed coupon payment-unit should classify coupon plus asset payments.');
+    sr_coupon_runtime_assert((string) ($communityMixedUnit['settlement_kind'] ?? '') === 'paid', 'community mixed coupon payment-unit should classify paid settlement.');
+    sr_coupon_runtime_assert((int) ($communityMixedUnit['payable_amount'] ?? -1) === 150 && (int) ($communityMixedUnit['settlement_amount'] ?? -1) === 75, 'community mixed coupon payment-unit should preserve payable and remaining settlement amounts.');
+    sr_coupon_runtime_assert(is_array($communityMixedLogIds) && count($communityMixedLogIds) === 1, 'community mixed coupon payment-unit should link the community asset log.');
+    sr_coupon_runtime_assert((int) ($communityMixedUnit['coupon_redemption_id'] ?? 0) > 0, 'community mixed coupon payment-unit should link the coupon redemption.');
+    sr_coupon_runtime_assert((string) ($communityMixedUnit['refund_policy_version'] ?? '') === 'community_post_read_refund_v1', 'community mixed coupon payment-unit should stamp the refund policy version.');
 }
 
 sr_coupon_runtime_check_model_decision();
