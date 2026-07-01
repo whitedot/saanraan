@@ -75,6 +75,10 @@ sr_community_account_guard_check_contains('modules/community/helpers/levels.php'
 
 sr_community_account_guard_check_contains('modules/community/helpers/account-guards.php', [
     'function sr_community_account_guard_active_uid',
+    'function sr_community_account_guard_by_id',
+    'function sr_community_admin_account_guard_rows',
+    'function sr_community_account_guard_type_label',
+    'function sr_community_account_guard_status_label',
     'function sr_community_account_guard_transition',
     'function sr_community_account_active_guards',
     'function sr_community_account_guard_write_decision',
@@ -115,9 +119,20 @@ sr_community_account_guard_check_contains('modules/community/views/my.php', [
 ]);
 
 sr_community_account_guard_check_contains('modules/community/actions/admin-reports.php', [
+    "\$intent === 'release_account_guard'",
+    "sr_community_account_guard_transition(\$pdo, \$guardId, 'released'",
+    "'event_type' => 'community.account_guard.released'",
+    'sr_community_admin_account_guard_rows($pdo, 20)',
     'sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionReviewResult[\'auto_action_id\'], $settings)',
     "'event_type' => 'community.account_guard.evaluated'",
     "'event_type' => 'community.account_guard.evaluation_failed'",
+]);
+
+sr_community_account_guard_check_contains('modules/community/views/admin-reports.php', [
+    '계정 guard',
+    'name="intent" value="release_account_guard"',
+    'sr_community_account_guard_type_label',
+    'sr_community_account_guard_status_label',
 ]);
 
 sr_community_account_guard_check_contains('modules/community/actions/admin-settings.php', [
@@ -229,6 +244,14 @@ if ($errors === []) {
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_member_accounts (
+            id INTEGER PRIMARY KEY,
+            display_name TEXT NOT NULL,
+            status TEXT NOT NULL
+        )'
+    );
+    $pdo->exec("INSERT INTO sr_member_accounts (id, display_name, status) VALUES (7, 'Guard User', 'active')");
+    $pdo->exec(
         "INSERT INTO sr_community_account_guards
             (account_id, guard_type, status, active_guard_uid, expires_at, created_at, updated_at)
          VALUES
@@ -242,10 +265,21 @@ if ($errors === []) {
     if (sr_community_account_guard_active_uid(7, 'unknown') !== '') {
         sr_community_account_guard_check_error('unknown guard type must not produce an active uid.');
     }
+    if (sr_community_account_guard_type_label('publication_hold') === 'publication_hold') {
+        sr_community_account_guard_check_error('guard type label helper must return an operator-facing label.');
+    }
 
     $activeGuards = sr_community_account_active_guards($pdo, 7, '2026-07-01 12:00:00');
     if (count($activeGuards) !== 1 || (string) ($activeGuards[0]['guard_type'] ?? '') !== 'publication_hold') {
         sr_community_account_guard_check_error('active guard query must exclude expired guard rows.');
+    }
+    $adminGuardRows = sr_community_admin_account_guard_rows($pdo, 10, '2026-07-01 12:00:00');
+    if (count($adminGuardRows) !== 1 || (string) ($adminGuardRows[0]['account_display_name'] ?? '') !== 'Guard User') {
+        sr_community_account_guard_check_error('admin account guard rows must list active current guards with member display metadata.');
+    }
+    $guardById = sr_community_account_guard_by_id($pdo, 1);
+    if (!is_array($guardById) || (int) ($guardById['account_id'] ?? 0) !== 7) {
+        sr_community_account_guard_check_error('guard id lookup helper must return the requested current guard.');
     }
 
     $released = sr_community_account_guard_transition($pdo, 1, 'released', [

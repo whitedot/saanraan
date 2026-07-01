@@ -37,7 +37,85 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if ($intent === 'batch_status') {
+    if ($intent === 'release_account_guard') {
+        $guardIdValue = sr_post_string('guard_id', 20);
+        $guardId = preg_match('/\A[1-9][0-9]*\z/', $guardIdValue) === 1 ? (int) $guardIdValue : 0;
+        $releaseNote = sr_post_string_without_truncation('release_note', 1000);
+
+        if ($guardId < 1) {
+            $errors[] = '해제할 계정 guard를 선택하세요.';
+        }
+        if ($releaseNote === null) {
+            $errors[] = '해제 메모는 1000자 이하로 입력하세요.';
+            $releaseNote = '';
+        }
+        if ($releaseNote !== null && trim((string) $releaseNote) === '') {
+            $errors[] = '해제 메모를 입력하세요.';
+        }
+
+        if ($errors === []) {
+            $releaseNoteValue = trim((string) $releaseNote);
+            try {
+                $pdo->beginTransaction();
+                $guard = sr_community_account_guard_by_id($pdo, $guardId, true);
+                if (!is_array($guard)) {
+                    throw new RuntimeException('account_guard_missing');
+                }
+                if ((string) ($guard['status'] ?? '') !== 'active') {
+                    throw new RuntimeException('account_guard_not_active');
+                }
+                $beforeSnapshot = json_decode((string) ($guard['snapshot_json'] ?? ''), true);
+                if (!is_array($beforeSnapshot)) {
+                    $beforeSnapshot = [];
+                }
+
+                $released = sr_community_account_guard_transition($pdo, $guardId, 'released', [
+                    'reviewer_account_id' => (int) $account['id'],
+                    'snapshot' => [
+                        'source' => 'admin_guard_release',
+                        'before_status' => (string) ($guard['status'] ?? ''),
+                        'guard_type' => (string) ($guard['guard_type'] ?? ''),
+                        'release_note' => $releaseNoteValue,
+                        'before_snapshot' => $beforeSnapshot,
+                    ],
+                ]);
+                if (!$released) {
+                    throw new RuntimeException('account_guard_release_failed');
+                }
+                sr_audit_log_required($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.account_guard.released',
+                    'target_type' => 'community_account_guard',
+                    'target_id' => (string) $guardId,
+                    'result' => 'success',
+                    'message' => 'Community account guard released by administrator.',
+                    'metadata' => [
+                        'account_id' => (int) ($guard['account_id'] ?? 0),
+                        'guard_type' => (string) ($guard['guard_type'] ?? ''),
+                        'source_event_id' => (int) ($guard['source_event_id'] ?? 0),
+                        'release_note' => $releaseNoteValue,
+                    ],
+                ]);
+                $pdo->commit();
+                $notice = '계정 guard를 해제했습니다.';
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_missing') {
+                    $errors[] = '해제할 계정 guard를 찾을 수 없습니다.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_not_active') {
+                    $errors[] = '이미 종료된 계정 guard입니다. 목록을 새로고침한 뒤 다시 확인하세요.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_release_failed') {
+                    $errors[] = '계정 guard를 해제하지 못했습니다.';
+                } else {
+                    sr_log_exception($exception, 'community_account_guard_release_failed');
+                    $errors[] = '계정 guard 해제 중 오류가 발생했습니다.';
+                }
+            }
+        }
+    } elseif ($intent === 'batch_status') {
         $operationKey = sr_post_string('operation_key', 80);
         $targetStatus = sr_post_string('target_status', 30);
         $targetAction = sr_post_string('target_action', 40);
@@ -495,6 +573,7 @@ foreach ($reportStatusCountStmt->fetchAll() as $row) {
 $reportPagination = sr_admin_pagination_from_total($pdo, sr_community_report_count($pdo, $reportListFilters));
 $reports = sr_community_reports($pdo, (int) $reportPagination['per_page'], $reportListFilters, sr_admin_pagination_offset($reportPagination));
 $reportAutoActionsByTarget = sr_community_report_auto_actions_by_targets($pdo, $reports);
+$accountGuardRows = sr_community_admin_account_guard_rows($pdo, 20);
 $canViewAuditLogs = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/audit-logs', 'view');
 
 include SR_ROOT . '/modules/community/views/admin-reports.php';

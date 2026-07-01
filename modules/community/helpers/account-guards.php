@@ -31,6 +31,27 @@ function sr_community_account_guard_status_is_active(string $status): bool
     return in_array($status, sr_community_account_guard_active_statuses(), true);
 }
 
+function sr_community_account_guard_type_label(string $guardType): string
+{
+    return [
+        'publication_hold' => '게시글 검토 보류',
+        'confirmed_hold' => '반복 확정 보류',
+        'write_cooldown' => '작성 제한',
+        'needs_review' => '운영자 검토 필요',
+    ][$guardType] ?? $guardType;
+}
+
+function sr_community_account_guard_status_label(string $status): string
+{
+    return [
+        'active' => '활성',
+        'released' => '해제',
+        'expired' => '만료',
+        'cancelled' => '취소',
+        'needs_review' => '검토 필요',
+    ][$status] ?? $status;
+}
+
 function sr_community_account_guard_json(array $data): string
 {
     $encoded = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -132,6 +153,55 @@ function sr_community_account_guard_by_type(PDO $pdo, int $accountId, string $gu
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_community_account_guard_by_id(PDO $pdo, int $guardId, bool $lock = false): ?array
+{
+    if ($guardId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_community_account_guards
+         WHERE id = :id
+         LIMIT 1' . ($lock ? sr_community_account_guard_lock_suffix($pdo) : '')
+    );
+    $stmt->execute(['id' => $guardId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_admin_account_guard_rows(PDO $pdo, int $limit = 20, ?string $now = null): array
+{
+    $limit = max(1, min(100, $limit));
+    $now = $now !== null && $now !== '' ? $now : (function_exists('sr_now') ? sr_now() : date('Y-m-d H:i:s'));
+    $nicknameJoin = function_exists('sr_member_nicknames_table_exists') && sr_member_nicknames_table_exists($pdo)
+        ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = g.account_id'
+        : '';
+    $nicknameSelect = $nicknameJoin !== '' ? 'COALESCE(n.nickname, \'\') AS account_nickname,' : "'' AS account_nickname,";
+    $stmt = $pdo->prepare(
+        'SELECT g.*,
+                e.trigger_reason,
+                e.source_type,
+                e.source_id,
+                a.display_name AS account_display_name,
+                a.status AS account_status,
+                ' . $nicknameSelect . '
+                COALESCE(e.created_at, g.created_at) AS event_created_at
+         FROM sr_community_account_guards g
+         LEFT JOIN sr_community_account_guard_events e ON e.id = g.source_event_id
+         LEFT JOIN sr_member_accounts a ON a.id = g.account_id
+         ' . $nicknameJoin . '
+         WHERE g.status = \'active\'
+           AND (g.expires_at IS NULL OR g.expires_at > :now_value)
+         ORDER BY g.created_at DESC, g.id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute(['now_value' => $now]);
+
+    return $stmt->fetchAll();
 }
 
 function sr_community_account_guard_existing_event(PDO $pdo, int $accountId, string $guardType, string $triggerFingerprint): ?array

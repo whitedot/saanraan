@@ -9,6 +9,7 @@ $allowedStatuses = isset($allowedStatuses) && is_array($allowedStatuses) ? $allo
 $allowedReasonKeys = isset($allowedReasonKeys) && is_array($allowedReasonKeys) ? $allowedReasonKeys : [];
 $allowedTargetTypes = isset($allowedTargetTypes) && is_array($allowedTargetTypes) ? $allowedTargetTypes : ['post', 'comment', 'message'];
 $reportAutoActionsByTarget = isset($reportAutoActionsByTarget) && is_array($reportAutoActionsByTarget) ? $reportAutoActionsByTarget : [];
+$accountGuardRows = isset($accountGuardRows) && is_array($accountGuardRows) ? $accountGuardRows : [];
 $reportTargetLabels = [];
 foreach ($allowedTargetTypes as $allowedTargetType) {
     $reportTargetLabels[(string) $allowedTargetType] = sr_community_report_target_type_label((string) $allowedTargetType);
@@ -34,6 +35,122 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <a href="<?php echo sr_e(sr_url('/admin/community/reports?status=dismissed')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.0d655420')); ?> <?php echo sr_e((string) ($reportStatusCounts['dismissed'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
     </div>
 </div>
+
+<section class="card admin-list-card admin-community-account-guards">
+    <div class="card-header"><h2 class="card-title">계정 guard</h2></div>
+    <div class="table-wrapper">
+        <table class="table table-list admin-community-account-guard-table">
+            <caption class="sr-only">활성 커뮤니티 계정 guard 목록</caption>
+            <thead>
+                <tr>
+                    <th>회원</th>
+                    <th>유형</th>
+                    <th>상태</th>
+                    <th>근거</th>
+                    <th>시작</th>
+                    <th>만료</th>
+                    <th class="text-end">작업</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($accountGuardRows === []) { ?>
+                    <tr>
+                        <td colspan="7" class="admin-empty-state">활성 계정 guard가 없습니다.</td>
+                    </tr>
+                <?php } else { ?>
+                    <?php foreach ($accountGuardRows as $accountGuard) { ?>
+                        <?php
+                        $accountGuardId = (int) ($accountGuard['id'] ?? 0);
+                        $accountGuardType = (string) ($accountGuard['guard_type'] ?? '');
+                        $accountGuardStatus = (string) ($accountGuard['status'] ?? '');
+                        $accountGuardModalId = 'community-account-guard-release-modal-' . (string) $accountGuardId;
+                        $accountGuardReason = trim((string) ($accountGuard['trigger_reason'] ?? ''));
+                        $accountGuardSourceType = trim((string) ($accountGuard['source_type'] ?? ''));
+                        $accountGuardSourceId = (int) ($accountGuard['source_id'] ?? 0);
+                        $accountGuardSource = $accountGuardSourceType !== '' && $accountGuardSourceId > 0 ? $accountGuardSourceType . ' #' . (string) $accountGuardSourceId : '';
+                        ?>
+                        <tr>
+                            <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
+                                is_string($accountGuard['account_display_name'] ?? null) ? $accountGuard['account_display_name'] : null,
+                                (int) ($accountGuard['account_id'] ?? 0),
+                                is_string($accountGuard['account_status'] ?? null) ? $accountGuard['account_status'] : null,
+                                is_string($accountGuard['account_nickname'] ?? null) ? $accountGuard['account_nickname'] : null,
+                                isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
+                            )); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_community_account_guard_type_label($accountGuardType)); ?></td>
+                            <td class="admin-table-nowrap"><span class="admin-status is-blocked"><?php echo sr_e(sr_community_account_guard_status_label($accountGuardStatus)); ?></span></td>
+                            <td class="admin-table-break">
+                                <?php echo sr_e($accountGuardReason !== '' ? $accountGuardReason : '-'); ?>
+                                <?php if ($accountGuardSource !== '') { ?>
+                                    <span class="admin-table-subtext"><?php echo sr_e($accountGuardSource); ?></span>
+                                <?php } ?>
+                            </td>
+                            <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($accountGuard['starts_at'] ?? $accountGuard['event_created_at'] ?? $accountGuard['created_at'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($accountGuard['expires_at'] ?? '')); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
+                                    <?php if ($canViewAuditLogs) { ?>
+                                        <?php
+                                        $accountGuardLogUrl = sr_url('/admin/audit-logs?' . http_build_query([
+                                            'field' => 'metadata_json',
+                                            'q' => '"guard_type":"' . $accountGuardType . '"',
+                                        ], '', '&', PHP_QUERY_RFC3986));
+                                        ?>
+                                        <a href="<?php echo sr_e($accountGuardLogUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light" aria-label="계정 guard 로그 새 탭으로 열기" title="계정 guard 로그"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                    <?php } ?>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-warning" aria-label="계정 guard 해제" title="계정 guard 해제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($accountGuardModalId); ?>" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_material_icon_html('lock_open'); ?></button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<?php if ($accountGuardRows !== []) { ?>
+    <?php foreach ($accountGuardRows as $accountGuard) { ?>
+        <?php
+        $accountGuardId = (int) ($accountGuard['id'] ?? 0);
+        $accountGuardModalId = 'community-account-guard-release-modal-' . (string) $accountGuardId;
+        $accountGuardReleaseNoteId = 'community_account_guard_release_note_' . (string) $accountGuardId;
+        ?>
+        <div id="<?php echo sr_e($accountGuardModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($accountGuardModalId); ?>-title" aria-hidden="true" inert>
+            <div class="modal-dialog modal-dialog-lg">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="modal-content ui-form-theme">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="release_account_guard">
+                    <input type="hidden" name="guard_id" value="<?php echo sr_e((string) $accountGuardId); ?>">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($accountGuardModalId); ?>-title" class="modal-title">계정 guard 해제</h3>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="admin-summary-meta"><?php echo sr_e(sr_community_account_guard_type_label((string) ($accountGuard['guard_type'] ?? ''))); ?> · <?php echo sr_e(sr_community_report_account_label(
+                            is_string($accountGuard['account_display_name'] ?? null) ? $accountGuard['account_display_name'] : null,
+                            (int) ($accountGuard['account_id'] ?? 0),
+                            is_string($accountGuard['account_status'] ?? null) ? $accountGuard['account_status'] : null,
+                            is_string($accountGuard['account_nickname'] ?? null) ? $accountGuard['account_nickname'] : null,
+                            isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
+                        )); ?></p>
+                        <div class="form-row">
+                            <label for="<?php echo sr_e($accountGuardReleaseNoteId); ?>" class="form-label">해제 메모 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                            <div class="form-field">
+                                <textarea id="<?php echo sr_e($accountGuardReleaseNoteId); ?>" name="release_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus></textarea>
+                                <small class="form-help">계정 guard 해제는 감사 로그에 운영자, 대상 guard, 해제 메모를 남깁니다.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                        <button type="submit" class="btn btn-solid-warning modal-action">해제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
+<?php } ?>
 
 <?php $communityReportDetailFilterOpen = $selectedReportStatuses !== [] || $selectedReportTargetTypes !== [] || $selectedReportReasonKeys !== []; ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="filtering-form admin-community-report-filter ui-form-theme">
