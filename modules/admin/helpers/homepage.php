@@ -5,7 +5,7 @@ declare(strict_types=1);
 function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'): array
 {
     $serviceMainCandidates = [];
-    $homepageModuleKeys = ['content', 'community', 'quiz'];
+    $homepageModuleKeys = ['content', 'community', 'quiz', 'survey'];
     $candidates = [
         '/' => [
             'module_key' => 'core',

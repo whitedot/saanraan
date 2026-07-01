@@ -1206,6 +1206,40 @@ function sr_check_banner_public_layout_slots(): void
     }
 }
 
+function sr_check_admin_homepage_candidates(): void
+{
+    $helperPath = 'modules/admin/helpers/homepage.php';
+    $helperSource = is_file($helperPath) ? file_get_contents($helperPath) : false;
+    if (!is_string($helperSource)) {
+        sr_check_add_error('Admin homepage helper cannot be read: ' . $helperPath);
+        return;
+    }
+
+    foreach ([
+        "\$homepageModuleKeys = ['content', 'community', 'quiz', 'survey'];",
+        'sr_site_home_path_is_available($pdo, $path)',
+        '\'module_key\' => $moduleKey',
+    ] as $marker) {
+        if (!str_contains($helperSource, $marker)) {
+            sr_check_add_error('Admin homepage candidate marker is missing: ' . $marker);
+        }
+    }
+
+    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+        $moduleFile = 'modules/' . $moduleKey . '/module.php';
+        $moduleSource = is_file($moduleFile) ? file_get_contents($moduleFile) : false;
+        if (!is_string($moduleSource)) {
+            sr_check_add_error('Service homepage module metadata cannot be read: ' . $moduleFile);
+            continue;
+        }
+        foreach (["'service_domain' => [", "'main_page' => [", "'path' => '/" . $moduleKey . "'"] as $marker) {
+            if (!str_contains($moduleSource, $marker)) {
+                sr_check_add_error('Service homepage metadata marker is missing: ' . $moduleFile . ' ' . $marker);
+            }
+        }
+    }
+}
+
 function sr_check_module_ui_kit_samples_match_public(): void
 {
     $publicSampleDir = 'layouts/public/basic/ui-kit-samples';
@@ -1473,6 +1507,7 @@ sr_check_module_route_conflicts();
 sr_check_module_ui_kit_routes();
 sr_check_module_public_ui_kit_stylesheets();
 sr_check_banner_public_layout_slots();
+sr_check_admin_homepage_candidates();
 sr_check_module_ui_kit_samples_match_public();
 sr_check_admin_anchor_tabs_scroll_spy();
 sr_check_quiz_survey_skin_files();
