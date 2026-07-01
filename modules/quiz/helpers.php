@@ -1462,32 +1462,3 @@ function sr_quiz_admin_quiz_by_id(PDO $pdo, int $quizId): ?array
 
     return $quiz;
 }
-
-function sr_quiz_content_quizzes(PDO $pdo, int $contentId): array
-{
-    if ($contentId < 1) {
-        return [];
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT q.id, q.quiz_key, q.title, q.description, q.member_group_keys_json, s.cta_label
-         FROM sr_quiz_sources s
-         INNER JOIN sr_quiz_sets q ON q.id = s.quiz_id
-         WHERE s.source_module = \'content\'
-           AND s.source_type = \'content_item\'
-           AND s.source_id = :content_id
-           AND s.status = \'active\'
-           AND q.status = \'active\'
-           AND q.deleted_at IS NULL
-           AND (q.starts_at IS NULL OR q.starts_at <= :now_start)
-           AND (q.ends_at IS NULL OR q.ends_at >= :now_end)
-         ORDER BY s.sort_order ASC, q.updated_at DESC, q.id DESC'
-    );
-    $stmt->execute([
-        'content_id' => $contentId,
-        'now_start' => sr_now(),
-        'now_end' => sr_now(),
-    ]);
-
-    return $stmt->fetchAll();
-}

@@ -388,19 +388,45 @@ function sr_quiz_check_paths_and_admin(): void
         "attempt_q_' . (string) \$index",
         '$keywordWhere[] = $column . \' LIKE :\' . $paramKey',
     ]);
-    sr_quiz_check_file_contains('modules/content/actions/view.php', [
-        'sr_quiz_content_quizzes',
+    sr_quiz_check_file_contains('modules/quiz/url-embed-targets.php', [
+        "'target_module' => 'quiz'",
+        "'target_type' => 'quiz_set'",
+        'sr-quiz-embed',
+        'fragment_cache_schema',
     ]);
-    sr_quiz_check_file_contains('modules/content/views/content.php', [
+    sr_quiz_check_file_not_contains('modules/content/actions/view.php', [
+        'sr_quiz_content_quizzes',
+        '$contentQuizLinks',
+    ]);
+    sr_quiz_check_file_not_contains('modules/content/views/content.php', [
         'content-quiz-dialog',
         'data-content-quiz-dialog-open',
-        'return_to',
-        'source_module',
-        'source_type',
-        'source_id',
+        'contentQuizLinks',
+        'embed=1',
     ]);
-    sr_quiz_check_file_contains('modules/content/theme/basic/assets/module.css', [
-        '.content-quiz-dialog',
+    sr_quiz_check_file_not_contains('modules/content/theme/basic/content.php', [
+        'content-quiz-dialog',
+        'data-content-quiz-dialog-open',
+        'contentQuizLinks',
+        'embed=1',
+    ]);
+    sr_quiz_check_file_not_contains('modules/content/theme/basic/assets/module.css', [
+        'content-quiz-dialog',
+        'content-quiz-link',
+        'content-quiz-links',
+    ]);
+    foreach ([
+        'modules/content/theme/sample/assets/theme.css',
+        'modules/community/theme/sample/assets/theme.css',
+        'modules/quiz/theme/sample/assets/theme.css',
+        'modules/survey/theme/sample/assets/theme.css',
+    ] as $sampleThemeCss) {
+        sr_quiz_check_file_not_contains($sampleThemeCss, [
+            'content-quiz-link',
+        ]);
+    }
+    sr_quiz_check_file_not_contains('modules/quiz/helpers.php', [
+        'function sr_quiz_content_quizzes',
     ]);
     sr_quiz_check_file_contains('.tools/bin/smoke-quiz-e2e.php', [
         'SR_SMOKE_ALLOW_MUTATION=1',

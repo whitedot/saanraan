@@ -234,53 +234,10 @@
 .content-access-notice,
 .content-action-form,
 .content-series-nav,
-.content-quiz-links,
 .content-downloads {
     border-top: 1px solid var(--content-border, var(--sr-border, #d8dde6));
     margin: 36px 0 0;
     padding-top: 24px;
-}
-
-.content-quiz-link + .content-quiz-link {
-    margin-top: 20px;
-}
-
-.content-quiz-link h3 {
-    font-size: var(--type-card-title-size);
-    line-height: var(--type-card-title-line-height);
-    margin: 0 0 8px;
-}
-
-.content-quiz-link p {
-    color: var(--sr-muted, var(--text-muted, #3d3d3d));
-    margin: 0 0 14px;
-}
-
-.content-quiz-dialog {
-    border: 1px solid var(--content-border, var(--sr-border, #d8dde6));
-    border-radius: 8px;
-    height: min(86vh, 760px);
-    max-width: calc(100vw - 32px);
-    padding: 0;
-    width: min(920px, 92vw);
-}
-
-.content-quiz-dialog::backdrop {
-    background: rgb(0 0 0 / 42%);
-}
-
-.content-quiz-dialog-toolbar {
-    align-items: center;
-    border-bottom: 1px solid var(--content-border, var(--sr-border, #d8dde6));
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 12px;
-}
-
-.content-quiz-dialog iframe {
-    border: 0;
-    height: calc(100% - 53px);
-    width: 100%;
 }
 
 .content-asset-confirmation-modal {
@@ -1472,7 +1429,6 @@
 .content-header,
 .content-action-form,
 .content-access-notice,
-.content-quiz-links,
 .content-series-nav,
 .content-downloads,
 .content-comments,
@@ -1504,7 +1460,6 @@
 .content-meta,
 .content-group-item-meta,
 .content-access-notice,
-.content-quiz-link p,
 .content-comment-meta,
 .content-comment-secret,
 .content-home-kicker,
@@ -1530,7 +1485,6 @@
     color: var(--content-muted);
 }
 
-.content-quiz-link,
 .content-series-nav,
 .content-downloads,
 .content-comments {
@@ -1548,17 +1502,6 @@
     background: var(--content-surface);
 }
 
-.content-quiz-link {
-    display: grid;
-    gap: 12px;
-}
-
-.content-quiz-dialog {
-    border-color: var(--content-border);
-    border-radius: var(--content-radius);
-}
-
-.content-quiz-dialog-toolbar,
 .content-comments-panel-header {
     border-color: var(--content-border);
 }
