@@ -804,6 +804,7 @@ $stmt = $pdo->query('SELECT id, title FROM sr_board_posts ORDER BY ' . $sort . '
 - 너무 많은 대량 데이터 seed를 넣지 않는다.
 - 외래키는 공유호스팅 호환성을 고려해 선택적으로 사용한다.
 - 실패 후 재시도를 고려해 unique key와 `ON DUPLICATE KEY UPDATE`를 함께 설계한다.
+- 런타임 코드가 읽고 쓰는 필수 테이블과 컬럼은 최신 `install.sql`에 포함한다.
 
 예:
 
@@ -844,6 +845,8 @@ modules/board/updates/2026.05.002.sql
 - unique key 추가 전 중복 데이터를 정리한다.
 - 실패한 SQL을 같은 version으로 조용히 바꾸지 않는다.
 - 이미 배포된 update 파일을 수정해야 했다면 새 version 파일을 추가하는 것을 우선한다.
+- 런타임에서 옛 스키마를 정상 경로로 흡수하기 위한 `*_column_exists`, `optional_column_exists`, 기본값 alias 합성 fallback을 추가하지 않는다.
+- 실제 optional module boundary가 아닌 필수 테이블/컬럼 누락은 코드 분기가 아니라 install/update 보정과 업데이트 필요 상태로 처리한다.
 
 업데이트 작성 전 확인:
 
@@ -853,6 +856,8 @@ modules/board/updates/2026.05.002.sql
 - 관리자 업데이트 화면에 표시될 변경 단위가 이해 가능한가?
 
 업데이트 정책은 [모듈 배치와 업데이트 기준](module-update-policy.md)을 따른다.
+
+스키마 fallback 정책은 [core decision 20](core-decisions.md#20-런타임은-최신-스키마를-기준으로-실패한다)을 따른다. 다른 모듈이 설치되지 않았을 수 있는 cross-module reference counter처럼 진짜 선택 경계만 table-exists guard를 둘 수 있고, 모듈 자기 소유 current schema에는 런타임 호환 분기를 두지 않는다.
 
 ## 13. 모듈 설정
 
