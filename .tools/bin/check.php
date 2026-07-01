@@ -1371,6 +1371,32 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Public layout template uses legacy quiz layout script path: ' . $layoutFile);
         }
     }
+
+    foreach ([
+        'content' => 'Content',
+        'community' => 'Community',
+        'quiz' => 'Quiz',
+        'survey' => 'Survey',
+    ] as $moduleKey => $moduleName) {
+        foreach (['basic', 'sample'] as $themeKey) {
+            $layoutFile = 'modules/' . $moduleKey . '/theme/' . $themeKey . '/layout.php';
+            $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
+            if (!is_string($layoutSource)) {
+                sr_check_add_error('Module public layout template cannot be read: ' . $layoutFile);
+                continue;
+            }
+
+            $routeFlag = '$layoutUses' . $moduleName . 'Route';
+            if (
+                !str_contains($layoutSource, $routeFlag)
+                || !str_contains($layoutSource, "\$layoutCurrentRequestPath === '/" . $moduleKey . "'")
+                || !str_contains($layoutSource, "str_starts_with(\$layoutCurrentRequestPath, '/" . $moduleKey . "/')")
+                || !str_contains($layoutSource, $routeFlag . " ? '' : 'header'")
+            ) {
+                sr_check_add_error('Module public layout should suppress default header menu on its own route: ' . $layoutFile);
+            }
+        }
+    }
 }
 
 function sr_check_banner_public_layout_slots(): void
