@@ -1156,7 +1156,7 @@ return [
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
 | `coupon-targets.php` | `popup_layer` 모듈 | 팝업레이어 특정 대상 검색 모달과 쿠폰 CTA 후보 검증 | 팝업 노출 대상 번호 선택에 재사용할 대상 검색 후보와 공개 무료 쿠폰 발급 캠페인 연결 후보 |
-| `payment-ledger-targets.php` | `payment_ledger` 모듈 | 결제 기록 조회, 취소/되돌림 조정 후보 | 주문/콘텐츠/커뮤니티 같은 도메인 결제 대상의 subject module/type 설명. 도메인 주문/접근권/배송 정책은 제공 모듈이 소유하고, `payment_ledger`는 record/item 증빙만 저장 |
+| `payment-ledger-targets.php` | `payment_ledger` 모듈 | 결제 기록 저장 검증, 조회, 취소/되돌림 조정 후보 | 주문/콘텐츠/커뮤니티 같은 도메인 결제 대상의 subject module/type 설명. 도메인 주문/접근권/배송 정책은 제공 모듈이 소유하고, `payment_ledger`는 계약된 subject의 record/item 증빙만 저장 |
 | `url-embed-targets.php` | 공통 URL 임베드 helper | URL resolve와 렌더링 | 모듈별 URL allowlist, canonical URL, snapshot, renderer, 전용 embed stylesheet, fragment cache schema 계약 |
 | `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
 | `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |

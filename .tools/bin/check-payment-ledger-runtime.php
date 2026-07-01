@@ -33,6 +33,11 @@ function sr_payment_runtime_row(PDO $pdo, string $sql, array $params = []): arra
 
 function sr_payment_runtime_create_schema(PDO $pdo): void
 {
+    $pdo->exec("CREATE TABLE sr_modules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'enabled'
+    )");
     $pdo->exec("CREATE TABLE sr_payment_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         dedupe_key TEXT NOT NULL UNIQUE,
@@ -73,6 +78,7 @@ $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 sr_payment_runtime_create_schema($pdo);
+$pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('payment_ledger', 'enabled'), ('content', 'enabled'), ('community', 'enabled')");
 
 $paymentRecordId = sr_payment_ledger_record_payment($pdo, [
     'dedupe_key' => 'content.view:payment:7:7801',
@@ -134,16 +140,54 @@ $duplicatePaymentRecordId = sr_payment_ledger_record_payment($pdo, [
         'reference_id' => '55',
         'amount' => -40,
     ],
+    [
+        'item_kind' => 'asset_transaction',
+        'owner_module' => 'reward',
+        'reference_type' => 'reward_transaction',
+        'reference_id' => '777',
+        'amount' => -10,
+    ],
 ]);
 sr_payment_runtime_assert($duplicatePaymentRecordId === $paymentRecordId, 'payment ledger should resolve duplicate dedupe keys to the existing record.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'duplicate payment record should not create another row.');
-sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'duplicate payment items should not create another row.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'duplicate payment calls should not append new items to an immutable record.');
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:7801',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.download',
+        'subject_id' => '7801',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject mismatched duplicate record data.');
+} catch (RuntimeException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects mismatched duplicate record data.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:unknown-target',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.viwe',
+        'subject_id' => '7801',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject unknown subject contracts.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects unknown subject contracts.');
+}
 
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel');
 $cancelled = sr_payment_runtime_row($pdo, 'SELECT status, description, cancelled_at FROM sr_payment_records WHERE id = :id', ['id' => $paymentRecordId]);
 sr_payment_runtime_assert((string) ($cancelled['status'] ?? '') === 'cancelled', 'payment ledger should mark a payment record cancelled.');
 sr_payment_runtime_assert((string) ($cancelled['description'] ?? '') === 'fixture cancel', 'payment ledger cancellation should preserve the reason.');
 sr_payment_runtime_assert((string) ($cancelled['cancelled_at'] ?? '') !== '', 'payment ledger cancellation should store cancelled_at.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'pending'")->fetchColumn() === 3, 'payment ledger cancellation should mark reversible items pending.');
+
+$reversedItems = sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, 'reversed');
+sr_payment_runtime_assert($reversedItems === 3, 'payment ledger should update reversible item reversal statuses.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger should persist item reversal status changes.');
 
 $exporter = require $root . '/modules/payment_ledger/privacy-export.php';
 $export = $exporter($pdo, 7);

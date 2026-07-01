@@ -137,6 +137,8 @@
 - 새 설치에서는 `content`, `community`, `coupon` 중 하나를 선택하면 설치기가 `payment_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 이 모듈들을 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `payment_ledger`를 먼저 자동 설치/활성화한다.
 - `payment_ledger`는 주문, 상품, 접근권 정책, 배송, 환불 가능 여부 같은 도메인 정책을 소유하지 않는다. 공통 테이블은 결제 record와 item 증빙에만 사용한다.
 - 주문내역과 결제내역은 같은 테이블로 합치지 않는다. 커머스 주문은 커머스 모듈이 소유하고, 공통 결제내역은 주문 ID를 subject/reference로 참조한다.
+- 결제 record의 `dedupe_key`는 불변 증빙 단위다. 같은 key의 재호출은 기존 record id만 반환하고 item을 추가하지 않으며, account/subject 같은 핵심 값이 기존 record와 다르면 실패한다.
+- 결제 record의 subject module/type은 활성 모듈이 제공하는 `payment-ledger-targets.php` 계약에 있어야 한다. 오타나 아직 계약되지 않은 결제 대상은 공통 결제 기록에 저장하지 않는다.
 - 취소/환불 실행은 도메인 모듈이 자기 정책과 원장 되돌림을 수행하고, `payment_ledger`는 record/status와 item `reversal_status`를 통해 결과 증빙을 보존한다.
 - 개인정보 export/cleanup은 `payment_ledger`가 소유한다. 사본 제공에는 결제 record와 item snapshot이 포함되고, 탈퇴/익명화 시 결제 record의 account 연결을 제거한다.
 
