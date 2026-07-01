@@ -7,6 +7,8 @@ $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 chdir($root);
 
+require_once $root . '/core/helpers/runtime.php';
+
 if (!function_exists('sr_now')) {
     function sr_now(): string
     {
@@ -399,8 +401,10 @@ $differentLinkNotificationId = sr_notification_create($pdo, [
     'channels' => ['site'],
 ]);
 sr_notification_runtime_assert(sr_notification_mark_read($pdo, $sameLinkNotificationId, 7), 'notification runtime fixture must mark a same-link notification read.');
-sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkNotificationId]) === '2026-06-11 12:00:00', 'notification runtime fixture must mark the selected same-link notification read.');
-sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkSecondNotificationId]) === '2026-06-11 12:00:00', 'notification runtime fixture must mark unread account notifications with the same link read together.');
+$sameLinkReadAt = (string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkNotificationId]);
+$sameLinkSecondReadAt = (string) sr_notification_runtime_scalar($pdo, 'SELECT read_at FROM sr_notifications WHERE id = :id', ['id' => $sameLinkSecondNotificationId]);
+sr_notification_runtime_assert($sameLinkReadAt !== '', 'notification runtime fixture must mark the selected same-link notification read.');
+sr_notification_runtime_assert($sameLinkSecondReadAt === $sameLinkReadAt, 'notification runtime fixture must mark unread account notifications with the same link read together.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_reads WHERE notification_id = :id AND account_id = 7', ['id' => $sameLinkAllNotificationId]) === 1, 'notification runtime fixture must mark unread all-audience notifications with the same link read for the reader.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT COALESCE(read_at, \'\') FROM sr_notifications WHERE id = :id', ['id' => $differentLinkNotificationId]) === '', 'notification runtime fixture must leave notifications with different links unread.');
 
@@ -494,6 +498,19 @@ sr_notification_runtime_assert(sr_notification_telegram_chat_id_is_allowed('-100
 sr_notification_runtime_assert(!sr_notification_telegram_chat_id_is_allowed('-'), 'notification runtime fixture must reject malformed Telegram chat IDs.');
 sr_notification_runtime_assert(sr_notification_secret_display('https://hooks.slack.com/services/T000/B000/fixture') === '********', 'notification runtime fixture must mask stored webhook URLs.');
 sr_notification_runtime_assert(sr_notification_secret_crypto_available(), 'notification runtime fixture must allow member push endpoint encryption when app_key is configured.');
+$notificationSecretPurpose = 'notification-push-endpoint|telegram_bot';
+$notificationCiphertext = sr_notification_secret_encrypt('123456789', $notificationSecretPurpose);
+sr_notification_runtime_assert(str_starts_with($notificationCiphertext, 'sr2:sodium:') || str_starts_with($notificationCiphertext, 'sr2:openssl:'), 'notification runtime fixture must use the app-key-bound sr2 secret envelope.');
+sr_notification_runtime_assert(sr_notification_secret_decrypt($notificationCiphertext, $notificationSecretPurpose) === '123456789', 'notification runtime fixture must decrypt sr2 secrets with the configured app_key.');
+$notificationFingerprint = sr_notification_secret_fingerprint('123456789', $notificationSecretPurpose);
+sr_set_runtime_config(['app_key' => str_repeat('m', 32)]);
+sr_notification_runtime_assert(sr_notification_secret_decrypt($notificationCiphertext, $notificationSecretPurpose) === null, 'notification runtime fixture must not decrypt secrets after app_key changes.');
+sr_notification_runtime_assert(sr_notification_secret_fingerprint('123456789', $notificationSecretPurpose) !== $notificationFingerprint, 'notification runtime fixture must bind secret fingerprints to app_key.');
+sr_set_runtime_config([]);
+sr_notification_runtime_assert(!sr_notification_secret_crypto_available(), 'notification runtime fixture must fail secret crypto availability without app_key.');
+sr_notification_runtime_assert(sr_notification_secret_encrypt('123456789', $notificationSecretPurpose) === '', 'notification runtime fixture must fail secret encryption without app_key.');
+sr_notification_runtime_assert(sr_notification_secret_fingerprint('123456789', $notificationSecretPurpose) === '', 'notification runtime fixture must not create fallback fingerprints without app_key.');
+sr_set_runtime_config(['app_key' => str_repeat('n', 32)]);
 
 $memberTelegramEndpointId = sr_notification_save_member_push_endpoint($pdo, [
     'account_id' => 7,

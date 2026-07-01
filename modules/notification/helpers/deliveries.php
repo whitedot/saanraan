@@ -258,82 +258,60 @@ function sr_notification_telegram_chat_id_is_allowed(string $chatId): bool
 
 function sr_notification_secret_key(string $purpose): string
 {
-    $config = function_exists('sr_runtime_config') ? sr_runtime_config() : [];
-    $appKey = function_exists('sr_app_key') ? sr_app_key($config) : (string) ($config['app_key'] ?? '');
-    if ($appKey === '') {
+    if (!function_exists('sr_secret_at_rest_key')) {
         return '';
     }
 
-    return hash('sha256', 'notification-secret|' . $purpose, true);
+    try {
+        return sr_secret_at_rest_key('notification|' . $purpose);
+    } catch (Throwable) {
+        return '';
+    }
 }
 
 function sr_notification_secret_crypto_available(): bool
 {
-    return sr_notification_secret_key('probe') !== ''
-        && (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt') || function_exists('openssl_encrypt'));
+    return function_exists('sr_secret_at_rest_crypto_available') && sr_secret_at_rest_crypto_available();
 }
 
 function sr_notification_secret_encrypt(string $plaintext, string $purpose): string
 {
     $plaintext = (string) $plaintext;
-    $key = sr_notification_secret_key($purpose);
-    if ($plaintext === '' || $key === '') {
+    if ($plaintext === '' || !function_exists('sr_secret_at_rest_encrypt')) {
         return '';
     }
 
-    if (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt')) {
-        $nonce = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-        $ciphertext = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($plaintext, $purpose, $nonce, $key);
-        return 'sr1:sodium:' . base64_encode($nonce . $ciphertext);
+    try {
+        return sr_secret_at_rest_encrypt($plaintext, 'notification|' . $purpose);
+    } catch (Throwable) {
+        return '';
     }
-
-    if (function_exists('openssl_encrypt')) {
-        $iv = random_bytes(12);
-        $tag = '';
-        $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $purpose, 16);
-        return is_string($ciphertext) && $tag !== '' ? 'sr1:openssl:' . base64_encode($iv . $tag . $ciphertext) : '';
-    }
-
-    return '';
 }
 
 function sr_notification_secret_decrypt(string $ciphertext, string $purpose): ?string
 {
-    $key = sr_notification_secret_key($purpose);
-    if ($ciphertext === '' || $key === '') {
+    if ($ciphertext === '' || !function_exists('sr_secret_at_rest_decrypt')) {
         return null;
     }
 
-    if (str_starts_with($ciphertext, 'sr1:sodium:') && function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_decrypt')) {
-        $raw = base64_decode(substr($ciphertext, strlen('sr1:sodium:')), true);
-        if (!is_string($raw) || strlen($raw) <= SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES) {
-            return null;
-        }
-        $nonce = substr($raw, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-        $encrypted = substr($raw, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-        $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($encrypted, $purpose, $nonce, $key);
-        return is_string($plain) ? $plain : null;
+    try {
+        return sr_secret_at_rest_decrypt($ciphertext, 'notification|' . $purpose);
+    } catch (Throwable) {
+        return null;
     }
-
-    if (str_starts_with($ciphertext, 'sr1:openssl:') && function_exists('openssl_decrypt')) {
-        $raw = base64_decode(substr($ciphertext, strlen('sr1:openssl:')), true);
-        if (!is_string($raw) || strlen($raw) <= 28) {
-            return null;
-        }
-        $iv = substr($raw, 0, 12);
-        $tag = substr($raw, 12, 16);
-        $encrypted = substr($raw, 28);
-        $plain = openssl_decrypt($encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $purpose);
-        return is_string($plain) ? $plain : null;
-    }
-
-    return null;
 }
 
 function sr_notification_secret_fingerprint(string $plaintext, string $purpose): string
 {
-    $key = sr_notification_secret_key('fingerprint|' . $purpose);
-    return hash_hmac('sha256', $plaintext, $key !== '' ? $key : 'notification-fingerprint-fallback');
+    if ($plaintext === '' || !function_exists('sr_secret_at_rest_fingerprint')) {
+        return '';
+    }
+
+    try {
+        return sr_secret_at_rest_fingerprint($plaintext, 'notification|' . $purpose);
+    } catch (Throwable) {
+        return '';
+    }
 }
 
 function sr_notification_delivery_endpoint_id(string $recipient): int
@@ -398,6 +376,10 @@ function sr_notification_save_member_push_endpoint(PDO $pdo, array $data): int
     }
 
     $fingerprint = sr_notification_secret_fingerprint($endpoint, $purpose);
+    if ($fingerprint === '') {
+        throw new RuntimeException('Member push endpoint fingerprint failed.');
+    }
+
     $label = sr_notification_clean_single_line((string) ($data['recipient_label'] ?? ''), 120);
     $masked = sr_notification_push_endpoint_mask($providerKey, $endpoint);
     $now = sr_now();

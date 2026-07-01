@@ -1724,6 +1724,7 @@ return function (PDO $pdo, ?array $site): array {
 - redirect 대상은 내부 상대 경로로 제한했는가?
 - 상태 변경 `POST`가 flash 결과와 redirect로 끝나 새로고침 재실행을 막는가?
 - 토큰 원문을 DB나 로그에 저장하지 않는가?
+- 런타임 복호화가 필요한 비밀값은 `sr_secret_at_rest_*()` helper의 app key 기반 envelope와 fingerprint를 사용하는가?
 - 개인정보 사본 제공에 hash/token/password가 빠져 있는가?
 - 감사 로그에 민감 원문을 넣지 않았는가?
 - 파일 경로 입력이 있으면 모듈 디렉터리 밖으로 나갈 수 없는가?

@@ -280,6 +280,56 @@ sr_runtime_helper_assert(
     (int) $ratePdo->query('SELECT COUNT(*) FROM sr_rate_limits')->fetchColumn() === 1,
     'Invalid rate limit input should not create rows.'
 );
+$secretConfigA = ['app_key' => 'runtime-secret-helper-key-a'];
+$secretConfigB = ['app_key' => 'runtime-secret-helper-key-b'];
+sr_set_runtime_config($secretConfigA);
+sr_runtime_helper_assert(
+    sr_secret_at_rest_crypto_available(),
+    'Secret-at-rest crypto should be available when app_key is configured.'
+);
+$secretCiphertext = sr_secret_at_rest_encrypt('totp-secret-fixture', 'member.mfa.totp');
+sr_runtime_helper_assert(
+    str_starts_with($secretCiphertext, 'sr2:sodium:') || str_starts_with($secretCiphertext, 'sr2:openssl:'),
+    'Secret-at-rest ciphertext should use the app-key-bound sr2 envelope.'
+);
+sr_runtime_helper_assert(
+    sr_secret_at_rest_decrypt($secretCiphertext, 'member.mfa.totp') === 'totp-secret-fixture',
+    'Secret-at-rest ciphertext should decrypt with the original app key and purpose.'
+);
+sr_runtime_helper_assert(
+    sr_secret_at_rest_decrypt($secretCiphertext, 'member.mfa.totp', $secretConfigB) === null,
+    'Secret-at-rest ciphertext should not decrypt after app_key changes.'
+);
+sr_runtime_helper_assert(
+    sr_secret_at_rest_decrypt($secretCiphertext, 'member.mfa.recovery') === null,
+    'Secret-at-rest ciphertext should not decrypt with a different purpose.'
+);
+$secretFingerprintA = sr_secret_at_rest_fingerprint('totp-secret-fixture', 'member.mfa.totp', $secretConfigA);
+$secretFingerprintB = sr_secret_at_rest_fingerprint('totp-secret-fixture', 'member.mfa.totp', $secretConfigB);
+sr_runtime_helper_assert(
+    $secretFingerprintA !== '' && $secretFingerprintA !== $secretFingerprintB,
+    'Secret-at-rest fingerprints should be app-key-bound and non-empty.'
+);
+$secretMissingAppKeyFailed = false;
+try {
+    sr_secret_at_rest_encrypt('totp-secret-fixture', 'member.mfa.totp', ['app_key' => '']);
+} catch (RuntimeException $exception) {
+    $secretMissingAppKeyFailed = $exception->getMessage() === 'app_key is required.';
+}
+sr_runtime_helper_assert(
+    $secretMissingAppKeyFailed,
+    'Secret-at-rest encryption should fail closed without app_key.'
+);
+$secretFingerprintMissingAppKeyFailed = false;
+try {
+    sr_secret_at_rest_fingerprint('totp-secret-fixture', 'member.mfa.totp', ['app_key' => '']);
+} catch (RuntimeException $exception) {
+    $secretFingerprintMissingAppKeyFailed = $exception->getMessage() === 'app_key is required.';
+}
+sr_runtime_helper_assert(
+    $secretFingerprintMissingAppKeyFailed,
+    'Secret-at-rest fingerprint should fail closed without app_key.'
+);
 sr_set_runtime_config([]);
 sr_runtime_helper_assert(
     !sr_is_http_url('https://user@example.com/path'),

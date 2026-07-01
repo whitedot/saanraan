@@ -1410,6 +1410,103 @@ function sr_hmac_hash(string $value, array $config): string
     return hash_hmac('sha256', $value, $appKey);
 }
 
+function sr_secret_at_rest_crypto_available(?array $config = null): bool
+{
+    $config = is_array($config) ? $config : sr_runtime_config();
+    return sr_app_key($config) !== ''
+        && (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt') || function_exists('openssl_encrypt'));
+}
+
+function sr_secret_at_rest_key(string $purpose, ?array $config = null): string
+{
+    $config = is_array($config) ? $config : sr_runtime_config();
+    $appKey = sr_app_key($config);
+    if ($appKey === '') {
+        throw new RuntimeException('app_key is required.');
+    }
+
+    return hash_hmac('sha256', 'saanraan-secret-at-rest|' . $purpose, $appKey, true);
+}
+
+function sr_secret_at_rest_aad(string $purpose): string
+{
+    return 'saanraan:secret-at-rest:' . $purpose;
+}
+
+function sr_secret_at_rest_encrypt(string $plaintext, string $purpose, ?array $config = null): string
+{
+    if ($plaintext === '') {
+        return '';
+    }
+
+    $key = sr_secret_at_rest_key($purpose, $config);
+    $aad = sr_secret_at_rest_aad($purpose);
+
+    if (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt')) {
+        $nonce = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $ciphertext = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($plaintext, $aad, $nonce, $key);
+        return 'sr2:sodium:' . base64_encode($nonce . $ciphertext);
+    }
+
+    if (function_exists('openssl_encrypt')) {
+        $iv = random_bytes(12);
+        $tag = '';
+        $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $aad, 16);
+        if (is_string($ciphertext) && $tag !== '') {
+            return 'sr2:openssl:' . base64_encode($iv . $tag . $ciphertext);
+        }
+    }
+
+    throw new RuntimeException('Secret encryption is unavailable.');
+}
+
+function sr_secret_at_rest_decrypt(string $ciphertext, string $purpose, ?array $config = null): ?string
+{
+    if ($ciphertext === '') {
+        return null;
+    }
+
+    $key = sr_secret_at_rest_key($purpose, $config);
+    $aad = sr_secret_at_rest_aad($purpose);
+
+    if (str_starts_with($ciphertext, 'sr2:sodium:') && function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_decrypt')) {
+        $raw = base64_decode(substr($ciphertext, strlen('sr2:sodium:')), true);
+        if (!is_string($raw) || strlen($raw) <= SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES) {
+            return null;
+        }
+
+        $nonce = substr($raw, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $encrypted = substr($raw, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($encrypted, $aad, $nonce, $key);
+        return is_string($plain) ? $plain : null;
+    }
+
+    if (str_starts_with($ciphertext, 'sr2:openssl:') && function_exists('openssl_decrypt')) {
+        $raw = base64_decode(substr($ciphertext, strlen('sr2:openssl:')), true);
+        if (!is_string($raw) || strlen($raw) <= 28) {
+            return null;
+        }
+
+        $iv = substr($raw, 0, 12);
+        $tag = substr($raw, 12, 16);
+        $encrypted = substr($raw, 28);
+        $plain = openssl_decrypt($encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $aad);
+        return is_string($plain) ? $plain : null;
+    }
+
+    return null;
+}
+
+function sr_secret_at_rest_fingerprint(string $plaintext, string $purpose, ?array $config = null): string
+{
+    if ($plaintext === '') {
+        return '';
+    }
+
+    $key = sr_secret_at_rest_key('fingerprint|' . $purpose, $config);
+    return hash_hmac('sha256', $plaintext, $key);
+}
+
 function sr_app_key(array $config): string
 {
     $secrets = isset($config['secrets']) && is_array($config['secrets']) ? $config['secrets'] : [];
