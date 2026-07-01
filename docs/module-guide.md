@@ -362,7 +362,7 @@ return [
 - `saanraan.module_contract`: 모듈이 지원하는 산란 모듈 계약 버전. 현재 코어의 계약 버전은 `SR_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
-- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `sr_foundation_module_keys()`와 `sr_module_foundation_dependencies()`를 기준으로 선택 모듈에 필요한 기반 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이 있는 동안 비활성화가 차단된다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
+- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `sr_foundation_module_keys()`와 `sr_module_foundation_dependencies()`를 기준으로 선택 모듈에 필요한 기반 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community`, `coupon` 설치/활성화 시 자동 준비되며 주문/콘텐츠/커뮤니티 같은 도메인 기록과 공통 결제 기록을 분리하기 위한 기반이다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
 - `contracts.consumes`: 이 모듈이 읽는 계약 파일
 - `admin`: 관리자 메뉴 분류, 아이콘, 관리자 전용 stylesheet 같은 선택 메타데이터
@@ -1156,6 +1156,7 @@ return [
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
 | `coupon-targets.php` | `popup_layer` 모듈 | 팝업레이어 특정 대상 검색 모달과 쿠폰 CTA 후보 검증 | 팝업 노출 대상 번호 선택에 재사용할 대상 검색 후보와 공개 무료 쿠폰 발급 캠페인 연결 후보 |
+| `payment-ledger-targets.php` | `payment_ledger` 모듈 | 결제 기록 조회, 취소/되돌림 조정 후보 | 주문/콘텐츠/커뮤니티 같은 도메인 결제 대상의 subject module/type 설명. 도메인 주문/접근권/배송 정책은 제공 모듈이 소유하고, `payment_ledger`는 record/item 증빙만 저장 |
 | `url-embed-targets.php` | 공통 URL 임베드 helper | URL resolve와 렌더링 | 모듈별 URL allowlist, canonical URL, snapshot, renderer, 전용 embed stylesheet, fragment cache schema 계약 |
 | `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
 | `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |

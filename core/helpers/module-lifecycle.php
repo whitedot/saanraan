@@ -291,7 +291,7 @@ function sr_file_only_module_version_drifts(array $moduleVersionDrifts): array
 
 function sr_foundation_module_keys(): array
 {
-    return ['asset_ledger'];
+    return ['asset_ledger', 'payment_ledger'];
 }
 
 function sr_asset_module_keys(): array
@@ -301,7 +301,15 @@ function sr_asset_module_keys(): array
 
 function sr_module_foundation_dependencies(string $moduleKey): array
 {
-    return in_array($moduleKey, sr_asset_module_keys(), true) ? ['asset_ledger'] : [];
+    if (in_array($moduleKey, sr_asset_module_keys(), true)) {
+        return ['asset_ledger'];
+    }
+
+    if (in_array($moduleKey, ['content', 'community', 'coupon'], true)) {
+        return ['payment_ledger'];
+    }
+
+    return [];
 }
 
 function sr_module_is_foundation(string $moduleKey): bool

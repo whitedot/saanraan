@@ -338,6 +338,7 @@ $requiredPackageEntries = [
     'theme',
     'views',
     'coupon-targets.php',
+    'payment-ledger-targets.php',
     'member-group-references.php',
 ];
 $allowedPackageEntries = array_merge($requiredPackageEntries, [

@@ -509,6 +509,67 @@ function sr_content_asset_access_result(PDO $pdo, bool $allowed, bool $charged, 
     ], $extra);
 }
 
+function sr_content_record_payment_ledger_if_available(PDO $pdo, array $record, array $items): int
+{
+    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
+        return 0;
+    }
+    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
+        return 0;
+    }
+
+    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
+    if (!function_exists('sr_payment_ledger_record_payment') || !sr_payment_ledger_tables_available($pdo)) {
+        return 0;
+    }
+
+    return sr_payment_ledger_record_payment($pdo, $record, $items);
+}
+
+function sr_content_payment_coupon_item(array $couponResult, string $settlementCurrency): array
+{
+    $redemptionId = (int) ($couponResult['coupon_redemption_id'] ?? 0);
+    if ($redemptionId <= 0 || empty($couponResult['processed'])) {
+        return [];
+    }
+
+    return [
+        'item_kind' => 'coupon_redemption',
+        'owner_module' => 'coupon',
+        'reference_type' => 'coupon_redemption',
+        'reference_id' => (string) $redemptionId,
+        'amount' => -max(0, (int) ($couponResult['discount_amount'] ?? 0)),
+        'currency_code' => $settlementCurrency,
+        'reversible' => true,
+        'snapshot' => [
+            'coupon_issue_id' => (int) ($couponResult['coupon_issue_id'] ?? 0),
+            'coupon_definition_id' => (int) ($couponResult['coupon_definition_id'] ?? 0),
+            'coupon_type' => (string) ($couponResult['coupon_type'] ?? ''),
+            'dedupe_key' => (string) ($couponResult['dedupe_key'] ?? ''),
+        ],
+    ];
+}
+
+function sr_content_payment_access_item(int $accountId, string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceReference = ''): array
+{
+    return [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access_entitlement',
+        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $accessKind . ':account:' . (string) $accountId,
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+        'snapshot' => [
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'access_kind' => $accessKind,
+            'source_kind' => $sourceKind,
+            'source_reference' => $sourceReference,
+        ],
+    ];
+}
+
 function sr_content_available_coupon_issues(PDO $pdo, int $accountId, string $targetType, int $targetId, int $limit = 20): array
 {
     if ($accountId <= 0 || $targetId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
@@ -568,6 +629,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($page['asset_access_settlement_currency'] ?? '')]);
+    $paymentPayableAmount = $amount;
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('view', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
@@ -657,6 +719,28 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
                 } else {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+                }
+                if (!empty($couponResult['processed'])) {
+                    $paymentItems = array_values(array_filter([
+                        sr_content_payment_coupon_item($couponResult, $settlementCurrency),
+                        sr_content_payment_access_item($accountId, 'content', $pageId, 'view', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
+                    ]));
+                    sr_content_record_payment_ledger_if_available($pdo, [
+                        'dedupe_key' => 'content.view:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
+                        'account_id' => $accountId,
+                        'subject_module' => 'content',
+                        'subject_type' => 'content.view',
+                        'subject_id' => (string) $pageId,
+                        'payment_kind' => 'purchase',
+                        'payable_amount' => $paymentPayableAmount,
+                        'settlement_amount' => 0,
+                        'settlement_currency' => $settlementCurrency,
+                        'description' => '콘텐츠 열람 쿠폰 결제',
+                        'snapshot' => [
+                            'charge_policy' => $chargePolicy,
+                            'coupon_covered_amount' => $paymentPayableAmount,
+                        ],
+                    ], $paymentItems);
                 }
                 if ($startedTransaction) {
                     $pdo->commit();
@@ -772,13 +856,19 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             $pendingAccessCharges[] = [
                 'asset_module' => $assetModule,
                 'amount' => $allocatedAmount,
+                'settlement_amount' => $allocatedSettlementAmount,
+                'settlement_currency' => $allocationSettlementCurrency,
                 'dedupe_key' => $dedupeKey,
             ];
         }
 
+        $paymentItems = [];
+        $paymentDedupeParts = [];
         foreach ($pendingAccessCharges as $pendingAccessCharge) {
             $assetModule = (string) $pendingAccessCharge['asset_module'];
             $allocatedAmount = (int) $pendingAccessCharge['amount'];
+            $allocatedSettlementAmount = (int) ($pendingAccessCharge['settlement_amount'] ?? 0);
+            $allocationSettlementCurrency = (string) ($pendingAccessCharge['settlement_currency'] ?? $settlementCurrency);
             $dedupeKey = (string) $pendingAccessCharge['dedupe_key'];
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $transactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
@@ -792,6 +882,37 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             ]);
             sr_content_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+            $accessLog = sr_content_asset_access_log($pdo, $dedupeKey);
+            $paymentDedupeParts[] = $dedupeKey;
+            $paymentItems[] = [
+                'item_kind' => 'asset_transaction',
+                'owner_module' => $assetModule,
+                'reference_type' => $assetModule . '_transaction',
+                'reference_id' => (string) $transactionId,
+                'amount' => -$allocatedAmount,
+                'currency_code' => $allocationSettlementCurrency,
+                'reversible' => true,
+                'snapshot' => [
+                    'settlement_amount' => $allocatedSettlementAmount,
+                    'asset_access_dedupe_key' => $dedupeKey,
+                ],
+            ];
+            if (is_array($accessLog) && (int) ($accessLog['id'] ?? 0) > 0) {
+                $paymentItems[] = [
+                    'item_kind' => 'asset_access_log',
+                    'owner_module' => 'content',
+                    'reference_type' => 'content_asset_access_log',
+                    'reference_id' => (string) ((int) ($accessLog['id'] ?? 0)),
+                    'amount' => $allocatedSettlementAmount,
+                    'currency_code' => $allocationSettlementCurrency,
+                    'reversible' => true,
+                    'snapshot' => [
+                        'asset_module' => $assetModule,
+                        'transaction_id' => $transactionId,
+                        'dedupe_key' => $dedupeKey,
+                    ],
+                ];
+            }
         }
 
         if ($pendingAccessCharges === []) {
@@ -800,6 +921,31 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             }
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint]);
         }
+
+        $couponPaymentItem = sr_content_payment_coupon_item($mixedCouponResult, $settlementCurrency);
+        if ($couponPaymentItem !== []) {
+            array_unshift($paymentItems, $couponPaymentItem);
+            $paymentDedupeParts[] = 'coupon:' . (string) ($mixedCouponResult['coupon_redemption_id'] ?? '');
+        }
+        $paymentItems[] = sr_content_payment_access_item($accountId, 'content', $pageId, 'view', 'asset', implode(',', $paymentDedupeParts));
+        sr_content_record_payment_ledger_if_available($pdo, [
+            'dedupe_key' => 'content.view:payment:' . sha1(implode('|', $paymentDedupeParts)),
+            'account_id' => $accountId,
+            'subject_module' => 'content',
+            'subject_type' => 'content.view',
+            'subject_id' => (string) $pageId,
+            'payment_kind' => 'purchase',
+            'payable_amount' => $paymentPayableAmount,
+            'settlement_amount' => $amount,
+            'settlement_currency' => $settlementCurrency,
+            'description' => '콘텐츠 열람 결제',
+            'snapshot' => [
+                'charge_policy' => $chargePolicy,
+                'coupon_discount_amount' => (int) ($mixedCouponResult['discount_amount'] ?? 0),
+                'remaining_amount' => $amount,
+                'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
+            ],
+        ], $paymentItems);
 
         if ($startedTransaction || $mixedCouponTransactionOpen) {
             $pdo->commit();
@@ -935,6 +1081,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($file['asset_download_settlement_currency'] ?? '')]);
+    $paymentPayableAmount = $amount;
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('download', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson, $settlementCurrency);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
@@ -1029,6 +1176,29 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
                 } else {
                 if (empty($couponResult['already_entitled'])) {
                     sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+                }
+                if (!empty($couponResult['processed'])) {
+                    $paymentItems = array_values(array_filter([
+                        sr_content_payment_coupon_item($couponResult, $settlementCurrency),
+                        sr_content_payment_access_item($accountId, 'content_file', $fileId, 'download', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
+                    ]));
+                    sr_content_record_payment_ledger_if_available($pdo, [
+                        'dedupe_key' => 'content.download:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
+                        'account_id' => $accountId,
+                        'subject_module' => 'content',
+                        'subject_type' => 'content.download',
+                        'subject_id' => (string) $fileId,
+                        'payment_kind' => 'purchase',
+                        'payable_amount' => $paymentPayableAmount,
+                        'settlement_amount' => 0,
+                        'settlement_currency' => $settlementCurrency,
+                        'description' => '콘텐츠 다운로드 쿠폰 결제',
+                        'snapshot' => [
+                            'charge_policy' => $chargePolicy,
+                            'content_id' => $pageId,
+                            'coupon_covered_amount' => $paymentPayableAmount,
+                        ],
+                    ], $paymentItems);
                 }
                 if ($startedTransaction) {
                     $pdo->commit();
@@ -1147,13 +1317,19 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             $pendingDownloadCharges[] = [
                 'asset_module' => $assetModule,
                 'amount' => $allocatedAmount,
+                'settlement_amount' => $allocatedSettlementAmount,
+                'settlement_currency' => $allocationSettlementCurrency,
                 'dedupe_key' => $dedupeKey,
             ];
         }
 
+        $paymentItems = [];
+        $paymentDedupeParts = [];
         foreach ($pendingDownloadCharges as $pendingDownloadCharge) {
             $assetModule = (string) $pendingDownloadCharge['asset_module'];
             $allocatedAmount = (int) $pendingDownloadCharge['amount'];
+            $allocatedSettlementAmount = (int) ($pendingDownloadCharge['settlement_amount'] ?? 0);
+            $allocationSettlementCurrency = (string) ($pendingDownloadCharge['settlement_currency'] ?? $settlementCurrency);
             $dedupeKey = (string) $pendingDownloadCharge['dedupe_key'];
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
             $transactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
@@ -1171,6 +1347,36 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             if (is_array($accessLog)) {
                 $accessLogIds[] = (int) ($accessLog['id'] ?? 0);
             }
+            $paymentDedupeParts[] = $dedupeKey;
+            $paymentItems[] = [
+                'item_kind' => 'asset_transaction',
+                'owner_module' => $assetModule,
+                'reference_type' => $assetModule . '_transaction',
+                'reference_id' => (string) $transactionId,
+                'amount' => -$allocatedAmount,
+                'currency_code' => $allocationSettlementCurrency,
+                'reversible' => true,
+                'snapshot' => [
+                    'settlement_amount' => $allocatedSettlementAmount,
+                    'asset_access_dedupe_key' => $dedupeKey,
+                ],
+            ];
+            if (is_array($accessLog) && (int) ($accessLog['id'] ?? 0) > 0) {
+                $paymentItems[] = [
+                    'item_kind' => 'asset_access_log',
+                    'owner_module' => 'content',
+                    'reference_type' => 'content_asset_access_log',
+                    'reference_id' => (string) ((int) ($accessLog['id'] ?? 0)),
+                    'amount' => $allocatedSettlementAmount,
+                    'currency_code' => $allocationSettlementCurrency,
+                    'reversible' => true,
+                    'snapshot' => [
+                        'asset_module' => $assetModule,
+                        'transaction_id' => $transactionId,
+                        'dedupe_key' => $dedupeKey,
+                    ],
+                ];
+            }
         }
 
         if ($pendingDownloadCharges === []) {
@@ -1179,6 +1385,32 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             }
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_processed' => true, 'confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
         }
+
+        $couponPaymentItem = sr_content_payment_coupon_item($mixedCouponResult, $settlementCurrency);
+        if ($couponPaymentItem !== []) {
+            array_unshift($paymentItems, $couponPaymentItem);
+            $paymentDedupeParts[] = 'coupon:' . (string) ($mixedCouponResult['coupon_redemption_id'] ?? '');
+        }
+        $paymentItems[] = sr_content_payment_access_item($accountId, 'content_file', $fileId, 'download', 'asset', implode(',', $paymentDedupeParts));
+        sr_content_record_payment_ledger_if_available($pdo, [
+            'dedupe_key' => 'content.download:payment:' . sha1(implode('|', $paymentDedupeParts)),
+            'account_id' => $accountId,
+            'subject_module' => 'content',
+            'subject_type' => 'content.download',
+            'subject_id' => (string) $fileId,
+            'payment_kind' => 'purchase',
+            'payable_amount' => $paymentPayableAmount,
+            'settlement_amount' => $amount,
+            'settlement_currency' => $settlementCurrency,
+            'description' => '콘텐츠 다운로드 결제',
+            'snapshot' => [
+                'charge_policy' => $chargePolicy,
+                'content_id' => $pageId,
+                'coupon_discount_amount' => (int) ($mixedCouponResult['discount_amount'] ?? 0),
+                'remaining_amount' => $amount,
+                'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
+            ],
+        ], $paymentItems);
 
         if ($startedTransaction || $mixedCouponTransactionOpen) {
             $pdo->commit();

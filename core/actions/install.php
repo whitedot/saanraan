@@ -47,6 +47,12 @@ $foundationModuleDefaults = [
         'label' => '잔액 처리 기반',
         'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
     ],
+    'payment_ledger' => [
+        'name' => '결제 기록 기반',
+        'version' => '2026.07.001',
+        'label' => '결제 기록 기반',
+        'description' => '쿠폰, 회원 자산, 외부 결제, 접근권 부여를 하나의 결제 묶음으로 기록하는 기반을 제공합니다.',
+    ],
 ];
 $foundationModules = [];
 foreach (sr_foundation_module_keys() as $foundationModuleKey) {

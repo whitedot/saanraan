@@ -158,7 +158,11 @@ if (is_array($board)) {
                                     true,
                                     $assetConfirmedPost,
                                     $assetExchangeConfirmed,
-                                    $remainingAmount
+                                    $remainingAmount,
+                                    [
+                                        'coupon_result' => $couponReadResult,
+                                        'payable_amount' => $remainingAmount + max(0, (int) ($couponReadResult['discount_amount'] ?? 0)),
+                                    ]
                                 );
                                 $paidReadResult['coupon_used'] = !empty($couponReadResult['processed']);
                                 $paidReadResult['coupon_discount_amount'] = (int) ($couponReadResult['discount_amount'] ?? 0);
@@ -275,7 +279,11 @@ if ($disposition === 'attachment' && is_array($board)) {
                             true,
                             $assetConfirmedPost,
                             $assetExchangeConfirmed,
-                            $remainingAmount
+                            $remainingAmount,
+                            [
+                                'coupon_result' => $downloadCouponResult,
+                                'payable_amount' => $remainingAmount + max(0, (int) ($downloadCouponResult['discount_amount'] ?? 0)),
+                            ]
                         );
                         $downloadResult['coupon_used'] = !empty($downloadCouponResult['processed']);
                         $downloadResult['coupon_discount_amount'] = (int) ($downloadCouponResult['discount_amount'] ?? 0);

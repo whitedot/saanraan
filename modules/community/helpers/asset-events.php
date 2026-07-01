@@ -256,6 +256,91 @@ function sr_community_revoke_coupon_access_entitlements(PDO $pdo, int $accountId
     return $stmt->rowCount();
 }
 
+function sr_community_record_payment_ledger_if_available(PDO $pdo, array $record, array $items): int
+{
+    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
+        return 0;
+    }
+    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
+        return 0;
+    }
+
+    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
+    if (!function_exists('sr_payment_ledger_record_payment') || !sr_payment_ledger_tables_available($pdo)) {
+        return 0;
+    }
+
+    return sr_payment_ledger_record_payment($pdo, $record, $items);
+}
+
+function sr_community_payment_subject_type(string $eventKey, string $subjectType): string
+{
+    if ($eventKey === 'post_read' && $subjectType === 'community.post') {
+        return 'community.post.read';
+    }
+    if ($eventKey === 'attachment_download' && $subjectType === 'community.attachment') {
+        return 'community.attachment.download';
+    }
+
+    return 'community.' . $eventKey;
+}
+
+function sr_community_payment_description(string $eventKey): string
+{
+    return match ($eventKey) {
+        'post_read' => '커뮤니티 게시글 열람 결제',
+        'attachment_download' => '커뮤니티 첨부 다운로드 결제',
+        'post_write_charge' => '커뮤니티 글쓰기 결제',
+        'comment_write_charge' => '커뮤니티 댓글 작성 결제',
+        'message_send_charge' => '커뮤니티 쪽지 발송 결제',
+        default => '커뮤니티 자산 결제',
+    };
+}
+
+function sr_community_payment_coupon_item(array $couponResult, string $settlementCurrency): array
+{
+    $redemptionId = (int) ($couponResult['coupon_redemption_id'] ?? 0);
+    if ($redemptionId <= 0 || empty($couponResult['processed'])) {
+        return [];
+    }
+
+    return [
+        'item_kind' => 'coupon_redemption',
+        'owner_module' => 'coupon',
+        'reference_type' => 'coupon_redemption',
+        'reference_id' => (string) $redemptionId,
+        'amount' => -max(0, (int) ($couponResult['discount_amount'] ?? 0)),
+        'currency_code' => $settlementCurrency,
+        'reversible' => true,
+        'snapshot' => [
+            'coupon_issue_id' => (int) ($couponResult['coupon_issue_id'] ?? 0),
+            'coupon_definition_id' => (int) ($couponResult['coupon_definition_id'] ?? 0),
+            'coupon_type' => (string) ($couponResult['coupon_type'] ?? ''),
+            'dedupe_key' => (string) ($couponResult['dedupe_key'] ?? ''),
+        ],
+    ];
+}
+
+function sr_community_payment_access_item(int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceReference = ''): array
+{
+    return [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'community',
+        'reference_type' => 'community.access_entitlement',
+        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $eventKey . ':account:' . (string) $accountId,
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+        'snapshot' => [
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'event_key' => $eventKey,
+            'source_kind' => $sourceKind,
+            'source_reference' => $sourceReference,
+        ],
+    ];
+}
+
 function sr_community_anonymize_access_entitlements(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_community_access_entitlements_table_exists($pdo)) {
@@ -472,6 +557,28 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
                 if ($remainingAmount <= 0 && empty($couponResult['already_entitled'])) {
                     sr_community_grant_access_entitlement($pdo, $accountId, 'community.post', $postId, 'post_read', 'coupon', '', (string) ($paidReadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
                 }
+                if ($remainingAmount <= 0 && !empty($couponResult['processed'])) {
+                    $paymentItems = array_values(array_filter([
+                        sr_community_payment_coupon_item($couponResult, $settlementCurrency),
+                        sr_community_payment_access_item($accountId, 'community.post', $postId, 'post_read', 'coupon', $couponDedupeKey),
+                    ]));
+                    sr_community_record_payment_ledger_if_available($pdo, [
+                        'dedupe_key' => 'community.post.read:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
+                        'account_id' => $accountId,
+                        'subject_module' => 'community',
+                        'subject_type' => 'community.post.read',
+                        'subject_id' => (string) $postId,
+                        'payment_kind' => 'purchase',
+                        'payable_amount' => (int) $policyAmounts['amount'],
+                        'settlement_amount' => 0,
+                        'settlement_currency' => $settlementCurrency,
+                        'description' => '커뮤니티 게시글 열람 쿠폰 결제',
+                        'snapshot' => [
+                            'charge_policy' => (string) ($paidReadConfig['charge_policy'] ?? 'once'),
+                            'coupon_covered_amount' => (int) $policyAmounts['amount'],
+                        ],
+                    ], $paymentItems);
+                }
                 if ($startedTransaction) {
                     $pdo->commit();
                 }
@@ -567,6 +674,28 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
             }
             if ($remainingAmount <= 0 && empty($couponResult['already_entitled'])) {
                 sr_community_grant_access_entitlement($pdo, $accountId, 'community.attachment', $attachmentId, 'attachment_download', 'coupon', '', (string) ($downloadConfig['charge_policy'] ?? 'once'), $couponDedupeKey);
+            }
+            if ($remainingAmount <= 0 && !empty($couponResult['processed'])) {
+                $paymentItems = array_values(array_filter([
+                    sr_community_payment_coupon_item($couponResult, $settlementCurrency),
+                    sr_community_payment_access_item($accountId, 'community.attachment', $attachmentId, 'attachment_download', 'coupon', $couponDedupeKey),
+                ]));
+                sr_community_record_payment_ledger_if_available($pdo, [
+                    'dedupe_key' => 'community.attachment.download:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
+                    'account_id' => $accountId,
+                    'subject_module' => 'community',
+                    'subject_type' => 'community.attachment.download',
+                    'subject_id' => (string) $attachmentId,
+                    'payment_kind' => 'purchase',
+                    'payable_amount' => (int) $policyAmounts['amount'],
+                    'settlement_amount' => 0,
+                    'settlement_currency' => $settlementCurrency,
+                    'description' => '커뮤니티 첨부 다운로드 쿠폰 결제',
+                    'snapshot' => [
+                        'charge_policy' => (string) ($downloadConfig['charge_policy'] ?? 'once'),
+                        'coupon_covered_amount' => (int) $policyAmounts['amount'],
+                    ],
+                ], $paymentItems);
             }
             if ($startedTransaction) {
                 $pdo->commit();
@@ -684,14 +813,14 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
     ]);
 }
 
-function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null): array
+function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null, array $paymentContext = []): array
 {
-    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride): array {
-        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride);
+    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride, $paymentContext): array {
+        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process, $requestToken, $consumeConfirmationSession, $confirmedPost, $assetExchangeConfirmed, $settlementAmountOverride, $paymentContext);
     });
 }
 
-function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null): array
+function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true, string $requestToken = '', bool $consumeConfirmationSession = true, bool $confirmedPost = false, bool $assetExchangeConfirmed = false, ?int $settlementAmountOverride = null, array $paymentContext = []): array
 {
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
@@ -739,6 +868,9 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $policyAmounts = sr_community_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($config['amount'] ?? 0), $config['group_policies_json'] ?? '', (int) ($config['policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
     $amounts = $amounts !== [] ? $policyAmounts['amounts'] : [];
     $amount = (int) $policyAmounts['amount'];
+    $paymentPayableAmount = array_key_exists('payable_amount', $paymentContext)
+        ? max(0, (int) $paymentContext['payable_amount'])
+        : $amount;
     if ($direction === 'use' && $settlementAmountOverride !== null) {
         $amount = max(0, $settlementAmountOverride);
     }
@@ -1035,6 +1167,90 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
                 'settlement_currency' => is_array($assetLog) ? (string) ($assetLog['settlement_currency'] ?? $settlementCurrency) : $settlementCurrency,
             ];
             $processed = true;
+        }
+
+        if ($direction === 'use' && $processed && $processedLogs !== []) {
+            $paymentItems = [];
+            $paymentDedupeParts = [];
+            $couponResult = is_array($paymentContext['coupon_result'] ?? null) ? $paymentContext['coupon_result'] : [];
+            $couponPaymentItem = sr_community_payment_coupon_item($couponResult, $settlementCurrency);
+            if ($couponPaymentItem !== []) {
+                $paymentItems[] = $couponPaymentItem;
+                $paymentDedupeParts[] = 'coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? '');
+            }
+
+            foreach ($processedLogs as $processedLog) {
+                $logDedupeKey = (string) ($processedLog['dedupe_key'] ?? '');
+                $assetModule = (string) ($processedLog['asset_module'] ?? '');
+                $transactionId = (int) ($processedLog['transaction_id'] ?? 0);
+                $allocatedAmount = max(0, (int) ($processedLog['amount'] ?? 0));
+                $logSettlementAmount = max(0, (int) ($processedLog['settlement_amount'] ?? 0));
+                $logSettlementCurrency = (string) ($processedLog['settlement_currency'] ?? $settlementCurrency);
+                if ($logDedupeKey === '' || $assetModule === '' || $transactionId <= 0 || $allocatedAmount <= 0) {
+                    continue;
+                }
+
+                $paymentDedupeParts[] = $logDedupeKey;
+                $paymentItems[] = [
+                    'item_kind' => 'asset_transaction',
+                    'owner_module' => $assetModule,
+                    'reference_type' => $assetModule . '_transaction',
+                    'reference_id' => (string) $transactionId,
+                    'amount' => -$allocatedAmount,
+                    'currency_code' => $logSettlementCurrency,
+                    'reversible' => true,
+                    'snapshot' => [
+                        'settlement_amount' => $logSettlementAmount,
+                        'community_asset_dedupe_key' => $logDedupeKey,
+                    ],
+                ];
+
+                $assetLog = sr_community_asset_log($pdo, $logDedupeKey);
+                if (is_array($assetLog) && (int) ($assetLog['id'] ?? 0) > 0) {
+                    $paymentItems[] = [
+                        'item_kind' => 'asset_access_log',
+                        'owner_module' => 'community',
+                        'reference_type' => 'community_asset_log',
+                        'reference_id' => (string) ((int) ($assetLog['id'] ?? 0)),
+                        'amount' => $logSettlementAmount,
+                        'currency_code' => $logSettlementCurrency,
+                        'reversible' => true,
+                        'snapshot' => [
+                            'asset_module' => $assetModule,
+                            'transaction_id' => $transactionId,
+                            'dedupe_key' => $logDedupeKey,
+                            'event_key' => $eventKey,
+                        ],
+                    ];
+                }
+            }
+
+            if ($paymentDedupeParts !== []) {
+                if (in_array($eventKey, ['post_read', 'attachment_download'], true)) {
+                    $sourceReference = implode(',', $paymentDedupeParts);
+                    $sourceKind = $couponPaymentItem !== [] ? 'mixed' : 'asset';
+                    $paymentItems[] = sr_community_payment_access_item($accountId, $subjectType, $subjectId, $eventKey, $sourceKind, $sourceReference);
+                }
+
+                sr_community_record_payment_ledger_if_available($pdo, [
+                    'dedupe_key' => sr_community_payment_subject_type($eventKey, $subjectType) . ':payment:' . sha1(implode('|', $paymentDedupeParts)),
+                    'account_id' => $accountId,
+                    'subject_module' => 'community',
+                    'subject_type' => sr_community_payment_subject_type($eventKey, $subjectType),
+                    'subject_id' => (string) $subjectId,
+                    'payment_kind' => 'purchase',
+                    'payable_amount' => $paymentPayableAmount,
+                    'settlement_amount' => $amount,
+                    'settlement_currency' => $settlementCurrency,
+                    'description' => sr_community_payment_description($eventKey),
+                    'snapshot' => [
+                        'charge_policy' => $chargePolicy,
+                        'coupon_discount_amount' => (int) ($couponResult['discount_amount'] ?? 0),
+                        'remaining_amount' => $amount,
+                        'asset_exchange_log_id' => $assetExchangeLogId ?? 0,
+                    ],
+                ], $paymentItems);
+            }
         }
 
         if ($pendingAssetEvents === [] && $processedLogs !== []) {

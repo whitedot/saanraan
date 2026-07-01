@@ -19,7 +19,7 @@ return [
         'module_contract' => '2.0',
     ],
     'requires' => [
-        'modules' => ['member', 'admin'],
+        'modules' => ['member', 'admin', 'payment_ledger'],
     ],
     'settings' => [
         'editor' => 'textarea',
@@ -66,6 +66,7 @@ return [
             'layout-options.php',
             'url-embed-targets.php',
             'reaction-targets.php',
+            'payment-ledger-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

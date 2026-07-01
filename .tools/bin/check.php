@@ -353,6 +353,7 @@ function sr_check_module_lifecycle_metadata(): void
         'editor-options.php' => true,
         'coupon-targets.php' => true,
         'coupon-references.php' => true,
+        'payment-ledger-targets.php' => true,
         'banner-references.php' => true,
         'popup-layer-references.php' => true,
         'member-group-references.php' => true,
@@ -1335,6 +1336,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-logs.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-admin-validation.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-payment-ledger-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-form-validation.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-ux-writing.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-redemption-runtime.php'));

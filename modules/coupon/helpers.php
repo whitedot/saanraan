@@ -4034,6 +4034,8 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             'processed' => true,
             'coupon_issue_id' => (int) $selectedIssue['id'],
             'coupon_definition_id' => (int) $selectedIssue['coupon_definition_id'],
+            'coupon_redemption_id' => $redemptionId,
+            'dedupe_key' => $dedupeKey,
             'coupon_title' => (string) $selectedIssue['title'],
             'coupon_type' => (string) ($selectedIssue['coupon_type'] ?? 'access'),
             'discount_amount' => (int) ($discountApplication['discount_amount'] ?? 0),

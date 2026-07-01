@@ -35,6 +35,7 @@
 | `member_oauth` | `export_cleanup` | 제공 | 제공 | OAuth provider 연결 증적과 최소 profile snapshot을 회원 계정에 연결하며, provider subject 원문은 저장하지 않고 HMAC hash와 hash prefix 표시값만 둔다. 탈퇴/익명화 시 연결을 해제하고 snapshot을 제거한다. |
 | `member_oauth_providers` | `no_member_personal_data` | 없음 | 없음 | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약만 제공하며 설정 저장, state, 계정 연결, profile snapshot은 `member_oauth` 모듈이 소유한다. |
 | `notification` | `export_retained` | 제공 | 제공 | 회원 알림과 읽음 상태, 대상 회원의 site/email delivery는 사본 제공 대상이다. 운영 알림과 발송 이력은 보존 정책으로 다루되, 회원 push endpoint secret은 탈퇴/익명화 cleanup에서 disabled tombstone으로 전환하고 ciphertext를 제거한다. |
+| `payment_ledger` | `export_cleanup` | 제공 | 제공 | 결제 record는 account_id와 주문/콘텐츠/커뮤니티 같은 subject 참조, payable/settlement 금액, 결제 item snapshot을 저장한다. 회원 사본 제공 대상이며 탈퇴/익명화 시 record의 account 연결을 제거한다. |
 | `point` | `export_retained` | 제공 | 없음 | 포인트 잔액, 원장, 만료 소비 매핑은 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `policy_documents` | `export_cleanup` | 제공 | 제공 | 약관/방침 변경 안내메일 delivery가 회원 계정과 연결되며, 탈퇴/익명화 시 계정 연결을 제거한다. |
 | `popup_layer` | `no_member_personal_data` | 없음 | 없음 | 팝업 설정과 노출 정책은 현재 회원 귀속 데이터가 아니다. |
@@ -48,7 +49,7 @@
 
 ## 마일스톤 12 재기준화 기준
 
-마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 26개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `member_oauth`, `member_oauth_providers`, `policy_documents`, `quiz`, `reaction`, `survey`까지 포함해 개인정보 표면을 판단한다.
+마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 27개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `payment_ledger`, `member_oauth`, `member_oauth_providers`, `policy_documents`, `quiz`, `reaction`, `survey`까지 포함해 개인정보 표면을 판단한다.
 
 | 표면 | 현재 포함 모듈 | 주요 개인정보성 필드와 처리 표면 | 마일스톤 12 연결 |
 | --- | --- | --- | --- |
@@ -56,7 +57,7 @@
 | 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers` | 계정 식별자/email hash, 세션/token hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 가입 동의 snapshot, OAuth provider 계약 | #158, #159, #160, #161 |
 | 정책 문서와 동의 | `member`, `policy_documents`, `community`, `survey` | 회원 동의 증적, 정책 문서 버전 snapshot, 안내메일 delivery account 연결, 제출/응답 동의 snapshot | #151, #158, #160, #161 |
 | 사용자 제출과 활동 | `community`, `content`, `quiz`, `survey`, `reaction` | 작성자/응답자/시도자 account 연결, 댓글/쪽지/스크랩/리액션, answer/metadata snapshot, IP/UA hash, 제3자 식별자 | #155, #158, #159, #161 |
-| 금액성 원장과 권리 | `asset_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/유료 접근권/보상 grant/보상 미회수 기록, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
+| 금액성 원장과 권리 | `asset_ledger`, `payment_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/결제 기록/유료 접근권/보상 grant/보상 미회수 기록, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
 | 알림과 외부 발송 | `notification`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction` | site/email delivery recipient, push endpoint ciphertext와 masked recipient, 정책문서 안내메일, 멘션/댓글/리액션 알림 | #154, #158, #160, #161 |
 | 운영 보존과 감사 | `admin`, `privacy`, `logo_manager`, `notification` | 관리자 권한, 감사 로그 actor/metadata, 개인정보 요청 requester/admin note/handler, 로고 변경 작성자, 운영 알림 처리자 | #153, #157, #158, #160 |
 
@@ -69,12 +70,12 @@
 | #153 전역 감사 로그 | `admin`, `privacy`, `logo_manager`, 전체 관리자 action | 감사 로그는 본인 export 기본 범위에서 제외하고 운영 보존 데이터로 둔다. actor account, IP/UA, metadata는 저장 전 sanitize와 표시 전 redaction을 적용하며, `/admin/retention`의 관리자 작업 로그 보관일로 정리한다. |
 | #154 알림 delivery recipient | `notification`, `policy_documents`, `member_oauth`, `reaction`, `community`, `content`, `quiz`, `survey` | site delivery와 대상 회원 email delivery는 export에 포함하고 다른 회원 email recipient는 제외한다. push endpoint delivery는 masked recipient로만 제공한다. 탈퇴/익명화 시 push endpoint ciphertext는 제거하고, 정책문서 안내메일 delivery는 account 연결을 제거한다. 일반 delivery retention은 알림 보관일을 따른다. |
 | #155 커뮤니티 쪽지 상대방 식별자 | `community`, `member` | 쪽지 export는 본문과 상태, 발신/수신 방향(`sent`/`received`)만 제공하고 raw `sender_account_id`/`recipient_account_id`는 제외한다. 상대방은 `masked_sender`/`masked_recipient` 역할값으로만 표시하며 runtime fixture가 이 계약을 검증한다. |
-| #156 자산 로그 account_id 보존 | `asset_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 금액성 증빙 row는 탈퇴/익명화 cleanup에서 account 연결을 자동 제거하지 않고 `export_retained`로 제공한다. 콘텐츠/커뮤니티 접근권과 다운로드 이력처럼 서비스 접근 상태를 나타내는 row는 연결 제거 대상이고, 자산 차감/지급/환불/정정 원장은 환불·정산·분쟁 대응을 위해 account id와 실행 snapshot을 보존한다. |
+| #156 자산 로그 account_id 보존 | `asset_ledger`, `payment_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 금액성 증빙 row는 모듈별 보존 계약에 따라 처리한다. 콘텐츠/커뮤니티 접근권과 다운로드 이력처럼 서비스 접근 상태를 나타내는 row는 연결 제거 대상이고, 자산 차감/지급/환불/정정 원장은 환불·정산·분쟁 대응을 위해 account id와 실행 snapshot을 보존한다. `payment_ledger`는 공통 결제 묶음의 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | #157 관리자 메모 redaction | `privacy`, `admin` | privacy 요청의 `admin_note`는 입력 가이드로 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, token 저장을 금지하고 저장/export 단계에서 명백한 이메일·휴대폰·주민등록번호·secret류를 redaction한다. 감사 metadata는 `sr_audit_metadata_sanitize()`와 관리자 화면 표시 redaction을 따른다. |
 | #158 권리 요청 전파 | `member`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction`, `notification`, 금액성 모듈 | 정정권, 처리 제한, 동의 철회가 공개 노출, 알림, 리액션, 보상, 금액성 원장에 미치는 범위를 모듈별로 나눈다. |
 | #159 특별범주/연령/고유식별자성 | `member`, `member_oauth`, `antispam_captcha_providers`, 본인확인 예정 플러그인, `quiz`, `survey` | 회원 선택 프로필의 생년월일과 성인여부는 연령성 개인정보로 export에 포함하고, 회원 추가 프로필 항목, 외부 provider profile, 연령/성인 인증, 설문/퀴즈 응답에서 민감정보가 생길 수 있는 경우 원문 저장 금지와 export 제외 기준을 둔다. |
-| #160 ROPA 확장 | 전체 27개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
-| #161 conformance 자동화 | 전체 27개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
+| #160 ROPA 확장 | 전체 28개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
+| #161 conformance 자동화 | 전체 28개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
 
 ## 보강 기준
 

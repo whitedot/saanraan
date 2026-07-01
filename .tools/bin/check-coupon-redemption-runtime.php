@@ -33,6 +33,41 @@ function sr_coupon_runtime_row(PDO $pdo, string $sql, array $params = []): array
     return is_array($row) ? $row : [];
 }
 
+function sr_coupon_runtime_payment_record(PDO $pdo, string $subjectModule, string $subjectType, string $subjectId): array
+{
+    return sr_coupon_runtime_row(
+        $pdo,
+        'SELECT *
+         FROM sr_payment_records
+         WHERE subject_module = :subject_module
+           AND subject_type = :subject_type
+           AND subject_id = :subject_id
+         ORDER BY id DESC
+         LIMIT 1',
+        [
+            'subject_module' => $subjectModule,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+        ]
+    );
+}
+
+function sr_coupon_runtime_payment_item_count(PDO $pdo, int $paymentRecordId, string $itemKind): int
+{
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_payment_record_items
+         WHERE payment_record_id = :payment_record_id
+           AND item_kind = :item_kind'
+    );
+    $stmt->execute([
+        'payment_record_id' => $paymentRecordId,
+        'item_kind' => $itemKind,
+    ]);
+
+    return (int) $stmt->fetchColumn();
+}
+
 function sr_coupon_runtime_create_schema(PDO $pdo): void
 {
     $pdo->exec("CREATE TABLE sr_modules (
@@ -188,6 +223,40 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         refunded_by_account_id INTEGER,
         refund_note TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_payment_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dedupe_key TEXT NOT NULL UNIQUE,
+        account_id INTEGER NOT NULL,
+        subject_module TEXT NOT NULL,
+        subject_type TEXT NOT NULL,
+        subject_id TEXT NOT NULL,
+        payment_kind TEXT NOT NULL DEFAULT 'purchase',
+        status TEXT NOT NULL DEFAULT 'paid',
+        payable_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_currency TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        snapshot_json TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        cancelled_at TEXT
+    )");
+    $pdo->exec("CREATE TABLE sr_payment_record_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        payment_record_id INTEGER NOT NULL,
+        item_kind TEXT NOT NULL,
+        owner_module TEXT NOT NULL,
+        reference_type TEXT NOT NULL,
+        reference_id TEXT NOT NULL,
+        amount INTEGER NOT NULL DEFAULT 0,
+        currency_code TEXT NOT NULL DEFAULT '',
+        reversible INTEGER NOT NULL DEFAULT 0,
+        reversal_status TEXT NOT NULL DEFAULT 'none',
+        snapshot_json TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(payment_record_id, item_kind, owner_module, reference_type, reference_id)
     )");
     $pdo->exec("CREATE TABLE sr_content_access_entitlements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -402,7 +471,7 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         dedupe_key TEXT NOT NULL UNIQUE,
         created_at TEXT NOT NULL
     )");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('notification', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('notification', 'enabled'), ('payment_ledger', 'enabled')");
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
     $pdo->exec("INSERT INTO sr_member_accounts (id, email, status) VALUES (7, 'member7@example.test', 'active'), (8, 'member8@example.test', 'active')");
     $pdo->exec("INSERT INTO sr_notification_event_templates
@@ -1233,6 +1302,12 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($couponEntitlement['source_asset_module'] ?? '') === '', 'content paid view fixture should not attach an asset module to coupon entitlement.');
     sr_coupon_runtime_assert((string) ($couponEntitlement['source_charge_policy'] ?? '') === 'once', 'content paid view fixture should preserve the content charge policy on coupon entitlement.');
     sr_coupon_runtime_assert((string) ($couponEntitlement['source_reference'] ?? '') === 'content.view:coupon:7:77', 'content paid view fixture should store the coupon dedupe key on entitlement.');
+    $contentViewPayment = sr_coupon_runtime_payment_record($pdo, 'content', 'content.view', '77');
+    $contentViewPaymentId = (int) ($contentViewPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($contentViewPaymentId > 0, 'content paid view fixture should record a common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($contentViewPayment['payable_amount'] ?? -1) === 100 && (int) ($contentViewPayment['settlement_amount'] ?? -1) === 0, 'content paid view payment ledger should separate payable amount from zero settlement.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentViewPaymentId, 'coupon_redemption') === 1, 'content paid view payment ledger should include the coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentViewPaymentId, 'access_entitlement') === 1, 'content paid view payment ledger should include the access entitlement item.');
 
     $repeat = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
     sr_coupon_runtime_assert(!empty($repeat['allowed']) && empty($repeat['charged']) && !empty($repeat['already_paid']), 'content paid view fixture should reuse existing coupon entitlement without another charge.');
@@ -1339,6 +1414,12 @@ function sr_coupon_runtime_fixture(): void
     );
     sr_coupon_runtime_assert((string) ($downloadEntitlement['source_kind'] ?? '') === 'coupon', 'content paid download fixture should grant a coupon source entitlement.');
     sr_coupon_runtime_assert((string) ($downloadEntitlement['source_reference'] ?? '') === 'content.download:coupon:7:501', 'content paid download fixture should store the coupon dedupe key on entitlement.');
+    $contentDownloadPayment = sr_coupon_runtime_payment_record($pdo, 'content', 'content.download', '501');
+    $contentDownloadPaymentId = (int) ($contentDownloadPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($contentDownloadPaymentId > 0, 'content paid download fixture should record a common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($contentDownloadPayment['payable_amount'] ?? -1) === 120 && (int) ($contentDownloadPayment['settlement_amount'] ?? -1) === 0, 'content paid download payment ledger should separate payable amount from zero settlement.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentDownloadPaymentId, 'coupon_redemption') === 1, 'content paid download payment ledger should include the coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentDownloadPaymentId, 'access_entitlement') === 1, 'content paid download payment ledger should include the access entitlement item.');
     sr_content_record_file_download($pdo, $paidFile, 7, $downloadResult);
     $downloadLog = sr_coupon_runtime_row($pdo, 'SELECT download_type, amount, asset_access_log_ids_json FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1');
     sr_coupon_runtime_assert((string) ($downloadLog['download_type'] ?? '') === 'paid', 'content paid download fixture should record coupon-backed downloads as paid downloads.');
@@ -1464,6 +1545,12 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($communityEntitlement['source_asset_module'] ?? '') === '', 'community paid read fixture should not attach an asset module to coupon entitlement.');
     sr_coupon_runtime_assert((string) ($communityEntitlement['source_charge_policy'] ?? '') === 'once', 'community paid read fixture should preserve the paid read charge policy on coupon entitlement.');
     sr_coupon_runtime_assert((string) ($communityEntitlement['source_reference'] ?? '') === 'community.post:coupon:7:9901', 'community paid read fixture should store the coupon dedupe key on entitlement.');
+    $communityReadPayment = sr_coupon_runtime_payment_record($pdo, 'community', 'community.post.read', '9901');
+    $communityReadPaymentId = (int) ($communityReadPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($communityReadPaymentId > 0, 'community paid read fixture should record a common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($communityReadPayment['payable_amount'] ?? -1) === 150 && (int) ($communityReadPayment['settlement_amount'] ?? -1) === 0, 'community paid read payment ledger should separate payable amount from zero settlement.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityReadPaymentId, 'coupon_redemption') === 1, 'community paid read payment ledger should include the coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityReadPaymentId, 'access_entitlement') === 1, 'community paid read payment ledger should include the access entitlement item.');
 
     $communityRepeat = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
     sr_coupon_runtime_assert(!empty($communityRepeat['allowed']) && empty($communityRepeat['processed']) && !empty($communityRepeat['already_redeemed']), 'community paid read fixture should reuse existing coupon entitlement without another redemption.');
@@ -1537,6 +1624,12 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_asset_module'] ?? '') === '', 'community attachment download fixture should not attach an asset module to coupon entitlement.');
     sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_charge_policy'] ?? '') === 'once', 'community attachment download fixture should preserve the paid attachment charge policy on coupon entitlement.');
     sr_coupon_runtime_assert((string) ($attachmentEntitlement['source_reference'] ?? '') === 'community.attachment.download:coupon:7:8801', 'community attachment download fixture should store the coupon dedupe key on entitlement.');
+    $communityAttachmentPayment = sr_coupon_runtime_payment_record($pdo, 'community', 'community.attachment.download', '8801');
+    $communityAttachmentPaymentId = (int) ($communityAttachmentPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($communityAttachmentPaymentId > 0, 'community attachment download fixture should record a common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($communityAttachmentPayment['payable_amount'] ?? -1) === 180 && (int) ($communityAttachmentPayment['settlement_amount'] ?? -1) === 0, 'community attachment download payment ledger should separate payable amount from zero settlement.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityAttachmentPaymentId, 'coupon_redemption') === 1, 'community attachment download payment ledger should include the coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityAttachmentPaymentId, 'access_entitlement') === 1, 'community attachment download payment ledger should include the access entitlement item.');
 
     $attachmentRedemptionId = (int) $pdo->query("SELECT id FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.attachment.download' AND reference_id = '8801' LIMIT 1")->fetchColumn();
     $attachmentRefund = sr_coupon_refund_redemption($pdo, $attachmentRedemptionId, 1, 'community attachment coupon access revoke');
@@ -1593,6 +1686,14 @@ function sr_coupon_runtime_fixture(): void
     $contentMixedRedemption = sr_coupon_runtime_row($pdo, "SELECT target_snapshot_json FROM sr_coupon_redemptions WHERE reference_type = 'content.view' AND reference_id = '7801' LIMIT 1");
     $contentMixedSnapshot = json_decode((string) ($contentMixedRedemption['target_snapshot_json'] ?? ''), true);
     sr_coupon_runtime_assert(is_array($contentMixedSnapshot) && (int) ($contentMixedSnapshot['discount_amount'] ?? -1) === 40 && (int) ($contentMixedSnapshot['remaining_amount'] ?? -1) === 60, 'content mixed coupon fixture should store discount and remaining amounts in the redemption snapshot.');
+    $contentMixedPayment = sr_coupon_runtime_payment_record($pdo, 'content', 'content.view', '7801');
+    $contentMixedPaymentId = (int) ($contentMixedPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($contentMixedPaymentId > 0, 'content mixed coupon fixture should record one common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($contentMixedPayment['payable_amount'] ?? -1) === 100 && (int) ($contentMixedPayment['settlement_amount'] ?? -1) === 60, 'content mixed coupon payment ledger should preserve payable and remaining settlement amounts.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'coupon_redemption') === 1, 'content mixed coupon payment ledger should include coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'asset_transaction') === 1, 'content mixed coupon payment ledger should include asset transaction item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'asset_access_log') === 1, 'content mixed coupon payment ledger should include content asset access log item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'access_entitlement') === 1, 'content mixed coupon payment ledger should include access entitlement item.');
 
     $pdo->prepare(
         "INSERT INTO sr_community_posts
@@ -1623,7 +1724,10 @@ function sr_coupon_runtime_fixture(): void
     $communityMixedCoupon = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9903, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9903', $communityMixedIssueId);
     $communityMixedRemaining = max(0, (int) ($communityMixedCoupon['remaining_amount'] ?? 0));
     $communityMixedResult = !empty($communityMixedCoupon['allowed'])
-        ? sr_community_run_asset_event($pdo, $communityPaidReadConfig, 7, 'post_read', 'community.post', 9903, 'use', 'community.post.read', true, '', true, true, false, $communityMixedRemaining)
+        ? sr_community_run_asset_event($pdo, $communityPaidReadConfig, 7, 'post_read', 'community.post', 9903, 'use', 'community.post.read', true, '', true, true, false, $communityMixedRemaining, [
+            'coupon_result' => $communityMixedCoupon,
+            'payable_amount' => $communityMixedRemaining + max(0, (int) ($communityMixedCoupon['discount_amount'] ?? 0)),
+        ])
         : ['allowed' => false, 'processed' => false];
     if (!empty($communityMixedResult['allowed'])) {
         $pdo->commit();
@@ -1638,6 +1742,14 @@ function sr_coupon_runtime_fixture(): void
     $communityMixedRedemption = sr_coupon_runtime_row($pdo, "SELECT target_snapshot_json FROM sr_coupon_redemptions WHERE reference_type = 'community.post' AND reference_id = '9903' LIMIT 1");
     $communityMixedSnapshot = json_decode((string) ($communityMixedRedemption['target_snapshot_json'] ?? ''), true);
     sr_coupon_runtime_assert(is_array($communityMixedSnapshot) && (int) ($communityMixedSnapshot['discount_amount'] ?? -1) === 75 && (int) ($communityMixedSnapshot['remaining_amount'] ?? -1) === 75, 'community mixed coupon fixture should store percent discount and remaining amounts in the redemption snapshot.');
+    $communityMixedPayment = sr_coupon_runtime_payment_record($pdo, 'community', 'community.post.read', '9903');
+    $communityMixedPaymentId = (int) ($communityMixedPayment['id'] ?? 0);
+    sr_coupon_runtime_assert($communityMixedPaymentId > 0, 'community mixed coupon fixture should record one common payment ledger row.');
+    sr_coupon_runtime_assert((int) ($communityMixedPayment['payable_amount'] ?? -1) === 150 && (int) ($communityMixedPayment['settlement_amount'] ?? -1) === 75, 'community mixed coupon payment ledger should preserve payable and remaining settlement amounts.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'coupon_redemption') === 1, 'community mixed coupon payment ledger should include coupon redemption item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'asset_transaction') === 1, 'community mixed coupon payment ledger should include asset transaction item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'asset_access_log') === 1, 'community mixed coupon payment ledger should include community asset log item.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $communityMixedPaymentId, 'access_entitlement') === 1, 'community mixed coupon payment ledger should include access entitlement item.');
 }
 
 sr_coupon_runtime_check_model_decision();

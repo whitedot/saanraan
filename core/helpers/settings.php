@@ -813,6 +813,7 @@ function sr_module_known_contract_files(): array
         'editor-options.php',
         'coupon-targets.php',
         'coupon-references.php',
+        'payment-ledger-targets.php',
         'banner-references.php',
         'popup-layer-references.php',
         'member-group-references.php',

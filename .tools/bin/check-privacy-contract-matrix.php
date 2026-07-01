@@ -215,6 +215,7 @@ $expected = [
     'member_oauth' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'member_oauth_providers' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'notification' => ['status' => 'export_retained', 'export' => true, 'cleanup' => true],
+    'payment_ledger' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'point' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'policy_documents' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'popup_layer' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
@@ -357,7 +358,7 @@ foreach ([
 
 foreach ([
     '## 마일스톤 12 재기준화 기준',
-    '현재 번들 모듈은 26개',
+    '현재 번들 모듈은 27개',
     'antispam_captcha_providers',
     'member_oauth',
     'policy_documents',

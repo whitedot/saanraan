@@ -97,6 +97,7 @@ foreach ($bundleRows as $moduleKey => $row) {
 $expectedEvidenceMarkers = [
     'admin' => ['check-admin-action-security.php', 'check-admin-navigation-runtime.php', '메뉴/route runtime fixture'],
     'asset_ledger' => ['check-asset-reconciliation.php', 'reconciliation'],
+    'payment_ledger' => ['check-payment-ledger-runtime.php', '복합 결제 payment record fixture'],
     'point' => ['check-asset-reconciliation.php', 'check-asset-settlement-contract.php', '포인트 만료 dry-run fixture'],
     'reward' => ['check-asset-reconciliation.php', 'check-asset-settlement-contract.php'],
     'deposit' => ['check-asset-reconciliation.php', 'check-asset-settlement-contract.php'],

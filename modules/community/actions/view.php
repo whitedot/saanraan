@@ -165,7 +165,11 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
                                 true,
                                 $assetConfirmedPost,
                                 $assetExchangeConfirmed,
-                                $remainingAmount
+                                $remainingAmount,
+                                [
+                                    'coupon_result' => $couponReadResult,
+                                    'payable_amount' => $remainingAmount + max(0, (int) ($couponReadResult['discount_amount'] ?? 0)),
+                                ]
                             );
                             $paidReadResult['coupon_used'] = !empty($couponReadResult['processed']);
                             $paidReadResult['coupon_discount_amount'] = (int) ($couponReadResult['discount_amount'] ?? 0);

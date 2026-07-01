@@ -104,9 +104,11 @@
 
 코어에 두는 것을 기본값으로 삼지 않는다. 여러 모듈에서 반복되더라도 데이터 모델이나 업무 규칙의 모양을 강하게 유도한다면 코어 primitive가 아니라 공유 도메인 패턴이다.
 
-현재 공유 도메인 패턴은 코어 primitive와 공식 선택 모듈을 구분한다. `asset_ledger`는 자산 원장 primitive를 소유하는 공식 선택 모듈이고, 본문 URL 임베드는 별도 관리 모듈 없이 `core/helpers/url-embed.php`의 좁은 helper가 맡는다.
+현재 공유 도메인 패턴은 코어 primitive와 공식 선택 모듈을 구분한다. `asset_ledger`는 자산 원장 primitive를 소유하는 공식 선택 모듈이고, `payment_ledger`는 여러 도메인의 결제 증빙을 묶는 공식 선택 모듈이다. 본문 URL 임베드는 별도 관리 모듈 없이 `core/helpers/url-embed.php`의 좁은 helper가 맡는다.
 
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 일반 거래 insert는 `asset_ledger` 공식 선택 모듈의 helper로 줄이되, 만료 잔여량처럼 모듈 소유 정책 필드가 함께 바뀌는 경우에는 해당 자산 모듈이 같은 트랜잭션 안에서 자체 insert helper를 둘 수 있다. 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
+
+결제내역은 도메인 주문내역과 분리한다. `payment_ledger`는 `sr_payment_records`와 `sr_payment_record_items`에 결제 전 금액, 실제 settlement 금액, 통화, 쿠폰 사용, 자산 거래, 외부 PG 승인, 접근권 부여 같은 구성 item을 저장하지만 상품, 주문, 배송, 콘텐츠 접근 정책, 커뮤니티 열람 정책을 소유하지 않는다. 커머스 모듈이 추가되면 `sr_commerce_orders` 같은 주문/주문상품/배송/환불 정책 테이블은 커머스가 소유하고, 주문 결제 확정 트랜잭션 안에서 `payment_ledger`에 결제 record와 item만 기록한다. 콘텐츠와 커뮤니티도 같은 원칙으로 유료 열람/다운로드 접근권과 자산 로그를 자기 테이블에 남기고, 공통 결제 record는 증빙 묶음으로만 쓴다. 도메인 모듈은 `payment-ledger-targets.php` 계약으로 subject module/type 설명을 제공한다.
 
 자산 간 환전은 `asset_exchange` 선택 모듈이 실행, 파생 정책 row, 실행 로그, 정정 흐름을 소유한다. 코어는 통합 자산 테이블을 만들지 않고, 환전 모듈은 활성 자산 모듈의 `asset-exchange.php` 계약에서 잔액 조회 함수와 원장 거래 생성 함수를 읽어 호출한다. 관리자는 `/admin/asset-exchange`에서 포인트, 적립금, 예치금의 상대 가치 3개와 환전 조건을 저장하고, 모듈은 이 값에서 6개 환전 방향을 동기화한다. `/admin/asset-exchange/settings`는 전역 환전 사용 여부와 회원 알림만 저장하며, 환전 사용 여부를 끄면 파생 정책이 사용 상태여도 회원 신청, 예상 금액 계산, 실행 helper가 모두 거부된다. 환전 실행은 하나의 DB transaction 안에서 출금 원장, 입금 원장, 선택 수수료 원장을 같은 `reference_type=asset_exchange`와 환전 묶음 ID로 연결한다. 비율, 반올림, 수수료 조건은 실행 로그에 스냅샷으로 남기고 설정 변경은 이후 요청에만 적용한다. 임의 자산 조합 정책 row는 보존하지 않으며, 업데이트와 설정 동기화에서 기존 로그의 정책 참조만 비운 뒤 제거한다. 따라서 `sr_asset_exchange_policies`는 활성 슬롯과 tombstone을 같은 pair에 함께 보관하는 active-slot unique 모델이 아니라, 고정 6개 방향만 남기는 단순 `(from_module_key, to_module_key)` unique 모델을 유지한다. 콘텐츠/커뮤니티 구매력과 settlement 차감 배분은 `member-assets.php`의 `purchase_power` 계약을 기준으로 하며, 환전 정책 row를 가격 환산에 사용하지 않는다. 다만 확인 UI가 있는 유료 열람/다운로드에서 선택 자산 조합이 정확 충당에 실패하고 활성 환전 정책으로 같은 조합 안의 잔액을 맞출 수 있으면, 사용자가 환전 후 결제를 명시 확인한 POST에서만 환전 실행 후 settlement 계획을 다시 계산한다.
 
@@ -127,6 +129,16 @@
 - 보상 회수 실패 큐는 `asset_ledger`의 공통 운영 기반으로 둔다. `sr_asset_recovery_failures`는 정상 지급 로그가 아니라 실패한 회수 작업만 저장하며, dedupe key는 `source:{source_module}:{source_log_id}:rev:{reversal_event_key}` 형식을 사용한다. 공통 관리자 화면은 포인트/금액 미회수 관리 화면으로 제공하고, 지급 로그는 각 자산/도메인 모듈의 읽기 전용 로그 화면에 둔다.
 - 회수 실패 상태는 `open`, `recovered`, `manually_resolved`, `cancelled`를 사용한다. `recovered`는 전액 회수 종결, `manually_resolved`는 운영자의 오프라인 처리 또는 회수 포기 인정, `cancelled`는 회수 대상 제외다. 수동 해소와 취소는 남은 `unrecovered_amount`를 0으로 만들지 않고 보존한다. 부분 회수 원장 거래는 `sr_asset_recovery_reversal_links`로 회수 row와 연결한다.
 - 회수 실패 큐의 개인정보 export/cleanup은 `asset_ledger`가 소유한다. `operation_context_json`은 allowlist 키만 저장하고, `failure_reason`은 enum/code로 기록한다.
+
+`payment_ledger` 유지 조건:
+
+- 내부 키는 `payment_ledger`, 운영자 표시명은 `결제 기록 기반`이다.
+- 관리자 사이드메뉴에는 표시하지 않고, `/admin/modules` 기본 목록에서도 숨긴다. 운영자는 `기반 모듈 보기` 토글로 설치/상태를 확인할 수 있다.
+- 새 설치에서는 `content`, `community`, `coupon` 중 하나를 선택하면 설치기가 `payment_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 이 모듈들을 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `payment_ledger`를 먼저 자동 설치/활성화한다.
+- `payment_ledger`는 주문, 상품, 접근권 정책, 배송, 환불 가능 여부 같은 도메인 정책을 소유하지 않는다. 공통 테이블은 결제 record와 item 증빙에만 사용한다.
+- 주문내역과 결제내역은 같은 테이블로 합치지 않는다. 커머스 주문은 커머스 모듈이 소유하고, 공통 결제내역은 주문 ID를 subject/reference로 참조한다.
+- 취소/환불 실행은 도메인 모듈이 자기 정책과 원장 되돌림을 수행하고, `payment_ledger`는 record/status와 item `reversal_status`를 통해 결과 증빙을 보존한다.
+- 개인정보 export/cleanup은 `payment_ledger`가 소유한다. 사본 제공에는 결제 record와 item snapshot이 포함되고, 탈퇴/익명화 시 결제 record의 account 연결을 제거한다.
 
 URL 임베드 helper 유지 조건:
 
