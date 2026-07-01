@@ -695,7 +695,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
 
 function sr_content_copy_file_links(PDO $pdo, int $sourceContentId, int $newContentId, string $now): void
 {
-    if ($sourceContentId < 1 || $newContentId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_file_links') || !sr_content_optional_table_exists($pdo, 'sr_content_files')) {
+    if ($sourceContentId < 1 || $newContentId < 1) {
         return;
     }
 
@@ -981,48 +981,42 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
             $stmt->execute($params);
         }
 
-        if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
-            $stmt = $pdo->prepare("UPDATE sr_content_file_links SET status = 'hidden', updated_at = :updated_at WHERE content_id = :content_id");
-            $stmt->execute([
-                'updated_at' => $now,
-                'content_id' => $pageId,
-            ]);
-        }
+        $stmt = $pdo->prepare("UPDATE sr_content_file_links SET status = 'hidden', updated_at = :updated_at WHERE content_id = :content_id");
+        $stmt->execute([
+            'updated_at' => $now,
+            'content_id' => $pageId,
+        ]);
 
-        if (sr_content_optional_table_exists($pdo, 'sr_content_revisions')) {
-            $stmt = $pdo->prepare(
-                "UPDATE sr_content_revisions
-                 SET title = :title,
-                     summary = '',
-                     cover_image_url = '',
-                     body_text = :body_text,
-                     body_format = 'plain',
-                     status = 'deleted'
-                 WHERE content_id = :content_id"
-            );
-            $stmt->execute([
-                'title' => $deletedTitle,
-                'body_text' => $deletedBody,
-                'content_id' => $pageId,
-            ]);
-        }
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_revisions
+             SET title = :title,
+                 summary = '',
+                 cover_image_url = '',
+                 body_text = :body_text,
+                 body_format = 'plain',
+                 status = 'deleted'
+             WHERE content_id = :content_id"
+        );
+        $stmt->execute([
+            'title' => $deletedTitle,
+            'body_text' => $deletedBody,
+            'content_id' => $pageId,
+        ]);
 
-        if (sr_content_optional_table_exists($pdo, 'sr_content_submissions')) {
-            $stmt = $pdo->prepare(
-                "UPDATE sr_content_submissions
-                 SET title = :title,
-                     summary = '',
-                     body_text = :body_text,
-                     body_format = 'plain',
-                     review_note = ''
-                 WHERE content_id = :content_id"
-            );
-            $stmt->execute([
-                'title' => $deletedTitle,
-                'body_text' => $deletedBody,
-                'content_id' => $pageId,
-            ]);
-        }
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_submissions
+             SET title = :title,
+                 summary = '',
+                 body_text = :body_text,
+                 body_format = 'plain',
+                 review_note = ''
+             WHERE content_id = :content_id"
+        );
+        $stmt->execute([
+            'title' => $deletedTitle,
+            'body_text' => $deletedBody,
+            'content_id' => $pageId,
+        ]);
 
         $stmt = $pdo->prepare(
             "UPDATE sr_content_file_download_logs
@@ -1039,10 +1033,8 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
             'content_id' => $pageId,
         ]);
 
-        if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
-            $stmt = $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = ? OR active_content_id = ?');
-            $stmt->execute([$pageId, $pageId]);
-        }
+        $stmt = $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = ? OR active_content_id = ?');
+        $stmt->execute([$pageId, $pageId]);
 
         sr_url_embed_sync_body_url_cache($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
         $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, [$pageId]);

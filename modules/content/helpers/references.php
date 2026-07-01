@@ -263,17 +263,7 @@ function sr_content_popup_layer_reference_rows(PDO $pdo, array $target, array $c
 
 function sr_content_display_reference_item_rows(PDO $pdo, string $kind, int $targetId, array $labels): array
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_items')) {
-        return [];
-    }
-
     $columns = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
-    foreach (array_merge(['id', 'title', 'status', 'updated_at'], $columns) as $column) {
-        if (!sr_content_optional_column_exists($pdo, 'sr_content_items', $column)) {
-            return [];
-        }
-    }
-
     $conditions = [];
     $params = [];
     foreach ($columns as $index => $column) {
@@ -317,17 +307,6 @@ function sr_content_display_reference_group_setting_rows(PDO $pdo, string $kind,
 {
     if (!sr_content_group_settings_table_exists($pdo) || !sr_content_groups_table_exists($pdo)) {
         return [];
-    }
-
-    foreach (['group_id', 'setting_key', 'setting_value', 'updated_at'] as $column) {
-        if (!sr_content_optional_column_exists($pdo, 'sr_content_group_settings', $column)) {
-            return [];
-        }
-    }
-    foreach (['id', 'title', 'status'] as $column) {
-        if (!sr_content_optional_column_exists($pdo, 'sr_content_groups', $column)) {
-            return [];
-        }
     }
 
     $settingKeys = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
@@ -401,16 +380,6 @@ function sr_content_member_group_reference_count(PDO $pdo, array $target, array 
 
 function sr_content_member_group_reference_rows(PDO $pdo, array $target, array $context): array
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_items')) {
-        return [];
-    }
-
-    foreach (['id', 'title', 'status', 'updated_at', 'asset_access_group_policies_json', 'asset_action_group_policies_json'] as $column) {
-        if (!sr_content_optional_column_exists($pdo, 'sr_content_items', $column)) {
-            return [];
-        }
-    }
-
     $groupKey = (string) ($target['target_key'] ?? '');
     if ($groupKey === '') {
         return [];

@@ -656,13 +656,13 @@ function sr_content_group_settings(PDO $pdo, int $groupId): array
 function sr_content_group_reference_counts(PDO $pdo, int $groupId): array
 {
     return [
-        'contents' => $groupId > 0 ? sr_content_optional_count($pdo, 'sr_content_items', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
-        'revision_references' => $groupId > 0 ? sr_content_optional_count($pdo, 'sr_content_revisions', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
-        'comments' => $groupId > 0 && sr_content_optional_table_exists($pdo, 'sr_content_comments')
-            ? sr_content_optional_count($pdo, 'sr_content_comments', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
+        'contents' => $groupId > 0 ? sr_content_count($pdo, 'sr_content_items', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
+        'revision_references' => $groupId > 0 ? sr_content_count($pdo, 'sr_content_revisions', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
+        'comments' => $groupId > 0
+            ? sr_content_count($pdo, 'sr_content_comments', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
             : 0,
-        'files' => $groupId > 0 && sr_content_optional_table_exists($pdo, 'sr_content_files')
-            ? sr_content_optional_count($pdo, 'sr_content_files', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
+        'files' => $groupId > 0
+            ? sr_content_count($pdo, 'sr_content_files', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
             : 0,
     ];
 }
@@ -714,15 +714,13 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
         $pdo->beginTransaction();
     }
     try {
-        $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
+        $deletedSettings = sr_content_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $detachedContents = (int) ($check['references']['contents'] ?? 0);
         $pdo->prepare('UPDATE sr_content_items SET content_group_id = NULL, updated_at = :updated_at WHERE content_group_id = :group_id')->execute([
             'updated_at' => sr_now(),
             'group_id' => $groupId,
         ]);
-        if (sr_content_optional_table_exists($pdo, 'sr_content_group_settings')) {
-            $pdo->prepare('DELETE FROM sr_content_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
-        }
+        $pdo->prepare('DELETE FROM sr_content_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
         $pdo->prepare('DELETE FROM sr_content_groups WHERE id = :id')->execute(['id' => $groupId]);
         if ($startedTransaction) {
             $pdo->commit();
@@ -742,21 +740,19 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
 function sr_content_group_file_rows_for_delete(PDO $pdo, array $contentIds): array
 {
     $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
-    if ($contentIds === [] || !sr_content_optional_table_exists($pdo, 'sr_content_files')) {
+    if ($contentIds === []) {
         return [];
     }
 
     $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
     $params = $contentIds;
     $linkClause = '';
-    if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
-        $linkClause = ' OR (
-            f.content_id = 0
-            AND EXISTS (SELECT 1 FROM sr_content_file_links owned_link WHERE owned_link.file_id = f.id AND owned_link.content_id IN (' . $placeholders . '))
-            AND NOT EXISTS (SELECT 1 FROM sr_content_file_links outside_link WHERE outside_link.file_id = f.id AND outside_link.content_id NOT IN (' . $placeholders . '))
-        )';
-        $params = array_merge($params, $contentIds, $contentIds);
-    }
+    $linkClause = ' OR (
+        f.content_id = 0
+        AND EXISTS (SELECT 1 FROM sr_content_file_links owned_link WHERE owned_link.file_id = f.id AND owned_link.content_id IN (' . $placeholders . '))
+        AND NOT EXISTS (SELECT 1 FROM sr_content_file_links outside_link WHERE outside_link.file_id = f.id AND outside_link.content_id NOT IN (' . $placeholders . '))
+    )';
+    $params = array_merge($params, $contentIds, $contentIds);
 
     $stmt = $pdo->prepare(
         'SELECT f.*

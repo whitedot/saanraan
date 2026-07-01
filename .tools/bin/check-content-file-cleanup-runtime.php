@@ -136,6 +136,24 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         created_by INTEGER,
         created_at TEXT NOT NULL
     )');
+    $pdo->exec('CREATE TABLE sr_content_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_id INTEGER,
+        content_group_id INTEGER,
+        author_account_id INTEGER NOT NULL,
+        slug TEXT NOT NULL DEFAULT "",
+        title TEXT NOT NULL,
+        summary TEXT NOT NULL DEFAULT "",
+        body_text TEXT NOT NULL DEFAULT "",
+        body_format TEXT NOT NULL DEFAULT "plain",
+        review_status TEXT NOT NULL DEFAULT "pending",
+        publish_target_status TEXT NOT NULL DEFAULT "draft",
+        review_note TEXT NOT NULL DEFAULT "",
+        reviewed_by INTEGER,
+        reviewed_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )');
     $pdo->exec('CREATE TABLE sr_content_files (
         id INTEGER PRIMARY KEY,
         content_id INTEGER NOT NULL,

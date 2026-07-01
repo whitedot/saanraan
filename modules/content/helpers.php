@@ -1120,38 +1120,6 @@ function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool
     return $cache[$tableName];
 }
 
-function sr_content_optional_column_exists(PDO $pdo, string $tableName, string $columnName): bool
-{
-    static $cache = [];
-    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName) || !preg_match('/\A[a-zA-Z0-9_]+\z/', $columnName)) {
-        return false;
-    }
-
-    $cacheKey = $tableName . '.' . $columnName;
-    if (array_key_exists($cacheKey, $cache)) {
-        return $cache[$cacheKey];
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => $tableName,
-            'column_name' => $columnName,
-        ]);
-        $cache[$cacheKey] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable) {
-        $cache[$cacheKey] = false;
-    }
-
-    return $cache[$cacheKey];
-}
-
 function sr_content_optional_count(PDO $pdo, string $tableName, string $whereSql, array $params = []): int
 {
     if (!sr_content_optional_table_exists($pdo, $tableName)) {
@@ -1164,9 +1132,21 @@ function sr_content_optional_count(PDO $pdo, string $tableName, string $whereSql
     return (int) $stmt->fetchColumn();
 }
 
+function sr_content_count(PDO $pdo, string $tableName, string $whereSql, array $params = []): int
+{
+    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM ' . $tableName . ' WHERE ' . $whereSql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
 function sr_content_record_storage_cleanup_failure(PDO $pdo, string $sourceType, int $sourceId, string $driver, string $key, string $errorMessage): void
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures') || !sr_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return;
     }
 
@@ -1195,10 +1175,6 @@ function sr_content_record_storage_cleanup_failure(PDO $pdo, string $sourceType,
 
 function sr_content_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures')) {
-        return [];
-    }
-
     $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_content_storage_cleanup_failures
@@ -1214,7 +1190,7 @@ function sr_content_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
 
 function sr_content_retry_storage_cleanup_failure(PDO $pdo, int $failureId): array
 {
-    if ($failureId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures')) {
+    if ($failureId < 1) {
         return ['ok' => false, 'message' => '저장소 정리 실패 기록을 찾을 수 없습니다.'];
     }
 

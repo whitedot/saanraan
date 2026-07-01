@@ -152,7 +152,7 @@ function sr_content_cover_image_storage_reference_from_url(string $url): ?array
 function sr_content_cover_image_reference_count(PDO $pdo, string $url, int $exceptContentId = 0): int
 {
     $url = sr_content_clean_cover_image_url($url);
-    if ($url === '' || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+    if ($url === '') {
         return 0;
     }
 

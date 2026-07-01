@@ -250,53 +250,47 @@ return static function (PDO $pdo, int $accountId): array {
     $actionLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
     $submissions = [];
-    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_submissions')) {
-        $submissionStmt = $pdo->prepare(
-            'SELECT s.id, s.content_id, p.slug AS content_slug, p.title AS content_title,
-                    s.content_group_id, g.group_key, g.title AS group_title,
-                    s.author_account_id, s.slug, s.title, s.summary, s.body_text, s.body_format,
-                    s.review_status, s.publish_target_status, s.review_note,
-                    s.reviewed_by, s.reviewed_at, s.created_at, s.updated_at
-             FROM sr_content_submissions s
-             LEFT JOIN sr_content_items p ON p.id = s.content_id
-             LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
-             WHERE s.author_account_id = :account_id
-             ORDER BY s.id ASC
-             LIMIT 1000'
-        );
-        $submissionStmt->execute(['account_id' => $accountId]);
-        $submissions = $submissionStmt->fetchAll();
-    }
+    $submissionStmt = $pdo->prepare(
+        'SELECT s.id, s.content_id, p.slug AS content_slug, p.title AS content_title,
+                s.content_group_id, g.group_key, g.title AS group_title,
+                s.author_account_id, s.slug, s.title, s.summary, s.body_text, s.body_format,
+                s.review_status, s.publish_target_status, s.review_note,
+                s.reviewed_by, s.reviewed_at, s.created_at, s.updated_at
+         FROM sr_content_submissions s
+         LEFT JOIN sr_content_items p ON p.id = s.content_id
+         LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
+         WHERE s.author_account_id = :account_id
+         ORDER BY s.id ASC
+         LIMIT 1000'
+    );
+    $submissionStmt->execute(['account_id' => $accountId]);
+    $submissions = $submissionStmt->fetchAll();
 
     $authorRewardLogs = [];
     $authorApplications = [];
-    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
-        $applicationStmt = $pdo->prepare(
-            'SELECT id, account_id, application_note, status, review_note,
-                    reviewed_by, reviewed_at, created_at, updated_at
-             FROM sr_content_author_applications
-             WHERE account_id = :account_id
-             ORDER BY id ASC
-             LIMIT 1000'
-        );
-        $applicationStmt->execute(['account_id' => $accountId]);
-        $authorApplications = $applicationStmt->fetchAll();
-    }
+    $applicationStmt = $pdo->prepare(
+        'SELECT id, account_id, application_note, status, review_note,
+                reviewed_by, reviewed_at, created_at, updated_at
+         FROM sr_content_author_applications
+         WHERE account_id = :account_id
+         ORDER BY id ASC
+         LIMIT 1000'
+    );
+    $applicationStmt->execute(['account_id' => $accountId]);
+    $authorApplications = $applicationStmt->fetchAll();
 
-    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
-        $rewardStmt = $pdo->prepare(
-            'SELECT r.id, r.submission_id, r.content_id, p.slug, p.title,
-                    r.author_account_id, r.asset_module, r.amount, r.transaction_id,
-                    r.status, r.failure_reason, r.created_by_account_id, r.created_at, r.updated_at
-             FROM sr_content_author_reward_logs r
-             LEFT JOIN sr_content_items p ON p.id = r.content_id
-             WHERE r.author_account_id = :account_id
-             ORDER BY r.id ASC
-             LIMIT 1000'
-        );
-        $rewardStmt->execute(['account_id' => $accountId]);
-        $authorRewardLogs = $rewardStmt->fetchAll();
-    }
+    $rewardStmt = $pdo->prepare(
+        'SELECT r.id, r.submission_id, r.content_id, p.slug, p.title,
+                r.author_account_id, r.asset_module, r.amount, r.transaction_id,
+                r.status, r.failure_reason, r.created_by_account_id, r.created_at, r.updated_at
+         FROM sr_content_author_reward_logs r
+         LEFT JOIN sr_content_items p ON p.id = r.content_id
+         WHERE r.author_account_id = :account_id
+         ORDER BY r.id ASC
+         LIMIT 1000'
+    );
+    $rewardStmt->execute(['account_id' => $accountId]);
+    $authorRewardLogs = $rewardStmt->fetchAll();
 
     $series = [];
     $seriesItems = [];

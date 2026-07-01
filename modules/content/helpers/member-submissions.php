@@ -73,7 +73,7 @@ function sr_content_author_permission(PDO $pdo, int $accountId): ?array
 
 function sr_content_author_application_by_account(PDO $pdo, int $accountId): ?array
 {
-    if ($accountId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+    if ($accountId < 1) {
         return null;
     }
 
@@ -91,10 +91,6 @@ function sr_content_author_application_by_account(PDO $pdo, int $accountId): ?ar
 
 function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $applicationId = 0): array
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
-        return [];
-    }
-
     $params = [];
     $whereParts = [];
     if ($applicationId > 0) {
@@ -300,9 +296,6 @@ function sr_content_save_author_application(PDO $pdo, int $accountId, string $ap
     if ($accountId < 1) {
         throw new InvalidArgumentException('회원 정보가 올바르지 않습니다.');
     }
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
-        throw new RuntimeException('콘텐츠 작성자 신청 테이블이 준비되어 있지 않습니다.');
-    }
 
     $note = sr_content_clean_text($applicationNote, 2000);
     if ($note === '') {
@@ -336,9 +329,6 @@ function sr_content_save_author_application(PDO $pdo, int $accountId, string $ap
 
 function sr_content_review_author_application(PDO $pdo, int $applicationId, string $status, int $reviewerAccountId, string $reviewNote = ''): void
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
-        throw new RuntimeException('콘텐츠 작성자 신청 테이블이 준비되어 있지 않습니다.');
-    }
     if (!in_array($status, ['approved', 'rejected'], true)) {
         throw new InvalidArgumentException('처리 상태가 올바르지 않습니다.');
     }
@@ -811,10 +801,6 @@ function sr_content_author_reward_where_sql(array $filters, array &$params): str
 
 function sr_content_author_reward_count(PDO $pdo, array $filters = []): int
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
-        return 0;
-    }
-
     $params = [];
     $whereSql = sr_content_author_reward_where_sql($filters, $params);
     $stmt = $pdo->prepare(
@@ -832,10 +818,6 @@ function sr_content_author_reward_count(PDO $pdo, array $filters = []): int
 
 function sr_content_author_reward_logs(PDO $pdo, int $limit = 50, int $offset = 0, array $filters = []): array
 {
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
-        return [];
-    }
-
     $params = [];
     $whereSql = sr_content_author_reward_where_sql($filters, $params);
     $params['limit_value'] = max(1, min(200, $limit));
@@ -863,7 +845,7 @@ function sr_content_author_reward_logs(PDO $pdo, int $limit = 50, int $offset = 
 
 function sr_content_author_reward_log_by_dedupe_key(PDO $pdo, string $dedupeKey): ?array
 {
-    if ($dedupeKey === '' || !sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+    if ($dedupeKey === '') {
         return null;
     }
 
@@ -890,10 +872,6 @@ function sr_content_grant_submission_author_reward(PDO $pdo, int $submissionId, 
     if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
         return;
     }
-    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
-        return;
-    }
-
     $dedupeKey = 'content.submission.author_reward:' . (string) $submissionId;
     if (sr_content_author_reward_log_by_dedupe_key($pdo, $dedupeKey) !== null) {
         return;
