@@ -1149,6 +1149,152 @@ return [
 - `views.community_home`처럼 특정 화면용 view는 선택으로 제공할 수 있다.
 - 파일 경로는 모듈 또는 코어가 선언한 allowlist 값이어야 하며 DB에 저장하지 않는다.
 
+`privacy-cleanup.php`:
+
+- callable을 반환한다.
+- callable 형식은 `function (PDO $pdo, int $accountId, array $context = []): array`이다.
+- 반환 배열은 정리 실행 여부, 처리 수, 오류 정보를 소비 모듈이 해석할 수 있는 안정 key로 제공한다.
+- 회원 탈퇴/익명화 정리는 비활성 모듈의 보관 데이터도 다룰 수 있으므로, 계약은 자기 모듈 테이블 존재 여부와 helper 로드 가능 여부를 스스로 확인해야 한다.
+
+`member-summary-rows.php`:
+
+- callable을 반환한다.
+- callable 형식은 `function (PDO $pdo, int $accountId): array`이다.
+- 각 row는 `label`, `value`, 선택 `url`, 선택 `icon`을 가진다.
+- 공개 레이아웃 회원 요약 영역의 read-only 표시 후보이며, 원장 차감이나 상태 변경을 수행하지 않는다.
+
+`member-action-rows.php`:
+
+- callable을 반환한다.
+- callable 형식은 `function (PDO $pdo, int $accountId): array`이다.
+- 각 row는 `label`, `value`, 선택 `url`, 선택 `icon`을 가진다.
+- 계정별 다음 행동 후보를 보여주는 read-only 계약이며, action 실행 권한과 POST 처리는 소유 모듈 route가 다시 검증한다.
+
+`member-only-routes.php`:
+
+- 배열을 반환한다.
+- 최상위 key는 `protected_routes`, `public_routes`, `public_path_prefixes`를 사용할 수 있다.
+- `protected_routes`와 `public_routes` 항목은 `GET /path` 또는 `POST /path` 형식이다.
+- `public_path_prefixes` 항목은 `/community`처럼 공개 화면 prefix 문자열이다.
+- 사이트 회원전용 모드에서 비로그인 접근을 막아야 하는 공개 route 또는 파일성 보호 route를 선언한다.
+- 관리자 route와 정적 public asset route는 이 계약에 넣지 않는다.
+
+`member-registration.php`:
+
+- 배열을 반환한다.
+- 선택 `helpers`, `fields`, `fields_function`, `validate_function`, `save_function`을 제공한다.
+- 추가 입력은 `registration_extensions[{module_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
+- `validate_function`은 가입 트랜잭션 전에 오류 배열을 반환하고, `save_function`은 가입 트랜잭션 안에서 자기 모듈 확장 데이터를 저장한다.
+
+`homepage-candidates.php`:
+
+- 배열을 반환한다.
+- `candidates_function`과 `available_function`을 가진다.
+- `candidates_function` callable은 초기화면 후보 배열을 반환하며, 각 후보는 `path`, `label`, 선택 `module_key`를 가진다.
+- `available_function` callable 형식은 `function (PDO $pdo, string $path, array $context = []): ?bool`이다.
+- 반환값은 사용 가능 `true`, 소유 경로지만 현재 불가 `false`, 미소유 경로 `null`로 구분한다.
+
+`coupon-targets.php`:
+
+- 배열을 반환한다.
+- 각 항목은 전역 유일 `target_type`, `label`, 선택 `helpers`, 선택 `search_function`, 선택 `pricing_function`, 선택 `revoke_access_function`, 선택 `capabilities`를 가진다.
+- `target_type`은 모듈 key나 도메인 prefix를 포함해 다른 모듈과 충돌하지 않게 선언한다.
+- 쿠폰 소비/환불 helper는 계약의 capability를 확인한 뒤 target별 가격 산정, 대상 검색, 접근권 회수 콜백을 호출한다.
+
+`coupon-references.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `consumer_module_key`, `label`, `reference_type`, `supports_target_types`, `count_function`, `rows_function`을 가진다.
+- `count_function`은 같은 입력에서 `rows_function($pdo, $target, $context)`가 반환할 row 수와 같은 기준이어야 한다.
+- 쿠폰 정의 상태 변경/삭제 전 역방향 참조 조회에만 사용하고, 참조 row를 직접 변경하지 않는다.
+
+`payment-ledger-targets.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `subject_module`, `subject_type`, `label`, 선택 `helpers`를 가진다.
+- `subject_module`은 계약 제공 모듈 key와 일치해야 한다.
+- 결제 기록 모듈은 이 계약을 subject 검증과 표시 metadata로 사용하며, 주문/접근권/배송 정책은 subject 제공 모듈이 소유한다.
+
+`banner-references.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `consumer_module_key`, `label`, `reference_type`, `supports_target_types`, `count_function`, `rows_function`을 가진다.
+- 배너 삭제/상태 변경 전 역방향 참조 조회에 사용한다.
+- `count_function`과 `rows_function`은 같은 필터 기준을 사용해야 한다.
+
+`popup-layer-references.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `consumer_module_key`, `label`, `reference_type`, `supports_target_types`, `count_function`, `rows_function`을 가진다.
+- 팝업레이어 삭제/상태 변경 전 역방향 참조 조회에 사용한다.
+- `count_function`과 `rows_function`은 같은 필터 기준을 사용해야 한다.
+
+`member-group-references.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `consumer_module_key`, `label`, `reference_type`, `supports_target_types`, `count_function`, `rows_function`을 가진다.
+- 회원 그룹 비활성, 보관, key 변경 전 역방향 참조 조회에 사용한다.
+- 참조 계약은 회원 그룹 row를 변경하지 않고 조회 결과만 반환한다.
+
+`site-setting-references.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `consumer_module_key`, `label`, `reference_type`, `supports_target_types`, `count_function`, `rows_function`을 가진다.
+- 사이트 설정 변경 전 해당 값을 복사 저장한 모듈 설정이나 콘텐츠를 조회할 때 사용한다.
+- 참조 계약은 설정값을 직접 변경하지 않는다.
+
+`antispam-targets.php`:
+
+- 배열을 반환한다.
+- 각 항목 key가 target key이고, 값은 `label`, 선택 `default_mode`, 선택 `description`을 가진다.
+- 화면과 제출 정책을 소유한 모듈이 자동등록방지 적용 대상 후보를 선언한다.
+- antispam 모듈은 이 계약으로 관리자 설정 UI와 제출별 정책 조회를 구성한다.
+
+`antispam-providers.php`:
+
+- 배열을 반환한다.
+- 각 항목 key는 provider key이고, 값은 `label`, `site_key_setting`, `secret_key_setting`, `response_field`, `endpoint`, `script_url`, `widget_class`를 가진다.
+- `endpoint`와 `script_url`은 HTTPS 공개 URL이어야 하며, 검증 POST 직전에도 공개망 host 여부를 다시 확인한다.
+- 선택 `score_setting`은 score 기반 provider의 최소 점수 설정 key로 사용한다.
+
+`oauth-providers.php`:
+
+- 배열을 반환한다.
+- 각 항목 key는 provider key이고, 값은 `label`, `authorization_url`, `token_url`, 사용자 식별 claim, 선택 `userinfo_url`, 선택 `scopes`, 선택 `sort_order`를 가진다.
+- provider별 client id/secret 저장 key와 활성 여부는 member_oauth 모듈 설정이 소유한다.
+- OAuth callback은 계약의 endpoint와 claim mapping을 사용하되 계정 연결/가입 정책은 member_oauth 모듈이 다시 검증한다.
+
+`url-embed-targets.php`:
+
+- 배열을 반환한다.
+- 최상위 `targets` 배열의 각 항목은 `target_module`, `target_type`, `label`, `resolve_url`, `render_embed`를 가진다.
+- `resolve_url` callable은 URL과 context를 받아 canonical URL, target id, snapshot, cache 상태를 반환한다.
+- `render_embed` callable은 저장된 embed row와 context를 받아 안전한 HTML과 cache 상태를 반환한다.
+- 선택 `embed_stylesheet`, `allowed_variants`, `fragment_cache_schema`는 렌더링 자산과 fragment cache 정책에 사용한다.
+
+`reaction-targets.php`:
+
+- 배열을 반환한다.
+- 최상위 `targets` 배열의 각 항목은 `target_module`, `target_type`, `label`, `resolve`, 선택 `resolve_many`를 가진다.
+- `target_module`은 계약 제공 모듈 key와 일치해야 한다.
+- resolve 결과는 `target_id`, `status`, `can_view`, `can_write`, `owner_account_id`, 선택 `recipient_account_id`, `preset_key`, `public_url`, `admin_url`, `label`을 제공한다.
+
+`operational-status.php`:
+
+- 배열을 반환한다.
+- 각 항목은 `label`, `title`, `module`, `table`, 선택 `where`, 선택 `age_column`, 선택 `warn_after_seconds`, 선택 `target_sql`, 선택 `followup`을 가진다.
+- `table`, `age_column`, `where`는 admin 모듈의 안전 식별자/조건 검증을 통과해야 한다.
+- `target_sql`은 운영자가 확인할 대표 대상 몇 건을 조회하는 read-only SELECT여야 한다.
+- 운영 상태 계약은 read-only 신호만 제공하고, 복구/삭제 같은 변경 작업은 소유 모듈 route나 CLI가 처리한다.
+
+`retention-targets.php`:
+
+- 배열을 반환한다.
+- key는 retention target key이고, 각 값은 `enabled`, `auto_scope`, `cutoff_key`, `count_sql`, `delete_sql`, `delete_limited_sql`, 선택 `count_params`, 선택 `delete_params`, 선택 `table_checks`를 가진다.
+- `count_sql`과 `delete_sql`은 같은 cutoff 기준을 사용해야 하며, `delete_limited_sql`은 bounded batch 정리에 사용된다.
+- `table_checks`가 실패하거나 대상 기능이 비활성인 경우 admin 모듈은 해당 target을 비활성 또는 0건으로 안전하게 처리해야 한다.
+- preview와 수동/자동 정리는 같은 대상 정의를 사용한다.
+
 ## 15-2. 계약 파일 소비 지도
 
 계약 파일은 "제공하는 모듈"과 "읽는 소비 주체"가 분리된다. 제공 모듈은 `module.php`의 `contracts.provides`에 파일을 선언하고 실제 파일을 둔다. 소비 모듈은 `contracts.consumes`에 읽는 계약 파일을 기록하고, 필요한 시점에 `sr_enabled_module_contract_files()`와 `sr_load_module_contract_file()`로 명시적으로 읽는다. 단, 회원 탈퇴/익명화 개인정보 정리처럼 보관 데이터 삭제가 목적인 계약은 비활성 모듈의 데이터도 정리해야 하므로 설치된 모듈의 `privacy-cleanup.php`를 읽는다.

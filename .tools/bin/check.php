@@ -576,6 +576,29 @@ function sr_check_module_contract_consumer_documentation(): void
     }
 }
 
+function sr_check_module_contract_return_structure_documentation(): void
+{
+    $doc = file_get_contents('docs/module-guide.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Module guide cannot be read.');
+        return;
+    }
+
+    if (preg_match('/## 15-1\. 계약 파일 반환 구조(.*?)## 15-2\. 계약 파일 소비 지도/s', $doc, $matches) !== 1) {
+        sr_check_add_error('Module guide contract return structure section is missing.');
+        return;
+    }
+
+    preg_match_all('/^`([^`]+\.php)`:/m', (string) $matches[1], $sectionMatches);
+    $documentedContractFiles = array_values(array_unique($sectionMatches[1] ?? []));
+    $knownContractFiles = sr_module_known_contract_files();
+
+    $missingContractFiles = array_values(array_diff($knownContractFiles, $documentedContractFiles));
+    foreach ($missingContractFiles as $contractFile) {
+        sr_check_add_error('Module guide contract return structure section is missing contract file: ' . $contractFile);
+    }
+}
+
 function sr_check_module_contract_table_files(string $value): array
 {
     $value = trim($value);
@@ -1704,6 +1727,7 @@ sr_check_module_lifecycle_metadata();
 sr_check_module_contract_table_documentation();
 sr_check_module_contract_structure_documentation();
 sr_check_module_contract_consumer_documentation();
+sr_check_module_contract_return_structure_documentation();
 sr_check_implementation_snapshot_bundle_modules();
 sr_check_implementation_snapshot_install_tables();
 sr_check_module_lifecycle_ui_contract();
