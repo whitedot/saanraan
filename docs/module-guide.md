@@ -1172,6 +1172,7 @@ return [
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
 | `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
+| `asset-exchange.php` | `asset_exchange` 모듈 | 환전 관리자 화면, 회원 환전 실행, 환전 로그 정정 | 환전 가능한 자산 후보와 잔액/거래 원장 호출 정보 |
 | `member-assets.php` | `content`, `community` 모듈 | 자산 정책 화면과 금액성 자산 처리 | 금액성 회원 자산 후보와 원장 호출 정보 |
 | `member-withdrawal-assets.php` | `member` 모듈 | 회원 탈퇴/정리 처리 | 탈퇴 시 정리할 회원 자산 후보와 처리 함수 |
 | `member-summary-rows.php` | core public layout helper | 공개 레이아웃 회원 보유 요약 영역 | 금액성 자산 외 계정별 보유 row 후보 |
@@ -1180,11 +1181,13 @@ return [
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
 | `homepage-candidates.php` | core/admin | `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 과거 저장값이나 모듈 소유 공개 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
+| `oauth-providers.php` | `member_oauth` 모듈 | OAuth 설정 화면, 로그인 버튼 렌더링, 인증 callback 처리 | 설치된 provider 플러그인의 OAuth endpoint와 client 설정 key 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백. `target_type`은 전역 유일 키여야 한다. |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
 | `coupon-targets.php` | `popup_layer` 모듈 | 팝업레이어 특정 대상 검색 모달과 쿠폰 CTA 후보 검증 | 팝업 노출 대상 번호 선택에 재사용할 대상 검색 후보와 공개 무료 쿠폰 발급 캠페인 연결 후보 |
 | `payment-ledger-targets.php` | `payment_ledger` 모듈 | 결제 기록 저장 검증, 조회, 취소/되돌림 조정 후보 | 주문/콘텐츠/커뮤니티 같은 도메인 결제 대상의 subject module/type 설명. 도메인 주문/접근권/배송 정책은 제공 모듈이 소유하고, `payment_ledger`는 계약된 subject의 record/item 증빙만 저장 |
 | `url-embed-targets.php` | 공통 URL 임베드 helper | URL resolve와 렌더링 | 모듈별 URL allowlist, canonical URL, snapshot, renderer, 전용 embed stylesheet, fragment cache schema 계약 |
+| `reaction-targets.php` | `reaction` 모듈 | 리액션 대상 resolve, 쓰기 가능 여부 검증, 집계/알림 대상 조회 | 모듈별 반응 대상 후보와 target 공개/작성/소유자 상태 |
 | `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
 | `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |
 | `popup-layer-references.php` | `popup_layer` 모듈 | 팝업레이어 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 팝업레이어 ID 역방향 참조 조회 |

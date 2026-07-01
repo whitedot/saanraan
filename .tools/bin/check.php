@@ -558,6 +558,24 @@ function sr_check_module_contract_structure_documentation(): void
     }
 }
 
+function sr_check_module_contract_consumer_documentation(): void
+{
+    $doc = file_get_contents('docs/module-guide.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Module guide cannot be read.');
+        return;
+    }
+
+    preg_match_all('/^\| `([^`]+\.php)` \| [^|]+ \| [^|]+ \| [^|]+ \|$/m', $doc, $matches);
+    $documentedContractFiles = array_values(array_unique($matches[1] ?? []));
+    $knownContractFiles = sr_module_known_contract_files();
+
+    $missingContractFiles = array_values(array_diff($knownContractFiles, $documentedContractFiles));
+    foreach ($missingContractFiles as $contractFile) {
+        sr_check_add_error('Module guide contract consumer table is missing contract file: ' . $contractFile);
+    }
+}
+
 function sr_check_module_contract_table_files(string $value): array
 {
     $value = trim($value);
@@ -1685,6 +1703,7 @@ sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
 sr_check_module_contract_table_documentation();
 sr_check_module_contract_structure_documentation();
+sr_check_module_contract_consumer_documentation();
 sr_check_implementation_snapshot_bundle_modules();
 sr_check_implementation_snapshot_install_tables();
 sr_check_module_lifecycle_ui_contract();
