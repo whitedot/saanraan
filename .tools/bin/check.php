@@ -742,6 +742,9 @@ function sr_check_module_contract_files(): void
 
             $contractContents = file_get_contents($contractPath);
             $contractContents = is_string($contractContents) ? $contractContents : '';
+            if (preg_match('/return\s+\[\s*\]\s*;\s*\z/s', trim($contractContents)) === 1) {
+                sr_check_add_error('Module declared contract file must not be a static empty array: ' . $contractPath);
+            }
             if (
                 in_array($contractFile, ['member-action-rows.php', 'member-summary-rows.php'], true)
                 && preg_match('/return\s+(?:static\s+)?function\s*\(\s*PDO\s+\$pdo\s*,\s*int\s+\$accountId\s*\)\s*:\s*array/', $contractContents) !== 1
