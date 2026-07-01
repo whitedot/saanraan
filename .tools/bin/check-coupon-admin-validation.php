@@ -7,6 +7,7 @@ $root = dirname(__DIR__, 2);
 $errors = [];
 
 $helper = file_get_contents($root . '/modules/coupon/helpers.php');
+$coreDecisions = file_get_contents($root . '/docs/core-decisions.md');
 if (!is_string($helper)) {
     $errors[] = 'Coupon helper cannot be read.';
 } else {
@@ -212,6 +213,12 @@ if (is_string($view)) {
     ) {
         $errors[] = 'Coupon definition email warning must apply to full disable, not issue stop.';
     }
+}
+if (!is_string($coreDecisions)
+    || strpos($coreDecisions, '콘텐츠와 커뮤니티 유료 열람/다운로드는 `access`, `fixed_discount`, `percent_discount`를 모두 쿠폰 사용 후보로 평가') === false
+    || strpos($coreDecisions, '쿠폰 우선 적용은 `access` 쿠폰만 소비') !== false
+) {
+    $errors[] = 'Core decisions must describe current discount coupon redemption support without the legacy access-only claim.';
 }
 
 $settingsAction = file_get_contents($root . '/modules/coupon/actions/admin-coupon-settings.php');
