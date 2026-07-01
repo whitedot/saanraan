@@ -1769,13 +1769,13 @@ function sr_url_embed_render_url(PDO $pdo, string $url, array $context): string
         return '';
     }
 
-    $html = sr_url_embed_sanitize_rendered_fragment($html);
+    $html = sr_url_embed_sanitize_rendered_fragment($html, $definition);
     sr_url_embed_fragment_cache_write($resolved, $definition, $context, $html);
 
     return $html;
 }
 
-function sr_url_embed_sanitize_rendered_fragment(string $html): string
+function sr_url_embed_sanitize_rendered_fragment(string $html, array $definition = []): string
 {
     if ($html === '' || !class_exists('DOMDocument')) {
         return '';
@@ -1790,6 +1790,13 @@ function sr_url_embed_sanitize_rendered_fragment(string $html): string
     }
     $allowedTags = ['div', 'a', 'img', 'strong', 'p', 'span', 'sr-content-embed', 'sr-community-embed', 'sr-coupon-embed', 'sr-quiz-embed', 'sr-survey-embed'];
     $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-coupon-embed', 'data-quiz-embed', 'data-survey-embed'];
+    $targetModule = sr_url_embed_clean_identifier((string) ($definition['target_module'] ?? ''));
+    if ($targetModule !== '') {
+        $allowedTags[] = 'sr-' . $targetModule . '-embed';
+        $allowedAttrs[] = 'data-' . $targetModule . '-embed';
+        $allowedTags = array_values(array_unique($allowedTags));
+        $allowedAttrs = array_values(array_unique($allowedAttrs));
+    }
     $nodes = [];
     foreach ($dom->getElementsByTagName('*') as $node) {
         $nodes[] = $node;

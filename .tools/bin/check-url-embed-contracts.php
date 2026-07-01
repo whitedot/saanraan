@@ -161,7 +161,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                             return ['html' => '', 'cache_status' => 'broken', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                         }
                         $image = (string) ($row['image_snapshot'] ?? '');
-                        $html = '<sr-content-embed class="fixture-embed-summary" data-content-embed="summary">';
+                        $html = '<sr-fixture-embed class="fixture-embed-summary" data-fixture-embed="summary">';
                         if ($image !== '') {
                             $html .= '<img src="' . sr_e($image) . '" alt="" loading="lazy" decoding="async" />';
                         }
@@ -171,7 +171,7 @@ if (!function_exists('sr_load_module_contract_file')) {
                         if ($displayUrl !== '') {
                             $html .= '<a class="fixture-embed-summary-url" href="' . sr_e($displayUrl) . '">' . sr_e($displayUrl) . '</a>';
                         }
-                        $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></sr-content-embed>';
+                        $html .= '<p>' . sr_e((string) ($row['summary'] ?? '')) . '</p></sr-fixture-embed>';
                         return ['html' => $html, 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                     },
                 ],
@@ -394,7 +394,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 14, 'body', $allLinksBody, 7);
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
     $allLinksRendered = sr_url_embed_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
-    sr_url_embed_contract_assert(substr_count($allLinksRendered, 'data-content-embed="summary"') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
+    sr_url_embed_contract_assert(substr_count($allLinksRendered, 'data-fixture-embed="summary"') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
     $dedupeBody = '<p><a href="/fixture/1">/fixture/1</a></p><p><a href="/fixture/1?tracking=1">/fixture/1?tracking=1</a></p>';
@@ -403,7 +403,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_id = 15') === 1, 'Request cache dedupe fixture must store one canonical row for multiple source URLs.');
     $GLOBALS['sr_url_embed_contract_render_count'] = 0;
     $dedupeRendered = sr_url_embed_render_body_html($pdo, $dedupeBody, 'fixture', 'doc', 15);
-    sr_url_embed_contract_assert(substr_count($dedupeRendered, 'data-content-embed="summary"') === 2, 'Multiple source URLs for one canonical URL must still replace each occurrence.');
+    sr_url_embed_contract_assert(substr_count($dedupeRendered, 'data-fixture-embed="summary"') === 2, 'Multiple source URLs for one canonical URL must still replace each occurrence.');
     sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 1, 'Multiple source URLs for one canonical cache row must render once per request.');
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
@@ -465,7 +465,7 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     sr_url_embed_contract_contains('core/helpers/url-embed.php', "'display_base_url'");
     sr_url_embed_contract_contains('core/helpers/url-embed.php', "'source_base_url'");
     sr_url_embed_contract_contains('core/helpers/url-embed.php', "'site.base_url'");
-    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v3'", $moduleKey . "-embed-summary-url"] as $needle) {
+    foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v3'", '<sr-' . $moduleKey . '-embed', 'data-' . $moduleKey . '-embed="summary"', $moduleKey . "-embed-summary-url"] as $needle) {
         sr_url_embed_contract_contains($contractPath, $needle);
     }
     if ($moduleKey === 'survey') {
@@ -482,6 +482,8 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
 }
 
 sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', "'embed_stylesheet' => '/modules/coupon/assets/embed.css'");
+sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', '<sr-coupon-embed');
+sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', 'data-coupon-embed="claim"');
 sr_url_embed_contract_contains('modules/coupon/admin-menu.php', "'/admin/coupons/embed-cache'");
 sr_url_embed_contract_contains('modules/coupon/paths.php', "'GET /admin/coupons/embed-cache'");
 sr_url_embed_contract_contains('modules/coupon/paths.php', "'POST /admin/coupons/embed-cache'");
