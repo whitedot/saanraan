@@ -3,7 +3,7 @@
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -18,7 +18,7 @@ $assetOptions = sr_quiz_asset_options($pdo);
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $publicLayoutOptions = sr_quiz_layout_options($pdo);
 $publicThemeOptions = sr_quiz_theme_options();
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';

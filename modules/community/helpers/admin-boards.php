@@ -75,8 +75,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
         $summaryFeedEnabled = ($_POST['summary_feed_enabled'] ?? '') === '1';
         $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
-        $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
-        $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+        $reactionPostPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
+        $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
         $editingBoardId = 0;
         if ($intent === 'update') {

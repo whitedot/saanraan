@@ -11,7 +11,7 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -65,7 +65,7 @@ if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
     $editorOptions = sr_editor_options($pdo);
     $assetModuleOptions = sr_community_asset_module_options($pdo);
     $assetPolicySets = sr_community_asset_policy_sets($pdo);
-    $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+    $reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
     $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
         ? sr_banner_public_banners($pdo)
         : [];

@@ -33,6 +33,30 @@ function sr_reaction_check_read(string $path): string
     return str_replace(["\r\n", "\r"], "\n", $content);
 }
 
+function sr_reaction_check_php_files(array $roots): array
+{
+    $files = [];
+    foreach ($roots as $root) {
+        $directory = SR_ROOT . '/' . $root;
+        if (!is_dir($directory)) {
+            continue;
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if (!$file instanceof SplFileInfo || $file->getExtension() !== 'php') {
+                continue;
+            }
+            $files[] = $file->getPathname();
+        }
+    }
+
+    sort($files);
+    return $files;
+}
+
 $install = sr_reaction_check_read('core/actions/install.php');
 sr_reaction_check_assert(str_contains($install, "'reaction' => ["), 'Installer optional module list must include reaction.');
 
@@ -460,6 +484,53 @@ $assert(
     str_contains($reactionHelperSource, '$contractTargetModule !== $providerModuleKey'),
     'reaction target loading should ignore targets whose target_module is owned by another provider module.'
 );
+
+$reactionConsumerFiles = sr_reaction_check_php_files([
+    'modules/content',
+    'modules/community',
+    'modules/quiz',
+    'modules/survey',
+]);
+$reactionRuntimeFunctions = [
+    "function_exists('sr_reaction_render_widget')",
+    "function_exists('sr_reaction_public_script_html')",
+    "function_exists('sr_reaction_resolve_targets')",
+    "function_exists('sr_reaction_setting_preset_key')",
+    "function_exists('sr_reaction_preset_option_html')",
+];
+foreach ($reactionConsumerFiles as $file) {
+    $relativePath = substr($file, strlen(SR_ROOT) + 1);
+    $source = file_get_contents($file);
+    if (!is_string($source)) {
+        $assert(false, 'cannot read reaction consumer ' . $relativePath);
+        continue;
+    }
+    $source = str_replace(["\r\n", "\r"], "\n", $source);
+    $lines = explode("\n", $source);
+
+    $assert(
+        !str_contains($source, "sr_module_enabled(, 'reaction')"),
+        $relativePath . ' should pass a PDO when checking the reaction module.'
+    );
+
+    foreach ($lines as $lineNumber => $line) {
+        $lineLabel = $relativePath . ':' . (string) ($lineNumber + 1);
+        $context = implode("\n", array_slice($lines, max(0, $lineNumber - 3), 7));
+        $hasReactionEnabledGuard = str_contains($context, 'sr_module_enabled($pdo, \'reaction\')')
+            || str_contains($context, 'sr_module_enabled($GLOBALS[\'pdo\'], \'reaction\')')
+            || str_contains($context, '$reactionModuleEnabled');
+
+        if (str_contains($line, '/modules/reaction/helpers.php')) {
+            $assert($hasReactionEnabledGuard, $lineLabel . ' should only load reaction helpers when the reaction module is enabled.');
+        }
+
+        foreach ($reactionRuntimeFunctions as $functionGuard) {
+            if (str_contains($line, $functionGuard)) {
+                $assert($hasReactionEnabledGuard, $lineLabel . ' should only use reaction runtime helpers when the reaction module is enabled.');
+            }
+        }
+    }
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "reaction runtime checks failed:\n");

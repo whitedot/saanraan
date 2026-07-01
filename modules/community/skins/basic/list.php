@@ -21,13 +21,13 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityBoardReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $communityLayoutSettings);
-if ($communityBoardReactionsEnabled && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if ($communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $memberSettings = sr_member_settings($pdo);
 $communityBoardPaidReadConfig = sr_community_asset_event_config($pdo, $board, $communityLayoutSettings, 'paid_read', 'once');
 $communityBoardHomeExcerptAllowed = !sr_community_asset_event_required($communityBoardPaidReadConfig);
-$communityListReactionCounts = $communityBoardReactionsEnabled && is_array($posts ?? null)
+$communityListReactionCounts = $communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction') && is_array($posts ?? null)
     ? sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $posts))
     : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [

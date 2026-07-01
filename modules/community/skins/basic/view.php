@@ -10,11 +10,11 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $communityReactionCommentTargets = [];
-if ($communityReactionsEnabled && function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
+if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
     $communityReactionCommentIds = [];
     foreach ($comments as $communityReactionComment) {
         $communityReactionCommentId = (int) ($communityReactionComment['id'] ?? 0);
@@ -301,7 +301,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                 <?php } ?>
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>
-            <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
+            <?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget')) { ?>
                 <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
             <?php } ?>
 
@@ -440,7 +440,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                             </div>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
-                                <?php if ($communityReactionsEnabled && function_exists('sr_reaction_render_widget')) { ?>
+                                <?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget')) { ?>
                                     <?php
                                     $communityCommentReactionId = (string) (int) ($comment['id'] ?? 0);
                                     $communityCommentReactionOptions = ['label' => '댓글 리액션'];
@@ -691,7 +691,7 @@ unset($_SESSION['sr_member_follow_feedback']);
         </section>
         <?php } ?>
     <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-end.php'; ?>
-<?php if ($communityReactionsEnabled && function_exists('sr_reaction_public_script_html')) { ?>
+<?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

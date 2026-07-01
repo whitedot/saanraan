@@ -40,7 +40,7 @@ if (!function_exists('sr_content_reaction_content_result')) {
         if (empty($settings['reaction_enabled'])) {
             $canView = false;
         }
-        $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_preset_key'] ?? '') : '';
+        $presetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_preset_key'] ?? '') : '';
         if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
             $canView = false;
             $presetKey = '';
@@ -109,7 +109,7 @@ if (!function_exists('sr_content_reaction_comment_result')) {
         if (empty($settings['reaction_enabled'])) {
             $canView = false;
         }
-        $presetKey = function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
+        $presetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
         if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
             $canView = false;
             $presetKey = '';

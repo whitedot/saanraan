@@ -270,8 +270,8 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['privacy_consent_require_comment'] = sr_community_bool_setting($settings['privacy_consent_require_comment'] ?? false);
     $settings['privacy_consent_require_attachment_upload'] = sr_community_bool_setting($settings['privacy_consent_require_attachment_upload'] ?? false);
     $settings['reaction_enabled'] = sr_community_bool_setting($settings['reaction_enabled'] ?? true);
-    $settings['reaction_post_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
-    $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
+    $settings['reaction_post_preset_key'] = $pdo instanceof PDO && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
+    $settings['reaction_comment_preset_key'] = $pdo instanceof PDO && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
     foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)

@@ -2,7 +2,7 @@
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -180,7 +180,7 @@ if ($quizEmbedded) {
     </section>
 
     <section class="example-quiz-panel">
-        <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && $submitResult !== null) { ?>
+        <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && $submitResult !== null) { ?>
             <?php echo sr_reaction_render_widget($pdo, 'quiz', 'quiz_set', (string) (int) ($quiz['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
         <?php } ?>
         <?php if ($submitResult !== null) { ?>
@@ -245,7 +245,7 @@ if ($quizEmbedded) {
     <?php } ?>
 </main>
 
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php if ($quizEmbedded) { ?>

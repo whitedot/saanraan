@@ -501,8 +501,9 @@ function sr_quiz_normalize_settings(array $settings): array
         $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
     }
     $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
-    $normalized['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
-    $normalized['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
+    $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
+    $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
+    $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
 
     return $normalized;
@@ -552,8 +553,8 @@ function sr_quiz_settings_from_post(): array
         'default_reward_dedupe_scope' => $rewardDedupeScope,
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
         'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
-        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
-        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
+        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
+        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['theme_key'] = $themeKey;

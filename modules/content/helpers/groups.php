@@ -541,7 +541,7 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
         $params = [(string) ($values['layout_key'] ?? ''), $accountId, $now];
     } elseif (in_array($settingKey, ['reaction_preset_key', 'reaction_comment_preset_key'], true)) {
         $sql = 'UPDATE sr_content_items SET ' . $settingKey . ' = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
-        $params = [function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values[$settingKey] ?? '') : '', $accountId, $now];
+        $params = [sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values[$settingKey] ?? '') : '', $accountId, $now];
     } elseif (in_array($settingKey, ['banner_before_content_id', 'banner_after_content_id', 'popup_layer_id'], true)) {
         $sql = 'UPDATE sr_content_items SET ' . $settingKey . ' = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [(int) ($values[$settingKey] ?? 0), $accountId, $now];

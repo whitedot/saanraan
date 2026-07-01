@@ -3,7 +3,7 @@
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -16,7 +16,7 @@ $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $memberGroups = sr_quiz_member_groups_for_admin($pdo);
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();

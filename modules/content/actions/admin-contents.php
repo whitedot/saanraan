@@ -11,7 +11,7 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 require_once SR_ROOT . '/core/helpers/url-embed.php';
@@ -200,7 +200,7 @@ $publicPopupLayers = function_exists('sr_popup_layer_public_layers') && sr_modul
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $assetPolicySets = sr_content_asset_policy_sets($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
-$reactionPresetOptions = function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $pageGroups = sr_content_groups($pdo);
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
 $contentSeriesOptions = sr_content_series_list($pdo);

@@ -2,7 +2,7 @@
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -139,7 +139,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     </section>
 
     <section class="example-survey-panel">
-        <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && ($submittedScreen || $submitResult !== null)) { ?>
+        <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && ($submittedScreen || $submitResult !== null)) { ?>
             <?php echo sr_reaction_render_widget($pdo, 'survey', 'survey_form', (string) (int) ($survey['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
         <?php } ?>
         <?php if ($submittedScreen || $submitResult !== null) { ?>
@@ -212,7 +212,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     </section>
 </main>
 
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

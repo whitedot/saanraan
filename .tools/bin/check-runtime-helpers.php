@@ -157,6 +157,25 @@ sr_runtime_helper_assert(
         === 'SELECT * FROM `custom_modules` INNER JOIN custom_site_settings s ON s.setting_key = custom_modules.module_key',
     'SQL prefix rewriting should rewrite bare and backtick-quoted identifiers.'
 );
+
+$moduleFixturePdo = new PDO('sqlite::memory:');
+$moduleFixturePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+sr_runtime_helper_assert(
+    sr_enabled_module_keys($moduleFixturePdo) === [] && sr_installed_module_keys($moduleFixturePdo) === [] && !sr_module_enabled($moduleFixturePdo, 'reaction'),
+    'Module registry helpers should fail closed when sr_modules is absent.'
+);
+$moduleFixturePdo->exec(
+    "CREATE TABLE sr_modules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL,
+        status TEXT NOT NULL
+    )"
+);
+$moduleFixturePdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('reaction', 'enabled'), ('coupon', 'disabled'), ('bad-key', 'enabled')");
+sr_runtime_helper_assert(
+    sr_enabled_module_keys($moduleFixturePdo) === ['reaction'] && sr_installed_module_keys($moduleFixturePdo) === ['reaction', 'coupon'] && sr_module_enabled($moduleFixturePdo, 'reaction') && !sr_module_enabled($moduleFixturePdo, 'coupon'),
+    'Module registry helpers should read installed and enabled safe module keys.'
+);
 sr_runtime_helper_assert(
     sr_mail_http_api_endpoint_is_allowed('https://93.184.216.34/mail'),
     'Public HTTPS mail API endpoint should be allowed.'

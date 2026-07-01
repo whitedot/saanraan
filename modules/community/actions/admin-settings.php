@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -25,7 +25,7 @@ $communityLayoutOptions = sr_community_layout_options($pdo);
 $communityThemeOptions = sr_community_theme_options();
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
 foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)] ?? ''));
@@ -102,8 +102,8 @@ if (sr_request_method() === 'POST') {
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);
         $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
-        $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
-        $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+        $reactionPostPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
+        $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = $messageEnabled
             ? sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput)

@@ -517,8 +517,9 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['default_response_limit_policy'] = in_array((string) $normalized['default_response_limit_policy'], sr_survey_response_limit_policies(), true) ? (string) $normalized['default_response_limit_policy'] : (string) $defaults['default_response_limit_policy'];
     $normalized['default_response_limit_period_seconds'] = max(0, (int) $normalized['default_response_limit_period_seconds']);
     $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
-    $normalized['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
-    $normalized['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
+    $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
+    $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
+    $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
 
     return $normalized;
@@ -551,8 +552,8 @@ function sr_survey_settings_from_post(): array
         'default_response_limit_policy' => sr_survey_clean_key(sr_post_string('default_response_limit_policy', 30), 30),
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
         'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
-        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_preset_key', 80), 80),
-        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
+        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_preset_key', 80), 80),
+        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['theme_key'] = $themeKey;

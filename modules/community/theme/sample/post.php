@@ -85,7 +85,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
                 </div>
 
-                <?php if (function_exists('sr_reaction_render_widget') && !empty($communityReactionsEnabled)) { ?>
+                <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !empty($communityReactionsEnabled)) { ?>
                     <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
                 <?php } ?>
 
@@ -166,7 +166,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
     <?php } ?>
 </main>
 
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

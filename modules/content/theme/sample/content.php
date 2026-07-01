@@ -88,7 +88,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
                 </div>
 
-                <?php if (function_exists('sr_reaction_render_widget') && !$contentAdminPreview) { ?>
+                <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$contentAdminPreview) { ?>
                     <?php echo sr_reaction_render_widget($pdo, 'content', 'content', (string) (int) ($page['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
                 <?php } ?>
 
@@ -168,7 +168,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     ]); ?>
 </main>
 
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

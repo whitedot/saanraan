@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -21,7 +21,7 @@ $settings = sr_content_settings($pdo);
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_content_toolbar_preset_options();
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $publicLayoutOptions = sr_content_layout_options($pdo);
 $publicThemeOptions = sr_content_theme_options();
 $siteMenuOptions = [];
@@ -63,8 +63,8 @@ if (sr_request_method() === 'POST') {
         'member_submission_author_reward_asset_module' => $postedAuthorRewardAssetModule,
         'member_submission_author_reward_amount' => $postedAuthorRewardAssetModule !== '' ? ($postedAuthorRewardAmount ?? 0) : 0,
         'reaction_enabled' => sr_post_string('reaction_enabled', 1) === '1',
-        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '',
-        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
+        'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {

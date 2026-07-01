@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 require_once SR_ROOT . '/modules/survey/helpers/admin-surveys.php';
 require_once SR_ROOT . '/core/helpers/url-embed.php';
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
@@ -19,7 +19,7 @@ $memberGroups = sr_member_groups($pdo);
 $surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static function (array $memberGroup): bool {
     return (string) ($memberGroup['status'] ?? '') === 'enabled';
 }));
-$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
     if ((string) ($memberGroup['status'] ?? '') === 'enabled') {

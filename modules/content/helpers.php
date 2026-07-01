@@ -225,8 +225,8 @@ function sr_content_settings(PDO $pdo): array
     $settings['member_submission_author_reward_amount'] = min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0)));
     $settings['member_submission_author_reward_enabled'] = sr_content_bool_setting($settings['member_submission_author_reward_enabled'] ?? false);
     $settings['reaction_enabled'] = sr_content_bool_setting($settings['reaction_enabled'] ?? true);
-    $settings['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '';
-    $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
+    $settings['reaction_preset_key'] = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '';
+    $settings['reaction_comment_preset_key'] = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
 
     return $settings;
 }
@@ -456,8 +456,8 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['member_submission_author_reward_asset_module', sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? '')), 'string'],
         ['member_submission_author_reward_amount', (string) min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0))), 'integer'],
         ['reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0', 'bool'],
-        ['reaction_preset_key', function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '', 'string'],
-        ['reaction_comment_preset_key', function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '', 'string'],
+        ['reaction_preset_key', sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '', 'string'],
+        ['reaction_comment_preset_key', sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '', 'string'],
     ];
     $now = sr_now();
     $stmt = $pdo->prepare(

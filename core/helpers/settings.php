@@ -75,7 +75,14 @@ function sr_site_default_currency(?PDO $pdo = null): string
 
 function sr_enabled_module_keys(PDO $pdo): array
 {
-    $stmt = $pdo->query("SELECT module_key FROM sr_modules WHERE status = 'enabled' ORDER BY id ASC");
+    try {
+        $stmt = $pdo->query("SELECT module_key FROM sr_modules WHERE status = 'enabled' ORDER BY id ASC");
+    } catch (PDOException $exception) {
+        if (sr_module_registry_missing_exception($exception)) {
+            return [];
+        }
+        throw $exception;
+    }
     $moduleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $moduleKey = (string) ($row['module_key'] ?? '');
@@ -89,7 +96,14 @@ function sr_enabled_module_keys(PDO $pdo): array
 
 function sr_installed_module_keys(PDO $pdo): array
 {
-    $stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY id ASC');
+    try {
+        $stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY id ASC');
+    } catch (PDOException $exception) {
+        if (sr_module_registry_missing_exception($exception)) {
+            return [];
+        }
+        throw $exception;
+    }
     $moduleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $moduleKey = (string) ($row['module_key'] ?? '');
@@ -99,6 +113,16 @@ function sr_installed_module_keys(PDO $pdo): array
     }
 
     return $moduleKeys;
+}
+
+function sr_module_registry_missing_exception(PDOException $exception): bool
+{
+    $code = (string) $exception->getCode();
+    $message = strtolower($exception->getMessage());
+
+    return $code === '42S02'
+        || str_contains($message, 'no such table: sr_modules')
+        || (str_contains($message, 'base table or view not found') && str_contains($message, 'sr_modules'));
 }
 
 function sr_is_safe_module_key(string $moduleKey): bool

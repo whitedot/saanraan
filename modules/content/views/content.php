@@ -25,12 +25,12 @@ $contentStylesheets = [
     '/modules/reaction/assets/module.css',
 ];
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
-if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $contentReactionCommentTargets = [];
 if (
-    function_exists('sr_reaction_resolve_targets')
+    sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
     && empty($contentAdminPreview)
     && is_array($contentComments ?? null)
     && $contentComments !== []
@@ -127,7 +127,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-body">
                 <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
             </div>
-            <?php if (function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
+            <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
                 <?php echo sr_reaction_render_widget($pdo, 'content', 'content', (string) (int) ($page['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
             <?php } ?>
             <?php if (is_array($contentQuizLinks ?? null) && $contentQuizLinks !== []) { ?>
@@ -358,7 +358,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
                                     <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
-                                    <?php if (function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
+                                    <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
                                         <?php
                                         $contentCommentReactionId = (string) (int) ($contentComment['id'] ?? 0);
                                         $contentCommentReactionOptions = ['label' => '댓글 리액션'];
@@ -491,7 +491,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php echo sr_banner_render_public_banner($pdo, (int) ($page['banner_after_content_id'] ?? 0)); ?>
     <?php } ?>
 </main>
-<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

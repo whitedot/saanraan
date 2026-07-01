@@ -316,8 +316,8 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
     $commentsEnabled = ($_POST['comments_enabled'] ?? '') === '1';
     $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
-    $reactionPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
-    $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+    $reactionPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
+    $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
