@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.046',
+    'version' => '2026.06.047',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -70,6 +70,13 @@ return [
         'report_auto_action_threshold' => 5,
         'report_auto_action_window_days' => 0,
         'report_auto_action_public_mode' => 'exclude',
+        'account_guard_publication_hold_enabled' => false,
+        'account_guard_publication_hold_threshold' => 3,
+        'account_guard_publication_hold_duration_minutes' => 120,
+        'account_guard_confirmed_hold_enabled' => false,
+        'account_guard_confirmed_hold_threshold' => 3,
+        'account_guard_confirmed_hold_window_days' => 30,
+        'account_guard_confirmed_hold_duration_minutes' => 1440,
         'message_create_window_seconds' => 300,
         'message_create_limit' => 20,
         'attachment_max_bytes' => 2097152,

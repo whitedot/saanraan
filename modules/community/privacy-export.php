@@ -198,6 +198,8 @@ return static function (PDO $pdo, int $accountId): array {
         'attachment_download_logs' => [],
         'reports' => [],
         'report_auto_actions' => [],
+        'account_guard_events' => [],
+        'account_guards' => [],
         'messages' => [],
         'scraps' => [],
         'series_scraps' => [],
@@ -375,6 +377,71 @@ return static function (PDO $pdo, int $accountId): array {
         ], 'report_auto_actions', $sectionLimits);
     } catch (Throwable $exception) {
         $empty['report_auto_actions'] = [];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_account_guard_events LIMIT 1');
+        $stmt = $pdo->prepare(
+            'SELECT id,
+                    CASE WHEN account_id = :event_account_id THEN account_id ELSE NULL END AS account_id,
+                    CASE WHEN account_id = :event_account_role_id THEN \'guarded_account\' ELSE \'masked_guarded_account\' END AS account_role,
+                    source_type, source_id, guard_type, trigger_reason, status,
+                    starts_at, expires_at, released_at,
+                    CASE WHEN reviewer_account_id = :event_reviewer_id THEN reviewer_account_id ELSE NULL END AS reviewer_account_id,
+                    CASE
+                        WHEN reviewer_account_id IS NULL THEN \'none\'
+                        WHEN reviewer_account_id = :event_reviewer_role_id THEN \'self\'
+                        ELSE \'masked_operator\'
+                    END AS reviewer_account_role,
+                    trigger_fingerprint, snapshot_json, created_at, updated_at
+             FROM sr_community_account_guard_events
+             WHERE account_id = :event_matched_account_id
+                OR reviewer_account_id = :event_matched_reviewer_id
+             ORDER BY id ASC
+             LIMIT 1001'
+        );
+        $empty['account_guard_events'] = sr_community_privacy_fetch_limited($stmt, [
+            'event_account_id' => $accountId,
+            'event_account_role_id' => $accountId,
+            'event_reviewer_id' => $accountId,
+            'event_reviewer_role_id' => $accountId,
+            'event_matched_account_id' => $accountId,
+            'event_matched_reviewer_id' => $accountId,
+        ], 'account_guard_events', $sectionLimits);
+    } catch (Throwable $exception) {
+        $empty['account_guard_events'] = [];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_account_guards LIMIT 1');
+        $stmt = $pdo->prepare(
+            'SELECT id,
+                    CASE WHEN account_id = :guard_account_id THEN account_id ELSE NULL END AS account_id,
+                    CASE WHEN account_id = :guard_account_role_id THEN \'guarded_account\' ELSE \'masked_guarded_account\' END AS account_role,
+                    guard_type, status, source_event_id, starts_at, expires_at, released_at,
+                    CASE WHEN reviewer_account_id = :guard_reviewer_id THEN reviewer_account_id ELSE NULL END AS reviewer_account_id,
+                    CASE
+                        WHEN reviewer_account_id IS NULL THEN \'none\'
+                        WHEN reviewer_account_id = :guard_reviewer_role_id THEN \'self\'
+                        ELSE \'masked_operator\'
+                    END AS reviewer_account_role,
+                    snapshot_json, created_at, updated_at
+             FROM sr_community_account_guards
+             WHERE account_id = :guard_matched_account_id
+                OR reviewer_account_id = :guard_matched_reviewer_id
+             ORDER BY id ASC
+             LIMIT 1001'
+        );
+        $empty['account_guards'] = sr_community_privacy_fetch_limited($stmt, [
+            'guard_account_id' => $accountId,
+            'guard_account_role_id' => $accountId,
+            'guard_reviewer_id' => $accountId,
+            'guard_reviewer_role_id' => $accountId,
+            'guard_matched_account_id' => $accountId,
+            'guard_matched_reviewer_id' => $accountId,
+        ], 'account_guards', $sectionLimits);
+    } catch (Throwable $exception) {
+        $empty['account_guards'] = [];
     }
 
     $stmt = $pdo->prepare(

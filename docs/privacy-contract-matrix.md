@@ -26,7 +26,7 @@
 | `asset_ledger` | `export_cleanup` | 제공 | 제공 | 공통 원장 점검 helper와 보상 회수 실패 큐를 제공한다. `sr_asset_recovery_failures`는 실패한 회수 작업의 account/actor 연결과 금액을 저장하며, 사본 제공과 탈퇴/익명화 cleanup 계약은 `asset_ledger`가 소유한다. |
 | `banner` | `no_member_personal_data` | 없음 | 없음 | 배너 설정은 회원 귀속 데이터가 아니다. 클릭 dedupe hash는 account/session/IP/UA에서 파생될 수 있는 가명성 운영 데이터로 분리해 보관일 정책에 따른다. |
 | `ckeditor` | `no_member_personal_data` | 없음 | 없음 | 에디터 asset과 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
-| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 신고 자동 임시 조치 이력, 동의 증적, 접근권, 보상 로그 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 운영 기준은 `asset_ledger` 공통 큐가 소유하며, community export/cleanup은 호환 기간의 legacy `sr_community_asset_recovery_failures` row만 정리한다. |
+| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 신고 자동 임시 조치 이력, 계정 guard 이력/현재 상태, 동의 증적, 접근권, 보상 로그 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 운영 기준은 `asset_ledger` 공통 큐가 소유하며, community export/cleanup은 호환 기간의 legacy `sr_community_asset_recovery_failures` row만 정리한다. |
 | `content` | `export_cleanup` | 제공 | 제공 | 작성자, 신청자, 댓글, 유료 접근권, 다운로드 로그, 자산 처리 로그 등 회원 활동 데이터를 가진다. |
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 없음 | 예치금 잔액, 원장, 환불 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |

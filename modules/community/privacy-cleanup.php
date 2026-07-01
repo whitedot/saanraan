@@ -77,6 +77,8 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $submissionConsentAnonymizedCount = 0;
     $attachmentDownloadLogAnonymizedCount = 0;
     $reportAutoActionActorLinksCleared = 0;
+    $accountGuardEventAnonymizedCount = 0;
+    $accountGuardAnonymizedCount = 0;
     $assetRecoveryFailureAnonymizedCount = 0;
     $assetRecoveryFailureActorLinksCleared = 0;
 
@@ -229,6 +231,49 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $reportAutoActionActorLinksCleared = $stmt->rowCount();
     }
 
+    if (
+        $columnExists($pdo, 'sr_community_account_guard_events', 'account_id')
+        && $columnExists($pdo, 'sr_community_account_guard_events', 'reviewer_account_id')
+    ) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_account_guard_events
+             SET account_id = CASE WHEN account_id = :event_account_id THEN 0 ELSE account_id END,
+                 reviewer_account_id = CASE WHEN reviewer_account_id = :event_reviewer_account_id THEN NULL ELSE reviewer_account_id END
+             WHERE account_id = :matched_event_account_id
+                OR reviewer_account_id = :matched_event_reviewer_account_id'
+        );
+        $stmt->execute([
+            'event_account_id' => $accountId,
+            'event_reviewer_account_id' => $accountId,
+            'matched_event_account_id' => $accountId,
+            'matched_event_reviewer_account_id' => $accountId,
+        ]);
+        $accountGuardEventAnonymizedCount = $stmt->rowCount();
+    }
+
+    if (
+        $columnExists($pdo, 'sr_community_account_guards', 'account_id')
+        && $columnExists($pdo, 'sr_community_account_guards', 'reviewer_account_id')
+        && $columnExists($pdo, 'sr_community_account_guards', 'active_guard_uid')
+    ) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_account_guards
+             SET active_guard_uid = CASE WHEN account_id = :guard_active_account_id THEN NULL ELSE active_guard_uid END,
+                 account_id = CASE WHEN account_id = :guard_account_id THEN 0 ELSE account_id END,
+                 reviewer_account_id = CASE WHEN reviewer_account_id = :guard_reviewer_account_id THEN NULL ELSE reviewer_account_id END
+             WHERE account_id = :matched_guard_account_id
+                OR reviewer_account_id = :matched_guard_reviewer_account_id'
+        );
+        $stmt->execute([
+            'guard_active_account_id' => $accountId,
+            'guard_account_id' => $accountId,
+            'guard_reviewer_account_id' => $accountId,
+            'matched_guard_account_id' => $accountId,
+            'matched_guard_reviewer_account_id' => $accountId,
+        ]);
+        $accountGuardAnonymizedCount = $stmt->rowCount();
+    }
+
     if ($columnExists($pdo, 'sr_community_asset_recovery_failures', 'account_id')) {
         $hasRecoveryActorColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'actor_account_id');
         $hasRecoveryContextColumn = $columnExists($pdo, 'sr_community_asset_recovery_failures', 'operation_context_json');
@@ -279,6 +324,8 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
         'community_attachment_download_log_anonymized_count' => $attachmentDownloadLogAnonymizedCount,
         'community_report_auto_action_actor_links_cleared' => $reportAutoActionActorLinksCleared,
+        'community_account_guard_event_anonymized_count' => $accountGuardEventAnonymizedCount,
+        'community_account_guard_anonymized_count' => $accountGuardAnonymizedCount,
         'community_asset_recovery_failure_anonymized_count' => $assetRecoveryFailureAnonymizedCount,
         'community_asset_recovery_failure_actor_links_cleared' => $assetRecoveryFailureActorLinksCleared,
         'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,

@@ -13,6 +13,7 @@ require_once SR_ROOT . '/modules/community/helpers/attachments.php';
 require_once SR_ROOT . '/modules/community/helpers/assets.php';
 require_once SR_ROOT . '/modules/community/helpers/publisher-rewards.php';
 require_once SR_ROOT . '/modules/community/helpers/reports.php';
+require_once SR_ROOT . '/modules/community/helpers/account-guards.php';
 require_once SR_ROOT . '/modules/community/helpers/scraps.php';
 require_once SR_ROOT . '/modules/community/helpers/series.php';
 require_once SR_ROOT . '/modules/community/helpers/presentation.php';
