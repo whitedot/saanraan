@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 chdir($root);
 require_once 'core/version.php';
+require_once 'core/helpers/settings.php';
 
 $errors = [];
 
@@ -376,45 +377,7 @@ function sr_check_extension_points_contract(string $moduleKey, string $contractP
 function sr_check_module_lifecycle_metadata(): void
 {
     $requiredModules = ['member', 'admin', 'privacy'];
-    $knownContractFiles = [
-        'admin-menu.php' => true,
-        'extension-points.php' => true,
-        'dashboard.php' => true,
-        'asset-exchange.php' => true,
-        'member-group-rules.php' => true,
-        'layout-options.php' => true,
-        'menu-links.php' => true,
-        'output-slots.php' => true,
-        'privacy-cleanup.php' => true,
-        'paths.php' => true,
-        'privacy-export.php' => true,
-        'sitemap.php' => true,
-        'member-assets.php' => true,
-        'member-withdrawal-assets.php' => true,
-        'member-summary-rows.php' => true,
-        'member-action-rows.php' => true,
-        'member-only-routes.php' => true,
-        'member-registration.php' => true,
-        'homepage-candidates.php' => true,
-        'editor-options.php' => true,
-        'coupon-targets.php' => true,
-        'coupon-references.php' => true,
-        'payment-ledger-targets.php' => true,
-        'banner-references.php' => true,
-        'popup-layer-references.php' => true,
-        'member-group-references.php' => true,
-        'site-setting-references.php' => true,
-        'logo-positions.php' => true,
-        'notification-events.php' => true,
-        'admin-notification-events.php' => true,
-        'antispam-targets.php' => true,
-        'antispam-providers.php' => true,
-        'oauth-providers.php' => true,
-        'url-embed-targets.php' => true,
-        'reaction-targets.php' => true,
-        'operational-status.php' => true,
-        'retention-targets.php' => true,
-    ];
+    $knownContractFiles = array_fill_keys(sr_module_known_contract_files(), true);
 
     foreach ($requiredModules as $moduleKey) {
         if (!is_file('modules/' . $moduleKey . '/module.php') || !is_file('modules/' . $moduleKey . '/install.sql')) {
@@ -637,44 +600,7 @@ function sr_check_module_lifecycle_ui_contract(): void
 
 function sr_check_module_contract_files(): void
 {
-    $knownContractFiles = [
-        'admin-menu.php',
-        'extension-points.php',
-        'dashboard.php',
-        'asset-exchange.php',
-        'member-group-rules.php',
-        'layout-options.php',
-        'menu-links.php',
-        'output-slots.php',
-        'privacy-cleanup.php',
-        'paths.php',
-        'privacy-export.php',
-        'sitemap.php',
-        'member-assets.php',
-        'member-withdrawal-assets.php',
-        'member-summary-rows.php',
-        'member-action-rows.php',
-        'member-only-routes.php',
-        'member-registration.php',
-        'homepage-candidates.php',
-        'editor-options.php',
-        'coupon-targets.php',
-        'coupon-references.php',
-        'banner-references.php',
-        'popup-layer-references.php',
-        'member-group-references.php',
-        'site-setting-references.php',
-        'logo-positions.php',
-        'notification-events.php',
-        'admin-notification-events.php',
-        'antispam-targets.php',
-        'antispam-providers.php',
-        'oauth-providers.php',
-        'url-embed-targets.php',
-        'reaction-targets.php',
-        'operational-status.php',
-        'retention-targets.php',
-    ];
+    $knownContractFiles = sr_module_known_contract_files();
     $requiredConsumes = [
         'admin' => [
             'admin-menu.php',
