@@ -484,10 +484,36 @@ function sr_check_module_lifecycle_metadata(): void
 
         $requires = is_array($metadata['requires'] ?? null) ? $metadata['requires'] : [];
         $requiredModuleMap = is_array($requires['modules'] ?? null) ? $requires['modules'] : [];
+        $requiredModuleKeys = [];
         foreach ($requiredModuleMap as $key => $value) {
             $requiredModuleKey = is_string($key) ? $key : (string) $value;
             if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $requiredModuleKey) !== 1 || $requiredModuleKey === $moduleKey) {
                 sr_check_add_error('Module requires.modules entry is invalid: ' . $moduleFile);
+                continue;
+            }
+
+            $requiredModuleKeys[$requiredModuleKey] = true;
+        }
+
+        $pathsFile = $moduleDir . '/paths.php';
+        if (!in_array($moduleKey, ['admin', 'member'], true) && is_file($pathsFile)) {
+            $paths = include $pathsFile;
+            $hasAdminRoute = false;
+            if (is_array($paths)) {
+                foreach (array_keys($paths) as $route) {
+                    if (preg_match('#\A(?:GET|POST) /admin(?:/|\z)#', (string) $route) === 1) {
+                        $hasAdminRoute = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($hasAdminRoute) {
+                foreach (['admin', 'member'] as $requiredAdminModuleKey) {
+                    if (!isset($requiredModuleKeys[$requiredAdminModuleKey])) {
+                        sr_check_add_error('Module with admin routes must require ' . $requiredAdminModuleKey . ': ' . $moduleFile);
+                    }
+                }
             }
         }
     }

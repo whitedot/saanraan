@@ -19,7 +19,7 @@ return [
         'module_contract' => '2.0',
     ],
     'requires' => [
-        'modules' => ['admin'],
+        'modules' => ['admin', 'member'],
     ],
     'contracts' => [
         'provides' => [
