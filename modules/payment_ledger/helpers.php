@@ -141,6 +141,9 @@ function sr_payment_ledger_target_contracts(PDO $pdo): array
             if ($subjectModule === '' || $subjectType === '' || $label === '') {
                 continue;
             }
+            if ($subjectModule !== (string) $moduleKey) {
+                continue;
+            }
 
             $target['provider_module_key'] = (string) $moduleKey;
             $target['subject_module'] = $subjectModule;

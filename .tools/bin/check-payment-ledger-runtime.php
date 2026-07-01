@@ -74,6 +74,37 @@ function sr_payment_runtime_create_schema(PDO $pdo): void
     )");
 }
 
+foreach (glob($root . '/modules/*/payment-ledger-targets.php') ?: [] as $targetFile) {
+    $providerModuleKey = basename(dirname($targetFile));
+    if (!preg_match('/\A[a-z0-9_]+\z/', $providerModuleKey)) {
+        continue;
+    }
+
+    $targets = require $targetFile;
+    if (!is_array($targets)) {
+        $errors[] = $providerModuleKey . ' payment ledger target contract must return an array.';
+        continue;
+    }
+
+    foreach ($targets as $target) {
+        if (!is_array($target)) {
+            $errors[] = $providerModuleKey . ' payment ledger target entries must be arrays.';
+            continue;
+        }
+
+        sr_payment_runtime_assert(
+            (string) ($target['subject_module'] ?? '') === $providerModuleKey,
+            $providerModuleKey . ' payment ledger target subject_module must match its provider module.'
+        );
+    }
+}
+
+$paymentLedgerHelperSource = (string) file_get_contents($root . '/modules/payment_ledger/helpers.php');
+sr_payment_runtime_assert(
+    str_contains($paymentLedgerHelperSource, '$subjectModule !== (string) $moduleKey'),
+    'payment ledger target loading must ignore targets whose subject_module is owned by another provider module.'
+);
+
 $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
