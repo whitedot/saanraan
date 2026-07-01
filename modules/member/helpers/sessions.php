@@ -67,6 +67,165 @@ function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
     return (int) $stmt->fetchColumn() > 0;
 }
 
+function sr_member_mfa_totp_secret_purpose(): string
+{
+    return 'member.mfa.totp';
+}
+
+function sr_member_mfa_totp_period_seconds(): int
+{
+    return 30;
+}
+
+function sr_member_mfa_totp_digits(): int
+{
+    return 6;
+}
+
+function sr_member_mfa_totp_window_steps(): int
+{
+    return 1;
+}
+
+function sr_member_mfa_normalize_code(string $code): string
+{
+    return preg_replace('/[\s-]+/', '', trim($code)) ?? '';
+}
+
+function sr_member_mfa_code_is_valid_format(string $code): bool
+{
+    return preg_match('/\A[0-9]{6,12}\z/', $code) === 1;
+}
+
+function sr_member_mfa_totp_code(string $secret, ?int $time = null): string
+{
+    $time = $time ?? time();
+    $period = sr_member_mfa_totp_period_seconds();
+    $step = intdiv(max(0, $time), $period);
+
+    return sr_member_mfa_hotp_code($secret, $step);
+}
+
+function sr_member_mfa_hotp_code(string $secret, int $counter): string
+{
+    $counter = max(0, $counter);
+    $high = intdiv($counter, 4294967296);
+    $low = $counter % 4294967296;
+    $binaryCounter = pack('N2', $high, $low);
+    $hash = hash_hmac('sha1', $binaryCounter, $secret, true);
+    $offset = ord($hash[19]) & 0x0f;
+    $binary =
+        ((ord($hash[$offset]) & 0x7f) << 24)
+        | ((ord($hash[$offset + 1]) & 0xff) << 16)
+        | ((ord($hash[$offset + 2]) & 0xff) << 8)
+        | (ord($hash[$offset + 3]) & 0xff);
+    $modulus = 10 ** sr_member_mfa_totp_digits();
+
+    return str_pad((string) ($binary % $modulus), sr_member_mfa_totp_digits(), '0', STR_PAD_LEFT);
+}
+
+function sr_member_mfa_totp_secret_ciphertext(string $secret, ?array $config = null): string
+{
+    return sr_secret_at_rest_encrypt($secret, sr_member_mfa_totp_secret_purpose(), $config);
+}
+
+function sr_member_mfa_totp_secret_fingerprint(string $secret, ?array $config = null): string
+{
+    return sr_secret_at_rest_fingerprint($secret, sr_member_mfa_totp_secret_purpose(), $config);
+}
+
+function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, ?int $time = null, ?array $config = null): array
+{
+    $code = sr_member_mfa_normalize_code($code);
+    if ($accountId < 1 || !sr_member_mfa_code_is_valid_format($code)) {
+        return [
+            'verified' => false,
+            'reason' => 'invalid_code',
+            'factor_id' => 0,
+            'step' => null,
+        ];
+    }
+
+    $time = $time ?? time();
+    $period = sr_member_mfa_totp_period_seconds();
+    $currentStep = intdiv(max(0, $time), $period);
+    $window = sr_member_mfa_totp_window_steps();
+    $stmt = $pdo->prepare(
+        "SELECT id, secret_ciphertext, last_used_step
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+           AND factor_type = 'totp'
+           AND status = 'active'
+         ORDER BY id ASC"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    $matchedReplay = false;
+    $secretUnavailable = false;
+    foreach ($stmt->fetchAll() as $factor) {
+        $factorId = (int) ($factor['id'] ?? 0);
+        try {
+            $secret = sr_secret_at_rest_decrypt(
+                (string) ($factor['secret_ciphertext'] ?? ''),
+                sr_member_mfa_totp_secret_purpose(),
+                $config
+            );
+        } catch (Throwable $exception) {
+            $secretUnavailable = true;
+            $secret = null;
+        }
+        if ($factorId < 1 || $secret === null || $secret === '') {
+            $secretUnavailable = true;
+            continue;
+        }
+
+        for ($offset = -$window; $offset <= $window; $offset++) {
+            $step = $currentStep + $offset;
+            if ($step < 0) {
+                continue;
+            }
+            if (!hash_equals(sr_member_mfa_hotp_code($secret, $step), $code)) {
+                continue;
+            }
+
+            $stmt = $pdo->prepare(
+                "UPDATE sr_member_mfa_factors
+                 SET last_used_step = :last_used_step,
+                     updated_at = :updated_at
+                 WHERE id = :id
+                   AND account_id = :account_id
+                   AND factor_type = 'totp'
+                   AND status = 'active'
+                   AND (last_used_step IS NULL OR last_used_step < :last_used_step)"
+            );
+            $stmt->execute([
+                'last_used_step' => $step,
+                'updated_at' => sr_now(),
+                'id' => $factorId,
+                'account_id' => $accountId,
+            ]);
+
+            if ($stmt->rowCount() === 1) {
+                return [
+                    'verified' => true,
+                    'reason' => '',
+                    'factor_id' => $factorId,
+                    'step' => $step,
+                ];
+            }
+
+            $matchedReplay = true;
+        }
+    }
+
+    return [
+        'verified' => false,
+        'reason' => $matchedReplay ? 'replayed_code' : ($secretUnavailable ? 'secret_unavailable' : 'invalid_code'),
+        'factor_id' => 0,
+        'step' => null,
+    ];
+}
+
 function sr_member_mfa_privacy_metadata(PDO $pdo, int $accountId): array
 {
     if ($accountId < 1) {

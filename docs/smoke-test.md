@@ -146,6 +146,7 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 / 응답이 500 없이 열리는지 확인
 /login 응답이 500 없이 열리는지 확인
 /login/mfa 응답이 500 없이 로그인 또는 2차 인증 challenge 흐름으로 이어지는지 확인
+활성 TOTP factor fixture가 있는 계정은 1차 로그인 뒤 `/login/mfa`로 이동하고, 올바른 TOTP code 제출 후 원래 next 경로로 돌아가며 같은 time step code 재사용은 거부되는지 확인
 /ui-kit 응답이 500 없이 열리고 Public UI-KIT 화면이 출력되는지 확인
 /admin 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/updates 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인

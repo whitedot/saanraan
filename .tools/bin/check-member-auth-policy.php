@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 
+require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/member/helpers/accounts.php';
 require_once $root . '/modules/member/helpers/sessions.php';
@@ -213,6 +214,37 @@ sr_member_auth_policy_assert(
         && !array_key_exists('secret_fingerprint', $mfaMetadata['factors'][0] ?? []),
     'MFA privacy metadata should include status summaries without secret ciphertext, fingerprints, or recovery hashes.'
 );
+$mfaConfig = ['app_key' => 'member-mfa-runtime-test-app-key'];
+$mfaSecret = '12345678901234567890';
+$mfaSecretCiphertext = sr_member_mfa_totp_secret_ciphertext($mfaSecret, $mfaConfig);
+$mfaPdo->prepare('UPDATE sr_member_mfa_factors SET secret_ciphertext = :secret_ciphertext, secret_fingerprint = :secret_fingerprint, last_used_step = NULL WHERE id = 2')->execute([
+    'secret_ciphertext' => $mfaSecretCiphertext,
+    'secret_fingerprint' => sr_member_mfa_totp_secret_fingerprint($mfaSecret, $mfaConfig),
+]);
+sr_member_auth_policy_assert(
+    sr_member_mfa_hotp_code($mfaSecret, 1) === '287082',
+    'MFA HOTP helper should match the RFC 4226 six-digit counter fixture.'
+);
+$mfaCode = sr_member_mfa_totp_code($mfaSecret, 59);
+$mfaVerify = sr_member_mfa_verify_totp_code($mfaPdo, 77, $mfaCode, 59, $mfaConfig);
+$mfaReplay = sr_member_mfa_verify_totp_code($mfaPdo, 77, $mfaCode, 59, $mfaConfig);
+$mfaNextCode = sr_member_mfa_totp_code($mfaSecret, 90);
+$mfaNextVerify = sr_member_mfa_verify_totp_code($mfaPdo, 77, $mfaNextCode, 90, $mfaConfig);
+$mfaWrongKey = sr_member_mfa_verify_totp_code($mfaPdo, 77, $mfaNextCode, 90, ['app_key' => 'wrong-member-mfa-key']);
+sr_member_auth_policy_assert(
+    !empty($mfaVerify['verified'])
+        && (int) ($mfaVerify['factor_id'] ?? 0) === 2
+        && empty($mfaReplay['verified'])
+        && (string) ($mfaReplay['reason'] ?? '') === 'replayed_code'
+        && !empty($mfaNextVerify['verified'])
+        && (int) $mfaPdo->query('SELECT last_used_step FROM sr_member_mfa_factors WHERE id = 2')->fetchColumn() === 3,
+    'MFA TOTP verification should atomically advance last_used_step and reject replayed steps.'
+);
+sr_member_auth_policy_assert(
+    empty($mfaWrongKey['verified'])
+        && (string) ($mfaWrongKey['reason'] ?? '') === 'secret_unavailable',
+    'MFA TOTP verification should fail closed when the app key cannot decrypt the stored secret.'
+);
 $deletedMfa = sr_member_delete_mfa($mfaPdo, 77);
 sr_member_auth_policy_assert(
     ($deletedMfa['factors_deleted'] ?? 0) === 2
@@ -312,6 +344,23 @@ sr_member_auth_policy_assert(
     'Member-only mode auth allowlist should include GET/POST /login/mfa.'
 );
 
+$loginMfaAction = sr_member_auth_policy_read('modules/member/actions/login-mfa.php');
+if ($loginMfaAction !== '') {
+    sr_member_auth_policy_assert(
+        strpos($loginMfaAction, 'sr_member_mfa_throttle_status($pdo, $accountId)') !== false
+            && strpos($loginMfaAction, 'sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode)') !== false
+            && strpos($loginMfaAction, '$loginSucceeded = sr_member_login($pdo, $challengeAccount)') !== false
+            && strpos($loginMfaAction, 'sr_redirect(sr_member_safe_next_path($next))') !== false,
+        'MFA login action should throttle TOTP attempts, verify active factors, complete member login, and re-check next path before redirect.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($loginMfaAction, 'mfa_totp_success') !== false
+            && strpos($loginMfaAction, 'mfa_totp_failure') !== false
+            && strpos($loginMfaAction, 'member.mfa.login.completed') !== false,
+        'MFA login action should record auth and audit events for TOTP success/failure.'
+    );
+}
+
 sr_member_auth_policy_forbid_markers('modules/member/actions/login.php', [
     "sr_post_string('identifier'",
 ]);
@@ -380,6 +429,14 @@ if ($throttleHelper !== '') {
             && strpos($throttleHelper, 'member.reauth.account') !== false
             && strpos($throttleHelper, 'member.reauth.ip') !== false,
         'Sensitive reauth throttle should track account and IP failures.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($throttleHelper, 'function sr_member_mfa_throttle_status') !== false
+            && strpos($throttleHelper, 'function sr_member_mfa_failure_event_types') !== false
+            && strpos($throttleHelper, 'member.mfa.account') !== false
+            && strpos($throttleHelper, 'member.mfa.ip') !== false
+            && strpos($throttleHelper, "'mfa_totp_failure'") !== false,
+        'MFA throttle should track account and IP failures through rate limits or auth log fallback.'
     );
 }
 
