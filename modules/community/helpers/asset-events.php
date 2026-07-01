@@ -452,6 +452,353 @@ function sr_community_record_post_read_payment_log(PDO $pdo, array $row): void
     ]);
 }
 
+function sr_community_post_read_payment_log_by_id_for_update(PDO $pdo, int $paymentLogId): ?array
+{
+    if ($paymentLogId <= 0) {
+        return null;
+    }
+
+    $lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    $stmt = $pdo->prepare('SELECT * FROM sr_community_post_read_payment_logs WHERE id = :id LIMIT 1' . $lockClause);
+    $stmt->execute(['id' => $paymentLogId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_post_read_payment_log_asset_log_ids(array $paymentLog): array
+{
+    $decoded = json_decode((string) ($paymentLog['asset_access_log_ids_json'] ?? '[]'), true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($decoded as $value) {
+        $id = (int) $value;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+
+    return array_values($ids);
+}
+
+function sr_community_post_read_payment_asset_logs_for_refund(PDO $pdo, array $paymentLog): array
+{
+    $ids = sr_community_post_read_payment_log_asset_log_ids($paymentLog);
+    if ($ids === []) {
+        return [];
+    }
+
+    $params = [
+        'account_id' => (int) ($paymentLog['account_id'] ?? 0),
+        'post_id' => (int) ($paymentLog['post_id'] ?? 0),
+    ];
+    $placeholders = [];
+    foreach ($ids as $index => $id) {
+        $key = 'id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $id;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_community_asset_logs
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+           AND account_id = :account_id
+           AND subject_type = \'community.post\'
+           AND subject_id = :post_id
+           AND event_key = \'post_read\'
+         ORDER BY id ASC'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_post_read_payment_access_revoke_sources(array $paymentLog, array $assetLogs): array
+{
+    $sources = [];
+    $couponDedupeKey = sr_community_post_read_payment_clean_text((string) ($paymentLog['coupon_dedupe_key'] ?? ''), 160);
+    if ($couponDedupeKey !== '') {
+        $sources['coupon:' . $couponDedupeKey] = [
+            'source_kind' => 'coupon',
+            'source_reference' => $couponDedupeKey,
+        ];
+    }
+
+    foreach ($assetLogs as $assetLog) {
+        $assetModule = sr_community_post_read_payment_clean_key((string) ($assetLog['asset_module'] ?? ''));
+        $transactionId = (int) ($assetLog['transaction_id'] ?? 0);
+        if ($assetModule !== '' && $transactionId > 0) {
+            $sourceReference = $assetModule . ':' . (string) $transactionId;
+            $sources['asset:' . $sourceReference] = [
+                'source_kind' => 'asset',
+                'source_reference' => $sourceReference,
+            ];
+            continue;
+        }
+
+        $dedupeKey = sr_community_post_read_payment_clean_text((string) ($assetLog['dedupe_key'] ?? ''), 160);
+        if ($dedupeKey !== '') {
+            $sources['asset_group_policy:' . $dedupeKey] = [
+                'source_kind' => 'asset_group_policy',
+                'source_reference' => $dedupeKey,
+            ];
+        }
+    }
+
+    return array_values($sources);
+}
+
+function sr_community_mark_post_read_payment_ledger_items_reversed_if_available(PDO $pdo, int $accountId, array $references, string $reason): array
+{
+    if ($references === [] || !function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
+        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
+    }
+    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
+        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
+    }
+
+    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
+    if (!function_exists('sr_payment_ledger_mark_item_references_reversed') || !sr_payment_ledger_tables_available($pdo)) {
+        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
+    }
+
+    return sr_payment_ledger_mark_item_references_reversed($pdo, $accountId, $references, $reason, false);
+}
+
+function sr_community_refund_post_read_payment(PDO $pdo, int $paymentLogId, int $adminAccountId, string $refundNote, string $refundExpirationPolicy = 'original'): array
+{
+    $refundNote = sr_community_post_read_payment_clean_text($refundNote, 255);
+    $refundExpirationPolicy = in_array($refundExpirationPolicy, ['original', 'reset'], true) ? $refundExpirationPolicy : 'original';
+    if ($paymentLogId <= 0) {
+        return ['ok' => false, 'message' => '환불할 게시글 열람 결제 내역을 선택하세요.'];
+    }
+    if ($adminAccountId <= 0) {
+        return ['ok' => false, 'message' => '처리 관리자 정보를 확인할 수 없습니다.'];
+    }
+    if ($refundNote === '') {
+        return ['ok' => false, 'message' => '환불 사유를 입력하세요.'];
+    }
+
+    $couponNotification = [];
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $paymentLog = sr_community_post_read_payment_log_by_id_for_update($pdo, $paymentLogId);
+        if (!is_array($paymentLog)) {
+            throw new RuntimeException('환불할 게시글 열람 결제 내역을 찾을 수 없습니다.');
+        }
+        if ((string) ($paymentLog['refund_status'] ?? '') !== '') {
+            throw new RuntimeException('이미 환불 또는 접근권 회수 처리된 결제입니다.');
+        }
+
+        $accountId = (int) ($paymentLog['account_id'] ?? 0);
+        $postId = (int) ($paymentLog['post_id'] ?? 0);
+        if ($accountId <= 0 || $postId <= 0) {
+            throw new RuntimeException('환불 대상 회원 또는 게시글 정보를 확인할 수 없습니다.');
+        }
+
+        $assetLogIds = sr_community_post_read_payment_log_asset_log_ids($paymentLog);
+        $assetLogs = $assetLogIds !== [] ? sr_community_post_read_payment_asset_logs_for_refund($pdo, $paymentLog) : [];
+        if ($assetLogIds !== [] && $assetLogs === []) {
+            throw new RuntimeException('연결된 차감 또는 접근권 로그를 찾을 수 없습니다.');
+        }
+
+        $refundTransactionIds = [];
+        $paymentLedgerReferences = [];
+        foreach ($assetLogs as $assetLog) {
+            $amount = (int) ($assetLog['amount'] ?? 0);
+            $transactionId = (int) ($assetLog['transaction_id'] ?? 0);
+            if ($amount <= 0 || $transactionId <= 0) {
+                continue;
+            }
+
+            $assetModule = (string) ($assetLog['asset_module'] ?? '');
+            if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
+                throw new RuntimeException('환불할 차감 항목을 사용할 수 없습니다: ' . $assetModule);
+            }
+
+            $assetOption = sr_community_asset_modules($pdo)[$assetModule];
+            $transactionData = [
+                'account_id' => $accountId,
+                'amount' => $amount,
+                'transaction_type' => (string) ($assetOption['refund_type'] ?? 'refund'),
+                'reason' => '커뮤니티 게시글 열람 환불: ' . $refundNote,
+                'reference_type' => 'refund',
+                'reference_id' => $assetModule . '_transaction:' . (string) $transactionId,
+                'created_by_account_id' => $adminAccountId,
+            ];
+            if ($assetModule === 'point') {
+                $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
+            }
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'asset_transaction',
+                'owner_module' => $assetModule,
+                'reference_type' => $assetModule . '_transaction',
+                'reference_id' => (string) $transactionId,
+            ];
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'asset_access_log',
+                'owner_module' => 'community',
+                'reference_type' => 'community_asset_log',
+                'reference_id' => (string) (int) ($assetLog['id'] ?? 0),
+            ];
+
+            if ($assetModule === 'point' && function_exists('sr_point_create_refund_transactions')) {
+                foreach (sr_point_create_refund_transactions($pdo, $transactionData) as $refundTransactionId) {
+                    $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
+                }
+                continue;
+            }
+
+            $refundTransactionId = sr_community_create_asset_transaction($pdo, $assetModule, $transactionData);
+            $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
+        }
+
+        $couponRefund = [];
+        $couponRedemptionId = (int) ($paymentLog['coupon_redemption_id'] ?? 0);
+        if ($couponRedemptionId > 0) {
+            if (!is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+                throw new RuntimeException('쿠폰 환불 helper를 찾을 수 없습니다.');
+            }
+            require_once SR_ROOT . '/modules/coupon/helpers.php';
+            if (!function_exists('sr_coupon_refund_redemption_state_only')) {
+                throw new RuntimeException('쿠폰 상태 환불 계약을 찾을 수 없습니다.');
+            }
+            $couponRefund = sr_coupon_refund_redemption_state_only($pdo, $couponRedemptionId, $adminAccountId, $refundNote, [
+                'allowed_coupon_types' => ['access', 'fixed_discount', 'percent_discount'],
+                'require_refundable_policy' => false,
+            ]);
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'coupon_redemption',
+                'owner_module' => 'coupon',
+                'reference_type' => 'coupon_redemption',
+                'reference_id' => (string) $couponRedemptionId,
+            ];
+            $couponNotification = [
+                'coupon_issue_id' => (int) ($couponRefund['coupon_issue_id'] ?? 0),
+                'event_key' => (string) ($couponRefund['notification_event_key'] ?? 'redemption.refunded'),
+                'payload' => is_array($couponRefund['notification_payload'] ?? null) ? $couponRefund['notification_payload'] : [],
+            ];
+        }
+
+        $accessRevoked = false;
+        $shouldRevokeAccess = (string) ($paymentLog['charge_policy'] ?? '') === 'once' || (int) ($paymentLog['settlement_amount'] ?? 0) <= 0;
+        if ($shouldRevokeAccess) {
+            foreach (sr_community_post_read_payment_access_revoke_sources($paymentLog, $assetLogs) as $source) {
+                $accessRevoked = sr_community_revoke_access_entitlement_by_source(
+                    $pdo,
+                    $accountId,
+                    'community.post',
+                    $postId,
+                    'post_read',
+                    (string) ($source['source_kind'] ?? ''),
+                    (string) ($source['source_reference'] ?? '')
+                ) > 0 || $accessRevoked;
+            }
+        }
+        if ($shouldRevokeAccess && ($refundTransactionIds !== [] || $couponRefund !== []) && !$accessRevoked) {
+            throw new RuntimeException('결제 단위와 일치하는 게시글 열람 접근권을 회수할 수 없습니다.');
+        }
+        if ($accessRevoked) {
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'access_entitlement',
+                'owner_module' => 'community',
+                'reference_type' => 'community.access_entitlement',
+                'reference_id' => 'community.post:' . (string) $postId . ':post_read',
+            ];
+        }
+
+        if ($refundTransactionIds === [] && !$accessRevoked && $couponRefund === []) {
+            throw new RuntimeException('환불할 원장 거래나 회수할 접근권을 찾을 수 없습니다.');
+        }
+
+        $refundTransactionIdsJson = json_encode($refundTransactionIds, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $now = sr_now();
+        $refundStatus = $refundTransactionIds !== [] || $couponRefund !== [] ? 'refunded' : 'access_revoked';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_post_read_payment_logs
+             SET refund_status = :refund_status,
+                 refund_transaction_ids_json = :refund_transaction_ids_json,
+                 refund_note = :refund_note,
+                 refunded_by_account_id = :refunded_by_account_id,
+                 refunded_at = :refunded_at,
+                 access_revoked_at = :access_revoked_at
+             WHERE id = :id
+               AND refund_status = \'\''
+        );
+        $stmt->execute([
+            'refund_status' => $refundStatus,
+            'refund_transaction_ids_json' => is_string($refundTransactionIdsJson) ? $refundTransactionIdsJson : '[]',
+            'refund_note' => $refundNote,
+            'refunded_by_account_id' => $adminAccountId,
+            'refunded_at' => $now,
+            'access_revoked_at' => $accessRevoked ? $now : null,
+            'id' => $paymentLogId,
+        ]);
+        if ($stmt->rowCount() < 1) {
+            throw new RuntimeException('이미 처리된 게시글 열람 결제입니다.');
+        }
+        sr_community_mark_post_read_payment_ledger_items_reversed_if_available($pdo, $accountId, $paymentLedgerReferences, '커뮤니티 게시글 열람 환불: ' . $refundNote);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        if ($startedTransaction && $couponNotification !== [] && function_exists('sr_coupon_notify_issue_event')) {
+            $payload = is_array($couponNotification['payload'] ?? null) ? $couponNotification['payload'] : [];
+            $payload['revoked_access_count'] = $accessRevoked ? 1 : 0;
+            sr_coupon_notify_issue_event($pdo, (int) ($couponNotification['coupon_issue_id'] ?? 0), (string) ($couponNotification['event_key'] ?? 'redemption.refunded'), $adminAccountId, $payload);
+        }
+
+        try {
+            sr_audit_log($pdo, [
+                'actor_account_id' => $adminAccountId,
+                'actor_type' => 'admin',
+                'event_type' => 'community_post_read_payment.refunded',
+                'target_type' => 'community_post_read_payment',
+                'target_id' => (string) $paymentLogId,
+                'result' => 'success',
+                'message' => 'Community post read payment refunded.',
+                'metadata' => [
+                    'post_id' => $postId,
+                    'account_id' => $accountId,
+                    'coupon_redemption_id' => $couponRedemptionId,
+                    'refund_status' => $refundStatus,
+                    'refund_expiration_policy' => $refundExpirationPolicy,
+                    'refund_transaction_ids' => $refundTransactionIds,
+                    'access_revoked' => $accessRevoked,
+                ],
+            ]);
+        } catch (Throwable $auditException) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($auditException, 'community_post_read_payment_refund_audit_failed');
+            }
+        }
+
+        return [
+            'ok' => true,
+            'message' => $refundStatus === 'refunded' ? '게시글 열람 결제를 환불 처리했습니다.' : '게시글 열람 접근권을 회수했습니다.',
+            'coupon_notification' => $startedTransaction ? [] : $couponNotification,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        if (function_exists('sr_log_exception')) {
+            sr_log_exception($exception, 'community_post_read_payment_refund_failed');
+        }
+
+        return ['ok' => false, 'message' => $exception->getMessage()];
+    }
+}
+
 function sr_community_anonymize_access_entitlements(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_community_access_entitlements_table_exists($pdo)) {

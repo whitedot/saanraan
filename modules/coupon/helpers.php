@@ -3745,6 +3745,10 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
 function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote): array
 {
     $refundNote = sr_coupon_clean_text($refundNote, 255);
+    if (sr_coupon_redemption_has_partial_domain_payment_unit($pdo, $redemptionId)) {
+        throw new RuntimeException('쿠폰 일부 할인과 자산 차감이 함께 처리된 복합결제입니다. 소비 도메인의 결제 내역에서 환불하세요.');
+    }
+
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
@@ -3777,6 +3781,44 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
         }
         throw $exception;
     }
+}
+
+function sr_coupon_redemption_has_partial_domain_payment_unit(PDO $pdo, int $redemptionId): bool
+{
+    if ($redemptionId <= 0) {
+        return false;
+    }
+
+    $checks = [
+        ['module' => 'content', 'table' => 'sr_content_view_payment_logs'],
+        ['module' => 'community', 'table' => 'sr_community_post_read_payment_logs'],
+    ];
+    foreach ($checks as $check) {
+        if (function_exists('sr_module_enabled') && !sr_module_enabled($pdo, (string) $check['module'])) {
+            continue;
+        }
+
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT id
+                 FROM ' . (string) $check['table'] . '
+                 WHERE coupon_redemption_id = :coupon_redemption_id
+                   AND payment_type = \'coupon_partial_discount_asset\'
+                   AND refund_status = \'\'
+                 LIMIT 1'
+            );
+            $stmt->execute(['coupon_redemption_id' => $redemptionId]);
+            if (is_array($stmt->fetch())) {
+                return true;
+            }
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'coupon_partial_domain_payment_lookup_failed');
+            }
+        }
+    }
+
+    return false;
 }
 
 function sr_coupon_refund_redemption_state_only(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote, array $options = []): array
