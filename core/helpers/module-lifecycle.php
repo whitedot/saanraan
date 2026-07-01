@@ -312,30 +312,55 @@ function sr_module_foundation_dependencies(string $moduleKey): array
     return [];
 }
 
+function sr_module_required_module_keys_from_metadata(array $metadata): array
+{
+    $requires = isset($metadata['requires']) && is_array($metadata['requires']) ? $metadata['requires'] : [];
+    $requiredModules = isset($requires['modules']) && is_array($requires['modules']) ? $requires['modules'] : [];
+    $moduleKeys = [];
+
+    foreach ($requiredModules as $key => $value) {
+        $requiredModuleKey = is_string($key) ? $key : (string) $value;
+        if (sr_is_safe_module_key($requiredModuleKey)) {
+            $moduleKeys[] = $requiredModuleKey;
+        }
+    }
+
+    return array_values(array_unique($moduleKeys));
+}
+
 function sr_module_is_foundation(string $moduleKey): bool
 {
     return in_array($moduleKey, sr_foundation_module_keys(), true);
 }
 
-function sr_enabled_asset_modules_requiring_foundation(PDO $pdo, string $foundationModuleKey): array
+function sr_enabled_modules_requiring_foundation(PDO $pdo, string $foundationModuleKey): array
 {
-    if ($foundationModuleKey !== 'asset_ledger') {
+    if (!sr_module_is_foundation($foundationModuleKey)) {
         return [];
     }
 
-    $placeholders = implode(', ', array_fill(0, count(sr_asset_module_keys()), '?'));
     $stmt = $pdo->prepare(
-        "SELECT module_key FROM sr_modules
-         WHERE module_key IN (" . $placeholders . ")
+        "SELECT module_key
+         FROM sr_modules
+         WHERE module_key <> :foundation_module_key
            AND status = 'enabled'
          ORDER BY module_key ASC"
     );
-    $stmt->execute(sr_asset_module_keys());
+    $stmt->execute(['foundation_module_key' => $foundationModuleKey]);
 
     $moduleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $moduleKey = (string) ($row['module_key'] ?? '');
         if (sr_is_safe_module_key($moduleKey)) {
+            $metadata = sr_module_metadata($moduleKey);
+            $requiredModuleKeys = array_values(array_unique(array_merge(
+                sr_module_required_module_keys_from_metadata($metadata),
+                sr_module_foundation_dependencies($moduleKey)
+            )));
+            if (!in_array($foundationModuleKey, $requiredModuleKeys, true)) {
+                continue;
+            }
+
             $moduleKeys[] = $moduleKey;
         }
     }
@@ -349,13 +374,13 @@ function sr_module_disable_errors(PDO $pdo, string $moduleKey): array
         return [];
     }
 
-    $dependentModules = sr_enabled_asset_modules_requiring_foundation($pdo, $moduleKey);
+    $dependentModules = sr_enabled_modules_requiring_foundation($pdo, $moduleKey);
     if ($dependentModules === []) {
         return [];
     }
 
     return [
-        $moduleKey . ' 기반 모듈은 활성 자산 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
+        $moduleKey . ' 기반 모듈은 활성 의존 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
     ];
 }
 
