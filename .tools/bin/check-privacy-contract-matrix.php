@@ -61,6 +61,11 @@ function sr_privacy_matrix_sql_files(string $moduleDir): array
     return $files;
 }
 
+function sr_privacy_matrix_bundled_module_count(): int
+{
+    return count(glob('modules/*/module.php') ?: []);
+}
+
 function sr_privacy_matrix_sql_account_reference_files(string $moduleDir): array
 {
     $files = [];
@@ -189,9 +194,18 @@ if (!is_file($processingRecordsFile)) {
     $processingRecords = (string) file_get_contents($processingRecordsFile);
 }
 
+$verificationStatusFile = 'docs/verification-status.md';
+if (!is_file($verificationStatusFile)) {
+    sr_privacy_matrix_error('verification status document is missing.');
+    $verificationStatus = '';
+} else {
+    $verificationStatus = (string) file_get_contents($verificationStatusFile);
+}
+
 foreach ([
     $matrixFile => $matrix,
     $processingRecordsFile => $processingRecords,
+    $verificationStatusFile => $verificationStatus,
 ] as $policyFile => $policyContents) {
     if ($policyContents !== '') {
         sr_privacy_matrix_check_pending_policy_values((string) $policyFile, (string) $policyContents);
@@ -227,6 +241,11 @@ $expected = [
     'site_menu' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'survey' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
 ];
+
+$bundledModuleCount = sr_privacy_matrix_bundled_module_count();
+if ($bundledModuleCount !== count($expected)) {
+    sr_privacy_matrix_error('privacy contract matrix expected module count does not match bundled module count: expected=' . count($expected) . ' actual=' . $bundledModuleCount);
+}
 
 $operationalRetainedModules = ['admin', 'logo_manager'];
 
@@ -358,7 +377,7 @@ foreach ([
 
 foreach ([
     '## 마일스톤 12 재기준화 기준',
-    '현재 번들 모듈은 27개',
+    '현재 번들 모듈은 ' . $bundledModuleCount . '개',
     'antispam_captcha_providers',
     'member_oauth',
     'policy_documents',
@@ -390,11 +409,33 @@ foreach ([
     '#158 권리 요청 전파',
     '#159 특별범주/연령/고유식별자성',
     '#160 ROPA 확장',
+    '전체 ' . $bundledModuleCount . '개 번들 모듈',
     '#161 conformance 자동화',
     'smoke readiness를 한 경로에서 실패',
 ] as $needle) {
     if ($matrix !== '' && strpos($matrix, $needle) === false) {
         sr_privacy_matrix_error('privacy matrix document is missing milestone 12 recut marker: ' . $needle);
+    }
+}
+
+foreach ([
+    $matrixFile => ['전체 26개 번들 모듈', '전체 28개 번들 모듈'],
+    $processingRecordsFile => ['26개 번들 모듈 분류', '28개 번들 모듈 분류'],
+    $verificationStatusFile => ['26개 번들 모듈 row', '28개 번들 모듈 row'],
+] as $policyFile => $staleMarkers) {
+    $contents = '';
+    if ($policyFile === $matrixFile) {
+        $contents = $matrix;
+    } elseif ($policyFile === $processingRecordsFile) {
+        $contents = $processingRecords;
+    } elseif ($policyFile === $verificationStatusFile) {
+        $contents = $verificationStatus;
+    }
+
+    foreach ($staleMarkers as $staleMarker) {
+        if ($contents !== '' && strpos($contents, $staleMarker) !== false) {
+            sr_privacy_matrix_error($policyFile . ' contains stale bundled module count marker: ' . $staleMarker);
+        }
     }
 }
 
@@ -444,6 +485,7 @@ foreach ([
     'check-security-baseline.php',
     '설치 DB smoke',
     '정책 값에 `pending`, `TODO`, `TBD`, `미정`, `미확정`을 남기면 실패한다',
+    $bundledModuleCount . '개 번들 모듈 분류',
     '주민등록번호',
     'CI/DI 원문',
     'HMAC hash 또는 최소 결과 snapshot',
@@ -526,6 +568,14 @@ foreach ([
 ] as $needle) {
     if ($processingRecords !== '' && strpos($processingRecords, $needle) === false) {
         sr_privacy_matrix_error('privacy processing records document is missing marker: ' . $needle);
+    }
+}
+
+foreach ([
+    'ROPA 처리활동 씨앗의 ' . $bundledModuleCount . '개 번들 모듈 row',
+] as $needle) {
+    if ($verificationStatus !== '' && strpos($verificationStatus, $needle) === false) {
+        sr_privacy_matrix_error('verification status document is missing privacy marker: ' . $needle);
     }
 }
 
