@@ -800,6 +800,22 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((int) ($fixedDiscount['discount_amount'] ?? 0) === 5000, 'fixed discount coupon amount should be stored.');
     sr_coupon_runtime_assert((string) ($fixedDiscount['discount_currency_code'] ?? '') === 'KRW', 'fixed discount coupon currency should default to KRW when the admin form omits it.');
     sr_coupon_runtime_assert(sr_coupon_definition_benefit_label($fixedDiscount) === '5,000원 할인', 'fixed discount coupon benefit label should use the same won unit as the admin form.');
+    $invalidCurrencyPricing = sr_coupon_normalize_target_pricing([
+        'ok' => true,
+        'price_amount' => 5000,
+        'currency_code' => 'KRWX',
+    ], 'content', '7701');
+    sr_coupon_runtime_assert(empty($invalidCurrencyPricing['ok']) && (string) ($invalidCurrencyPricing['failure_code'] ?? '') === 'pricing_unit_invalid', 'coupon target pricing should reject overlong currency codes instead of truncating them.');
+    $invalidCurrencyDiscount = sr_coupon_discount_application([
+        'coupon_type' => 'fixed_discount',
+        'discount_amount' => 1000,
+        'discount_currency_code' => 'KRW',
+    ], [
+        'ok' => true,
+        'price_amount' => 5000,
+        'currency_code' => 'KRWX',
+    ]);
+    sr_coupon_runtime_assert(empty($invalidCurrencyDiscount['ok']), 'fixed discount application should reject overlong price currency codes instead of truncating them.');
 
     $percentDiscountId = sr_coupon_create_definition($pdo, [
         'coupon_key' => 'percent_discount_attempt',

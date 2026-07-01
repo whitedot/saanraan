@@ -13,6 +13,13 @@ function sr_coupon_clean_key(string $value, int $maxLength = 60): string
     return substr($value, 0, $maxLength);
 }
 
+function sr_coupon_clean_currency_code(string $value): string
+{
+    $value = strtoupper(trim($value));
+
+    return preg_match('/\A[A-Z]{3}\z/', $value) === 1 ? $value : '';
+}
+
 function sr_coupon_key_is_valid(string $couponKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $couponKey) === 1;
@@ -420,7 +427,7 @@ function sr_coupon_definition_benefit_label(array $definition): string
     $couponType = (string) ($definition['coupon_type'] ?? 'access');
     if ($couponType === 'fixed_discount') {
         $amount = max(0, (int) ($definition['discount_amount'] ?? 0));
-        $currencyCode = strtoupper(sr_coupon_clean_key((string) ($definition['discount_currency_code'] ?? ''), 3));
+        $currencyCode = sr_coupon_clean_currency_code((string) ($definition['discount_currency_code'] ?? ''));
         if ($currencyCode === '') {
             $currencyCode = 'KRW';
         }
@@ -467,8 +474,8 @@ function sr_coupon_discount_application(array $issue, array $pricing): array
 
     $discountAmount = 0;
     if ($couponType === 'fixed_discount') {
-        $priceCurrency = strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3));
-        $discountCurrency = strtoupper(sr_coupon_clean_key((string) ($issue['discount_currency_code'] ?? ''), 3));
+        $priceCurrency = sr_coupon_clean_currency_code((string) ($pricing['currency_code'] ?? ''));
+        $discountCurrency = sr_coupon_clean_currency_code((string) ($issue['discount_currency_code'] ?? ''));
         if ($discountCurrency === '') {
             $discountCurrency = 'KRW';
         }
@@ -1096,7 +1103,7 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
     $allowedAssetModulesJson = null;
     if ($claimType === 'paid') {
         $priceAmount = sr_coupon_claim_positive_int($data['price_amount'] ?? '', 999999999, '유료 발급 가격');
-        $priceCurrencyCode = strtoupper(sr_coupon_clean_key((string) ($data['price_currency_code'] ?? 'KRW'), 3));
+        $priceCurrencyCode = sr_coupon_clean_currency_code((string) ($data['price_currency_code'] ?? 'KRW'));
         if ($priceCurrencyCode === '') {
             throw new InvalidArgumentException('유료 발급 통화를 입력하세요.');
         }
@@ -1413,7 +1420,7 @@ function sr_coupon_normalize_target_pricing(mixed $pricing, string $targetType, 
     }
 
     $priceAmount = max(0, (int) ($pricing['price_amount'] ?? 0));
-    $currencyCode = strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3));
+    $currencyCode = sr_coupon_clean_currency_code((string) ($pricing['currency_code'] ?? ''));
     $assetUnit = sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40);
     if (($currencyCode === '' && $assetUnit === '') || ($currencyCode !== '' && $assetUnit !== '')) {
         return [
@@ -2436,7 +2443,7 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
         'claim_campaign_id' => isset($claimContext['claim_campaign_id']) && (int) $claimContext['claim_campaign_id'] > 0 ? (int) $claimContext['claim_campaign_id'] : null,
         'claim_log_id' => isset($claimContext['claim_log_id']) && (int) $claimContext['claim_log_id'] > 0 ? (int) $claimContext['claim_log_id'] : null,
         'nominal_price_amount' => max(0, (int) ($claimContext['nominal_price_amount'] ?? 0)),
-        'nominal_price_currency_code' => strtoupper(sr_coupon_clean_key((string) ($claimContext['nominal_price_currency_code'] ?? ''), 3)),
+        'nominal_price_currency_code' => sr_coupon_clean_currency_code((string) ($claimContext['nominal_price_currency_code'] ?? '')),
         'asset_reference_module' => sr_coupon_clean_key((string) ($claimContext['asset_reference_module'] ?? ''), 60),
         'asset_reference_type' => sr_coupon_clean_text((string) ($claimContext['asset_reference_type'] ?? ''), 80),
         'asset_reference_id' => sr_coupon_clean_text((string) ($claimContext['asset_reference_id'] ?? ''), 120),
@@ -2901,7 +2908,7 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
         ]);
         $claimLogId = (int) $pdo->lastInsertId();
         $priceAmount = max(0, (int) ($campaign['price_amount'] ?? 0));
-        $priceCurrencyCode = strtoupper(sr_coupon_clean_key((string) ($campaign['price_currency_code'] ?? ''), 3));
+        $priceCurrencyCode = sr_coupon_clean_currency_code((string) ($campaign['price_currency_code'] ?? ''));
         $plan = sr_member_asset_settlement_plan(
             $pdo,
             sr_coupon_asset_options($pdo),
@@ -3343,7 +3350,7 @@ function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, strin
         'target_type' => (string) ($pricing['target_type'] ?? $targetType),
         'target_id' => (string) ($pricing['target_id'] ?? $targetId),
         'amount' => max(0, (int) ($pricing['price_amount'] ?? 0)),
-        'currency_code' => strtoupper(sr_coupon_clean_key((string) ($pricing['currency_code'] ?? ''), 3)),
+        'currency_code' => sr_coupon_clean_currency_code((string) ($pricing['currency_code'] ?? '')),
         'asset_unit' => sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40),
         'is_free' => !empty($pricing['is_free']),
         'already_entitled' => !empty($pricing['already_entitled']),
@@ -3919,7 +3926,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
             $pricing['price_amount'] = max(0, (int) $context['price_amount']);
         }
         if (array_key_exists('currency_code', $context)) {
-            $pricing['currency_code'] = strtoupper(sr_coupon_clean_key((string) $context['currency_code'], 3));
+            $pricing['currency_code'] = sr_coupon_clean_currency_code((string) $context['currency_code']);
         }
         if (array_key_exists('policy_summary', $context)) {
             $pricing['policy_summary'] = sr_coupon_clean_text((string) $context['policy_summary'], 255);

@@ -510,6 +510,26 @@ function sr_coupon_claim_runtime_fixture(): void
     sr_coupon_claim_runtime_assert(in_array('point', sr_coupon_asset_module_keys_from_value($pdo, $paidCampaign['allowed_asset_modules_json'] ?? ''), true), 'paid claim campaign should persist allowed asset modules.');
     try {
         sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_paid_overlong_currency',
+            'coupon_definition_id' => $paidDefinitionId,
+            'title' => 'Paid overlong currency',
+            'status' => 'active',
+            'claim_type' => 'paid',
+            'price_amount' => '120',
+            'price_currency_code' => 'KRWX',
+            'allowed_asset_modules' => ['point'],
+            'total_claim_limit' => 3,
+            'per_account_limit' => 2,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'paid claim campaign should reject overlong currency codes instead of truncating them.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '통화'), 'paid claim overlong currency validation should be user-facing.');
+    }
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
             'campaign_key' => 'claim_paid_currency_mismatch',
             'coupon_definition_id' => $paidDefinitionId,
             'title' => 'Paid currency mismatch',
