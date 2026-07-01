@@ -99,7 +99,7 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
         return $options;
     }
 
-    if (!is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+    if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         return $currentKey !== '' ? [$currentKey => ['title' => $currentKey, 'version_key' => '']] : [];
     }
 
@@ -107,7 +107,6 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
     $options = [];
     if (
         function_exists('sr_policy_document_enabled_choices')
-        && sr_module_enabled($pdo, 'policy_documents')
         && function_exists('sr_policy_document_module_ready')
         && sr_policy_document_module_ready($pdo)
     ) {
@@ -162,13 +161,13 @@ function sr_community_privacy_consent_policy_document_key(PDO $pdo, array $board
 
 function sr_community_privacy_consent_policy_snapshot(PDO $pdo, string $documentKey): ?array
 {
-    if ($documentKey === '' || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+    if ($documentKey === '' || !sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         return null;
     }
 
     require_once SR_ROOT . '/modules/policy_documents/helpers.php';
     try {
-        if (!sr_module_enabled($pdo, 'policy_documents') || !sr_policy_document_module_ready($pdo)) {
+        if (!sr_policy_document_module_ready($pdo)) {
             return null;
         }
 
@@ -343,7 +342,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
     $html = '<fieldset class="community-privacy-consent">';
     $html .= '<legend>' . sr_e('개인정보 수집 및 이용동의') . ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span></legend>';
     $renderedDocuments = [];
-    if (is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+    if (sr_module_enabled($pdo, 'policy_documents') && is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         require_once SR_ROOT . '/modules/policy_documents/helpers.php';
         $targetDocuments = is_array($config['target_documents'] ?? null) ? $config['target_documents'] : [];
         foreach ($actions as $actionKey) {

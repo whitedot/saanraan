@@ -99,7 +99,7 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
         return $options;
     }
 
-    if (!is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+    if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         return $currentKey !== '' ? [$currentKey => ['title' => $currentKey, 'version_key' => '']] : [];
     }
 
@@ -107,7 +107,6 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
     $options = [];
     if (
         function_exists('sr_policy_document_enabled_choices')
-        && sr_module_enabled($pdo, 'policy_documents')
         && function_exists('sr_policy_document_module_ready')
         && sr_policy_document_module_ready($pdo)
     ) {
@@ -142,13 +141,13 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
 function sr_member_registration_policy_document_snapshot(PDO $pdo, string $documentKey): ?array
 {
     $documentKey = sr_member_registration_policy_document_clean_key($documentKey);
-    if ($documentKey === '' || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+    if ($documentKey === '' || !sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         return null;
     }
 
     require_once SR_ROOT . '/modules/policy_documents/helpers.php';
     try {
-        if (!sr_module_enabled($pdo, 'policy_documents') || !sr_policy_document_module_ready($pdo)) {
+        if (!sr_policy_document_module_ready($pdo)) {
             return null;
         }
 

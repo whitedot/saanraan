@@ -798,6 +798,11 @@ if ($registerAction !== '') {
         'Register action should load current policy documents from the server for display and again inside the account transaction.'
     );
     sr_member_auth_policy_assert(
+        strpos($registrationHelper, "if (!sr_module_enabled(\$pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php'))") !== false
+            && strpos($registrationHelper, "if (\$documentKey === '' || !sr_module_enabled(\$pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php'))") !== false,
+        'Registration policy document helpers should only load policy_documents helpers when the module is enabled.'
+    );
+    sr_member_auth_policy_assert(
         strpos($registerAction, "'login_id' => sr_member_normalize_login_id(\$loginId)") !== false
             && strpos($registerAction, "sr_member_is_valid_login_id(\$values['login_id'])") !== false
             && strpos($registerAction, "'login_id' => \$values['login_id']") !== false,

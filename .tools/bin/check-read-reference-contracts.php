@@ -728,7 +728,8 @@ function sr_read_reference_check_coupon_reward_reference_sources(string $root): 
         if (strpos($contents, $check['health_message']) === false) {
             sr_read_reference_check_error('read reference coupon reward health must report disabled domain targets: ' . $check['label']);
         }
-        if (strpos($contents, "require_once SR_ROOT . '/modules/coupon/helpers.php'") === false
+        if (strpos($contents, "sr_module_enabled(\$pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')") === false
+            || strpos($contents, "require_once SR_ROOT . '/modules/coupon/helpers.php'") === false
             || strpos($contents, 'sr_coupon_definition_allows_issue') === false
             || strpos($contents, '보상 쿠폰이 지급 가능한 상태가 아닙니다.') === false
         ) {

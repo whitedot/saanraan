@@ -53,6 +53,7 @@ $mustContain('modules/community/helpers/privacy-consents.php', [
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
     'sr_community_submission_consents_table_exists',
+    "sr_module_enabled(\$pdo, 'policy_documents') && is_file(SR_ROOT . '/modules/policy_documents/helpers.php')",
     'sr_community_privacy_consent_body_upload_targets_from_values',
     '($ref[\'type\'] ?? \'\') === \'tmp\'',
     '$requiredActionKeys = sr_community_privacy_consent_required_actions($pdo, $board, $actionKeys)',

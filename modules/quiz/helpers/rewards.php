@@ -729,7 +729,7 @@ function sr_quiz_coupon_definition_reference_health(PDO $pdo, array $target, arr
     }
 
     $definitionId = (int) ($target['target_id'] ?? $row['target_id'] ?? 0);
-    if ($definitionId > 0 && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+    if ($definitionId > 0 && sr_module_enabled($pdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         require_once SR_ROOT . '/modules/coupon/helpers.php';
         if (function_exists('sr_coupon_definition_by_id') && function_exists('sr_coupon_definition_allows_issue')) {
             $definition = sr_coupon_definition_by_id($pdo, $definitionId);
