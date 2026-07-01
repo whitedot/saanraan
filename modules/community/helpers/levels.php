@@ -17,6 +17,10 @@ function sr_community_default_settings(): array
         'comment_create_limit' => (int) ($settings['comment_create_limit'] ?? 30),
         'report_create_window_seconds' => (int) ($settings['report_create_window_seconds'] ?? 300),
         'report_create_limit' => (int) ($settings['report_create_limit'] ?? 20),
+        'report_auto_action_enabled' => (bool) ($settings['report_auto_action_enabled'] ?? false),
+        'report_auto_action_threshold' => (int) ($settings['report_auto_action_threshold'] ?? 5),
+        'report_auto_action_window_days' => (int) ($settings['report_auto_action_window_days'] ?? 0),
+        'report_auto_action_public_mode' => is_string($settings['report_auto_action_public_mode'] ?? null) ? (string) $settings['report_auto_action_public_mode'] : 'exclude',
         'message_create_window_seconds' => (int) ($settings['message_create_window_seconds'] ?? 300),
         'message_create_limit' => (int) ($settings['message_create_limit'] ?? 20),
         'attachment_max_bytes' => (int) ($settings['attachment_max_bytes'] ?? $settings['image_upload_max_bytes'] ?? 2097152),
@@ -203,6 +207,13 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['comment_create_limit'] = min(300, max(1, (int) ($settings['comment_create_limit'] ?? 30)));
     $settings['report_create_window_seconds'] = min(86400, max(60, (int) ($settings['report_create_window_seconds'] ?? 300)));
     $settings['report_create_limit'] = min(200, max(1, (int) ($settings['report_create_limit'] ?? 20)));
+    $settings['report_auto_action_enabled'] = sr_community_bool_setting($settings['report_auto_action_enabled'] ?? false);
+    $settings['report_auto_action_threshold'] = min(100, max(2, (int) ($settings['report_auto_action_threshold'] ?? 5)));
+    $settings['report_auto_action_window_days'] = min(365, max(0, (int) ($settings['report_auto_action_window_days'] ?? 0)));
+    $reportAutoActionPublicMode = (string) ($settings['report_auto_action_public_mode'] ?? 'exclude');
+    $settings['report_auto_action_public_mode'] = in_array($reportAutoActionPublicMode, ['exclude', 'placeholder'], true)
+        ? $reportAutoActionPublicMode
+        : 'exclude';
     $settings['message_create_window_seconds'] = min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300)));
     $settings['message_create_limit'] = min(200, max(1, (int) ($settings['message_create_limit'] ?? 20)));
     $settings['attachment_max_bytes'] = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));

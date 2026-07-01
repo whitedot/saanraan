@@ -36,6 +36,92 @@ function sr_community_report_statuses(): array
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
+function sr_community_report_auto_action_target_types(): array
+{
+    return ['post', 'comment'];
+}
+
+function sr_community_report_auto_action_statuses(): array
+{
+    return ['active', 'confirmed', 'released', 'skipped', 'failed'];
+}
+
+function sr_community_report_auto_action_terminal_statuses(): array
+{
+    return ['confirmed', 'released', 'skipped', 'failed'];
+}
+
+function sr_community_report_auto_action_status_is_terminal(string $status): bool
+{
+    return in_array($status, sr_community_report_auto_action_terminal_statuses(), true);
+}
+
+function sr_community_report_auto_action_active_target_uid(string $targetType, int $targetId): string
+{
+    if ($targetId < 1 || !in_array($targetType, sr_community_report_auto_action_target_types(), true)) {
+        return '';
+    }
+
+    return $targetType . ':' . (string) $targetId;
+}
+
+function sr_community_report_auto_action_transition(PDO $pdo, int $autoActionId, string $status, array $context = []): bool
+{
+    if ($autoActionId < 1 || !in_array($status, sr_community_report_auto_action_statuses(), true)) {
+        return false;
+    }
+
+    $now = function_exists('sr_now') ? sr_now() : date('Y-m-d H:i:s');
+    $setParts = [
+        'status = :status',
+        'updated_at = :updated_at',
+    ];
+    $params = [
+        'id' => $autoActionId,
+        'status' => $status,
+        'updated_at' => $now,
+    ];
+
+    if (sr_community_report_auto_action_status_is_terminal($status)) {
+        $setParts[] = 'active_target_uid = NULL';
+    }
+
+    $reviewerAccountId = (int) ($context['reviewer_account_id'] ?? 0);
+    if ($reviewerAccountId > 0) {
+        $setParts[] = 'reviewer_account_id = :reviewer_account_id';
+        $setParts[] = 'reviewed_at = :reviewed_at';
+        $params['reviewer_account_id'] = $reviewerAccountId;
+        $params['reviewed_at'] = $now;
+    }
+
+    if ($status === 'released') {
+        $setParts[] = 'released_at = :released_at';
+        $params['released_at'] = $now;
+    }
+
+    if (array_key_exists('failure_reason', $context)) {
+        $failureReason = preg_replace('/[^a-z0-9_:. -]/i', '', (string) $context['failure_reason']);
+        $setParts[] = 'failure_reason = :failure_reason';
+        $params['failure_reason'] = substr(trim((string) $failureReason), 0, 80);
+    }
+
+    if (array_key_exists('metadata', $context)) {
+        $metadata = is_array($context['metadata']) ? $context['metadata'] : [];
+        $encodedMetadata = json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $setParts[] = 'metadata_json = :metadata_json';
+        $params['metadata_json'] = is_string($encodedMetadata) ? $encodedMetadata : '{}';
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_report_auto_actions
+         SET ' . implode(', ', $setParts) . '
+         WHERE id = :id'
+    );
+    $stmt->execute($params);
+
+    return $stmt->rowCount() > 0;
+}
+
 function sr_community_report_target_action_options(string $targetType): array
 {
     if ($targetType === 'post') {

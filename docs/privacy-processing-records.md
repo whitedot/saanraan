@@ -39,7 +39,7 @@
 | `payment_ledger` | 결제 record와 결제 구성 item 증빙 | account 연결, subject module/type/id, payable/settlement 금액, 쿠폰·자산·외부 결제·접근권 item snapshot을 보관한다. 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
 | `ckeditor` | 에디터 asset, 업로드 adapter, sanitizer | 본문 개인정보는 소유 모듈에 귀속하고, 업로드/임시 파일 접근 정책은 소유 모듈 처리활동에 연결한다. |
-| `community` | 게시글, 댓글, 쪽지, 신고, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/상대방/신고자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
+| `community` | 게시글, 댓글, 쪽지, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/상대방/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
 | `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. |
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 계좌정보 마스킹 시점, 처리자 접근 범위를 기록한다. |
@@ -98,6 +98,7 @@
 | CAPTCHA remote IP | provider 검증 POST payload | provider의 위험도 판단 보조 | 기본값은 `verify_remote_ip_enabled = false`다. 켜면 개인정보 처리활동 기록과 개인정보 안내문에 remote IP 전달을 반영한다. | `modules/antispam/module.php`, `modules/antispam/views/admin-settings.php` |
 | 커뮤니티 제출 동의 | DB row, POST checkbox | 게시글/댓글/첨부 업로드 시 개인정보 수집 동의 증적 | 브라우저 저장소에 유지하지 않고 제출 시 `community_privacy_consent_accepted`를 서버에서 검증한다. | `modules/community/helpers/privacy-consents.php`, export/cleanup runtime |
 | 커뮤니티 첨부 다운로드 이력 | DB row | 첨부파일 무료/유료 다운로드 성공 이력, 유료 다운로드 차감 로그 대조 | 브라우저 저장소에 유지하지 않는다. 로그인 회원 다운로드는 `account_id`로 연결하고 탈퇴/익명화 시 이 연결을 제거한다. | `modules/community/actions/attachment.php`, `modules/community/privacy-export.php`, `modules/community/privacy-cleanup.php` |
+| 커뮤니티 신고 자동 임시 조치 | DB row | 신고 임계치 도달로 게시글/댓글을 임시 숨김 처리한 운영 증빙 | 브라우저 저장소에 유지하지 않는다. `sr_community_report_auto_actions`는 대상 타입/ID, source report, 임계치와 집계 snapshot, 숨김 전후 상태, 검토자 계정 연결을 저장하며 신고자 목록을 중복 저장하지 않는다. 활성 row는 `active_target_uid` unique 기준으로 대상당 하나만 유지하고, 확정/해제/실패/건너뜀 같은 terminal 상태로 전이하면 활성 UID를 비운다. | `modules/community/helpers/reports.php`, `.tools/bin/check-community-report-auto-actions.php` |
 
 후속 모듈이 `localStorage`, `sessionStorage`, IndexedDB, analytics cookie, pixel script, A/B testing script를 추가하면 이 inventory와 ROPA processor/국외이전 후보를 먼저 갱신한다. 비필수 저장소는 렌더링 전에 동의 상태를 확인해야 하며, 거부 상태에서도 필수 보안 흐름이 동작해야 한다. 기능성 저장소는 `sr_privacy_cookie_consent_allows('popup_dismissal')`처럼 항목별 gate 또는 같은 의미의 클라이언트 gate를 거친다.
 

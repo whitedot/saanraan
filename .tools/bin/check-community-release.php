@@ -611,6 +611,7 @@ $requiredTables = [
     'sr_community_comments',
     'sr_community_attachments',
     'sr_community_reports',
+    'sr_community_report_auto_actions',
     'sr_community_messages',
     'sr_community_scraps',
     'sr_community_levels',
@@ -670,6 +671,13 @@ $requiredInstallFragments = [
     ],
     'sr_community_reports' => [
         'UNIQUE KEY uq_sr_community_reports_target_reporter (reporter_account_id, target_type, target_id)',
+    ],
+    'sr_community_report_auto_actions' => [
+        'active_target_uid VARCHAR(80) NULL',
+        'target_hidden_by_account_id BIGINT UNSIGNED NULL',
+        'threshold_value INT UNSIGNED NOT NULL DEFAULT 0',
+        'UNIQUE KEY uq_sr_community_report_auto_actions_active_target (active_target_uid)',
+        'KEY idx_sr_community_report_auto_actions_target_status (target_type, target_id, status)',
     ],
     'sr_community_messages' => [
         'sender_deleted_at DATETIME NULL',

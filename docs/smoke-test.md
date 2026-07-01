@@ -257,6 +257,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /admin/community/boards 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/community/reports 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/community/reports에서 신고 상태 저장 시 대상 조치 없음/게시글 숨김/댓글 숨김/게시자 정지/삭제+게시자 정지/숨김+게시자 정지 등 대상 유형별 허용 조치만 서버에서 처리되는지 확인
+신고 임계치 자동 임시 조치를 켜는 staging 검증에서는 기본값이 비활성인지 먼저 확인하고, 같은 게시글/댓글에 활성 `sr_community_report_auto_actions.active_target_uid`가 둘 이상 생기지 않는지 확인한다. 확정/해제 같은 terminal 상태 처리 후에는 활성 UID가 비워져야 한다.
 /admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /sitemap.xml 응답이 200이면 sitemap XML 루트가 있고 404여도 PHP 오류가 노출되지 않는지 확인
 /assets/layout.css 정적 파일 응답과 공통 공개 layout header/main/footer 확인

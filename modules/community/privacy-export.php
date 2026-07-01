@@ -197,6 +197,7 @@ return static function (PDO $pdo, int $accountId): array {
         'attachments' => [],
         'attachment_download_logs' => [],
         'reports' => [],
+        'report_auto_actions' => [],
         'messages' => [],
         'scraps' => [],
         'series_scraps' => [],
@@ -310,6 +311,71 @@ return static function (PDO $pdo, int $accountId): array {
         'reported_account_id' => $accountId,
         'reported_role_account_id' => $accountId,
     ], 'reports', $sectionLimits);
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_report_auto_actions LIMIT 1');
+        $stmt = $pdo->prepare(
+            'SELECT DISTINCT a.id, a.target_type, a.target_id, a.source_report_id,
+                    a.action_key, a.status, a.target_before_status,
+                    a.target_hidden_at_snapshot, a.target_hidden_reason,
+                    CASE WHEN a.target_hidden_by_account_id = :target_hidden_actor_account_id THEN a.target_hidden_by_account_id ELSE NULL END AS target_hidden_by_account_id,
+                    CASE
+                        WHEN a.target_hidden_by_account_id IS NULL THEN \'none\'
+                        WHEN a.target_hidden_by_account_id = :target_hidden_role_account_id THEN \'self\'
+                        ELSE \'masked_operator\'
+                    END AS target_hidden_by_account_role,
+                    CASE WHEN a.reviewer_account_id = :reviewer_actor_account_id THEN a.reviewer_account_id ELSE NULL END AS reviewer_account_id,
+                    CASE
+                        WHEN a.reviewer_account_id IS NULL THEN \'none\'
+                        WHEN a.reviewer_account_id = :reviewer_role_account_id THEN \'self\'
+                        ELSE \'masked_operator\'
+                    END AS reviewer_account_role,
+                    CASE
+                        WHEN p.author_account_id = :post_author_role_account_id OR c.author_account_id = :comment_author_role_account_id THEN \'target_author\'
+                        WHEN r.reporter_account_id = :reporter_role_account_id THEN \'source_reporter\'
+                        WHEN r.reported_account_id = :reported_role_account_id THEN \'source_reported\'
+                        WHEN a.target_hidden_by_account_id = :hidden_actor_role_account_id THEN \'hidden_actor\'
+                        WHEN a.reviewer_account_id = :reviewer_match_role_account_id THEN \'reviewer\'
+                        ELSE \'related\'
+                    END AS account_role,
+                    a.threshold_value, a.total_reporter_count, a.eligible_reporter_count,
+                    a.excluded_reporter_count, a.excluded_report_count,
+                    a.abuse_guard_summary_json, a.settings_snapshot_json, a.failure_reason,
+                    a.metadata_json, a.applied_at, a.released_at, a.reviewed_at, a.created_at, a.updated_at
+             FROM sr_community_report_auto_actions a
+             LEFT JOIN sr_community_posts p ON a.target_type = \'post\' AND p.id = a.target_id
+             LEFT JOIN sr_community_comments c ON a.target_type = \'comment\' AND c.id = a.target_id
+             LEFT JOIN sr_community_reports r ON r.id = a.source_report_id
+             WHERE p.author_account_id = :post_author_account_id
+                OR c.author_account_id = :comment_author_account_id
+                OR r.reporter_account_id = :source_reporter_account_id
+                OR r.reported_account_id = :source_reported_account_id
+                OR a.target_hidden_by_account_id = :hidden_by_account_id
+                OR a.reviewer_account_id = :reviewer_account_id
+             ORDER BY a.id ASC
+             LIMIT 1001'
+        );
+        $empty['report_auto_actions'] = sr_community_privacy_fetch_limited($stmt, [
+            'target_hidden_actor_account_id' => $accountId,
+            'target_hidden_role_account_id' => $accountId,
+            'reviewer_actor_account_id' => $accountId,
+            'reviewer_role_account_id' => $accountId,
+            'post_author_role_account_id' => $accountId,
+            'comment_author_role_account_id' => $accountId,
+            'reporter_role_account_id' => $accountId,
+            'reported_role_account_id' => $accountId,
+            'hidden_actor_role_account_id' => $accountId,
+            'reviewer_match_role_account_id' => $accountId,
+            'post_author_account_id' => $accountId,
+            'comment_author_account_id' => $accountId,
+            'source_reporter_account_id' => $accountId,
+            'source_reported_account_id' => $accountId,
+            'hidden_by_account_id' => $accountId,
+            'reviewer_account_id' => $accountId,
+        ], 'report_auto_actions', $sectionLimits);
+    } catch (Throwable $exception) {
+        $empty['report_auto_actions'] = [];
+    }
 
     $stmt = $pdo->prepare(
         'SELECT id,
@@ -473,6 +539,7 @@ return static function (PDO $pdo, int $accountId): array {
         $empty['asset_recovery_failures'] = [];
         $empty['publisher_reward_logs'] = [];
         $empty['attachment_download_logs'] = [];
+        $empty['report_auto_actions'] = [];
         $empty['submission_consents'] = [];
     }
 
