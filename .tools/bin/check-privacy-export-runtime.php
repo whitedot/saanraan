@@ -355,6 +355,151 @@ function sr_privacy_export_runtime_check_content(): void
         return;
     }
 
+    $legacyPdo = sr_privacy_export_runtime_pdo();
+    $legacyPdo->exec('CREATE TABLE sr_content_items (id INTEGER PRIMARY KEY, slug TEXT NOT NULL, title TEXT NOT NULL)');
+    $legacyPdo->exec('CREATE TABLE sr_content_groups (id INTEGER PRIMARY KEY, group_key TEXT NOT NULL, title TEXT NOT NULL)');
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_access_entitlements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            content_id INTEGER NOT NULL,
+            subject_type TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            access_kind TEXT NOT NULL,
+            source_kind TEXT NOT NULL,
+            source_asset_module TEXT NOT NULL,
+            source_charge_policy TEXT NOT NULL,
+            source_reference TEXT NOT NULL,
+            granted_at TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_asset_access_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            asset_module TEXT NOT NULL,
+            transaction_id INTEGER NOT NULL,
+            reference_type TEXT NOT NULL,
+            reference_id TEXT NOT NULL,
+            access_kind TEXT NOT NULL,
+            charge_policy TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            settlement_amount INTEGER NOT NULL,
+            settlement_currency TEXT NOT NULL,
+            purchase_power_snapshot_json TEXT NOT NULL,
+            group_policy_snapshot_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_asset_action_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            asset_module TEXT NOT NULL,
+            transaction_id INTEGER NOT NULL,
+            reference_type TEXT NOT NULL,
+            reference_id TEXT NOT NULL,
+            action_key TEXT NOT NULL,
+            direction TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            settlement_amount INTEGER NOT NULL,
+            settlement_currency TEXT NOT NULL,
+            purchase_power_snapshot_json TEXT NOT NULL,
+            group_policy_snapshot_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec('CREATE TABLE sr_content_files (id INTEGER PRIMARY KEY, title TEXT NOT NULL, original_name TEXT NOT NULL)');
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_file_download_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            file_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            download_type TEXT NOT NULL,
+            charge_policy TEXT NOT NULL,
+            asset_module TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            asset_access_log_ids_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NULL,
+            content_group_id INTEGER NOT NULL,
+            author_account_id INTEGER NOT NULL,
+            slug TEXT NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            body_text TEXT NOT NULL,
+            body_format TEXT NOT NULL,
+            review_status TEXT NOT NULL,
+            publish_target_status TEXT NOT NULL,
+            review_note TEXT NOT NULL,
+            reviewed_by INTEGER NULL,
+            reviewed_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_author_applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            application_note TEXT NOT NULL,
+            status TEXT NOT NULL,
+            review_note TEXT NOT NULL,
+            reviewed_by INTEGER NULL,
+            reviewed_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_author_reward_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            submission_id INTEGER NOT NULL,
+            content_id INTEGER NOT NULL,
+            author_account_id INTEGER NOT NULL,
+            asset_module TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            transaction_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            failure_reason TEXT NOT NULL,
+            created_by_account_id INTEGER NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
+        'CREATE TABLE sr_content_comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            parent_comment_id INTEGER NULL,
+            thread_root_id INTEGER NOT NULL,
+            depth INTEGER NOT NULL,
+            author_account_id INTEGER NOT NULL,
+            author_public_name_snapshot TEXT NOT NULL,
+            body_text TEXT NOT NULL,
+            is_secret INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec("INSERT INTO sr_content_items (id, slug, title) VALUES (101, 'legacy-download', 'Legacy Download')");
+    $legacyPdo->exec("INSERT INTO sr_content_files (id, title, original_name) VALUES (201, 'Legacy File', 'legacy.pdf')");
+    $legacyPdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at) VALUES (101, 201, 7, 'paid', 'once', 'point', 30, '[]', '')");
+    $legacyResult = $export($legacyPdo, 7);
+    sr_privacy_export_runtime_assert(count($legacyResult['file_download_logs'] ?? []) === 1, 'content export must include legacy file download rows without refund columns.');
+    sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_status'] ?? 'missing') === '', 'content export must fallback legacy file download refund_status.');
+    sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_transaction_ids_json'] ?? '') === '[]', 'content export must fallback legacy file download refund transaction ids.');
+
     $pdo = sr_privacy_export_runtime_pdo();
     $pdo->exec('CREATE TABLE sr_content_items (id INTEGER PRIMARY KEY, slug TEXT NOT NULL, title TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_content_groups (id INTEGER PRIMARY KEY, group_key TEXT NOT NULL, title TEXT NOT NULL)');
