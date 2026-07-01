@@ -511,7 +511,7 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
         $row['saanraan_module_contract'] = is_string($saanraanMetadata['module_contract'] ?? null) ? (string) $saanraanMetadata['module_contract'] : '';
         $row['metadata_errors'] = $metadataErrors;
         $row['is_foundation'] = sr_module_is_foundation((string) $row['module_key']);
-        $row['foundation_dependents'] = sr_enabled_asset_modules_requiring_foundation($pdo, (string) $row['module_key']);
+        $row['foundation_dependents'] = sr_enabled_modules_requiring_foundation($pdo, (string) $row['module_key']);
         $row['pending_update_count'] = (int) ($pendingUpdateCounts[(string) $row['module_key']] ?? 0);
         $row['version_state'] = 'unknown';
         if ((string) $row['code_version'] !== '' && (string) $row['version'] !== '') {

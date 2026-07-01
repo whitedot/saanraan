@@ -96,6 +96,19 @@ sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'content') 
 $pdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key IN ('content', 'coupon')");
 sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'payment_ledger') === [], 'payment_ledger disable guard must allow disabling after dependents are disabled.');
 
+$adminModuleActions = (string) file_get_contents(SR_ROOT . '/modules/admin/helpers/module-actions.php');
+$adminModulesView = (string) file_get_contents(SR_ROOT . '/modules/admin/views/modules.php');
+sr_module_foundation_lifecycle_assert(
+    str_contains($adminModuleActions, 'sr_enabled_modules_requiring_foundation')
+    && !str_contains($adminModuleActions, 'sr_enabled_asset_modules_requiring_foundation'),
+    'admin module actions must use the generic foundation dependent lookup.'
+);
+sr_module_foundation_lifecycle_assert(
+    str_contains($adminModulesView, '활성 의존 모듈')
+    && !str_contains($adminModulesView, '활성 자산 모듈('),
+    'admin module status modal must describe generic foundation dependents.'
+);
+
 if ($errors !== []) {
     fwrite(STDERR, "module foundation lifecycle checks failed:\n");
     foreach ($errors as $error) {
