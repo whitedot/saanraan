@@ -335,6 +335,32 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         dedupe_key TEXT NOT NULL UNIQUE,
         created_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_content_view_payment_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_id INTEGER NOT NULL,
+        content_title_snapshot TEXT NOT NULL DEFAULT '',
+        content_slug_snapshot TEXT NOT NULL DEFAULT '',
+        account_id INTEGER,
+        payment_type TEXT NOT NULL DEFAULT 'asset_only',
+        settlement_kind TEXT NOT NULL DEFAULT 'paid',
+        charge_policy TEXT NOT NULL DEFAULT 'once',
+        asset_module TEXT NOT NULL DEFAULT '',
+        payable_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        asset_access_log_ids_json TEXT,
+        coupon_redemption_id INTEGER,
+        coupon_dedupe_key TEXT NOT NULL DEFAULT '',
+        payment_dedupe_key TEXT NOT NULL UNIQUE,
+        refund_status TEXT NOT NULL DEFAULT '',
+        refund_transaction_ids_json TEXT,
+        refund_note TEXT NOT NULL DEFAULT '',
+        refunded_by_account_id INTEGER,
+        refunded_at TEXT,
+        access_revoked_at TEXT,
+        refund_policy_version TEXT NOT NULL DEFAULT 'content_view_refund_v1',
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("CREATE TABLE sr_content_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -1500,10 +1526,18 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentViewPaymentId, 'coupon_redemption') === 1, 'content paid view payment ledger should include the coupon redemption item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentViewPaymentId, 'access_entitlement') === 1, 'content paid view payment ledger should include the access entitlement item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_reference($pdo, $contentViewPaymentId, 'access_entitlement') === 'content:77:view', 'content paid view payment ledger access item should not embed the account id.');
+    $contentViewUnit = sr_coupon_runtime_row($pdo, 'SELECT payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id, refund_policy_version FROM sr_content_view_payment_logs WHERE content_id = 77 LIMIT 1');
+    sr_coupon_runtime_assert((string) ($contentViewUnit['payment_type'] ?? '') === 'coupon_access', 'content paid view payment-unit should classify full access coupon payments.');
+    sr_coupon_runtime_assert((string) ($contentViewUnit['settlement_kind'] ?? '') === 'paid_settled_zero', 'content paid view payment-unit should preserve zero settlement classification.');
+    sr_coupon_runtime_assert((int) ($contentViewUnit['payable_amount'] ?? -1) === 100 && (int) ($contentViewUnit['settlement_amount'] ?? -1) === 0, 'content paid view payment-unit should separate payable and settlement amounts.');
+    sr_coupon_runtime_assert((string) ($contentViewUnit['asset_access_log_ids_json'] ?? '') === '[]', 'content paid view payment-unit should not attach asset logs for coupon-only access.');
+    sr_coupon_runtime_assert((int) ($contentViewUnit['coupon_redemption_id'] ?? 0) > 0, 'content paid view payment-unit should link the coupon redemption.');
+    sr_coupon_runtime_assert((string) ($contentViewUnit['refund_policy_version'] ?? '') === 'content_view_refund_v1', 'content paid view payment-unit should stamp the refund policy version.');
 
     $repeat = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
     sr_coupon_runtime_assert(!empty($repeat['allowed']) && empty($repeat['charged']) && !empty($repeat['already_paid']), 'content paid view fixture should reuse existing coupon entitlement without another charge.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'content' AND reference_type = 'content.view' AND reference_id = '77'")->fetchColumn() === 1, 'content paid view fixture should not create another coupon redemption for once access.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_view_payment_logs WHERE content_id = 77')->fetchColumn() === 1, 'content paid view repeat should not create another payment-unit row for existing entitlement.');
 
     $pdo->prepare(
         "INSERT INTO sr_content_items (id, title, slug, status, updated_at)
@@ -1841,6 +1875,29 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'coupon_redemption', 'reversed') === 1, 'community attachment coupon refund should mark the coupon payment item reversed.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'access_entitlement', 'reversed') === 1, 'community attachment coupon refund should mark the access payment item reversed.');
 
+    $assetOnlyPage = [
+        'id' => 78,
+        'title' => 'Asset paid content',
+        'slug' => 'asset-paid-content',
+        'asset_access_enabled' => 1,
+        'asset_module' => 'point',
+        'asset_access_amount' => 90,
+        'asset_access_amounts_json' => '{"point":90}',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
+        'asset_access_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $assetOnlyResult = sr_content_charge_view_access($pdo, $assetOnlyPage, 7, true, '', 0, true, true, false);
+    sr_coupon_runtime_assert(!empty($assetOnlyResult['allowed']) && !empty($assetOnlyResult['charged']), 'content asset-only paid view fixture should charge assets.');
+    $assetOnlyUnit = sr_coupon_runtime_row($pdo, 'SELECT payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id FROM sr_content_view_payment_logs WHERE content_id = 78 LIMIT 1');
+    $assetOnlyLogIds = json_decode((string) ($assetOnlyUnit['asset_access_log_ids_json'] ?? '[]'), true);
+    sr_coupon_runtime_assert((string) ($assetOnlyUnit['payment_type'] ?? '') === 'asset_only', 'content asset-only paid view payment-unit should classify asset payments.');
+    sr_coupon_runtime_assert((string) ($assetOnlyUnit['settlement_kind'] ?? '') === 'paid', 'content asset-only paid view payment-unit should classify paid settlement.');
+    sr_coupon_runtime_assert((int) ($assetOnlyUnit['payable_amount'] ?? -1) === 90 && (int) ($assetOnlyUnit['settlement_amount'] ?? -1) === 90, 'content asset-only paid view payment-unit should store payable and settlement amounts.');
+    sr_coupon_runtime_assert(is_array($assetOnlyLogIds) && count($assetOnlyLogIds) === 1, 'content asset-only paid view payment-unit should link one asset access log.');
+    sr_coupon_runtime_assert((int) ($assetOnlyUnit['coupon_redemption_id'] ?? 0) === 0, 'content asset-only paid view payment-unit should not link a coupon redemption.');
+
     $pdo->prepare(
         "INSERT INTO sr_content_items
             (id, title, slug, status, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_settlement_currency, asset_charge_policy, updated_at)
@@ -1900,6 +1957,13 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'asset_access_log') === 1, 'content mixed coupon payment ledger should include content asset access log item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_count($pdo, $contentMixedPaymentId, 'access_entitlement') === 1, 'content mixed coupon payment ledger should include access entitlement item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_reference($pdo, $contentMixedPaymentId, 'access_entitlement') === 'content:7801:view', 'content mixed coupon payment ledger access item should not embed the account id.');
+    $contentMixedUnit = sr_coupon_runtime_row($pdo, 'SELECT payment_type, settlement_kind, payable_amount, settlement_amount, asset_access_log_ids_json, coupon_redemption_id FROM sr_content_view_payment_logs WHERE content_id = 7801 LIMIT 1');
+    $contentMixedLogIds = json_decode((string) ($contentMixedUnit['asset_access_log_ids_json'] ?? '[]'), true);
+    sr_coupon_runtime_assert((string) ($contentMixedUnit['payment_type'] ?? '') === 'coupon_partial_discount_asset', 'content mixed coupon payment-unit should classify coupon plus asset payments.');
+    sr_coupon_runtime_assert((string) ($contentMixedUnit['settlement_kind'] ?? '') === 'paid', 'content mixed coupon payment-unit should classify paid settlement.');
+    sr_coupon_runtime_assert((int) ($contentMixedUnit['payable_amount'] ?? -1) === 100 && (int) ($contentMixedUnit['settlement_amount'] ?? -1) === 60, 'content mixed coupon payment-unit should preserve payable and remaining settlement amounts.');
+    sr_coupon_runtime_assert(is_array($contentMixedLogIds) && count($contentMixedLogIds) === 1, 'content mixed coupon payment-unit should link the asset access log.');
+    sr_coupon_runtime_assert((int) ($contentMixedUnit['coupon_redemption_id'] ?? 0) > 0, 'content mixed coupon payment-unit should link the coupon redemption.');
 
     $pdo->prepare(
         "INSERT INTO sr_community_posts

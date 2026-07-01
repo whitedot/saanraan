@@ -210,6 +210,12 @@ function sr_privacy_cleanup_runtime_check_content(): void
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_content_view_payment_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NULL
+        )'
+    );
+    $pdo->exec(
         'CREATE TABLE sr_content_author_applications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             account_id INTEGER NULL,
@@ -261,6 +267,7 @@ function sr_privacy_cleanup_runtime_check_content(): void
 
     $pdo->exec("INSERT INTO sr_content_comments (author_account_id, author_public_name_snapshot) VALUES (7, 'name7'), (8, 'name8')");
     $pdo->exec("INSERT INTO sr_content_file_download_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_content_view_payment_logs (account_id) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_content_author_applications (account_id, application_note, review_note, updated_at) VALUES (7, 'apply7', 'review7', ''), (8, 'apply8', 'review8', '')");
     $pdo->exec("INSERT INTO sr_content_access_entitlements (account_id, source_reference, anonymized_at) VALUES (7, 'ref7', NULL), (8, 'ref8', NULL)");
     $pdo->exec("INSERT INTO sr_content_asset_access_logs (account_id) VALUES (7), (8)");
@@ -278,12 +285,14 @@ function sr_privacy_cleanup_runtime_check_content(): void
     sr_privacy_cleanup_runtime_assert(($result['event_type'] ?? '') === 'withdrawal', 'content cleanup result must preserve event_type.');
     sr_privacy_cleanup_runtime_assert((int) ($result['content_access_entitlement_anonymized_count'] ?? -1) === 1, 'content cleanup must report access entitlement anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['content_author_snapshot_anonymized_count'] ?? -1) === 1, 'content cleanup must report comment snapshot anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['content_view_payment_log_anonymized_count'] ?? -1) === 1, 'content cleanup must report view payment anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['content_file_download_log_anonymized_count'] ?? -1) === 1, 'content cleanup must report file download anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['content_author_application_anonymized_count'] ?? -1) === 1, 'content cleanup must report author application anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['content_series_metadata_anonymized_count'] ?? -1) === 3, 'content cleanup must report series metadata anonymization count.');
 
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_content_comments WHERE id = 1') === '', 'content cleanup must clear target comment public name snapshot.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_file_download_logs WHERE account_id IS NULL') === 1, 'content cleanup must anonymize target file download logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_view_payment_logs WHERE account_id IS NULL') === 1, 'content cleanup must anonymize target view payment logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_access_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset access logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_action_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset action logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_account_id FROM sr_content_author_reward_logs WHERE id = 1') === 7, 'content cleanup must retain author account id on reward logs.');

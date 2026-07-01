@@ -319,6 +319,40 @@ CREATE TABLE IF NOT EXISTS sr_content_asset_access_logs (
     KEY idx_sr_content_asset_access_transaction (asset_module, transaction_id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_content_view_payment_logs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    content_id BIGINT UNSIGNED NOT NULL,
+    content_title_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    content_slug_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    account_id BIGINT UNSIGNED NULL,
+    payment_type VARCHAR(40) NOT NULL DEFAULT 'asset_only',
+    settlement_kind VARCHAR(30) NOT NULL DEFAULT 'paid',
+    charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
+    asset_module VARCHAR(60) NOT NULL DEFAULT '',
+    payable_amount BIGINT NOT NULL DEFAULT 0,
+    settlement_amount BIGINT NOT NULL DEFAULT 0,
+    settlement_currency CHAR(3) NOT NULL DEFAULT 'KRW',
+    asset_access_log_ids_json TEXT NULL,
+    coupon_redemption_id BIGINT UNSIGNED NULL,
+    coupon_dedupe_key VARCHAR(160) NOT NULL DEFAULT '',
+    payment_dedupe_key VARCHAR(190) NOT NULL,
+    refund_status VARCHAR(20) NOT NULL DEFAULT '',
+    refund_transaction_ids_json TEXT NULL,
+    refund_note VARCHAR(255) NOT NULL DEFAULT '',
+    refunded_by_account_id BIGINT UNSIGNED NULL,
+    refunded_at DATETIME NULL,
+    access_revoked_at DATETIME NULL,
+    refund_policy_version VARCHAR(40) NOT NULL DEFAULT 'content_view_refund_v1',
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_content_view_payments_dedupe (payment_dedupe_key),
+    KEY idx_sr_content_view_payments_content (content_id, created_at),
+    KEY idx_sr_content_view_payments_account (account_id, created_at),
+    KEY idx_sr_content_view_payments_type (payment_type, created_at),
+    KEY idx_sr_content_view_payments_coupon (coupon_redemption_id),
+    KEY idx_sr_content_view_payments_refund (refund_status, refunded_at)
+);
+
 CREATE TABLE IF NOT EXISTS sr_content_access_entitlements (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NULL,

@@ -263,6 +263,8 @@ $requiredIndexMarkers = [
         'KEY idx_sr_content_items_status_updated (status, updated_at)',
         'KEY idx_sr_content_comments_thread (content_id, status, thread_root_id, parent_comment_id, id)',
         'UNIQUE KEY uq_sr_content_asset_access_dedupe (dedupe_key)',
+        'UNIQUE KEY uq_sr_content_view_payments_dedupe (payment_dedupe_key)',
+        'KEY idx_sr_content_view_payments_refund (refund_status, refunded_at)',
         'KEY idx_sr_content_file_downloads_refund (refund_status, refunded_at)',
         'UNIQUE KEY uq_sr_content_access_entitlements_account_subject (account_id, subject_type, subject_id, access_kind)',
     ],

@@ -162,11 +162,109 @@ if (!function_exists('sr_content_privacy_add_file_download_settlement_summaries'
     }
 }
 
+if (!function_exists('sr_content_privacy_add_view_payment_settlement_summaries')) {
+    function sr_content_privacy_add_view_payment_settlement_summaries(PDO $pdo, array $rows): array
+    {
+        foreach ($rows as &$row) {
+            if (is_array($row)) {
+                $row['settlement_summaries'] = [];
+            }
+        }
+        unset($row);
+
+        if ($rows === []
+            || !function_exists('sr_content_asset_access_logs_table_exists')
+            || !sr_content_asset_access_logs_table_exists($pdo)
+            || !function_exists('sr_content_asset_access_log_columns')) {
+            return $rows;
+        }
+
+        $idsByLogIndex = [];
+        $allIds = [];
+        foreach ($rows as $index => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $ids = sr_content_privacy_log_ids_from_json($row['asset_access_log_ids_json'] ?? '[]');
+            if ($ids === []) {
+                continue;
+            }
+            $idsByLogIndex[(int) $index] = $ids;
+            foreach ($ids as $id) {
+                $allIds[$id] = $id;
+            }
+        }
+        if ($allIds === []) {
+            return $rows;
+        }
+
+        $columns = sr_content_asset_access_log_columns($pdo);
+        foreach (['id', 'content_id', 'account_id', 'asset_module', 'reference_type', 'reference_id', 'access_kind', 'amount'] as $requiredColumn) {
+            if (!isset($columns[$requiredColumn])) {
+                return $rows;
+            }
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach (array_values($allIds) as $index => $id) {
+            $key = 'id_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = (int) $id;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT id, content_id, account_id, asset_module, reference_type, reference_id, access_kind, amount,
+                    settlement_amount,
+                    settlement_currency,
+                    purchase_power_snapshot_json,
+                    settlement_kind,
+                    snapshot_schema_version,
+                    rounding_policy_version
+             FROM sr_content_asset_access_logs
+             WHERE id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY id ASC'
+        );
+        $stmt->execute($params);
+
+        $assetLogsById = [];
+        foreach ($stmt->fetchAll() as $assetLog) {
+            $assetLogsById[(int) ($assetLog['id'] ?? 0)] = $assetLog;
+        }
+
+        foreach ($idsByLogIndex as $index => $ids) {
+            $summaries = [];
+            $paymentLog = $rows[$index] ?? [];
+            if (!is_array($paymentLog)) {
+                continue;
+            }
+            foreach ($ids as $id) {
+                $assetLog = $assetLogsById[$id] ?? null;
+                if (!is_array($assetLog)) {
+                    continue;
+                }
+                if ((int) ($assetLog['content_id'] ?? 0) !== (int) ($paymentLog['content_id'] ?? 0)
+                    || (int) ($assetLog['account_id'] ?? 0) !== (int) ($paymentLog['account_id'] ?? 0)
+                    || (string) ($assetLog['reference_type'] ?? '') !== 'content.view'
+                    || (int) ($assetLog['reference_id'] ?? 0) !== (int) ($paymentLog['content_id'] ?? 0)
+                    || (string) ($assetLog['access_kind'] ?? '') !== 'view') {
+                    continue;
+                }
+                $summaries[] = sr_content_privacy_asset_settlement_summary($assetLog);
+            }
+            $rows[$index]['settlement_summaries'] = $summaries;
+        }
+
+        return $rows;
+    }
+}
+
 return static function (PDO $pdo, int $accountId): array {
     if ($accountId < 1) {
         return [
             'access_entitlements' => [],
             'asset_access_logs' => [],
+            'view_payment_logs' => [],
             'file_download_logs' => [],
             'asset_action_logs' => [],
             'submissions' => [],
@@ -211,6 +309,24 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt->execute(['account_id' => $accountId]);
 
     $accessLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
+
+    $stmt = $pdo->prepare(
+        'SELECT d.id, d.content_id, COALESCE(NULLIF(p.slug, \'\'), NULLIF(d.content_slug_snapshot, \'\')) AS slug,
+                COALESCE(NULLIF(p.title, \'\'), NULLIF(d.content_title_snapshot, \'\')) AS title,
+                d.account_id, d.payment_type, d.settlement_kind, d.charge_policy,
+                d.asset_module, d.payable_amount, d.settlement_amount, d.settlement_currency,
+                d.asset_access_log_ids_json, d.coupon_redemption_id, d.coupon_dedupe_key,
+                d.payment_dedupe_key, d.refund_status, d.refund_transaction_ids_json, d.refund_note,
+                d.refunded_by_account_id, d.refunded_at, d.access_revoked_at, d.refund_policy_version,
+                d.created_at
+         FROM sr_content_view_payment_logs d
+         LEFT JOIN sr_content_items p ON p.id = d.content_id
+         WHERE d.account_id = :account_id
+         ORDER BY d.id ASC
+         LIMIT 1000'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $viewPaymentLogs = sr_content_privacy_add_view_payment_settlement_summaries($pdo, $stmt->fetchAll());
 
     $fileDownloadLogs = [];
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
@@ -337,6 +453,7 @@ return static function (PDO $pdo, int $accountId): array {
     return [
         'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
+        'view_payment_logs' => $viewPaymentLogs,
         'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $actionLogs,
         'submissions' => $submissions,

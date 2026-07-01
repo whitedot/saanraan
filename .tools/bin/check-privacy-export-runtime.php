@@ -450,6 +450,34 @@ function sr_privacy_export_runtime_check_content(): void
         )'
     );
     $legacyPdo->exec(
+        'CREATE TABLE sr_content_view_payment_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            content_title_snapshot TEXT NOT NULL DEFAULT "",
+            content_slug_snapshot TEXT NOT NULL DEFAULT "",
+            account_id INTEGER NULL,
+            payment_type TEXT NOT NULL DEFAULT "asset_only",
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            charge_policy TEXT NOT NULL DEFAULT "once",
+            asset_module TEXT NOT NULL DEFAULT "",
+            payable_amount INTEGER NOT NULL DEFAULT 0,
+            settlement_amount INTEGER NOT NULL DEFAULT 0,
+            settlement_currency TEXT NOT NULL DEFAULT "KRW",
+            asset_access_log_ids_json TEXT NULL,
+            coupon_redemption_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT "",
+            payment_dedupe_key TEXT NOT NULL,
+            refund_status TEXT NOT NULL DEFAULT "",
+            refund_transaction_ids_json TEXT NULL,
+            refund_note TEXT NOT NULL DEFAULT "",
+            refunded_by_account_id INTEGER NULL,
+            refunded_at TEXT NULL,
+            access_revoked_at TEXT NULL,
+            refund_policy_version TEXT NOT NULL DEFAULT "content_view_refund_v1",
+            created_at TEXT NOT NULL
+        )'
+    );
+    $legacyPdo->exec(
         'CREATE TABLE sr_content_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             content_id INTEGER NULL,
@@ -611,6 +639,34 @@ function sr_privacy_export_runtime_check_content(): void
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_content_view_payment_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content_id INTEGER NOT NULL,
+            content_title_snapshot TEXT NOT NULL DEFAULT "",
+            content_slug_snapshot TEXT NOT NULL DEFAULT "",
+            account_id INTEGER NULL,
+            payment_type TEXT NOT NULL DEFAULT "asset_only",
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            charge_policy TEXT NOT NULL DEFAULT "once",
+            asset_module TEXT NOT NULL DEFAULT "",
+            payable_amount INTEGER NOT NULL DEFAULT 0,
+            settlement_amount INTEGER NOT NULL DEFAULT 0,
+            settlement_currency TEXT NOT NULL DEFAULT "KRW",
+            asset_access_log_ids_json TEXT NULL,
+            coupon_redemption_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT "",
+            payment_dedupe_key TEXT NOT NULL,
+            refund_status TEXT NOT NULL DEFAULT "",
+            refund_transaction_ids_json TEXT NULL,
+            refund_note TEXT NOT NULL DEFAULT "",
+            refunded_by_account_id INTEGER NULL,
+            refunded_at TEXT NULL,
+            access_revoked_at TEXT NULL,
+            refund_policy_version TEXT NOT NULL DEFAULT "content_view_refund_v1",
+            created_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
         'CREATE TABLE sr_content_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             content_id INTEGER NULL,
@@ -708,9 +764,10 @@ function sr_privacy_export_runtime_check_content(): void
     $pdo->exec("INSERT INTO sr_content_items (id, slug, title) VALUES (10, 'post-a', 'Post A'), (20, 'post-b', 'Post B')");
     $pdo->exec("INSERT INTO sr_content_groups (id, group_key, title) VALUES (1, 'group_a', 'Group A')");
     $pdo->exec("INSERT INTO sr_content_access_entitlements (account_id, content_id, subject_type, subject_id, access_kind, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at) VALUES (7, 10, 'content', 10, 'view', 'asset', 'point', 'once', 'ref7', '', ''), (8, 20, 'content', 20, 'view', 'asset', 'point', 'once', 'ref8', '', '')");
-    $pdo->exec("INSERT INTO sr_content_asset_access_logs (id, content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at) VALUES (1, 10, 7, 'point', 101, 'content', '10', 'view', 'once', 100, 100, 'KRW', '{\"asset_units\":100,\"settlement_units\":100,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', ''), (2, 20, 8, 'point', 102, 'content', '20', 'view', 'once', 200, 200, 'KRW', '{}', '{}', ''), (3, 10, 7, 'point', 103, 'content.download', '5', 'download', 'once', 50, 50, 'KRW', '{\"asset_units\":50,\"settlement_units\":50,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', '')");
+    $pdo->exec("INSERT INTO sr_content_asset_access_logs (id, content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at) VALUES (1, 10, 7, 'point', 101, 'content.view', '10', 'view', 'once', 100, 100, 'KRW', '{\"asset_units\":100,\"settlement_units\":100,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', ''), (2, 20, 8, 'point', 102, 'content.view', '20', 'view', 'once', 200, 200, 'KRW', '{}', '{}', ''), (3, 10, 7, 'point', 103, 'content.download', '5', 'download', 'once', 50, 50, 'KRW', '{\"asset_units\":50,\"settlement_units\":50,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', '')");
     $pdo->exec("INSERT INTO sr_content_asset_action_logs (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at) VALUES (10, 7, 'point', 201, 'content', '10', 'download', 'debit', 50, 50, 'KRW', '{\"asset_units\":50,\"settlement_units\":50,\"settlement_currency\":\"KRW\",\"currency_min_unit\":1}', '{}', ''), (20, 8, 'point', 202, 'content', '20', 'download', 'debit', 60, 60, 'KRW', '{}', '{}', '')");
     $pdo->exec("INSERT INTO sr_content_files (id, title, original_name) VALUES (5, 'File A', 'a.pdf'), (6, 'File B', 'b.pdf')");
+    $pdo->exec("INSERT INTO sr_content_view_payment_logs (content_id, account_id, payment_type, settlement_kind, charge_policy, asset_module, payable_amount, settlement_amount, settlement_currency, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, payment_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refund_policy_version, created_at) VALUES (10, 7, 'asset_only', 'paid', 'once', 'point', 100, 100, 'KRW', '[1]', NULL, '', 'content.view:payment-unit:target', '', '[]', '', 'content_view_refund_v1', ''), (20, 8, 'asset_only', 'paid', 'once', 'point', 200, 200, 'KRW', '[2]', NULL, '', 'content.view:payment-unit:other', '', '[]', '', 'content_view_refund_v1', '')");
     $pdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, created_at) VALUES (10, 5, 7, 'paid', 'once', 'point', 50, '[3]', 'none', '[]', '', NULL, NULL, NULL, ''), (20, 6, 8, 'paid', 'once', 'point', 60, '[2]', 'none', '[]', '', NULL, NULL, NULL, '')");
     $pdo->exec("INSERT INTO sr_content_submissions (content_id, content_group_id, author_account_id, slug, title, summary, body_text, body_format, review_status, publish_target_status, review_note, reviewed_by, reviewed_at, created_at, updated_at) VALUES (10, 1, 7, 'sub-a', 'Sub A', 'sum', 'body', 'html', 'approved', 'published', '', NULL, NULL, '', ''), (20, 1, 8, 'sub-b', 'Sub B', 'sum', 'body', 'html', 'approved', 'published', '', NULL, NULL, '', '')");
     $pdo->exec("INSERT INTO sr_content_author_applications (account_id, application_note, status, review_note, reviewed_by, reviewed_at, created_at, updated_at) VALUES (7, 'apply7', 'approved', '', NULL, NULL, '', ''), (8, 'apply8', 'approved', '', NULL, NULL, '', '')");
@@ -720,18 +777,20 @@ function sr_privacy_export_runtime_check_content(): void
     $pdo->exec("INSERT INTO sr_content_comments (content_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at) VALUES (10, NULL, 1, 1, 7, 'name7', 'comment7', 1, 'published', '', ''), (20, NULL, 2, 1, 8, 'name8', 'comment8', 0, 'published', '', '')");
 
     $invalid = $export($pdo, 0);
-    foreach (['access_entitlements', 'asset_access_logs', 'file_download_logs', 'asset_action_logs', 'submissions', 'author_applications', 'author_reward_logs', 'comments', 'series', 'series_items'] as $key) {
+    foreach (['access_entitlements', 'asset_access_logs', 'view_payment_logs', 'file_download_logs', 'asset_action_logs', 'submissions', 'author_applications', 'author_reward_logs', 'comments', 'series', 'series_items'] as $key) {
         sr_privacy_export_runtime_assert(isset($invalid[$key]) && $invalid[$key] === [], 'content export invalid account result must include empty key: ' . $key);
     }
 
     $result = $export($pdo, 7);
-    foreach (['access_entitlements', 'file_download_logs', 'asset_action_logs', 'submissions', 'author_applications', 'author_reward_logs', 'comments', 'series', 'series_items'] as $key) {
+    foreach (['access_entitlements', 'view_payment_logs', 'file_download_logs', 'asset_action_logs', 'submissions', 'author_applications', 'author_reward_logs', 'comments', 'series', 'series_items'] as $key) {
         sr_privacy_export_runtime_assert(count($result[$key] ?? []) === 1, 'content export must include one target row for: ' . $key);
     }
     sr_privacy_export_runtime_assert(count($result['asset_access_logs'] ?? []) === 2, 'content export must include target view and download asset access logs.');
     sr_privacy_export_runtime_assert(($result['access_entitlements'][0]['source_reference'] ?? '') === 'ref7', 'content export must include target entitlement source reference.');
     sr_privacy_export_runtime_assert(($result['asset_access_logs'][0]['settlement_summary']['purchase_power']['asset_units'] ?? null) === 100, 'content export must decode access log purchase power snapshot.');
     sr_privacy_export_runtime_assert(($result['asset_action_logs'][0]['settlement_summary']['purchase_power']['asset_units'] ?? null) === 50, 'content export must decode action log purchase power snapshot.');
+    sr_privacy_export_runtime_assert(($result['view_payment_logs'][0]['settlement_summaries'][0]['purchase_power']['asset_units'] ?? null) === 100, 'content export must attach linked view payment settlement summary.');
+    sr_privacy_export_runtime_assert(($result['view_payment_logs'][0]['refund_policy_version'] ?? '') === 'content_view_refund_v1', 'content export must include view payment refund policy version.');
     sr_privacy_export_runtime_assert(($result['file_download_logs'][0]['original_name'] ?? '') === 'a.pdf', 'content export must include joined file original name.');
     sr_privacy_export_runtime_assert(($result['file_download_logs'][0]['settlement_summaries'][0]['purchase_power']['asset_units'] ?? null) === 50, 'content export must attach linked file download settlement summary.');
     sr_privacy_export_runtime_assert(($result['comments'][0]['author_public_name_snapshot'] ?? '') === 'name7', 'content export must include comment author public name snapshot.');
