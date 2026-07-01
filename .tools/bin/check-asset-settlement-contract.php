@@ -626,6 +626,33 @@ sr_asset_settlement_check_contains('docs/implementation-snapshot.md', [
     '`settlement_amount`, `settlement_currency`, `purchase_power_snapshot_json`, `settlement_kind`, `snapshot_schema_version`, `rounding_policy_version`',
     '다운로드 조회와 개인정보 export는 저장된 settlement snapshot을 요약한다',
     '확인 모달이 환전 후 결제를 별도로 확인하고 POST에서 환전 실행 후 settlement 계획을 다시 계산한다',
+    '#396 denomination 계약에 따라 자산 잔액은 통화 금액이 아니라 asset-unit 정수다',
+]);
+
+sr_asset_settlement_check_contains('docs/denomination-contract.md', [
+    '관련 이슈: #396',
+    'balance`, `amount`, `balance_after`는 통화 금액이 아니라 모듈별 asset-unit 정수다',
+    '`purchase_power`는 `asset_units : settlement_units + settlement_currency` 형식의 통화-bound 비율이다',
+    'settlement 기준 가격의 통화와 모든 참여 자산의 `purchase_power.settlement_currency`가 다르면 fail-closed한다',
+    'record-time 통화로 frozen이다',
+    'decimal exponent가 아니라 정수 settlement minimum unit이다',
+    '`USD => 1`은 센트가 아니라 whole-dollar settlement만 의미한다',
+    'nonzero balance 자체는 통화 변경 차단 사유가 아니다',
+    '통화 없는 live purchase-power 비율은 변경 감지 구멍이므로',
+    '기호, grouping, 소수점, 한국어 `원` 같은 표시는 #374 formatter가 이 계약을 소비해 처리한다',
+]);
+
+sr_asset_settlement_check_contains('docs/core-decisions.md', [
+    '통화 denomination은 asset-unit과 settlement currency를 분리한다',
+    '잔액과 거래 `amount`는 통화 금액이 아니라 모듈별 asset-unit 정수다',
+    '`currency_min_unit`은 decimal exponent가 아니라 core/settings가 소유하는 정수 settlement minimum unit',
+    '기존 기록은 record-time 통화로 frozen',
+    '[통화 Denomination 계약](denomination-contract.md)',
+]);
+
+sr_asset_settlement_check_contains('core/helpers/settings.php', [
+    'Values are integer settlement minimum units, not decimal exponents.',
+    'USD currently means whole-dollar settlement in the 1.x integer model.',
 ]);
 
 sr_asset_settlement_check_contains('docs/smoke-test.md', [

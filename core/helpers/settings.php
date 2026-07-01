@@ -37,6 +37,8 @@ function sr_site_display_name(?array $site = null, ?PDO $pdo = null): string
 
 function sr_known_currency_min_units(): array
 {
+    // Values are integer settlement minimum units, not decimal exponents.
+    // USD currently means whole-dollar settlement in the 1.x integer model.
     return [
         'KRW' => 1,
         'USD' => 1,
