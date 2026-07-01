@@ -71,12 +71,15 @@ sr_community_report_auto_action_check_contains('modules/community/helpers/levels
 
 sr_community_report_auto_action_check_contains('modules/community/helpers/reports.php', [
     'function sr_community_report_auto_action_active_target_uid',
+    'function sr_community_report_auto_action_cutoff',
     'function sr_community_report_active_auto_action',
     'function sr_community_report_auto_actions_by_targets',
     'function sr_community_report_auto_action_transition',
     'function sr_community_release_report_auto_action_target',
     'function sr_community_maybe_apply_report_auto_action',
     'active_target_uid = NULL',
+    "status IN ('open', 'reviewing')",
+    "status IN ('resolved', 'dismissed')",
     "'hidden_reason' => 'report_threshold'",
     "'hidden_by_account_id' => null",
     'sr_community_update_post_attachments_status($pdo, $targetId, \'active\')',
@@ -230,7 +233,8 @@ if ($errors === []) {
             memo_text TEXT NOT NULL,
             status TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
+            updated_at TEXT NOT NULL,
+            reviewed_at TEXT NULL
         )'
     );
     $pdo->exec("INSERT INTO sr_community_boards (id, status) VALUES (1, 'enabled')");
@@ -238,11 +242,29 @@ if ($errors === []) {
     $pdo->exec("INSERT INTO sr_community_attachments (id, post_id, status) VALUES (1, 11, 'active')");
     $pdo->exec(
         "INSERT INTO sr_community_reports
-            (id, target_type, target_id, reporter_account_id, reported_account_id, reason_key, memo_text, status, created_at, updated_at)
+            (id, target_type, target_id, reporter_account_id, reported_account_id, reason_key, memo_text, status, created_at, updated_at, reviewed_at)
          VALUES
-            (101, 'post', 11, 51, 71, 'spam', '', 'open', '2026-07-01 11:00:00', '2026-07-01 11:00:00'),
-            (102, 'post', 11, 52, 71, 'spam', '', 'open', '2026-07-01 11:01:00', '2026-07-01 11:01:00')"
+            (100, 'post', 11, 50, 71, 'spam', '', 'resolved', '2026-07-01 11:00:30', '2026-07-01 11:00:30', NULL),
+            (101, 'post', 11, 51, 71, 'spam', '', 'open', '2026-07-01 11:00:00', '2026-07-01 11:00:00', NULL),
+            (102, 'post', 11, 52, 71, 'spam', '', 'open', '2026-07-01 11:01:00', '2026-07-01 11:01:00', NULL),
+            (201, 'post', 12, 61, 72, 'spam', '', 'open', '2026-07-01 11:04:00', '2026-07-01 11:04:00', NULL),
+            (202, 'post', 12, 62, 72, 'spam', '', 'reviewing', '2026-07-01 11:06:00', '2026-07-01 11:06:00', NULL)"
     );
+    $pdo->exec(
+        "INSERT INTO sr_community_report_auto_actions
+            (target_type, target_id, active_target_uid, status, released_at, created_at, updated_at)
+         VALUES
+            ('post', 12, NULL, 'released', '2026-07-01 11:05:00', '2026-07-01 11:05:00', '2026-07-01 11:05:00')"
+    );
+
+    $cutoffCounts = sr_community_report_auto_action_report_counts($pdo, 'post', 12, 0);
+    if (
+        (string) ($cutoffCounts['cutoff'] ?? '') !== '2026-07-01 11:05:00'
+        || (int) ($cutoffCounts['eligible_reporter_count'] ?? 0) !== 1
+        || (int) ($cutoffCounts['total_reporter_count'] ?? 0) !== 1
+    ) {
+        sr_community_report_auto_action_check_error('terminal auto action cutoff must exclude reports at or before the cutoff.');
+    }
 
     $autoResult = sr_community_maybe_apply_report_auto_action($pdo, 102, [
         'report_auto_action_enabled' => true,
@@ -250,13 +272,14 @@ if ($errors === []) {
         'report_auto_action_window_days' => 0,
         'report_auto_action_public_mode' => 'exclude',
     ]);
-    $postRow = $pdo->query('SELECT status, hidden_reason, hidden_by_account_id FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
+    $postRow = $pdo->query('SELECT status, hidden_at, hidden_reason, hidden_by_account_id FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
     $attachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
     $autoRow = $pdo->query("SELECT * FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
     if (
         (string) ($autoResult['status'] ?? '') !== 'applied'
         || !is_array($postRow)
         || (string) ($postRow['status'] ?? '') !== 'hidden'
+        || (string) ($postRow['hidden_at'] ?? '') === ''
         || (string) ($postRow['hidden_reason'] ?? '') !== 'report_threshold'
         || $postRow['hidden_by_account_id'] !== null
         || $attachmentStatus !== 'hidden'
@@ -265,8 +288,11 @@ if ($errors === []) {
         || (string) ($autoRow['active_target_uid'] ?? '') !== 'post:11'
         || (int) ($autoRow['threshold_value'] ?? 0) !== 2
         || (int) ($autoRow['eligible_reporter_count'] ?? 0) !== 2
+        || (int) ($autoRow['total_reporter_count'] ?? 0) !== 3
+        || (int) ($autoRow['excluded_report_count'] ?? 0) !== 1
+        || (string) ($autoRow['target_hidden_at_snapshot'] ?? '') !== (string) ($postRow['hidden_at'] ?? '')
     ) {
-        sr_community_report_auto_action_check_error('threshold auto action must hide the post, sync attachments, and keep an active target uid.');
+        sr_community_report_auto_action_check_error('threshold auto action must hide the post, sync attachments, keep an active target uid, and store read-back hidden fingerprint.');
     }
 
     $duplicateResult = sr_community_maybe_apply_report_auto_action($pdo, 101, [

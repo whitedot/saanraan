@@ -225,6 +225,38 @@ function sr_community_report_auto_action_settings_snapshot(array $settings): arr
     ];
 }
 
+function sr_community_report_auto_action_cutoff(PDO $pdo, string $targetType, int $targetId): string
+{
+    $reportStmt = $pdo->prepare(
+        "SELECT MAX(reviewed_at) AS cutoff_at
+         FROM sr_community_reports
+         WHERE target_type = :target_type
+           AND target_id = :target_id
+           AND status IN ('resolved', 'dismissed')
+           AND reviewed_at IS NOT NULL"
+    );
+    $reportStmt->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+    $reportCutoff = (string) ($reportStmt->fetchColumn() ?: '');
+
+    $autoStmt = $pdo->prepare(
+        "SELECT MAX(COALESCE(NULLIF(released_at, ''), NULLIF(reviewed_at, ''), updated_at)) AS cutoff_at
+         FROM sr_community_report_auto_actions
+         WHERE target_type = :target_type
+           AND target_id = :target_id
+           AND status IN ('confirmed', 'released', 'skipped', 'failed')"
+    );
+    $autoStmt->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+    $autoCutoff = (string) ($autoStmt->fetchColumn() ?: '');
+
+    return max($reportCutoff, $autoCutoff);
+}
+
 function sr_community_report_auto_action_report_counts(PDO $pdo, string $targetType, int $targetId, int $windowDays): array
 {
     $where = 'target_type = :target_type AND target_id = :target_id';
@@ -232,8 +264,14 @@ function sr_community_report_auto_action_report_counts(PDO $pdo, string $targetT
         'target_type' => $targetType,
         'target_id' => $targetId,
     ];
+    $cutoff = sr_community_report_auto_action_cutoff($pdo, $targetType, $targetId);
+    if ($cutoff !== '') {
+        $where .= ' AND created_at > :cutoff';
+        $params['cutoff'] = $cutoff;
+    }
     if ($windowDays > 0) {
-        $createdAfter = (new DateTimeImmutable('now'))->modify('-' . (string) $windowDays . ' days')->format('Y-m-d H:i:s');
+        $now = function_exists('sr_now') ? sr_now() : date('Y-m-d H:i:s');
+        $createdAfter = (new DateTimeImmutable($now))->modify('-' . (string) $windowDays . ' days')->format('Y-m-d H:i:s');
         $where .= ' AND created_at >= :created_after';
         $params['created_after'] = $createdAfter;
     }
@@ -241,9 +279,9 @@ function sr_community_report_auto_action_report_counts(PDO $pdo, string $targetT
     $stmt = $pdo->prepare(
         "SELECT COUNT(*) AS total_report_count,
                 COUNT(DISTINCT reporter_account_id) AS total_reporter_count,
-                COUNT(CASE WHEN status = 'dismissed' THEN 1 END) AS excluded_report_count,
-                COUNT(DISTINCT CASE WHEN status = 'dismissed' THEN reporter_account_id ELSE NULL END) AS excluded_reporter_count,
-                COUNT(DISTINCT CASE WHEN status <> 'dismissed' THEN reporter_account_id ELSE NULL END) AS eligible_reporter_count
+                COUNT(CASE WHEN status NOT IN ('open', 'reviewing') THEN 1 END) AS excluded_report_count,
+                COUNT(DISTINCT CASE WHEN status NOT IN ('open', 'reviewing') THEN reporter_account_id ELSE NULL END) AS excluded_reporter_count,
+                COUNT(DISTINCT CASE WHEN status IN ('open', 'reviewing') THEN reporter_account_id ELSE NULL END) AS eligible_reporter_count
          FROM sr_community_reports
          WHERE " . $where
     );
@@ -256,6 +294,7 @@ function sr_community_report_auto_action_report_counts(PDO $pdo, string $targetT
         'eligible_reporter_count' => is_array($row) ? (int) ($row['eligible_reporter_count'] ?? 0) : 0,
         'excluded_reporter_count' => is_array($row) ? (int) ($row['excluded_reporter_count'] ?? 0) : 0,
         'excluded_report_count' => is_array($row) ? (int) ($row['excluded_report_count'] ?? 0) : 0,
+        'cutoff' => $cutoff,
     ];
 }
 
@@ -324,6 +363,13 @@ function sr_community_release_report_auto_action_target(PDO $pdo, array $autoAct
     }
     if ((string) ($target['hidden_reason'] ?? '') !== 'report_threshold') {
         return ['restored' => false, 'reason' => 'target_not_auto_hidden'];
+    }
+    if ((int) ($target['hidden_by_account_id'] ?? 0) > 0) {
+        return ['restored' => false, 'reason' => 'target_hidden_by_admin'];
+    }
+    $hiddenAtSnapshot = (string) ($autoAction['target_hidden_at_snapshot'] ?? '');
+    if ($hiddenAtSnapshot !== '' && (string) ($target['hidden_at'] ?? '') !== $hiddenAtSnapshot) {
+        return ['restored' => false, 'reason' => 'target_hidden_fingerprint_changed'];
     }
 
     $restoreStatus = (string) ($target['hidden_before_status'] ?? '');
@@ -539,6 +585,7 @@ function sr_community_maybe_apply_report_auto_action(PDO $pdo, int $sourceReport
             'abuse_guard_summary_json' => sr_community_report_auto_action_json([
                 'distinct_reporters' => (int) $counts['eligible_reporter_count'],
                 'excluded_report_count' => (int) $counts['excluded_report_count'],
+                'cutoff' => (string) ($counts['cutoff'] ?? ''),
             ]),
             'settings_snapshot_json' => sr_community_report_auto_action_json($snapshot),
             'metadata_json' => sr_community_report_auto_action_json([
@@ -577,6 +624,21 @@ function sr_community_maybe_apply_report_auto_action(PDO $pdo, int $sourceReport
                 'target_id' => $targetId,
             ];
         }
+        $snapshotStmt = $pdo->prepare(
+            'UPDATE sr_community_report_auto_actions
+             SET target_hidden_at_snapshot = :target_hidden_at_snapshot,
+                 target_hidden_reason = :target_hidden_reason,
+                 target_hidden_by_account_id = :target_hidden_by_account_id,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $snapshotStmt->execute([
+            'target_hidden_at_snapshot' => (string) ($freshTarget['hidden_at'] ?? '') !== '' ? (string) $freshTarget['hidden_at'] : null,
+            'target_hidden_reason' => (string) ($freshTarget['hidden_reason'] ?? ''),
+            'target_hidden_by_account_id' => (int) ($freshTarget['hidden_by_account_id'] ?? 0) > 0 ? (int) $freshTarget['hidden_by_account_id'] : null,
+            'updated_at' => sr_now(),
+            'id' => $autoActionId,
+        ]);
 
         if ($startedTransaction) {
             $pdo->commit();
