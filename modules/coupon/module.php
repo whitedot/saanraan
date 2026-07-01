@@ -39,4 +39,19 @@ return [
             'notification-events.php',
         ],
     ],
+    'settings' => [
+        'usage_enabled' => true,
+        'coupon_zone_label' => '쿠폰존',
+        'notification_cases' => [
+            'issue_created' => ['event_key' => 'issue.created', 'enabled' => true, 'channels' => ['site']],
+            'redemption_redeemed' => ['event_key' => 'redemption.redeemed', 'enabled' => true, 'channels' => ['site']],
+            'redemption_refunded' => ['event_key' => 'redemption.refunded', 'enabled' => true, 'channels' => ['site']],
+            'issue_refunded' => ['event_key' => 'issue.refunded', 'enabled' => true, 'channels' => ['site']],
+            'issue_status_updated' => ['event_key' => 'issue.status_updated', 'enabled' => true, 'channels' => ['site']],
+            'definition_disabled' => ['event_key' => 'issue.definition_disabled', 'enabled' => true, 'channels' => ['site']],
+        ],
+        'disabled_reclaim_notifications_enabled' => true,
+        'disabled_reclaim_notification_event_key' => 'issue.definition_disabled',
+        'disabled_reclaim_notification_channels' => ['site'],
+    ],
 ];

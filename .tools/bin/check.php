@@ -922,9 +922,21 @@ function sr_check_installer_module_default_versions(): void
 function sr_check_service_module_default_settings(): void
 {
     $modules = [
+        'antispam' => ['modules/antispam/helpers.php', 'sr_antispam_default_settings'],
+        'asset_exchange' => ['modules/asset_exchange/helpers.php', 'sr_asset_exchange_default_settings'],
+        'banner' => ['modules/banner/helpers.php', 'sr_banner_default_settings'],
+        'ckeditor' => ['modules/ckeditor/helpers.php', 'sr_ckeditor_default_settings'],
         'content' => ['modules/content/helpers.php', 'sr_content_default_settings'],
         'community' => ['modules/community/helpers/levels.php', 'sr_community_default_settings'],
+        'coupon' => ['modules/coupon/helpers.php', 'sr_coupon_default_settings'],
+        'deposit' => ['modules/deposit/helpers.php', 'sr_deposit_default_settings'],
+        'member' => ['modules/member/helpers/settings.php', 'sr_member_default_settings'],
+        'notification' => ['modules/notification/helpers.php', 'sr_notification_default_settings'],
+        'point' => ['modules/point/helpers.php', 'sr_point_default_settings'],
+        'popup_layer' => ['modules/popup_layer/helpers.php', 'sr_popup_layer_default_settings'],
         'quiz' => ['modules/quiz/helpers.php', 'sr_quiz_default_settings'],
+        'reward' => ['modules/reward/helpers.php', 'sr_reward_default_settings'],
+        'seo' => ['modules/seo/helpers.php', 'sr_seo_default_settings'],
         'survey' => ['modules/survey/helpers.php', 'sr_survey_default_settings'],
     ];
 

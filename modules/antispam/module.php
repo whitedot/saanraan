@@ -42,5 +42,8 @@ return [
         'verify_remote_ip_enabled' => false,
         'provider_action_check_enabled' => true,
         'provider_hostname_check_enabled' => true,
+        'surface_community_comment_guest' => 'guest',
+        'surface_community_post_guest' => 'guest',
+        'surface_member_register' => 'always',
     ],
 ];

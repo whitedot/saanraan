@@ -39,7 +39,21 @@ return [
         ],
     ],
     'settings' => [
+        'usage_enabled' => true,
+        'display_name' => '예치금',
+        'unit_label' => '원',
         'refund_requests_enabled' => false,
         'refund_allowed_group_keys_json' => '[]',
+        'notification_cases' => [
+            'transaction_deposit' => ['event_key' => 'transaction.deposit', 'enabled' => true, 'channels' => ['site']],
+            'transaction_refund' => ['event_key' => 'transaction.refund', 'enabled' => true, 'channels' => ['site']],
+            'transaction_exchange_in' => ['event_key' => 'transaction.exchange_in', 'enabled' => true, 'channels' => ['site']],
+            'transaction_use' => ['event_key' => 'transaction.use', 'enabled' => true, 'channels' => ['site']],
+            'transaction_exchange_out' => ['event_key' => 'transaction.exchange_out', 'enabled' => true, 'channels' => ['site']],
+            'transaction_exchange_fee' => ['event_key' => 'transaction.exchange_fee', 'enabled' => true, 'channels' => ['site']],
+            'transaction_withdraw' => ['event_key' => 'transaction.withdraw', 'enabled' => true, 'channels' => ['site']],
+            'transaction_adjustment_increase' => ['event_key' => 'transaction.adjustment.increase', 'enabled' => true, 'channels' => ['site']],
+            'transaction_adjustment_decrease' => ['event_key' => 'transaction.adjustment.decrease', 'enabled' => true, 'channels' => ['site']],
+        ],
     ],
 ];

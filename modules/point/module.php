@@ -37,8 +37,20 @@ return [
         ],
     ],
     'settings' => [
+        'usage_enabled' => true,
         'display_name' => '포인트',
         'unit_label' => 'P',
         'default_expiration_days' => '0',
+        'notification_cases' => [
+            'transaction_grant' => ['event_key' => 'transaction.grant', 'enabled' => false, 'channels' => ['site']],
+            'transaction_refund' => ['event_key' => 'transaction.refund', 'enabled' => false, 'channels' => ['site']],
+            'transaction_exchange_in' => ['event_key' => 'transaction.exchange_in', 'enabled' => false, 'channels' => ['site']],
+            'transaction_use' => ['event_key' => 'transaction.use', 'enabled' => false, 'channels' => ['site']],
+            'transaction_exchange_out' => ['event_key' => 'transaction.exchange_out', 'enabled' => false, 'channels' => ['site']],
+            'transaction_exchange_fee' => ['event_key' => 'transaction.exchange_fee', 'enabled' => false, 'channels' => ['site']],
+            'transaction_expire' => ['event_key' => 'transaction.expire', 'enabled' => false, 'channels' => ['site']],
+            'transaction_adjustment_increase' => ['event_key' => 'transaction.adjustment.increase', 'enabled' => false, 'channels' => ['site']],
+            'transaction_adjustment_decrease' => ['event_key' => 'transaction.adjustment.decrease', 'enabled' => false, 'channels' => ['site']],
+        ],
     ],
 ];
