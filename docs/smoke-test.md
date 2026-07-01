@@ -150,6 +150,8 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 TOTP 활성화 직후 백업 코드가 한 번 표시되고, `/login/mfa`에서 미사용 백업 코드 1개로 로그인한 뒤 같은 백업 코드 재사용이 거부되는지 확인
 로그인한 계정의 `/mypage/security`에서 백업 코드 재발급과 2차 인증 해제가 재인증, CSRF, PRG 흐름으로 처리되는지 확인
 활성 TOTP factor fixture가 있는 계정은 1차 로그인 뒤 `/login/mfa`로 이동하고, 올바른 TOTP code 제출 후 원래 next 경로로 돌아가며 같은 time step code 재사용은 거부되는지 확인
+
+회원 전용 모드와 MFA가 함께 켜진 local/staging fixture에서는 `SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL=http://127.0.0.1:<port> SR_SMOKE_IDENTIFIER=<fixture-login> SR_SMOKE_PASSWORD=<fixture-password> SR_SMOKE_MFA_CODE=<current-code> php .tools/bin/smoke-member-mfa.php`를 실행한다. 이 smoke는 `/ui-kit` 같은 회원 전용 보호 대상이 로그인 전에는 `/login?next=...`로 이동하고, 1차 로그인 뒤 challenge 상태에서는 아직 보호 내용을 렌더하지 않으며, `/login/mfa` 검증 뒤 원래 `next`로 복귀하는지 확인한다.
 /ui-kit 응답이 500 없이 열리고 Public UI-KIT 화면이 출력되는지 확인
 /admin 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /admin/updates 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인

@@ -23,6 +23,7 @@ $allowedArgs = [
     '--run-admin-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
+    '--run-member-mfa-smoke',
     '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-smoke',
@@ -38,6 +39,7 @@ $runReadonly = in_array('--run-readonly', $args, true);
 $runAdminReadonly = in_array('--run-admin-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
+$runMemberMfaSmoke = in_array('--run-member-mfa-smoke', $args, true);
 $runQuizSmoke = in_array('--run-quiz-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacySmoke = in_array('--run-privacy-smoke', $args, true);
@@ -73,6 +75,8 @@ $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
 $allowPublicMutationUrl = getenv('SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL') === '1';
 $smokeIdentifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
 $smokePassword = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
+$smokeMfaCode = (string) (getenv('SR_SMOKE_MFA_CODE') ?: '');
+$smokeMfaNextPath = (string) (getenv('SR_SMOKE_NEXT_PATH') ?: '/ui-kit');
 $adminIdentifier = (string) (getenv('SR_SMOKE_ADMIN_IDENTIFIER') ?: '');
 $adminPassword = (string) (getenv('SR_SMOKE_ADMIN_PASSWORD') ?: '');
 $assetDedupeTable = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_TABLE') ?: '');
@@ -80,6 +84,9 @@ $assetDedupeKey = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_KEY') ?: '');
 $accountSmokeCredentialStatus = sr_release_gate_status_pair_status($smokeIdentifier, $smokePassword);
 $adminSmokeCredentialStatus = sr_release_gate_status_pair_status($adminIdentifier, $adminPassword);
 $assetDedupeExpectationStatus = sr_release_gate_status_pair_status($assetDedupeTable, $assetDedupeKey);
+$memberMfaSmokeStatus = $accountSmokeCredentialStatus === 'configured'
+    ? ($smokeMfaCode !== '' ? 'configured' : 'missing')
+    : $accountSmokeCredentialStatus;
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -104,6 +111,7 @@ Options:
   --run-admin-readonly        Execute authenticated read-only admin screen smoke.
   --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
   --run-auth-smoke            Execute authenticated community smoke.
+  --run-member-mfa-smoke      Execute member-only login MFA HTTP smoke.
   --run-quiz-smoke            Execute quiz E2E smoke.
   --run-asset-smoke           Execute asset idempotency HTTP smoke.
   --run-privacy-smoke         Execute privacy export/cleanup HTTP smoke.
@@ -121,6 +129,8 @@ Environment:
   SR_BROWSER_QA_BASE_URL            Optional browser QA base URL override.
   SR_SMOKE_IDENTIFIER               Disposable account identifier.
   SR_SMOKE_PASSWORD                 Disposable account password.
+  SR_SMOKE_MFA_CODE                 Current TOTP or unused backup code for member MFA smoke.
+  SR_SMOKE_NEXT_PATH                Optional member MFA smoke next path; default /ui-kit.
   SR_SMOKE_ADMIN_IDENTIFIER         Local/staging administrator identifier.
   SR_SMOKE_ADMIN_PASSWORD           Local/staging administrator password.
   SR_SMOKE_UPDATE_MODULE_KEY        Optional update smoke module key; default coupon.
@@ -923,6 +933,72 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
     ];
 }
 
+function sr_release_gate_status_member_mfa_smoke_gate(string $baseUrl, string $memberMfaSmokeStatus, bool $runMemberMfaSmoke, bool $allowMutationSmoke, bool $allowPublicMutationUrl): array
+{
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
+    if ($baseUrl === '') {
+        return [
+            'gate' => '회원 MFA smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL for local/staging member-only MFA smoke; do not run against production',
+        ];
+    }
+
+    if ($memberMfaSmokeStatus !== 'configured') {
+        $memo = match ($memberMfaSmokeStatus) {
+            'incomplete' => 'SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together for a local/staging MFA test account',
+            'missing' => 'requires SR_SMOKE_MFA_CODE for the current TOTP step or an unused backup code',
+            default => 'requires SR_SMOKE_IDENTIFIER, SR_SMOKE_PASSWORD, and SR_SMOKE_MFA_CODE for a local/staging MFA test account',
+        };
+
+        return [
+            'gate' => '회원 MFA smoke',
+            'result' => '미실행',
+            'environment' => $displayBaseUrl,
+            'memo' => $memo,
+        ];
+    }
+
+    if (!$allowMutationSmoke) {
+        return [
+            'gate' => '회원 MFA smoke',
+            'result' => '미실행',
+            'environment' => $displayBaseUrl,
+            'memo' => 'member MFA smoke mutates login session, auth logs, and MFA last-used state; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
+        ];
+    }
+
+    if (sr_release_gate_status_base_url_requires_public_mutation_override($baseUrl) && !$allowPublicMutationUrl) {
+        return [
+            'gate' => '회원 MFA smoke',
+            'result' => '미실행',
+            'environment' => $displayBaseUrl,
+            'memo' => 'public-looking base URL requires SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 in addition to SR_SMOKE_ALLOW_MUTATION=1; use only local/staging disposable data',
+        ];
+    }
+
+    if (!$runMemberMfaSmoke) {
+        return [
+            'gate' => '회원 MFA smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $displayBaseUrl,
+            'memo' => 'member MFA smoke is configured; rerun with --run-member-mfa-smoke to execute smoke-member-mfa.php',
+        ];
+    }
+
+    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-member-mfa.php']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => '회원 MFA smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $displayBaseUrl,
+        'memo' => 'smoke-member-mfa.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
 function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $runQuizSmoke, bool $allowMutationSmoke, bool $allowPublicMutationUrl): array
 {
     $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
@@ -1352,6 +1428,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
 );
 $gates[] = sr_release_gate_status_http_smoke_gate($baseUrl, $runHttpSmoke);
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
+$gates[] = sr_release_gate_status_member_mfa_smoke_gate($baseUrl, $memberMfaSmokeStatus, $runMemberMfaSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentialStatus, $runQuizSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_privacy_gate($baseUrl, $accountSmokeCredentialStatus, $allowMutationSmoke, $allowPublicMutationUrl, $runPrivacySmoke, $runPrivacyFixtures);
@@ -1377,6 +1454,8 @@ $metadata = [
     'base_url' => $baseUrl === '' ? '-' : sr_release_gate_status_mask_url_userinfo($baseUrl),
     'browser_qa_base_url' => $browserQaBaseUrl === '' ? '-' : sr_release_gate_status_mask_url_userinfo($browserQaBaseUrl),
     'account_smoke_credentials' => $accountSmokeCredentialStatus,
+    'member_mfa_smoke' => $memberMfaSmokeStatus,
+    'member_mfa_next_path' => $smokeMfaNextPath,
     'admin_smoke_credentials' => $adminSmokeCredentialStatus,
     'asset_dedupe_expectation' => $assetDedupeExpectationStatus,
     'run_http_smoke' => $runHttpSmoke ? 'yes' : 'no',
@@ -1385,6 +1464,7 @@ $metadata = [
     'run_admin_readonly' => $runAdminReadonly ? 'yes' : 'no',
     'run_browser_qa' => $runBrowserQa ? 'yes' : 'no',
     'run_auth_smoke' => $runAuthSmoke ? 'yes' : 'no',
+    'run_member_mfa_smoke' => $runMemberMfaSmoke ? 'yes' : 'no',
     'run_quiz_smoke' => $runQuizSmoke ? 'yes' : 'no',
     'run_asset_smoke' => $runAssetSmoke ? 'yes' : 'no',
     'run_privacy_smoke' => $runPrivacySmoke ? 'yes' : 'no',
@@ -1405,6 +1485,8 @@ $metadataOutputKeys = [
     'base_url' => 'base-url',
     'browser_qa_base_url' => 'browser-qa-base-url',
     'account_smoke_credentials' => 'account-smoke-credentials',
+    'member_mfa_smoke' => 'member-mfa-smoke',
+    'member_mfa_next_path' => 'member-mfa-next-path',
     'admin_smoke_credentials' => 'admin-smoke-credentials',
     'asset_dedupe_expectation' => 'asset-dedupe-expectation',
     'run_http_smoke' => 'run-http-smoke',
@@ -1413,6 +1495,7 @@ $metadataOutputKeys = [
     'run_admin_readonly' => 'run-admin-readonly',
     'run_browser_qa' => 'run-browser-qa',
     'run_auth_smoke' => 'run-auth-smoke',
+    'run_member_mfa_smoke' => 'run-member-mfa-smoke',
     'run_quiz_smoke' => 'run-quiz-smoke',
     'run_asset_smoke' => 'run-asset-smoke',
     'run_privacy_smoke' => 'run-privacy-smoke',

@@ -1274,10 +1274,11 @@ function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, 
                    AND account_id = :account_id
                    AND factor_type = 'totp'
                    AND status = 'active'
-                   AND (last_used_step IS NULL OR last_used_step < :last_used_step)"
+                   AND (last_used_step IS NULL OR last_used_step < :last_used_step_compare)"
             );
             $stmt->execute([
                 'last_used_step' => $step,
+                'last_used_step_compare' => $step,
                 'updated_at' => sr_now(),
                 'id' => $factorId,
                 'account_id' => $accountId,
