@@ -737,9 +737,13 @@ return [
 - 번역 파일은 배열만 반환한다.
 - locale 파일명은 `ko`, `en-US` 같은 locale 값과 맞춘다.
 - 최소 기본 locale 파일을 제공한다.
+- `sr_t()`에 정적 문자열 key를 넘기는 신규/변경 코드는 같은 작업에서 fallback locale인 `ko` 번역 파일에 key를 선언한다. 정적 key는 `.tools/bin/check-i18n-contract.php`가 검사한다.
+- key는 기존 규약인 `module::dot.hierarchy`를 사용한다. core key는 `module::` 없이 `dot.hierarchy`만 사용한다. module key는 lowercase letters, digits, `_`로만 쓰고, 번역 key는 lowercase letters, digits, `_`, `-`, `.` 조합으로 쓴다.
+- 요청 locale에 key가 없어서 fallback locale로 내려간 호출은 `sr_translation_fallback_events()`에서 확인할 수 있다. 이 계측은 누락 번역을 키 원문 노출 스캔으로만 찾지 않기 위한 runtime 신호이며, CI fail 범위는 별도 check와 smoke에서 단계적으로 넓힌다.
 - 번역 값도 화면에 출력할 때는 `sr_e()`로 escape한다.
 - `module.php`의 `name`, `description`, `admin.category_label`, `service_domain.main_page.label` 같은 메타데이터는 설치/업로드 정적 파서가 읽으므로 함수 호출 없이 문자열 리터럴로 둔다.
 - `admin-menu.php`, `menu-links.php`, `dashboard.php`, `layout-options.php`, `member-group-rules.php`처럼 런타임에 읽는 화면 라벨 계약 파일은 하드코딩 문구 대신 `sr_t('{module_key}::...')` 값을 반환한다.
+- JavaScript 메시지는 JS 파일 안에 새 한국어 리터럴을 늘리기보다 서버 렌더링 markup의 `data-*` attribute나 페이지별 JSON dictionary로 전달한다. 실제 공통 주입 helper는 첫 JS 문자열 소비 이슈에서 만들고, 그 전까지는 필요한 페이지가 자기 view에서 escape된 값을 주입한다.
 - 게시글 제목, 상품명 같은 사용자 콘텐츠 번역 테이블을 코어가 대신 만들지 않는다.
 
 ## 10. DB 접근

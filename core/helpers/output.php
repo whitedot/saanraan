@@ -107,6 +107,9 @@ function sr_t(string $key, array $params = [], ?string $locale = null): string
     if (!is_string($message) && $locale !== sr_fallback_locale()) {
         $fallbackTranslations = sr_load_translations(sr_fallback_locale(), $moduleKey);
         $message = $fallbackTranslations[$translationKey] ?? null;
+        if (is_string($message)) {
+            sr_translation_record_fallback($locale, sr_fallback_locale(), $moduleKey, $translationKey, $key);
+        }
     }
 
     if (!is_string($message)) {
@@ -123,6 +126,38 @@ function sr_t(string $key, array $params = [], ?string $locale = null): string
 function sr_fallback_locale(): string
 {
     return 'ko';
+}
+
+function sr_translation_record_fallback(string $locale, string $fallbackLocale, string $moduleKey, string $translationKey, string $fullKey): void
+{
+    $events = $GLOBALS['sr_translation_fallback_events'] ?? [];
+    if (!is_array($events)) {
+        $events = [];
+    }
+
+    if (count($events) >= 500) {
+        return;
+    }
+
+    $events[] = [
+        'locale' => $locale,
+        'fallback_locale' => $fallbackLocale,
+        'module_key' => $moduleKey,
+        'translation_key' => $translationKey,
+        'key' => $fullKey,
+    ];
+    $GLOBALS['sr_translation_fallback_events'] = $events;
+}
+
+function sr_translation_fallback_events(): array
+{
+    $events = $GLOBALS['sr_translation_fallback_events'] ?? [];
+    return is_array($events) ? $events : [];
+}
+
+function sr_translation_clear_fallback_events(): void
+{
+    $GLOBALS['sr_translation_fallback_events'] = [];
 }
 
 function sr_load_translations(string $locale, string $moduleKey = ''): array
