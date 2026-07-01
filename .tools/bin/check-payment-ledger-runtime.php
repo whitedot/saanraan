@@ -191,6 +191,59 @@ try {
     sr_payment_runtime_assert(true, 'payment ledger rejects overlong subject contract keys.');
 }
 
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:invalid-currency',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRWX',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid settlement currency codes instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid settlement currency codes.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:negative-amount',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payable_amount' => -1,
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject negative record amounts instead of clamping them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects negative record amounts.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:invalid-item-currency',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'point',
+            'reference_type' => 'point_transaction',
+            'reference_id' => 'invalid-item-currency',
+            'amount' => -10,
+            'currency_code' => 'KRWX',
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid item currency codes instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid item currency codes.');
+}
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'invalid payment inputs should not leave extra records.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'invalid payment inputs should not leave extra items.');
+
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel');
 $cancelled = sr_payment_runtime_row($pdo, 'SELECT status, description, cancelled_at FROM sr_payment_records WHERE id = :id', ['id' => $paymentRecordId]);
 sr_payment_runtime_assert((string) ($cancelled['status'] ?? '') === 'cancelled', 'payment ledger should mark a payment record cancelled.');

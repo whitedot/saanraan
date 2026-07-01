@@ -49,6 +49,26 @@ function sr_payment_ledger_clean_module_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_payment_ledger_clean_currency_code(string $value): string
+{
+    $value = strtoupper(trim($value));
+    if ($value === '') {
+        return '';
+    }
+
+    return preg_match('/\A[A-Z]{3}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_payment_ledger_nonnegative_amount(mixed $value, string $message): int
+{
+    $amount = (int) $value;
+    if ($amount < 0) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $amount;
+}
+
 function sr_payment_ledger_target_contracts(PDO $pdo): array
 {
     if (!function_exists('sr_enabled_module_contract_files') || !function_exists('sr_load_module_contract_file')) {
@@ -142,6 +162,12 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
     if (!sr_payment_ledger_target_exists($pdo, $subjectModule, $subjectType)) {
         throw new InvalidArgumentException('결제 기록 대상 계약을 확인할 수 없습니다.');
     }
+    $settlementCurrency = sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? ''));
+    if ((string) ($data['settlement_currency'] ?? '') !== '' && $settlementCurrency === '') {
+        throw new InvalidArgumentException('결제 기록 통화 코드가 올바르지 않습니다.');
+    }
+    $payableAmount = sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.');
+    $settlementAmount = sr_payment_ledger_nonnegative_amount($data['settlement_amount'] ?? 0, '실제 결제 금액은 0 이상이어야 합니다.');
 
     $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
     if (is_array($existing)) {
@@ -167,9 +193,9 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
             'subject_id' => $subjectId,
             'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? 'purchase'), 40) ?: 'purchase',
             'status' => sr_payment_ledger_clean_identifier((string) ($data['status'] ?? 'paid'), 30) ?: 'paid',
-            'payable_amount' => max(0, (int) ($data['payable_amount'] ?? 0)),
-            'settlement_amount' => max(0, (int) ($data['settlement_amount'] ?? 0)),
-            'settlement_currency' => strtoupper(sr_payment_ledger_clean_key((string) ($data['settlement_currency'] ?? ''), 3)),
+            'payable_amount' => $payableAmount,
+            'settlement_amount' => $settlementAmount,
+            'settlement_currency' => $settlementCurrency,
             'description' => sr_payment_ledger_clean_key((string) ($data['description'] ?? ''), 255),
             'snapshot_json' => sr_payment_ledger_json_or_null(is_array($data['snapshot'] ?? null) ? $data['snapshot'] : []),
             'created_at' => $now,
@@ -222,9 +248,9 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
 
     $optionalChecks = [
         'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? ''), 40),
-        'payable_amount' => max(0, (int) ($data['payable_amount'] ?? 0)),
-        'settlement_amount' => max(0, (int) ($data['settlement_amount'] ?? 0)),
-        'settlement_currency' => strtoupper(sr_payment_ledger_clean_key((string) ($data['settlement_currency'] ?? ''), 3)),
+        'payable_amount' => sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.'),
+        'settlement_amount' => sr_payment_ledger_nonnegative_amount($data['settlement_amount'] ?? 0, '실제 결제 금액은 0 이상이어야 합니다.'),
+        'settlement_currency' => sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? '')),
     ];
 
     foreach ($optionalChecks as $field => $expected) {
@@ -250,6 +276,10 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
     if ($itemKind === '' || $ownerModule === '' || $referenceType === '' || $referenceId === '') {
         throw new InvalidArgumentException('결제 기록 항목 참조를 확인할 수 없습니다.');
     }
+    $currencyCode = sr_payment_ledger_clean_currency_code((string) ($item['currency_code'] ?? ''));
+    if ((string) ($item['currency_code'] ?? '') !== '' && $currencyCode === '') {
+        throw new InvalidArgumentException('결제 기록 항목 통화 코드가 올바르지 않습니다.');
+    }
 
     $now = sr_now();
     $insertVerb = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
@@ -268,7 +298,7 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
         'reference_type' => $referenceType,
         'reference_id' => $referenceId,
         'amount' => (int) ($item['amount'] ?? 0),
-        'currency_code' => strtoupper(sr_payment_ledger_clean_key((string) ($item['currency_code'] ?? ''), 3)),
+        'currency_code' => $currencyCode,
         'reversible' => !empty($item['reversible']) ? 1 : 0,
         'reversal_status' => sr_payment_ledger_clean_reversal_status((string) ($item['reversal_status'] ?? 'none')),
         'snapshot_json' => sr_payment_ledger_json_or_null(is_array($item['snapshot'] ?? null) ? $item['snapshot'] : []),
