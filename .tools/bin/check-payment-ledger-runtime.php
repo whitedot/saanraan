@@ -193,6 +193,32 @@ try {
 
 try {
     sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => str_repeat('d', 191),
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject overlong dedupe keys instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects overlong dedupe keys.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:overlong-subject-id',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => str_repeat('s', 121),
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject overlong subject ids instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects overlong subject ids.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
         'dedupe_key' => 'content.view:payment:7:invalid-currency',
         'account_id' => 7,
         'subject_module' => 'content',
@@ -217,6 +243,29 @@ try {
     sr_payment_runtime_assert(false, 'payment ledger should reject negative record amounts instead of clamping them.');
 } catch (InvalidArgumentException) {
     sr_payment_runtime_assert(true, 'payment ledger rejects negative record amounts.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:overlong-item-reference',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'point',
+            'reference_type' => 'point_transaction',
+            'reference_id' => str_repeat('r', 121),
+            'amount' => -10,
+            'currency_code' => 'KRW',
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject overlong item reference ids instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects overlong item reference ids.');
 }
 
 try {

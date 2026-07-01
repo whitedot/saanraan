@@ -39,6 +39,19 @@ function sr_payment_ledger_clean_identifier(string $value, int $maxLength = 80, 
     return preg_match($pattern, $value) === 1 ? $value : '';
 }
 
+function sr_payment_ledger_clean_reference_key(string $value, int $maxLength = 190): string
+{
+    $value = trim($value);
+    if ($maxLength < 1) {
+        $maxLength = 190;
+    }
+    if ($value === '' || strlen($value) > $maxLength) {
+        return '';
+    }
+
+    return $value;
+}
+
 function sr_payment_ledger_clean_module_key(string $value): string
 {
     $value = sr_payment_ledger_clean_identifier($value, 40);
@@ -151,11 +164,11 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
         throw new RuntimeException('결제 기록 테이블이 준비되지 않았습니다.');
     }
 
-    $dedupeKey = sr_payment_ledger_clean_key((string) ($data['dedupe_key'] ?? ''));
+    $dedupeKey = sr_payment_ledger_clean_reference_key((string) ($data['dedupe_key'] ?? ''), 190);
     $accountId = (int) ($data['account_id'] ?? 0);
     $subjectModule = sr_payment_ledger_clean_module_key((string) ($data['subject_module'] ?? ''));
     $subjectType = sr_payment_ledger_clean_identifier((string) ($data['subject_type'] ?? ''), 80, true);
-    $subjectId = sr_payment_ledger_clean_key((string) ($data['subject_id'] ?? ''), 120);
+    $subjectId = sr_payment_ledger_clean_reference_key((string) ($data['subject_id'] ?? ''), 120);
     if ($dedupeKey === '' || $accountId <= 0 || $subjectModule === '' || $subjectType === '' || $subjectId === '') {
         throw new InvalidArgumentException('결제 기록을 만들 대상과 중복 방지 키를 확인할 수 없습니다.');
     }
@@ -234,7 +247,7 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
         'account_id' => (int) ($data['account_id'] ?? 0),
         'subject_module' => sr_payment_ledger_clean_module_key((string) ($data['subject_module'] ?? '')),
         'subject_type' => sr_payment_ledger_clean_identifier((string) ($data['subject_type'] ?? ''), 80, true),
-        'subject_id' => sr_payment_ledger_clean_key((string) ($data['subject_id'] ?? ''), 120),
+        'subject_id' => sr_payment_ledger_clean_reference_key((string) ($data['subject_id'] ?? ''), 120),
     ];
 
     foreach ($checks as $field => $expected) {
@@ -272,7 +285,7 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
     $itemKind = sr_payment_ledger_clean_identifier((string) ($item['item_kind'] ?? ''), 40);
     $ownerModule = sr_payment_ledger_clean_module_key((string) ($item['owner_module'] ?? ''));
     $referenceType = sr_payment_ledger_clean_identifier((string) ($item['reference_type'] ?? ''), 80, true);
-    $referenceId = sr_payment_ledger_clean_key((string) ($item['reference_id'] ?? ''), 120);
+    $referenceId = sr_payment_ledger_clean_reference_key((string) ($item['reference_id'] ?? ''), 120);
     if ($itemKind === '' || $ownerModule === '' || $referenceType === '' || $referenceId === '') {
         throw new InvalidArgumentException('결제 기록 항목 참조를 확인할 수 없습니다.');
     }
@@ -339,7 +352,7 @@ function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items)
     }
 
     try {
-        $dedupeKey = sr_payment_ledger_clean_key((string) ($record['dedupe_key'] ?? ''));
+        $dedupeKey = sr_payment_ledger_clean_reference_key((string) ($record['dedupe_key'] ?? ''), 190);
         $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
         if (is_array($existing)) {
             sr_payment_ledger_assert_existing_record_matches($existing, $record);
