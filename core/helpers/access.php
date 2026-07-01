@@ -106,6 +106,8 @@ function sr_site_member_only_public_auth_route(string $method, string $path): bo
     $routes = [
         'GET /login' => true,
         'POST /login' => true,
+        'GET /login/mfa' => true,
+        'POST /login/mfa' => true,
         'GET /register' => true,
         'POST /register' => true,
         'GET /password/reset' => true,

@@ -118,7 +118,14 @@ if (is_array($oauthAccount)) {
         ]);
         sr_render_error(403, 'OAuth login is not allowed for this account.');
     }
-    if (sr_member_login($pdo, $account)) {
+    $loginResult = sr_member_login_or_start_mfa($pdo, $account, 'oauth', (string) $state['next_path'], [
+        'provider_key' => $providerKey,
+        'oauth_account_id' => (int) $oauthAccount['id'],
+    ]);
+    if ($loginResult === 'mfa_required') {
+        sr_redirect('/login/mfa');
+    }
+    if ($loginResult === 'logged_in') {
         sr_member_group_evaluate_account($pdo, (int) $account['id']);
         sr_member_oauth_update_link_snapshot($pdo, (int) $oauthAccount['id'], $profile);
         $syncedFields = sr_member_oauth_sync_member_profile($pdo, $config, (int) $account['id'], $account, $providers[$providerKey], $profile, $memberSettings);

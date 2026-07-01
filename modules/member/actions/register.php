@@ -275,7 +275,11 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/login');
             }
 
-            if ($newAccount !== null && sr_member_login($pdo, $newAccount)) {
+            $loginResult = $newAccount !== null ? sr_member_login_or_start_mfa($pdo, $newAccount, 'register', '/account') : 'session_failed';
+            if ($loginResult === 'mfa_required') {
+                sr_redirect('/login/mfa');
+            }
+            if ($loginResult === 'logged_in') {
                 sr_redirect('/account');
             }
 

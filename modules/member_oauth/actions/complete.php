@@ -119,7 +119,13 @@ if (sr_request_method() === 'POST') {
             }
 
             $account = sr_member_find_by_id($pdo, $accountId);
-            if (is_array($account) && sr_member_login($pdo, $account)) {
+            $loginResult = is_array($account) ? sr_member_login_or_start_mfa($pdo, $account, 'oauth_completion', (string) $usedState['next_path'], [
+                'provider_key' => (string) $usedState['provider_key'],
+            ]) : 'session_failed';
+            if ($loginResult === 'mfa_required') {
+                sr_redirect('/login/mfa');
+            }
+            if ($loginResult === 'logged_in') {
                 sr_member_log_auth($pdo, $accountId, 'oauth_register', 'success');
                 sr_audit_log($pdo, [
                     'actor_account_id' => $accountId,

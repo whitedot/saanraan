@@ -6,7 +6,10 @@ function sr_member_login(PDO $pdo, array $account): bool
 {
     sr_member_cleanup_sessions($pdo);
 
-    session_regenerate_id(true);
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_regenerate_id(true);
+    }
+    sr_member_mfa_clear_challenge();
     $_SESSION['sr_account_id'] = (int) $account['id'];
     $_SESSION['sr_csrf_token'] = bin2hex(random_bytes(32));
     $sessionTokenHash = sr_member_create_session($pdo, (int) $account['id']);
@@ -28,6 +31,110 @@ function sr_member_login(PDO $pdo, array $account): bool
     ]);
 
     return true;
+}
+
+function sr_member_login_or_start_mfa(PDO $pdo, array $account, string $primaryMethod, string $nextPath, array $context = []): string
+{
+    if (sr_member_mfa_login_required($pdo, $account)) {
+        sr_member_mfa_start_challenge($account, $primaryMethod, $nextPath, $context);
+        return 'mfa_required';
+    }
+
+    return sr_member_login($pdo, $account) ? 'logged_in' : 'session_failed';
+}
+
+function sr_member_mfa_login_required(PDO $pdo, array $account): bool
+{
+    unset($pdo);
+
+    return (int) ($account['id'] ?? 0) > 0 && sr_member_mfa_active_factor_exists($account);
+}
+
+function sr_member_mfa_active_factor_exists(array $account): bool
+{
+    unset($account);
+
+    return false;
+}
+
+function sr_member_mfa_start_challenge(array $account, string $primaryMethod, string $nextPath, array $context = []): void
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return;
+    }
+
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_regenerate_id(true);
+    }
+    unset($_SESSION['sr_account_id'], $_SESSION['sr_session_token_hash']);
+    $_SESSION['sr_csrf_token'] = bin2hex(random_bytes(32));
+
+    $now = time();
+    $_SESSION['sr_member_mfa_challenge'] = [
+        'account_id' => $accountId,
+        'primary_method' => sr_member_mfa_primary_method($primaryMethod),
+        'next_path' => sr_member_safe_next_path($nextPath),
+        'created_at' => $now,
+        'expires_at' => $now + sr_member_mfa_challenge_ttl_seconds(),
+        'context' => sr_member_mfa_challenge_context($context),
+    ];
+}
+
+function sr_member_mfa_challenge(): ?array
+{
+    $challenge = $_SESSION['sr_member_mfa_challenge'] ?? null;
+    if (!is_array($challenge)) {
+        return null;
+    }
+
+    $accountId = (int) ($challenge['account_id'] ?? 0);
+    $expiresAt = (int) ($challenge['expires_at'] ?? 0);
+    if ($accountId < 1 || $expiresAt < time()) {
+        sr_member_mfa_clear_challenge();
+        return null;
+    }
+
+    $challenge['account_id'] = $accountId;
+    $challenge['primary_method'] = sr_member_mfa_primary_method((string) ($challenge['primary_method'] ?? ''));
+    $challenge['next_path'] = sr_member_safe_next_path((string) ($challenge['next_path'] ?? ''));
+    $challenge['created_at'] = (int) ($challenge['created_at'] ?? 0);
+    $challenge['expires_at'] = $expiresAt;
+    $challenge['context'] = isset($challenge['context']) && is_array($challenge['context'])
+        ? sr_member_mfa_challenge_context($challenge['context'])
+        : [];
+
+    return $challenge;
+}
+
+function sr_member_mfa_clear_challenge(): void
+{
+    unset($_SESSION['sr_member_mfa_challenge']);
+}
+
+function sr_member_mfa_challenge_ttl_seconds(): int
+{
+    return 300;
+}
+
+function sr_member_mfa_primary_method(string $method): string
+{
+    return in_array($method, ['password', 'register', 'oauth', 'oauth_completion'], true) ? $method : 'password';
+}
+
+function sr_member_mfa_challenge_context(array $context): array
+{
+    $clean = [];
+    foreach ($context as $key => $value) {
+        if (!is_string($key) || preg_match('/\A[a-z0-9_.:-]{1,80}\z/', $key) !== 1) {
+            continue;
+        }
+        if (is_scalar($value) || $value === null) {
+            $clean[$key] = $value === null ? '' : (string) $value;
+        }
+    }
+
+    return $clean;
 }
 
 function sr_member_create_session(PDO $pdo, int $accountId): string

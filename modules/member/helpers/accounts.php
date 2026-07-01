@@ -523,7 +523,7 @@ function sr_member_next_path_is_auth_path(string $path): bool
         return true;
     }
 
-    return in_array($requestPath, ['/login', '/logout'], true);
+    return in_array($requestPath, ['/login', '/login/mfa', '/logout'], true);
 }
 
 function sr_member_verify_login_password(?array $account, string $password): bool

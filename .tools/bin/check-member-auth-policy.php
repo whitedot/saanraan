@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/member/helpers/accounts.php';
+require_once $root . '/modules/member/helpers/sessions.php';
 require_once $root . '/modules/member/helpers/tokens.php';
 require_once $root . '/modules/member/helpers/throttle.php';
 
@@ -167,6 +168,31 @@ sr_member_auth_policy_assert(
     'Sensitive reauth failures should count as reauth throttle events.'
 );
 
+$_SESSION = [];
+sr_member_mfa_start_challenge(['id' => 77], 'password', '/admin?tab=security', ['provider_key' => 'mock']);
+$mfaChallenge = sr_member_mfa_challenge();
+sr_member_auth_policy_assert(
+    is_array($mfaChallenge)
+        && (int) ($mfaChallenge['account_id'] ?? 0) === 77
+        && (string) ($mfaChallenge['primary_method'] ?? '') === 'password'
+        && (string) ($mfaChallenge['next_path'] ?? '') === '/admin?tab=security'
+        && !isset($_SESSION['sr_account_id'], $_SESSION['sr_session_token_hash']),
+    'MFA challenge should store pending login state without creating a member session.'
+);
+sr_member_auth_policy_assert(
+    sr_member_current_session_account_id() === null,
+    'MFA challenge state should not be treated as a logged-in member session.'
+);
+sr_member_auth_policy_assert(
+    sr_member_safe_next_path('/login/mfa') === '/',
+    'MFA route should not be accepted as a login next destination.'
+);
+$_SESSION['sr_member_mfa_challenge']['expires_at'] = time() - 1;
+sr_member_auth_policy_assert(
+    sr_member_mfa_challenge() === null && !isset($_SESSION['sr_member_mfa_challenge']),
+    'Expired MFA challenge should be cleared.'
+);
+
 $loginAction = sr_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
     sr_member_auth_policy_assert(
@@ -177,6 +203,12 @@ if ($loginAction !== '') {
     sr_member_auth_policy_assert(
         strpos($loginAction, 'sr_member_email_verification_blocks_login') !== false,
         'Login action should enforce email verification policy.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($loginAction, 'sr_member_login_or_start_mfa($pdo, $account, \'password\', $next)') !== false
+            && strpos($loginAction, "\$loginResult === 'mfa_required'") !== false
+            && strpos($loginAction, "sr_redirect('/login/mfa')") !== false,
+        'Password login should pass through the MFA gate before member session creation.'
     );
     sr_member_auth_policy_assert(
         strpos($loginAction, 'sr_member_email_verification_throttle_status($pdo, (int) $account[\'id\'])') !== false
@@ -213,6 +245,44 @@ if ($loginAction !== '') {
         'Login action should show a fixed completion notice after password reset redirect.'
     );
 }
+
+$registerAction = sr_member_auth_policy_read('modules/member/actions/register.php');
+if ($registerAction !== '') {
+    sr_member_auth_policy_assert(
+        strpos($registerAction, 'sr_member_login_or_start_mfa($pdo, $newAccount, \'register\', \'/account\')') !== false,
+        'Registration auto-login should pass through the MFA gate.'
+    );
+}
+
+$oauthCallbackAction = sr_member_auth_policy_read('modules/member_oauth/actions/callback.php');
+if ($oauthCallbackAction !== '') {
+    sr_member_auth_policy_assert(
+        strpos($oauthCallbackAction, 'sr_member_login_or_start_mfa($pdo, $account, \'oauth\', (string) $state[\'next_path\']') !== false,
+        'OAuth callback login should pass through the MFA gate.'
+    );
+}
+
+$oauthCompleteAction = sr_member_auth_policy_read('modules/member_oauth/actions/complete.php');
+if ($oauthCompleteAction !== '') {
+    sr_member_auth_policy_assert(
+        strpos($oauthCompleteAction, 'sr_member_login_or_start_mfa($pdo, $account, \'oauth_completion\', (string) $usedState[\'next_path\']') !== false,
+        'OAuth completion auto-login should pass through the MFA gate.'
+    );
+}
+
+$memberPaths = sr_member_auth_policy_read('modules/member/paths.php');
+sr_member_auth_policy_assert(
+    strpos($memberPaths, "'GET /login/mfa' => 'actions/login-mfa.php'") !== false
+        && strpos($memberPaths, "'POST /login/mfa' => 'actions/login-mfa.php'") !== false,
+    'Member paths should expose GET/POST /login/mfa.'
+);
+
+$accessHelper = sr_member_auth_policy_read('core/helpers/access.php');
+sr_member_auth_policy_assert(
+    strpos($accessHelper, "'GET /login/mfa' => true") !== false
+        && strpos($accessHelper, "'POST /login/mfa' => true") !== false,
+    'Member-only mode auth allowlist should include GET/POST /login/mfa.'
+);
 
 sr_member_auth_policy_forbid_markers('modules/member/actions/login.php', [
     "sr_post_string('identifier'",
@@ -732,7 +802,7 @@ if ($registerAction !== '') {
         'Register action should reject overlong raw password inputs instead of truncating them.'
     );
     sr_member_auth_policy_assert(
-        strpos($registerAction, 'sr_member_login($pdo, $newAccount)') !== false
+        strpos($registerAction, 'sr_member_login_or_start_mfa($pdo, $newAccount, \'register\', \'/account\')') !== false
             && (
                 strpos($registerAction, "sr_t('member::action.register.login_session_failed_notice')") !== false
                 || strpos($registerAction, '로그인 세션을 만들 수 없습니다') !== false
@@ -936,7 +1006,7 @@ if ($loginAction !== '') {
         'Login action should rehash stale password hashes after successful verification.'
     );
     sr_member_auth_policy_assert(
-        strpos($loginAction, 'if (sr_member_login($pdo, $account))') !== false
+        strpos($loginAction, "\$loginResult === 'logged_in'") !== false
             && strpos($loginAction, 'login_session_failed') !== false,
         'Login action should not record login success when member session creation fails.'
     );

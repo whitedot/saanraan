@@ -115,7 +115,11 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('member::action.login.email_unverified');
     } elseif ($passwordVerified) {
         sr_member_rehash_login_password_if_needed($pdo, (int) $account['id'], $password, (string) $account['password_hash']);
-        if (sr_member_login($pdo, $account)) {
+        $loginResult = sr_member_login_or_start_mfa($pdo, $account, 'password', $next);
+        if ($loginResult === 'mfa_required') {
+            sr_redirect('/login/mfa');
+        }
+        if ($loginResult === 'logged_in') {
             sr_member_group_evaluate_account($pdo, (int) $account['id']);
             sr_member_log_auth($pdo, (int) $account['id'], 'login', 'success');
             sr_audit_log($pdo, [

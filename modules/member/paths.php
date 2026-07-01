@@ -3,6 +3,8 @@
 return [
     'GET /login' => 'actions/login.php',
     'POST /login' => 'actions/login.php',
+    'GET /login/mfa' => 'actions/login-mfa.php',
+    'POST /login/mfa' => 'actions/login-mfa.php',
     'GET /register' => 'actions/register.php',
     'POST /register' => 'actions/register.php',
     'GET /member/avatar' => 'actions/avatar.php',
