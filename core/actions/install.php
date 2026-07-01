@@ -82,7 +82,7 @@ $optionalModules = [
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
     'logo_manager' => [
-        'name' => '로고매니저',
+        'name' => '로고 매니저',
         'version' => '2026.06.005',
         'label' => sr_t('install.module.logo_manager.label'),
         'description' => '관리자/공개 화면 로고와 기간별 대체 적용을 관리합니다.',

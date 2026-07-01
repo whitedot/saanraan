@@ -104,6 +104,11 @@ sr_payment_runtime_assert(
     str_contains($paymentLedgerHelperSource, '$subjectModule !== (string) $moduleKey'),
     'payment ledger target loading must ignore targets whose subject_module is owned by another provider module.'
 );
+$implementationSnapshotSource = (string) file_get_contents($root . '/docs/implementation-snapshot.md');
+sr_payment_runtime_assert(
+    str_contains($implementationSnapshotSource, '쿠폰·자산·외부 결제·접근권 부여 item 묶음'),
+    'implementation snapshot must describe payment_ledger access entitlement grant items.'
+);
 
 $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

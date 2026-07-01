@@ -818,7 +818,7 @@ function sr_check_installer_module_default_versions(): void
     }
 
     preg_match_all(
-        "/'([a-z0-9_]+)'\\s*=>\\s*\\[\\s*\\n\\s*'name'\\s*=>\\s*'[^']*'\\s*,\\s*\\n\\s*'version'\\s*=>\\s*'([^']+)'/",
+        "/'([a-z0-9_]+)'\\s*=>\\s*\\[\\s*\\n\\s*'name'\\s*=>\\s*'([^']*)'\\s*,\\s*\\n\\s*'version'\\s*=>\\s*'([^']+)'/",
         $installer,
         $matches,
         PREG_SET_ORDER
@@ -826,7 +826,8 @@ function sr_check_installer_module_default_versions(): void
 
     foreach ($matches as $match) {
         $moduleKey = (string) $match[1];
-        $installerVersion = (string) $match[2];
+        $installerName = (string) $match[2];
+        $installerVersion = (string) $match[3];
         $moduleFile = 'modules/' . $moduleKey . '/module.php';
         if (!is_file($moduleFile)) {
             sr_check_add_error('Installer module default references missing module.php: ' . $moduleKey);
@@ -837,6 +838,11 @@ function sr_check_installer_module_default_versions(): void
         if (!is_array($metadata)) {
             sr_check_add_error('Installer module default metadata cannot be loaded: ' . $moduleFile);
             continue;
+        }
+
+        $moduleName = is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : '';
+        if ($installerName !== $moduleName) {
+            sr_check_add_error('Installer module default name must match module.php: ' . $moduleKey . ' installer=' . $installerName . ' module=' . $moduleName);
         }
 
         $moduleVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
