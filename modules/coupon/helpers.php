@@ -2276,7 +2276,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     }
     $targetType = array_key_exists((string) ($data['target_type'] ?? 'all'), sr_coupon_target_types($pdo)) ? (string) $data['target_type'] : 'all';
     $targetId = sr_coupon_clean_text((string) ($data['target_id'] ?? ''), 80);
-    $refundablePolicy = array_key_exists((string) ($data['refundable_policy'] ?? 'none'), sr_coupon_refundable_policies()) ? (string) $data['refundable_policy'] : 'none';
+    $refundablePolicy = sr_coupon_optional_enum_value($data, 'refundable_policy', array_keys(sr_coupon_refundable_policies()), 'none', '쿠폰 환급 정책이 올바르지 않습니다.');
     $maxUsesValue = $data['max_uses_per_issue'] ?? '1';
     if (is_array($maxUsesValue)) {
         throw new InvalidArgumentException('사용 가능 횟수는 1부터 1000 사이의 정수로 입력하세요.');

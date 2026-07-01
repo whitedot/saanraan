@@ -800,6 +800,20 @@ function sr_coupon_runtime_fixture(): void
         sr_coupon_runtime_assert(str_contains($exception->getMessage(), '상태'), 'invalid coupon definition status failure should be user-facing.');
     }
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'invalid_status_attempt'")->fetchColumn() === 0, 'rejected coupon status should not create a coupon definition.');
+    try {
+        sr_coupon_create_definition($pdo, [
+            'coupon_key' => 'invalid_refund_policy_attempt',
+            'title' => 'Invalid refund policy attempt',
+            'coupon_type' => 'access',
+            'target_type' => 'all',
+            'refundable_policy' => 'refund_yes',
+            'max_uses_per_issue' => '1',
+        ]);
+        sr_coupon_runtime_assert(false, 'coupon definition save should reject invalid refundable policies instead of defaulting them.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '환급 정책'), 'invalid coupon refundable policy failure should be user-facing.');
+    }
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'invalid_refund_policy_attempt'")->fetchColumn() === 0, 'rejected coupon refundable policy should not create a coupon definition.');
 
     $fixedDiscountId = sr_coupon_create_definition($pdo, [
         'coupon_key' => 'fixed_discount_attempt',
