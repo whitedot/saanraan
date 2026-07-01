@@ -116,19 +116,7 @@ $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 sr_payment_runtime_create_schema($pdo);
 $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('payment_ledger', 'enabled'), ('content', 'enabled'), ('community', 'enabled')");
 
-$paymentRecordId = sr_payment_ledger_record_payment($pdo, [
-    'dedupe_key' => 'content.view:payment:7:7801',
-    'account_id' => 7,
-    'subject_module' => 'content',
-    'subject_type' => 'content.view',
-    'subject_id' => '7801',
-    'payment_kind' => 'purchase',
-    'payable_amount' => 100,
-    'settlement_amount' => 100,
-    'settlement_currency' => 'KRW',
-    'description' => 'fixture content view',
-    'snapshot' => ['schema_version' => 'payment_record_v1'],
-], [
+$paymentItems = [
     [
         'item_kind' => 'coupon_redemption',
         'owner_module' => 'coupon',
@@ -160,7 +148,21 @@ $paymentRecordId = sr_payment_ledger_record_payment($pdo, [
             'unrelated_reference' => 'content:view:7801:account:77:intent:abc',
         ],
     ],
-]);
+];
+
+$paymentRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.view:payment:7:7801',
+    'account_id' => 7,
+    'subject_module' => 'content',
+    'subject_type' => 'content.view',
+    'subject_id' => '7801',
+    'payment_kind' => 'purchase',
+    'payable_amount' => 100,
+    'settlement_amount' => 100,
+    'settlement_currency' => 'KRW',
+    'description' => 'fixture content view',
+    'snapshot' => ['schema_version' => 'payment_record_v1'],
+], $paymentItems);
 
 sr_payment_runtime_assert($paymentRecordId > 0, 'payment ledger should create a payment record.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'payment ledger should persist one payment record.');
@@ -175,25 +177,82 @@ $duplicatePaymentRecordId = sr_payment_ledger_record_payment($pdo, [
     'payable_amount' => 100,
     'settlement_amount' => 100,
     'settlement_currency' => 'KRW',
-], [
-    [
-        'item_kind' => 'coupon_redemption',
-        'owner_module' => 'coupon',
-        'reference_type' => 'coupon_redemption',
-        'reference_id' => '55',
-        'amount' => -40,
-    ],
-    [
-        'item_kind' => 'asset_transaction',
-        'owner_module' => 'reward',
-        'reference_type' => 'reward_transaction',
-        'reference_id' => '777',
-        'amount' => -10,
-    ],
-]);
+], $paymentItems);
 sr_payment_runtime_assert($duplicatePaymentRecordId === $paymentRecordId, 'payment ledger should resolve duplicate dedupe keys to the existing record.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'duplicate payment record should not create another row.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'duplicate payment calls should not append new items to an immutable record.');
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:7801',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payable_amount' => 100,
+        'settlement_amount' => 100,
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'coupon_redemption',
+            'owner_module' => 'coupon',
+            'reference_type' => 'coupon_redemption',
+            'reference_id' => '55',
+            'amount' => -40,
+            'currency_code' => 'KRW',
+            'reversible' => true,
+        ],
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'reward',
+            'reference_type' => 'reward_transaction',
+            'reference_id' => '777',
+            'amount' => -10,
+            'currency_code' => 'KRW',
+            'reversible' => true,
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject mismatched duplicate payment items.');
+} catch (RuntimeException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects mismatched duplicate payment items.');
+}
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'mismatched duplicate payment items should not create another row.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'mismatched duplicate payment items should not append rows.');
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:7801',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payable_amount' => 100,
+        'settlement_amount' => 100,
+        'settlement_currency' => 'KRW',
+        'status' => 'paid-now',
+    ], $paymentItems);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid duplicate record statuses.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid duplicate record statuses.');
+}
+
+$invalidReplayItems = $paymentItems;
+$invalidReplayItems[0]['reversal_status'] = 'waiting-refund';
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:7801',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payable_amount' => 100,
+        'settlement_amount' => 100,
+        'settlement_currency' => 'KRW',
+    ], $invalidReplayItems);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid duplicate item reversal statuses.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid duplicate item reversal statuses.');
+}
 
 try {
     sr_payment_ledger_record_payment($pdo, [

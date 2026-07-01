@@ -172,6 +172,66 @@ function sr_payment_ledger_json_or_null(array $value): ?string
     return is_string($encoded) ? $encoded : null;
 }
 
+function sr_payment_ledger_item_match_key(array $item): string
+{
+    return implode("\x1F", [
+        (string) ($item['item_kind'] ?? ''),
+        (string) ($item['owner_module'] ?? ''),
+        (string) ($item['reference_type'] ?? ''),
+        (string) ($item['reference_id'] ?? ''),
+    ]);
+}
+
+function sr_payment_ledger_normalized_item_row(array $item): array
+{
+    $itemKind = sr_payment_ledger_clean_identifier((string) ($item['item_kind'] ?? ''), 40);
+    $ownerModule = sr_payment_ledger_clean_module_key((string) ($item['owner_module'] ?? ''));
+    $referenceType = sr_payment_ledger_clean_identifier((string) ($item['reference_type'] ?? ''), 80, true);
+    $referenceId = sr_payment_ledger_clean_reference_key((string) ($item['reference_id'] ?? ''), 120);
+    if ($itemKind === '' || $ownerModule === '' || $referenceType === '' || $referenceId === '') {
+        throw new InvalidArgumentException('결제 기록 항목 참조를 확인할 수 없습니다.');
+    }
+    $currencyCode = sr_payment_ledger_clean_currency_code((string) ($item['currency_code'] ?? ''));
+    if ((string) ($item['currency_code'] ?? '') !== '' && $currencyCode === '') {
+        throw new InvalidArgumentException('결제 기록 항목 통화 코드가 올바르지 않습니다.');
+    }
+    sr_payment_ledger_clean_reversal_status(
+        array_key_exists('reversal_status', $item) ? (string) $item['reversal_status'] : 'none'
+    );
+
+    return [
+        'item_kind' => $itemKind,
+        'owner_module' => $ownerModule,
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+        'amount' => (string) sr_payment_ledger_integer_amount($item['amount'] ?? 0, '결제 기록 항목 금액은 정수여야 합니다.'),
+        'currency_code' => $currencyCode,
+        'reversible' => !empty($item['reversible']) ? '1' : '0',
+        'snapshot_json' => sr_payment_ledger_json_or_null(is_array($item['snapshot'] ?? null) ? $item['snapshot'] : []),
+    ];
+}
+
+function sr_payment_ledger_normalized_item_rows(array $items): array
+{
+    $rows = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $row = sr_payment_ledger_normalized_item_row($item);
+        $key = sr_payment_ledger_item_match_key($row);
+        if (isset($rows[$key]) && $rows[$key] !== $row) {
+            throw new InvalidArgumentException('같은 결제 기록 항목 참조의 값이 서로 다릅니다.');
+        }
+
+        $rows[$key] = $row;
+    }
+    ksort($rows);
+
+    return $rows;
+}
+
 function sr_payment_ledger_record_by_dedupe(PDO $pdo, string $dedupeKey): ?array
 {
     if ($dedupeKey === '' || !sr_payment_ledger_tables_available($pdo)) {
@@ -306,6 +366,7 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
 
     $optionalChecks = [
         'payment_kind' => sr_payment_ledger_optional_identifier($data, 'payment_kind', 'purchase', 40, '결제 기록 종류가 올바르지 않습니다.'),
+        'status' => sr_payment_ledger_optional_identifier($data, 'status', 'paid', 30, '결제 기록 상태가 올바르지 않습니다.'),
         'payable_amount' => sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.'),
         'settlement_amount' => sr_payment_ledger_nonnegative_amount($data['settlement_amount'] ?? 0, '실제 결제 금액은 0 이상이어야 합니다.'),
         'settlement_currency' => $settlementCurrency,
@@ -315,9 +376,60 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
         if (!array_key_exists($field, $data)) {
             continue;
         }
+        if ($field === 'status' && (int) ($existing['account_id'] ?? 0) === 0) {
+            continue;
+        }
         if ((string) ($existing[$field] ?? '') !== (string) $expected) {
             throw new RuntimeException('같은 중복 방지 키의 결제 기록 값이 기존 기록과 다릅니다.');
         }
+    }
+}
+
+function sr_payment_ledger_existing_item_rows(PDO $pdo, int $paymentRecordId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT item_kind, owner_module, reference_type, reference_id, amount, currency_code, reversible, snapshot_json
+         FROM sr_payment_record_items
+         WHERE payment_record_id = :payment_record_id'
+    );
+    $stmt->execute(['payment_record_id' => $paymentRecordId]);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $item = [
+            'item_kind' => (string) ($row['item_kind'] ?? ''),
+            'owner_module' => (string) ($row['owner_module'] ?? ''),
+            'reference_type' => (string) ($row['reference_type'] ?? ''),
+            'reference_id' => (string) ($row['reference_id'] ?? ''),
+            'amount' => (string) ((int) ($row['amount'] ?? 0)),
+            'currency_code' => (string) ($row['currency_code'] ?? ''),
+            'reversible' => !empty($row['reversible']) ? '1' : '0',
+            'snapshot_json' => ($row['snapshot_json'] ?? null) === null ? null : (string) $row['snapshot_json'],
+        ];
+        $rows[sr_payment_ledger_item_match_key($item)] = $item;
+    }
+    ksort($rows);
+
+    return $rows;
+}
+
+function sr_payment_ledger_assert_existing_record_items_match(PDO $pdo, array $existing, array $expectedItems): void
+{
+    if ((int) ($existing['account_id'] ?? 0) === 0) {
+        return;
+    }
+
+    $paymentRecordId = (int) ($existing['id'] ?? 0);
+    if ($paymentRecordId <= 0) {
+        throw new RuntimeException('같은 중복 방지 키의 결제 기록 항목을 확인할 수 없습니다.');
+    }
+
+    if (sr_payment_ledger_existing_item_rows($pdo, $paymentRecordId) !== $expectedItems) {
+        throw new RuntimeException('같은 중복 방지 키의 결제 기록 항목이 기존 기록과 다릅니다.');
     }
 }
 
@@ -327,17 +439,7 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
         throw new InvalidArgumentException('결제 기록 항목을 연결할 결제 기록을 확인할 수 없습니다.');
     }
 
-    $itemKind = sr_payment_ledger_clean_identifier((string) ($item['item_kind'] ?? ''), 40);
-    $ownerModule = sr_payment_ledger_clean_module_key((string) ($item['owner_module'] ?? ''));
-    $referenceType = sr_payment_ledger_clean_identifier((string) ($item['reference_type'] ?? ''), 80, true);
-    $referenceId = sr_payment_ledger_clean_reference_key((string) ($item['reference_id'] ?? ''), 120);
-    if ($itemKind === '' || $ownerModule === '' || $referenceType === '' || $referenceId === '') {
-        throw new InvalidArgumentException('결제 기록 항목 참조를 확인할 수 없습니다.');
-    }
-    $currencyCode = sr_payment_ledger_clean_currency_code((string) ($item['currency_code'] ?? ''));
-    if ((string) ($item['currency_code'] ?? '') !== '' && $currencyCode === '') {
-        throw new InvalidArgumentException('결제 기록 항목 통화 코드가 올바르지 않습니다.');
-    }
+    $normalized = sr_payment_ledger_normalized_item_row($item);
 
     $now = sr_now();
     $insertVerb = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
@@ -351,17 +453,17 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
     );
     $stmt->execute([
         'payment_record_id' => $paymentRecordId,
-        'item_kind' => $itemKind,
-        'owner_module' => $ownerModule,
-        'reference_type' => $referenceType,
-        'reference_id' => $referenceId,
-        'amount' => sr_payment_ledger_integer_amount($item['amount'] ?? 0, '결제 기록 항목 금액은 정수여야 합니다.'),
-        'currency_code' => $currencyCode,
-        'reversible' => !empty($item['reversible']) ? 1 : 0,
+        'item_kind' => $normalized['item_kind'],
+        'owner_module' => $normalized['owner_module'],
+        'reference_type' => $normalized['reference_type'],
+        'reference_id' => $normalized['reference_id'],
+        'amount' => (int) $normalized['amount'],
+        'currency_code' => $normalized['currency_code'],
+        'reversible' => (int) $normalized['reversible'],
         'reversal_status' => sr_payment_ledger_clean_reversal_status(
             array_key_exists('reversal_status', $item) ? (string) $item['reversal_status'] : 'none'
         ),
-        'snapshot_json' => sr_payment_ledger_json_or_null(is_array($item['snapshot'] ?? null) ? $item['snapshot'] : []),
+        'snapshot_json' => $normalized['snapshot_json'],
         'created_at' => $now,
         'updated_at' => $now,
     ]);
@@ -382,10 +484,10 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
     );
     $stmt->execute([
         'payment_record_id' => $paymentRecordId,
-        'item_kind' => $itemKind,
-        'owner_module' => $ownerModule,
-        'reference_type' => $referenceType,
-        'reference_id' => $referenceId,
+        'item_kind' => $normalized['item_kind'],
+        'owner_module' => $normalized['owner_module'],
+        'reference_type' => $normalized['reference_type'],
+        'reference_id' => $normalized['reference_id'],
     ]);
 
     return (int) ($stmt->fetchColumn() ?: 0);
@@ -393,6 +495,7 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
 
 function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items): int
 {
+    $expectedItems = sr_payment_ledger_normalized_item_rows($items);
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
@@ -403,6 +506,7 @@ function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items)
         $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
         if (is_array($existing)) {
             sr_payment_ledger_assert_existing_record_matches($existing, $record);
+            sr_payment_ledger_assert_existing_record_items_match($pdo, $existing, $expectedItems);
             if ($startedTransaction) {
                 $pdo->commit();
             }
@@ -413,6 +517,10 @@ function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items)
         $createResult = sr_payment_ledger_create_record_result($pdo, $record);
         $paymentRecordId = (int) ($createResult['id'] ?? 0);
         if (empty($createResult['created'])) {
+            $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
+            if (is_array($existing)) {
+                sr_payment_ledger_assert_existing_record_items_match($pdo, $existing, $expectedItems);
+            }
             if ($startedTransaction) {
                 $pdo->commit();
             }
