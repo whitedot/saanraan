@@ -487,6 +487,40 @@ function sr_coupon_claim_runtime_fixture(): void
     $edited = sr_coupon_claim_campaign_by_id($pdo, $editCampaignId);
     sr_coupon_claim_runtime_assert(is_array($edited) && (string) ($edited['campaign_key'] ?? '') === 'claim_edit_renamed', 'claim campaign edit should update key before claims exist.');
     sr_coupon_claim_runtime_assert(is_array($edited) && in_array('popup_layer', sr_coupon_claim_surfaces_from_value($edited['exposure_surfaces_json'] ?? ''), true), 'claim campaign edit should update exposure surfaces.');
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_invalid_status',
+            'coupon_definition_id' => $editDefinitionId,
+            'title' => 'Invalid status',
+            'status' => 'enabled',
+            'claim_type' => 'free',
+            'total_claim_limit' => 3,
+            'per_account_limit' => 2,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'claim campaign save should reject invalid statuses instead of defaulting them.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '상태'), 'invalid claim campaign status failure should be user-facing.');
+    }
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_invalid_type',
+            'coupon_definition_id' => $editDefinitionId,
+            'title' => 'Invalid type',
+            'status' => 'draft',
+            'claim_type' => 'manual',
+            'total_claim_limit' => 3,
+            'per_account_limit' => 2,
+            'visibility' => 'public',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'claim campaign save should reject invalid claim types instead of defaulting them.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '발급 유형'), 'invalid claim campaign type failure should be user-facing.');
+    }
 
     $paidDefinitionId = sr_coupon_claim_runtime_definition($pdo, 'claim_paid_policy');
     $paidCampaignId = sr_coupon_create_claim_campaign($pdo, [

@@ -35,6 +35,20 @@ function sr_coupon_nonnegative_int_or_null(mixed $value): ?int
     return null;
 }
 
+function sr_coupon_optional_enum_value(array $data, string $key, array $allowed, string $default, string $message): string
+{
+    if (!array_key_exists($key, $data)) {
+        return $default;
+    }
+
+    $value = trim((string) $data[$key]);
+    if ($value === '' || !in_array($value, $allowed, true)) {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $value;
+}
+
 function sr_coupon_key_is_valid(string $couponKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $couponKey) === 1;
@@ -1108,17 +1122,11 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
         throw new InvalidArgumentException('캠페인 제목을 입력하세요.');
     }
 
-    $status = (string) ($data['status'] ?? 'draft');
-    if (!in_array($status, sr_coupon_claim_campaign_statuses(), true)) {
-        $status = 'draft';
-    }
+    $status = sr_coupon_optional_enum_value($data, 'status', sr_coupon_claim_campaign_statuses(), 'draft', '발급 캠페인 상태가 올바르지 않습니다.');
     if ($status === 'active' && !sr_coupon_definition_allows_issue((string) ($definition['status'] ?? ''))) {
         throw new InvalidArgumentException('발급 가능한 쿠폰만 활성 발급 캠페인에 연결할 수 있습니다.');
     }
-    $claimType = (string) ($data['claim_type'] ?? 'free');
-    if (!in_array($claimType, sr_coupon_claim_types(), true)) {
-        $claimType = 'free';
-    }
+    $claimType = sr_coupon_optional_enum_value($data, 'claim_type', sr_coupon_claim_types(), 'free', '발급 유형이 올바르지 않습니다.');
     $priceAmount = null;
     $priceCurrencyCode = '';
     $allowedAssetModulesJson = null;
@@ -2218,8 +2226,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     $couponKey = sr_coupon_clean_key((string) ($data['coupon_key'] ?? ''));
     $title = sr_coupon_clean_text((string) ($data['title'] ?? ''), 120);
     $description = sr_coupon_clean_text((string) ($data['description'] ?? ''), 1000);
-    $statusValue = (string) ($data['status'] ?? 'active');
-    $status = in_array($statusValue, sr_coupon_statuses(), true) ? $statusValue : 'active';
+    $status = sr_coupon_optional_enum_value($data, 'status', sr_coupon_statuses(), 'active', '쿠폰 상태가 올바르지 않습니다.');
     $couponType = sr_coupon_clean_key((string) ($data['coupon_type'] ?? 'access'), 40);
     if ($couponType === '') {
         $couponType = 'access';

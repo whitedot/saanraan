@@ -785,6 +785,21 @@ function sr_coupon_runtime_fixture(): void
         sr_coupon_runtime_assert(str_contains($exception->getMessage(), '혜택 유형'), 'unimplemented coupon model failure should be user-facing.');
     }
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'stored_value_attempt'")->fetchColumn() === 0, 'rejected coupon model should not create a coupon definition.');
+    try {
+        sr_coupon_create_definition($pdo, [
+            'coupon_key' => 'invalid_status_attempt',
+            'title' => 'Invalid status attempt',
+            'status' => 'enabled',
+            'coupon_type' => 'access',
+            'target_type' => 'all',
+            'refundable_policy' => 'none',
+            'max_uses_per_issue' => '1',
+        ]);
+        sr_coupon_runtime_assert(false, 'coupon definition save should reject invalid statuses instead of defaulting them.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '상태'), 'invalid coupon definition status failure should be user-facing.');
+    }
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'invalid_status_attempt'")->fetchColumn() === 0, 'rejected coupon status should not create a coupon definition.');
 
     $fixedDiscountId = sr_coupon_create_definition($pdo, [
         'coupon_key' => 'fixed_discount_attempt',
