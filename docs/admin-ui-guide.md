@@ -339,6 +339,7 @@ CSV 내보내기처럼 현재 필터 조건에 붙는 보조 작업은 검색 su
 
 - 모달 껍데기는 `modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0`, 내부는 `modal-dialog`와 `modal-content ui-form-theme`를 사용하고 `role="dialog"`, `tabindex="-1"`, `aria-labelledby`, `aria-hidden`, `inert`를 view에서 직접 출력한다.
 - 모달은 `modal-header`, `modal-title`, `modal-body`, `modal-footer` 구조를 유지한다. 헤더 닫기 버튼은 시각 스타일을 위해 `btn btn-icon btn-ghost-light`를 쓰고, 스크립트 식별용으로 `modal-close`와 `data-overlay`를 함께 둔다. 저장하지 않는 닫기/취소 버튼에는 `modal-action`과 `data-overlay`를 유지한다.
+- 화면 높이를 넘는 모달은 마스크가 아니라 모달 본문 안에서 스크롤되게 한다. 헤더와 푸터는 모달 패널 안에 남기고, 긴 입력 흐름은 `.modal-body`가 스크롤을 맡는다.
 - 등록/수정 모달의 필수 입력, 도움말, 서버 검증 기준은 전체 폼 화면과 같다. 라벨 도움말은 `sr_admin_form_label_help_html()`, 긴 설명 모달은 `sr_admin_help_modal_html()`을 사용한다.
 - 모달 본문의 입력 행은 `.modal-body > .form-row` 구조를 쓰며, 여러 입력 행이 이어질 때 페이지 폼처럼 점선 구분선과 행 안쪽 여백으로 항목을 구분한다. 설명 전용 모달이나 원문 확인 모달처럼 폼 입력이 아닌 본문에는 이 구조를 억지로 적용하지 않는다.
 - 그룹 선택, 배지 목록, 도움말이 함께 있는 모달처럼 입력 흐름이 넓은 화면을 요구하면 `modal-dialog modal-dialog-lg`를 우선 쓰고, select와 보조 액션 버튼의 정렬은 화면 전용 class로 제한해 보정한다.
