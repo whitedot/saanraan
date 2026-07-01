@@ -355,6 +355,16 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_overlap_review_percent">overlap 검토 기준 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group">
+                        <input id="community_admin_settings_account_guard_publication_hold_overlap_review_percent" type="number" name="account_guard_publication_hold_overlap_review_percent" min="0" max="100" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80)); ?>" required class="form-input">
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <p class="form-help">대상 간 신고자 집합 overlap이 이 값 이상이면 자동 hold 대신 needs_review 이벤트만 남깁니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_enabled">confirmed 기반 hold</label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_confirmed_hold_enabled', 'account_guard_confirmed_hold_enabled', '1', !empty($settings['account_guard_confirmed_hold_enabled']), '사용'); ?>

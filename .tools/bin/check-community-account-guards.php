@@ -53,6 +53,7 @@ sr_community_account_guard_check_contains('modules/community/updates/2026.06.047
 sr_community_account_guard_check_contains('modules/community/module.php', [
     "'version' => '2026.06.047'",
     "'account_guard_publication_hold_enabled' => false",
+    "'account_guard_publication_hold_overlap_review_percent' => 80",
     "'account_guard_confirmed_hold_enabled' => false",
 ]);
 
@@ -67,6 +68,7 @@ sr_community_account_guard_check_contains('modules/community/helpers.php', [
 sr_community_account_guard_check_contains('modules/community/helpers/levels.php', [
     "'account_guard_publication_hold_enabled' => (bool)",
     '$settings[\'account_guard_publication_hold_threshold\'] = min(20, max(2,',
+    '$settings[\'account_guard_publication_hold_overlap_review_percent\'] = min(100, max(0,',
     "'account_guard_confirmed_hold_enabled' => (bool)",
     '$settings[\'account_guard_confirmed_hold_window_days\'] = min(365, max(1,',
 ]);
@@ -75,12 +77,29 @@ sr_community_account_guard_check_contains('modules/community/helpers/account-gua
     'function sr_community_account_guard_active_uid',
     'function sr_community_account_guard_transition',
     'function sr_community_account_active_guards',
+    'function sr_community_evaluate_account_guard_after_auto_action',
+    'function sr_community_evaluate_account_publication_hold',
+    'function sr_community_evaluate_account_confirmed_hold',
+    'function sr_community_account_guard_trigger_fingerprint',
     'active_guard_uid = NULL',
     "'publication_hold', 'confirmed_hold', 'write_cooldown', 'needs_review'",
 ]);
 
+sr_community_account_guard_check_contains('modules/community/actions/report.php', [
+    'sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionResult[\'auto_action_id\'], $settings)',
+    "'event_type' => 'community.account_guard.evaluated'",
+    "'event_type' => 'community.account_guard.evaluation_failed'",
+]);
+
+sr_community_account_guard_check_contains('modules/community/actions/admin-reports.php', [
+    'sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionReviewResult[\'auto_action_id\'], $settings)',
+    "'event_type' => 'community.account_guard.evaluated'",
+    "'event_type' => 'community.account_guard.evaluation_failed'",
+]);
+
 sr_community_account_guard_check_contains('modules/community/actions/admin-settings.php', [
     "sr_admin_post_int_in_range('account_guard_publication_hold_threshold', 2, 20)",
+    "sr_admin_post_int_in_range('account_guard_publication_hold_overlap_review_percent', 0, 100)",
     "sr_admin_post_int_in_range('account_guard_confirmed_hold_window_days', 1, 365)",
     "['account_guard_publication_hold_enabled', \$accountGuardPublicationHoldEnabled ? '1' : '0', 'bool']",
     "['account_guard_confirmed_hold_duration_minutes', (string) \$accountGuardConfirmedHoldDurationMinutes, 'int']",
@@ -89,6 +108,7 @@ sr_community_account_guard_check_contains('modules/community/actions/admin-setti
 sr_community_account_guard_check_contains('modules/community/views/admin-settings.php', [
     "'account_guard_publication_hold_enabled'",
     'name="account_guard_publication_hold_threshold"',
+    'name="account_guard_publication_hold_overlap_review_percent"',
     "'account_guard_confirmed_hold_enabled'",
     'name="account_guard_confirmed_hold_window_days"',
 ]);
@@ -129,6 +149,63 @@ if ($errors === []) {
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_community_account_guard_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            source_type TEXT NOT NULL DEFAULT "",
+            source_id INTEGER NULL,
+            guard_type TEXT NOT NULL,
+            trigger_reason TEXT NOT NULL DEFAULT "",
+            status TEXT NOT NULL DEFAULT "active",
+            starts_at TEXT NULL,
+            expires_at TEXT NULL,
+            released_at TEXT NULL,
+            reviewer_account_id INTEGER NULL,
+            trigger_fingerprint TEXT NOT NULL DEFAULT "",
+            snapshot_json TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_account_guard_locks (
+            account_id INTEGER PRIMARY KEY,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_report_auto_actions (
+            id INTEGER PRIMARY KEY,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            active_target_uid TEXT NULL,
+            status TEXT NOT NULL,
+            reviewed_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_posts (
+            id INTEGER PRIMARY KEY,
+            author_account_id INTEGER NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_comments (
+            id INTEGER PRIMARY KEY,
+            author_account_id INTEGER NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            reporter_account_id INTEGER NOT NULL,
+            status TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
         "INSERT INTO sr_community_account_guards
             (account_id, guard_type, status, active_guard_uid, expires_at, created_at, updated_at)
          VALUES
@@ -163,6 +240,64 @@ if ($errors === []) {
         || !str_contains((string) $row['snapshot_json'], 'manual_release')
     ) {
         sr_community_account_guard_check_error('terminal guard transition must clear active_guard_uid and retain review metadata.');
+    }
+
+    $pdo->exec("INSERT INTO sr_community_posts (id, author_account_id) VALUES (21, 9), (22, 9), (31, 10), (32, 10), (41, 11), (42, 11)");
+    $pdo->exec("INSERT INTO sr_community_report_auto_actions (id, target_type, target_id, active_target_uid, status, reviewed_at, updated_at) VALUES
+        (201, 'post', 21, 'post:21', 'active', NULL, '2026-07-01 11:00:00'),
+        (202, 'post', 22, 'post:22', 'active', NULL, '2026-07-01 11:00:00'),
+        (301, 'post', 31, 'post:31', 'active', NULL, '2026-07-01 11:00:00'),
+        (302, 'post', 32, 'post:32', 'active', NULL, '2026-07-01 11:00:00'),
+        (401, 'post', 41, NULL, 'confirmed', '2026-07-01 11:00:00', '2026-07-01 11:00:00'),
+        (402, 'post', 42, NULL, 'confirmed', '2026-07-01 11:10:00', '2026-07-01 11:10:00')");
+    $pdo->exec("INSERT INTO sr_community_reports (target_type, target_id, reporter_account_id, status) VALUES
+        ('post', 21, 1, 'open'), ('post', 21, 2, 'reviewing'),
+        ('post', 22, 3, 'open'), ('post', 22, 4, 'reviewing'),
+        ('post', 31, 5, 'open'), ('post', 31, 6, 'reviewing'),
+        ('post', 32, 5, 'open'), ('post', 32, 6, 'reviewing')");
+
+    $publicationResult = sr_community_evaluate_account_guard_after_auto_action($pdo, 202, [
+        'account_guard_publication_hold_enabled' => true,
+        'account_guard_publication_hold_threshold' => 2,
+        'account_guard_publication_hold_overlap_review_percent' => 80,
+        'account_guard_publication_hold_duration_minutes' => 60,
+        'account_guard_confirmed_hold_enabled' => false,
+    ]);
+    if (
+        (string) ($publicationResult['status'] ?? '') !== 'evaluated'
+        || (string) ($publicationResult['results']['publication_hold']['status'] ?? '') !== 'created'
+        || (int) $pdo->query("SELECT COUNT(*) FROM sr_community_account_guards WHERE account_id = 9 AND guard_type = 'publication_hold' AND status = 'active'")->fetchColumn() !== 1
+    ) {
+        sr_community_account_guard_check_error('multiple active post auto actions must create one publication hold when overlap is below review threshold.');
+    }
+
+    $overlapResult = sr_community_evaluate_account_guard_after_auto_action($pdo, 302, [
+        'account_guard_publication_hold_enabled' => true,
+        'account_guard_publication_hold_threshold' => 2,
+        'account_guard_publication_hold_overlap_review_percent' => 80,
+        'account_guard_publication_hold_duration_minutes' => 60,
+        'account_guard_confirmed_hold_enabled' => false,
+    ]);
+    if (
+        (string) ($overlapResult['results']['publication_hold']['status'] ?? '') !== 'needs_review'
+        || (int) $pdo->query("SELECT COUNT(*) FROM sr_community_account_guards WHERE account_id = 10 AND guard_type = 'publication_hold'")->fetchColumn() !== 0
+        || (int) $pdo->query("SELECT COUNT(*) FROM sr_community_account_guard_events WHERE account_id = 10 AND guard_type = 'needs_review' AND status = 'needs_review'")->fetchColumn() !== 1
+    ) {
+        sr_community_account_guard_check_error('high reporter overlap must create needs_review event without an active publication hold.');
+    }
+
+    $confirmedResult = sr_community_evaluate_account_guard_after_auto_action($pdo, 402, [
+        'account_guard_publication_hold_enabled' => false,
+        'account_guard_confirmed_hold_enabled' => true,
+        'account_guard_confirmed_hold_threshold' => 2,
+        'account_guard_confirmed_hold_window_days' => 30,
+        'account_guard_confirmed_hold_duration_minutes' => 120,
+    ]);
+    if (
+        (string) ($confirmedResult['results']['confirmed_hold']['status'] ?? '') !== 'created'
+        || (int) $pdo->query("SELECT COUNT(*) FROM sr_community_account_guards WHERE account_id = 11 AND guard_type = 'confirmed_hold' AND status = 'active'")->fetchColumn() !== 1
+    ) {
+        sr_community_account_guard_check_error('repeated confirmed auto actions must create confirmed hold when setting is enabled.');
     }
 }
 

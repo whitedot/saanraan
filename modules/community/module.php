@@ -72,6 +72,7 @@ return [
         'report_auto_action_public_mode' => 'exclude',
         'account_guard_publication_hold_enabled' => false,
         'account_guard_publication_hold_threshold' => 3,
+        'account_guard_publication_hold_overlap_review_percent' => 80,
         'account_guard_publication_hold_duration_minutes' => 120,
         'account_guard_confirmed_hold_enabled' => false,
         'account_guard_confirmed_hold_threshold' => 3,

@@ -23,6 +23,7 @@ function sr_community_default_settings(): array
         'report_auto_action_public_mode' => is_string($settings['report_auto_action_public_mode'] ?? null) ? (string) $settings['report_auto_action_public_mode'] : 'exclude',
         'account_guard_publication_hold_enabled' => (bool) ($settings['account_guard_publication_hold_enabled'] ?? false),
         'account_guard_publication_hold_threshold' => (int) ($settings['account_guard_publication_hold_threshold'] ?? 3),
+        'account_guard_publication_hold_overlap_review_percent' => (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80),
         'account_guard_publication_hold_duration_minutes' => (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120),
         'account_guard_confirmed_hold_enabled' => (bool) ($settings['account_guard_confirmed_hold_enabled'] ?? false),
         'account_guard_confirmed_hold_threshold' => (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3),
@@ -223,6 +224,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
         : 'exclude';
     $settings['account_guard_publication_hold_enabled'] = sr_community_bool_setting($settings['account_guard_publication_hold_enabled'] ?? false);
     $settings['account_guard_publication_hold_threshold'] = min(20, max(2, (int) ($settings['account_guard_publication_hold_threshold'] ?? 3)));
+    $settings['account_guard_publication_hold_overlap_review_percent'] = min(100, max(0, (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80)));
     $settings['account_guard_publication_hold_duration_minutes'] = min(10080, max(10, (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120)));
     $settings['account_guard_confirmed_hold_enabled'] = sr_community_bool_setting($settings['account_guard_confirmed_hold_enabled'] ?? false);
     $settings['account_guard_confirmed_hold_threshold'] = min(20, max(2, (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3)));

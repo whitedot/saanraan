@@ -99,6 +99,40 @@ try {
             ],
         ]);
     }
+    if ((string) ($autoActionResult['status'] ?? '') === 'applied' && (int) ($autoActionResult['auto_action_id'] ?? 0) > 0) {
+        try {
+            $accountGuardResult = sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionResult['auto_action_id'], $settings);
+            sr_audit_log($pdo, [
+                'actor_account_id' => null,
+                'actor_type' => 'system',
+                'event_type' => 'community.account_guard.evaluated',
+                'target_type' => 'community_report_auto_action',
+                'target_id' => (string) (int) $autoActionResult['auto_action_id'],
+                'result' => (string) ($accountGuardResult['status'] ?? '') === 'evaluated' ? 'success' : 'skipped',
+                'message' => 'Community account guard evaluated after report auto action.',
+                'metadata' => [
+                    'source_report_id' => $reportId,
+                    'auto_action_id' => (int) $autoActionResult['auto_action_id'],
+                    'account_guard_result' => $accountGuardResult,
+                ],
+            ]);
+        } catch (Throwable $accountGuardException) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => null,
+                'actor_type' => 'system',
+                'event_type' => 'community.account_guard.evaluation_failed',
+                'target_type' => 'community_report_auto_action',
+                'target_id' => (string) (int) $autoActionResult['auto_action_id'],
+                'result' => 'failure',
+                'message' => 'Community account guard evaluation failed after report auto action.',
+                'metadata' => [
+                    'source_report_id' => $reportId,
+                    'auto_action_id' => (int) $autoActionResult['auto_action_id'],
+                    'error' => $accountGuardException->getMessage(),
+                ],
+            ]);
+        }
+    }
 } catch (Throwable $exception) {
     sr_audit_log($pdo, [
         'actor_account_id' => null,

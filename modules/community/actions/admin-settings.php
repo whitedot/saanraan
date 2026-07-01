@@ -79,6 +79,7 @@ if (sr_request_method() === 'POST') {
             : 'exclude';
         $accountGuardPublicationHoldEnabled = ($_POST['account_guard_publication_hold_enabled'] ?? '') === '1';
         $accountGuardPublicationHoldThreshold = sr_admin_post_int_in_range('account_guard_publication_hold_threshold', 2, 20);
+        $accountGuardPublicationHoldOverlapReviewPercent = sr_admin_post_int_in_range('account_guard_publication_hold_overlap_review_percent', 0, 100);
         $accountGuardPublicationHoldDurationMinutes = sr_admin_post_int_in_range('account_guard_publication_hold_duration_minutes', 10, 10080);
         $accountGuardConfirmedHoldEnabled = ($_POST['account_guard_confirmed_hold_enabled'] ?? '') === '1';
         $accountGuardConfirmedHoldThreshold = sr_admin_post_int_in_range('account_guard_confirmed_hold_threshold', 2, 20);
@@ -226,6 +227,10 @@ if (sr_request_method() === 'POST') {
         if ($accountGuardPublicationHoldThreshold === null) {
             $errors[] = '계정 publication hold 대상 수는 2 이상 20 이하로 입력하세요.';
             $accountGuardPublicationHoldThreshold = (int) ($settings['account_guard_publication_hold_threshold'] ?? 3);
+        }
+        if ($accountGuardPublicationHoldOverlapReviewPercent === null) {
+            $errors[] = '계정 publication hold overlap 검토 기준은 0 이상 100 이하로 입력하세요.';
+            $accountGuardPublicationHoldOverlapReviewPercent = (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80);
         }
         if ($accountGuardPublicationHoldDurationMinutes === null) {
             $errors[] = '계정 publication hold 기간은 10분 이상 10080분 이하로 입력하세요.';
@@ -398,6 +403,7 @@ if (sr_request_method() === 'POST') {
                 ['report_auto_action_public_mode', $reportAutoActionPublicMode, 'string'],
                 ['account_guard_publication_hold_enabled', $accountGuardPublicationHoldEnabled ? '1' : '0', 'bool'],
                 ['account_guard_publication_hold_threshold', (string) $accountGuardPublicationHoldThreshold, 'int'],
+                ['account_guard_publication_hold_overlap_review_percent', (string) $accountGuardPublicationHoldOverlapReviewPercent, 'int'],
                 ['account_guard_publication_hold_duration_minutes', (string) $accountGuardPublicationHoldDurationMinutes, 'int'],
                 ['account_guard_confirmed_hold_enabled', $accountGuardConfirmedHoldEnabled ? '1' : '0', 'bool'],
                 ['account_guard_confirmed_hold_threshold', (string) $accountGuardConfirmedHoldThreshold, 'int'],
@@ -536,6 +542,7 @@ if (sr_request_method() === 'POST') {
                         'report_auto_action_public_mode' => $reportAutoActionPublicMode,
                         'account_guard_publication_hold_enabled' => $accountGuardPublicationHoldEnabled,
                         'account_guard_publication_hold_threshold' => $accountGuardPublicationHoldThreshold,
+                        'account_guard_publication_hold_overlap_review_percent' => $accountGuardPublicationHoldOverlapReviewPercent,
                         'account_guard_publication_hold_duration_minutes' => $accountGuardPublicationHoldDurationMinutes,
                         'account_guard_confirmed_hold_enabled' => $accountGuardConfirmedHoldEnabled,
                         'account_guard_confirmed_hold_threshold' => $accountGuardConfirmedHoldThreshold,

@@ -418,6 +418,40 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
                 $pdo->commit();
+                if (!empty($autoActionReviewResult['applied']) && (int) ($autoActionReviewResult['auto_action_id'] ?? 0) > 0) {
+                    try {
+                        $accountGuardResult = sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionReviewResult['auto_action_id'], $settings);
+                        sr_audit_log($pdo, [
+                            'actor_account_id' => null,
+                            'actor_type' => 'system',
+                            'event_type' => 'community.account_guard.evaluated',
+                            'target_type' => 'community_report_auto_action',
+                            'target_id' => (string) (int) $autoActionReviewResult['auto_action_id'],
+                            'result' => (string) ($accountGuardResult['status'] ?? '') === 'evaluated' ? 'success' : 'skipped',
+                            'message' => 'Community account guard evaluated after report auto action review.',
+                            'metadata' => [
+                                'report_id' => $reportId,
+                                'auto_action_review' => $autoActionReviewResult,
+                                'account_guard_result' => $accountGuardResult,
+                            ],
+                        ]);
+                    } catch (Throwable $accountGuardException) {
+                        sr_audit_log($pdo, [
+                            'actor_account_id' => null,
+                            'actor_type' => 'system',
+                            'event_type' => 'community.account_guard.evaluation_failed',
+                            'target_type' => 'community_report_auto_action',
+                            'target_id' => (string) (int) $autoActionReviewResult['auto_action_id'],
+                            'result' => 'failure',
+                            'message' => 'Community account guard evaluation failed after report auto action review.',
+                            'metadata' => [
+                                'report_id' => $reportId,
+                                'auto_action_review' => $autoActionReviewResult,
+                                'error' => $accountGuardException->getMessage(),
+                            ],
+                        ]);
+                    }
+                }
                 $notice = sr_t('community::action.admin.report_status_updated');
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
