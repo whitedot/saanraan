@@ -5,7 +5,7 @@ return [
         'target_type' => 'community_board',
         'label' => '커뮤니티 게시판',
         'helpers' => 'helpers.php',
-        'capabilities' => ['search', 'health', 'admin_url'],
+        'capabilities' => ['search', 'health', 'admin_url', 'revoke_access'],
         'search_function' => 'sr_community_coupon_target_search',
         'revoke_access_function' => 'sr_community_coupon_revoke_access',
         'health_function' => 'sr_community_coupon_target_health',
