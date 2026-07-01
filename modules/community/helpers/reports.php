@@ -122,6 +122,357 @@ function sr_community_report_auto_action_transition(PDO $pdo, int $autoActionId,
     return $stmt->rowCount() > 0;
 }
 
+function sr_community_report_auto_action_json(array $data): string
+{
+    $encoded = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return is_string($encoded) ? $encoded : '{}';
+}
+
+function sr_community_report_auto_action_lock_suffix(PDO $pdo): string
+{
+    try {
+        return (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    } catch (Throwable) {
+        return ' FOR UPDATE';
+    }
+}
+
+function sr_community_report_auto_action_settings_snapshot(array $settings): array
+{
+    return [
+        'enabled' => !empty($settings['report_auto_action_enabled']),
+        'threshold' => min(100, max(2, (int) ($settings['report_auto_action_threshold'] ?? 5))),
+        'window_days' => min(365, max(0, (int) ($settings['report_auto_action_window_days'] ?? 0))),
+        'public_mode' => in_array((string) ($settings['report_auto_action_public_mode'] ?? 'exclude'), ['exclude', 'placeholder'], true)
+            ? (string) $settings['report_auto_action_public_mode']
+            : 'exclude',
+    ];
+}
+
+function sr_community_report_auto_action_report_counts(PDO $pdo, string $targetType, int $targetId, int $windowDays): array
+{
+    $where = 'target_type = :target_type AND target_id = :target_id';
+    $params = [
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ];
+    if ($windowDays > 0) {
+        $createdAfter = (new DateTimeImmutable('now'))->modify('-' . (string) $windowDays . ' days')->format('Y-m-d H:i:s');
+        $where .= ' AND created_at >= :created_after';
+        $params['created_after'] = $createdAfter;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS total_report_count,
+                COUNT(DISTINCT reporter_account_id) AS total_reporter_count,
+                COUNT(CASE WHEN status = 'dismissed' THEN 1 END) AS excluded_report_count,
+                COUNT(DISTINCT CASE WHEN status = 'dismissed' THEN reporter_account_id ELSE NULL END) AS excluded_reporter_count,
+                COUNT(DISTINCT CASE WHEN status <> 'dismissed' THEN reporter_account_id ELSE NULL END) AS eligible_reporter_count
+         FROM sr_community_reports
+         WHERE " . $where
+    );
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+
+    return [
+        'total_report_count' => is_array($row) ? (int) ($row['total_report_count'] ?? 0) : 0,
+        'total_reporter_count' => is_array($row) ? (int) ($row['total_reporter_count'] ?? 0) : 0,
+        'eligible_reporter_count' => is_array($row) ? (int) ($row['eligible_reporter_count'] ?? 0) : 0,
+        'excluded_reporter_count' => is_array($row) ? (int) ($row['excluded_reporter_count'] ?? 0) : 0,
+        'excluded_report_count' => is_array($row) ? (int) ($row['excluded_report_count'] ?? 0) : 0,
+    ];
+}
+
+function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetType, int $targetId): ?array
+{
+    if ($targetType === 'post') {
+        $stmt = $pdo->prepare(
+            'SELECT p.id, p.status, p.hidden_at, p.hidden_reason, p.hidden_by_account_id, p.board_id,
+                    b.status AS board_status
+             FROM sr_community_posts p
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE p.id = :id
+             LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
+        );
+        $stmt->execute(['id' => $targetId]);
+        $target = $stmt->fetch();
+        if (!is_array($target)) {
+            return null;
+        }
+
+        $target['auto_action_eligible'] = (string) ($target['status'] ?? '') === 'published'
+            && (string) ($target['board_status'] ?? '') === 'enabled';
+        return $target;
+    }
+
+    if ($targetType === 'comment') {
+        $stmt = $pdo->prepare(
+            'SELECT c.id, c.status, c.hidden_at, c.hidden_reason, c.hidden_by_account_id, c.post_id,
+                    p.status AS post_status,
+                    b.status AS board_status
+             FROM sr_community_comments c
+             INNER JOIN sr_community_posts p ON p.id = c.post_id
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE c.id = :id
+             LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
+        );
+        $stmt->execute(['id' => $targetId]);
+        $target = $stmt->fetch();
+        if (!is_array($target)) {
+            return null;
+        }
+
+        $target['auto_action_eligible'] = (string) ($target['status'] ?? '') === 'published'
+            && (string) ($target['post_status'] ?? '') === 'published'
+            && (string) ($target['board_status'] ?? '') === 'enabled';
+        return $target;
+    }
+
+    return null;
+}
+
+function sr_community_report_auto_action_insert(PDO $pdo, array $data): int
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_report_auto_actions
+            (target_type, target_id, active_target_uid, source_report_id, action_key, status,
+             target_before_status, target_hidden_at_snapshot, target_hidden_reason, target_hidden_by_account_id,
+             threshold_value, total_reporter_count, eligible_reporter_count, excluded_reporter_count, excluded_report_count,
+             abuse_guard_summary_json, settings_snapshot_json, failure_reason, metadata_json,
+             applied_at, released_at, reviewed_at, reviewer_account_id, created_at, updated_at)
+         VALUES
+            (:target_type, :target_id, :active_target_uid, :source_report_id, :action_key, :status,
+             :target_before_status, :target_hidden_at_snapshot, :target_hidden_reason, :target_hidden_by_account_id,
+             :threshold_value, :total_reporter_count, :eligible_reporter_count, :excluded_reporter_count, :excluded_report_count,
+             :abuse_guard_summary_json, :settings_snapshot_json, :failure_reason, :metadata_json,
+             :applied_at, NULL, NULL, NULL, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'target_type' => (string) $data['target_type'],
+        'target_id' => (int) $data['target_id'],
+        'active_target_uid' => (string) ($data['active_target_uid'] ?? '') !== '' ? (string) $data['active_target_uid'] : null,
+        'source_report_id' => (int) ($data['source_report_id'] ?? 0) > 0 ? (int) $data['source_report_id'] : null,
+        'action_key' => (string) ($data['action_key'] ?? ''),
+        'status' => (string) ($data['status'] ?? 'active'),
+        'target_before_status' => (string) ($data['target_before_status'] ?? ''),
+        'target_hidden_at_snapshot' => (string) ($data['target_hidden_at_snapshot'] ?? '') !== '' ? (string) $data['target_hidden_at_snapshot'] : null,
+        'target_hidden_reason' => (string) ($data['target_hidden_reason'] ?? ''),
+        'target_hidden_by_account_id' => (int) ($data['target_hidden_by_account_id'] ?? 0) > 0 ? (int) $data['target_hidden_by_account_id'] : null,
+        'threshold_value' => (int) ($data['threshold_value'] ?? 0),
+        'total_reporter_count' => (int) ($data['total_reporter_count'] ?? 0),
+        'eligible_reporter_count' => (int) ($data['eligible_reporter_count'] ?? 0),
+        'excluded_reporter_count' => (int) ($data['excluded_reporter_count'] ?? 0),
+        'excluded_report_count' => (int) ($data['excluded_report_count'] ?? 0),
+        'abuse_guard_summary_json' => (string) ($data['abuse_guard_summary_json'] ?? '{}'),
+        'settings_snapshot_json' => (string) ($data['settings_snapshot_json'] ?? '{}'),
+        'failure_reason' => (string) ($data['failure_reason'] ?? ''),
+        'metadata_json' => (string) ($data['metadata_json'] ?? '{}'),
+        'applied_at' => (string) ($data['applied_at'] ?? '') !== '' ? (string) $data['applied_at'] : null,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_community_maybe_apply_report_auto_action(PDO $pdo, int $sourceReportId, array $settings): array
+{
+    $snapshot = sr_community_report_auto_action_settings_snapshot($settings);
+    if (empty($snapshot['enabled']) || $sourceReportId < 1) {
+        return ['status' => 'disabled'];
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_community_reports WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $sourceReportId]);
+    $report = $stmt->fetch();
+    if (!is_array($report)) {
+        return ['status' => 'source_report_not_found'];
+    }
+
+    $targetType = (string) ($report['target_type'] ?? '');
+    $targetId = (int) ($report['target_id'] ?? 0);
+    if (!in_array($targetType, sr_community_report_auto_action_target_types(), true) || $targetId < 1) {
+        return ['status' => 'target_type_excluded', 'target_type' => $targetType, 'target_id' => $targetId];
+    }
+
+    $threshold = (int) $snapshot['threshold'];
+    $windowDays = (int) $snapshot['window_days'];
+    $activeTargetUid = sr_community_report_auto_action_active_target_uid($targetType, $targetId);
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $target = sr_community_report_auto_action_locked_target($pdo, $targetType, $targetId);
+        $counts = sr_community_report_auto_action_report_counts($pdo, $targetType, $targetId, $windowDays);
+        if ((int) $counts['eligible_reporter_count'] < $threshold) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'status' => 'below_threshold',
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+                'eligible_reporter_count' => (int) $counts['eligible_reporter_count'],
+                'threshold' => $threshold,
+            ];
+        }
+
+        $activeStmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_community_report_auto_actions
+             WHERE active_target_uid = :active_target_uid
+             LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
+        );
+        $activeStmt->execute(['active_target_uid' => $activeTargetUid]);
+        $activeRow = $activeStmt->fetch();
+        if (is_array($activeRow)) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'status' => 'active_exists',
+                'auto_action_id' => (int) ($activeRow['id'] ?? 0),
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+            ];
+        }
+
+        if (!is_array($target)) {
+            $autoActionId = sr_community_report_auto_action_insert($pdo, [
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+                'source_report_id' => $sourceReportId,
+                'action_key' => 'hide_target',
+                'status' => 'skipped',
+                'threshold_value' => $threshold,
+                'total_reporter_count' => (int) $counts['total_reporter_count'],
+                'eligible_reporter_count' => (int) $counts['eligible_reporter_count'],
+                'excluded_reporter_count' => (int) $counts['excluded_reporter_count'],
+                'excluded_report_count' => (int) $counts['excluded_report_count'],
+                'settings_snapshot_json' => sr_community_report_auto_action_json($snapshot),
+                'failure_reason' => 'target_not_found',
+                'metadata_json' => sr_community_report_auto_action_json(['source' => 'report_threshold']),
+            ]);
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['status' => 'skipped', 'reason' => 'target_not_found', 'auto_action_id' => $autoActionId];
+        }
+
+        $targetBeforeStatus = (string) ($target['status'] ?? '');
+        if (empty($target['auto_action_eligible'])) {
+            $autoActionId = sr_community_report_auto_action_insert($pdo, [
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+                'source_report_id' => $sourceReportId,
+                'action_key' => 'hide_target',
+                'status' => 'skipped',
+                'target_before_status' => $targetBeforeStatus,
+                'target_hidden_at_snapshot' => (string) ($target['hidden_at'] ?? ''),
+                'target_hidden_reason' => (string) ($target['hidden_reason'] ?? ''),
+                'target_hidden_by_account_id' => (int) ($target['hidden_by_account_id'] ?? 0),
+                'threshold_value' => $threshold,
+                'total_reporter_count' => (int) $counts['total_reporter_count'],
+                'eligible_reporter_count' => (int) $counts['eligible_reporter_count'],
+                'excluded_reporter_count' => (int) $counts['excluded_reporter_count'],
+                'excluded_report_count' => (int) $counts['excluded_report_count'],
+                'settings_snapshot_json' => sr_community_report_auto_action_json($snapshot),
+                'failure_reason' => 'target_not_eligible',
+                'metadata_json' => sr_community_report_auto_action_json([
+                    'source' => 'report_threshold',
+                    'target_status' => $targetBeforeStatus,
+                    'board_status' => (string) ($target['board_status'] ?? ''),
+                    'post_status' => (string) ($target['post_status'] ?? ''),
+                ]),
+            ]);
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return ['status' => 'skipped', 'reason' => 'target_not_eligible', 'auto_action_id' => $autoActionId];
+        }
+
+        $appliedAt = sr_now();
+        $autoActionId = sr_community_report_auto_action_insert($pdo, [
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'active_target_uid' => $activeTargetUid,
+            'source_report_id' => $sourceReportId,
+            'action_key' => 'hide_target',
+            'status' => 'active',
+            'target_before_status' => $targetBeforeStatus,
+            'target_hidden_at_snapshot' => (string) ($target['hidden_at'] ?? ''),
+            'target_hidden_reason' => (string) ($target['hidden_reason'] ?? ''),
+            'target_hidden_by_account_id' => (int) ($target['hidden_by_account_id'] ?? 0),
+            'threshold_value' => $threshold,
+            'total_reporter_count' => (int) $counts['total_reporter_count'],
+            'eligible_reporter_count' => (int) $counts['eligible_reporter_count'],
+            'excluded_reporter_count' => (int) $counts['excluded_reporter_count'],
+            'excluded_report_count' => (int) $counts['excluded_report_count'],
+            'abuse_guard_summary_json' => sr_community_report_auto_action_json([
+                'distinct_reporters' => (int) $counts['eligible_reporter_count'],
+                'excluded_report_count' => (int) $counts['excluded_report_count'],
+            ]),
+            'settings_snapshot_json' => sr_community_report_auto_action_json($snapshot),
+            'metadata_json' => sr_community_report_auto_action_json([
+                'source' => 'report_threshold',
+                'source_report_id' => $sourceReportId,
+            ]),
+            'applied_at' => $appliedAt,
+        ]);
+
+        $hiddenOptions = [
+            'hidden_reason' => 'report_threshold',
+            'hidden_note' => 'Automatically hidden after report threshold was reached.',
+            'hidden_by_account_id' => null,
+        ];
+        if ($targetType === 'post') {
+            sr_community_update_post_status($pdo, $targetId, 'hidden', $hiddenOptions);
+            sr_community_update_post_attachments_status($pdo, $targetId, 'hidden');
+        } else {
+            sr_community_update_comment_status($pdo, $targetId, 'hidden', $hiddenOptions);
+        }
+
+        $freshTarget = sr_community_report_auto_action_locked_target($pdo, $targetType, $targetId);
+        if (!is_array($freshTarget) || (string) ($freshTarget['status'] ?? '') !== 'hidden' || (string) ($freshTarget['hidden_reason'] ?? '') !== 'report_threshold') {
+            sr_community_report_auto_action_transition($pdo, $autoActionId, 'failed', [
+                'failure_reason' => 'hidden_readback_failed',
+                'metadata' => ['source' => 'report_threshold'],
+            ]);
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'status' => 'failed',
+                'reason' => 'hidden_readback_failed',
+                'auto_action_id' => $autoActionId,
+                'target_type' => $targetType,
+                'target_id' => $targetId,
+            ];
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+        return [
+            'status' => 'applied',
+            'auto_action_id' => $autoActionId,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'eligible_reporter_count' => (int) $counts['eligible_reporter_count'],
+            'threshold' => $threshold,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
 function sr_community_report_target_action_options(string $targetType): array
 {
     if ($targetType === 'post') {
@@ -687,7 +1038,11 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
         if (!is_array($post)) {
             return ['action_key' => $actionKey, 'applied' => false, 'error' => 'target_not_found'];
         }
-        sr_community_update_post_status($pdo, $targetId, $status);
+        sr_community_update_post_status($pdo, $targetId, $status, $status === 'hidden' ? [
+            'hidden_reason' => 'moderation',
+            'hidden_note' => 'Report target action applied by administrator.',
+            'hidden_by_account_id' => $adminAccountId,
+        ] : []);
         $updatedAttachmentCount = in_array($status, ['hidden', 'deleted'], true)
             ? sr_community_update_post_attachments_status($pdo, $targetId, $status)
             : 0;
@@ -715,7 +1070,11 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
         if (!is_array($comment)) {
             return ['action_key' => $actionKey, 'applied' => false, 'error' => 'target_not_found'];
         }
-        sr_community_update_comment_status($pdo, $targetId, $status);
+        sr_community_update_comment_status($pdo, $targetId, $status, $status === 'hidden' ? [
+            'hidden_reason' => 'moderation',
+            'hidden_note' => 'Report target action applied by administrator.',
+            'hidden_by_account_id' => $adminAccountId,
+        ] : []);
         sr_community_report_target_action_audit_log($pdo, [
             'actor_account_id' => $adminAccountId,
             'actor_type' => 'admin',

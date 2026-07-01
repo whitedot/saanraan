@@ -72,8 +72,18 @@ sr_community_report_auto_action_check_contains('modules/community/helpers/levels
 sr_community_report_auto_action_check_contains('modules/community/helpers/reports.php', [
     'function sr_community_report_auto_action_active_target_uid',
     'function sr_community_report_auto_action_transition',
+    'function sr_community_maybe_apply_report_auto_action',
     'active_target_uid = NULL',
+    "'hidden_reason' => 'report_threshold'",
+    "'hidden_by_account_id' => null",
+    '\'hidden_by_account_id\' => $adminAccountId',
     "'active', 'confirmed', 'released', 'skipped', 'failed'",
+]);
+
+sr_community_report_auto_action_check_contains('modules/community/actions/report.php', [
+    'sr_community_maybe_apply_report_auto_action($pdo, $reportId, $settings)',
+    "'event_type' => 'community.report.auto_action_evaluated'",
+    "'event_type' => 'community.report.auto_action_failed'",
 ]);
 
 sr_community_report_auto_action_check_contains('docs/implementation-snapshot.md', [
@@ -86,6 +96,7 @@ sr_community_report_auto_action_check_contains('docs/privacy-processing-records.
 
 if ($errors === []) {
     require_once SR_ROOT . '/modules/community/helpers/reports.php';
+    require_once SR_ROOT . '/modules/community/helpers.php';
 
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -156,6 +167,82 @@ if ($errors === []) {
         || !str_contains((string) $row['metadata_json'], 'manual_restore')
     ) {
         sr_community_report_auto_action_check_error('terminal transition must clear active_target_uid and retain review metadata.');
+    }
+
+    $pdo->exec('CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, status TEXT NOT NULL)');
+    $pdo->exec(
+        'CREATE TABLE sr_community_posts (
+            id INTEGER PRIMARY KEY,
+            board_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            hidden_at TEXT NULL,
+            hidden_until TEXT NULL,
+            hidden_reason TEXT NOT NULL DEFAULT "",
+            hidden_note TEXT NULL,
+            hidden_by_account_id INTEGER NULL,
+            hidden_before_status TEXT NOT NULL DEFAULT "",
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec('CREATE TABLE sr_community_attachments (id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec(
+        'CREATE TABLE sr_community_reports (
+            id INTEGER PRIMARY KEY,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            reporter_account_id INTEGER NOT NULL,
+            reported_account_id INTEGER NULL,
+            reason_key TEXT NOT NULL,
+            memo_text TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec("INSERT INTO sr_community_boards (id, status) VALUES (1, 'enabled')");
+    $pdo->exec("INSERT INTO sr_community_posts (id, board_id, status, updated_at) VALUES (11, 1, 'published', '2026-07-01 11:00:00')");
+    $pdo->exec("INSERT INTO sr_community_attachments (id, post_id, status) VALUES (1, 11, 'active')");
+    $pdo->exec(
+        "INSERT INTO sr_community_reports
+            (id, target_type, target_id, reporter_account_id, reported_account_id, reason_key, memo_text, status, created_at, updated_at)
+         VALUES
+            (101, 'post', 11, 51, 71, 'spam', '', 'open', '2026-07-01 11:00:00', '2026-07-01 11:00:00'),
+            (102, 'post', 11, 52, 71, 'spam', '', 'open', '2026-07-01 11:01:00', '2026-07-01 11:01:00')"
+    );
+
+    $autoResult = sr_community_maybe_apply_report_auto_action($pdo, 102, [
+        'report_auto_action_enabled' => true,
+        'report_auto_action_threshold' => 2,
+        'report_auto_action_window_days' => 0,
+        'report_auto_action_public_mode' => 'exclude',
+    ]);
+    $postRow = $pdo->query('SELECT status, hidden_reason, hidden_by_account_id FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
+    $attachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
+    $autoRow = $pdo->query("SELECT status, active_target_uid, threshold_value, eligible_reporter_count FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
+    if (
+        (string) ($autoResult['status'] ?? '') !== 'applied'
+        || !is_array($postRow)
+        || (string) ($postRow['status'] ?? '') !== 'hidden'
+        || (string) ($postRow['hidden_reason'] ?? '') !== 'report_threshold'
+        || $postRow['hidden_by_account_id'] !== null
+        || $attachmentStatus !== 'hidden'
+        || !is_array($autoRow)
+        || (string) ($autoRow['status'] ?? '') !== 'active'
+        || (string) ($autoRow['active_target_uid'] ?? '') !== 'post:11'
+        || (int) ($autoRow['threshold_value'] ?? 0) !== 2
+        || (int) ($autoRow['eligible_reporter_count'] ?? 0) !== 2
+    ) {
+        sr_community_report_auto_action_check_error('threshold auto action must hide the post, sync attachments, and keep an active target uid.');
+    }
+
+    $duplicateResult = sr_community_maybe_apply_report_auto_action($pdo, 101, [
+        'report_auto_action_enabled' => true,
+        'report_auto_action_threshold' => 2,
+        'report_auto_action_window_days' => 0,
+        'report_auto_action_public_mode' => 'exclude',
+    ]);
+    if ((string) ($duplicateResult['status'] ?? '') !== 'active_exists') {
+        sr_community_report_auto_action_check_error('auto action helper must not create a duplicate active action for the same target.');
     }
 }
 

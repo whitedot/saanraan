@@ -79,6 +79,42 @@ sr_community_create_admin_report_notifications(
     $reasonKey,
     (int) $account['id']
 );
+try {
+    $autoActionResult = sr_community_maybe_apply_report_auto_action($pdo, $reportId, $settings);
+    if (in_array((string) ($autoActionResult['status'] ?? ''), ['applied', 'skipped', 'failed', 'active_exists'], true)) {
+        sr_audit_log($pdo, [
+            'actor_account_id' => null,
+            'actor_type' => 'system',
+            'event_type' => 'community.report.auto_action_evaluated',
+            'target_type' => 'community_report_auto_action',
+            'target_id' => (string) (int) ($autoActionResult['auto_action_id'] ?? 0),
+            'result' => (string) ($autoActionResult['status'] ?? '') === 'applied' ? 'success' : 'skipped',
+            'message' => 'Community report auto action evaluated.',
+            'metadata' => [
+                'source_report_id' => $reportId,
+                'reported_target_type' => (string) $target['target_type'],
+                'reported_target_id' => (int) $target['target_id'],
+                'status' => (string) ($autoActionResult['status'] ?? ''),
+                'reason' => (string) ($autoActionResult['reason'] ?? ''),
+            ],
+        ]);
+    }
+} catch (Throwable $exception) {
+    sr_audit_log($pdo, [
+        'actor_account_id' => null,
+        'actor_type' => 'system',
+        'event_type' => 'community.report.auto_action_failed',
+        'target_type' => 'community_report',
+        'target_id' => (string) $reportId,
+        'result' => 'failure',
+        'message' => 'Community report auto action failed after report creation.',
+        'metadata' => [
+            'reported_target_type' => (string) $target['target_type'],
+            'reported_target_id' => (int) $target['target_id'],
+            'error' => $exception->getMessage(),
+        ],
+    ]);
+}
 $_SESSION['sr_community_report_notice'] = sr_t('community::action.notice.report_created');
 
 sr_redirect($redirectPath);
