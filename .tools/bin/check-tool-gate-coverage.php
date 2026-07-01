@@ -28,7 +28,6 @@ $standalone = [
     'check-milestone-11-consistency.php',
     'check-milestone-15-deep-qa.php',
     'check-milestone-15-route-qa.php',
-    'check-skin-theme-ui.php',
     'check-storage-helpers.php',
 ];
 
