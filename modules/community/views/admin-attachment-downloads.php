@@ -158,6 +158,10 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                                 <?php echo sr_e(sr_community_asset_module_labels((string) ($downloadLog['asset_module'] ?? ''), $pdo)); ?>
                                 <?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?>
                                 · <?php echo sr_e((string) (sr_community_asset_charge_policies()[(string) ($downloadLog['charge_policy'] ?? 'once')] ?? $downloadLog['charge_policy'] ?? '')); ?>
+                                <?php if ((int) ($downloadLog['coupon_redemption_id'] ?? 0) > 0) { ?>
+                                    <p class="form-help">쿠폰 redemption #<?php echo sr_e((string) (int) ($downloadLog['coupon_redemption_id'] ?? 0)); ?></p>
+                                <?php } ?>
+                                <p class="form-help">환불 계약 <?php echo sr_e((string) ($downloadLog['refund_policy_version'] ?? '')); ?></p>
                                 <?php if ($assetLogSummary !== '') { ?>
                                     <p class="form-help"><?php echo sr_e(str_replace("\n", ' / ', $assetLogSummary)); ?></p>
                                 <?php } elseif (sr_community_attachment_download_log_access_log_ids($downloadLog) !== []) { ?>

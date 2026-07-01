@@ -291,12 +291,15 @@ CREATE TABLE IF NOT EXISTS sr_community_attachment_download_logs (
     asset_module VARCHAR(120) NOT NULL DEFAULT '',
     amount BIGINT NOT NULL DEFAULT 0,
     asset_access_log_ids_json TEXT NULL,
+    coupon_redemption_id BIGINT UNSIGNED NULL,
+    coupon_dedupe_key VARCHAR(160) NOT NULL DEFAULT '',
     refund_status VARCHAR(20) NOT NULL DEFAULT '',
     refund_transaction_ids_json TEXT NULL,
     refund_note VARCHAR(255) NOT NULL DEFAULT '',
     refunded_by_account_id BIGINT UNSIGNED NULL,
     refunded_at DATETIME NULL,
     access_revoked_at DATETIME NULL,
+    refund_policy_version VARCHAR(40) NOT NULL DEFAULT 'community_attachment_download_refund_v1',
     post_title_snapshot VARCHAR(160) NOT NULL DEFAULT '',
     attachment_original_name_snapshot VARCHAR(160) NOT NULL DEFAULT '',
     created_at DATETIME NOT NULL,
@@ -306,6 +309,7 @@ CREATE TABLE IF NOT EXISTS sr_community_attachment_download_logs (
     KEY idx_sr_community_attachment_downloads_attachment (attachment_id, created_at),
     KEY idx_sr_community_attachment_downloads_account (account_id, created_at),
     KEY idx_sr_community_attachment_downloads_type (download_type, created_at),
+    KEY idx_sr_community_attachment_downloads_coupon (coupon_redemption_id),
     KEY idx_sr_community_attachment_downloads_refund (refund_status, refunded_at)
 );
 

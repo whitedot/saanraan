@@ -379,8 +379,9 @@ return static function (PDO $pdo, int $accountId): array {
     if (function_exists('sr_community_attachment_download_logs_table_exists') && sr_community_attachment_download_logs_table_exists($pdo)) {
         $stmt = $pdo->prepare(
             'SELECT id, board_id, post_id, attachment_id, account_id, download_type, charge_policy,
-                    asset_module, amount, asset_access_log_ids_json,
+                    asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key,
                     refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at,
+                    refund_policy_version,
                     post_title_snapshot, attachment_original_name_snapshot, created_at
              FROM sr_community_attachment_download_logs
              WHERE account_id = :account_id

@@ -835,12 +835,13 @@ function sr_community_record_attachment_download(PDO $pdo, array $attachment, ?i
     $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $downloadType = !empty($accessResult['paid']) || $accessLogIds !== [] ? 'paid' : 'free';
     $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
+    $couponRedemptionId = (int) ($accessResult['coupon_redemption_id'] ?? 0);
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_attachment_download_logs
-            (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, post_title_snapshot, attachment_original_name_snapshot, created_at)
+            (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_policy_version, post_title_snapshot, attachment_original_name_snapshot, created_at)
          VALUES
-            (:board_id, :post_id, :attachment_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :post_title_snapshot, :attachment_original_name_snapshot, :created_at)'
+            (:board_id, :post_id, :attachment_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :coupon_redemption_id, :coupon_dedupe_key, :refund_policy_version, :post_title_snapshot, :attachment_original_name_snapshot, :created_at)'
     );
     $stmt->execute([
         'board_id' => (int) ($post['board_id'] ?? 0),
@@ -852,10 +853,18 @@ function sr_community_record_attachment_download(PDO $pdo, array $attachment, ?i
         'asset_module' => (string) ($accessResult['asset_module'] ?? ''),
         'amount' => $amount,
         'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
+        'coupon_redemption_id' => $couponRedemptionId > 0 ? $couponRedemptionId : null,
+        'coupon_dedupe_key' => sr_clean_single_line((string) ($accessResult['coupon_dedupe_key'] ?? ''), 160),
+        'refund_policy_version' => sr_community_attachment_download_refund_policy_version(),
         'post_title_snapshot' => sr_clean_single_line((string) ($post['title'] ?? ''), 160),
         'attachment_original_name_snapshot' => sr_clean_single_line((string) ($attachment['original_name'] ?? ''), 160),
         'created_at' => sr_now(),
     ]);
+}
+
+function sr_community_attachment_download_refund_policy_version(): string
+{
+    return 'community_attachment_download_refund_v1';
 }
 
 function sr_community_attachment_download_log_access_log_ids(array $downloadLog): array
@@ -1265,7 +1274,11 @@ function sr_community_admin_attachment_download_logs(PDO $pdo, array $filters, i
     $where = sr_community_admin_attachment_download_log_where_sql($pdo, $filters);
     $stmt = $pdo->prepare(
         "SELECT d.id, d.board_id, d.post_id, d.attachment_id, d.account_id, d.download_type, d.charge_policy, d.asset_module, d.amount,
-                d.asset_access_log_ids_json, d.created_at,
+                d.asset_access_log_ids_json,
+                d.coupon_redemption_id,
+                d.coupon_dedupe_key,
+                d.refund_policy_version,
+                d.created_at,
                 d.refund_status,
                 d.refund_transaction_ids_json,
                 d.refund_note,

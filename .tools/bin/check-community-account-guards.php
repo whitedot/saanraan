@@ -51,14 +51,14 @@ sr_community_account_guard_check_contains('modules/community/updates/2026.06.047
 ]);
 
 sr_community_account_guard_check_contains('modules/community/module.php', [
-    "'version' => '2026.06.048'",
+    "'version' => '2026.06.049'",
     "'account_guard_publication_hold_enabled' => false",
     "'account_guard_publication_hold_overlap_review_percent' => 80",
     "'account_guard_confirmed_hold_enabled' => false",
 ]);
 
 sr_community_account_guard_check_contains('core/actions/install.php', [
-    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.06.048'",
+    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.06.049'",
 ]);
 
 sr_community_account_guard_check_contains('modules/community/helpers.php', [

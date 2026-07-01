@@ -294,6 +294,8 @@ if ($disposition === 'attachment' && is_array($board)) {
                         );
                         $downloadResult['coupon_used'] = !empty($downloadCouponResult['processed']);
                         $downloadResult['coupon_discount_amount'] = (int) ($downloadCouponResult['discount_amount'] ?? 0);
+                        $downloadResult['coupon_redemption_id'] = (int) ($downloadCouponResult['coupon_redemption_id'] ?? 0);
+                        $downloadResult['coupon_dedupe_key'] = (string) ($downloadCouponResult['dedupe_key'] ?? $downloadCouponDedupeKey);
                     } else {
                         $downloadResult = [
                             'allowed' => true,
@@ -305,6 +307,8 @@ if ($disposition === 'attachment' && is_array($board)) {
                             'asset_module' => (string) ($downloadConfig['asset_module'] ?? ''),
                             'amount' => 0,
                             'access_log_ids' => [],
+                            'coupon_redemption_id' => (int) ($downloadCouponResult['coupon_redemption_id'] ?? 0),
+                            'coupon_dedupe_key' => (string) ($downloadCouponResult['dedupe_key'] ?? $downloadCouponDedupeKey),
                         ];
                     }
                     if (!empty($downloadResult['allowed'])) {

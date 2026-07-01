@@ -134,12 +134,15 @@ function sr_community_attachment_runtime_schema(PDO $pdo): void
         asset_module TEXT NOT NULL DEFAULT "",
         amount INTEGER NOT NULL DEFAULT 0,
         asset_access_log_ids_json TEXT,
+        coupon_redemption_id INTEGER,
+        coupon_dedupe_key TEXT NOT NULL DEFAULT "",
         refund_status TEXT NOT NULL DEFAULT "",
         refund_transaction_ids_json TEXT,
         refund_note TEXT NOT NULL DEFAULT "",
         refunded_by_account_id INTEGER,
         refunded_at TEXT,
         access_revoked_at TEXT,
+        refund_policy_version TEXT NOT NULL DEFAULT "community_attachment_download_refund_v1",
         post_title_snapshot TEXT NOT NULL DEFAULT "",
         attachment_original_name_snapshot TEXT NOT NULL DEFAULT "",
         created_at TEXT NOT NULL
@@ -272,6 +275,31 @@ sr_community_attachment_runtime_assert(str_contains($downloadSummary, '기준 0 
 sr_community_attachment_runtime_assert(str_contains($downloadSummary, 'snapshot ' . sr_community_asset_snapshot_schema_version()), 'community attachment admin download logs should include snapshot schema version summary. summary=' . $downloadSummary);
 sr_community_attachment_runtime_assert(str_contains($downloadSummary, 'rounding ' . sr_community_asset_rounding_policy_version()), 'community attachment admin download logs should include rounding policy version summary. summary=' . $downloadSummary);
 
+sr_community_record_attachment_download($pdo, [
+    'id' => 9901,
+    'post_id' => 77,
+    'original_name' => 'fixture.txt',
+    'post' => [
+        'id' => 77,
+        'board_id' => 33,
+        'title' => 'Fixture post',
+    ],
+], 10, [
+    'paid' => true,
+    'charge_policy' => 'once',
+    'asset_module' => 'point',
+    'amount' => 0,
+    'access_log_ids' => [],
+    'coupon_redemption_id' => 444,
+    'coupon_dedupe_key' => 'community.attachment.download:coupon:10:9901',
+]);
+$couponDownloadLog = sr_community_attachment_runtime_row($pdo, 'SELECT download_type, amount, coupon_redemption_id, coupon_dedupe_key, refund_policy_version FROM sr_community_attachment_download_logs WHERE coupon_redemption_id = 444 LIMIT 1');
+sr_community_attachment_runtime_assert((string) ($couponDownloadLog['download_type'] ?? '') === 'paid', 'community attachment coupon download log should remain a paid download.');
+sr_community_attachment_runtime_assert((int) ($couponDownloadLog['amount'] ?? -1) === 0, 'community attachment full-coupon download log should store zero asset amount.');
+sr_community_attachment_runtime_assert((int) ($couponDownloadLog['coupon_redemption_id'] ?? 0) === 444, 'community attachment download log should store coupon redemption id.');
+sr_community_attachment_runtime_assert((string) ($couponDownloadLog['coupon_dedupe_key'] ?? '') === 'community.attachment.download:coupon:10:9901', 'community attachment download log should store coupon dedupe key.');
+sr_community_attachment_runtime_assert((string) ($couponDownloadLog['refund_policy_version'] ?? '') === sr_community_attachment_download_refund_policy_version(), 'community attachment download log should stamp refund policy version.');
+
 sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'point', 'once', $dedupeKey);
 sr_community_grant_access_entitlement($pdo, 10, 'community.attachment', 9901, 'attachment_download', 'asset_group_policy', 'point', 'once', $dedupeKey . ':duplicate');
 sr_community_attachment_runtime_assert((int) sr_community_attachment_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 10 AND subject_type = "community.attachment" AND subject_id = 9901 AND event_key = "attachment_download"') === 1, 'community attachment fixture should keep one entitlement per account/attachment/event.');
@@ -294,9 +322,9 @@ $pdo->prepare(
 $refundAssetLogId = (int) $pdo->lastInsertId();
 $pdo->prepare(
     'INSERT INTO sr_community_attachment_download_logs
-        (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, post_title_snapshot, attachment_original_name_snapshot, created_at)
+        (board_id, post_id, attachment_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, refund_policy_version, post_title_snapshot, attachment_original_name_snapshot, created_at)
      VALUES
-        (33, 77, 9901, 10, "paid", "once", "point", 70, :asset_access_log_ids_json, "", "[]", "", NULL, NULL, NULL, "Fixture post", "fixture.txt", :created_at)'
+        (33, 77, 9901, 10, "paid", "once", "point", 70, :asset_access_log_ids_json, 445, "community.attachment.download:coupon:10:9901:mixed", "", "[]", "", NULL, NULL, NULL, "community_attachment_download_refund_v1", "Fixture post", "fixture.txt", :created_at)'
 )->execute([
     'asset_access_log_ids_json' => json_encode([$refundAssetLogId]),
     'created_at' => sr_now(),
@@ -344,7 +372,10 @@ $paymentRecordId = sr_payment_ledger_record_payment($pdo, [
 
 $refundResult = sr_community_refund_attachment_download($pdo, $refundDownloadLogId, 1, 'fixture refund');
 sr_community_attachment_runtime_assert(!empty($refundResult['ok']), 'community attachment refund helper should refund a paid attachment download.');
-$refundedDownloadLog = sr_community_attachment_runtime_row($pdo, 'SELECT refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at FROM sr_community_attachment_download_logs WHERE id = :id', ['id' => $refundDownloadLogId]);
+$refundedDownloadLog = sr_community_attachment_runtime_row($pdo, 'SELECT coupon_redemption_id, coupon_dedupe_key, refund_status, refund_transaction_ids_json, refund_note, refunded_by_account_id, refunded_at, access_revoked_at, refund_policy_version FROM sr_community_attachment_download_logs WHERE id = :id', ['id' => $refundDownloadLogId]);
+sr_community_attachment_runtime_assert((int) ($refundedDownloadLog['coupon_redemption_id'] ?? 0) === 445, 'community attachment refund helper should preserve coupon redemption link.');
+sr_community_attachment_runtime_assert((string) ($refundedDownloadLog['coupon_dedupe_key'] ?? '') === 'community.attachment.download:coupon:10:9901:mixed', 'community attachment refund helper should preserve coupon dedupe key.');
+sr_community_attachment_runtime_assert((string) ($refundedDownloadLog['refund_policy_version'] ?? '') === sr_community_attachment_download_refund_policy_version(), 'community attachment refund helper should preserve refund policy version.');
 sr_community_attachment_runtime_assert((string) ($refundedDownloadLog['refund_status'] ?? '') === 'refunded', 'community attachment refund helper should persist refunded status.');
 sr_community_attachment_runtime_assert((string) ($refundedDownloadLog['refund_note'] ?? '') === 'fixture refund', 'community attachment refund helper should persist refund note.');
 sr_community_attachment_runtime_assert((int) ($refundedDownloadLog['refunded_by_account_id'] ?? 0) === 1, 'community attachment refund helper should persist refund admin account.');
