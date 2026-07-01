@@ -727,6 +727,130 @@ function sr_member_mfa_unused_recovery_code_count(PDO $pdo, int $accountId): int
     return (int) ($counts['unused'] ?? 0);
 }
 
+function sr_member_mfa_disable(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [
+            'disabled' => false,
+            'reason' => 'invalid_account',
+            'factors_disabled' => 0,
+            'recovery_codes_revoked' => 0,
+        ];
+    }
+
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $now = sr_now();
+        $stmt = $pdo->prepare(
+            "UPDATE sr_member_mfa_factors
+             SET status = 'disabled',
+                 disabled_at = :disabled_at,
+                 updated_at = :updated_at
+             WHERE account_id = :account_id
+               AND factor_type = 'totp'
+               AND status IN ('active', 'pending')"
+        );
+        $stmt->execute([
+            'disabled_at' => $now,
+            'updated_at' => $now,
+            'account_id' => $accountId,
+        ]);
+        $factorsDisabled = $stmt->rowCount();
+
+        $stmt = $pdo->prepare(
+            "UPDATE sr_member_mfa_recovery_codes
+             SET status = 'revoked',
+                 revoked_at = :revoked_at
+             WHERE account_id = :account_id
+               AND status = 'unused'"
+        );
+        $stmt->execute([
+            'revoked_at' => $now,
+            'account_id' => $accountId,
+        ]);
+        $recoveryCodesRevoked = $stmt->rowCount();
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return [
+        'disabled' => $factorsDisabled > 0,
+        'reason' => $factorsDisabled > 0 ? '' : 'factor_unavailable',
+        'factors_disabled' => $factorsDisabled,
+        'recovery_codes_revoked' => $recoveryCodesRevoked,
+    ];
+}
+
+function sr_member_mfa_management_reauth(PDO $pdo, array $account, string $currentPassword, string $mfaCode, ?array $config = null): array
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return [
+            'verified' => false,
+            'method' => '',
+            'reason' => 'invalid_account',
+        ];
+    }
+
+    if (trim((string) ($account['password_hash'] ?? '')) !== '') {
+        $passwordVerified = password_verify($currentPassword, (string) $account['password_hash']);
+        return [
+            'verified' => $passwordVerified,
+            'method' => 'password',
+            'reason' => $passwordVerified ? '' : 'invalid_password',
+        ];
+    }
+
+    $normalizedCode = sr_member_mfa_normalize_code($mfaCode);
+    if (sr_member_mfa_code_is_valid_format($normalizedCode)) {
+        $totpResult = sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode, null, $config);
+        if (!empty($totpResult['verified'])) {
+            return [
+                'verified' => true,
+                'method' => 'totp',
+                'reason' => '',
+                'factor_id' => (int) ($totpResult['factor_id'] ?? 0),
+            ];
+        }
+        if ((string) ($totpResult['reason'] ?? '') === 'secret_unavailable') {
+            return [
+                'verified' => false,
+                'method' => 'totp',
+                'reason' => 'secret_unavailable',
+            ];
+        }
+    }
+
+    $normalizedRecoveryCode = sr_member_mfa_recovery_code_normalize($mfaCode);
+    if (sr_member_mfa_recovery_code_is_valid_format($normalizedRecoveryCode)) {
+        $recoveryResult = sr_member_mfa_consume_recovery_code($pdo, $accountId, $normalizedRecoveryCode, $config);
+        return [
+            'verified' => !empty($recoveryResult['verified']),
+            'method' => 'backup',
+            'reason' => !empty($recoveryResult['verified']) ? '' : (string) ($recoveryResult['reason'] ?? 'invalid_code'),
+            'recovery_code_id' => (int) ($recoveryResult['recovery_code_id'] ?? 0),
+            'remaining_unused' => $recoveryResult['remaining_unused'] ?? null,
+        ];
+    }
+
+    return [
+        'verified' => false,
+        'method' => 'mfa',
+        'reason' => 'invalid_code',
+    ];
+}
+
 function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, ?int $time = null, ?array $config = null): array
 {
     $code = sr_member_mfa_normalize_code($code);

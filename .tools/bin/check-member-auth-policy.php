@@ -162,6 +162,7 @@ sr_member_auth_policy_assert(
     in_array('password_change_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('password_change_session_failed', sr_member_reauth_failure_event_types(), true)
         && in_array('mfa_setup_reauth', sr_member_reauth_failure_event_types(), true)
+        && in_array('mfa_manage_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('privacy_export_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('module_setting_reauth', sr_member_reauth_failure_event_types(), true)
@@ -270,6 +271,10 @@ $mfaRecoveryConsume = $mfaRecoveryCodes !== [] ? sr_member_mfa_consume_recovery_
 $mfaRecoveryReplay = $mfaRecoveryCodes !== [] ? sr_member_mfa_consume_recovery_code($mfaPdo, 79, (string) $mfaRecoveryCodes[0], $mfaConfig) : [];
 $mfaRecoveryMissingKey = count($mfaRecoveryCodes) > 1 ? sr_member_mfa_consume_recovery_code($mfaPdo, 79, (string) $mfaRecoveryCodes[1], ['app_key' => '']) : [];
 $mfaRecoveryRotateAgain = sr_member_mfa_rotate_recovery_codes($mfaPdo, 79, (int) ($mfaPendingActivate['factor_id'] ?? 0), 2, $mfaConfig);
+$mfaRecoveryRotatedCodes = is_array($mfaRecoveryRotateAgain['codes'] ?? null) ? $mfaRecoveryRotateAgain['codes'] : [];
+$mfaPasswordReauth = sr_member_mfa_management_reauth($mfaPdo, ['id' => 79, 'password_hash' => password_hash('mfa-pass', PASSWORD_DEFAULT)], 'mfa-pass', '', $mfaConfig);
+$mfaBackupReauth = $mfaRecoveryRotatedCodes !== [] ? sr_member_mfa_management_reauth($mfaPdo, ['id' => 79, 'password_hash' => ''], '', (string) $mfaRecoveryRotatedCodes[0], $mfaConfig) : [];
+$mfaDisable = sr_member_mfa_disable($mfaPdo, 79);
 sr_member_auth_policy_assert(
     !empty($mfaRecoverySetup['rotated'])
         && count($mfaRecoveryCodes) === 3
@@ -280,11 +285,18 @@ sr_member_auth_policy_assert(
         && empty($mfaRecoveryMissingKey['verified'])
         && (string) ($mfaRecoveryMissingKey['reason'] ?? '') === 'secret_unavailable'
         && !empty($mfaRecoveryRotateAgain['rotated'])
-        && count($mfaRecoveryRotateAgain['codes'] ?? []) === 2
-        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'unused'")->fetchColumn() === 2
-        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'revoked'")->fetchColumn() === 2
-        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'used'")->fetchColumn() === 1,
-    'MFA recovery codes should be generated once, stored as hashes, consumed atomically, and rotated by revoking unused codes.'
+        && count($mfaRecoveryRotatedCodes) === 2
+        && !empty($mfaPasswordReauth['verified'])
+        && (string) ($mfaPasswordReauth['method'] ?? '') === 'password'
+        && !empty($mfaBackupReauth['verified'])
+        && (string) ($mfaBackupReauth['method'] ?? '') === 'backup'
+        && !empty($mfaDisable['disabled'])
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_factors WHERE account_id = 79 AND status = 'active'")->fetchColumn() === 0
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_factors WHERE account_id = 79 AND status = 'disabled'")->fetchColumn() === 1
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'unused'")->fetchColumn() === 0
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'revoked'")->fetchColumn() === 3
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_recovery_codes WHERE account_id = 79 AND status = 'used'")->fetchColumn() === 2,
+    'MFA recovery codes should be generated once, stored as hashes, consumed atomically, rotated by revoking unused codes, and revoked when MFA is disabled.'
 );
 $deletedMfa = sr_member_delete_mfa($mfaPdo, 77);
 sr_member_auth_policy_assert(
@@ -621,7 +633,7 @@ if ($logoutAction !== '') {
 $accountAction = sr_member_auth_policy_read('modules/member/actions/account.php');
 if ($accountAction !== '') {
     sr_member_auth_policy_assert(
-        strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate'], true)") !== false
+        strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate', 'mfa_recovery_rotate', 'mfa_disable'], true)") !== false
             && (
                 strpos($accountAction, "sr_t('member::action.account.intent_invalid')") !== false
                 || strpos($accountAction, '계정 작업 값이 올바르지 않습니다.') !== false
@@ -651,11 +663,14 @@ if ($accountAction !== '') {
         strpos($accountAction, "sr_member_mfa_create_pending_totp_factor(") !== false
             && strpos($accountAction, "sr_member_mfa_activate_pending_totp_factor(") !== false
             && strpos($accountAction, "sr_member_mfa_rotate_recovery_codes(") !== false
+            && strpos($accountAction, "sr_member_mfa_management_reauth(") !== false
+            && strpos($accountAction, "sr_member_mfa_disable(") !== false
             && strpos($accountAction, "'mfa_setup_reauth'") !== false
+            && strpos($accountAction, "'mfa_manage_reauth'") !== false
             && strpos($accountAction, "sr_redirect(\$memberAccountBasePath . '/security')") !== false
             && strpos($accountAction, 'sr_member_mfa_setup_flash') !== false
             && strpos($accountAction, 'sr_member_mfa_recovery_codes_flash') !== false,
-        'Account security action should prepare and activate TOTP MFA factors with reauth, recovery code creation, and PRG flash handling.'
+        'Account security action should prepare, activate, rotate, and disable TOTP MFA factors with reauth, recovery code creation, and PRG flash handling.'
     );
     sr_member_auth_policy_assert(
         strpos($accountAction, '$hasPasswordLogin') !== false
@@ -792,11 +807,14 @@ if ($accountView !== '') {
     sr_member_auth_policy_assert(
         strpos($accountView, 'name="intent" value="mfa_totp_prepare"') !== false
             && strpos($accountView, 'name="intent" value="mfa_totp_activate"') !== false
+            && strpos($accountView, 'name="intent" value="mfa_recovery_rotate"') !== false
+            && strpos($accountView, 'name="intent" value="mfa_disable"') !== false
             && strpos($accountView, 'name="mfa_code"') !== false
             && strpos($accountView, 'member::ui.mfa_totp.secret') !== false
             && strpos($accountView, '$memberMfaRecoveryCodes') !== false
-            && strpos($accountView, 'member::ui.mfa_recovery.once_help') !== false,
-        'Account security view should expose TOTP setup, manual secret, first-code activation controls, and one-time recovery code display.'
+            && strpos($accountView, 'member::ui.mfa_recovery.once_help') !== false
+            && strpos($accountView, 'member::ui.mfa_totp.reauth_code') !== false,
+        'Account security view should expose TOTP setup, manual secret, first-code activation, recovery rotation, disable controls, and one-time recovery code display.'
     );
 }
 

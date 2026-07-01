@@ -87,7 +87,7 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if (!in_array($intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate'], true)) {
+    if (!in_array($intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate', 'mfa_recovery_rotate', 'mfa_disable'], true)) {
         $errors[] = sr_t('member::action.account.intent_invalid');
     }
 
@@ -447,6 +447,130 @@ if (sr_request_method() === 'POST') {
                 $errors[] = sr_t('member::action.account.mfa_code_invalid');
             }
             sr_member_log_auth($pdo, (int) $account['id'], 'mfa_totp_failure', 'failure');
+        }
+
+        $_SESSION['sr_member_account_flash'] = [
+            'notice' => $notice,
+            'errors' => $errors,
+        ];
+        sr_redirect($memberAccountBasePath . '/security');
+    } elseif ($errors === [] && in_array($intent, ['mfa_recovery_rotate', 'mfa_disable'], true)) {
+        $memberAccountPage = 'security';
+        $hasPasswordLogin = trim((string) ($account['password_hash'] ?? '')) !== '';
+        $currentPassword = sr_post_string('current_password', 255);
+        $mfaCode = sr_post_string('mfa_code', 80);
+        $activeFactor = sr_member_mfa_active_totp_factor($pdo, (int) $account['id']);
+        $reauthResult = [
+            'verified' => false,
+            'method' => '',
+            'reason' => 'invalid_code',
+        ];
+        $recoveryCodeSetup = [];
+        $disableResult = [];
+
+        if ($activeFactor === null) {
+            $errors[] = sr_t('member::action.account.mfa_not_active');
+        }
+
+        if ($errors === []) {
+            if ($hasPasswordLogin) {
+                $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
+                if (!empty($reauthThrottle['limited'])) {
+                    $errors[] = sr_t('member::action.reauth.throttled');
+                    sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+                }
+            } else {
+                $mfaThrottle = sr_member_mfa_throttle_status($pdo, (int) $account['id']);
+                if (!empty($mfaThrottle['limited'])) {
+                    $errors[] = sr_t('member::action.login_mfa.throttled');
+                    sr_member_log_auth($pdo, (int) $account['id'], 'mfa_rate_limited', 'failure');
+                }
+            }
+        }
+
+        if ($errors === []) {
+            $pdo->beginTransaction();
+            try {
+                $reauthResult = sr_member_mfa_management_reauth($pdo, $account, $currentPassword, $mfaCode);
+                if (empty($reauthResult['verified'])) {
+                    $reason = (string) ($reauthResult['reason'] ?? '');
+                    if ($reason === 'invalid_password') {
+                        $errors[] = sr_t('member::action.account.current_password_invalid');
+                    } elseif ($reason === 'secret_unavailable') {
+                        $errors[] = sr_t('member::action.account.mfa_secret_unavailable');
+                    } else {
+                        $errors[] = sr_t('member::action.account.mfa_reauth_invalid');
+                    }
+                } elseif ($intent === 'mfa_recovery_rotate') {
+                    $recoveryCodeSetup = sr_member_mfa_rotate_recovery_codes($pdo, (int) $account['id'], (int) ($activeFactor['id'] ?? 0));
+                    if (empty($recoveryCodeSetup['rotated'])) {
+                        $errors[] = sr_t('member::action.account.mfa_secret_unavailable');
+                    }
+                } else {
+                    $disableResult = sr_member_mfa_disable($pdo, (int) $account['id']);
+                    if (empty($disableResult['disabled'])) {
+                        $errors[] = sr_t('member::action.account.mfa_not_active');
+                    }
+                }
+
+                if ($errors === []) {
+                    $pdo->commit();
+                } else {
+                    $pdo->rollBack();
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
+            }
+        }
+
+        if ($errors === [] && $intent === 'mfa_recovery_rotate') {
+            $_SESSION['sr_member_mfa_recovery_codes_flash'] = is_array($recoveryCodeSetup['codes'] ?? null)
+                ? array_values(array_filter(array_map('strval', $recoveryCodeSetup['codes'])))
+                : [];
+            $notice = sr_t('member::action.account.mfa_recovery_rotated');
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_backup_rotated', 'success');
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.mfa.recovery.rotated',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member MFA recovery codes were rotated.',
+                'metadata' => [
+                    'reauth_method' => (string) ($reauthResult['method'] ?? ''),
+                    'recovery_codes_created' => count($_SESSION['sr_member_mfa_recovery_codes_flash']),
+                ],
+            ]);
+        } elseif ($errors === [] && $intent === 'mfa_disable') {
+            $notice = sr_t('member::action.account.mfa_disabled');
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_disabled', 'success');
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.mfa.disabled',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member MFA was disabled.',
+                'metadata' => [
+                    'reauth_method' => (string) ($reauthResult['method'] ?? ''),
+                    'factors_disabled' => (int) ($disableResult['factors_disabled'] ?? 0),
+                    'recovery_codes_revoked' => (int) ($disableResult['recovery_codes_revoked'] ?? 0),
+                ],
+            ]);
+        } elseif ($errors !== [] && empty($reauthThrottle['limited']) && empty($mfaThrottle['limited'])) {
+            $reauthMethod = (string) ($reauthResult['method'] ?? '');
+            if ($reauthMethod === 'password' || $hasPasswordLogin) {
+                sr_member_log_auth($pdo, (int) $account['id'], 'mfa_manage_reauth', 'failure');
+            } elseif ($reauthMethod === 'backup') {
+                sr_member_log_auth($pdo, (int) $account['id'], 'mfa_backup_failure', 'failure');
+            } else {
+                sr_member_log_auth($pdo, (int) $account['id'], 'mfa_totp_failure', 'failure');
+            }
         }
 
         $_SESSION['sr_member_account_flash'] = [
