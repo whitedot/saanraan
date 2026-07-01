@@ -71,11 +71,15 @@ sr_community_report_auto_action_check_contains('modules/community/helpers/levels
 
 sr_community_report_auto_action_check_contains('modules/community/helpers/reports.php', [
     'function sr_community_report_auto_action_active_target_uid',
+    'function sr_community_report_active_auto_action',
+    'function sr_community_report_auto_actions_by_targets',
     'function sr_community_report_auto_action_transition',
+    'function sr_community_release_report_auto_action_target',
     'function sr_community_maybe_apply_report_auto_action',
     'active_target_uid = NULL',
     "'hidden_reason' => 'report_threshold'",
     "'hidden_by_account_id' => null",
+    'sr_community_update_post_attachments_status($pdo, $targetId, \'active\')',
     '\'hidden_by_account_id\' => $adminAccountId',
     "'active', 'confirmed', 'released', 'skipped', 'failed'",
 ]);
@@ -99,6 +103,21 @@ sr_community_report_auto_action_check_contains('modules/community/views/admin-se
     'name="report_auto_action_threshold"',
     'name="report_auto_action_window_days"',
     "'report_auto_action_public_mode'",
+]);
+
+sr_community_report_auto_action_check_contains('modules/community/actions/admin-reports.php', [
+    "sr_post_string('auto_action_status', 30)",
+    'sr_community_report_active_auto_action($pdo, (string) $report[\'target_type\'], (int) $report[\'target_id\'], true)',
+    'sr_community_release_report_auto_action_target($pdo, $activeAutoAction)',
+    "'event_type' => 'community.report.auto_action_reviewed'",
+    'sr_community_report_auto_actions_by_targets($pdo, $reports)',
+]);
+
+sr_community_report_auto_action_check_contains('modules/community/views/admin-reports.php', [
+    '자동조치',
+    'sr_community_report_auto_action_status_label',
+    'name="auto_action_status"',
+    'sr_community_report_auto_action_review_options',
 ]);
 
 sr_community_report_auto_action_check_contains('docs/implementation-snapshot.md', [
@@ -233,7 +252,7 @@ if ($errors === []) {
     ]);
     $postRow = $pdo->query('SELECT status, hidden_reason, hidden_by_account_id FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
     $attachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
-    $autoRow = $pdo->query("SELECT status, active_target_uid, threshold_value, eligible_reporter_count FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
+    $autoRow = $pdo->query("SELECT * FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
     if (
         (string) ($autoResult['status'] ?? '') !== 'applied'
         || !is_array($postRow)
@@ -258,6 +277,31 @@ if ($errors === []) {
     ]);
     if ((string) ($duplicateResult['status'] ?? '') !== 'active_exists') {
         sr_community_report_auto_action_check_error('auto action helper must not create a duplicate active action for the same target.');
+    }
+
+    $releaseResult = sr_community_release_report_auto_action_target($pdo, $autoRow);
+    $releasedAutoAction = sr_community_report_auto_action_transition($pdo, (int) ($autoRow['id'] ?? 0), 'released', [
+        'reviewer_account_id' => 77,
+        'metadata' => ['source' => 'admin_report_review', 'release_result' => $releaseResult],
+    ]);
+    $releasedPostRow = $pdo->query('SELECT status, hidden_reason, hidden_before_status FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
+    $releasedAttachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
+    $releasedAutoRow = $pdo->query("SELECT status, active_target_uid, reviewer_account_id, released_at FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
+    if (
+        empty($releaseResult['restored'])
+        || !$releasedAutoAction
+        || !is_array($releasedPostRow)
+        || (string) ($releasedPostRow['status'] ?? '') !== 'published'
+        || (string) ($releasedPostRow['hidden_reason'] ?? '') !== ''
+        || (string) ($releasedPostRow['hidden_before_status'] ?? '') !== ''
+        || $releasedAttachmentStatus !== 'active'
+        || !is_array($releasedAutoRow)
+        || (string) ($releasedAutoRow['status'] ?? '') !== 'released'
+        || $releasedAutoRow['active_target_uid'] !== null
+        || (int) ($releasedAutoRow['reviewer_account_id'] ?? 0) !== 77
+        || (string) ($releasedAutoRow['released_at'] ?? '') === ''
+    ) {
+        sr_community_report_auto_action_check_error('released auto action must restore auto-hidden target and clear active uid.');
     }
 }
 

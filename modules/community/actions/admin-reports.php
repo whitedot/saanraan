@@ -262,6 +262,7 @@ if (sr_request_method() === 'POST') {
         $status = sr_post_string('status', 30);
         $targetAction = sr_post_string('target_action', 40);
         $reporterAction = sr_post_string('reporter_action', 40);
+        $autoActionStatus = sr_post_string('auto_action_status', 30);
         $reviewNote = sr_post_string_without_truncation('review_note', 1000);
         $report = sr_community_report_by_id($pdo, $reportId);
 
@@ -275,6 +276,7 @@ if (sr_request_method() === 'POST') {
 
         $normalizedTargetAction = $targetAction === '' ? 'none' : $targetAction;
         $normalizedReporterAction = $reporterAction === '' ? 'none' : $reporterAction;
+        $normalizedAutoActionStatus = $autoActionStatus === '' ? 'none' : $autoActionStatus;
         if ($reviewNote === null) {
             $errors[] = sr_t('community::action.admin.review_note_too_long');
             $reviewNote = '';
@@ -288,6 +290,9 @@ if (sr_request_method() === 'POST') {
         if (!array_key_exists($normalizedReporterAction, sr_community_report_reporter_action_options())) {
             $errors[] = '신고자 조치 값이 올바르지 않습니다.';
         }
+        if (!array_key_exists($normalizedAutoActionStatus, sr_community_report_auto_action_review_options())) {
+            $errors[] = '신고 자동조치 판단 값이 올바르지 않습니다.';
+        }
         $targetActionPolicyError = sr_community_report_target_action_policy_error($status, $normalizedTargetAction);
         if ($targetActionPolicyError !== '') {
             $errors[] = $targetActionPolicyError;
@@ -295,6 +300,15 @@ if (sr_request_method() === 'POST') {
         $reporterActionPolicyError = sr_community_report_reporter_action_policy_error($status, $normalizedReporterAction);
         if ($reporterActionPolicyError !== '') {
             $errors[] = $reporterActionPolicyError;
+        }
+        if ($normalizedAutoActionStatus === 'released' && $normalizedTargetAction !== 'none') {
+            $errors[] = '자동조치를 해제할 때는 별도 대상 조치를 함께 실행하지 마세요.';
+        }
+        if ($errors === [] && is_array($report) && $normalizedAutoActionStatus !== 'none') {
+            $activeAutoAction = sr_community_report_active_auto_action($pdo, (string) $report['target_type'], (int) $report['target_id']);
+            if (!is_array($activeAutoAction)) {
+                $errors[] = '처리할 활성 신고 자동조치를 찾을 수 없습니다.';
+            }
         }
 
         if ($errors === []) {
@@ -334,6 +348,54 @@ if (sr_request_method() === 'POST') {
                 if (!empty($reporterActionResult['error'])) {
                     throw new RuntimeException('report_reporter_action_failed');
                 }
+                $autoActionReviewResult = ['action_key' => 'none', 'applied' => false];
+                if ($normalizedAutoActionStatus !== 'none') {
+                    $activeAutoAction = sr_community_report_active_auto_action($pdo, (string) $report['target_type'], (int) $report['target_id'], true);
+                    if (!is_array($activeAutoAction)) {
+                        throw new RuntimeException('report_auto_action_missing');
+                    }
+
+                    $releaseResult = [];
+                    if ($normalizedAutoActionStatus === 'released') {
+                        $releaseResult = sr_community_release_report_auto_action_target($pdo, $activeAutoAction);
+                    }
+
+                    $transitioned = sr_community_report_auto_action_transition($pdo, (int) $activeAutoAction['id'], $normalizedAutoActionStatus, [
+                        'reviewer_account_id' => (int) $account['id'],
+                        'metadata' => [
+                            'source' => 'admin_report_review',
+                            'report_id' => $reportId,
+                            'report_status' => $status,
+                            'review_note_present' => trim((string) $reviewNote) !== '',
+                            'release_result' => $releaseResult,
+                        ],
+                    ]);
+                    if (!$transitioned) {
+                        throw new RuntimeException('report_auto_action_transition_failed');
+                    }
+                    sr_audit_log_required($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'community.report.auto_action_reviewed',
+                        'target_type' => 'community_report_auto_action',
+                        'target_id' => (string) (int) $activeAutoAction['id'],
+                        'result' => 'success',
+                        'message' => 'Community report auto action reviewed by administrator.',
+                        'metadata' => [
+                            'report_id' => $reportId,
+                            'auto_action_status' => $normalizedAutoActionStatus,
+                            'target_type' => (string) $report['target_type'],
+                            'target_id' => (int) $report['target_id'],
+                            'release_result' => $releaseResult,
+                        ],
+                    ]);
+                    $autoActionReviewResult = [
+                        'action_key' => $normalizedAutoActionStatus,
+                        'applied' => true,
+                        'auto_action_id' => (int) $activeAutoAction['id'],
+                        'release_result' => $releaseResult,
+                    ];
+                }
                 sr_audit_log_required($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
@@ -352,6 +414,7 @@ if (sr_request_method() === 'POST') {
                         'reporter_account_id' => (int) $report['reporter_account_id'],
                         'target_action' => $targetActionResult,
                         'reporter_action' => $reporterActionResult,
+                        'auto_action_review' => $autoActionReviewResult,
                     ],
                 ]);
                 $pdo->commit();
@@ -366,6 +429,10 @@ if (sr_request_method() === 'POST') {
                     $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
                 } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_reporter_action_failed') {
                     $errors[] = '신고자 조치를 적용하지 못했습니다.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_auto_action_missing') {
+                    $errors[] = '활성 신고 자동조치가 이미 처리되었습니다. 목록을 새로고침한 뒤 다시 확인하세요.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_auto_action_transition_failed') {
+                    $errors[] = '신고 자동조치 판단을 저장하지 못했습니다.';
                 } else {
                     sr_log_exception($exception, 'community_report_status_failed');
                     $errors[] = '신고 상태 저장 중 오류가 발생했습니다.';
@@ -393,6 +460,7 @@ foreach ($reportStatusCountStmt->fetchAll() as $row) {
 
 $reportPagination = sr_admin_pagination_from_total($pdo, sr_community_report_count($pdo, $reportListFilters));
 $reports = sr_community_reports($pdo, (int) $reportPagination['per_page'], $reportListFilters, sr_admin_pagination_offset($reportPagination));
+$reportAutoActionsByTarget = sr_community_report_auto_actions_by_targets($pdo, $reports);
 $canViewAuditLogs = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/audit-logs', 'view');
 
 include SR_ROOT . '/modules/community/views/admin-reports.php';

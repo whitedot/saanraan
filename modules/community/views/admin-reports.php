@@ -8,6 +8,7 @@ $reportStatusCounts = isset($reportStatusCounts) && is_array($reportStatusCounts
 $allowedStatuses = isset($allowedStatuses) && is_array($allowedStatuses) ? $allowedStatuses : [];
 $allowedReasonKeys = isset($allowedReasonKeys) && is_array($allowedReasonKeys) ? $allowedReasonKeys : [];
 $allowedTargetTypes = isset($allowedTargetTypes) && is_array($allowedTargetTypes) ? $allowedTargetTypes : ['post', 'comment', 'message'];
+$reportAutoActionsByTarget = isset($reportAutoActionsByTarget) && is_array($reportAutoActionsByTarget) ? $reportAutoActionsByTarget : [];
 $reportTargetLabels = [];
 foreach ($allowedTargetTypes as $allowedTargetType) {
     $reportTargetLabels[(string) $allowedTargetType] = sr_community_report_target_type_label((string) $allowedTargetType);
@@ -164,6 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
+                <th>자동조치</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.84780e6f')); ?></th>
                 <th>게시자</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.c8a14bcd')); ?></th>
@@ -176,7 +178,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($reports === []) { ?>
                 <tr>
-                    <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.7efff05f')); ?></td>
+                    <td colspan="12" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.7efff05f')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($reports as $report) { ?>
@@ -191,6 +193,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
                     $targetId = (int) ($report['target_id'] ?? 0);
                     $targetSummary = $targetType !== '' && $targetId > 0 ? $targetType . ' #' . (string) $targetId : '';
+                    $reportAutoActionUid = sr_community_report_auto_action_active_target_uid($targetType, $targetId);
+                    $reportAutoAction = $reportAutoActionUid !== '' && is_array($reportAutoActionsByTarget[$reportAutoActionUid] ?? null) ? $reportAutoActionsByTarget[$reportAutoActionUid] : null;
                     $targetPostId = (int) ($report['target_post_id'] ?? 0);
                     $targetPostTitle = trim((string) ($report['target_post_title'] ?? ''));
                     $targetUrl = $targetPostId > 0 ? '/community/post?id=' . rawurlencode((string) $targetPostId) . ($targetType === 'comment' ? '#comments' : '') : '';
@@ -210,6 +214,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-nowrap admin-community-report-reason-cell"><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
+                        <td class="admin-table-nowrap">
+                            <?php if (is_array($reportAutoAction)) { ?>
+                                <span class="admin-status is-blocked"><?php echo sr_e(sr_community_report_auto_action_status_label((string) ($reportAutoAction['status'] ?? 'active'))); ?></span>
+                                <span class="admin-table-subtext"><?php echo sr_e((string) (int) ($reportAutoAction['eligible_reporter_count'] ?? 0)); ?>/<?php echo sr_e((string) (int) ($reportAutoAction['threshold_value'] ?? 0)); ?></span>
+                            <?php } else { ?>
+                                <span class="admin-table-subtext">-</span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
                             is_string($report['reporter_display_name'] ?? null) ? $report['reporter_display_name'] : null,
                             (int) $report['reporter_account_id'],
@@ -282,6 +294,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
         $targetId = (int) ($report['target_id'] ?? 0);
         $targetSummary = $targetType !== '' && $targetId > 0 ? $targetLabel . ' #' . (string) $targetId : $targetLabel;
+        $reportAutoActionUid = sr_community_report_auto_action_active_target_uid($targetType, $targetId);
+        $reportAutoAction = $reportAutoActionUid !== '' && is_array($reportAutoActionsByTarget[$reportAutoActionUid] ?? null) ? $reportAutoActionsByTarget[$reportAutoActionUid] : null;
         ?>
         <div id="<?php echo sr_e($reportProcessModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($reportProcessModalId); ?>-title" aria-hidden="true" inert>
             <div class="modal-dialog modal-dialog-lg">
@@ -294,6 +308,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="modal-body">
                         <p class="admin-summary-meta"><?php echo sr_e($targetSummary); ?> · <?php echo sr_e(sr_community_report_reason_label((string) ($report['reason_key'] ?? ''))); ?></p>
+                        <?php if (is_array($reportAutoAction)) { ?>
+                            <div class="alert alert-info" role="status">
+                                활성 신고 자동조치가 있습니다. 현재 <?php echo sr_e((string) (int) ($reportAutoAction['eligible_reporter_count'] ?? 0)); ?>명이 임계값 <?php echo sr_e((string) (int) ($reportAutoAction['threshold_value'] ?? 0)); ?>명에 도달해 대상이 임시 숨김 처리되었습니다.
+                            </div>
+                        <?php } ?>
                         <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessStatusId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">
@@ -331,6 +350,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <small class="form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
                             </div>
                         </div>
+                        <?php if (is_array($reportAutoAction)) { ?>
+                            <div class="form-row">
+                                <label for="community_admin_report_auto_action_<?php echo sr_e((string) $reportId); ?>" class="form-label">자동조치 판단</label>
+                                <div class="form-field">
+                                    <select id="community_admin_report_auto_action_<?php echo sr_e((string) $reportId); ?>" name="auto_action_status" class="form-select">
+                                        <?php foreach (sr_community_report_auto_action_review_options() as $autoActionStatus => $autoActionLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $autoActionStatus); ?>"><?php echo sr_e((string) $autoActionLabel); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                    <small class="form-help">해제는 대상이 아직 신고 임계치 자동 숨김 상태일 때 원래 상태로 복원하고 활성 자동조치를 종료합니다.</small>
+                                </div>
+                            </div>
+                        <?php } else { ?>
+                            <input type="hidden" name="auto_action_status" value="none">
+                        <?php } ?>
                         <div class="form-row">
                             <label for="<?php echo sr_e($reportProcessReviewNoteId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">

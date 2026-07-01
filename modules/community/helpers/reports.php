@@ -46,6 +46,26 @@ function sr_community_report_auto_action_statuses(): array
     return ['active', 'confirmed', 'released', 'skipped', 'failed'];
 }
 
+function sr_community_report_auto_action_status_label(string $status): string
+{
+    return [
+        'active' => '자동 숨김',
+        'confirmed' => '확정',
+        'released' => '해제',
+        'skipped' => '건너뜀',
+        'failed' => '실패',
+    ][$status] ?? $status;
+}
+
+function sr_community_report_auto_action_review_options(): array
+{
+    return [
+        'none' => '변경 안 함',
+        'confirmed' => '자동조치 확정',
+        'released' => '자동조치 해제',
+    ];
+}
+
 function sr_community_report_auto_action_terminal_statuses(): array
 {
     return ['confirmed', 'released', 'skipped', 'failed'];
@@ -63,6 +83,61 @@ function sr_community_report_auto_action_active_target_uid(string $targetType, i
     }
 
     return $targetType . ':' . (string) $targetId;
+}
+
+function sr_community_report_active_auto_action(PDO $pdo, string $targetType, int $targetId, bool $lock = false): ?array
+{
+    $activeTargetUid = sr_community_report_auto_action_active_target_uid($targetType, $targetId);
+    if ($activeTargetUid === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_community_report_auto_actions
+         WHERE active_target_uid = :active_target_uid
+           AND status = \'active\'
+         LIMIT 1' . ($lock ? sr_community_report_auto_action_lock_suffix($pdo) : '')
+    );
+    $stmt->execute(['active_target_uid' => $activeTargetUid]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_report_auto_actions_by_targets(PDO $pdo, array $reports): array
+{
+    $uids = [];
+    foreach ($reports as $report) {
+        if (!is_array($report)) {
+            continue;
+        }
+        $uid = sr_community_report_auto_action_active_target_uid((string) ($report['target_type'] ?? ''), (int) ($report['target_id'] ?? 0));
+        if ($uid !== '') {
+            $uids[$uid] = $uid;
+        }
+    }
+    if ($uids === []) {
+        return [];
+    }
+
+    [$condition, $params] = sr_admin_sql_in_condition('active_target_uid', 'active_target_uid', array_values($uids));
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_community_report_auto_actions
+         WHERE status = \'active\'
+           AND ' . $condition
+    );
+    $stmt->execute($params);
+
+    $rowsByUid = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (is_array($row) && (string) ($row['active_target_uid'] ?? '') !== '') {
+            $rowsByUid[(string) $row['active_target_uid']] = $row;
+        }
+    }
+
+    return $rowsByUid;
 }
 
 function sr_community_report_auto_action_transition(PDO $pdo, int $autoActionId, string $status, array $context = []): bool
@@ -188,7 +263,7 @@ function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetT
 {
     if ($targetType === 'post') {
         $stmt = $pdo->prepare(
-            'SELECT p.id, p.status, p.hidden_at, p.hidden_reason, p.hidden_by_account_id, p.board_id,
+            'SELECT p.id, p.status, p.hidden_at, p.hidden_reason, p.hidden_by_account_id, p.hidden_before_status, p.board_id,
                     b.status AS board_status
              FROM sr_community_posts p
              INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -208,7 +283,7 @@ function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetT
 
     if ($targetType === 'comment') {
         $stmt = $pdo->prepare(
-            'SELECT c.id, c.status, c.hidden_at, c.hidden_reason, c.hidden_by_account_id, c.post_id,
+            'SELECT c.id, c.status, c.hidden_at, c.hidden_reason, c.hidden_by_account_id, c.hidden_before_status, c.post_id,
                     p.status AS post_status,
                     b.status AS board_status
              FROM sr_community_comments c
@@ -230,6 +305,55 @@ function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetT
     }
 
     return null;
+}
+
+function sr_community_release_report_auto_action_target(PDO $pdo, array $autoAction): array
+{
+    $targetType = (string) ($autoAction['target_type'] ?? '');
+    $targetId = (int) ($autoAction['target_id'] ?? 0);
+    if (!in_array($targetType, sr_community_report_auto_action_target_types(), true) || $targetId < 1) {
+        return ['restored' => false, 'reason' => 'invalid_target'];
+    }
+
+    $target = sr_community_report_auto_action_locked_target($pdo, $targetType, $targetId);
+    if (!is_array($target)) {
+        return ['restored' => false, 'reason' => 'target_not_found'];
+    }
+    if ((string) ($target['status'] ?? '') !== 'hidden') {
+        return ['restored' => false, 'reason' => 'target_already_changed'];
+    }
+    if ((string) ($target['hidden_reason'] ?? '') !== 'report_threshold') {
+        return ['restored' => false, 'reason' => 'target_not_auto_hidden'];
+    }
+
+    $restoreStatus = (string) ($target['hidden_before_status'] ?? '');
+    if (!in_array($restoreStatus, ['published', 'draft'], true)) {
+        $restoreStatus = 'published';
+    }
+
+    if ($targetType === 'post') {
+        sr_community_update_post_status($pdo, $targetId, $restoreStatus);
+        $updatedAttachmentCount = $restoreStatus === 'published'
+            ? sr_community_update_post_attachments_status($pdo, $targetId, 'active')
+            : 0;
+
+        return [
+            'restored' => true,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'restore_status' => $restoreStatus,
+            'updated_attachment_count' => $updatedAttachmentCount,
+        ];
+    }
+
+    sr_community_update_comment_status($pdo, $targetId, $restoreStatus);
+
+    return [
+        'restored' => true,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'restore_status' => $restoreStatus,
+    ];
 }
 
 function sr_community_report_auto_action_insert(PDO $pdo, array $data): int
