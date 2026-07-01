@@ -1,0 +1,140 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+chdir($root);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
+
+require_once SR_ROOT . '/core/helpers/runtime.php';
+require_once SR_ROOT . '/core/helpers/install-reset.php';
+
+$errors = [];
+
+function sr_install_reset_check_error(string $message): void
+{
+    global $errors;
+    $errors[] = $message;
+}
+
+function sr_install_reset_check_contains(string $path, array $markers): void
+{
+    if (!is_file($path)) {
+        sr_install_reset_check_error('Required file is missing: ' . $path);
+        return;
+    }
+
+    $contents = file_get_contents($path);
+    if (!is_string($contents)) {
+        sr_install_reset_check_error('Required file cannot be read: ' . $path);
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        if (!str_contains($contents, $marker)) {
+            sr_install_reset_check_error($path . ' missing marker: ' . $marker);
+        }
+    }
+}
+
+$sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS sr_member_accounts (id INTEGER PRIMARY KEY);
+CREATE TABLE {{SR_TABLE_PREFIX}}community_posts (id INTEGER PRIMARY KEY);
+'CREATE TABLE {{SR_TABLE_PREFIX}}content_file_links (id BIGINT UNSIGNED NOT NULL)';
+CREATE TABLE IF NOT EXISTS external_table (id INTEGER PRIMARY KEY);
+SQL;
+
+$names = sr_install_reset_table_names_from_sql($sql, 'sr_');
+foreach (['sr_member_accounts', 'sr_community_posts', 'sr_content_file_links'] as $expectedTable) {
+    if (!in_array($expectedTable, $names, true)) {
+        sr_install_reset_check_error('SQL table allowlist parser missed: ' . $expectedTable);
+    }
+}
+if (in_array('external_table', $names, true)) {
+    sr_install_reset_check_error('SQL table allowlist parser must ignore non-prefixed tables.');
+}
+
+$prefixedNames = sr_install_reset_table_names_from_sql($sql, 'demo_');
+foreach (['demo_member_accounts', 'demo_community_posts', 'demo_content_file_links'] as $expectedTable) {
+    if (!in_array($expectedTable, $prefixedNames, true)) {
+        sr_install_reset_check_error('SQL table allowlist parser missed custom prefix table: ' . $expectedTable);
+    }
+}
+
+$allowlist = sr_install_reset_table_allowlist(SR_ROOT, 'sr_');
+foreach (['sr_site_settings', 'sr_modules', 'sr_member_accounts', 'sr_community_posts'] as $expectedTable) {
+    if (!in_array($expectedTable, $allowlist, true)) {
+        sr_install_reset_check_error('Repository install reset allowlist missed: ' . $expectedTable);
+    }
+}
+
+$pdo = new PDO('sqlite::memory:', null, null, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY)');
+$pdo->exec('CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY)');
+$pdo->exec('CREATE TABLE sr_not_allowlisted (id INTEGER PRIMARY KEY)');
+$pdo->exec('CREATE TABLE member_legacy (id INTEGER PRIMARY KEY)');
+$pdo->exec('INSERT INTO sr_member_accounts (id) VALUES (1), (2)');
+$pdo->exec('INSERT INTO sr_community_posts (id) VALUES (10)');
+$preview = sr_install_reset_table_preview($pdo, ['sr_member_accounts', 'sr_community_posts'], 'sr_');
+$targetNames = array_map(
+    static fn (array $table): string => (string) ($table['name'] ?? ''),
+    is_array($preview['tables'] ?? null) ? $preview['tables'] : []
+);
+
+foreach (['sr_member_accounts', 'sr_community_posts'] as $expectedTable) {
+    if (!in_array($expectedTable, $targetNames, true)) {
+        sr_install_reset_check_error('Preview missed allowlisted existing table: ' . $expectedTable);
+    }
+}
+foreach (['sr_not_allowlisted', 'member_legacy'] as $blockedTable) {
+    if (in_array($blockedTable, $targetNames, true)) {
+        sr_install_reset_check_error('Preview must not target non-allowlisted or non-prefixed table: ' . $blockedTable);
+    }
+}
+if ((int) ($preview['target_table_count'] ?? 0) !== 2) {
+    sr_install_reset_check_error('Preview target_table_count should be 2.');
+}
+if ((int) ($preview['target_row_count'] ?? 0) !== 3) {
+    sr_install_reset_check_error('Preview target_row_count should be 3.');
+}
+if (!in_array('sr_not_allowlisted', (array) ($preview['ignored_prefixed_tables'] ?? []), true)) {
+    sr_install_reset_check_error('Preview should report ignored prefixed non-allowlisted tables.');
+}
+
+sr_install_reset_check_contains('.tools/bin/install-reset.php', [
+    'install-reset-preview-version: 1',
+    'This command is read-only. Destructive execution is not implemented yet.',
+    'sr_install_reset_table_allowlist',
+    'sr_install_reset_table_preview',
+]);
+
+sr_install_reset_check_contains('docs/install-reset.md', [
+    '설치 초기화',
+    'CLI preview',
+    'allowlist',
+    'DB introspection',
+    '실행 모드는 아직 구현하지 않는다',
+    'config/config.php',
+    'storage/installed.lock',
+]);
+
+sr_install_reset_check_contains('docs/site-reset-and-fixtures.md', [
+    '설치 초기화가 아니다',
+    'docs/install-reset.md',
+]);
+
+if ($errors !== []) {
+    fwrite(STDERR, "install reset policy checks failed:\n");
+    foreach ($errors as $error) {
+        fwrite(STDERR, '- ' . $error . "\n");
+    }
+    exit(1);
+}
+
+echo "install reset policy checks completed.\n";
