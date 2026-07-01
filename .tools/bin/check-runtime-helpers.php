@@ -7,6 +7,7 @@ $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers/runtime.php';
+require_once $root . '/core/helpers/settings.php';
 
 $errors = [];
 
@@ -308,6 +309,27 @@ putenv('SR_TEST_APP_KEY');
 sr_runtime_helper_assert(
     sr_app_key(['app_key' => 'file-secret', 'secrets' => ['app_key_env' => 'SR_TEST_APP_KEY']]) === 'file-secret',
     'App key file fallback failed.'
+);
+
+sr_runtime_helper_assert(
+    sr_module_route_matches_request('GET /fixture/*', 'GET /fixture/child'),
+    'Wildcard module route should match child paths.'
+);
+sr_runtime_helper_assert(
+    !sr_module_route_matches_request('GET /fixture/*', 'GET /fixture/'),
+    'Wildcard module route should not match its bare prefix path.'
+);
+sr_runtime_helper_assert(
+    sr_module_routes_conflict('GET /fixture/*', 'GET /fixture/child'),
+    'Route conflict detection should match wildcard child path behavior.'
+);
+sr_runtime_helper_assert(
+    !sr_module_routes_conflict('GET /fixture/*', 'GET /fixture/'),
+    'Route conflict detection should not reject paths the wildcard route cannot match.'
+);
+sr_runtime_helper_assert(
+    sr_module_routes_conflict('GET /fixture/*', 'GET /fixture/child/*'),
+    'Nested wildcard module routes should conflict when their request spaces overlap.'
 );
 
 if ($errors !== []) {

@@ -745,8 +745,8 @@ function sr_module_routes_conflict(string $leftRoute, string $rightRoute): bool
     }
 
     return $leftWildcard
-        ? str_starts_with($rightPath, $leftPrefix)
-        : str_starts_with($leftPath, $rightPrefix);
+        ? str_starts_with($rightPath, $leftPrefix) && strlen($rightPath) > strlen($leftPrefix)
+        : str_starts_with($leftPath, $rightPrefix) && strlen($leftPath) > strlen($rightPrefix);
 }
 
 function sr_module_metadata(string $moduleKey): array

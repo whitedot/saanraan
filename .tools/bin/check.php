@@ -1232,8 +1232,8 @@ function sr_check_module_routes_conflict(string $leftRoute, string $rightRoute):
     }
 
     return $leftWildcard
-        ? str_starts_with($rightPath, $leftPrefix)
-        : str_starts_with($leftPath, $rightPrefix);
+        ? str_starts_with($rightPath, $leftPrefix) && strlen($rightPath) > strlen($leftPrefix)
+        : str_starts_with($leftPath, $rightPrefix) && strlen($leftPath) > strlen($rightPrefix);
 }
 
 function sr_check_php_lint(): void

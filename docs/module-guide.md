@@ -447,7 +447,7 @@ return [
 
 - key는 `METHOD /path` 형식이다.
 - method는 보통 `GET` 또는 `POST`를 사용한다.
-- `/content/*`처럼 path 끝에 `/*`를 붙이면 해당 prefix 아래의 한 모듈 action으로 요청을 보낼 수 있다. wildcard는 끝에만 둘 수 있고, 루트 catch-all 용도로 사용하지 않는다.
+- `/content/*`처럼 path 끝에 `/*`를 붙이면 해당 prefix 아래의 한 모듈 action으로 요청을 보낼 수 있다. wildcard는 `/content/item` 같은 하위 경로만 매칭하고 `/content/` bare prefix 자체는 매칭하지 않는다. wildcard는 끝에만 둘 수 있고, 루트 catch-all 용도로 사용하지 않는다.
 - action 경로는 `actions/...php`만 사용한다.
 - action 파일은 실제로 모듈 디렉터리 안에 있어야 한다.
 - path 등록 함수나 전역 dispatcher를 만들지 않는다.
