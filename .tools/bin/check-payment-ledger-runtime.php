@@ -189,6 +189,10 @@ $reversedItems = sr_payment_ledger_mark_record_items_reversal_status($pdo, $paym
 sr_payment_runtime_assert($reversedItems === 3, 'payment ledger should update reversible item reversal statuses.');
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger should persist item reversal status changes.');
 
+sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel again');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'pending'")->fetchColumn() === 0, 'payment ledger repeated cancellation should not move reversed items back to pending.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger repeated cancellation should preserve reversed item statuses.');
+
 $exporter = require $root . '/modules/payment_ledger/privacy-export.php';
 $export = $exporter($pdo, 7);
 sr_payment_runtime_assert(count((array) ($export['payment_records'] ?? [])) === 1, 'payment ledger privacy export should include account records.');
@@ -198,6 +202,25 @@ $cleanup = require $root . '/modules/payment_ledger/privacy-cleanup.php';
 $cleanupResult = $cleanup($pdo, 7, 'anonymize');
 sr_payment_runtime_assert((int) ($cleanupResult['payment_records'] ?? 0) === 1, 'payment ledger privacy cleanup should anonymize account records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger privacy cleanup should clear account_id.');
+
+$lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.view:payment:7:7801',
+    'account_id' => 7,
+    'subject_module' => 'content',
+    'subject_type' => 'content.view',
+    'subject_id' => '7801',
+], [
+    [
+        'item_kind' => 'asset_transaction',
+        'owner_module' => 'deposit',
+        'reference_type' => 'deposit_transaction',
+        'reference_id' => 'late-replay',
+        'amount' => -10,
+    ],
+]);
+sr_payment_runtime_assert($lateReplayRecordId === $paymentRecordId, 'payment ledger should absorb late replay for anonymized duplicate records.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger late replay should not relink anonymized account records.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'payment ledger late replay should not append items to anonymized duplicate records.');
 
 if ($errors !== []) {
     foreach ($errors as $error) {

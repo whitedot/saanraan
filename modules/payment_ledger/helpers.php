@@ -113,6 +113,12 @@ function sr_payment_ledger_record_by_dedupe(PDO $pdo, string $dedupeKey): ?array
 
 function sr_payment_ledger_create_record(PDO $pdo, array $data): int
 {
+    $result = sr_payment_ledger_create_record_result($pdo, $data);
+    return (int) ($result['id'] ?? 0);
+}
+
+function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
+{
     if (!sr_payment_ledger_tables_available($pdo)) {
         throw new RuntimeException('결제 기록 테이블이 준비되지 않았습니다.');
     }
@@ -132,7 +138,7 @@ function sr_payment_ledger_create_record(PDO $pdo, array $data): int
     $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
     if (is_array($existing)) {
         sr_payment_ledger_assert_existing_record_matches($existing, $data);
-        return (int) ($existing['id'] ?? 0);
+        return ['id' => (int) ($existing['id'] ?? 0), 'created' => false];
     }
 
     $now = sr_now();
@@ -144,24 +150,48 @@ function sr_payment_ledger_create_record(PDO $pdo, array $data): int
             (:dedupe_key, :account_id, :subject_module, :subject_type, :subject_id, :payment_kind, :status,
              :payable_amount, :settlement_amount, :settlement_currency, :description, :snapshot_json, :created_at, :updated_at, NULL)'
     );
-    $stmt->execute([
-        'dedupe_key' => $dedupeKey,
-        'account_id' => $accountId,
-        'subject_module' => $subjectModule,
-        'subject_type' => $subjectType,
-        'subject_id' => $subjectId,
-        'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? 'purchase'), 40) ?: 'purchase',
-        'status' => sr_payment_ledger_clean_identifier((string) ($data['status'] ?? 'paid'), 30) ?: 'paid',
-        'payable_amount' => max(0, (int) ($data['payable_amount'] ?? 0)),
-        'settlement_amount' => max(0, (int) ($data['settlement_amount'] ?? 0)),
-        'settlement_currency' => strtoupper(sr_payment_ledger_clean_key((string) ($data['settlement_currency'] ?? ''), 3)),
-        'description' => sr_payment_ledger_clean_key((string) ($data['description'] ?? ''), 255),
-        'snapshot_json' => sr_payment_ledger_json_or_null(is_array($data['snapshot'] ?? null) ? $data['snapshot'] : []),
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    try {
+        $stmt->execute([
+            'dedupe_key' => $dedupeKey,
+            'account_id' => $accountId,
+            'subject_module' => $subjectModule,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
+            'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? 'purchase'), 40) ?: 'purchase',
+            'status' => sr_payment_ledger_clean_identifier((string) ($data['status'] ?? 'paid'), 30) ?: 'paid',
+            'payable_amount' => max(0, (int) ($data['payable_amount'] ?? 0)),
+            'settlement_amount' => max(0, (int) ($data['settlement_amount'] ?? 0)),
+            'settlement_currency' => strtoupper(sr_payment_ledger_clean_key((string) ($data['settlement_currency'] ?? ''), 3)),
+            'description' => sr_payment_ledger_clean_key((string) ($data['description'] ?? ''), 255),
+            'snapshot_json' => sr_payment_ledger_json_or_null(is_array($data['snapshot'] ?? null) ? $data['snapshot'] : []),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $exception) {
+        if (!sr_payment_ledger_is_duplicate_record_exception($exception)) {
+            throw $exception;
+        }
 
-    return (int) $pdo->lastInsertId();
+        $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
+        if (!is_array($existing)) {
+            throw $exception;
+        }
+
+        sr_payment_ledger_assert_existing_record_matches($existing, $data);
+        return ['id' => (int) ($existing['id'] ?? 0), 'created' => false];
+    }
+
+    return ['id' => (int) $pdo->lastInsertId(), 'created' => true];
+}
+
+function sr_payment_ledger_is_duplicate_record_exception(Throwable $exception): bool
+{
+    $code = (string) $exception->getCode();
+    $message = $exception->getMessage();
+    return $code === '23000'
+        || str_contains($message, 'Duplicate entry')
+        || str_contains($message, 'UNIQUE constraint failed')
+        || str_contains($message, 'SQLSTATE[23000]');
 }
 
 function sr_payment_ledger_assert_existing_record_matches(array $existing, array $data): void
@@ -174,6 +204,9 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
     ];
 
     foreach ($checks as $field => $expected) {
+        if ($field === 'account_id' && (int) ($existing[$field] ?? 0) === 0 && (int) $expected > 0) {
+            continue;
+        }
         if ((string) ($existing[$field] ?? '') !== (string) $expected) {
             throw new RuntimeException('같은 중복 방지 키의 결제 기록 대상이 기존 기록과 다릅니다.');
         }
@@ -280,7 +313,16 @@ function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items)
             return (int) ($existing['id'] ?? 0);
         }
 
-        $paymentRecordId = sr_payment_ledger_create_record($pdo, $record);
+        $createResult = sr_payment_ledger_create_record_result($pdo, $record);
+        $paymentRecordId = (int) ($createResult['id'] ?? 0);
+        if (empty($createResult['created'])) {
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            return $paymentRecordId;
+        }
+
         foreach ($items as $item) {
             if (!is_array($item)) {
                 continue;
@@ -308,25 +350,38 @@ function sr_payment_ledger_clean_reversal_status(string $status): string
     return in_array($status, ['none', 'pending', 'reversed', 'failed'], true) ? $status : 'none';
 }
 
-function sr_payment_ledger_mark_record_items_reversal_status(PDO $pdo, int $paymentRecordId, string $status): int
+function sr_payment_ledger_mark_record_items_reversal_status(PDO $pdo, int $paymentRecordId, string $status, array $fromStatuses = []): int
 {
     if ($paymentRecordId <= 0 || !sr_payment_ledger_tables_available($pdo)) {
         throw new InvalidArgumentException('상태를 변경할 결제 기록 항목을 확인할 수 없습니다.');
     }
 
     $status = sr_payment_ledger_clean_reversal_status($status);
+    $where = '';
+    $params = [
+        'reversal_status' => $status,
+        'updated_at' => sr_now(),
+        'payment_record_id' => $paymentRecordId,
+    ];
+    $fromStatusKeys = [];
+    foreach ($fromStatuses as $index => $fromStatus) {
+        $fromStatus = sr_payment_ledger_clean_reversal_status((string) $fromStatus);
+        $key = 'from_status_' . (int) $index;
+        $params[$key] = $fromStatus;
+        $fromStatusKeys[] = ':' . $key;
+    }
+    if ($fromStatusKeys !== []) {
+        $where = ' AND reversal_status IN (' . implode(', ', $fromStatusKeys) . ')';
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_payment_record_items
          SET reversal_status = :reversal_status,
              updated_at = :updated_at
          WHERE payment_record_id = :payment_record_id
-           AND reversible = 1'
+           AND reversible = 1' . $where
     );
-    $stmt->execute([
-        'reversal_status' => $status,
-        'updated_at' => sr_now(),
-        'payment_record_id' => $paymentRecordId,
-    ]);
+    $stmt->execute($params);
 
     return $stmt->rowCount();
 }
@@ -354,7 +409,9 @@ function sr_payment_ledger_mark_record_cancelled(PDO $pdo, int $paymentRecordId,
         'id' => $paymentRecordId,
     ]);
 
-    sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, $itemReversalStatus);
+    if ($stmt->rowCount() > 0) {
+        sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, $itemReversalStatus, ['none', 'failed']);
+    }
 }
 
 function sr_payment_ledger_mark_cancelled(PDO $pdo, int $paymentRecordId, string $reason = ''): void

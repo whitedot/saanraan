@@ -262,12 +262,12 @@ function sr_community_record_payment_ledger_if_available(PDO $pdo, array $record
         return 0;
     }
     if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
-        return 0;
+        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
     }
 
     require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
     if (!function_exists('sr_payment_ledger_record_payment') || !sr_payment_ledger_tables_available($pdo)) {
-        return 0;
+        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
     }
 
     return sr_payment_ledger_record_payment($pdo, $record, $items);
