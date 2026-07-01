@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.06.029',
+    'version' => '2026.06.030',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -44,6 +44,7 @@ return [
         'member_submission_author_reward_enabled' => false,
         'member_submission_author_reward_asset_module' => '',
         'member_submission_author_reward_amount' => 0,
+        'multi_asset_payment_enabled' => true,
     ],
     'contracts' => [
         'provides' => [

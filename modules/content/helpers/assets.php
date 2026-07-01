@@ -469,6 +469,30 @@ function sr_content_asset_module_labels(string $assetModuleValue, ?PDO $pdo = nu
     return $labels !== [] ? implode(', ', $labels) : '포인트/금액';
 }
 
+function sr_content_multi_asset_payment_enabled(PDO $pdo): bool
+{
+    return !empty(sr_content_settings($pdo)['multi_asset_payment_enabled']);
+}
+
+function sr_content_multi_asset_payment_allocation_count(array $allocations): int
+{
+    $assetModules = [];
+    foreach ($allocations as $allocation) {
+        $assetModule = (string) ($allocation['asset_module'] ?? '');
+        $amount = (int) ($allocation['asset_amount'] ?? $allocation['amount'] ?? 0);
+        if ($assetModule !== '' && $amount > 0) {
+            $assetModules[$assetModule] = true;
+        }
+    }
+
+    return count($assetModules);
+}
+
+function sr_content_multi_asset_payment_disabled_message(string $targetLabel): string
+{
+    return $targetLabel . ' 결제는 포인트/금액 항목을 하나만 사용할 수 있습니다.';
+}
+
 function sr_content_require_asset_group_policy_helpers(): void
 {
     if (!function_exists('sr_admin_asset_group_policies_from_json')) {

@@ -234,6 +234,8 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
         $errors[] = $labelPrefix . ' 항목이 올바르지 않습니다.';
     } elseif (!sr_content_asset_modules_available($pdo, $assetModules)) {
         $errors[] = '선택한 포인트/금액 항목이 모두 활성 상태일 때만 ' . $labelPrefix . ' 항목으로 사용할 수 있습니다.';
+    } elseif (!sr_content_multi_asset_payment_enabled($pdo) && count($assetModules) > 1) {
+        $errors[] = $labelPrefix . ' 항목은 포인트/금액 항목을 하나만 선택하세요.';
     }
 
     $amount = (int) ($values['asset_download_amount'] ?? 0);

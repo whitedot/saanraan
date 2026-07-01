@@ -199,6 +199,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>이용/과금 기준</h2>
         <div class="form-row">
+            <span class="form-label">복합 자산 결제</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>
+                <p class="form-help">끄면 유료 열람과 파일 다운로드 결제는 포인트/금액 항목을 하나만 사용할 수 있습니다. 쿠폰 일부 할인 후 남은 금액도 같은 기준으로 처리합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_once_history_policy', 'once_history_policy', sr_content_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>

@@ -1241,6 +1241,14 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
 
     $assetExchangeSuggestion = [];
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+    if ($allocations !== [] && !sr_content_multi_asset_payment_enabled($pdo) && sr_content_multi_asset_payment_allocation_count($allocations) > 1) {
+        if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+            $pdo->rollBack();
+            $mixedCouponTransactionOpen = false;
+        }
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_multi_asset_payment_disabled_message('콘텐츠 열람'));
+    }
     if ($allocations === []) {
         $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
         if ($assetExchangeSuggestion !== []) {
@@ -1280,6 +1288,9 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
             if ($allocations === []) {
                 throw new RuntimeException('Automatic asset exchange did not create a payable settlement plan.');
+            }
+            if (!sr_content_multi_asset_payment_enabled($pdo) && sr_content_multi_asset_payment_allocation_count($allocations) > 1) {
+                throw new RuntimeException('Multi-asset content view payment is disabled.');
             }
         }
 
@@ -1721,6 +1732,14 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
 
     $assetExchangeSuggestion = [];
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
+    if ($allocations !== [] && !sr_content_multi_asset_payment_enabled($pdo) && sr_content_multi_asset_payment_allocation_count($allocations) > 1) {
+        if ($mixedCouponTransactionOpen && $pdo->inTransaction()) {
+            $pdo->rollBack();
+            $mixedCouponTransactionOpen = false;
+        }
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_multi_asset_payment_disabled_message('콘텐츠 파일 다운로드'));
+    }
     if ($allocations === []) {
         $assetExchangeSuggestion = sr_content_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
         if ($assetExchangeSuggestion !== []) {
@@ -1761,6 +1780,9 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
             if ($allocations === []) {
                 throw new RuntimeException('Automatic asset exchange did not create a payable file settlement plan.');
+            }
+            if (!sr_content_multi_asset_payment_enabled($pdo) && sr_content_multi_asset_payment_allocation_count($allocations) > 1) {
+                throw new RuntimeException('Multi-asset content download payment is disabled.');
             }
         }
 

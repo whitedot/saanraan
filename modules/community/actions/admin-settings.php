@@ -164,6 +164,7 @@ if (sr_request_method() === 'POST') {
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_publisher_reward_enabled'] = ($_POST['paid_attachment_download_publisher_reward_enabled'] ?? '') === '1';
         $assetSettings['paid_attachment_download_publisher_reward_rate'] = sr_admin_post_int_in_range('paid_attachment_download_publisher_reward_rate', 0, 100);
+        $multiAssetPaymentEnabled = ($_POST['multi_asset_payment_enabled'] ?? '') === '1';
         $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
         if (!$levelEnabled) {
@@ -340,6 +341,8 @@ if (sr_request_method() === 'POST') {
                     $assetModules = sr_community_asset_module_keys_from_value($assetModule, true);
                     if (!sr_community_asset_modules_available($pdo, $assetModules)) {
                         $errors[] = sr_t('community::action.admin.asset_modules_required_active', ['label' => $assetLabel]);
+                    } elseif (!$multiAssetPaymentEnabled && in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true) && count($assetModules) > 1) {
+                        $errors[] = $assetLabel . ' 항목은 포인트/금액 항목을 하나만 선택하세요.';
                     }
                     $amounts = sr_community_asset_amounts_from_value($assetSettings[$assetPrefix . '_amounts_json'] ?? '', $assetModules);
                     if (count($amounts) < count($assetModules)) {
@@ -492,6 +495,7 @@ if (sr_request_method() === 'POST') {
                 ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
                 ['paid_attachment_download_publisher_reward_enabled', $assetSettings['paid_attachment_download_publisher_reward_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_publisher_reward_rate', (string) $assetSettings['paid_attachment_download_publisher_reward_rate'], 'int'],
+                ['multi_asset_payment_enabled', $multiAssetPaymentEnabled ? '1' : '0', 'bool'],
             ];
             try {
                 $pdo->beginTransaction();

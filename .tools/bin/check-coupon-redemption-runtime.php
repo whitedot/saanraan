@@ -454,6 +454,37 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         source_expires_at TEXT,
         created_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_reward_balances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL UNIQUE,
+        balance INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_reward_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        balance_after INTEGER NOT NULL,
+        transaction_type TEXT NOT NULL,
+        reason TEXT NOT NULL DEFAULT '',
+        reference_type TEXT NOT NULL DEFAULT '',
+        reference_id TEXT NOT NULL DEFAULT '',
+        created_by_account_id INTEGER,
+        expires_at TEXT,
+        expires_remaining INTEGER NOT NULL DEFAULT 0,
+        expired_at TEXT,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_reward_expiration_consumptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        consume_transaction_id INTEGER NOT NULL,
+        source_transaction_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        source_expires_at TEXT,
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("CREATE TABLE sr_community_access_entitlements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER NOT NULL,
@@ -577,7 +608,7 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         refund_policy_version TEXT NOT NULL DEFAULT 'community_post_read_refund_v1',
         created_at TEXT NOT NULL
     )");
-    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('notification', 'enabled'), ('payment_ledger', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled'), ('reward', 'enabled'), ('notification', 'enabled'), ('payment_ledger', 'enabled')");
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
     $pdo->exec("INSERT INTO sr_member_accounts (id, email, status) VALUES (7, 'member7@example.test', 'active'), (8, 'member8@example.test', 'active')");
     $pdo->exec("INSERT INTO sr_notification_event_templates
@@ -2180,6 +2211,133 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityMixedPaymentId, 'asset_access_log', 'reversed') === 1, 'community mixed domain refund should reverse the asset access log payment item.');
     sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityMixedPaymentId, 'access_entitlement', 'reversed') === 1, 'community mixed domain refund should reverse the access entitlement payment item.');
     sr_coupon_runtime_assert((string) sr_coupon_runtime_scalar($pdo, 'SELECT status FROM sr_payment_records WHERE id = :id', ['id' => $communityMixedPaymentId]) === 'refunded', 'community mixed domain refund should mark the payment record refunded.');
+
+    $contentModuleId = (int) sr_coupon_runtime_scalar($pdo, "SELECT id FROM sr_modules WHERE module_key = 'content' LIMIT 1");
+    $communityModuleId = (int) sr_coupon_runtime_scalar($pdo, "SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
+    $pdo->prepare(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES (:module_id, 'multi_asset_payment_enabled', '0', 'bool', :created_at, :updated_at)"
+    )->execute(['module_id' => $contentModuleId, 'created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES (:module_id, 'multi_asset_payment_enabled', '0', 'bool', :created_at, :updated_at)"
+    )->execute(['module_id' => $communityModuleId, 'created_at' => $now, 'updated_at' => $now]);
+    sr_clear_module_settings_cache('content');
+    sr_clear_module_settings_cache('community');
+
+    $pdo->prepare(
+        "INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at)
+         VALUES (8, 40, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_reward_balances (account_id, balance, created_at, updated_at)
+         VALUES (8, 100, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+
+    $pdo->prepare(
+        "INSERT INTO sr_content_items
+            (id, title, slug, status, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_settlement_currency, asset_charge_policy, updated_at)
+         VALUES
+            (8802, 'Multi asset disabled content', 'multi-asset-disabled-content', 'published', 1, 'point,reward', 100, '{\"point\":50,\"reward\":50}', 'KRW', 'once', :updated_at)"
+    )->execute(['updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('content_multi_asset_disabled', 'Content multi asset disabled', '', 'active', 'fixed_discount', 40, 0, 'KRW', 'content', '8802', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $contentDisabledDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 8, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $contentDisabledDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $contentDisabledIssueId = (int) $pdo->lastInsertId();
+    $contentDisabledPage = [
+        'id' => 8802,
+        'asset_access_enabled' => 1,
+        'asset_module' => 'point,reward',
+        'asset_access_amount' => 100,
+        'asset_access_amounts_json' => '{"point":50,"reward":50}',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
+        'asset_access_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $contentDisabledResult = sr_content_charge_view_access($pdo, $contentDisabledPage, 8, true, '', $contentDisabledIssueId, true, true, false);
+    sr_coupon_runtime_assert(
+        empty($contentDisabledResult['allowed']) && str_contains((string) ($contentDisabledResult['message'] ?? ''), '하나만'),
+        'content multi-asset-disabled policy should reject split asset settlement. message=' . (string) ($contentDisabledResult['message'] ?? '')
+    );
+    $contentDisabledIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $contentDisabledIssueId]);
+    sr_coupon_runtime_assert((string) ($contentDisabledIssue['status'] ?? '') === 'active' && (int) ($contentDisabledIssue['used_count'] ?? -1) === 0, 'content multi-asset-disabled rejection should roll back the coupon issue.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'content' AND reference_type = 'content.view' AND reference_id = '8802'")->fetchColumn() === 0, 'content multi-asset-disabled rejection should roll back the coupon redemption row.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_point_transactions WHERE account_id = 8 AND reference_type = 'content.view' AND reference_id = '8802'")->fetchColumn() === 0, 'content multi-asset-disabled rejection should not create point transactions.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reward_transactions WHERE account_id = 8 AND reference_type = 'content.view' AND reference_id = '8802'")->fetchColumn() === 0, 'content multi-asset-disabled rejection should not create reward transactions.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_view_payment_logs WHERE content_id = 8802')->fetchColumn() === 0, 'content multi-asset-disabled rejection should not create a payment-unit row.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_community_posts
+            (id, board_id, status, title, created_at, updated_at)
+         VALUES
+            (9905, 9902, 'published', 'Multi asset disabled post', :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('community_multi_asset_disabled', 'Community multi asset disabled', '', 'active', 'fixed_discount', 40, 0, 'KRW', 'community_post', '9905', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $communityDisabledDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 8, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $communityDisabledDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $communityDisabledIssueId = (int) $pdo->lastInsertId();
+    $communityDisabledConfig = $communityPaidReadConfig;
+    $communityDisabledConfig['asset_module'] = 'point,reward';
+    $communityDisabledConfig['asset_modules'] = ['point', 'reward'];
+    $communityDisabledConfig['amount'] = 100;
+    $communityDisabledConfig['amounts'] = ['point' => 50, 'reward' => 50];
+    $pdo->beginTransaction();
+    $communityDisabledCoupon = sr_community_try_paid_read_coupon_access($pdo, 8, ['id' => 9905, 'board_id' => 9902, 'title' => 'Multi asset disabled post'], $communityDisabledConfig, 'community.post:coupon:8:9905', $communityDisabledIssueId);
+    $communityDisabledRemaining = max(0, (int) ($communityDisabledCoupon['remaining_amount'] ?? 0));
+    $communityDisabledResult = !empty($communityDisabledCoupon['allowed'])
+        ? sr_community_run_asset_event($pdo, $communityDisabledConfig, 8, 'post_read', 'community.post', 9905, 'use', 'community.post.read', true, '', true, true, false, $communityDisabledRemaining, [
+            'coupon_result' => $communityDisabledCoupon,
+            'payable_amount' => $communityDisabledRemaining + max(0, (int) ($communityDisabledCoupon['discount_amount'] ?? 0)),
+            'board_id' => 9902,
+            'post_title_snapshot' => 'Multi asset disabled post',
+        ])
+        : ['allowed' => false, 'processed' => false];
+    if (!empty($communityDisabledResult['allowed'])) {
+        $pdo->commit();
+    } else {
+        $pdo->rollBack();
+    }
+    sr_coupon_runtime_assert(!empty($communityDisabledCoupon['allowed']) && !empty($communityDisabledCoupon['processed']), 'community multi-asset-disabled fixture should reach the mixed coupon stage.');
+    sr_coupon_runtime_assert(
+        empty($communityDisabledResult['allowed']) && str_contains((string) ($communityDisabledResult['message'] ?? ''), '하나만'),
+        'community multi-asset-disabled policy should reject split asset settlement. message=' . (string) ($communityDisabledResult['message'] ?? '')
+    );
+    $communityDisabledIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $communityDisabledIssueId]);
+    sr_coupon_runtime_assert((string) ($communityDisabledIssue['status'] ?? '') === 'active' && (int) ($communityDisabledIssue['used_count'] ?? -1) === 0, 'community multi-asset-disabled rejection should roll back the coupon issue.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9905'")->fetchColumn() === 0, 'community multi-asset-disabled rejection should roll back the coupon redemption row.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_asset_logs WHERE account_id = 8 AND subject_type = 'community.post' AND subject_id = 9905")->fetchColumn() === 0, 'community multi-asset-disabled rejection should not create community asset logs.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_post_read_payment_logs WHERE post_id = 9905')->fetchColumn() === 0, 'community multi-asset-disabled rejection should not create a payment-unit row.');
 }
 
 sr_coupon_runtime_check_model_decision();

@@ -132,6 +132,7 @@ function sr_community_default_settings(): array
         'paid_attachment_download_charge_policy' => is_string($settings['paid_attachment_download_charge_policy'] ?? null) ? (string) $settings['paid_attachment_download_charge_policy'] : 'once',
         'paid_attachment_download_publisher_reward_enabled' => (bool) ($settings['paid_attachment_download_publisher_reward_enabled'] ?? false),
         'paid_attachment_download_publisher_reward_rate' => (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0),
+        'multi_asset_payment_enabled' => (bool) ($settings['multi_asset_payment_enabled'] ?? true),
     ];
 }
 
@@ -335,6 +336,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy((string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'), 'once');
     $settings['paid_attachment_download_publisher_reward_enabled'] = sr_community_bool_setting($settings['paid_attachment_download_publisher_reward_enabled'] ?? false);
     $settings['paid_attachment_download_publisher_reward_rate'] = min(100, max(0, (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)));
+    $settings['multi_asset_payment_enabled'] = sr_community_bool_setting($settings['multi_asset_payment_enabled'] ?? true);
 
     return $settings;
 }

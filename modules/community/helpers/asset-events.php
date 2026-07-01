@@ -1509,6 +1509,28 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $allocations = $direction === 'use'
         ? sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency)
         : [['asset_module' => $assetModules[0], 'amount' => $amount]];
+    if (
+        $direction === 'use'
+        && $allocations !== []
+        && in_array($eventKey, ['post_read', 'attachment_download'], true)
+        && !sr_community_multi_asset_payment_enabled($pdo)
+        && sr_community_multi_asset_payment_allocation_count($allocations) > 1
+    ) {
+        $message = $eventKey === 'attachment_download'
+            ? sr_community_multi_asset_payment_disabled_message('첨부 다운로드')
+            : sr_community_multi_asset_payment_disabled_message('게시글 열람');
+
+        return [
+            'allowed' => false,
+            'processed' => false,
+            'error_key' => 'multi_asset_payment_disabled',
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => $amount,
+            'confirmation_fingerprint' => $confirmationFingerprint,
+            'message' => $message,
+        ];
+    }
     if ($direction === 'use' && $allocations === []) {
         $assetExchangeSuggestion = sr_community_asset_settlement_exchange_suggestion($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
         if ($assetExchangeSuggestion !== [] && $confirmationRequired) {
@@ -1567,6 +1589,13 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             $allocations = sr_community_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
             if ($allocations === []) {
                 throw new RuntimeException('Automatic asset exchange did not create a payable community settlement plan.');
+            }
+            if (
+                in_array($eventKey, ['post_read', 'attachment_download'], true)
+                && !sr_community_multi_asset_payment_enabled($pdo)
+                && sr_community_multi_asset_payment_allocation_count($allocations) > 1
+            ) {
+                throw new RuntimeException('Multi-asset community payment is disabled.');
             }
         }
 

@@ -188,11 +188,20 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_publisher_reward_enabled'] = ($_POST['paid_attachment_download_publisher_reward_enabled'] ?? '') === '1';
         $assetSettings['paid_attachment_download_publisher_reward_rate'] = sr_admin_post_int_in_range('paid_attachment_download_publisher_reward_rate', 0, 100);
+        $multiAssetPaymentEnabled = sr_community_multi_asset_payment_enabled($pdo);
         $assetSettingSources['paid_attachment_download_publisher_reward_enabled'] = sr_community_normalize_board_setting_source(sr_post_string('source_paid_attachment_download_publisher_reward_enabled', 20));
         $assetSettingSources['paid_attachment_download_publisher_reward_rate'] = sr_community_normalize_board_setting_source(sr_post_string('source_paid_attachment_download_publisher_reward_rate', 20));
         $assetSettingLabels = [];
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $assetSettingLabels[$assetPrefix] = sr_community_asset_setting_label($assetPrefix);
+            if (
+                !$multiAssetPaymentEnabled
+                && in_array($assetPrefix, ['paid_read', 'paid_attachment_download'], true)
+                && !empty($assetSettings[$assetPrefix . '_enabled'])
+                && count(sr_community_asset_module_keys_from_value((string) ($assetSettings[$assetPrefix . '_asset_module'] ?? ''), true)) > 1
+            ) {
+                $errors[] = $assetSettingLabels[$assetPrefix] . ' 항목은 포인트/금액 항목을 하나만 선택하세요.';
+            }
         }
         $settingSources = [];
         foreach (sr_community_board_group_setting_keys() as $settingKey) {

@@ -547,6 +547,13 @@ $communitySettingsSectionNavItems = [
                 </div>
             <?php } ?>
             <div class="form-row">
+                <span class="form-label">복합 자산 결제</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('community_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>
+                    <p class="form-help">끄면 유료 게시글 열람과 첨부 다운로드 결제는 포인트/금액 항목을 하나만 사용할 수 있습니다. 쿠폰 일부 할인 후 남은 금액도 같은 기준으로 처리합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_once_history_policy', 'once_history_policy', sr_community_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>

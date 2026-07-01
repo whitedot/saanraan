@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.050',
+    'version' => '2026.06.051',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -179,5 +179,6 @@ return [
         'paid_attachment_download_charge_policy' => 'once',
         'paid_attachment_download_publisher_reward_enabled' => false,
         'paid_attachment_download_publisher_reward_rate' => 0,
+        'multi_asset_payment_enabled' => true,
     ],
 ];
