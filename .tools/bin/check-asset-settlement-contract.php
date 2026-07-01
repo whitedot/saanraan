@@ -654,6 +654,9 @@ if (!is_string($memberAssetsHelper)) {
 } elseif (!str_contains($memberAssetsHelper, 'strcmp((string) ($left[\'module_key\'] ?? \'\'), (string) ($right[\'module_key\'] ?? \'\'))')) {
     $errors[] = 'member asset definition sorting must keep deterministic module_key tiebreak for equal deduction_order';
 }
+if (is_string($memberAssetsHelper) && !str_contains($memberAssetsHelper, "\\A[a-z][a-z0-9_]{1,39}\\z")) {
+    $errors[] = 'member asset contract fallback scan must use the global module_key format';
+}
 if (is_string($memberAssetsHelper) && !str_contains($memberAssetsHelper, "'rounding_policy_version' => 'asset_settlement_rounding_v1'")) {
     $errors[] = 'member purchase power snapshot must write rounding_policy_version';
 }

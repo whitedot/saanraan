@@ -11,7 +11,7 @@ function sr_member_asset_contract_module_keys(?PDO $pdo, string $contractFile): 
     $moduleKeys = [];
     foreach (glob(SR_ROOT . '/modules/*/' . $contractFile) ?: [] as $file) {
         $moduleKey = basename(dirname($file));
-        if (preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $moduleKey) === 1) {
+        if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1) {
             $moduleKeys[] = $moduleKey;
         }
     }

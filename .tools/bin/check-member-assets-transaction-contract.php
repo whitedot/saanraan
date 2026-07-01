@@ -84,6 +84,11 @@ function sr_member_assets_contract_helper_path(string $moduleKey, array $contrac
 
 foreach (glob('modules/*/member-assets.php') ?: [] as $contractFile) {
     $moduleKey = basename(dirname($contractFile));
+    if (preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1) {
+        sr_member_assets_contract_error('member-assets.php module directory must match module_key format: ' . $contractFile);
+        continue;
+    }
+
     $contract = require $contractFile;
     if (!is_array($contract)) {
         sr_member_assets_contract_error('member-assets.php must return an array: ' . $contractFile);
@@ -167,4 +172,3 @@ if ($errors !== []) {
 }
 
 echo "member asset transaction contract checks completed.\n";
-

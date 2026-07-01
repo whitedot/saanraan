@@ -1018,6 +1018,7 @@ return [
 
 - 배열을 반환한다.
 - 콘텐츠와 커뮤니티가 금액성 회원 자산 후보를 읽을 때 사용한다.
+- 계약 파일을 제공하는 자산 모듈 폴더명은 전역 `module_key` 형식(`\A[a-z][a-z0-9_]{1,39}\z`)을 따라야 한다.
 - 자산 모듈 폴더 기준 `helpers`, `balance_function`, `transaction_function`, 선택 `transaction_table`, 표시용 `label` 또는 `label_function`, `unit_label` 또는 `unit_function`을 제공한다.
 - 공개 레이아웃 회원 보유 요약에 표시할 금액성 자산은 선택 `summary_url`, `summary_icon`을 제공한다. 코어는 relative URL만 허용하고, 사용 가능 여부와 잔액 조회는 자산 계약의 `available_function`, `balance_function`에 위임한다.
 - `transaction_lookup_function`은 `reference_type`과 `reference_id`로 기존 원장 거래를 조회하는 callable이다. 보상 복구, 중복 처리, 운영 reconciliation 보조 흐름에서 사용하므로 금액성 원장 자산은 제공해야 한다.
