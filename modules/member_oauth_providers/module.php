@@ -4,7 +4,7 @@ return [
     'name' => '회원 OAuth 제공자',
     'version' => '2026.06.001',
     'type' => 'plugin',
-    'description' => '회원 OAuth 모듈에 Google, Kakao, Naver 로그인 제공자 계약을 제공합니다.',
+    'description' => '회원 OAuth 모듈에 Google, Kakao, Naver, GitHub, Apple ID 로그인 제공자 계약을 제공합니다.',
     'admin' => [
         'category' => 'plugin',
         'category_label' => '플러그인',

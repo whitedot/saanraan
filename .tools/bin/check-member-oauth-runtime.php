@@ -519,8 +519,12 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
 ]);
 sr_member_oauth_check_contains('modules/member_oauth_providers/module.php', [
     "'type' => 'plugin'",
+    'Google, Kakao, Naver, GitHub, Apple ID',
     "'member_oauth'",
     "'oauth-providers.php'",
+]);
+sr_member_oauth_check_contains('docs/implementation-snapshot.md', [
+    '| 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver, GitHub, Apple ID provider 계약 |',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth_providers/oauth-providers.php', [
     "'google'",

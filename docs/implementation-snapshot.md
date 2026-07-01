@@ -24,7 +24,7 @@
 | 시스템 | `payment_ledger` | 숨김 기반 결제 기록, 쿠폰·자산·외부 결제 item 묶음 |
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
 | 회원 | `member_oauth` | OAuth/OIDC provider state, generic provider adapter, mock provider, 계정 연결/해제, completion 기반 |
-| 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver provider 계약 |
+| 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver, GitHub, Apple ID provider 계약 |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
