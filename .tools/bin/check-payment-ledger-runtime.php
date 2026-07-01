@@ -287,6 +287,20 @@ try {
 
 try {
     sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:empty-payment-kind',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payment_kind' => '',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty payment kinds instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects explicitly empty payment kinds.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
         'dedupe_key' => 'content.view:payment:7:invalid-status',
         'account_id' => 7,
         'subject_module' => 'content',
@@ -297,6 +311,20 @@ try {
     sr_payment_runtime_assert(false, 'payment ledger should reject invalid record statuses instead of defaulting them.');
 } catch (InvalidArgumentException) {
     sr_payment_runtime_assert(true, 'payment ledger rejects invalid record statuses.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:empty-status',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'status' => '',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty record statuses instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects explicitly empty record statuses.');
 }
 
 try {
@@ -419,6 +447,31 @@ try {
     sr_payment_runtime_assert(false, 'payment ledger should reject invalid item reversal statuses instead of defaulting them.');
 } catch (InvalidArgumentException) {
     sr_payment_runtime_assert(true, 'payment ledger rejects invalid item reversal statuses.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:empty-reversal-status',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'point',
+            'reference_type' => 'point_transaction',
+            'reference_id' => 'empty-reversal-status',
+            'amount' => -10,
+            'currency_code' => 'KRW',
+            'reversible' => true,
+            'reversal_status' => '',
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty item reversal statuses instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects explicitly empty item reversal statuses.');
 }
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'invalid payment inputs should not leave extra records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'invalid payment inputs should not leave extra items.');

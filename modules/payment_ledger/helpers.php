@@ -47,7 +47,7 @@ function sr_payment_ledger_optional_identifier(array $data, string $key, string 
 
     $raw = trim((string) $data[$key]);
     if ($raw === '') {
-        return $default;
+        throw new InvalidArgumentException($message);
     }
 
     $value = sr_payment_ledger_clean_identifier($raw, $maxLength);
@@ -358,7 +358,9 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
         'amount' => sr_payment_ledger_integer_amount($item['amount'] ?? 0, '결제 기록 항목 금액은 정수여야 합니다.'),
         'currency_code' => $currencyCode,
         'reversible' => !empty($item['reversible']) ? 1 : 0,
-        'reversal_status' => sr_payment_ledger_clean_reversal_status((string) ($item['reversal_status'] ?? 'none')),
+        'reversal_status' => sr_payment_ledger_clean_reversal_status(
+            array_key_exists('reversal_status', $item) ? (string) $item['reversal_status'] : 'none'
+        ),
         'snapshot_json' => sr_payment_ledger_json_or_null(is_array($item['snapshot'] ?? null) ? $item['snapshot'] : []),
         'created_at' => $now,
         'updated_at' => $now,
@@ -443,7 +445,7 @@ function sr_payment_ledger_clean_reversal_status(string $status): string
 {
     $raw = trim($status);
     if ($raw === '') {
-        return 'none';
+        throw new InvalidArgumentException('결제 기록 항목 되돌림 상태가 올바르지 않습니다.');
     }
 
     $status = sr_payment_ledger_clean_identifier($raw, 30);
