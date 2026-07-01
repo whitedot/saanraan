@@ -69,6 +69,7 @@ if (sr_request_method() === 'GET') {
             'label' => (string) ($mfaSetupFlash['label'] ?? ''),
             'secret_base32' => (string) ($mfaSetupFlash['secret_base32'] ?? ''),
             'otpauth_uri' => (string) ($mfaSetupFlash['otpauth_uri'] ?? ''),
+            'otpauth_qr_svg_data_uri' => (string) ($mfaSetupFlash['otpauth_qr_svg_data_uri'] ?? ''),
         ];
     }
 
@@ -368,6 +369,7 @@ if (sr_request_method() === 'POST') {
                     'label' => (string) ($mfaSetup['label'] ?? ''),
                     'secret_base32' => (string) ($mfaSetup['secret_base32'] ?? ''),
                     'otpauth_uri' => (string) ($mfaSetup['otpauth_uri'] ?? ''),
+                    'otpauth_qr_svg_data_uri' => (string) ($mfaSetup['otpauth_qr_svg_data_uri'] ?? ''),
                 ];
                 $notice = sr_t('member::action.account.mfa_totp_prepared');
                 sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup_prepare', 'success');

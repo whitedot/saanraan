@@ -263,6 +263,364 @@ function sr_member_mfa_totp_otpauth_uri(string $issuer, string $label, string $s
     return 'otpauth://totp/' . $path . '?' . $query;
 }
 
+function sr_member_mfa_totp_qr_svg_data_uri(string $otpauthUri): string
+{
+    $svg = sr_member_mfa_qr_svg($otpauthUri);
+    if ($svg === '') {
+        return '';
+    }
+
+    return 'data:image/svg+xml;base64,' . base64_encode($svg);
+}
+
+function sr_member_mfa_qr_svg(string $data): string
+{
+    $version = 10;
+    $size = $version * 4 + 17;
+    $eccCodewordsPerBlock = 18;
+    $numBlocks = 4;
+    $rawCodewords = 346;
+    $dataCodewords = $rawCodewords - ($eccCodewordsPerBlock * $numBlocks);
+    $dataLength = strlen($data);
+
+    if ($dataLength < 1 || $dataLength > $dataCodewords - 3) {
+        return '';
+    }
+
+    $bits = [];
+    sr_member_mfa_qr_append_bits($bits, 0x4, 4);
+    sr_member_mfa_qr_append_bits($bits, $dataLength, 16);
+    for ($i = 0; $i < $dataLength; $i++) {
+        sr_member_mfa_qr_append_bits($bits, ord($data[$i]), 8);
+    }
+
+    $capacityBits = $dataCodewords * 8;
+    sr_member_mfa_qr_append_bits($bits, 0, min(4, $capacityBits - count($bits)));
+    while (count($bits) % 8 !== 0) {
+        $bits[] = 0;
+    }
+
+    $dataBytes = [];
+    for ($i = 0, $count = count($bits); $i < $count; $i += 8) {
+        $byte = 0;
+        for ($j = 0; $j < 8; $j++) {
+            $byte = ($byte << 1) | (int) $bits[$i + $j];
+        }
+        $dataBytes[] = $byte;
+    }
+
+    for ($pad = 0xec; count($dataBytes) < $dataCodewords; $pad ^= 0xfd) {
+        $dataBytes[] = $pad;
+    }
+
+    $codewords = sr_member_mfa_qr_add_error_correction($dataBytes, $rawCodewords, $eccCodewordsPerBlock, $numBlocks);
+    $modules = sr_member_mfa_qr_blank_matrix($size);
+    $functionModules = sr_member_mfa_qr_blank_matrix($size);
+    sr_member_mfa_qr_draw_function_patterns($modules, $functionModules, $version);
+    sr_member_mfa_qr_draw_codewords($modules, $functionModules, $codewords);
+    sr_member_mfa_qr_apply_mask($modules, $functionModules, 0);
+    sr_member_mfa_qr_draw_format_bits($modules, $functionModules, 0);
+
+    $border = 4;
+    $dimension = $size + ($border * 2);
+    $path = '';
+    for ($y = 0; $y < $size; $y++) {
+        for ($x = 0; $x < $size; $x++) {
+            if (!empty($modules[$y][$x])) {
+                $path .= 'M' . ($x + $border) . ',' . ($y + $border) . 'h1v1h-1z';
+            }
+        }
+    }
+
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' . $dimension . ' ' . $dimension . '" role="img" aria-label="TOTP QR code" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path fill="#000" d="' . $path . '"/></svg>';
+}
+
+function sr_member_mfa_qr_blank_matrix(int $size): array
+{
+    $matrix = [];
+    for ($y = 0; $y < $size; $y++) {
+        $matrix[$y] = array_fill(0, $size, false);
+    }
+
+    return $matrix;
+}
+
+function sr_member_mfa_qr_append_bits(array &$bits, int $value, int $length): void
+{
+    for ($i = $length - 1; $i >= 0; $i--) {
+        $bits[] = (($value >> $i) & 1) !== 0;
+    }
+}
+
+function sr_member_mfa_qr_add_error_correction(array $dataBytes, int $rawCodewords, int $eccCodewordsPerBlock, int $numBlocks): array
+{
+    $shortBlockTotalLength = intdiv($rawCodewords, $numBlocks);
+    $numShortBlocks = $numBlocks - ($rawCodewords % $numBlocks);
+    $shortDataLength = $shortBlockTotalLength - $eccCodewordsPerBlock;
+    $generator = sr_member_mfa_qr_reed_solomon_generator($eccCodewordsPerBlock);
+    $blocks = [];
+    $offset = 0;
+
+    for ($i = 0; $i < $numBlocks; $i++) {
+        $dataLength = $shortDataLength + ($i < $numShortBlocks ? 0 : 1);
+        $data = array_slice($dataBytes, $offset, $dataLength);
+        $offset += $dataLength;
+        $blocks[] = [
+            'data' => $data,
+            'ecc' => sr_member_mfa_qr_reed_solomon_remainder($data, $generator),
+        ];
+    }
+
+    $result = [];
+    $maxDataLength = $shortDataLength + 1;
+    for ($i = 0; $i < $maxDataLength; $i++) {
+        foreach ($blocks as $block) {
+            if (isset($block['data'][$i])) {
+                $result[] = (int) $block['data'][$i];
+            }
+        }
+    }
+    for ($i = 0; $i < $eccCodewordsPerBlock; $i++) {
+        foreach ($blocks as $block) {
+            $result[] = (int) $block['ecc'][$i];
+        }
+    }
+
+    return $result;
+}
+
+function sr_member_mfa_qr_reed_solomon_generator(int $degree): array
+{
+    $poly = [1];
+    for ($i = 0; $i < $degree; $i++) {
+        $next = array_fill(0, count($poly) + 1, 0);
+        $root = sr_member_mfa_qr_gf_pow($i);
+        foreach ($poly as $j => $coefficient) {
+            $next[$j] ^= sr_member_mfa_qr_gf_multiply((int) $coefficient, 1);
+            $next[$j + 1] ^= sr_member_mfa_qr_gf_multiply((int) $coefficient, $root);
+        }
+        $poly = $next;
+    }
+
+    return array_slice($poly, 1);
+}
+
+function sr_member_mfa_qr_reed_solomon_remainder(array $data, array $generator): array
+{
+    $result = array_fill(0, count($generator), 0);
+    foreach ($data as $byte) {
+        $factor = ((int) $byte) ^ array_shift($result);
+        $result[] = 0;
+        foreach ($generator as $i => $coefficient) {
+            $result[$i] ^= sr_member_mfa_qr_gf_multiply((int) $coefficient, $factor);
+        }
+    }
+
+    return $result;
+}
+
+function sr_member_mfa_qr_gf_pow(int $exponent): int
+{
+    $result = 1;
+    for ($i = 0; $i < $exponent; $i++) {
+        $result = sr_member_mfa_qr_gf_multiply($result, 2);
+    }
+
+    return $result;
+}
+
+function sr_member_mfa_qr_gf_multiply(int $x, int $y): int
+{
+    $result = 0;
+    while ($y > 0) {
+        if (($y & 1) !== 0) {
+            $result ^= $x;
+        }
+        $x <<= 1;
+        if (($x & 0x100) !== 0) {
+            $x ^= 0x11d;
+        }
+        $y >>= 1;
+    }
+
+    return $result & 0xff;
+}
+
+function sr_member_mfa_qr_draw_function_patterns(array &$modules, array &$functionModules, int $version): void
+{
+    $size = count($modules);
+    sr_member_mfa_qr_draw_finder_pattern($modules, $functionModules, 3, 3);
+    sr_member_mfa_qr_draw_finder_pattern($modules, $functionModules, $size - 4, 3);
+    sr_member_mfa_qr_draw_finder_pattern($modules, $functionModules, 3, $size - 4);
+
+    $alignmentPositions = [6, 28, 50];
+    foreach ($alignmentPositions as $x) {
+        foreach ($alignmentPositions as $y) {
+            if (($x === 6 && $y === 6) || ($x === 6 && $y === $size - 7) || ($x === $size - 7 && $y === 6)) {
+                continue;
+            }
+            sr_member_mfa_qr_draw_alignment_pattern($modules, $functionModules, $x, $y);
+        }
+    }
+
+    for ($i = 8; $i < $size - 8; $i++) {
+        $dark = $i % 2 === 0;
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, 6, $i, $dark);
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, $i, 6, $dark);
+    }
+
+    sr_member_mfa_qr_draw_format_bits($modules, $functionModules, 0);
+    sr_member_mfa_qr_draw_version_bits($modules, $functionModules, $version);
+    sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, 4 * $version + 9, true);
+}
+
+function sr_member_mfa_qr_draw_finder_pattern(array &$modules, array &$functionModules, int $centerX, int $centerY): void
+{
+    for ($dy = -4; $dy <= 4; $dy++) {
+        for ($dx = -4; $dx <= 4; $dx++) {
+            $distance = max(abs($dx), abs($dy));
+            $dark = $distance !== 2 && $distance <= 3;
+            sr_member_mfa_qr_set_function_module($modules, $functionModules, $centerX + $dx, $centerY + $dy, $dark);
+        }
+    }
+}
+
+function sr_member_mfa_qr_draw_alignment_pattern(array &$modules, array &$functionModules, int $centerX, int $centerY): void
+{
+    for ($dy = -2; $dy <= 2; $dy++) {
+        for ($dx = -2; $dx <= 2; $dx++) {
+            $dark = max(abs($dx), abs($dy)) === 2 || ($dx === 0 && $dy === 0);
+            sr_member_mfa_qr_set_function_module($modules, $functionModules, $centerX + $dx, $centerY + $dy, $dark);
+        }
+    }
+}
+
+function sr_member_mfa_qr_draw_format_bits(array &$modules, array &$functionModules, int $mask): void
+{
+    $bits = sr_member_mfa_qr_format_bits($mask);
+    $size = count($modules);
+
+    for ($i = 0; $i <= 5; $i++) {
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, $i, sr_member_mfa_qr_bit($bits, $i));
+    }
+    sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, 7, sr_member_mfa_qr_bit($bits, 6));
+    sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, 8, sr_member_mfa_qr_bit($bits, 7));
+    sr_member_mfa_qr_set_function_module($modules, $functionModules, 7, 8, sr_member_mfa_qr_bit($bits, 8));
+    for ($i = 9; $i < 15; $i++) {
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, 14 - $i, 8, sr_member_mfa_qr_bit($bits, $i));
+    }
+    for ($i = 0; $i < 8; $i++) {
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, $size - 1 - $i, 8, sr_member_mfa_qr_bit($bits, $i));
+    }
+    for ($i = 8; $i < 15; $i++) {
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, $size - 15 + $i, sr_member_mfa_qr_bit($bits, $i));
+    }
+    sr_member_mfa_qr_set_function_module($modules, $functionModules, 8, $size - 8, true);
+}
+
+function sr_member_mfa_qr_format_bits(int $mask): int
+{
+    $data = (1 << 3) | $mask;
+    $remainder = $data;
+    for ($i = 0; $i < 10; $i++) {
+        $remainder = ($remainder << 1) ^ ((($remainder >> 9) & 1) !== 0 ? 0x537 : 0);
+    }
+
+    return (($data << 10) | ($remainder & 0x3ff)) ^ 0x5412;
+}
+
+function sr_member_mfa_qr_draw_version_bits(array &$modules, array &$functionModules, int $version): void
+{
+    $bits = sr_member_mfa_qr_version_bits($version);
+    $size = count($modules);
+    for ($i = 0; $i < 18; $i++) {
+        $bit = sr_member_mfa_qr_bit($bits, $i);
+        $a = $size - 11 + ($i % 3);
+        $b = intdiv($i, 3);
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, $a, $b, $bit);
+        sr_member_mfa_qr_set_function_module($modules, $functionModules, $b, $a, $bit);
+    }
+}
+
+function sr_member_mfa_qr_version_bits(int $version): int
+{
+    $remainder = $version;
+    for ($i = 0; $i < 12; $i++) {
+        $remainder = ($remainder << 1) ^ ((($remainder >> 11) & 1) !== 0 ? 0x1f25 : 0);
+    }
+
+    return ($version << 12) | ($remainder & 0xfff);
+}
+
+function sr_member_mfa_qr_draw_codewords(array &$modules, array $functionModules, array $codewords): void
+{
+    $size = count($modules);
+    $bitIndex = 0;
+    $bitLength = count($codewords) * 8;
+    $upward = true;
+
+    for ($right = $size - 1; $right >= 1; $right -= 2) {
+        if ($right === 6) {
+            $right--;
+        }
+        for ($vertical = 0; $vertical < $size; $vertical++) {
+            $y = $upward ? $size - 1 - $vertical : $vertical;
+            for ($j = 0; $j < 2; $j++) {
+                $x = $right - $j;
+                if (!empty($functionModules[$y][$x])) {
+                    continue;
+                }
+                $dark = false;
+                if ($bitIndex < $bitLength) {
+                    $dark = (((int) $codewords[intdiv($bitIndex, 8)] >> (7 - ($bitIndex % 8))) & 1) !== 0;
+                }
+                $modules[$y][$x] = $dark;
+                $bitIndex++;
+            }
+        }
+        $upward = !$upward;
+    }
+}
+
+function sr_member_mfa_qr_apply_mask(array &$modules, array $functionModules, int $mask): void
+{
+    $size = count($modules);
+    for ($y = 0; $y < $size; $y++) {
+        for ($x = 0; $x < $size; $x++) {
+            if (!empty($functionModules[$y][$x])) {
+                continue;
+            }
+            if (sr_member_mfa_qr_mask_bit($mask, $x, $y)) {
+                $modules[$y][$x] = !$modules[$y][$x];
+            }
+        }
+    }
+}
+
+function sr_member_mfa_qr_mask_bit(int $mask, int $x, int $y): bool
+{
+    if ($mask === 0) {
+        return (($x + $y) % 2) === 0;
+    }
+
+    return false;
+}
+
+function sr_member_mfa_qr_set_function_module(array &$modules, array &$functionModules, int $x, int $y, bool $dark): void
+{
+    $size = count($modules);
+    if ($x < 0 || $y < 0 || $x >= $size || $y >= $size) {
+        return;
+    }
+    $modules[$y][$x] = $dark;
+    $functionModules[$y][$x] = true;
+}
+
+function sr_member_mfa_qr_bit(int $value, int $index): bool
+{
+    return (($value >> $index) & 1) !== 0;
+}
+
 function sr_member_mfa_create_pending_totp_factor(PDO $pdo, int $accountId, string $issuer, string $label, ?array $config = null): array
 {
     if ($accountId < 1) {
@@ -330,6 +688,8 @@ function sr_member_mfa_create_pending_totp_factor(PDO $pdo, int $accountId, stri
         throw $exception;
     }
 
+    $otpauthUri = sr_member_mfa_totp_otpauth_uri($issuer, $label, $secretBase32);
+
     return [
         'created' => true,
         'reason' => '',
@@ -337,7 +697,8 @@ function sr_member_mfa_create_pending_totp_factor(PDO $pdo, int $accountId, stri
         'issuer' => $issuer,
         'label' => $label,
         'secret_base32' => $secretBase32,
-        'otpauth_uri' => sr_member_mfa_totp_otpauth_uri($issuer, $label, $secretBase32),
+        'otpauth_uri' => $otpauthUri,
+        'otpauth_qr_svg_data_uri' => sr_member_mfa_totp_qr_svg_data_uri($otpauthUri),
     ];
 }
 

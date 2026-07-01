@@ -340,7 +340,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <p>
                                         <label for="modules_member_account_mfa_current_password">
                                             <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" required>
+                                            <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" autocomplete="current-password" required>
                                         </label>
                                     </p>
                                 <?php } ?>
@@ -350,6 +350,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <?php if ((string) ($memberMfaSetup['secret_base32'] ?? '') !== '') { ?>
                                 <div class="member-skin-basic-stack">
                                     <p><?php echo sr_e(sr_t('member::ui.mfa_totp.secret_help')); ?></p>
+                                    <?php if ((string) ($memberMfaSetup['otpauth_qr_svg_data_uri'] ?? '') !== '') { ?>
+                                        <p class="member-skin-basic-mfa-qr">
+                                            <img src="<?php echo sr_e((string) $memberMfaSetup['otpauth_qr_svg_data_uri']); ?>" alt="<?php echo sr_e(sr_t('member::ui.mfa_totp.qr_alt')); ?>" width="260" height="260">
+                                        </p>
+                                    <?php } ?>
                                     <p>
                                         <label for="modules_member_account_mfa_secret">
                                             <span><?php echo sr_e(sr_t('member::ui.mfa_totp.secret')); ?></span>

@@ -146,6 +146,23 @@
     color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
 }
 
+.member-skin-basic-mfa-qr {
+    background: var(--sr-surface, var(--color-white));
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: var(--radius);
+    display: inline-grid;
+    padding: calc(var(--spacing) * 3);
+    width: fit-content;
+}
+
+.member-skin-basic-mfa-qr img {
+    aspect-ratio: 1;
+    display: block;
+    height: auto;
+    max-width: min(260px, calc(100vw - 6rem));
+    width: 260px;
+}
+
 .member-skin-basic-feedback {
     margin: 0;
 }

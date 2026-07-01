@@ -249,6 +249,10 @@ sr_member_auth_policy_assert(
 );
 $mfaPendingSetup = sr_member_mfa_create_pending_totp_factor($mfaPdo, 79, 'Saanraan', 'member79@example.test', $mfaConfig);
 $mfaPendingSecret = sr_member_mfa_base32_decode((string) ($mfaPendingSetup['secret_base32'] ?? ''));
+$mfaPendingQrDataUri = (string) ($mfaPendingSetup['otpauth_qr_svg_data_uri'] ?? '');
+$mfaPendingQrSvg = str_starts_with($mfaPendingQrDataUri, 'data:image/svg+xml;base64,')
+    ? base64_decode(substr($mfaPendingQrDataUri, strlen('data:image/svg+xml;base64,')), true)
+    : '';
 $mfaPendingCode = is_string($mfaPendingSecret) ? sr_member_mfa_totp_code($mfaPendingSecret, 59) : '';
 $mfaPendingActivate = sr_member_mfa_activate_pending_totp_factor($mfaPdo, 79, (int) ($mfaPendingSetup['factor_id'] ?? 0), $mfaPendingCode, 59, $mfaConfig);
 $mfaSecondPending = sr_member_mfa_create_pending_totp_factor($mfaPdo, 79, 'Saanraan', 'member79@example.test', $mfaConfig);
@@ -257,6 +261,9 @@ sr_member_auth_policy_assert(
     !empty($mfaPendingSetup['created'])
         && (int) ($mfaPendingSetup['factor_id'] ?? 0) > 0
         && str_starts_with((string) ($mfaPendingSetup['otpauth_uri'] ?? ''), 'otpauth://totp/')
+        && is_string($mfaPendingQrSvg)
+        && str_contains($mfaPendingQrSvg, '<svg')
+        && str_contains($mfaPendingQrSvg, 'path fill="#000"')
         && is_string($mfaPendingSecret)
         && !empty($mfaPendingActivate['activated'])
         && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_factors WHERE account_id = 79 AND status = 'active'")->fetchColumn() === 1
@@ -669,6 +676,7 @@ if ($accountAction !== '') {
             && strpos($accountAction, "'mfa_manage_reauth'") !== false
             && strpos($accountAction, "sr_redirect(\$memberAccountBasePath . '/security')") !== false
             && strpos($accountAction, 'sr_member_mfa_setup_flash') !== false
+            && strpos($accountAction, 'otpauth_qr_svg_data_uri') !== false
             && strpos($accountAction, 'sr_member_mfa_recovery_codes_flash') !== false,
         'Account security action should prepare, activate, rotate, and disable TOTP MFA factors with reauth, recovery code creation, and PRG flash handling.'
     );
@@ -811,10 +819,21 @@ if ($accountView !== '') {
             && strpos($accountView, 'name="intent" value="mfa_disable"') !== false
             && strpos($accountView, 'name="mfa_code"') !== false
             && strpos($accountView, 'member::ui.mfa_totp.secret') !== false
+            && strpos($accountView, 'member-skin-basic-mfa-qr') !== false
+            && strpos($accountView, 'member::ui.mfa_totp.qr_alt') !== false
             && strpos($accountView, '$memberMfaRecoveryCodes') !== false
             && strpos($accountView, 'member::ui.mfa_recovery.once_help') !== false
             && strpos($accountView, 'member::ui.mfa_totp.reauth_code') !== false,
-        'Account security view should expose TOTP setup, manual secret, first-code activation, recovery rotation, disable controls, and one-time recovery code display.'
+        'Account security view should expose TOTP setup, QR image, manual secret, first-code activation, recovery rotation, disable controls, and one-time recovery code display.'
+    );
+}
+
+$memberSkinCss = sr_member_auth_policy_read('modules/member/skins/basic/skin.css');
+if ($memberSkinCss !== '') {
+    sr_member_auth_policy_assert(
+        strpos($memberSkinCss, '.member-skin-basic-mfa-qr') !== false
+            && strpos($memberSkinCss, 'aspect-ratio: 1') !== false,
+        'Member basic skin should keep the MFA QR image square and namespaced.'
     );
 }
 

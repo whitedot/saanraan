@@ -175,6 +175,7 @@ return [
     'ui.mfa_totp.pending_help' => '이미 만든 비밀키를 인증 앱에 등록했다면 앱에 표시되는 코드를 입력하세요. 비밀키를 다시 보려면 새 비밀키로 다시 시작하세요.',
     'ui.mfa_totp.prepare' => '2차 인증 준비',
     'ui.mfa_totp.prepare_again' => '새 비밀키로 다시 시작',
+    'ui.mfa_totp.qr_alt' => '인증 앱 등록용 QR 코드',
     'ui.mfa_totp.reauth_code' => '현재 인증 코드 또는 백업 코드',
     'ui.mfa_totp.secret' => '수동 입력 비밀키',
     'ui.mfa_totp.secret_help' => '인증 앱에서 수동 입력을 선택하고 아래 비밀키 또는 URI를 등록하세요. 이 값은 다시 표시하지 않습니다.',
