@@ -583,6 +583,37 @@ function sr_check_implementation_snapshot_bundle_modules(): void
     }
 }
 
+function sr_check_implementation_snapshot_install_tables(): void
+{
+    $doc = file_get_contents('docs/implementation-snapshot.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Implementation snapshot cannot be read.');
+        return;
+    }
+
+    preg_match_all('/`(sr_[a-z0-9_]+)`/', $doc, $docMatches);
+    $documentedTables = array_fill_keys($docMatches[1] ?? [], true);
+
+    $installFiles = array_merge(
+        is_file('database/core/install.sql') ? ['database/core/install.sql'] : [],
+        glob('modules/*/install.sql') ?: []
+    );
+    foreach ($installFiles as $installFile) {
+        $sql = file_get_contents($installFile);
+        if (!is_string($sql)) {
+            sr_check_add_error('Install SQL cannot be read: ' . $installFile);
+            continue;
+        }
+
+        preg_match_all('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?(sr_[a-z0-9_]+)`?/i', $sql, $matches);
+        foreach ($matches[1] ?? [] as $tableName) {
+            if (!isset($documentedTables[$tableName])) {
+                sr_check_add_error('Implementation snapshot DB table list is missing install table: ' . $tableName . ' from ' . $installFile);
+            }
+        }
+    }
+}
+
 function sr_check_module_lifecycle_ui_contract(): void
 {
     $moduleActions = file_get_contents('modules/admin/helpers/module-actions.php');
@@ -1562,6 +1593,7 @@ sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
 sr_check_module_contract_table_documentation();
 sr_check_implementation_snapshot_bundle_modules();
+sr_check_implementation_snapshot_install_tables();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
