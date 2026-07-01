@@ -172,6 +172,9 @@ $duplicatePaymentRecordId = sr_payment_ledger_record_payment($pdo, [
     'subject_module' => 'content',
     'subject_type' => 'content.view',
     'subject_id' => '7801',
+    'payable_amount' => 100,
+    'settlement_amount' => 100,
+    'settlement_currency' => 'KRW',
 ], [
     [
         'item_kind' => 'coupon_redemption',
@@ -199,6 +202,9 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.download',
         'subject_id' => '7801',
+        'payable_amount' => 100,
+        'settlement_amount' => 100,
+        'settlement_currency' => 'KRW',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject mismatched duplicate record data.');
 } catch (RuntimeException) {
@@ -212,6 +218,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.viwe',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject unknown subject contracts.');
 } catch (InvalidArgumentException) {
@@ -225,6 +232,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.' . str_repeat('a', 90),
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject overlong subject contract keys instead of truncating them.');
 } catch (InvalidArgumentException) {
@@ -238,6 +246,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject overlong dedupe keys instead of truncating them.');
 } catch (InvalidArgumentException) {
@@ -251,6 +260,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => str_repeat('s', 121),
+        'settlement_currency' => 'KRW',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject overlong subject ids instead of truncating them.');
 } catch (InvalidArgumentException) {
@@ -273,11 +283,39 @@ try {
 
 try {
     sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:missing-currency',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject missing settlement currency codes instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects missing settlement currency codes.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:empty-currency',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => '',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty settlement currency codes instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects explicitly empty settlement currency codes.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
         'dedupe_key' => 'content.view:payment:7:invalid-payment-kind',
         'account_id' => 7,
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'payment_kind' => 'purchase-kind',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject invalid payment kinds instead of defaulting them.');
@@ -292,6 +330,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'payment_kind' => '',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty payment kinds instead of defaulting them.');
@@ -306,6 +345,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'status' => 'paid-now',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject invalid record statuses instead of defaulting them.');
@@ -320,6 +360,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'status' => '',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject explicitly empty record statuses instead of defaulting them.');
@@ -334,6 +375,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'payable_amount' => -1,
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject negative record amounts instead of clamping them.');
@@ -348,6 +390,7 @@ try {
         'subject_module' => 'content',
         'subject_type' => 'content.view',
         'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
         'payable_amount' => '100abc',
     ], []);
     sr_payment_runtime_assert(false, 'payment ledger should reject non-integer record amounts instead of casting them.');

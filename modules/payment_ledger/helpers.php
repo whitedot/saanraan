@@ -214,7 +214,7 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
         throw new InvalidArgumentException('결제 기록 대상 계약을 확인할 수 없습니다.');
     }
     $settlementCurrency = sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? ''));
-    if ((string) ($data['settlement_currency'] ?? '') !== '' && $settlementCurrency === '') {
+    if ($settlementCurrency === '') {
         throw new InvalidArgumentException('결제 기록 통화 코드가 올바르지 않습니다.');
     }
     $payableAmount = sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.');
@@ -284,7 +284,7 @@ function sr_payment_ledger_is_duplicate_record_exception(Throwable $exception): 
 function sr_payment_ledger_assert_existing_record_matches(array $existing, array $data): void
 {
     $settlementCurrency = sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? ''));
-    if ((string) ($data['settlement_currency'] ?? '') !== '' && $settlementCurrency === '') {
+    if ($settlementCurrency === '') {
         throw new InvalidArgumentException('결제 기록 통화 코드가 올바르지 않습니다.');
     }
 
