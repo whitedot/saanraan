@@ -672,28 +672,6 @@ function sr_content_file_download_log_has_columns(PDO $pdo, array $columnNames):
     return true;
 }
 
-function sr_content_file_download_log_snapshot_columns_exist(PDO $pdo): bool
-{
-    return sr_content_file_download_log_has_columns($pdo, [
-        'content_title_snapshot',
-        'content_slug_snapshot',
-        'file_title_snapshot',
-        'file_original_name_snapshot',
-    ]);
-}
-
-function sr_content_file_download_log_refund_columns_exist(PDO $pdo): bool
-{
-    return sr_content_file_download_log_has_columns($pdo, [
-        'refund_status',
-        'refund_transaction_ids_json',
-        'refund_note',
-        'refunded_by_account_id',
-        'refunded_at',
-        'access_revoked_at',
-    ]);
-}
-
 function sr_content_asset_access_logs_table_exists(PDO $pdo): bool
 {
     static $existsByPdo = [];
@@ -772,15 +750,12 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
     $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $downloadType = (int) ($file['asset_download_enabled'] ?? 0) === 1 ? 'paid' : 'free';
     $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
-    $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
-    $snapshotColumnsSql = $hasSnapshots ? ', content_title_snapshot, content_slug_snapshot, file_title_snapshot, file_original_name_snapshot' : '';
-    $snapshotValuesSql = $hasSnapshots ? ', :content_title_snapshot, :content_slug_snapshot, :file_title_snapshot, :file_original_name_snapshot' : '';
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_file_download_logs
-            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at' . $snapshotColumnsSql . ')
+            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at, content_title_snapshot, content_slug_snapshot, file_title_snapshot, file_original_name_snapshot)
          VALUES
-            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at' . $snapshotValuesSql . ')'
+            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at, :content_title_snapshot, :content_slug_snapshot, :file_title_snapshot, :file_original_name_snapshot)'
     );
     $params = [
         'content_id' => (int) ($file['content_id'] ?? 0),
@@ -792,13 +767,11 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
         'amount' => $amount,
         'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
         'created_at' => sr_now(),
+        'content_title_snapshot' => sr_content_clean_single_line((string) ($file['content_title'] ?? ''), 160),
+        'content_slug_snapshot' => sr_content_clean_slug((string) ($file['slug'] ?? '')),
+        'file_title_snapshot' => sr_content_clean_single_line((string) ($file['title'] ?? ''), 160),
+        'file_original_name_snapshot' => sr_content_clean_single_line((string) ($file['original_name'] ?? ''), 160),
     ];
-    if ($hasSnapshots) {
-        $params['content_title_snapshot'] = sr_content_clean_single_line((string) ($file['content_title'] ?? ''), 160);
-        $params['content_slug_snapshot'] = sr_content_clean_slug((string) ($file['slug'] ?? ''));
-        $params['file_title_snapshot'] = sr_content_clean_single_line((string) ($file['title'] ?? ''), 160);
-        $params['file_original_name_snapshot'] = sr_content_clean_single_line((string) ($file['original_name'] ?? ''), 160);
-    }
     $stmt->execute($params);
 }
 
@@ -823,10 +796,6 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
 {
     $conditions = [];
     $params = [];
-    $columns = sr_content_file_download_log_columns($pdo);
-    $hasAccount = isset($columns['account_id']);
-    $hasDownloadType = isset($columns['download_type']);
-    $hasRefundColumns = sr_content_file_download_log_refund_columns_exist($pdo);
 
     $contentId = (int) ($filters['content_id'] ?? 0);
     if ($contentId > 0) {
@@ -842,47 +811,35 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
 
     $accountId = (int) ($filters['account_id'] ?? 0);
     if ($accountId > 0) {
-        if ($hasAccount) {
-            $conditions[] = 'd.account_id = :account_id';
-            $params['account_id'] = $accountId;
-        } else {
-            $conditions[] = '1 = 0';
-        }
+        $conditions[] = 'd.account_id = :account_id';
+        $params['account_id'] = $accountId;
     }
 
     $downloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
     if ($downloadTypes !== []) {
-        if ($hasDownloadType) {
-            $placeholders = [];
-            foreach (array_values($downloadTypes) as $index => $downloadType) {
-                $paramKey = 'download_type_' . (string) $index;
-                $placeholders[] = ':' . $paramKey;
-                $params[$paramKey] = (string) $downloadType;
-            }
-            $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
-        } elseif (!in_array('free', array_map('strval', $downloadTypes), true)) {
-            $conditions[] = '1 = 0';
+        $placeholders = [];
+        foreach (array_values($downloadTypes) as $index => $downloadType) {
+            $paramKey = 'download_type_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $downloadType;
         }
+        $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
     }
 
     $refundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
     if ($refundStatuses !== []) {
-        if ($hasRefundColumns) {
-            $refundConditions = [];
-            foreach (array_values($refundStatuses) as $index => $refundStatus) {
-                if ((string) $refundStatus === 'none') {
-                    $refundConditions[] = "d.refund_status = ''";
-                    continue;
-                }
-                $paramKey = 'refund_status_' . (string) $index;
-                $refundConditions[] = 'd.refund_status = :' . $paramKey;
-                $params[$paramKey] = (string) $refundStatus;
+        $refundConditions = [];
+        foreach (array_values($refundStatuses) as $index => $refundStatus) {
+            if ((string) $refundStatus === 'none') {
+                $refundConditions[] = "d.refund_status = ''";
+                continue;
             }
-            if ($refundConditions !== []) {
-                $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
-            }
-        } elseif (!in_array('none', array_map('strval', $refundStatuses), true)) {
-            $conditions[] = '1 = 0';
+            $paramKey = 'refund_status_' . (string) $index;
+            $refundConditions[] = 'd.refund_status = :' . $paramKey;
+            $params[$paramKey] = (string) $refundStatus;
+        }
+        if ($refundConditions !== []) {
+            $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
         }
     }
 
@@ -900,10 +857,8 @@ function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters):
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
-        $snapshotSearchSql = sr_content_file_download_log_snapshot_columns_exist($pdo)
-            ? ' OR d.content_title_snapshot LIKE :q OR d.content_slug_snapshot LIKE :q OR d.file_title_snapshot LIKE :q OR d.file_original_name_snapshot LIKE :q'
-            : '';
-        $memberSearchSql = $hasAccount ? ' OR a.email LIKE :q OR a.display_name LIKE :q' : '';
+        $snapshotSearchSql = ' OR d.content_title_snapshot LIKE :q OR d.content_slug_snapshot LIKE :q OR d.file_title_snapshot LIKE :q OR d.file_original_name_snapshot LIKE :q';
+        $memberSearchSql = ' OR a.email LIKE :q OR a.display_name LIKE :q';
         $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q' . $snapshotSearchSql . $memberSearchSql . ')';
         $params['q'] = '%' . $q . '%';
     }
@@ -921,14 +876,12 @@ function sr_content_admin_file_download_log_count(PDO $pdo, array $filters): int
     }
 
     $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
-    $columns = sr_content_file_download_log_columns($pdo);
-    $memberJoinSql = isset($columns['account_id']) ? 'LEFT JOIN sr_member_accounts a ON a.id = d.account_id' : '';
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
-         ' . $memberJoinSql . '
+         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
          ' . $where['sql']
     );
     $stmt->execute($where['params']);
@@ -944,36 +897,16 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     }
 
     $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
-    $columns = sr_content_file_download_log_columns($pdo);
-    $hasAccount = isset($columns['account_id']);
-    $hasDownloadType = isset($columns['download_type']);
-    $hasChargePolicy = isset($columns['charge_policy']);
-    $hasAssetModule = isset($columns['asset_module']);
-    $hasAmount = isset($columns['amount']);
-    $hasAssetAccessLogIds = isset($columns['asset_access_log_ids_json']);
-    $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
-    $contentTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(p.title, ''), NULLIF(d.content_title_snapshot, ''))" : 'p.title';
-    $contentSlugSelect = $hasSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
-    $fileTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(f.title, ''), NULLIF(d.file_title_snapshot, ''))" : 'f.title';
-    $fileOriginalNameSelect = $hasSnapshots ? "COALESCE(NULLIF(f.original_name, ''), NULLIF(d.file_original_name_snapshot, ''))" : 'f.original_name';
-    $accountIdSelect = $hasAccount ? 'd.account_id' : 'NULL';
-    $downloadTypeSelect = $hasDownloadType ? 'd.download_type' : "'free'";
-    $chargePolicySelect = $hasChargePolicy ? 'd.charge_policy' : "'once'";
-    $assetModuleSelect = $hasAssetModule ? 'd.asset_module' : "''";
-    $amountSelect = $hasAmount ? 'd.amount' : '0';
-    $assetAccessLogIdsSelect = $hasAssetAccessLogIds ? 'd.asset_access_log_ids_json' : "'[]'";
-    $memberJoinSql = $hasAccount ? 'LEFT JOIN sr_member_accounts a ON a.id = d.account_id' : '';
-    $refundedByJoinSql = 'LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id';
     $stmt = $pdo->prepare(
         'SELECT d.id,
                 d.content_id,
                 d.file_id,
-                ' . $accountIdSelect . ' AS account_id,
-                ' . $downloadTypeSelect . ' AS download_type,
-                ' . $chargePolicySelect . ' AS charge_policy,
-                ' . $assetModuleSelect . ' AS asset_module,
-                ' . $amountSelect . ' AS amount,
-                ' . $assetAccessLogIdsSelect . ' AS asset_access_log_ids_json,
+                d.account_id,
+                d.download_type,
+                d.charge_policy,
+                d.asset_module,
+                d.amount,
+                d.asset_access_log_ids_json,
                 d.refund_status,
                 d.refund_transaction_ids_json,
                 d.refund_note,
@@ -981,21 +914,21 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 d.refunded_at,
                 d.access_revoked_at,
                 d.created_at,
-                ' . $contentTitleSelect . ' AS content_title,
-                ' . $contentSlugSelect . ' AS content_slug,
+                COALESCE(NULLIF(p.title, \'\'), NULLIF(d.content_title_snapshot, \'\')) AS content_title,
+                COALESCE(NULLIF(p.slug, \'\'), NULLIF(d.content_slug_snapshot, \'\')) AS content_slug,
                 p.status AS content_status,
-                ' . $fileTitleSelect . ' AS file_title,
-                ' . $fileOriginalNameSelect . ' AS original_name,
+                COALESCE(NULLIF(f.title, \'\'), NULLIF(d.file_title_snapshot, \'\')) AS file_title,
+                COALESCE(NULLIF(f.original_name, \'\'), NULLIF(d.file_original_name_snapshot, \'\')) AS original_name,
                 f.status AS file_status,
-                ' . ($hasAccount ? 'a.email' : "''") . ' AS email,
-                ' . ($hasAccount ? 'a.display_name' : "''") . ' AS display_name,
+                a.email,
+                a.display_name,
                 rb.display_name AS refunded_by_display_name,
                 \'\' AS access_log_summary
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
-         ' . $memberJoinSql . '
-         ' . $refundedByJoinSql . '
+         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
+         LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id
          ' . $where['sql'] . '
          ' . sr_admin_sort_order_sql(sr_content_admin_file_download_log_sort_options(), $sort, sr_content_admin_file_download_log_default_sort()) . '
          LIMIT :limit_value OFFSET :offset_value'
@@ -1193,9 +1126,6 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
     }
     if ($refundNote === '') {
         return ['ok' => false, 'message' => '환불 사유를 입력하세요.'];
-    }
-    if (!sr_content_file_download_log_refund_columns_exist($pdo)) {
-        return ['ok' => false, 'message' => '다운로드 환불 기록 컬럼이 아직 준비되지 않았습니다. 대기 중인 업데이트를 먼저 적용하세요.'];
     }
 
     $startedTransaction = !$pdo->inTransaction();

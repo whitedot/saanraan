@@ -214,21 +214,14 @@ return static function (PDO $pdo, int $accountId): array {
 
     $fileDownloadLogs = [];
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
-        $hasDownloadLogSnapshots = function_exists('sr_content_file_download_log_snapshot_columns_exist') && sr_content_file_download_log_snapshot_columns_exist($pdo);
-        $hasDownloadLogRefundColumns = function_exists('sr_content_file_download_log_refund_columns_exist') && sr_content_file_download_log_refund_columns_exist($pdo);
-        $contentTitleSelect = $hasDownloadLogSnapshots ? "COALESCE(NULLIF(p.title, ''), NULLIF(d.content_title_snapshot, ''))" : 'p.title';
-        $contentSlugSelect = $hasDownloadLogSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
-        $fileTitleSelect = $hasDownloadLogSnapshots ? "COALESCE(NULLIF(f.title, ''), NULLIF(d.file_title_snapshot, ''))" : 'f.title';
-        $fileOriginalNameSelect = $hasDownloadLogSnapshots ? "COALESCE(NULLIF(f.original_name, ''), NULLIF(d.file_original_name_snapshot, ''))" : 'f.original_name';
-        $refundColumnsSelect = $hasDownloadLogRefundColumns
-            ? 'd.refund_status, d.refund_transaction_ids_json, d.refund_note, d.refunded_by_account_id, d.refunded_at, d.access_revoked_at'
-            : '\'\' AS refund_status, \'[]\' AS refund_transaction_ids_json, \'\' AS refund_note, NULL AS refunded_by_account_id, NULL AS refunded_at, NULL AS access_revoked_at';
         $stmt = $pdo->prepare(
-            'SELECT d.id, d.content_id, ' . $contentSlugSelect . ' AS slug, ' . $contentTitleSelect . ' AS title,
-                    d.file_id, ' . $fileTitleSelect . ' AS file_title,
-                    ' . $fileOriginalNameSelect . ' AS original_name, d.account_id, d.download_type, d.charge_policy,
+            'SELECT d.id, d.content_id, COALESCE(NULLIF(p.slug, \'\'), NULLIF(d.content_slug_snapshot, \'\')) AS slug,
+                    COALESCE(NULLIF(p.title, \'\'), NULLIF(d.content_title_snapshot, \'\')) AS title,
+                    d.file_id, COALESCE(NULLIF(f.title, \'\'), NULLIF(d.file_title_snapshot, \'\')) AS file_title,
+                    COALESCE(NULLIF(f.original_name, \'\'), NULLIF(d.file_original_name_snapshot, \'\')) AS original_name,
+                    d.account_id, d.download_type, d.charge_policy,
                     d.asset_module, d.amount, d.asset_access_log_ids_json,
-                    ' . $refundColumnsSelect . ',
+                    d.refund_status, d.refund_transaction_ids_json, d.refund_note, d.refunded_by_account_id, d.refunded_at, d.access_revoked_at,
                     d.created_at
              FROM sr_content_file_download_logs d
              LEFT JOIN sr_content_items p ON p.id = d.content_id

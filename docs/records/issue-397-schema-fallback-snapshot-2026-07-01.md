@@ -146,3 +146,26 @@ php .tools/bin/snapshot-schema-fallbacks.php --include-tools
 - named schema guard calls: 23
 - unique named schema guard helpers: 10
 - generic optional guard calls: 58
+
+## Current Snapshot After Download/Settlement Log Guard Removal Pass
+
+Generated after removing current-schema fallback guards for community attachment download refund columns, content file download snapshot/refund columns, and content asset log settlement metadata helpers:
+
+```sh
+php .tools/bin/snapshot-schema-fallbacks.php
+```
+
+- `schema_unavailable` occurrences: 0
+- `legacy_unknown` SQL alias occurrences: 0
+- other `legacy_unknown` occurrences: 4
+- named schema guard calls: 7
+- unique named schema guard helpers: 4
+- generic optional guard calls: 58
+
+Remaining named schema guards are limited to non-download admin/profile surfaces:
+
+- site menu item icon name
+- banner table columns
+- member profile adult flag
+
+The generic optional guard manual resolution queue remains unchanged at 6 entries.

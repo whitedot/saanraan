@@ -364,7 +364,11 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
     $pdo->exec("CREATE TABLE sr_content_file_download_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         content_id INTEGER NOT NULL,
+        content_title_snapshot TEXT NOT NULL DEFAULT '',
+        content_slug_snapshot TEXT NOT NULL DEFAULT '',
         file_id INTEGER NOT NULL,
+        file_title_snapshot TEXT NOT NULL DEFAULT '',
+        file_original_name_snapshot TEXT NOT NULL DEFAULT '',
         account_id INTEGER,
         download_type TEXT NOT NULL DEFAULT 'free',
         charge_policy TEXT NOT NULL DEFAULT 'once',

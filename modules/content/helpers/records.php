@@ -1024,22 +1024,20 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
             ]);
         }
 
-        if (sr_content_file_download_log_snapshot_columns_exist($pdo)) {
-            $stmt = $pdo->prepare(
-                "UPDATE sr_content_file_download_logs
-                 SET content_title_snapshot = :content_title_snapshot,
-                     content_slug_snapshot = '',
-                     file_title_snapshot = :file_title_snapshot,
-                     file_original_name_snapshot = :file_original_name_snapshot
-                 WHERE content_id = :content_id"
-            );
-            $stmt->execute([
-                'content_title_snapshot' => $deletedTitle,
-                'file_title_snapshot' => $deletedFileName,
-                'file_original_name_snapshot' => $deletedFileName,
-                'content_id' => $pageId,
-            ]);
-        }
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_file_download_logs
+             SET content_title_snapshot = :content_title_snapshot,
+                 content_slug_snapshot = '',
+                 file_title_snapshot = :file_title_snapshot,
+                 file_original_name_snapshot = :file_original_name_snapshot
+             WHERE content_id = :content_id"
+        );
+        $stmt->execute([
+            'content_title_snapshot' => $deletedTitle,
+            'file_title_snapshot' => $deletedFileName,
+            'file_original_name_snapshot' => $deletedFileName,
+            'content_id' => $pageId,
+        ]);
 
         if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
             $stmt = $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = ? OR active_content_id = ?');

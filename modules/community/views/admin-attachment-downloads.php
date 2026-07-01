@@ -7,7 +7,6 @@ $downloadLogSort = isset($downloadLogSort) && is_array($downloadLogSort) ? $down
 $selectedDownloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
 $selectedRefundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
 $canEditAttachmentDownloads = !empty($canEditAttachmentDownloads);
-$hasAttachmentDownloadRefundColumns = isset($pdo) && $pdo instanceof PDO && sr_community_attachment_download_log_refund_columns_exist($pdo);
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/attachment-downloads');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -30,12 +29,10 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                     <span class="filtering-label">구분</span>
                     <?php echo sr_admin_filter_radio_toggle_group_html('community_attachment_download_filter_type', 'download_type', ['free' => '무료', 'paid' => '유료'], $selectedDownloadTypes, '전체'); ?>
                 </div>
-                <?php if ($hasAttachmentDownloadRefundColumns) { ?>
-                    <div class="filtering-field">
-                        <span class="filtering-label">환불</span>
-                        <?php echo sr_admin_filter_toggle_group_html('community_attachment_download_filter_refund_status', 'refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], $selectedRefundStatuses, '전체'); ?>
-                    </div>
-                <?php } ?>
+                <div class="filtering-field">
+                    <span class="filtering-label">환불</span>
+                    <?php echo sr_admin_filter_toggle_group_html('community_attachment_download_filter_refund_status', 'refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], $selectedRefundStatuses, '전체'); ?>
+                </div>
                 <label class="filtering-field-fill filtering-field" for="community_attachment_download_filter_q">
                     <span class="filtering-label">검색</span>
                     <input id="community_attachment_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시판, 게시글, 첨부파일, 회원">
@@ -129,7 +126,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                         : '';
                     $assetLogSummary = trim((string) ($downloadLog['asset_log_summary'] ?? ''));
                     $refundModalId = 'community-attachment-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);
-                    $canRefund = $canEditAttachmentDownloads && $hasAttachmentDownloadRefundColumns && $isPaid && $refundStatus === '' && $downloadAccountId > 0 && sr_community_attachment_download_log_access_log_ids($downloadLog) !== [];
+                    $canRefund = $canEditAttachmentDownloads && $isPaid && $refundStatus === '' && $downloadAccountId > 0 && sr_community_attachment_download_log_access_log_ids($downloadLog) !== [];
                     ?>
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($downloadLog['created_at'] ?? '')); ?></td>
@@ -171,9 +168,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <?php if (!$hasAttachmentDownloadRefundColumns) { ?>
-                                <span class="admin-status is-blocked">업데이트 필요</span>
-                            <?php } elseif ($refundStatus === 'refunded') { ?>
+                            <?php if ($refundStatus === 'refunded') { ?>
                                 <span class="admin-status is-normal">환불 완료</span>
                                 <p class="form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
                             <?php } elseif ($refundStatus === 'access_revoked') { ?>
@@ -193,9 +188,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
         </table>
     </div>
     <?php echo sr_admin_status_description_list_html('community_attachment_download_type', ['free' => '무료', 'paid' => '유료'], [], '다운로드 유형 설명'); ?>
-    <?php if ($hasAttachmentDownloadRefundColumns) { ?>
-        <?php echo sr_admin_status_description_list_html('community_attachment_download_refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], [], '환불 처리 상태 설명'); ?>
-    <?php } ?>
+    <?php echo sr_admin_status_description_list_html('community_attachment_download_refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], [], '환불 처리 상태 설명'); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($downloadLogPagination, '첨부 다운로드 내역 페이지'); ?>
@@ -204,7 +197,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
     <?php
     $isPaid = (string) ($downloadLog['download_type'] ?? '') === 'paid';
     $refundStatus = (string) ($downloadLog['refund_status'] ?? '');
-    if (!$canEditAttachmentDownloads || !$hasAttachmentDownloadRefundColumns || !$isPaid || $refundStatus !== '' || (int) ($downloadLog['account_id'] ?? 0) <= 0 || sr_community_attachment_download_log_access_log_ids($downloadLog) === []) {
+    if (!$canEditAttachmentDownloads || !$isPaid || $refundStatus !== '' || (int) ($downloadLog['account_id'] ?? 0) <= 0 || sr_community_attachment_download_log_access_log_ids($downloadLog) === []) {
         continue;
     }
     $refundModalId = 'community-attachment-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);

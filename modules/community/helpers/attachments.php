@@ -754,18 +754,6 @@ function sr_community_attachment_download_log_has_columns(PDO $pdo, array $colum
     return true;
 }
 
-function sr_community_attachment_download_log_refund_columns_exist(PDO $pdo): bool
-{
-    return sr_community_attachment_download_log_has_columns($pdo, [
-        'refund_status',
-        'refund_transaction_ids_json',
-        'refund_note',
-        'refunded_by_account_id',
-        'refunded_at',
-        'access_revoked_at',
-    ]);
-}
-
 function sr_community_asset_log_columns(PDO $pdo): array
 {
     static $columnsByPdo = [];
@@ -1165,7 +1153,7 @@ function sr_community_admin_set_attachment_status(PDO $pdo, array $attachmentIds
 
 function sr_community_admin_attachment_download_log_sort_options(?PDO $pdo = null): array
 {
-    $options = [
+    return [
         'created_at' => ['label' => '다운로드 시각', 'columns' => ['d.created_at', 'd.id']],
         'board' => ['label' => '게시판', 'columns' => ['board_title', 'd.id']],
         'post' => ['label' => '게시글', 'columns' => ['post_title', 'd.id']],
@@ -1173,12 +1161,8 @@ function sr_community_admin_attachment_download_log_sort_options(?PDO $pdo = nul
         'account_id' => ['label' => '회원', 'columns' => ['d.account_id', 'd.id']],
         'download_type' => ['label' => '구분', 'columns' => ['d.download_type', 'd.id']],
         'amount' => ['label' => '금액', 'columns' => ['d.amount', 'd.id']],
+        'refunded_at' => ['label' => '환불 시각', 'columns' => ['d.refunded_at', 'd.id']],
     ];
-    if ($pdo instanceof PDO && sr_community_attachment_download_log_refund_columns_exist($pdo)) {
-        $options['refunded_at'] = ['label' => '환불 시각', 'columns' => ['d.refunded_at', 'd.id']];
-    }
-
-    return $options;
 }
 
 function sr_community_admin_attachment_download_log_default_sort(): array
@@ -1212,22 +1196,18 @@ function sr_community_admin_attachment_download_log_where_sql(PDO $pdo, array $f
 
     $refundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
     if ($refundStatuses !== []) {
-        if (sr_community_attachment_download_log_refund_columns_exist($pdo)) {
-            $refundConditions = [];
-            foreach (array_values($refundStatuses) as $index => $refundStatus) {
-                if ((string) $refundStatus === 'none') {
-                    $refundConditions[] = "d.refund_status = ''";
-                    continue;
-                }
-                $paramKey = 'refund_status_' . (string) $index;
-                $refundConditions[] = 'd.refund_status = :' . $paramKey;
-                $params[$paramKey] = (string) $refundStatus;
+        $refundConditions = [];
+        foreach (array_values($refundStatuses) as $index => $refundStatus) {
+            if ((string) $refundStatus === 'none') {
+                $refundConditions[] = "d.refund_status = ''";
+                continue;
             }
-            if ($refundConditions !== []) {
-                $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
-            }
-        } elseif (!in_array('none', array_map('strval', $refundStatuses), true)) {
-            $conditions[] = '1 = 0';
+            $paramKey = 'refund_status_' . (string) $index;
+            $refundConditions[] = 'd.refund_status = :' . $paramKey;
+            $params[$paramKey] = (string) $refundStatus;
+        }
+        if ($refundConditions !== []) {
+            $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
         }
     }
 
@@ -1283,25 +1263,16 @@ function sr_community_admin_attachment_download_logs(PDO $pdo, array $filters, i
     }
 
     $where = sr_community_admin_attachment_download_log_where_sql($pdo, $filters);
-    $hasRefundColumns = sr_community_attachment_download_log_refund_columns_exist($pdo);
-    $refundStatusSelect = $hasRefundColumns ? 'd.refund_status' : "''";
-    $refundTransactionIdsSelect = $hasRefundColumns ? 'd.refund_transaction_ids_json' : "'[]'";
-    $refundNoteSelect = $hasRefundColumns ? 'd.refund_note' : "''";
-    $refundedByAccountIdSelect = $hasRefundColumns ? 'd.refunded_by_account_id' : 'NULL';
-    $refundedAtSelect = $hasRefundColumns ? 'd.refunded_at' : 'NULL';
-    $accessRevokedAtSelect = $hasRefundColumns ? 'd.access_revoked_at' : 'NULL';
-    $refundedByJoinSql = $hasRefundColumns ? 'LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id' : '';
-    $refundedByDisplayNameSelect = $hasRefundColumns ? 'rb.display_name' : "''";
     $stmt = $pdo->prepare(
         "SELECT d.id, d.board_id, d.post_id, d.attachment_id, d.account_id, d.download_type, d.charge_policy, d.asset_module, d.amount,
                 d.asset_access_log_ids_json, d.created_at,
-                " . $refundStatusSelect . " AS refund_status,
-                " . $refundTransactionIdsSelect . " AS refund_transaction_ids_json,
-                " . $refundNoteSelect . " AS refund_note,
-                " . $refundedByAccountIdSelect . " AS refunded_by_account_id,
-                " . $refundedAtSelect . " AS refunded_at,
-                " . $accessRevokedAtSelect . " AS access_revoked_at,
-                " . $refundedByDisplayNameSelect . " AS refunded_by_display_name,
+                d.refund_status,
+                d.refund_transaction_ids_json,
+                d.refund_note,
+                d.refunded_by_account_id,
+                d.refunded_at,
+                d.access_revoked_at,
+                rb.display_name AS refunded_by_display_name,
                 COALESCE(NULLIF(b.title, ''), '') AS board_title,
                 b.board_key,
                 COALESCE(NULLIF(p.title, ''), NULLIF(d.post_title_snapshot, '')) AS post_title,
@@ -1315,7 +1286,7 @@ function sr_community_admin_attachment_download_logs(PDO $pdo, array $filters, i
          LEFT JOIN sr_community_posts p ON p.id = d.post_id
          LEFT JOIN sr_community_boards b ON b.id = d.board_id
          LEFT JOIN sr_member_accounts u ON u.id = d.account_id
-         " . $refundedByJoinSql . "
+         LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id
          " . $where['sql'] . '
          ' . sr_admin_sort_order_sql(sr_community_admin_attachment_download_log_sort_options($pdo), $sort, sr_community_admin_attachment_download_log_default_sort()) . '
          LIMIT :limit_value OFFSET :offset_value'
@@ -1428,10 +1399,6 @@ function sr_community_refund_attachment_download(PDO $pdo, int $downloadLogId, i
     if ($refundNote === '') {
         return ['ok' => false, 'message' => '환불 사유를 입력하세요.'];
     }
-    if (!sr_community_attachment_download_log_refund_columns_exist($pdo)) {
-        return ['ok' => false, 'message' => '첨부 다운로드 환불 기록 컬럼이 아직 준비되지 않았습니다. 대기 중인 업데이트를 먼저 적용하세요.'];
-    }
-
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
