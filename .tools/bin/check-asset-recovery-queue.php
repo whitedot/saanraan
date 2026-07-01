@@ -52,6 +52,9 @@ $requireContains('modules/asset_ledger/helpers.php', [
     'sr_asset_recovery_record_failure',
     'sr_asset_recovery_record_reversal_link',
     'sr_asset_recovery_retry',
+    "function_exists('sr_module_enabled') && !sr_module_enabled(\$pdo, 'community')",
+    "!is_file(SR_ROOT . '/modules/community/helpers.php')",
+    "!function_exists('sr_community_reverse_asset_grant_for_operation')",
     'AND version = :version',
     "(string) \$failure['reversal_event_key'],\n            (string) \$failure['reversal_event_key'],\n            'asset.recovery.retry'",
 ]);

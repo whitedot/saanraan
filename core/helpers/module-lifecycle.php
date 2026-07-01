@@ -305,7 +305,11 @@ function sr_module_foundation_dependencies(string $moduleKey): array
         return ['asset_ledger'];
     }
 
-    if (in_array($moduleKey, ['content', 'community'], true)) {
+    if ($moduleKey === 'community') {
+        return ['asset_ledger', 'payment_ledger'];
+    }
+
+    if ($moduleKey === 'content') {
         return ['payment_ledger'];
     }
 

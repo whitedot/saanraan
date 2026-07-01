@@ -116,8 +116,8 @@
 
 - 내부 키는 `asset_ledger`, 운영자 표시명은 `잔액 처리 기반`이다.
 - 관리자 사이드메뉴에는 표시하지 않고, `/admin/modules` 기본 목록에서도 숨긴다. 운영자는 `기반 모듈 보기` 토글로 설치/상태를 확인할 수 있다.
-- 새 설치에서는 `point`, `reward`, `deposit` 중 하나를 선택하면 설치기가 `asset_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 세 모듈 중 하나를 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `asset_ledger`를 먼저 자동 설치/활성화한다.
-- `point`, `reward`, `deposit` 중 하나라도 활성 상태이면 `asset_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
+- 새 설치에서는 `point`, `reward`, `deposit`, `community` 중 하나를 선택하면 설치기가 `asset_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 세 자산 모듈 또는 커뮤니티를 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `asset_ledger`를 먼저 자동 설치/활성화한다.
+- `point`, `reward`, `deposit`, `community` 중 하나라도 활성 상태이면 `asset_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
 - 자동 설치/활성화는 감사 로그의 `module.foundation.installed` 또는 `module.foundation.enabled` 이벤트로 남기고, 관리자 처리 결과에는 기반 모듈이 함께 준비되었다고 표시한다.
 - `asset_ledger`는 통합 balance/transaction 테이블을 만들지 않는다. 실제 자산 테이블은 계속 각 자산 모듈이 소유한다.
 - 테이블명은 호출 모듈이 명시적으로 넘기되, helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_deposit_balances`/`sr_deposit_transactions`다.

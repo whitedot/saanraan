@@ -749,7 +749,28 @@ function sr_asset_recovery_retry(PDO $pdo, int $failureId, int $actorAccountId):
     }
 
     if ((string) ($failure['source_module'] ?? '') === 'community') {
+        if (function_exists('sr_module_enabled') && !sr_module_enabled($pdo, 'community')) {
+            return [
+                'operation_allowed' => false,
+                'recovery_status' => 'failed',
+                'message' => '커뮤니티 모듈이 활성화되어 있지 않아 미회수 재시도를 실행할 수 없습니다.',
+            ];
+        }
+        if (!is_file(SR_ROOT . '/modules/community/helpers.php')) {
+            return [
+                'operation_allowed' => false,
+                'recovery_status' => 'failed',
+                'message' => '커뮤니티 회수 helper를 찾을 수 없습니다.',
+            ];
+        }
         require_once SR_ROOT . '/modules/community/helpers.php';
+        if (!function_exists('sr_community_reverse_asset_grant_for_operation')) {
+            return [
+                'operation_allowed' => false,
+                'recovery_status' => 'failed',
+                'message' => '커뮤니티 회수 callback을 확인할 수 없습니다.',
+            ];
+        }
         $result = sr_community_reverse_asset_grant_for_operation(
             $pdo,
             (int) $failure['account_id'],
@@ -767,7 +788,11 @@ function sr_asset_recovery_retry(PDO $pdo, int $failureId, int $actorAccountId):
             ]
         );
 
-        return is_array($result) ? $result : ['operation_allowed' => false, 'recovery_status' => 'failed'];
+        return is_array($result) ? $result : [
+            'operation_allowed' => false,
+            'recovery_status' => 'failed',
+            'message' => '커뮤니티 회수 callback이 올바른 결과를 반환하지 않았습니다.',
+        ];
     }
 
     throw new RuntimeException('이 source 모듈은 아직 재회수 callback을 제공하지 않습니다.');

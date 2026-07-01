@@ -142,6 +142,17 @@ sr_module_foundation_lifecycle_assert($assetDependents === ['point'], 'asset_led
 $paymentDependents = sr_enabled_modules_requiring_foundation($pdo, 'payment_ledger');
 sr_module_foundation_lifecycle_assert($paymentDependents === ['content'], 'payment_ledger disable guard must include enabled payment-recording dependents only.');
 
+$pdo->exec("UPDATE sr_modules SET status = 'enabled' WHERE module_key = 'community'");
+sr_module_foundation_lifecycle_assert(
+    sr_enabled_modules_requiring_foundation($pdo, 'asset_ledger') === ['community', 'point'],
+    'asset_ledger disable guard must include enabled community because it owns recovery callbacks.'
+);
+sr_module_foundation_lifecycle_assert(
+    sr_enabled_modules_requiring_foundation($pdo, 'payment_ledger') === ['community', 'content'],
+    'payment_ledger disable guard must include enabled content and community modules.'
+);
+$pdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'community'");
+
 $assetDisableErrors = sr_module_disable_errors($pdo, 'asset_ledger');
 sr_module_foundation_lifecycle_assert($assetDisableErrors !== [] && str_contains($assetDisableErrors[0], 'point'), 'asset_ledger disable errors must block active dependent modules.');
 

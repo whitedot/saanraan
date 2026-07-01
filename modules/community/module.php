@@ -19,7 +19,7 @@ return [
         'module_contract' => '2.0',
     ],
     'requires' => [
-        'modules' => ['member', 'admin', 'payment_ledger'],
+        'modules' => ['member', 'admin', 'asset_ledger', 'payment_ledger'],
     ],
     'contracts' => [
         'provides' => [

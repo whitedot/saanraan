@@ -352,7 +352,7 @@ $targets = [
     [
         'label' => 'Community board skin',
         'helper' => 'modules/community/helpers/presentation.php',
-        'action' => 'modules/community/actions/admin-boards.php',
+        'action' => ['modules/community/actions/admin-boards.php', 'modules/community/helpers/admin-boards.php'],
         'view' => 'modules/community/views/admin-boards.php',
         'render_views' => ['modules/community/actions/list.php', 'modules/community/actions/view.php', 'modules/community/actions/write.php', 'modules/community/actions/edit.php'],
         'files' => [
