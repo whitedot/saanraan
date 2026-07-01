@@ -107,7 +107,7 @@ $assetDependents = sr_enabled_modules_requiring_foundation($pdo, 'asset_ledger')
 sr_module_foundation_lifecycle_assert($assetDependents === ['point'], 'asset_ledger disable guard must include enabled asset modules only.');
 
 $paymentDependents = sr_enabled_modules_requiring_foundation($pdo, 'payment_ledger');
-sr_module_foundation_lifecycle_assert($paymentDependents === ['content', 'coupon'], 'payment_ledger disable guard must include enabled content/coupon dependents only.');
+sr_module_foundation_lifecycle_assert($paymentDependents === ['content'], 'payment_ledger disable guard must include enabled payment-recording dependents only.');
 
 $assetDisableErrors = sr_module_disable_errors($pdo, 'asset_ledger');
 sr_module_foundation_lifecycle_assert($assetDisableErrors !== [] && str_contains($assetDisableErrors[0], 'point'), 'asset_ledger disable errors must block active dependent modules.');
@@ -116,13 +116,13 @@ $paymentDisableErrors = sr_module_disable_errors($pdo, 'payment_ledger');
 sr_module_foundation_lifecycle_assert(
     $paymentDisableErrors !== []
     && str_contains($paymentDisableErrors[0], 'content')
-    && str_contains($paymentDisableErrors[0], 'coupon'),
+    && !str_contains($paymentDisableErrors[0], 'coupon'),
     'payment_ledger disable errors must block active dependent modules.'
 );
 
 sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'content') === [], 'non-foundation modules must not use foundation disable guard.');
 
-$pdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key IN ('content', 'coupon')");
+$pdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'content'");
 sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'payment_ledger') === [], 'payment_ledger disable guard must allow disabling after dependents are disabled.');
 
 $adminModuleActions = (string) file_get_contents(SR_ROOT . '/modules/admin/helpers/module-actions.php');

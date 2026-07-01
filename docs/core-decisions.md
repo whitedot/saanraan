@@ -134,8 +134,8 @@
 
 - 내부 키는 `payment_ledger`, 운영자 표시명은 `결제 기록 기반`이다.
 - 관리자 사이드메뉴에는 표시하지 않고, `/admin/modules` 기본 목록에서도 숨긴다. 운영자는 `기반 모듈 보기` 토글로 설치/상태를 확인할 수 있다.
-- 새 설치에서는 `content`, `community`, `coupon` 중 하나를 선택하면 설치기가 `payment_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 이 모듈들을 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `payment_ledger`를 먼저 자동 설치/활성화한다.
-- `content`, `community`, `coupon` 중 하나라도 활성 상태이면 `payment_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
+- 새 설치에서는 `content`, `community` 중 하나를 선택하면 설치기가 `payment_ledger`를 필요한 기반 모듈로 자동 포함하고 사용자에게 함께 설치됨을 안내한다. 기존 설치에서 이 모듈들을 설치하거나 활성화할 때도 관리자 수명주기 처리에서 `payment_ledger`를 먼저 자동 설치/활성화한다.
+- `content`, `community` 중 하나라도 활성 상태이면 `payment_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
 - `payment_ledger`는 주문, 상품, 접근권 정책, 배송, 환불 가능 여부 같은 도메인 정책을 소유하지 않는다. 공통 테이블은 결제 record와 item 증빙에만 사용한다.
 - 주문내역과 결제내역은 같은 테이블로 합치지 않는다. 커머스 주문은 커머스 모듈이 소유하고, 공통 결제내역은 주문 ID를 subject/reference로 참조한다.
 - 결제 record의 `dedupe_key`는 불변 증빙 단위다. 같은 key의 재호출은 기존 record id만 반환하고 item을 추가하지 않으며, account/subject/amount/currency 같은 생성 증빙 값이 기존 record와 다르면 실패한다. 결제 종류, 생성 상태, item 되돌림 상태 같은 lifecycle key는 올바른 identifier/status 값일 때만 저장하고 잘못된 값을 기본값으로 흡수하지 않는다. `status`는 취소/환불로 바뀌는 lifecycle 상태라 replay 비교 기준에서 제외한다. 동시 생성 중 unique 충돌이 발생해도 기존 record를 다시 조회해 같은 값이면 흡수하고, 탈퇴/익명화 후 늦게 도착한 같은 dedupe replay는 account 연결을 복원하지 않은 채 흡수한다.
