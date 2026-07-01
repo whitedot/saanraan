@@ -107,3 +107,42 @@ php .tools/bin/snapshot-schema-fallbacks.php --include-tools
 - named schema guard calls: 94
 - unique named schema guard helpers: 20
 - generic optional guard calls: 58
+
+## Current Snapshot After Community Post/Comment Guard Removal Pass
+
+Generated after removing current-schema community post/comment guards for secret, thread, guest author, author snapshot, hidden metadata, extra values, reaction preset, summary feed candidate, and category columns:
+
+```sh
+php .tools/bin/snapshot-schema-fallbacks.php
+```
+
+- `schema_unavailable` occurrences: 0
+- `legacy_unknown` SQL alias occurrences: 0
+- other `legacy_unknown` occurrences: 4
+- named schema guard calls: 23
+- unique named schema guard helpers: 10
+- generic optional guard calls: 58
+
+Remaining named schema guards are outside the community post/comment surface:
+
+- community attachment download refund columns
+- content file download snapshot/refund columns
+- site menu icon name
+- banner table columns
+- content asset log settlement metadata
+- member profile adult flag
+
+The generic optional guard manual resolution queue remains unchanged at 6 entries.
+
+Tooling fixture/assertion scan:
+
+```sh
+php .tools/bin/snapshot-schema-fallbacks.php --include-tools
+```
+
+- `schema_unavailable` occurrences: 0
+- `legacy_unknown` SQL alias occurrences: 0
+- other `legacy_unknown` occurrences: 18
+- named schema guard calls: 23
+- unique named schema guard helpers: 10
+- generic optional guard calls: 58

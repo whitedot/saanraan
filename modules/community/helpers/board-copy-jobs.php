@@ -598,20 +598,12 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
     $categorySupported = sr_community_categories_supported($pdo);
     $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
-    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
-    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $reactionColumnSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key, reaction_comment_preset_key, ' : '';
-    $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
-    $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $summaryFeedCandidateColumnSql = sr_community_post_summary_feed_candidate_column_exists($pdo) ? 'summary_feed_candidate, ' : '';
-    $summaryFeedCandidateValueSql = $summaryFeedCandidateColumnSql !== '' ? ':summary_feed_candidate, ' : '';
     $summaryFeedCandidate = sr_community_summary_feed_candidate_value_for_board($pdo, $targetBoardId);
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . $secretColumnSql . $summaryFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, title, body_text, body_format, reaction_preset_key, reaction_comment_preset_key, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . $secretValueSql . $summaryFeedCandidateValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :title, :body_text, :body_format, :reaction_preset_key, :reaction_comment_preset_key, :is_secret, :summary_feed_candidate, :status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     $processed = 0;
     foreach ($maps as $map) {
@@ -626,9 +618,14 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
         $params = [
             'board_id' => $targetBoardId,
             'author_account_id' => (int) $post['author_account_id'],
+            'author_public_name_snapshot' => (string) ($post['author_public_name_snapshot'] ?? ''),
             'title' => (string) $post['title'],
             'body_text' => (string) $post['body_text'],
             'body_format' => (string) ($post['body_format'] ?? 'plain'),
+            'reaction_preset_key' => (string) ($post['reaction_preset_key'] ?? ''),
+            'reaction_comment_preset_key' => (string) ($post['reaction_comment_preset_key'] ?? ''),
+            'is_secret' => (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0,
+            'summary_feed_candidate' => $summaryFeedCandidate,
             'status' => (string) $post['status'],
             'last_commented_at' => $post['last_commented_at'] ?? null,
             'created_at' => (string) $post['created_at'],
@@ -641,19 +638,6 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             if ((int) $params['category_id'] < 1) {
                 $params['category_id'] = null;
             }
-        }
-        if ($authorSnapshotColumnSql !== '') {
-            $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
-        }
-        if ($reactionColumnSql !== '') {
-            $params['reaction_preset_key'] = (string) ($post['reaction_preset_key'] ?? '');
-            $params['reaction_comment_preset_key'] = (string) ($post['reaction_comment_preset_key'] ?? '');
-        }
-        if ($secretColumnSql !== '') {
-            $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
-        }
-        if ($summaryFeedCandidateColumnSql !== '') {
-            $params['summary_feed_candidate'] = $summaryFeedCandidate;
         }
         if ((string) ($post['body_format'] ?? 'plain') === 'html') {
             $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
@@ -697,15 +681,11 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
 {
     sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $maps = sr_community_board_copy_job_pending_maps($pdo, (int) $job['id'], 'comment', $limit);
-    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
-    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $secretColumnSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
+            (post_id, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
+            (:post_id, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
     );
     $processed = 0;
     foreach ($maps as $map) {
@@ -725,17 +705,13 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
         $params = [
             'post_id' => $newPostId,
             'author_account_id' => (int) $comment['author_account_id'],
+            'author_public_name_snapshot' => (string) ($comment['author_public_name_snapshot'] ?? ''),
             'body_text' => (string) $comment['body_text'],
+            'is_secret' => (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0,
             'status' => (string) $comment['status'],
             'created_at' => (string) $comment['created_at'],
             'updated_at' => (string) $comment['updated_at'],
         ];
-        if ($authorSnapshotColumnSql !== '') {
-            $params['author_public_name_snapshot'] = (string) ($comment['author_public_name_snapshot'] ?? '');
-        }
-        if ($secretColumnSql !== '') {
-            $params['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
-        }
         $insert->execute($params);
         sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', '', '', (int) $job['id'], $lockToken);
         $processed++;

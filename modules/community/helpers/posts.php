@@ -87,9 +87,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
-            ? "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '\\\\'"
-            : "p.body_text LIKE :body_keyword ESCAPE '\\\\'";
+        $secretBodyCondition = "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '\\\\'";
         $where .= " AND (p.title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
@@ -107,10 +105,8 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -215,9 +211,7 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
     $where = "board_id = :board_id AND status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
-            ? "is_secret = 0 AND body_text LIKE :body_keyword ESCAPE '\\\\'"
-            : "body_text LIKE :body_keyword ESCAPE '\\\\'";
+        $secretBodyCondition = "is_secret = 0 AND body_text LIKE :body_keyword ESCAPE '\\\\'";
         $where .= " AND (title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
@@ -282,10 +276,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
-    $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
-        ? "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!'"
-        : "p.body_text LIKE :body_keyword ESCAPE '!'";
+    $secretBodyCondition = "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!'";
     $searchCondition = "p.title LIKE :title_keyword ESCAPE '!'";
     if ($bodyBoardPlaceholders !== []) {
         $params['body_keyword'] = sr_community_search_like_pattern($keyword);
@@ -293,7 +284,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
     }
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . " p.status, p.view_count, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS published_comment_count
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -325,56 +316,9 @@ function sr_community_like_pattern(string $keyword): string
     return '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($keyword)) . '%';
 }
 
-function sr_community_author_public_name_snapshot_column_exists(PDO $pdo, string $tableName): bool
-{
-    static $exists = [];
-    if (!in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
-        return false;
-    }
-    $cacheKey = (string) spl_object_id($pdo) . ':' . $tableName;
-    if (array_key_exists($cacheKey, $exists)) {
-        return $exists[$cacheKey];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(' . $tableName . ')');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'author_public_name_snapshot') {
-                    $exists[$cacheKey] = true;
-                    return true;
-                }
-            }
-            $exists[$cacheKey] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => $tableName,
-            'column_name' => 'author_public_name_snapshot',
-        ]);
-        $exists[$cacheKey] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $exists[$cacheKey] = false;
-    }
-
-    return $exists[$cacheKey];
-}
-
 function sr_community_author_public_name_snapshot_select(PDO $pdo, string $tableName, string $alias): string
 {
-    if (sr_community_author_public_name_snapshot_column_exists($pdo, $tableName)) {
-        return $alias . '.author_public_name_snapshot';
-    }
-
-    return "'' AS author_public_name_snapshot";
+    return $alias . '.author_public_name_snapshot';
 }
 
 function sr_community_author_public_name_snapshot(PDO $pdo, int $accountId): string
@@ -388,52 +332,9 @@ function sr_community_author_public_name_snapshot(PDO $pdo, int $accountId): str
     return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
 }
 
-function sr_community_guest_author_columns_exist(PDO $pdo, string $tableName): bool
-{
-    static $existsByConnection = [];
-    if (!in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
-        return false;
-    }
-
-    $key = (string) spl_object_id($pdo) . ':' . $tableName;
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(' . $tableName . ')');
-            $columns = [];
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                $columns[(string) ($row['name'] ?? '')] = true;
-            }
-            $existsByConnection[$key] = isset($columns['guest_author_name'], $columns['guest_password_hash'], $columns['guest_ip_hash'], $columns['guest_user_agent_hash']);
-            return $existsByConnection[$key];
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME IN (\'guest_author_name\', \'guest_password_hash\', \'guest_ip_hash\', \'guest_user_agent_hash\')'
-        );
-        $stmt->execute(['table_name' => $tableName]);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 4;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
 function sr_community_guest_author_select(PDO $pdo, string $tableName, string $alias): string
 {
-    if (sr_community_guest_author_columns_exist($pdo, $tableName)) {
-        return ', ' . $alias . '.guest_author_name, ' . $alias . '.guest_password_hash, ' . $alias . '.guest_ip_hash, ' . $alias . '.guest_user_agent_hash';
-    }
-
-    return ", '' AS guest_author_name, NULL AS guest_password_hash, NULL AS guest_ip_hash, NULL AS guest_user_agent_hash";
+    return ', ' . $alias . '.guest_author_name, ' . $alias . '.guest_password_hash, ' . $alias . '.guest_ip_hash, ' . $alias . '.guest_user_agent_hash';
 }
 
 function sr_community_guest_author_snapshot(string $name): string
@@ -537,11 +438,8 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
-    $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_preset_key, p.reaction_comment_preset_key,' : "'' AS reaction_preset_key, '' AS reaction_comment_preset_key,";
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, " . $reactionPresetSelectSql . " p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.reaction_preset_key, p.reaction_comment_preset_key, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -573,46 +471,6 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
     $post['read_policy'] = sr_community_effective_board_policy($pdo, $board, 'read_policy');
     $post['comment_policy'] = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     return $post;
-}
-
-function sr_community_post_secret_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_community_posts)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'is_secret') {
-                    $existsByConnection[$key] = true;
-                    return true;
-                }
-            }
-            $existsByConnection[$key] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => 'sr_community_posts',
-            'column_name' => 'is_secret',
-        ]);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
 }
 
 function sr_community_increment_post_view_count(PDO $pdo, int $postId): void
@@ -650,35 +508,6 @@ function sr_community_should_count_post_view(int $postId): bool
     $_SESSION[$sessionKey] = $viewed;
 
     return true;
-}
-
-function sr_community_hidden_columns_exist(PDO $pdo, string $tableName): bool
-{
-    static $existsByConnection = [];
-    if (!in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
-        return false;
-    }
-
-    $key = (string) spl_object_id($pdo) . ':' . $tableName;
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME IN (\'hidden_at\', \'hidden_until\', \'hidden_reason\', \'hidden_note\', \'hidden_by_account_id\', \'hidden_before_status\')'
-        );
-        $stmt->execute(['table_name' => $tableName]);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 6;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
 }
 
 function sr_community_account_can_manage_post_body(PDO $pdo, array $post, ?array $account): bool

@@ -35,26 +35,9 @@ function sr_community_categories_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function sr_community_posts_category_column_exists(PDO $pdo): bool
-{
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
-    }
-
-    try {
-        $pdo->query('SELECT category_id FROM sr_community_posts LIMIT 0');
-        $exists = true;
-    } catch (Throwable $exception) {
-        $exists = false;
-    }
-
-    return $exists;
-}
-
 function sr_community_categories_supported(PDO $pdo): bool
 {
-    return sr_community_categories_table_exists($pdo) && sr_community_posts_category_column_exists($pdo);
+    return sr_community_categories_table_exists($pdo);
 }
 
 function sr_community_categories(PDO $pdo, int $boardId, bool $enabledOnly = false): array

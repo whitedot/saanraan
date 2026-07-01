@@ -267,11 +267,10 @@ return [
                     return null;
                 }
 
-                $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_comment_preset_key' : "'' AS reaction_comment_preset_key";
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.post_id, c.author_account_id, c.is_secret AS comment_is_secret, c.status AS comment_status,
                             p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status,
-                            ' . $reactionPresetSelectSql . '
+                            p.reaction_comment_preset_key
                      FROM sr_community_comments c
                      LEFT JOIN sr_community_posts p ON p.id = c.post_id
                      WHERE c.id = :id
@@ -297,11 +296,10 @@ return [
                 }
 
                 $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
-                $reactionPresetSelectSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'p.reaction_comment_preset_key' : "'' AS reaction_comment_preset_key";
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.post_id, c.author_account_id, c.is_secret AS comment_is_secret, c.status AS comment_status,
                             p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status,
-                            ' . $reactionPresetSelectSql . '
+                            p.reaction_comment_preset_key
                      FROM sr_community_comments c
                      LEFT JOIN sr_community_posts p ON p.id = c.post_id
                      WHERE c.id IN (' . $placeholders . ')'

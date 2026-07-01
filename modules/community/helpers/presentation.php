@@ -104,7 +104,7 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
     }
 
     $disabledIds = [];
-    if (function_exists('sr_community_post_reaction_preset_columns_exist') && sr_community_post_reaction_preset_columns_exist($pdo) && function_exists('sr_reaction_disabled_preset_key')) {
+    if (function_exists('sr_reaction_disabled_preset_key')) {
         $disabledPlaceholders = [];
         $disabledParams = ['disabled_key' => sr_reaction_disabled_preset_key()];
         foreach (array_values($ids) as $index => $id) {
@@ -569,12 +569,9 @@ function sr_community_home_latest_comment_live_rows(PDO $pdo, array $readableBoa
     }
     $commentParams['limit_value'] = max(1, min(20, $limit));
 
-    $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p', 'b.id', '           ');
-    $sql = 'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, ' . $secretCommentSelectSql . ' c.created_at, c.updated_at,
-                p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
+    $sql = 'SELECT c.id, c.post_id, c.author_account_id, c.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', author.status AS author_account_status, c.body_text, c.is_secret, c.created_at, c.updated_at,
+                p.title AS post_title, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret,
                 b.id AS board_id, b.board_key, b.title AS board_title
          FROM sr_community_comments c
          INNER JOIN sr_community_posts p ON p.id = c.post_id

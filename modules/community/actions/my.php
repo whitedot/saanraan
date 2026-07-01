@@ -42,12 +42,11 @@ if ($myReadableBoardIds !== []) {
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = sr_community_categories_supported($pdo) ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
 
     if ($myType === 'posts') {
         $stmt = $pdo->prepare(
             'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ', p.author_account_id,
-                    p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.created_at, p.updated_at,
+                    p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
                     (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count
              FROM sr_community_posts p
              INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -71,11 +70,9 @@ if ($myReadableBoardIds !== []) {
             $myPosts = array_slice($myPosts, 0, $myPerPage);
         }
     } else {
-        $secretCommentSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
-        $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret AS post_is_secret,' : '0 AS post_is_secret,';
         $stmt = $pdo->prepare(
-            'SELECT c.id, c.post_id, c.body_text, ' . $secretCommentSelectSql . ' c.status, c.created_at, c.updated_at,
-                    p.title AS post_title, p.author_account_id AS post_author_account_id, ' . $secretPostSelectSql . '
+            'SELECT c.id, c.post_id, c.body_text, c.is_secret, c.status, c.created_at, c.updated_at,
+                    p.title AS post_title, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret,
                     b.id AS board_id, b.board_key, b.title AS board_title
              FROM sr_community_comments c
              INNER JOIN sr_community_posts p ON p.id = c.post_id

@@ -125,27 +125,7 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
         return;
     }
 
-    if (sr_community_hidden_columns_exist($pdo, 'sr_community_posts')) {
-        sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_posts', $postId, $status, $options);
-        sr_community_mark_post_embed_target_stale($pdo, $postId);
-        if (function_exists('sr_community_feed_cache_mark_all_stale')) {
-            sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
-        }
-        return;
-    }
-
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_posts
-         SET status = :status,
-             updated_at = :updated_at
-         WHERE id = :id
-           AND status <> \'deleted\''
-    );
-    $stmt->execute([
-        'status' => $status,
-        'updated_at' => sr_now(),
-        'id' => $postId,
-    ]);
+    sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_posts', $postId, $status, $options);
     sr_community_mark_post_embed_target_stale($pdo, $postId);
     if (function_exists('sr_community_feed_cache_mark_all_stale')) {
         sr_community_feed_cache_mark_all_stale($pdo, 'post_status_changed');
@@ -219,13 +199,6 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
     }
 
     $now = sr_now();
-    $guestRedactionSql = sr_community_guest_author_columns_exist($pdo, 'sr_community_posts')
-        ? "guest_author_name = '',
-             guest_password_hash = NULL,
-             guest_ip_hash = NULL,
-             guest_user_agent_hash = NULL,"
-        : '';
-    $extraValuesRedactionSql = sr_community_post_extra_values_column_exists($pdo) ? "extra_values_json = '[]'," : '';
     $stmt = $pdo->prepare(
         "UPDATE sr_community_posts
          SET status = 'deleted',
@@ -233,8 +206,11 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
              body_text = '',
              body_format = 'plain',
              author_public_name_snapshot = '',
-             " . $guestRedactionSql . "
-             " . $extraValuesRedactionSql . "
+             guest_author_name = '',
+             guest_password_hash = NULL,
+             guest_ip_hash = NULL,
+             guest_user_agent_hash = NULL,
+             extra_values_json = '[]',
              seo_title = '',
              seo_description = '',
              og_title = '',
@@ -276,23 +252,6 @@ function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachme
     sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
 
-function sr_community_post_reaction_preset_columns_exist(PDO $pdo): bool
-{
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
-    }
-
-    try {
-        $pdo->query('SELECT reaction_preset_key, reaction_comment_preset_key FROM sr_community_posts LIMIT 0');
-        $exists = true;
-    } catch (Throwable) {
-        $exists = false;
-    }
-
-    return $exists;
-}
-
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     if ($pdo->inTransaction()) {
@@ -319,13 +278,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $categorySupported = sr_community_categories_supported($pdo);
         $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
-        $extraValuesSetSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json = :extra_values_json,' : '';
-        $reactionSetSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key = :reaction_preset_key, reaction_comment_preset_key = :reaction_comment_preset_key,' : '';
-        $secretSetSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_posts
              SET ' . $categorySetSql . '
-                 ' . $extraValuesSetSql . '
+                 extra_values_json = :extra_values_json,
                  title = :title,
                  body_text = :body_text,
                  body_format = :body_format,
@@ -333,12 +289,14 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  seo_description = :seo_description,
                  og_title = :og_title,
                  og_description = :og_description,
-                 ' . $reactionSetSql . '
-                 ' . $secretSetSql . '
+                 reaction_preset_key = :reaction_preset_key,
+                 reaction_comment_preset_key = :reaction_comment_preset_key,
+                 is_secret = :is_secret,
                  updated_at = :updated_at
              WHERE id = :id'
         );
         $params = [
+            'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
             'title' => trim((string) $values['title']),
             'body_text' => $bodyText,
             'body_format' => $bodyFormat,
@@ -346,21 +304,14 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
             'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
             'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
+            'reaction_preset_key' => '',
+            'reaction_comment_preset_key' => '',
+            'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
             'updated_at' => sr_now(),
             'id' => $postId,
         ];
         if ($categorySupported) {
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
-        }
-        if ($extraValuesSetSql !== '') {
-            $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
-        }
-        if ($reactionSetSql !== '') {
-            $params['reaction_preset_key'] = '';
-            $params['reaction_comment_preset_key'] = '';
-        }
-        if ($secretSetSql !== '') {
-            $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
         $stmt->execute($params);
         if ($bodyFormat === 'html') {
@@ -541,65 +492,41 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $categorySupported = sr_community_categories_supported($pdo);
     $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
-    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
-    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $guestAuthorColumnSql = sr_community_guest_author_columns_exist($pdo, 'sr_community_posts') ? 'guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, ' : '';
-    $guestAuthorValueSql = $guestAuthorColumnSql !== '' ? ':guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, ' : '';
-    $extraValuesColumnSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json, ' : '';
-    $extraValuesValueSql = $extraValuesColumnSql !== '' ? ':extra_values_json, ' : '';
-    $reactionColumnSql = sr_community_post_reaction_preset_columns_exist($pdo) ? 'reaction_preset_key, reaction_comment_preset_key, ' : '';
-    $reactionValueSql = $reactionColumnSql !== '' ? ':reaction_preset_key, :reaction_comment_preset_key, ' : '';
-    $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $summaryFeedCandidateColumnSql = sr_community_post_summary_feed_candidate_column_exists($pdo) ? 'summary_feed_candidate, ' : '';
-    $summaryFeedCandidateValueSql = $summaryFeedCandidateColumnSql !== '' ? ':summary_feed_candidate, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, ' . $reactionColumnSql . 'seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . $summaryFeedCandidateColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, extra_values_json, title, body_text, body_format, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, og_title, og_description, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, ' . $reactionValueSql . ':seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . $summaryFeedCandidateValueSql . ':status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :extra_values_json, :title, :body_text, :body_format, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :og_title, :og_description, :is_secret, :summary_feed_candidate, :status, 0, NULL, :created_at, :updated_at)'
     );
+    $guestValues = sr_community_guest_author_values_for_storage($values);
     $params = [
         'board_id' => $boardId,
         'author_account_id' => $authorAccountId > 0 ? $authorAccountId : null,
+        'author_public_name_snapshot' => $authorAccountId > 0
+            ? sr_community_author_public_name_snapshot($pdo, $authorAccountId)
+            : sr_community_guest_author_snapshot((string) ($values['guest_author_name'] ?? '')),
+        'guest_author_name' => $authorAccountId > 0 ? '' : (string) $guestValues['guest_author_name'],
+        'guest_password_hash' => $authorAccountId > 0 ? null : $guestValues['guest_password_hash'],
+        'guest_ip_hash' => $authorAccountId > 0 ? null : $guestValues['guest_ip_hash'],
+        'guest_user_agent_hash' => $authorAccountId > 0 ? null : $guestValues['guest_user_agent_hash'],
+        'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'title' => trim((string) $values['title']),
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),
         'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
         'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
         'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
+        'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
+        'summary_feed_candidate' => sr_community_summary_feed_candidate_value_for_board($pdo, $boardId),
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
     ];
     if ($categorySupported) {
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
-    }
-    if ($authorSnapshotColumnSql !== '') {
-        $params['author_public_name_snapshot'] = $authorAccountId > 0
-            ? sr_community_author_public_name_snapshot($pdo, $authorAccountId)
-            : sr_community_guest_author_snapshot((string) ($values['guest_author_name'] ?? ''));
-    }
-    if ($guestAuthorColumnSql !== '') {
-        $guestValues = sr_community_guest_author_values_for_storage($values);
-        $params['guest_author_name'] = $authorAccountId > 0 ? '' : (string) $guestValues['guest_author_name'];
-        $params['guest_password_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_password_hash'];
-        $params['guest_ip_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_ip_hash'];
-        $params['guest_user_agent_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_user_agent_hash'];
-    }
-    if ($extraValuesColumnSql !== '') {
-        $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
-    }
-    if ($reactionColumnSql !== '') {
-        $params['reaction_preset_key'] = '';
-        $params['reaction_comment_preset_key'] = '';
-    }
-    if ($secretColumnSql !== '') {
-        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
-    }
-    if ($summaryFeedCandidateColumnSql !== '') {
-        $params['summary_feed_candidate'] = sr_community_summary_feed_candidate_value_for_board($pdo, $boardId);
     }
     $pdo->beginTransaction();
 

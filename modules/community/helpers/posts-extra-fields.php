@@ -2,48 +2,9 @@
 
 declare(strict_types=1);
 
-function sr_community_post_extra_values_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_community_posts)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'extra_values_json') {
-                    $existsByConnection[$key] = true;
-                    return true;
-                }
-            }
-            $existsByConnection[$key] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = \'sr_community_posts\'
-               AND COLUMN_NAME = \'extra_values_json\''
-        );
-        $stmt->execute();
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
 function sr_community_post_extra_values_select(PDO $pdo, string $alias): string
 {
-    return sr_community_post_extra_values_column_exists($pdo)
-        ? ', ' . $alias . '.extra_values_json'
-        : ", '' AS extra_values_json";
+    return ', ' . $alias . '.extra_values_json';
 }
 
 function sr_community_board_field_definitions_table_exists(PDO $pdo): bool

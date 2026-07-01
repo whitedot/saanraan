@@ -52,7 +52,7 @@ $postListFilters = [
     'category_id' => $postCategoryFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
-    'extra_values_supported' => sr_community_post_extra_values_column_exists($pdo),
+    'extra_values_supported' => true,
     'extra_field_values_supported' => sr_community_post_field_values_table_exists($pdo),
 ];
 $postSearchFields = ['all', 'title', 'author', 'board'];
@@ -265,9 +265,8 @@ if (sr_request_method() === 'POST') {
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
-                $postHiddenColumnsExist = sr_community_hidden_columns_exist($pdo, 'sr_community_posts');
                 $postBatchHiddenOptions = $communityHiddenOptionsFromPost((int) $account['id']);
-                if ($postHiddenColumnsExist && $targetStatus === 'hidden') {
+                if ($targetStatus === 'hidden') {
                     $updatePostStatusStmt = $pdo->prepare(
                         'UPDATE sr_community_posts
                          SET status = :status,
@@ -281,7 +280,7 @@ if (sr_request_method() === 'POST') {
                          WHERE id = :id
                            AND status = :before_status'
                     );
-                } elseif ($postHiddenColumnsExist && $targetStatus === 'published') {
+                } else {
                     $updatePostStatusStmt = $pdo->prepare(
                         'UPDATE sr_community_posts
                          SET status = :status,
@@ -291,14 +290,6 @@ if (sr_request_method() === 'POST') {
                              hidden_note = NULL,
                              hidden_by_account_id = NULL,
                              hidden_before_status = \'\',
-                             updated_at = :updated_at
-                         WHERE id = :id
-                           AND status = :before_status'
-                    );
-                } else {
-                    $updatePostStatusStmt = $pdo->prepare(
-                        'UPDATE sr_community_posts
-                         SET status = :status,
                              updated_at = :updated_at
                          WHERE id = :id
                            AND status = :before_status'
@@ -341,7 +332,7 @@ if (sr_request_method() === 'POST') {
                         'id' => $selectedId,
                         'before_status' => $beforeStatus,
                     ];
-                    if ($postHiddenColumnsExist && $targetStatus === 'hidden') {
+                    if ($targetStatus === 'hidden') {
                         $postStatusParams['hidden_at'] = sr_now();
                         $postStatusParams['hidden_until'] = $postBatchHiddenOptions['hidden_until'];
                         $postStatusParams['hidden_reason'] = $postBatchHiddenOptions['hidden_reason'];
@@ -484,9 +475,8 @@ if (sr_request_method() === 'POST') {
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
-                $commentHiddenColumnsExist = sr_community_hidden_columns_exist($pdo, 'sr_community_comments');
                 $commentBatchHiddenOptions = $communityHiddenOptionsFromPost((int) $account['id']);
-                if ($commentHiddenColumnsExist && $targetStatus === 'hidden') {
+                if ($targetStatus === 'hidden') {
                     $updateCommentStatusStmt = $pdo->prepare(
                         'UPDATE sr_community_comments
                          SET status = :status,
@@ -500,7 +490,7 @@ if (sr_request_method() === 'POST') {
                          WHERE id = :id
                            AND status = :before_status'
                     );
-                } elseif ($commentHiddenColumnsExist && $targetStatus === 'published') {
+                } else {
                     $updateCommentStatusStmt = $pdo->prepare(
                         'UPDATE sr_community_comments
                          SET status = :status,
@@ -510,14 +500,6 @@ if (sr_request_method() === 'POST') {
                              hidden_note = NULL,
                              hidden_by_account_id = NULL,
                              hidden_before_status = \'\',
-                             updated_at = :updated_at
-                         WHERE id = :id
-                           AND status = :before_status'
-                    );
-                } else {
-                    $updateCommentStatusStmt = $pdo->prepare(
-                        'UPDATE sr_community_comments
-                         SET status = :status,
                              updated_at = :updated_at
                          WHERE id = :id
                            AND status = :before_status'

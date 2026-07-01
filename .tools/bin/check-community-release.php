@@ -943,7 +943,7 @@ sr_community_release_file_not_contains('modules/community/lang/ko.php', [
 ], 'Community legacy nickname setting language cleanup');
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communityPostsPermissionPath, 'view')",
-    "'extra_values_supported' => sr_community_post_extra_values_column_exists(\$pdo)",
+    "'extra_values_supported' => true",
     "'extra_field_values_supported' => sr_community_post_field_values_table_exists(\$pdo)",
     "'extra'",
     '$allowedPostStatuses = sr_community_post_statuses()',

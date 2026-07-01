@@ -48,9 +48,6 @@ if (is_array($board)) {
     $errors = array_merge($errors, sr_community_validate_comment_body_length($pdo, $board, $values));
 }
 if ($isGuestAuthor) {
-    if (!sr_community_guest_author_columns_exist($pdo, 'sr_community_comments')) {
-        $errors[] = '비회원 댓글 스키마 업데이트가 아직 적용되지 않았습니다.';
-    }
     $errors = array_merge($errors, sr_community_validate_guest_author_input($values));
 }
 $parentValidation = sr_community_validate_comment_parent($pdo, $postId, $values);

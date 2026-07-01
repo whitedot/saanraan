@@ -172,11 +172,7 @@ function sr_community_summary_feed_enabled_sql_condition(PDO $pdo, string $board
 function sr_community_summary_post_candidate_sql_condition(PDO $pdo, string $postAlias, string $boardIdExpression, string $indent = '               '): string
 {
     $postAlias = preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $postAlias) === 1 ? $postAlias : 'p';
-    if (function_exists('sr_community_post_summary_feed_candidate_column_exists') && sr_community_post_summary_feed_candidate_column_exists($pdo)) {
-        return $indent . 'AND ' . $postAlias . ".summary_feed_candidate = 1\n";
-    }
-
-    return sr_community_summary_feed_enabled_sql_condition($pdo, $boardIdExpression, $indent);
+    return $indent . 'AND ' . $postAlias . ".summary_feed_candidate = 1\n";
 }
 
 function sr_community_feed_cache_refresh_seconds(string $feedKey): int
@@ -512,14 +508,12 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
     $innerOrderSql = sr_community_feed_cache_sort_key($sort) === 'views'
         ? 'p0.view_count DESC, p0.id DESC'
         : 'p0.id DESC';
-    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $params['limit_value'] = $limit;
     $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p0', 'p0.board_id');
 
     return [
         'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
-                p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . ' p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,

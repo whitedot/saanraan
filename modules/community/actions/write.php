@@ -122,13 +122,7 @@ if ($isPostRequest) {
     $errors = array_merge($errors, sr_community_validate_post_input($values));
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values, $settings));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
-    if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
-        $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';
-    }
     if ($isGuestAuthor) {
-        if (!sr_community_guest_author_columns_exist($pdo, 'sr_community_posts')) {
-            $errors[] = '비회원 작성 스키마 업데이트가 아직 적용되지 않았습니다.';
-        }
         $errors = array_merge($errors, sr_community_validate_guest_author_input($values));
         if (sr_community_uploaded_file_present($_FILES['image_attachment'] ?? null)
             || sr_community_uploaded_file_present($_FILES['file_attachments'] ?? null)

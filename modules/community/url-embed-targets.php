@@ -26,9 +26,8 @@ return [
                 if ($postId < 1) {
                     return null;
                 }
-                $secretSelectSql = function_exists('sr_community_post_secret_column_exists') && sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
                 $stmt = $pdo->prepare(
-                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, ' . $secretSelectSql . '
+                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, p.is_secret,
                             b.status AS board_status, b.read_policy
                      FROM sr_community_posts p
                      INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -68,9 +67,8 @@ return [
                 ];
             },
             'render_embed' => static function (PDO $pdo, array $embed, array $context): array {
-                $secretSelectSql = function_exists('sr_community_post_secret_column_exists') && sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
                 $stmt = $pdo->prepare(
-                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, ' . $secretSelectSql . '
+                    'SELECT p.id, p.title, p.body_text, p.status, p.updated_at, p.og_image_attachment_id, p.is_secret,
                             b.status AS board_status, b.read_policy
                      FROM sr_community_posts p
                      INNER JOIN sr_community_boards b ON b.id = p.board_id

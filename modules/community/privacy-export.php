@@ -225,25 +225,10 @@ return static function (PDO $pdo, int $accountId): array {
         ? 'p.category_id, cat.category_key, cat.title AS category_title'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $postSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts')
-        ? 'p.author_public_name_snapshot'
-        : "'' AS author_public_name_snapshot";
-    $postExtraValuesSelectSql = sr_community_post_extra_values_column_exists($pdo)
-        ? ', p.extra_values_json'
-        : ", '' AS extra_values_json";
-    $commentSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments')
-        ? 'author_public_name_snapshot'
-        : "'' AS author_public_name_snapshot";
-    $commentSecretSelectSql = sr_community_comment_secret_column_exists($pdo)
-        ? 'is_secret'
-        : '0 AS is_secret';
-    $commentThreadSelectSql = function_exists('sr_community_comment_thread_columns_exist') && sr_community_comment_thread_columns_exist($pdo)
-        ? 'parent_comment_id, thread_root_id, depth,'
-        : 'NULL AS parent_comment_id, id AS thread_root_id, 1 AS depth,';
     $stmt = $pdo->prepare(
         /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
-                p.title, ' . $postSnapshotSelectSql . $postExtraValuesSelectSql . ', p.body_text, p.body_format, p.status, p.created_at, p.updated_at
+                p.title, p.author_public_name_snapshot, p.extra_values_json, p.body_text, p.body_format, p.status, p.created_at, p.updated_at
          FROM sr_community_posts p
          ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id
@@ -276,7 +261,7 @@ return static function (PDO $pdo, int $accountId): array {
 
     $stmt = $pdo->prepare(
         /* Legacy comment export allowlist: SELECT id, post_id, body_text, status, created_at, updated_at */
-        'SELECT id, post_id, ' . $commentThreadSelectSql . ' body_text, ' . $commentSecretSelectSql . ', status, created_at, updated_at, ' . $commentSnapshotSelectSql . '
+        'SELECT id, post_id, parent_comment_id, thread_root_id, depth, body_text, is_secret, status, created_at, updated_at, author_public_name_snapshot
          FROM sr_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC

@@ -1117,24 +1117,6 @@ function sr_community_board_setting_value(PDO $pdo, int $boardId, string $settin
     return is_string($value) ? $value : null;
 }
 
-function sr_community_post_summary_feed_candidate_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $cacheKey = (string) spl_object_id($pdo);
-    if (array_key_exists($cacheKey, $existsByConnection)) {
-        return $existsByConnection[$cacheKey];
-    }
-
-    try {
-        $pdo->query('SELECT summary_feed_candidate FROM sr_community_posts LIMIT 0');
-        $existsByConnection[$cacheKey] = true;
-    } catch (Throwable) {
-        $existsByConnection[$cacheKey] = false;
-    }
-
-    return $existsByConnection[$cacheKey];
-}
-
 function sr_community_summary_feed_candidate_value_for_board(PDO $pdo, int $boardId): int
 {
     if ($boardId < 1) {
@@ -1151,7 +1133,7 @@ function sr_community_summary_feed_candidate_value_for_board(PDO $pdo, int $boar
 
 function sr_community_sync_board_summary_feed_candidates(PDO $pdo, int $boardId, bool $summaryFeedEnabled): void
 {
-    if ($boardId < 1 || !sr_community_post_summary_feed_candidate_column_exists($pdo)) {
+    if ($boardId < 1) {
         return;
     }
 

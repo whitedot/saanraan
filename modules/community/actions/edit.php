@@ -167,9 +167,6 @@ if ($isPostRequest) {
     $errors = sr_community_validate_post_input($values);
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values, $settings));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
-    if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
-        $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';
-    }
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
