@@ -120,7 +120,7 @@ return static function (PDO $pdo, int $accountId, mixed $context = []): array {
             'payment_records' => $stmt->rowCount(),
             'payment_record_items' => $itemCount,
         ];
-    } catch (Throwable) {
+    } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         } elseif ($savepointName !== '' && $pdo->inTransaction()) {
@@ -131,6 +131,6 @@ return static function (PDO $pdo, int $accountId, mixed $context = []): array {
             }
         }
 
-        return ['payment_records' => 0, 'payment_record_items' => 0];
+        throw $exception;
     }
 };

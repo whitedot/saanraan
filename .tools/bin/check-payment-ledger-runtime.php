@@ -471,6 +471,17 @@ $otherAccountAccessItem = sr_payment_runtime_row(
 sr_payment_runtime_assert((int) ($otherAccountAccessItem['account_id'] ?? 0) === 77, 'payment ledger privacy cleanup should not anonymize other account records with similar ids.');
 sr_payment_runtime_assert((string) ($otherAccountAccessItem['reference_id'] ?? '') === 'content.view:7802:account:77', 'payment ledger privacy cleanup should not redact other account item references with similar ids.');
 
+$brokenCleanupPdo = new PDO('sqlite::memory:');
+$brokenCleanupPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$brokenCleanupPdo->beginTransaction();
+try {
+    $cleanup($brokenCleanupPdo, 7, ['event_type' => 'member.anonymized']);
+    sr_payment_runtime_assert(false, 'payment ledger privacy cleanup should propagate storage failures.');
+} catch (Throwable) {
+    sr_payment_runtime_assert($brokenCleanupPdo->inTransaction(), 'payment ledger privacy cleanup should keep the caller transaction active after rolling back its savepoint.');
+    $brokenCleanupPdo->rollBack();
+}
+
 $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
     'dedupe_key' => 'content.view:payment:7:7801',
     'account_id' => 7,
