@@ -79,6 +79,20 @@ sr_community_account_guard_check_contains('modules/community/helpers/account-gua
     "'publication_hold', 'confirmed_hold', 'write_cooldown', 'needs_review'",
 ]);
 
+sr_community_account_guard_check_contains('modules/community/actions/admin-settings.php', [
+    "sr_admin_post_int_in_range('account_guard_publication_hold_threshold', 2, 20)",
+    "sr_admin_post_int_in_range('account_guard_confirmed_hold_window_days', 1, 365)",
+    "['account_guard_publication_hold_enabled', \$accountGuardPublicationHoldEnabled ? '1' : '0', 'bool']",
+    "['account_guard_confirmed_hold_duration_minutes', (string) \$accountGuardConfirmedHoldDurationMinutes, 'int']",
+]);
+
+sr_community_account_guard_check_contains('modules/community/views/admin-settings.php', [
+    "'account_guard_publication_hold_enabled'",
+    'name="account_guard_publication_hold_threshold"',
+    "'account_guard_confirmed_hold_enabled'",
+    'name="account_guard_confirmed_hold_window_days"',
+]);
+
 sr_community_account_guard_check_contains('modules/community/privacy-export.php', [
     "'account_guard_events' => []",
     "'account_guards' => []",

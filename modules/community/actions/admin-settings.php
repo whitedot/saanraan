@@ -77,6 +77,13 @@ if (sr_request_method() === 'POST') {
         $reportAutoActionPublicMode = in_array($reportAutoActionPublicModeInput, ['exclude', 'placeholder'], true)
             ? $reportAutoActionPublicModeInput
             : 'exclude';
+        $accountGuardPublicationHoldEnabled = ($_POST['account_guard_publication_hold_enabled'] ?? '') === '1';
+        $accountGuardPublicationHoldThreshold = sr_admin_post_int_in_range('account_guard_publication_hold_threshold', 2, 20);
+        $accountGuardPublicationHoldDurationMinutes = sr_admin_post_int_in_range('account_guard_publication_hold_duration_minutes', 10, 10080);
+        $accountGuardConfirmedHoldEnabled = ($_POST['account_guard_confirmed_hold_enabled'] ?? '') === '1';
+        $accountGuardConfirmedHoldThreshold = sr_admin_post_int_in_range('account_guard_confirmed_hold_threshold', 2, 20);
+        $accountGuardConfirmedHoldWindowDays = sr_admin_post_int_in_range('account_guard_confirmed_hold_window_days', 1, 365);
+        $accountGuardConfirmedHoldDurationMinutes = sr_admin_post_int_in_range('account_guard_confirmed_hold_duration_minutes', 10, 10080);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
@@ -215,6 +222,26 @@ if (sr_request_method() === 'POST') {
         if ($reportAutoActionPublicModeInput !== $reportAutoActionPublicMode) {
             $errors[] = '신고 자동 임시 조치 공개 처리 방식 값이 올바르지 않습니다.';
             $reportAutoActionPublicMode = (string) ($settings['report_auto_action_public_mode'] ?? 'exclude');
+        }
+        if ($accountGuardPublicationHoldThreshold === null) {
+            $errors[] = '계정 publication hold 대상 수는 2 이상 20 이하로 입력하세요.';
+            $accountGuardPublicationHoldThreshold = (int) ($settings['account_guard_publication_hold_threshold'] ?? 3);
+        }
+        if ($accountGuardPublicationHoldDurationMinutes === null) {
+            $errors[] = '계정 publication hold 기간은 10분 이상 10080분 이하로 입력하세요.';
+            $accountGuardPublicationHoldDurationMinutes = (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120);
+        }
+        if ($accountGuardConfirmedHoldThreshold === null) {
+            $errors[] = 'confirmed 기반 hold 확정 건수는 2 이상 20 이하로 입력하세요.';
+            $accountGuardConfirmedHoldThreshold = (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3);
+        }
+        if ($accountGuardConfirmedHoldWindowDays === null) {
+            $errors[] = 'confirmed 기반 hold 집계 기간은 1일 이상 365일 이하로 입력하세요.';
+            $accountGuardConfirmedHoldWindowDays = (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30);
+        }
+        if ($accountGuardConfirmedHoldDurationMinutes === null) {
+            $errors[] = 'confirmed 기반 hold 기간은 10분 이상 10080분 이하로 입력하세요.';
+            $accountGuardConfirmedHoldDurationMinutes = (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440);
         }
 
         if (!isset($communityLayoutOptions[$layoutKey])) {
@@ -369,6 +396,13 @@ if (sr_request_method() === 'POST') {
                 ['report_auto_action_threshold', (string) $reportAutoActionThreshold, 'int'],
                 ['report_auto_action_window_days', (string) $reportAutoActionWindowDays, 'int'],
                 ['report_auto_action_public_mode', $reportAutoActionPublicMode, 'string'],
+                ['account_guard_publication_hold_enabled', $accountGuardPublicationHoldEnabled ? '1' : '0', 'bool'],
+                ['account_guard_publication_hold_threshold', (string) $accountGuardPublicationHoldThreshold, 'int'],
+                ['account_guard_publication_hold_duration_minutes', (string) $accountGuardPublicationHoldDurationMinutes, 'int'],
+                ['account_guard_confirmed_hold_enabled', $accountGuardConfirmedHoldEnabled ? '1' : '0', 'bool'],
+                ['account_guard_confirmed_hold_threshold', (string) $accountGuardConfirmedHoldThreshold, 'int'],
+                ['account_guard_confirmed_hold_window_days', (string) $accountGuardConfirmedHoldWindowDays, 'int'],
+                ['account_guard_confirmed_hold_duration_minutes', (string) $accountGuardConfirmedHoldDurationMinutes, 'int'],
                 ['layout_key', $layoutKey, 'string'],
                 ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
@@ -500,6 +534,13 @@ if (sr_request_method() === 'POST') {
                         'report_auto_action_threshold' => $reportAutoActionThreshold,
                         'report_auto_action_window_days' => $reportAutoActionWindowDays,
                         'report_auto_action_public_mode' => $reportAutoActionPublicMode,
+                        'account_guard_publication_hold_enabled' => $accountGuardPublicationHoldEnabled,
+                        'account_guard_publication_hold_threshold' => $accountGuardPublicationHoldThreshold,
+                        'account_guard_publication_hold_duration_minutes' => $accountGuardPublicationHoldDurationMinutes,
+                        'account_guard_confirmed_hold_enabled' => $accountGuardConfirmedHoldEnabled,
+                        'account_guard_confirmed_hold_threshold' => $accountGuardConfirmedHoldThreshold,
+                        'account_guard_confirmed_hold_window_days' => $accountGuardConfirmedHoldWindowDays,
+                        'account_guard_confirmed_hold_duration_minutes' => $accountGuardConfirmedHoldDurationMinutes,
                         'layout_key' => $layoutKey,
                         'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,

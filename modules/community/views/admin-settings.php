@@ -330,6 +330,62 @@ $communitySettingsSectionNavItems = [
                     <p class="form-help">자동 숨김된 게시글과 댓글을 공개 화면에서 제외할지, 후속 구현에서 대체 문구로 표시할지 정하는 기준입니다. 현재 기본값은 목록 제외입니다.</p>
                 </div>
             </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_enabled">계정 publication hold</label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('community_admin_settings_account_guard_publication_hold_enabled', 'account_guard_publication_hold_enabled', '1', !empty($settings['account_guard_publication_hold_enabled']), '사용'); ?>
+                    <p class="form-help">같은 작성자의 여러 게시글 자동조치가 겹칠 때 신규 게시글을 검토 대기로 보낼지 정합니다. 댓글 자동조치는 기본 집계에 포함하지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_threshold">publication hold 대상 수 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_account_guard_publication_hold_threshold" type="number" name="account_guard_publication_hold_threshold" min="2" max="20" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_threshold'] ?? 3)); ?>" required class="form-input">
+                    <p class="form-help">서로 다른 게시글 active auto_action 수를 기준으로 합니다. 단일 대상 자동조치만으로는 계정 guard를 만들지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_duration_minutes">publication hold 기간 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group">
+                        <input id="community_admin_settings_account_guard_publication_hold_duration_minutes" type="number" name="account_guard_publication_hold_duration_minutes" min="10" max="10080" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120)); ?>" required class="form-input">
+                        <span class="input-group-text">분</span>
+                    </div>
+                    <p class="form-help">만료 후에도 hold 중 생긴 pending 게시글은 자동 공개하지 않고 관리자 검토 대상으로 남깁니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_enabled">confirmed 기반 hold</label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('community_admin_settings_account_guard_confirmed_hold_enabled', 'account_guard_confirmed_hold_enabled', '1', !empty($settings['account_guard_confirmed_hold_enabled']), '사용'); ?>
+                    <p class="form-help">운영자가 확정한 반복 위반만 입력으로 삼습니다. 자동 경로는 회원 계정을 정지하지 않고 community guard까지만 적용합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_threshold">confirmed 확정 건수 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_account_guard_confirmed_hold_threshold" type="number" name="account_guard_confirmed_hold_threshold" min="2" max="20" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3)); ?>" required class="form-input">
+                    <p class="form-help">released 또는 dismissed된 신고/자동조치는 작성자 불이익 집계에 포함하지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_window_days">confirmed 집계 기간 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group">
+                        <input id="community_admin_settings_account_guard_confirmed_hold_window_days" type="number" name="account_guard_confirmed_hold_window_days" min="1" max="365" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30)); ?>" required class="form-input">
+                        <span class="input-group-text">일</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_duration_minutes">confirmed hold 기간 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group">
+                        <input id="community_admin_settings_account_guard_confirmed_hold_duration_minutes" type="number" name="account_guard_confirmed_hold_duration_minutes" min="10" max="10080" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440)); ?>" required class="form-input">
+                        <span class="input-group-text">분</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
