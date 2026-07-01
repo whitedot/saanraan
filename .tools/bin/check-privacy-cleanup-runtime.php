@@ -483,6 +483,40 @@ function sr_privacy_cleanup_runtime_check_policy_documents(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_policy_document_mail_deliveries WHERE id = 2') === 8, 'policy_documents cleanup must not alter other account delivery account id.');
 }
 
+function sr_privacy_cleanup_runtime_check_payment_ledger(): void
+{
+    $cleanup = include 'modules/payment_ledger/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('payment_ledger privacy cleanup contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_payment_records (id INTEGER PRIMARY KEY, dedupe_key TEXT NOT NULL, account_id INTEGER NOT NULL, subject_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id TEXT NOT NULL, payment_kind TEXT NOT NULL, status TEXT NOT NULL, payable_amount INTEGER NOT NULL, settlement_amount INTEGER NOT NULL, settlement_currency TEXT NOT NULL, description TEXT NOT NULL, snapshot_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, cancelled_at TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_payment_record_items (id INTEGER PRIMARY KEY, payment_record_id INTEGER NOT NULL, item_kind TEXT NOT NULL, owner_module TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, amount INTEGER NOT NULL, currency_code TEXT NOT NULL, reversible INTEGER NOT NULL, reversal_status TEXT NOT NULL, snapshot_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_payment_records (id, dedupe_key, account_id, subject_module, subject_type, subject_id, payment_kind, status, payable_amount, settlement_amount, settlement_currency, description, snapshot_json, created_at, updated_at, cancelled_at) VALUES (1, 'payment7', 7, 'content', 'content.view', '7801', 'purchase', 'paid', 100, 60, 'KRW', 'payment 7', '{\"schema_version\":\"payment_record_v1\"}', '', '', NULL), (2, 'payment77', 77, 'content', 'content.view', '7802', 'purchase', 'paid', 100, 100, 'KRW', 'payment 77', '{\"schema_version\":\"payment_record_v1\"}', '', '', NULL)");
+    $pdo->exec("INSERT INTO sr_payment_record_items (id, payment_record_id, item_kind, owner_module, reference_type, reference_id, amount, currency_code, reversible, reversal_status, snapshot_json, created_at, updated_at) VALUES (1, 1, 'access_entitlement', 'content', 'content.access', 'content.view:7801:account:7', 0, '', 1, 'none', '{\"source_reference\":\"content:view:7801:account:7:intent:abc\",\"unrelated_reference\":\"content:view:7801:account:77:intent:abc\"}', '', ''), (2, 2, 'access_entitlement', 'content', 'content.access', 'content.view:7802:account:77', 0, '', 1, 'none', '{\"source_reference\":\"content:view:7802:account:77:intent:abc\"}', '', '')");
+
+    $invalidResult = $cleanup($pdo, 0, ['event_type' => 'member.anonymized']);
+    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && (int) ($invalidResult['payment_records'] ?? -1) === 0 && (int) ($invalidResult['payment_record_items'] ?? -1) === 0, 'payment_ledger cleanup must return zero counts for invalid account id.');
+
+    $noopResult = $cleanup($pdo, 7, ['event_type' => 'member.profile_updated']);
+    sr_privacy_cleanup_runtime_assert(is_array($noopResult) && (int) ($noopResult['payment_records'] ?? -1) === 0 && (int) ($noopResult['payment_record_items'] ?? -1) === 0, 'payment_ledger cleanup must return zero counts for non-anonymize events.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_payment_records WHERE id = 1') === 7, 'payment_ledger cleanup must not alter records on non-anonymize events.');
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'member.anonymized']);
+    sr_privacy_cleanup_runtime_assert(is_array($result), 'payment_ledger cleanup must return an array result.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['payment_records'] ?? -1) === 1, 'payment_ledger cleanup must report payment record anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['payment_record_items'] ?? -1) === 1, 'payment_ledger cleanup must report payment item reference anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_payment_records WHERE id = 1') === 0, 'payment_ledger cleanup must clear target payment record account id.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT reference_id FROM sr_payment_record_items WHERE id = 1') === 'content.view:7801:account:anonymous', 'payment_ledger cleanup must redact target account item references.');
+    $snapshot = json_decode((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT snapshot_json FROM sr_payment_record_items WHERE id = 1'), true);
+    sr_privacy_cleanup_runtime_assert(is_array($snapshot) && ($snapshot['source_reference'] ?? '') === 'content:view:7801:account:anonymous:intent:abc', 'payment_ledger cleanup must redact target account references in item snapshots.');
+    sr_privacy_cleanup_runtime_assert(is_array($snapshot) && ($snapshot['unrelated_reference'] ?? '') === 'content:view:7801:account:77:intent:abc', 'payment_ledger cleanup must not redact similar account id prefixes in snapshots.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_payment_records WHERE id = 2') === 77, 'payment_ledger cleanup must not alter other account records.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT reference_id FROM sr_payment_record_items WHERE id = 2') === 'content.view:7802:account:77', 'payment_ledger cleanup must not alter other account item references.');
+}
+
 sr_privacy_cleanup_runtime_check_asset_ledger();
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
@@ -490,6 +524,7 @@ sr_privacy_cleanup_runtime_check_content();
 sr_privacy_cleanup_runtime_check_community();
 sr_privacy_cleanup_runtime_check_notification();
 sr_privacy_cleanup_runtime_check_policy_documents();
+sr_privacy_cleanup_runtime_check_payment_ledger();
 
 if ($errors !== []) {
     fwrite(STDERR, "privacy cleanup runtime checks failed:\n");

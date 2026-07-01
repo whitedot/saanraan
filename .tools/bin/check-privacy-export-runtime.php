@@ -745,6 +745,11 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $pdo->exec("INSERT INTO sr_point_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at) VALUES (1, 7, 100, 100, 'earn', 'earn7', 'quiz', '1', 99, '2026-12-31', 30, NULL, ''), (2, 8, 100, 100, 'earn', 'earn8', 'quiz', '2', 99, '2026-12-31', 30, NULL, '')");
     $pdo->exec("INSERT INTO sr_point_expiration_consumptions (id, account_id, consume_transaction_id, source_transaction_id, amount, source_expires_at, created_at) VALUES (1, 7, 3, 1, 30, '2026-12-31', ''), (2, 8, 4, 2, 30, '2026-12-31', '')");
 
+    $pdo->exec('CREATE TABLE sr_payment_records (id INTEGER PRIMARY KEY, dedupe_key TEXT NOT NULL, account_id INTEGER NOT NULL, subject_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id TEXT NOT NULL, payment_kind TEXT NOT NULL, status TEXT NOT NULL, payable_amount INTEGER NOT NULL, settlement_amount INTEGER NOT NULL, settlement_currency TEXT NOT NULL, description TEXT NOT NULL, snapshot_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, cancelled_at TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_payment_record_items (id INTEGER PRIMARY KEY, payment_record_id INTEGER NOT NULL, item_kind TEXT NOT NULL, owner_module TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, amount INTEGER NOT NULL, currency_code TEXT NOT NULL, reversible INTEGER NOT NULL, reversal_status TEXT NOT NULL, snapshot_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_payment_records (id, dedupe_key, account_id, subject_module, subject_type, subject_id, payment_kind, status, payable_amount, settlement_amount, settlement_currency, description, snapshot_json, created_at, updated_at, cancelled_at) VALUES (1, 'payment7', 7, 'content', 'content.view', '7801', 'purchase', 'paid', 100, 60, 'KRW', 'payment 7', '{\"schema_version\":\"payment_record_v1\"}', '', '', NULL), (2, 'payment8', 8, 'content', 'content.view', '8801', 'purchase', 'paid', 200, 200, 'KRW', 'payment 8', '{\"schema_version\":\"payment_record_v1\"}', '', '', NULL)");
+    $pdo->exec("INSERT INTO sr_payment_record_items (id, payment_record_id, item_kind, owner_module, reference_type, reference_id, amount, currency_code, reversible, reversal_status, snapshot_json, created_at, updated_at) VALUES (1, 1, 'coupon_redemption', 'coupon', 'coupon_redemption', '55', -40, 'KRW', 1, 'none', '{\"coupon_issue_id\":5}', '', ''), (2, 1, 'access_entitlement', 'content', 'content.access', 'content.view:7801:account:7', 0, '', 1, 'none', '{\"source_reference\":\"content:view:7801:account:7:intent:abc\"}', '', ''), (3, 2, 'access_entitlement', 'content', 'content.access', 'content.view:8801:account:8', 0, '', 1, 'none', '{\"source_reference\":\"content:view:8801:account:8:intent:abc\"}', '', '')");
+
     $pdo->exec('CREATE TABLE sr_reward_balances (account_id INTEGER PRIMARY KEY, balance INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_reward_transactions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, balance_after INTEGER NOT NULL, transaction_type TEXT NOT NULL, reason TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, created_by_account_id INTEGER NULL, expires_at TEXT NULL, expires_remaining INTEGER NOT NULL DEFAULT 0, expired_at TEXT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_reward_expiration_consumptions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, consume_transaction_id INTEGER NOT NULL, source_transaction_id INTEGER NOT NULL, amount INTEGER NOT NULL, source_expires_at TEXT NOT NULL, created_at TEXT NOT NULL)');
@@ -759,6 +764,7 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $couponExport = include 'modules/coupon/privacy-export.php';
     $depositExport = include 'modules/deposit/privacy-export.php';
     $notificationExport = include 'modules/notification/privacy-export.php';
+    $paymentLedgerExport = include 'modules/payment_ledger/privacy-export.php';
     $pointExport = include 'modules/point/privacy-export.php';
     $rewardExport = include 'modules/reward/privacy-export.php';
 
@@ -768,6 +774,7 @@ function sr_privacy_export_runtime_check_retained_modules(): void
         'coupon' => $couponExport,
         'deposit' => $depositExport,
         'notification' => $notificationExport,
+        'payment_ledger' => $paymentLedgerExport,
         'point' => $pointExport,
         'reward' => $rewardExport,
     ] as $moduleKey => $export) {
@@ -817,6 +824,13 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     sr_privacy_export_runtime_assert(in_array('provider7', $deliveryProviderMessages, true), 'notification retained export must include provider message evidence.');
     sr_privacy_export_runtime_assert(!in_array('provider-leak', $deliveryProviderMessages, true), 'notification retained export must exclude non-target email provider evidence even on target account notifications.');
     sr_privacy_export_runtime_assert(in_array('push7', $deliveryProviderMessages, true) && !in_array('push-leak', $deliveryProviderMessages, true), 'notification retained export must exclude non-target push endpoint provider evidence.');
+
+    $paymentLedger = $paymentLedgerExport($pdo, 7);
+    sr_privacy_export_runtime_assert(count($paymentLedger['payment_records'] ?? []) === 1 && ($paymentLedger['payment_records'][0]['dedupe_key'] ?? '') === 'payment7', 'payment_ledger retained export must include only target payment records.');
+    sr_privacy_export_runtime_assert((int) ($paymentLedger['payment_records'][0]['payable_amount'] ?? 0) === 100 && (int) ($paymentLedger['payment_records'][0]['settlement_amount'] ?? 0) === 60, 'payment_ledger retained export must include payable and settlement amounts.');
+    sr_privacy_export_runtime_assert(count($paymentLedger['payment_record_items'] ?? []) === 2, 'payment_ledger retained export must include target payment record items.');
+    $paymentItemReferences = array_map(static fn (array $row): string => (string) ($row['reference_id'] ?? ''), $paymentLedger['payment_record_items'] ?? []);
+    sr_privacy_export_runtime_assert(in_array('content.view:7801:account:7', $paymentItemReferences, true) && !in_array('content.view:8801:account:8', $paymentItemReferences, true), 'payment_ledger retained export must exclude other account payment items.');
 
     $point = $pointExport($pdo, 7);
     sr_privacy_export_runtime_assert((int) ($point['balance']['balance'] ?? 0) === 70, 'point retained export must include target balance.');
