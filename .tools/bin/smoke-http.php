@@ -154,6 +154,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin content payments entry',
+        'path' => '/admin/content/payments',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin asset reconciliation entry',
         'path' => '/admin/assets/reconciliation',
         'allowed_statuses' => [200, 302, 403, 404],
@@ -349,6 +355,12 @@ $checks = [
     [
         'label' => 'community admin posts entry',
         'path' => '/admin/community/posts',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community admin payments entry',
+        'path' => '/admin/community/payments',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],

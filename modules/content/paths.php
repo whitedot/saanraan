@@ -38,6 +38,8 @@ return [
     'POST /admin/content/body-files/upload' => 'actions/admin-body-file-upload.php',
     'GET /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
     'POST /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
+    'GET /admin/content/payments' => 'actions/admin-payments.php',
+    'POST /admin/content/payments' => 'actions/admin-payments.php',
     'GET /admin/content/embed-cache' => 'actions/admin-embed-cache.php',
     'POST /admin/content/embed-cache' => 'actions/admin-embed-cache.php',
     'GET /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',

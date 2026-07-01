@@ -30,6 +30,11 @@ return [
             'order' => 27,
         ],
         [
+            'label' => '결제 내역',
+            'path' => '/admin/content/payments',
+            'order' => 27.5,
+        ],
+        [
             'label' => '회원 제출 콘텐츠',
             'path' => '/admin/content/submissions',
             'order' => 28,

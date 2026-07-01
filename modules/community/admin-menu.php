@@ -46,6 +46,11 @@ return [
             'order' => 67,
         ],
         [
+            'label' => '결제 내역',
+            'path' => '/admin/community/payments',
+            'order' => 67.5,
+        ],
+        [
             'label' => '피드 캐시',
             'path' => '/admin/community/feed-cache',
             'order' => 68,

@@ -2478,3 +2478,349 @@ function sr_community_asset_recovery_failures(PDO $pdo, array $filters, int $lim
 
     return $stmt->fetchAll();
 }
+
+function sr_community_payment_history_table_exists(PDO $pdo, string $tableName): bool
+{
+    static $cache = [];
+    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName)) {
+        return false;
+    }
+    if (array_key_exists($tableName, $cache)) {
+        return $cache[$tableName];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+        $cache[$tableName] = true;
+    } catch (Throwable) {
+        $cache[$tableName] = false;
+    }
+
+    return $cache[$tableName];
+}
+
+function sr_community_admin_payment_history_sort_options(): array
+{
+    return [
+        'created_at' => ['label' => '결제 시각', 'columns' => ['p.created_at', 'p.source_id']],
+        'target' => ['label' => '대상', 'columns' => ['p.target_title', 'p.source_id']],
+        'account_id' => ['label' => '회원', 'columns' => ['p.account_id', 'p.source_id']],
+        'payment_type' => ['label' => '결제 유형', 'columns' => ['p.payment_type', 'p.source_id']],
+        'settlement_kind' => ['label' => '정산', 'columns' => ['p.settlement_kind', 'p.source_id']],
+        'settlement_amount' => ['label' => '금액', 'columns' => ['p.settlement_amount', 'p.source_id']],
+    ];
+}
+
+function sr_community_admin_payment_history_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_community_admin_payment_history_filters_from_request(PDO $pdo): array
+{
+    $legacySettlementKind = sr_community_asset_settlement_kind('use', 1, 0, '');
+    $filters = [
+        'kind' => sr_community_admin_filter_values('kind', ['community_post_read', 'community_attachment_download']),
+        'payment_type' => sr_community_admin_filter_values('payment_type', ['asset_only', 'coupon_access', 'coupon_partial_discount_asset']),
+        'settlement_kind' => sr_community_admin_filter_values('settlement_kind', ['paid', 'paid_settled_zero', $legacySettlementKind]),
+        'refund_status' => sr_community_admin_filter_values('refund_status', ['none', 'refunded', 'access_revoked']),
+        'coupon_used' => sr_community_admin_filter_values('coupon_used', ['yes', 'no']),
+        'board_id' => (int) sr_get_string('board_id', 20),
+        'target_id' => (int) sr_get_string('target_id', 20),
+        'account_id' => sr_admin_member_account_id_from_identifier($pdo, sr_runtime_config(), sr_get_string('account_id', 80)),
+        'date_from' => sr_get_string('date_from', 10),
+        'date_to' => sr_get_string('date_to', 10),
+        'q' => sr_get_string('q', 120),
+    ];
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', (string) $filters['date_from']) !== 1) {
+        $filters['date_from'] = '';
+    }
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', (string) $filters['date_to']) !== 1) {
+        $filters['date_to'] = '';
+    }
+
+    return $filters;
+}
+
+function sr_community_admin_payment_history_sources(PDO $pdo): array
+{
+    $sources = [];
+    if (sr_community_payment_history_table_exists($pdo, 'sr_community_post_read_payment_logs')) {
+        $sources[] = "SELECT 'community_post_read' AS source_kind,
+                             r.id AS source_id,
+                             r.board_id AS board_id,
+                             r.post_id AS post_id,
+                             0 AS attachment_id,
+                             r.post_id AS target_id,
+                             r.post_title_snapshot AS target_title,
+                             COALESCE(NULLIF(b.title, ''), '') AS target_meta,
+                             r.account_id AS account_id,
+                             r.payment_type AS payment_type,
+                             r.settlement_kind AS settlement_kind,
+                             r.charge_policy AS charge_policy,
+                             r.asset_module AS asset_module,
+                             r.payable_amount AS payable_amount,
+                             r.settlement_amount AS settlement_amount,
+                             r.settlement_currency AS settlement_currency,
+                             r.asset_access_log_ids_json AS asset_access_log_ids_json,
+                             r.coupon_redemption_id AS coupon_redemption_id,
+                             r.coupon_dedupe_key AS coupon_dedupe_key,
+                             r.payment_dedupe_key AS payment_dedupe_key,
+                             r.refund_status AS refund_status,
+                             r.refund_transaction_ids_json AS refund_transaction_ids_json,
+                             r.refund_note AS refund_note,
+                             r.refunded_by_account_id AS refunded_by_account_id,
+                             r.refunded_at AS refunded_at,
+                             r.access_revoked_at AS access_revoked_at,
+                             r.refund_policy_version AS refund_policy_version,
+                             r.created_at AS created_at
+                      FROM sr_community_post_read_payment_logs r
+                      LEFT JOIN sr_community_boards b ON b.id = r.board_id";
+    }
+    if (sr_community_attachment_download_logs_table_exists($pdo)) {
+        $sources[] = "SELECT 'community_attachment_download' AS source_kind,
+                             d.id AS source_id,
+                             d.board_id AS board_id,
+                             d.post_id AS post_id,
+                             d.attachment_id AS attachment_id,
+                             d.attachment_id AS target_id,
+                             COALESCE(NULLIF(d.attachment_original_name_snapshot, ''), NULLIF(a.original_name, '')) AS target_title,
+                             COALESCE(NULLIF(d.post_title_snapshot, ''), NULLIF(p.title, ''), NULLIF(b.title, '')) AS target_meta,
+                             d.account_id AS account_id,
+                             CASE
+                                 WHEN COALESCE(d.coupon_redemption_id, 0) > 0 AND COALESCE(d.amount, 0) <= 0 THEN 'coupon_access'
+                                 WHEN COALESCE(d.coupon_redemption_id, 0) > 0 THEN 'coupon_partial_discount_asset'
+                                 ELSE 'asset_only'
+                             END AS payment_type,
+                             CASE
+                                 WHEN COALESCE(d.amount, 0) > 0 THEN 'paid'
+                                 WHEN COALESCE(d.coupon_redemption_id, 0) > 0 THEN 'paid_settled_zero'
+                                 ELSE ''
+                             END AS settlement_kind,
+                             d.charge_policy AS charge_policy,
+                             d.asset_module AS asset_module,
+                             d.amount AS payable_amount,
+                             d.amount AS settlement_amount,
+                             'KRW' AS settlement_currency,
+                             d.asset_access_log_ids_json AS asset_access_log_ids_json,
+                             d.coupon_redemption_id AS coupon_redemption_id,
+                             d.coupon_dedupe_key AS coupon_dedupe_key,
+                             '' AS payment_dedupe_key,
+                             d.refund_status AS refund_status,
+                             d.refund_transaction_ids_json AS refund_transaction_ids_json,
+                             d.refund_note AS refund_note,
+                             d.refunded_by_account_id AS refunded_by_account_id,
+                             d.refunded_at AS refunded_at,
+                             d.access_revoked_at AS access_revoked_at,
+                             d.refund_policy_version AS refund_policy_version,
+                             d.created_at AS created_at
+                      FROM sr_community_attachment_download_logs d
+                      LEFT JOIN sr_community_attachments a ON a.id = d.attachment_id
+                      LEFT JOIN sr_community_posts p ON p.id = d.post_id
+                      LEFT JOIN sr_community_boards b ON b.id = d.board_id
+                      WHERE d.download_type = 'paid'";
+    }
+
+    return $sources;
+}
+
+function sr_community_admin_payment_history_where_sql(array $filters): array
+{
+    $conditions = [];
+    $params = [];
+
+    foreach (['kind' => 'source_kind', 'payment_type' => 'payment_type', 'settlement_kind' => 'settlement_kind'] as $filterKey => $column) {
+        $values = is_array($filters[$filterKey] ?? null) ? $filters[$filterKey] : [];
+        if ($values === []) {
+            continue;
+        }
+        $paramKey = $filterKey . '_0';
+        $conditions[] = 'p.' . $column . ' = :' . $paramKey;
+        $params[$paramKey] = (string) reset($values);
+    }
+
+    $refundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
+    if ($refundStatuses !== []) {
+        $refundConditions = [];
+        foreach (array_values($refundStatuses) as $index => $refundStatus) {
+            if ((string) $refundStatus === 'none') {
+                $refundConditions[] = "p.refund_status = ''";
+                continue;
+            }
+            $paramKey = 'refund_status_' . (string) $index;
+            $refundConditions[] = 'p.refund_status = :' . $paramKey;
+            $params[$paramKey] = (string) $refundStatus;
+        }
+        if ($refundConditions !== []) {
+            $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
+        }
+    }
+
+    $couponUsed = is_array($filters['coupon_used'] ?? null) ? (string) reset($filters['coupon_used']) : '';
+    if ($couponUsed === 'yes') {
+        $conditions[] = 'COALESCE(p.coupon_redemption_id, 0) > 0';
+    } elseif ($couponUsed === 'no') {
+        $conditions[] = 'COALESCE(p.coupon_redemption_id, 0) = 0';
+    }
+
+    foreach (['board_id' => 'board_id', 'account_id' => 'account_id'] as $filterKey => $column) {
+        $value = (int) ($filters[$filterKey] ?? 0);
+        if ($value > 0) {
+            $conditions[] = 'p.' . $column . ' = :' . $filterKey;
+            $params[$filterKey] = $value;
+        }
+    }
+
+    $targetId = (int) ($filters['target_id'] ?? 0);
+    if ($targetId > 0) {
+        $conditions[] = '(p.post_id = :target_id OR p.attachment_id = :target_id OR p.target_id = :target_id)';
+        $params['target_id'] = $targetId;
+    }
+
+    $dateFrom = (string) ($filters['date_from'] ?? '');
+    if ($dateFrom !== '') {
+        $conditions[] = 'p.created_at >= :date_from';
+        $params['date_from'] = $dateFrom . ' 00:00:00';
+    }
+    $dateTo = (string) ($filters['date_to'] ?? '');
+    if ($dateTo !== '') {
+        $conditions[] = 'p.created_at <= :date_to';
+        $params['date_to'] = $dateTo . ' 23:59:59';
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $conditions[] = "(p.target_title LIKE :q ESCAPE '\\\\' OR p.target_meta LIKE :q ESCAPE '\\\\' OR p.coupon_dedupe_key LIKE :q ESCAPE '\\\\' OR p.payment_dedupe_key LIKE :q ESCAPE '\\\\')";
+        $params['q'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+    }
+
+    return [
+        'sql' => $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '',
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_payment_history_count(PDO $pdo, array $filters): int
+{
+    $sources = sr_community_admin_payment_history_sources($pdo);
+    if ($sources === []) {
+        return 0;
+    }
+    $where = sr_community_admin_payment_history_where_sql($filters);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM (' . implode(' UNION ALL ', $sources) . ') p ' . $where['sql']);
+    $stmt->execute($where['params']);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_admin_payment_history_logs(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    $sources = sr_community_admin_payment_history_sources($pdo);
+    if ($sources === []) {
+        return [];
+    }
+    $where = sr_community_admin_payment_history_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT p.*, a.email, a.display_name, rb.display_name AS refunded_by_display_name
+         FROM (' . implode(' UNION ALL ', $sources) . ') p
+         LEFT JOIN sr_member_accounts a ON a.id = p.account_id
+         LEFT JOIN sr_member_accounts rb ON rb.id = p.refunded_by_account_id
+         ' . $where['sql'] . '
+         ' . sr_admin_sort_order_sql(sr_community_admin_payment_history_sort_options(), $sort, sr_community_admin_payment_history_default_sort()) . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($where['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return sr_community_admin_payment_history_logs_with_asset_summaries($pdo, $stmt->fetchAll());
+}
+
+function sr_community_admin_payment_history_logs_with_asset_summaries(PDO $pdo, array $paymentLogs): array
+{
+    if ($paymentLogs === []) {
+        return $paymentLogs;
+    }
+
+    $idsByIndex = [];
+    $allIds = [];
+    foreach ($paymentLogs as $index => $paymentLog) {
+        $decoded = json_decode((string) ($paymentLog['asset_access_log_ids_json'] ?? '[]'), true);
+        if (!is_array($decoded)) {
+            continue;
+        }
+        foreach ($decoded as $value) {
+            $id = (int) $value;
+            if ($id > 0) {
+                $idsByIndex[(int) $index][$id] = $id;
+                $allIds[$id] = $id;
+            }
+        }
+    }
+    if ($allIds === []) {
+        return $paymentLogs;
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($allIds) as $index => $id) {
+        $key = 'id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $id;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, amount,
+                settlement_amount, settlement_currency, settlement_kind, snapshot_schema_version, rounding_policy_version
+         FROM sr_community_asset_logs
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY id ASC'
+    );
+    $stmt->execute($params);
+
+    $assetLogsById = [];
+    foreach ($stmt->fetchAll() as $assetLog) {
+        $assetLogsById[(int) ($assetLog['id'] ?? 0)] = $assetLog;
+    }
+
+    foreach ($idsByIndex as $index => $ids) {
+        $summaryLines = [];
+        $paymentLog = $paymentLogs[$index];
+        foreach ($ids as $id) {
+            $assetLog = $assetLogsById[$id] ?? null;
+            if (!is_array($assetLog)) {
+                continue;
+            }
+            $sourceKind = (string) ($paymentLog['source_kind'] ?? '');
+            if ($sourceKind === 'community_attachment_download') {
+                $valid = (int) ($assetLog['account_id'] ?? 0) === (int) ($paymentLog['account_id'] ?? 0)
+                    && (string) ($assetLog['reference_type'] ?? '') === 'community.attachment'
+                    && (string) ($assetLog['subject_type'] ?? '') === 'community.attachment'
+                    && (int) ($assetLog['subject_id'] ?? 0) === (int) ($paymentLog['attachment_id'] ?? 0)
+                    && (string) ($assetLog['event_key'] ?? '') === 'attachment_download';
+            } else {
+                $valid = (int) ($assetLog['account_id'] ?? 0) === (int) ($paymentLog['account_id'] ?? 0)
+                    && (string) ($assetLog['subject_type'] ?? '') === 'community.post'
+                    && (int) ($assetLog['subject_id'] ?? 0) === (int) ($paymentLog['post_id'] ?? 0)
+                    && (string) ($assetLog['event_key'] ?? '') === 'post_read';
+            }
+            if (!$valid) {
+                continue;
+            }
+            $assetModule = (string) ($assetLog['asset_module'] ?? '');
+            $summaryLines[] = trim(implode(' · ', array_filter([
+                sr_community_asset_module_labels($assetModule, $pdo) . ' ' . number_format((int) ($assetLog['amount'] ?? 0)),
+                '기준 ' . number_format((int) ($assetLog['settlement_amount'] ?? 0)) . ' ' . (string) ($assetLog['settlement_currency'] ?? 'KRW'),
+                (string) ($assetLog['settlement_kind'] ?? sr_community_asset_settlement_kind('use', 1, 0, '')),
+                'snapshot ' . (string) ($assetLog['snapshot_schema_version'] ?? 'asset_settlement_snapshot_v1'),
+                'rounding ' . (string) ($assetLog['rounding_policy_version'] ?? 'asset_settlement_rounding_v1'),
+            ], static fn (string $part): bool => $part !== '')));
+        }
+        $paymentLogs[$index]['asset_log_summary'] = implode("\n", $summaryLines);
+    }
+
+    return $paymentLogs;
+}
