@@ -77,6 +77,7 @@ sr_community_account_guard_check_contains('modules/community/helpers/account-gua
     'function sr_community_account_guard_active_uid',
     'function sr_community_account_guard_transition',
     'function sr_community_account_active_guards',
+    'function sr_community_account_guard_write_decision',
     'function sr_community_evaluate_account_guard_after_auto_action',
     'function sr_community_evaluate_account_publication_hold',
     'function sr_community_evaluate_account_confirmed_hold',
@@ -89,6 +90,28 @@ sr_community_account_guard_check_contains('modules/community/actions/report.php'
     'sr_community_evaluate_account_guard_after_auto_action($pdo, (int) $autoActionResult[\'auto_action_id\'], $settings)',
     "'event_type' => 'community.account_guard.evaluated'",
     "'event_type' => 'community.account_guard.evaluation_failed'",
+]);
+
+sr_community_account_guard_check_contains('modules/community/actions/write.php', [
+    'sr_community_account_guard_write_decision($pdo, (int) $account[\'id\'], \'post\')',
+    '$values[\'initial_status\'] = \'pending\'',
+    "sr_redirect('/community/my?type=posts')",
+    "'account_guard_write_decision' => \$accountGuardWriteDecision",
+]);
+
+sr_community_account_guard_check_contains('modules/community/helpers/posts-writing.php', [
+    "\$initialStatusInput = (string) (\$values['initial_status'] ?? 'published')",
+    "'status' => \$initialStatus",
+]);
+
+sr_community_account_guard_check_contains('modules/community/actions/my.php', [
+    "AND p.status IN (\\'published\\', \\'pending\\')",
+    "unset(\$_SESSION['sr_community_post_notice'])",
+]);
+
+sr_community_account_guard_check_contains('modules/community/views/my.php', [
+    '검토 대기 중',
+    "sr_public_feedback_toasts('community', (string) (\$myNotice ?? ''), [])",
 ]);
 
 sr_community_account_guard_check_contains('modules/community/actions/admin-reports.php', [
@@ -298,6 +321,22 @@ if ($errors === []) {
         || (int) $pdo->query("SELECT COUNT(*) FROM sr_community_account_guards WHERE account_id = 11 AND guard_type = 'confirmed_hold' AND status = 'active'")->fetchColumn() !== 1
     ) {
         sr_community_account_guard_check_error('repeated confirmed auto actions must create confirmed hold when setting is enabled.');
+    }
+
+    $postDecision = sr_community_account_guard_write_decision($pdo, 9, 'post');
+    $commentDecision = sr_community_account_guard_write_decision($pdo, 9, 'comment');
+    if (
+        (string) ($postDecision['action'] ?? '') !== 'hold'
+        || (string) ($postDecision['initial_status'] ?? '') !== 'pending'
+        || (string) ($commentDecision['initial_status'] ?? '') !== 'published'
+    ) {
+        sr_community_account_guard_check_error('active publication hold must only change interactive post initial status to pending.');
+    }
+
+    $pdo->exec("INSERT INTO sr_community_account_guards (account_id, guard_type, status, active_guard_uid, created_at, updated_at) VALUES (12, 'write_cooldown', 'active', '12:write_cooldown', '2026-07-01 11:00:00', '2026-07-01 11:00:00')");
+    $cooldownDecision = sr_community_account_guard_write_decision($pdo, 12, 'post');
+    if ((string) ($cooldownDecision['action'] ?? '') !== 'block') {
+        sr_community_account_guard_check_error('active write cooldown must block post writes.');
     }
 }
 

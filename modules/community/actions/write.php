@@ -172,9 +172,20 @@ if ($isPostRequest) {
         }
     }
 
+    $accountGuardWriteDecision = ['action' => 'allow', 'initial_status' => 'published', 'guard_type' => 'none'];
+    if ($errors === [] && !$isGuestAuthor && !$isAdminWriter) {
+        $accountGuardWriteDecision = sr_community_account_guard_write_decision($pdo, (int) $account['id'], 'post');
+        if ((string) ($accountGuardWriteDecision['action'] ?? '') === 'block') {
+            $errors[] = (string) ($accountGuardWriteDecision['message'] ?? '커뮤니티 작성 제한이 적용 중입니다. 잠시 후 다시 시도해 주세요.');
+        } elseif ((string) ($accountGuardWriteDecision['initial_status'] ?? 'published') === 'pending') {
+            $values['initial_status'] = 'pending';
+        }
+    }
+
     if ($errors === []) {
         $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
         $postId = sr_community_create_post($pdo, (int) $board['id'], $authorAccountId, $values);
+        $createdPostStatus = (string) ($values['initial_status'] ?? 'published');
         $privacyConsentRecordCount = 0;
         $writeChargeResult = !$isGuestAuthor && sr_community_asset_event_required($writeChargeConfig)
             ? sr_community_run_asset_event($pdo, $writeChargeConfig, $authorAccountId, 'post_write_charge', 'community.post', $postId, 'use', 'community.post.write')
@@ -195,7 +206,7 @@ if ($isPostRequest) {
         if (!$isGuestAuthor && in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true)) {
             sr_community_set_post_series($pdo, $postId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], $authorAccountId);
         }
-        $postRewardResult = !$isGuestAuthor && sr_community_asset_event_required($postRewardConfig)
+        $postRewardResult = !$isGuestAuthor && $createdPostStatus === 'published' && sr_community_asset_event_required($postRewardConfig)
             ? sr_community_run_asset_event($pdo, $postRewardConfig, $authorAccountId, 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')
             : ['allowed' => true, 'processed' => false];
         if (!empty($postRewardResult['processed'])) {
@@ -296,16 +307,18 @@ if ($isPostRequest) {
                 'asset_write_charge_processed' => !empty($writeChargeResult['processed']),
                 'asset_post_reward_processed' => !empty($postRewardResult['processed']),
                 'privacy_consent_record_count' => $privacyConsentRecordCount,
+                'initial_status' => $createdPostStatus,
+                'account_guard_write_decision' => $accountGuardWriteDecision,
             ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
         ]);
-        $followNotificationCount = sr_community_create_post_follow_notifications($pdo, [
+        $followNotificationCount = $createdPostStatus === 'published' ? sr_community_create_post_follow_notifications($pdo, [
             'id' => $postId,
             'author_account_id' => $authorAccountId,
-            'status' => 'published',
+            'status' => $createdPostStatus,
             'title' => (string) $values['title'],
             'board_key' => (string) $board['board_key'],
             'board_title' => (string) $board['title'],
-        ], $authorAccountId > 0 ? $authorAccountId : null);
+        ], $authorAccountId > 0 ? $authorAccountId : null) : 0;
         if ($followNotificationCount > 0) {
             sr_audit_log($pdo, [
                 'actor_account_id' => $authorAccountId > 0 ? $authorAccountId : null,
@@ -319,6 +332,10 @@ if ($isPostRequest) {
                     'notification_count' => $followNotificationCount,
                 ],
             ]);
+        }
+        if ($createdPostStatus === 'pending') {
+            $_SESSION['sr_community_post_notice'] = (string) ($accountGuardWriteDecision['message'] ?? '게시글이 검토 대기 상태로 저장되었습니다.');
+            sr_redirect('/community/my?type=posts');
         }
         sr_redirect('/community/post?id=' . (string) $postId);
     }

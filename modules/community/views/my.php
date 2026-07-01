@@ -18,6 +18,7 @@ $communityMainLabel = $myTitle;
 $communityFrameModifier = 'account';
 ?>
     <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-start.php'; ?>
+        <?php echo sr_public_feedback_toasts('community', (string) ($myNotice ?? ''), []); ?>
         <h1><?php echo sr_e($myTitle); ?></h1>
         <nav class="community-my-tabs" aria-label="<?php echo sr_e('내 커뮤니티 활동'); ?>">
             <a href="<?php echo sr_e(sr_url('/community/my?type=posts')); ?>"<?php echo $myType === 'posts' ? ' aria-current="page"' : ''; ?>>내 글</a>
@@ -32,6 +33,7 @@ $communityFrameModifier = 'account';
                     <?php foreach ($myPosts as $post) { ?>
                         <?php
                         $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
+                        $postStatus = (string) ($post['status'] ?? 'published');
                         $postExcerpt = !empty($post['is_secret'])
                             ? ''
                             : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
@@ -48,8 +50,15 @@ $communityFrameModifier = 'account';
                                     <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
                                 </p>
                                 <h2 class="community-post-title community-home-post-title">
-                                    <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                    <?php if ($postStatus === 'published') { ?>
+                                        <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                    <?php } else { ?>
+                                        <span><?php echo sr_e((string) ($post['title'] ?? '')); ?></span>
+                                    <?php } ?>
                                 </h2>
+                                <?php if ($postStatus === 'pending') { ?>
+                                    <p class="community-home-post-meta"><?php echo sr_e('검토 대기 중'); ?></p>
+                                <?php } ?>
                                 <?php if ($postExcerpt !== '') { ?>
                                     <p><?php echo sr_e($postExcerpt); ?></p>
                                 <?php } elseif (!empty($post['is_secret'])) { ?>

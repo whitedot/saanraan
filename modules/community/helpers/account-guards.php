@@ -766,3 +766,41 @@ function sr_community_account_active_guards(PDO $pdo, int $accountId, ?string $n
 
     return $stmt->fetchAll();
 }
+
+function sr_community_account_guard_write_decision(PDO $pdo, int $accountId, string $targetType): array
+{
+    if ($accountId < 1 || !in_array($targetType, ['post', 'comment'], true)) {
+        return ['action' => 'allow', 'initial_status' => 'published', 'guard_type' => 'none'];
+    }
+
+    $activeGuards = sr_community_account_active_guards($pdo, $accountId);
+    foreach ($activeGuards as $guard) {
+        if (is_array($guard) && (string) ($guard['guard_type'] ?? '') === 'write_cooldown') {
+            return [
+                'action' => 'block',
+                'initial_status' => 'published',
+                'guard_type' => 'write_cooldown',
+                'guard_id' => (int) ($guard['id'] ?? 0),
+                'message' => '커뮤니티 작성 제한이 적용 중입니다. 잠시 후 다시 시도해 주세요.',
+            ];
+        }
+    }
+
+    if ($targetType === 'post') {
+        foreach (['confirmed_hold', 'publication_hold'] as $guardType) {
+            foreach ($activeGuards as $guard) {
+                if (is_array($guard) && (string) ($guard['guard_type'] ?? '') === $guardType) {
+                    return [
+                        'action' => 'hold',
+                        'initial_status' => 'pending',
+                        'guard_type' => $guardType,
+                        'guard_id' => (int) ($guard['id'] ?? 0),
+                        'message' => '게시글이 검토 대기 상태로 저장되었습니다.',
+                    ];
+                }
+            }
+        }
+    }
+
+    return ['action' => 'allow', 'initial_status' => 'published', 'guard_type' => 'none'];
+}

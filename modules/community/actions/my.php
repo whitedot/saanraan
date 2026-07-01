@@ -28,6 +28,10 @@ $myReadableBoardIds = array_values(array_filter(array_keys($myReadableBoards), s
 $myPosts = [];
 $myComments = [];
 $myHasNextPage = false;
+$myNotice = isset($_SESSION['sr_community_post_notice']) && is_string($_SESSION['sr_community_post_notice'])
+    ? $_SESSION['sr_community_post_notice']
+    : '';
+unset($_SESSION['sr_community_post_notice']);
 
 if ($myReadableBoardIds !== []) {
     $myBoardPlaceholders = [];
@@ -52,7 +56,7 @@ if ($myReadableBoardIds !== []) {
              INNER JOIN sr_community_boards b ON b.id = p.board_id
              ' . $categoryJoinSql . '
              WHERE p.author_account_id = :account_id
-               AND p.status = \'published\'
+               AND p.status IN (\'published\', \'pending\')
                AND b.status = \'enabled\'
                AND p.board_id IN (' . $myBoardWhereSql . ')
              ORDER BY p.id DESC

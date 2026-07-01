@@ -483,6 +483,10 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         throw new RuntimeException('게시글 본문 이미지를 포함한 작성은 외부 트랜잭션에서 처리할 수 없습니다.');
     }
 
+    $initialStatusInput = (string) ($values['initial_status'] ?? 'published');
+    $initialStatus = in_array($initialStatusInput, ['published', 'pending'], true)
+        ? $initialStatusInput
+        : 'published';
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
         : 'plain';
@@ -521,7 +525,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'summary_feed_candidate' => sr_community_summary_feed_candidate_value_for_board($pdo, $boardId),
-        'status' => 'published',
+        'status' => $initialStatus,
         'created_at' => $now,
         'updated_at' => $now,
     ];
