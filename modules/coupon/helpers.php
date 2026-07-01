@@ -20,6 +20,21 @@ function sr_coupon_clean_currency_code(string $value): string
     return preg_match('/\A[A-Z]{3}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_coupon_nonnegative_int_or_null(mixed $value): ?int
+{
+    if (is_int($value)) {
+        return $value >= 0 ? $value : null;
+    }
+    if (is_string($value)) {
+        $value = trim($value);
+        if (preg_match('/\A[0-9]+\z/', $value) === 1) {
+            return (int) $value;
+        }
+    }
+
+    return null;
+}
+
 function sr_coupon_key_is_valid(string $couponKey): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $couponKey) === 1;
@@ -453,7 +468,10 @@ function sr_coupon_discount_application(array $issue, array $pricing): array
 {
     $couponType = (string) ($issue['coupon_type'] ?? 'access');
     if ($couponType === 'access') {
-        $priceAmount = !empty($pricing['ok']) ? max(0, (int) ($pricing['price_amount'] ?? 0)) : 0;
+        $priceAmount = !empty($pricing['ok']) ? sr_coupon_nonnegative_int_or_null($pricing['price_amount'] ?? 0) : 0;
+        if ($priceAmount === null) {
+            return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '쿠폰 사용처 가격이 올바르지 않습니다.'];
+        }
         return [
             'ok' => true,
             'discount_amount' => $priceAmount,
@@ -467,7 +485,10 @@ function sr_coupon_discount_application(array $issue, array $pricing): array
         return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '쿠폰 사용처 가격을 확인할 수 없습니다.'];
     }
 
-    $priceAmount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    $priceAmount = sr_coupon_nonnegative_int_or_null($pricing['price_amount'] ?? 0);
+    if ($priceAmount === null) {
+        return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '쿠폰 사용처 가격이 올바르지 않습니다.'];
+    }
     if ($priceAmount <= 0) {
         return ['ok' => false, 'discount_amount' => 0, 'remaining_amount' => 0, 'message' => '할인할 결제 금액이 없습니다.'];
     }
@@ -1391,7 +1412,10 @@ function sr_coupon_target_pricing_admin_label(array $pricing): string
         return '가격 조회: ' . ($message !== '' ? $message : '지원하지 않음');
     }
 
-    $amount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    $amount = sr_coupon_nonnegative_int_or_null($pricing['price_amount'] ?? 0);
+    if ($amount === null) {
+        return '가격 조회: 가격 정보 오류';
+    }
     $unit = (string) ($pricing['currency_code'] ?? '');
     if ($unit === '') {
         $unit = (string) ($pricing['asset_unit'] ?? '');
@@ -1419,7 +1443,16 @@ function sr_coupon_normalize_target_pricing(mixed $pricing, string $targetType, 
         ];
     }
 
-    $priceAmount = max(0, (int) ($pricing['price_amount'] ?? 0));
+    $priceAmount = sr_coupon_nonnegative_int_or_null($pricing['price_amount'] ?? 0);
+    if ($priceAmount === null) {
+        return [
+            'ok' => false,
+            'target_type' => $targetType,
+            'target_id' => $targetId,
+            'failure_code' => 'pricing_amount_invalid',
+            'failure_message' => '쿠폰 사용처 가격 금액이 올바르지 않습니다.',
+        ];
+    }
     $currencyCode = sr_coupon_clean_currency_code((string) ($pricing['currency_code'] ?? ''));
     $assetUnit = sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40);
     if (($currencyCode === '' && $assetUnit === '') || ($currencyCode !== '' && $assetUnit !== '')) {
@@ -3349,7 +3382,7 @@ function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, strin
     $snapshot = [
         'target_type' => (string) ($pricing['target_type'] ?? $targetType),
         'target_id' => (string) ($pricing['target_id'] ?? $targetId),
-        'amount' => max(0, (int) ($pricing['price_amount'] ?? 0)),
+        'amount' => sr_coupon_nonnegative_int_or_null($pricing['price_amount'] ?? 0) ?? 0,
         'currency_code' => sr_coupon_clean_currency_code((string) ($pricing['currency_code'] ?? '')),
         'asset_unit' => sr_coupon_clean_key((string) ($pricing['asset_unit'] ?? ''), 40),
         'is_free' => !empty($pricing['is_free']),
@@ -3359,9 +3392,10 @@ function sr_coupon_redemption_pricing_snapshot_from_result(array $pricing, strin
     ];
     foreach (['coupon_type', 'discount_amount', 'remaining_amount'] as $optionalKey) {
         if (array_key_exists($optionalKey, $pricing)) {
+            $amount = $optionalKey === 'coupon_type' ? null : sr_coupon_nonnegative_int_or_null($pricing[$optionalKey]);
             $snapshot[$optionalKey] = $optionalKey === 'coupon_type'
                 ? sr_coupon_clean_key((string) $pricing[$optionalKey], 40)
-                : max(0, (int) $pricing[$optionalKey]);
+                : ($amount ?? 0);
         }
     }
 
@@ -3923,7 +3957,16 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
 
         $pricing = sr_coupon_target_pricing($pdo, $targetType, $targetId, $accountId, $context);
         if (array_key_exists('price_amount', $context)) {
-            $pricing['price_amount'] = max(0, (int) $context['price_amount']);
+            $contextPriceAmount = sr_coupon_nonnegative_int_or_null($context['price_amount']);
+            if ($contextPriceAmount === null) {
+                $pricing = [
+                    'ok' => false,
+                    'failure_code' => 'pricing_amount_invalid',
+                    'failure_message' => '쿠폰 사용처 가격 금액이 올바르지 않습니다.',
+                ];
+            } else {
+                $pricing['price_amount'] = $contextPriceAmount;
+            }
         }
         if (array_key_exists('currency_code', $context)) {
             $pricing['currency_code'] = sr_coupon_clean_currency_code((string) $context['currency_code']);

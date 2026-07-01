@@ -806,6 +806,12 @@ function sr_coupon_runtime_fixture(): void
         'currency_code' => 'KRWX',
     ], 'content', '7701');
     sr_coupon_runtime_assert(empty($invalidCurrencyPricing['ok']) && (string) ($invalidCurrencyPricing['failure_code'] ?? '') === 'pricing_unit_invalid', 'coupon target pricing should reject overlong currency codes instead of truncating them.');
+    $invalidAmountPricing = sr_coupon_normalize_target_pricing([
+        'ok' => true,
+        'price_amount' => '5000abc',
+        'currency_code' => 'KRW',
+    ], 'content', '7701');
+    sr_coupon_runtime_assert(empty($invalidAmountPricing['ok']) && (string) ($invalidAmountPricing['failure_code'] ?? '') === 'pricing_amount_invalid', 'coupon target pricing should reject non-integer price amounts instead of casting them.');
     $invalidCurrencyDiscount = sr_coupon_discount_application([
         'coupon_type' => 'fixed_discount',
         'discount_amount' => 1000,
@@ -816,6 +822,16 @@ function sr_coupon_runtime_fixture(): void
         'currency_code' => 'KRWX',
     ]);
     sr_coupon_runtime_assert(empty($invalidCurrencyDiscount['ok']), 'fixed discount application should reject overlong price currency codes instead of truncating them.');
+    $invalidAmountDiscount = sr_coupon_discount_application([
+        'coupon_type' => 'fixed_discount',
+        'discount_amount' => 1000,
+        'discount_currency_code' => 'KRW',
+    ], [
+        'ok' => true,
+        'price_amount' => '5000abc',
+        'currency_code' => 'KRW',
+    ]);
+    sr_coupon_runtime_assert(empty($invalidAmountDiscount['ok']), 'fixed discount application should reject non-integer price amounts instead of casting them.');
 
     $percentDiscountId = sr_coupon_create_definition($pdo, [
         'coupon_key' => 'percent_discount_attempt',
