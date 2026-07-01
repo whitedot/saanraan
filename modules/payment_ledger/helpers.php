@@ -72,9 +72,25 @@ function sr_payment_ledger_clean_currency_code(string $value): string
     return preg_match('/\A[A-Z]{3}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_payment_ledger_integer_amount(mixed $value, string $message): int
+{
+    if (is_int($value)) {
+        return $value;
+    }
+
+    if (is_string($value)) {
+        $value = trim($value);
+        if (preg_match('/\A-?\d+\z/', $value) === 1) {
+            return (int) $value;
+        }
+    }
+
+    throw new InvalidArgumentException($message);
+}
+
 function sr_payment_ledger_nonnegative_amount(mixed $value, string $message): int
 {
-    $amount = (int) $value;
+    $amount = sr_payment_ledger_integer_amount($value, $message);
     if ($amount < 0) {
         throw new InvalidArgumentException($message);
     }
@@ -310,7 +326,7 @@ function sr_payment_ledger_add_item(PDO $pdo, int $paymentRecordId, array $item)
         'owner_module' => $ownerModule,
         'reference_type' => $referenceType,
         'reference_id' => $referenceId,
-        'amount' => (int) ($item['amount'] ?? 0),
+        'amount' => sr_payment_ledger_integer_amount($item['amount'] ?? 0, '결제 기록 항목 금액은 정수여야 합니다.'),
         'currency_code' => $currencyCode,
         'reversible' => !empty($item['reversible']) ? 1 : 0,
         'reversal_status' => sr_payment_ledger_clean_reversal_status((string) ($item['reversal_status'] ?? 'none')),

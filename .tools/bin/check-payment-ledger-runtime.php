@@ -247,6 +247,20 @@ try {
 
 try {
     sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:nonnumeric-amount',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payable_amount' => '100abc',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject non-integer record amounts instead of casting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects non-integer record amounts.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
         'dedupe_key' => 'content.view:payment:7:overlong-item-reference',
         'account_id' => 7,
         'subject_module' => 'content',
@@ -266,6 +280,29 @@ try {
     sr_payment_runtime_assert(false, 'payment ledger should reject overlong item reference ids instead of truncating them.');
 } catch (InvalidArgumentException) {
     sr_payment_runtime_assert(true, 'payment ledger rejects overlong item reference ids.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:nonnumeric-item-amount',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'point',
+            'reference_type' => 'point_transaction',
+            'reference_id' => 'nonnumeric-item-amount',
+            'amount' => '10abc',
+            'currency_code' => 'KRW',
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject non-integer item amounts instead of casting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects non-integer item amounts.');
 }
 
 try {

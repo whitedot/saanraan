@@ -139,7 +139,7 @@
 - 주문내역과 결제내역은 같은 테이블로 합치지 않는다. 커머스 주문은 커머스 모듈이 소유하고, 공통 결제내역은 주문 ID를 subject/reference로 참조한다.
 - 결제 record의 `dedupe_key`는 불변 증빙 단위다. 같은 key의 재호출은 기존 record id만 반환하고 item을 추가하지 않으며, account/subject/amount/currency 같은 생성 증빙 값이 기존 record와 다르면 실패한다. `status`는 취소/환불로 바뀌는 lifecycle 상태라 replay 비교 기준에서 제외한다. 동시 생성 중 unique 충돌이 발생해도 기존 record를 다시 조회해 같은 값이면 흡수하고, 탈퇴/익명화 후 늦게 도착한 같은 dedupe replay는 account 연결을 복원하지 않은 채 흡수한다.
 - 결제 record의 subject module/type은 활성 모듈이 제공하는 `payment-ledger-targets.php` 계약에 있어야 한다. 오타나 아직 계약되지 않은 결제 대상은 공통 결제 기록에 저장하지 않는다.
-- 결제 record와 item의 identifier, dedupe/reference key, 통화 코드, record 금액은 저장 전에 검증한다. 길이 초과 key, 3자리 ISO 형태가 아닌 통화 코드, 음수 record 금액은 잘라내거나 0으로 보정하지 않고 거부한다.
+- 결제 record와 item의 identifier, dedupe/reference key, 통화 코드, 금액은 저장 전에 검증한다. 길이 초과 key, 3자리 ISO 형태가 아닌 통화 코드, 비정수 금액, 음수 record 금액은 잘라내거나 0으로 보정하지 않고 거부한다.
 - 취소/환불 실행은 도메인 모듈이 자기 정책과 원장 되돌림을 수행하고, `payment_ledger`는 record/status와 item `reversal_status`를 통해 결과 증빙을 보존한다. record가 새로 취소 상태로 전이될 때만 reversible item을 `pending`으로 표시하며, 이미 `reversed`인 item을 재호출로 `pending`에 되돌리지 않는다.
 - `payment_ledger`가 활성화되어 있는데 helper나 테이블이 준비되지 않은 부분 설치 상태라면 유료 접근 처리 모듈은 결제 기록 없이 성공시키지 않고 실패 처리한다.
 - 개인정보 export/cleanup은 `payment_ledger`가 소유한다. 사본 제공에는 결제 record와 item snapshot이 포함되고, 탈퇴/익명화 시 결제 record의 account 연결을 제거한다.
