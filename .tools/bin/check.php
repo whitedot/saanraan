@@ -519,6 +519,72 @@ function sr_check_module_lifecycle_metadata(): void
     }
 }
 
+function sr_check_module_contract_table_documentation(): void
+{
+    $doc = file_get_contents('docs/module-guide.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Module guide cannot be read.');
+        return;
+    }
+
+    $documentedRows = [];
+    foreach (explode("\n", $doc) as $line) {
+        $line = trim($line);
+        if (preg_match('/^\| `([^`]+)` \| ([^|]+) \| ([^|]+) \|$/', $line, $matches) !== 1) {
+            continue;
+        }
+
+        $moduleKey = (string) $matches[1];
+        if (!is_file('modules/' . $moduleKey . '/module.php')) {
+            continue;
+        }
+
+        $documentedRows[$moduleKey] = [
+            'provides' => sr_check_module_contract_table_files((string) $matches[2]),
+            'consumes' => sr_check_module_contract_table_files((string) $matches[3]),
+        ];
+    }
+
+    foreach (glob('modules/*/module.php') ?: [] as $moduleFile) {
+        $moduleKey = basename(dirname($moduleFile));
+        $metadata = include $moduleFile;
+        if (!is_array($metadata)) {
+            continue;
+        }
+
+        $actualProvides = is_array($metadata['contracts']['provides'] ?? null) ? $metadata['contracts']['provides'] : [];
+        $actualConsumes = is_array($metadata['contracts']['consumes'] ?? null) ? $metadata['contracts']['consumes'] : [];
+        sort($actualProvides);
+        sort($actualConsumes);
+
+        if (!isset($documentedRows[$moduleKey])) {
+            sr_check_add_error('Module contract table is missing module: ' . $moduleKey);
+            continue;
+        }
+
+        if ($documentedRows[$moduleKey]['provides'] !== $actualProvides) {
+            sr_check_add_error('Module contract table provides mismatch: ' . $moduleKey);
+        }
+
+        if ($documentedRows[$moduleKey]['consumes'] !== $actualConsumes) {
+            sr_check_add_error('Module contract table consumes mismatch: ' . $moduleKey);
+        }
+    }
+}
+
+function sr_check_module_contract_table_files(string $value): array
+{
+    $value = trim($value);
+    if ($value === '없음') {
+        return [];
+    }
+
+    preg_match_all('/`([^`]+)`/', $value, $matches);
+    $files = $matches[1] ?? [];
+    sort($files);
+    return $files;
+}
+
 function sr_check_module_lifecycle_ui_contract(): void
 {
     $moduleActions = file_get_contents('modules/admin/helpers/module-actions.php');
@@ -1530,6 +1596,7 @@ sr_check_sql_files();
 sr_check_sql_runtime_table_prefix_placeholders();
 sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
+sr_check_module_contract_table_documentation();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
