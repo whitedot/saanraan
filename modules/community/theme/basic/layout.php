@@ -37,7 +37,11 @@ $layoutFooterBrandLogoHtml = '';
 $layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
-$layoutModuleHomeUrl = sr_url('/community');
+$layoutModuleHomeUrl = (string) ($layoutContext['module_home_url'] ?? sr_url('/community'));
+$layoutModuleLabel = trim((string) ($layoutContext['module_label'] ?? '커뮤니티'));
+$layoutModuleLabel = $layoutModuleLabel !== '' ? $layoutModuleLabel : '커뮤니티';
+$layoutModuleMenuLabel = trim((string) ($layoutContext['module_menu_label'] ?? ($layoutModuleLabel . ' 메뉴')));
+$layoutModuleMenuLabel = $layoutModuleMenuLabel !== '' ? $layoutModuleMenuLabel : ($layoutModuleLabel . ' 메뉴');
 $layoutSearchKeywordValue = sr_get_string_without_truncation('q', 100);
 $layoutSearchKeyword = is_string($layoutSearchKeywordValue) ? trim(preg_replace('/\s+/', ' ', $layoutSearchKeywordValue) ?? '') : '';
 $layoutFaviconHtml = '';
@@ -265,7 +269,7 @@ if (
                         <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                     <?php } ?>
                 </a>
-                <a class="community-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('커뮤니티'); ?></a>
+                <a class="community-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
             </div>
             <form class="community-layout-search" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>" role="search" data-community-layout-search-form data-community-layout-search-min-length="2" data-community-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
                 <label for="community_layout_search_q"><?php echo sr_e('커뮤니티 검색'); ?></label>
@@ -407,7 +411,7 @@ if (
             </div>
         </div>
     </header>
-    <nav class="community-layout-nav" aria-label="<?php echo sr_e('커뮤니티 메뉴'); ?>" data-community-scroll-nav>
+    <nav class="community-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>" data-community-scroll-nav>
         <?php echo $layoutPrimaryNavigationHtml; ?>
     </nav>
     <div class="community-layout-main">

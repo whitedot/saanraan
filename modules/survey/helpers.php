@@ -592,6 +592,9 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     }
     $context['consumer_domain'] = 'survey';
     $context['style_profile'] = 'module';
+    $context['module_home_url'] = sr_url('/survey');
+    $context['module_label'] = '설문';
+    $context['module_menu_label'] = '설문 메뉴';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'reset.css');

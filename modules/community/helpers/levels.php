@@ -448,6 +448,9 @@ function sr_community_public_layout_context(array $settings, array $context = []
     }
     $context['consumer_domain'] = 'community';
     $context['style_profile'] = 'module';
+    $context['module_home_url'] = sr_url('/community');
+    $context['module_label'] = '커뮤니티';
+    $context['module_menu_label'] = '커뮤니티 메뉴';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'reset.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'ui-kit.css');

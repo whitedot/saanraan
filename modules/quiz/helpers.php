@@ -631,6 +631,9 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     }
     $context['consumer_domain'] = 'quiz';
     $context['style_profile'] = 'module';
+    $context['module_home_url'] = sr_url('/quiz');
+    $context['module_label'] = '퀴즈';
+    $context['module_menu_label'] = '퀴즈 메뉴';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'reset.css');

@@ -42,7 +42,11 @@ $layoutFooterBrandLogoHtml = '';
 $layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
-$layoutModuleHomeUrl = sr_url('/content');
+$layoutModuleHomeUrl = (string) ($layoutContext['module_home_url'] ?? sr_url('/content'));
+$layoutModuleLabel = trim((string) ($layoutContext['module_label'] ?? '콘텐츠'));
+$layoutModuleLabel = $layoutModuleLabel !== '' ? $layoutModuleLabel : '콘텐츠';
+$layoutModuleMenuLabel = trim((string) ($layoutContext['module_menu_label'] ?? ($layoutModuleLabel . ' 메뉴')));
+$layoutModuleMenuLabel = $layoutModuleMenuLabel !== '' ? $layoutModuleMenuLabel : ($layoutModuleLabel . ' 메뉴');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -243,9 +247,9 @@ if (
                     <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             </a>
-            <a class="content-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('콘텐츠'); ?></a>
+            <a class="content-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
         </div>
-        <nav class="content-layout-nav" aria-label="<?php echo sr_e('콘텐츠 메뉴'); ?>">
+        <nav class="content-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
         <div class="content-layout-actions">

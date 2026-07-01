@@ -42,7 +42,11 @@ $layoutFooterBrandLogoHtml = '';
 $layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
-$layoutModuleHomeUrl = sr_url('/survey');
+$layoutModuleHomeUrl = (string) ($layoutContext['module_home_url'] ?? sr_url('/survey'));
+$layoutModuleLabel = trim((string) ($layoutContext['module_label'] ?? '설문'));
+$layoutModuleLabel = $layoutModuleLabel !== '' ? $layoutModuleLabel : '설문';
+$layoutModuleMenuLabel = trim((string) ($layoutContext['module_menu_label'] ?? ($layoutModuleLabel . ' 메뉴')));
+$layoutModuleMenuLabel = $layoutModuleMenuLabel !== '' ? $layoutModuleMenuLabel : ($layoutModuleLabel . ' 메뉴');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -236,9 +240,9 @@ if (
                     <span class="survey-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             </a>
-            <a class="survey-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('설문'); ?></a>
+            <a class="survey-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
         </div>
-        <nav class="survey-layout-nav" aria-label="<?php echo sr_e('설문 메뉴'); ?>">
+        <nav class="survey-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
         <div class="survey-layout-actions">

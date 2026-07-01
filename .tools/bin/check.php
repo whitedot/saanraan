@@ -1288,6 +1288,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!str_contains($body, "\$context['consumer_domain'] = '" . $moduleKey . "'")) {
                 sr_check_add_error('Module public layout context consumer domain is missing: ' . $helperFile);
             }
+            if (!str_contains($body, "\$context['module_home_url']") || !str_contains($body, "\$context['module_label']") || !str_contains($body, "\$context['module_menu_label']")) {
+                sr_check_add_error('Module public layout context display metadata is missing: ' . $helperFile);
+            }
             if (!str_contains($body, "'/modules/" . $moduleKey . "/assets/module.js'") || !str_contains($body, '$context[\'scripts\']')) {
                 sr_check_add_error('Module public layout context module script is missing: ' . $helperFile);
             }
@@ -1394,6 +1397,13 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 || !str_contains($layoutSource, $routeFlag . " ? '' : 'header'")
             ) {
                 sr_check_add_error('Module public layout should suppress default header menu on its own route: ' . $layoutFile);
+            }
+            if (
+                !str_contains($layoutSource, "\$layoutContext['module_home_url']")
+                || !str_contains($layoutSource, '$layoutModuleLabel')
+                || !str_contains($layoutSource, '$layoutModuleMenuLabel')
+            ) {
+                sr_check_add_error('Module public layout should render screen-owner display metadata from layout context: ' . $layoutFile);
             }
         }
     }

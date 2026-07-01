@@ -64,6 +64,8 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 
 선택된 layout provider와 화면 소유 모듈은 서로 다를 수 있다. 예를 들어 커뮤니티 화면이 `content.basic` layout을 선택하면 layout shell과 layout stylesheet는 content provider theme가 소유하고, 게시글 본문 DOM과 module/theme asset은 community theme가 소유한다.
 
+서비스 모듈의 공개 layout context는 화면 소유 모듈을 나타내는 `module_home_url`, `module_label`, `module_menu_label`을 함께 전달한다. 따라서 layout shell의 CSS class, layout script, logo provider key, banner layout slot은 선택된 provider namespace를 유지하되, header에 표시되는 모듈명과 모듈 홈 링크, 메뉴 접근성 label은 현재 화면 소유 모듈 기준으로 렌더링한다.
+
 기본 호출 순서는 다음과 같다.
 
 1. 화면 소유 모듈 theme `assets/reset.css`

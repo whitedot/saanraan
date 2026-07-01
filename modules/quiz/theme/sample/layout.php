@@ -42,7 +42,11 @@ $layoutFooterBrandLogoHtml = '';
 $layoutFooterMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
-$layoutModuleHomeUrl = sr_url('/quiz');
+$layoutModuleHomeUrl = (string) ($layoutContext['module_home_url'] ?? sr_url('/quiz'));
+$layoutModuleLabel = trim((string) ($layoutContext['module_label'] ?? '퀴즈'));
+$layoutModuleLabel = $layoutModuleLabel !== '' ? $layoutModuleLabel : '퀴즈';
+$layoutModuleMenuLabel = trim((string) ($layoutContext['module_menu_label'] ?? ($layoutModuleLabel . ' 메뉴')));
+$layoutModuleMenuLabel = $layoutModuleMenuLabel !== '' ? $layoutModuleMenuLabel : ($layoutModuleLabel . ' 메뉴');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -236,9 +240,9 @@ if (
                     <span class="quiz-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             </a>
-            <a class="quiz-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e('퀴즈'); ?></a>
+            <a class="quiz-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
         </div>
-        <nav class="quiz-layout-nav" aria-label="<?php echo sr_e('퀴즈 메뉴'); ?>">
+        <nav class="quiz-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
         <div class="quiz-layout-actions">
