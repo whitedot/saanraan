@@ -535,6 +535,29 @@ function sr_check_module_contract_table_documentation(): void
     }
 }
 
+function sr_check_module_contract_structure_documentation(): void
+{
+    $doc = file_get_contents('docs/module-guide.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Module guide cannot be read.');
+        return;
+    }
+
+    if (preg_match('/```text\s+modules\/\{module_key\}\/\s+(.*?)```/s', $doc, $matches) !== 1) {
+        sr_check_add_error('Module guide module directory structure block is missing.');
+        return;
+    }
+
+    preg_match_all('/^- ([a-z0-9_-]+\.php) \(optional\)$/m', (string) $matches[1], $fileMatches);
+    $documentedOptionalFiles = array_values(array_unique($fileMatches[1] ?? []));
+    $knownContractFiles = sr_module_known_contract_files();
+
+    $missingContractFiles = array_values(array_diff($knownContractFiles, $documentedOptionalFiles));
+    foreach ($missingContractFiles as $contractFile) {
+        sr_check_add_error('Module guide directory structure is missing contract file: ' . $contractFile);
+    }
+}
+
 function sr_check_module_contract_table_files(string $value): array
 {
     $value = trim($value);
@@ -1661,6 +1684,7 @@ sr_check_sql_runtime_table_prefix_placeholders();
 sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
 sr_check_module_contract_table_documentation();
+sr_check_module_contract_structure_documentation();
 sr_check_implementation_snapshot_bundle_modules();
 sr_check_implementation_snapshot_install_tables();
 sr_check_module_lifecycle_ui_contract();
