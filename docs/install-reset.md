@@ -26,6 +26,14 @@ Preview는 다음 값을 보여준다.
 - allowlist와 DB introspection 교집합에 있는 target table 수
 - target table row 수 합계
 - prefixed table이지만 allowlist에 없어 삭제 후보에서 제외된 table 수
+- target table에서 찾은 storage reference column 수
+- safe/unsafe storage reference 수
+- local/remote storage reference 수
+- 현재 로컬 storage에 실제 존재하는 파일 수와 byte 합계
+
+Storage preview는 target table의 `storage_key` 또는 `*_storage_key` column을 introspection으로 찾고, 같은 접두사의 `storage_driver` 또는 `*_storage_driver`가 있으면 driver로 사용한다. driver가 없으면 configured default storage driver를 쓴다. 기본값은 column당 최대 5,000개 reference만 sample해서 local 파일 존재와 byte를 확인하며, 더 많은 reference가 있으면 `truncated`로 표시한다. remote storage는 count만 표시하고 object head/list/delete는 실행하지 않는다.
+
+Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-looking 신호도 표시한다. 이 값은 read-only preview의 경고이며, 실행 모드에서는 기본 중단 조건으로 승격해야 한다.
 
 ## 안전 기준
 

@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
 }
 
 require_once SR_ROOT . '/core/helpers/runtime.php';
+require_once SR_ROOT . '/core/helpers/storage.php';
 require_once SR_ROOT . '/core/helpers/install-reset.php';
 
 $args = array_slice($argv, 1);
@@ -68,6 +69,12 @@ try {
     $tablePrefix = sr_table_prefix($config);
     $allowlist = sr_install_reset_table_allowlist(SR_ROOT, $tablePrefix);
     $tablePreview = sr_install_reset_table_preview($pdo, $allowlist, $tablePrefix);
+    $targetTables = array_map(
+        static fn (array $table): string => (string) ($table['name'] ?? ''),
+        is_array($tablePreview['tables'] ?? null) ? $tablePreview['tables'] : []
+    );
+    $storagePreview = sr_install_reset_storage_preview($pdo, $targetTables, $config, ['table_prefix' => $tablePrefix]);
+    $environmentWarnings = sr_install_reset_environment_warnings($config);
 } catch (Throwable $exception) {
     sr_install_reset_print_preview([
         'version' => 1,
@@ -85,7 +92,9 @@ sr_install_reset_print_preview([
     'state' => 'preview',
     'message' => 'Read-only install reset preview completed. Destructive execution is not implemented yet.',
     'install_state_files' => sr_install_reset_state_file_preview($configPath, $lockPath),
+    'environment_warnings' => $environmentWarnings,
     'database' => $tablePreview,
+    'storage' => $storagePreview,
 ], $json);
 
 function sr_install_reset_state_file_preview(string $configPath, string $lockPath): array
@@ -135,5 +144,25 @@ function sr_install_reset_print_preview(array $preview, bool $json): void
         echo "- target-rows: " . (string) ($database['target_row_count'] ?? 0) . "\n";
         $ignored = is_array($database['ignored_prefixed_tables'] ?? null) ? $database['ignored_prefixed_tables'] : [];
         echo "- ignored-prefixed-tables: " . (string) count($ignored) . "\n";
+    }
+
+    $warnings = is_array($preview['environment_warnings'] ?? null) ? $preview['environment_warnings'] : [];
+    echo "environment-warnings: " . (string) count($warnings) . "\n";
+    foreach ($warnings as $warning) {
+        echo "- " . (string) $warning . "\n";
+    }
+
+    $storage = $preview['storage'] ?? null;
+    if (is_array($storage)) {
+        echo "storage:\n";
+        echo "- reference-columns: " . (string) ($storage['reference_column_count'] ?? 0) . "\n";
+        echo "- references: " . (string) ($storage['reference_count'] ?? 0) . "\n";
+        echo "- safe-references: " . (string) ($storage['safe_reference_count'] ?? 0) . "\n";
+        echo "- unsafe-references: " . (string) ($storage['unsafe_reference_count'] ?? 0) . "\n";
+        echo "- local-references: " . (string) ($storage['local_reference_count'] ?? 0) . "\n";
+        echo "- remote-references: " . (string) ($storage['remote_reference_count'] ?? 0) . "\n";
+        echo "- local-existing-files: " . (string) ($storage['local_existing_file_count'] ?? 0) . "\n";
+        echo "- local-existing-bytes: " . (string) ($storage['local_existing_bytes'] ?? 0) . "\n";
+        echo "- truncated: " . (!empty($storage['truncated']) ? 'yes' : 'no') . "\n";
     }
 }

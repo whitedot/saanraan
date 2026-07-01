@@ -4,7 +4,7 @@
 
 ## 초기화 범위
 
-사이트 초기화는 설치 초기화가 아니다. 설치 완료 상태 자체를 제거해 새 설치 화면으로 되돌리는 절차는 이 문서의 범위가 아니며 [설치 초기화 기준](install-reset.md)에 둔다. 정본 경로는 `docs/install-reset.md`다.
+사이트 초기화는 설치 초기화가 아니다. 설치 완료 상태 자체를 제거해 새 설치 화면으로 되돌리는 절차는 이 문서의 범위가 아니며 [설치 초기화 기준](install-reset.md)에 둔다. 정본 경로는 `docs/install-reset.md`다. 설치 초기화 preview는 DB allowlist와 storage reference를 별도로 산정한다.
 
 보존한다.
 
