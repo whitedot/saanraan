@@ -60,6 +60,30 @@ function sr_module_foundation_lifecycle_insert_modules(PDO $pdo, array $rows): v
     }
 }
 
+function sr_module_foundation_lifecycle_admin_routes(string $moduleKey): array
+{
+    $pathsFile = SR_ROOT . '/modules/' . $moduleKey . '/paths.php';
+    if (!is_file($pathsFile)) {
+        return [];
+    }
+
+    $paths = include $pathsFile;
+    if (!is_array($paths)) {
+        return [];
+    }
+
+    $adminRoutes = [];
+    foreach (array_keys($paths) as $route) {
+        $route = (string) $route;
+        if (preg_match('#\A(?:GET|POST) /admin(?:/|\z)#', $route) === 1) {
+            $adminRoutes[] = $route;
+        }
+    }
+
+    sort($adminRoutes);
+    return $adminRoutes;
+}
+
 foreach (glob(SR_ROOT . '/modules/*/module.php') ?: [] as $moduleFile) {
     $moduleKey = basename(dirname($moduleFile));
     if (!preg_match('/\A[a-z0-9_]+\z/', $moduleKey)) {
@@ -86,6 +110,15 @@ foreach (glob(SR_ROOT . '/modules/*/module.php') ?: [] as $moduleFile) {
             in_array($foundationModuleKey, $helperFoundationKeys, true),
             $moduleKey . ' module.php foundation dependency must also be known to sr_module_foundation_dependencies: ' . $foundationModuleKey
         );
+    }
+
+    if (sr_module_is_foundation($moduleKey) && sr_module_foundation_lifecycle_admin_routes($moduleKey) !== []) {
+        foreach (['admin', 'member'] as $requiredModuleKey) {
+            sr_module_foundation_lifecycle_assert(
+                in_array($requiredModuleKey, $metadataRequiredModuleKeys, true),
+                $moduleKey . ' foundation module exposes admin routes but does not declare requires.modules: ' . $requiredModuleKey
+            );
+        }
     }
 }
 

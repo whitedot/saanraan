@@ -362,7 +362,7 @@ return [
 - `saanraan.module_contract`: 모듈이 지원하는 산란 모듈 계약 버전. 현재 코어의 계약 버전은 `SR_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
 - `requires.modules`: 활성화 전에 필요한 모듈
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
-- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `sr_foundation_module_keys()`와 `sr_module_foundation_dependencies()`를 기준으로 선택 모듈에 필요한 기반 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community` 설치/활성화 시 자동 준비되며, 이 모듈들이 활성 상태인 동안 비활성화가 차단된다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
+- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `sr_foundation_module_keys()`와 `sr_module_foundation_dependencies()`를 기준으로 선택 모듈에 필요한 기반 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community` 설치/활성화 시 자동 준비되며, 이 모듈들이 활성 상태인 동안 비활성화가 차단된다. 숨김 기반 모듈도 `/admin` 경로와 관리자 메뉴를 직접 제공하면 `admin`, `member` 의존성을 선언한다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
 - `contracts.consumes`: 이 모듈이 읽는 계약 파일
 - `admin`: 관리자 메뉴 분류, 아이콘, 관리자 전용 stylesheet 같은 선택 메타데이터
