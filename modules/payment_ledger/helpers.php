@@ -25,7 +25,15 @@ function sr_payment_ledger_clean_key(string $value, int $maxLength = 190): strin
 
 function sr_payment_ledger_clean_identifier(string $value, int $maxLength = 80, bool $allowDots = false): string
 {
-    $value = strtolower(sr_payment_ledger_clean_key($value, $maxLength));
+    $value = trim($value);
+    if ($maxLength < 1) {
+        $maxLength = 80;
+    }
+    if (strlen($value) > $maxLength) {
+        return '';
+    }
+
+    $value = strtolower($value);
     $pattern = $allowDots ? '/\A[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*\z/' : '/\A[a-z][a-z0-9_]*\z/';
 
     return preg_match($pattern, $value) === 1 ? $value : '';
@@ -214,7 +222,6 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
 
     $optionalChecks = [
         'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? ''), 40),
-        'status' => sr_payment_ledger_clean_identifier((string) ($data['status'] ?? ''), 30),
         'payable_amount' => max(0, (int) ($data['payable_amount'] ?? 0)),
         'settlement_amount' => max(0, (int) ($data['settlement_amount'] ?? 0)),
         'settlement_currency' => strtoupper(sr_payment_ledger_clean_key((string) ($data['settlement_currency'] ?? ''), 3)),

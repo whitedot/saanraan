@@ -178,6 +178,19 @@ try {
     sr_payment_runtime_assert(true, 'payment ledger rejects unknown subject contracts.');
 }
 
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:overlong-target',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.' . str_repeat('a', 90),
+        'subject_id' => '7801',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject overlong subject contract keys instead of truncating them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects overlong subject contract keys.');
+}
+
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel');
 $cancelled = sr_payment_runtime_row($pdo, 'SELECT status, description, cancelled_at FROM sr_payment_records WHERE id = :id', ['id' => $paymentRecordId]);
 sr_payment_runtime_assert((string) ($cancelled['status'] ?? '') === 'cancelled', 'payment ledger should mark a payment record cancelled.');
@@ -209,6 +222,11 @@ $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
     'subject_module' => 'content',
     'subject_type' => 'content.view',
     'subject_id' => '7801',
+    'payment_kind' => 'purchase',
+    'status' => 'paid',
+    'payable_amount' => 100,
+    'settlement_amount' => 100,
+    'settlement_currency' => 'KRW',
 ], [
     [
         'item_kind' => 'asset_transaction',
