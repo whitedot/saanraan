@@ -60,6 +60,35 @@ function sr_module_foundation_lifecycle_insert_modules(PDO $pdo, array $rows): v
     }
 }
 
+foreach (glob(SR_ROOT . '/modules/*/module.php') ?: [] as $moduleFile) {
+    $moduleKey = basename(dirname($moduleFile));
+    if (!preg_match('/\A[a-z0-9_]+\z/', $moduleKey)) {
+        continue;
+    }
+
+    $metadata = sr_module_metadata($moduleKey);
+    $metadataRequiredModuleKeys = sr_module_required_module_keys_from_metadata($metadata);
+    $helperFoundationKeys = sr_module_foundation_dependencies($moduleKey);
+
+    foreach ($helperFoundationKeys as $foundationModuleKey) {
+        sr_module_foundation_lifecycle_assert(
+            sr_module_is_foundation($foundationModuleKey),
+            $moduleKey . ' foundation helper references a non-foundation module: ' . $foundationModuleKey
+        );
+        sr_module_foundation_lifecycle_assert(
+            in_array($foundationModuleKey, $metadataRequiredModuleKeys, true),
+            $moduleKey . ' foundation helper dependency must also be declared in module.php requires.modules: ' . $foundationModuleKey
+        );
+    }
+
+    foreach (array_intersect($metadataRequiredModuleKeys, sr_foundation_module_keys()) as $foundationModuleKey) {
+        sr_module_foundation_lifecycle_assert(
+            in_array($foundationModuleKey, $helperFoundationKeys, true),
+            $moduleKey . ' module.php foundation dependency must also be known to sr_module_foundation_dependencies: ' . $foundationModuleKey
+        );
+    }
+}
+
 $pdo = sr_module_foundation_lifecycle_pdo();
 sr_module_foundation_lifecycle_insert_modules($pdo, [
     ['module_key' => 'member'],
