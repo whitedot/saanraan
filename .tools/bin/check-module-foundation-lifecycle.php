@@ -134,6 +134,10 @@ sr_module_foundation_lifecycle_insert_modules($pdo, [
     ['module_key' => 'community', 'status' => 'disabled'],
     ['module_key' => 'coupon'],
     ['module_key' => 'seo'],
+    ['module_key' => 'member_oauth'],
+    ['module_key' => 'member_oauth_providers'],
+    ['module_key' => 'antispam'],
+    ['module_key' => 'antispam_captcha_providers'],
 ]);
 
 $assetDependents = sr_enabled_modules_requiring_foundation($pdo, 'asset_ledger');
@@ -166,18 +170,35 @@ sr_module_foundation_lifecycle_assert(
 
 sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'content') === [], 'non-foundation modules must not use foundation disable guard.');
 
+sr_module_foundation_lifecycle_assert(
+    sr_enabled_modules_requiring_module($pdo, 'member_oauth') === ['member_oauth_providers'],
+    'generic module dependent lookup must include enabled plugin modules.'
+);
+sr_module_foundation_lifecycle_assert(
+    sr_enabled_modules_requiring_module($pdo, 'antispam') === ['antispam_captcha_providers'],
+    'generic module dependent lookup must include enabled provider plugin modules.'
+);
+$oauthDisableErrors = sr_module_disable_errors($pdo, 'member_oauth');
+sr_module_foundation_lifecycle_assert(
+    $oauthDisableErrors !== [] && str_contains($oauthDisableErrors[0], 'member_oauth_providers'),
+    'generic module disable guard must block active dependent plugin modules.'
+);
+sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'member_oauth_providers') === [], 'leaf plugin modules must remain disableable.');
+
 $pdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'content'");
 sr_module_foundation_lifecycle_assert(sr_module_disable_errors($pdo, 'payment_ledger') === [], 'payment_ledger disable guard must allow disabling after dependents are disabled.');
 
 $adminModuleActions = (string) file_get_contents(SR_ROOT . '/modules/admin/helpers/module-actions.php');
 $adminModulesView = (string) file_get_contents(SR_ROOT . '/modules/admin/views/modules.php');
 sr_module_foundation_lifecycle_assert(
-    str_contains($adminModuleActions, 'sr_enabled_modules_requiring_foundation')
+    str_contains($adminModuleActions, 'sr_enabled_modules_requiring_module')
+    && str_contains($adminModuleActions, 'sr_enabled_modules_requiring_foundation')
     && !str_contains($adminModuleActions, 'sr_enabled_asset_modules_requiring_foundation'),
     'admin module actions must use the generic foundation dependent lookup.'
 );
 sr_module_foundation_lifecycle_assert(
-    str_contains($adminModulesView, '활성 의존 모듈')
+    str_contains($adminModulesView, 'required_by_modules')
+    && str_contains($adminModulesView, '활성 의존 모듈')
     && str_contains($adminModulesView, '사용 중인 의존 모듈')
     && !str_contains($adminModulesView, '활성 자산 모듈(')
     && !str_contains($adminModulesView, '사용 중인 자산 모듈'),

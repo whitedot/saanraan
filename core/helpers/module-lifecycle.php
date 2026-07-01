@@ -343,14 +343,23 @@ function sr_enabled_modules_requiring_foundation(PDO $pdo, string $foundationMod
         return [];
     }
 
+    return sr_enabled_modules_requiring_module($pdo, $foundationModuleKey);
+}
+
+function sr_enabled_modules_requiring_module(PDO $pdo, string $requiredModuleKey): array
+{
+    if (!sr_is_safe_module_key($requiredModuleKey)) {
+        return [];
+    }
+
     $stmt = $pdo->prepare(
         "SELECT module_key
          FROM sr_modules
-         WHERE module_key <> :foundation_module_key
+         WHERE module_key <> :required_module_key
            AND status = 'enabled'
          ORDER BY module_key ASC"
     );
-    $stmt->execute(['foundation_module_key' => $foundationModuleKey]);
+    $stmt->execute(['required_module_key' => $requiredModuleKey]);
 
     $moduleKeys = [];
     foreach ($stmt->fetchAll() as $row) {
@@ -361,7 +370,7 @@ function sr_enabled_modules_requiring_foundation(PDO $pdo, string $foundationMod
                 sr_module_required_module_keys_from_metadata($metadata),
                 sr_module_foundation_dependencies($moduleKey)
             )));
-            if (!in_array($foundationModuleKey, $requiredModuleKeys, true)) {
+            if (!in_array($requiredModuleKey, $requiredModuleKeys, true)) {
                 continue;
             }
 
@@ -374,17 +383,19 @@ function sr_enabled_modules_requiring_foundation(PDO $pdo, string $foundationMod
 
 function sr_module_disable_errors(PDO $pdo, string $moduleKey): array
 {
-    if (!sr_module_is_foundation($moduleKey)) {
-        return [];
-    }
-
-    $dependentModules = sr_enabled_modules_requiring_foundation($pdo, $moduleKey);
+    $dependentModules = sr_enabled_modules_requiring_module($pdo, $moduleKey);
     if ($dependentModules === []) {
         return [];
     }
 
+    if (sr_module_is_foundation($moduleKey)) {
+        return [
+            $moduleKey . ' 기반 모듈은 활성 의존 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
+        ];
+    }
+
     return [
-        $moduleKey . ' 기반 모듈은 활성 의존 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
+        $moduleKey . ' 모듈은 활성 의존 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
     ];
 }
 

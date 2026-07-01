@@ -306,8 +306,9 @@ $installedSections = [
         <?php $moduleStatusModalId = 'module-status-' . $moduleKey; ?>
         <?php $moduleSyncOwnerPasswordId = 'modules_admin_modules_owner_password_' . $moduleKey; ?>
         <?php $isRequired = in_array($moduleKey, $requiredModules, true); ?>
+        <?php $requiredByModules = isset($module['required_by_modules']) && is_array($module['required_by_modules']) ? $module['required_by_modules'] : []; ?>
         <?php $foundationDependents = isset($module['foundation_dependents']) && is_array($module['foundation_dependents']) ? $module['foundation_dependents'] : []; ?>
-        <?php $statusLocked = $isRequired || $foundationDependents !== []; ?>
+        <?php $statusLocked = $isRequired || $requiredByModules !== []; ?>
         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
         <?php $moduleStatus = (string) $module['status']; ?>
         <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
@@ -472,9 +473,10 @@ $installedSections = [
                             <dt><?php echo sr_e('기반 모듈'); ?></dt>
                             <dd>
                                 <?php echo !empty($module['is_foundation']) ? sr_e('예') : sr_e('아니오'); ?>
-                                <?php if ($foundationDependents !== []) { ?>
-                                    <br><?php echo sr_e('사용 중인 의존 모듈: ' . implode(', ', array_map('strval', $foundationDependents))); ?>
-                                <?php } ?>
+                            </dd>
+                            <dt><?php echo sr_e('사용 중인 의존 모듈'); ?></dt>
+                            <dd>
+                                <?php echo $requiredByModules !== [] ? sr_e(implode(', ', array_map('strval', $requiredByModules))) : sr_e('-'); ?>
                             </dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.dd537afa')); ?></dt>
                             <dd><?php echo sr_e((string) ($module['installed_at'] ?? '')); ?></dd>
@@ -504,6 +506,8 @@ $installedSections = [
                                     <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.required.status.22c14e16')); ?></p>
                                 <?php } elseif ($foundationDependents !== []) { ?>
                                     <p class="form-help admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
+                                <?php } elseif ($requiredByModules !== []) { ?>
+                                    <p class="form-help admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $requiredByModules)) . ')이 사용하는 모듈은 비활성화할 수 없습니다.'); ?></p>
                                 <?php } else { ?>
                                     <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.status.f9873f1e')); ?></p>
                                 <?php } ?>

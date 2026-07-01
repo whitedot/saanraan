@@ -384,7 +384,7 @@ return [
 - `saanraan.min_version`: 이 모듈을 설치하거나 활성화할 수 있는 산란 최소 버전. 필수이며 현재 `SR_CORE_VERSION`과 실제 비교한다.
 - `saanraan.tested_with`: 모듈 릴리스 시 검증한 산란 버전 목록. 비어 있지 않은 배열이 필요하다.
 - `saanraan.module_contract`: 모듈이 지원하는 산란 모듈 계약 버전. 현재 코어의 계약 버전은 `SR_MODULE_CONTRACT_VERSION`이며 필수다. 값이 맞지 않으면 계약 파일 로딩 대상에서 제외된다.
-- `requires.modules`: 활성화 전에 필요한 모듈
+- `requires.modules`: 활성화 전에 필요한 모듈. 활성 모듈이 요구하는 모듈은 해당 의존 모듈을 먼저 비활성화하기 전까지 관리자 상태 변경에서 비활성화할 수 없다.
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
 - `admin`, `member` 자신을 제외하고 `/admin` 경로를 제공하는 모듈은 관리자 권한 검사와 로그인 helper를 직접 호출하므로 `admin`, `member`를 모두 `requires.modules`에 선언한다.
 - 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `sr_foundation_module_keys()`와 `sr_module_foundation_dependencies()`를 기준으로 선택 모듈에 필요한 기반 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit`, `community` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이나 활성 커뮤니티가 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community` 설치/활성화 시 자동 준비되며, 이 모듈들이 활성 상태인 동안 비활성화가 차단된다. 숨김 기반 모듈도 `/admin` 경로와 관리자 메뉴를 직접 제공하면 `admin`, `member` 의존성을 선언한다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
