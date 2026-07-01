@@ -18,6 +18,9 @@ return [
         'tested_with' => ['0.2.0'],
         'module_contract' => '2.0',
     ],
+    'requires' => [
+        'modules' => ['admin'],
+    ],
     'contracts' => [
         'provides' => [
             'paths.php',

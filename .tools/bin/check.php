@@ -772,6 +772,8 @@ function sr_check_module_contract_files(): void
         $consumes = isset($metadata['contracts']['consumes']) && is_array($metadata['contracts']['consumes'])
             ? $metadata['contracts']['consumes']
             : [];
+        $requires = isset($metadata['requires']) && is_array($metadata['requires']) ? $metadata['requires'] : [];
+        $requiredModules = isset($requires['modules']) && is_array($requires['modules']) ? $requires['modules'] : [];
         $consumedFiles = [];
         foreach ($consumes as $contractFile) {
             if (is_string($contractFile)) {
@@ -782,6 +784,9 @@ function sr_check_module_contract_files(): void
             if (!isset($consumedFiles[$contractFile])) {
                 sr_check_add_error('Module contract file must be declared in contracts.consumes: ' . $moduleFile . ' ' . $contractFile);
             }
+        }
+        if ($moduleKey !== 'admin' && in_array('admin-menu.php', $provides, true) && !in_array('admin', $requiredModules, true)) {
+            sr_check_add_error('Module that provides admin-menu.php must declare admin in requires.modules: ' . $moduleFile);
         }
 
         $providedFiles = [];
