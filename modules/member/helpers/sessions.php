@@ -139,6 +139,11 @@ function sr_member_mfa_code_is_valid_format(string $code): bool
     return preg_match('/\A[0-9]{6,12}\z/', $code) === 1;
 }
 
+function sr_member_mfa_recovery_code_count(): int
+{
+    return 10;
+}
+
 function sr_member_mfa_base32_encode(string $value): string
 {
     if ($value === '') {
@@ -193,6 +198,37 @@ function sr_member_mfa_base32_decode(string $value): ?string
     }
 
     return $decoded;
+}
+
+function sr_member_mfa_recovery_code_normalize(string $code): string
+{
+    return strtoupper(preg_replace('/[\s-]+/', '', trim($code)) ?? '');
+}
+
+function sr_member_mfa_recovery_code_is_valid_format(string $code): bool
+{
+    return preg_match('/\A[A-Z2-7]{10,32}\z/', $code) === 1;
+}
+
+function sr_member_mfa_recovery_code_format(string $code): string
+{
+    $normalized = sr_member_mfa_recovery_code_normalize($code);
+    if ($normalized === '') {
+        return '';
+    }
+
+    return implode('-', str_split($normalized, 4));
+}
+
+function sr_member_mfa_generate_recovery_code(): string
+{
+    return substr(sr_member_mfa_base32_encode(random_bytes(10)), 0, 16);
+}
+
+function sr_member_mfa_recovery_code_hash(string $code, ?array $config = null): string
+{
+    $config = is_array($config) ? $config : sr_runtime_config();
+    return sr_hmac_hash('member.mfa.recovery|' . sr_member_mfa_recovery_code_normalize($code), $config);
 }
 
 function sr_member_mfa_totp_display_text(string $value, string $fallback, int $maxLength = 80): string
@@ -496,6 +532,199 @@ function sr_member_mfa_activate_pending_totp_factor(PDO $pdo, int $accountId, in
         }
         throw $exception;
     }
+}
+
+function sr_member_mfa_rotate_recovery_codes(PDO $pdo, int $accountId, ?int $factorId = null, int $count = 0, ?array $config = null): array
+{
+    if ($accountId < 1) {
+        return [
+            'rotated' => false,
+            'reason' => 'invalid_account',
+            'codes' => [],
+            'batch_uid' => '',
+        ];
+    }
+
+    $count = $count > 0 ? min($count, 20) : sr_member_mfa_recovery_code_count();
+    $config = is_array($config) ? $config : sr_runtime_config();
+    $batchUid = bin2hex(random_bytes(16));
+    $now = sr_now();
+    $codes = [];
+    $hashes = [];
+    while (count($codes) < $count) {
+        $code = sr_member_mfa_generate_recovery_code();
+        $hash = sr_member_mfa_recovery_code_hash($code, $config);
+        if (isset($hashes[$hash])) {
+            continue;
+        }
+        $hashes[$hash] = true;
+        $codes[] = [
+            'code' => $code,
+            'formatted' => sr_member_mfa_recovery_code_format($code),
+            'hash' => $hash,
+        ];
+    }
+
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_member_mfa_recovery_codes
+             SET status = 'revoked',
+                 revoked_at = :revoked_at
+             WHERE account_id = :account_id
+               AND status = 'unused'"
+        );
+        $stmt->execute([
+            'revoked_at' => $now,
+            'account_id' => $accountId,
+        ]);
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_member_mfa_recovery_codes (
+                account_id, factor_id, code_hash, status, batch_uid, used_at, revoked_at, created_at
+             ) VALUES (
+                :account_id, :factor_id, :code_hash, 'unused', :batch_uid, NULL, NULL, :created_at
+             )"
+        );
+        foreach ($codes as $codeRow) {
+            $stmt->execute([
+                'account_id' => $accountId,
+                'factor_id' => $factorId !== null && $factorId > 0 ? $factorId : null,
+                'code_hash' => (string) $codeRow['hash'],
+                'batch_uid' => $batchUid,
+                'created_at' => $now,
+            ]);
+        }
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return [
+        'rotated' => true,
+        'reason' => '',
+        'codes' => array_map(static fn (array $codeRow): string => (string) $codeRow['formatted'], $codes),
+        'batch_uid' => $batchUid,
+    ];
+}
+
+function sr_member_mfa_consume_recovery_code(PDO $pdo, int $accountId, string $code, ?array $config = null): array
+{
+    $normalizedCode = sr_member_mfa_recovery_code_normalize($code);
+    if ($accountId < 1 || !sr_member_mfa_recovery_code_is_valid_format($normalizedCode)) {
+        return [
+            'verified' => false,
+            'reason' => 'invalid_code',
+            'recovery_code_id' => 0,
+            'factor_id' => 0,
+            'remaining_unused' => null,
+        ];
+    }
+
+    try {
+        $codeHash = sr_member_mfa_recovery_code_hash($normalizedCode, $config);
+    } catch (Throwable $exception) {
+        return [
+            'verified' => false,
+            'reason' => 'secret_unavailable',
+            'recovery_code_id' => 0,
+            'factor_id' => 0,
+            'remaining_unused' => null,
+        ];
+    }
+    $stmt = $pdo->prepare(
+        "SELECT id, factor_id
+         FROM sr_member_mfa_recovery_codes
+         WHERE account_id = :account_id
+           AND code_hash = :code_hash
+           AND status = 'unused'
+         ORDER BY id ASC
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'code_hash' => $codeHash,
+    ]);
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return [
+            'verified' => false,
+            'reason' => 'invalid_code',
+            'recovery_code_id' => 0,
+            'factor_id' => 0,
+            'remaining_unused' => null,
+        ];
+    }
+
+    $recoveryCodeId = (int) ($row['id'] ?? 0);
+    $stmt = $pdo->prepare(
+        "UPDATE sr_member_mfa_recovery_codes
+         SET status = 'used',
+             used_at = :used_at
+         WHERE id = :id
+           AND account_id = :account_id
+           AND status = 'unused'"
+    );
+    $stmt->execute([
+        'used_at' => sr_now(),
+        'id' => $recoveryCodeId,
+        'account_id' => $accountId,
+    ]);
+    if ($stmt->rowCount() !== 1) {
+        return [
+            'verified' => false,
+            'reason' => 'invalid_code',
+            'recovery_code_id' => 0,
+            'factor_id' => 0,
+            'remaining_unused' => null,
+        ];
+    }
+
+    return [
+        'verified' => true,
+        'reason' => '',
+        'recovery_code_id' => $recoveryCodeId,
+        'factor_id' => $row['factor_id'] === null ? 0 : (int) $row['factor_id'],
+        'remaining_unused' => sr_member_mfa_unused_recovery_code_count($pdo, $accountId),
+    ];
+}
+
+function sr_member_mfa_recovery_code_counts(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT status, COUNT(*) AS code_count
+         FROM sr_member_mfa_recovery_codes
+         WHERE account_id = :account_id
+         GROUP BY status
+         ORDER BY status ASC"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $counts[(string) ($row['status'] ?? '')] = (int) ($row['code_count'] ?? 0);
+    }
+
+    return $counts;
+}
+
+function sr_member_mfa_unused_recovery_code_count(PDO $pdo, int $accountId): int
+{
+    $counts = sr_member_mfa_recovery_code_counts($pdo, $accountId);
+    return (int) ($counts['unused'] ?? 0);
 }
 
 function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, ?int $time = null, ?array $config = null): array

@@ -13,6 +13,7 @@ $emailVerificationUrl = '';
 $submittedProfile = null;
 $submittedBasics = null;
 $memberMfaSetup = [];
+$memberMfaRecoveryCodes = [];
 $memberSettings = sr_member_settings($pdo);
 $memberAccountBasePath = '/mypage';
 $memberAccountPage = 'overview';
@@ -69,6 +70,14 @@ if (sr_request_method() === 'GET') {
             'secret_base32' => (string) ($mfaSetupFlash['secret_base32'] ?? ''),
             'otpauth_uri' => (string) ($mfaSetupFlash['otpauth_uri'] ?? ''),
         ];
+    }
+
+    $mfaRecoveryCodesFlash = isset($_SESSION['sr_member_mfa_recovery_codes_flash']) && is_array($_SESSION['sr_member_mfa_recovery_codes_flash'])
+        ? $_SESSION['sr_member_mfa_recovery_codes_flash']
+        : [];
+    unset($_SESSION['sr_member_mfa_recovery_codes_flash']);
+    if ($mfaRecoveryCodesFlash !== []) {
+        $memberMfaRecoveryCodes = array_values(array_filter(array_map('strval', $mfaRecoveryCodesFlash)));
     }
 }
 
@@ -392,10 +401,26 @@ if (sr_request_method() === 'POST') {
         $memberAccountPage = 'security';
         $factorId = (int) sr_post_string('factor_id', 20);
         $code = sr_post_string('mfa_code', 40);
-        $mfaResult = sr_member_mfa_activate_pending_totp_factor($pdo, (int) $account['id'], $factorId, $code);
+        $recoveryCodeSetup = [];
+        $pdo->beginTransaction();
+        try {
+            $mfaResult = sr_member_mfa_activate_pending_totp_factor($pdo, (int) $account['id'], $factorId, $code);
+            if (!empty($mfaResult['activated'])) {
+                $recoveryCodeSetup = sr_member_mfa_rotate_recovery_codes($pdo, (int) $account['id'], (int) ($mfaResult['factor_id'] ?? 0));
+            }
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
+        }
 
         if (!empty($mfaResult['activated'])) {
             $notice = sr_t('member::action.account.mfa_totp_activated');
+            $_SESSION['sr_member_mfa_recovery_codes_flash'] = is_array($recoveryCodeSetup['codes'] ?? null)
+                ? array_values(array_filter(array_map('strval', $recoveryCodeSetup['codes'])))
+                : [];
             sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup', 'success');
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -407,6 +432,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Member TOTP MFA setup was activated.',
                 'metadata' => [
                     'factor_id' => (int) ($mfaResult['factor_id'] ?? 0),
+                    'recovery_codes_created' => count($_SESSION['sr_member_mfa_recovery_codes_flash']),
                 ],
             ]);
         } else {
@@ -458,6 +484,7 @@ if ($profileExtraFieldDefinitions !== []) {
 $consents = sr_member_latest_consents($pdo, (int) $account['id']);
 $memberMfaActiveFactor = sr_member_mfa_active_totp_factor($pdo, (int) $account['id']);
 $memberMfaPendingFactor = sr_member_mfa_pending_totp_factor($pdo, (int) $account['id']);
+$memberMfaRecoveryCodeCounts = sr_member_mfa_recovery_code_counts($pdo, (int) $account['id']);
 $oauthProviders = [];
 $oauthAccounts = [];
 $oauthCanUnlink = false;

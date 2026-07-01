@@ -7,6 +7,8 @@ $memberAccountHasPassword = trim((string) ($account['password_hash'] ?? '')) !==
 $memberMfaActiveFactor = isset($memberMfaActiveFactor) && is_array($memberMfaActiveFactor) ? $memberMfaActiveFactor : null;
 $memberMfaPendingFactor = isset($memberMfaPendingFactor) && is_array($memberMfaPendingFactor) ? $memberMfaPendingFactor : null;
 $memberMfaSetup = isset($memberMfaSetup) && is_array($memberMfaSetup) ? $memberMfaSetup : [];
+$memberMfaRecoveryCodes = isset($memberMfaRecoveryCodes) && is_array($memberMfaRecoveryCodes) ? array_values(array_filter(array_map('strval', $memberMfaRecoveryCodes))) : [];
+$memberMfaRecoveryCodeCounts = isset($memberMfaRecoveryCodeCounts) && is_array($memberMfaRecoveryCodeCounts) ? $memberMfaRecoveryCodeCounts : [];
 $memberAccountPages = [
     'overview' => [
         'label' => '요약',
@@ -276,7 +278,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <dd><?php echo sr_e(sr_t('member::ui.mfa_totp.status_active')); ?></dd>
                                 <dt><?php echo sr_e(sr_t('member::ui.mfa_totp.activated_at')); ?></dt>
                                 <dd><?php echo sr_relative_time_html((string) ($memberMfaActiveFactor['activated_at'] ?? '')); ?></dd>
+                                <dt><?php echo sr_e(sr_t('member::ui.mfa_recovery.remaining')); ?></dt>
+                                <dd><?php echo sr_e((string) ((int) ($memberMfaRecoveryCodeCounts['unused'] ?? 0))); ?></dd>
                             </dl>
+                            <?php if ($memberMfaRecoveryCodes !== []) { ?>
+                                <div class="member-skin-basic-stack">
+                                    <p><?php echo sr_e(sr_t('member::ui.mfa_recovery.once_help')); ?></p>
+                                    <ol>
+                                        <?php foreach ($memberMfaRecoveryCodes as $memberMfaRecoveryCode) { ?>
+                                            <li><code><?php echo sr_e($memberMfaRecoveryCode); ?></code></li>
+                                        <?php } ?>
+                                    </ol>
+                                </div>
+                            <?php } ?>
                         <?php } else { ?>
                             <p><?php echo sr_e(sr_t('member::ui.mfa_totp.help')); ?></p>
                             <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
