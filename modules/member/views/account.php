@@ -4,6 +4,9 @@ $pageTitle = sr_t('member::ui.text.13b28045');
 $memberAccountBasePath = isset($memberAccountBasePath) && is_string($memberAccountBasePath) ? $memberAccountBasePath : '/mypage';
 $memberAccountPage = isset($memberAccountPage) && is_string($memberAccountPage) ? $memberAccountPage : 'overview';
 $memberAccountHasPassword = trim((string) ($account['password_hash'] ?? '')) !== '';
+$memberMfaActiveFactor = isset($memberMfaActiveFactor) && is_array($memberMfaActiveFactor) ? $memberMfaActiveFactor : null;
+$memberMfaPendingFactor = isset($memberMfaPendingFactor) && is_array($memberMfaPendingFactor) ? $memberMfaPendingFactor : null;
+$memberMfaSetup = isset($memberMfaSetup) && is_array($memberMfaSetup) ? $memberMfaSetup : [];
 $memberAccountPages = [
     'overview' => [
         'label' => '요약',
@@ -263,6 +266,68 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             </p>
                             <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberAccountHasPassword ? sr_t('member::ui.password.bf1d4719') : '비밀번호 설정'); ?></button>
                         </form>
+                    </section>
+
+                    <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                        <h2 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.mfa_totp.title')); ?></h2>
+                        <?php if ($memberMfaActiveFactor !== null) { ?>
+                            <dl class="member-skin-basic-description">
+                                <dt><?php echo sr_e(sr_t('member::ui.mfa_totp.status')); ?></dt>
+                                <dd><?php echo sr_e(sr_t('member::ui.mfa_totp.status_active')); ?></dd>
+                                <dt><?php echo sr_e(sr_t('member::ui.mfa_totp.activated_at')); ?></dt>
+                                <dd><?php echo sr_relative_time_html((string) ($memberMfaActiveFactor['activated_at'] ?? '')); ?></dd>
+                            </dl>
+                        <?php } else { ?>
+                            <p><?php echo sr_e(sr_t('member::ui.mfa_totp.help')); ?></p>
+                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="mfa_totp_prepare">
+                                <?php if ($memberAccountHasPassword) { ?>
+                                    <p>
+                                        <label for="modules_member_account_mfa_current_password">
+                                            <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                            <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" required>
+                                        </label>
+                                    </p>
+                                <?php } ?>
+                                <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
+                            </form>
+
+                            <?php if ((string) ($memberMfaSetup['secret_base32'] ?? '') !== '') { ?>
+                                <div class="member-skin-basic-stack">
+                                    <p><?php echo sr_e(sr_t('member::ui.mfa_totp.secret_help')); ?></p>
+                                    <p>
+                                        <label for="modules_member_account_mfa_secret">
+                                            <span><?php echo sr_e(sr_t('member::ui.mfa_totp.secret')); ?></span>
+                                            <input class="form-input" id="modules_member_account_mfa_secret" type="text" value="<?php echo sr_e((string) $memberMfaSetup['secret_base32']); ?>" readonly>
+                                        </label>
+                                    </p>
+                                    <p>
+                                        <label for="modules_member_account_mfa_otpauth_uri">
+                                            <span><?php echo sr_e(sr_t('member::ui.mfa_totp.otpauth_uri')); ?></span>
+                                            <textarea class="form-textarea" id="modules_member_account_mfa_otpauth_uri" rows="3" readonly><?php echo sr_e((string) ($memberMfaSetup['otpauth_uri'] ?? '')); ?></textarea>
+                                        </label>
+                                    </p>
+                                </div>
+                            <?php } elseif ($memberMfaPendingFactor !== null) { ?>
+                                <p><?php echo sr_e(sr_t('member::ui.mfa_totp.pending_help')); ?></p>
+                            <?php } ?>
+
+                            <?php if ($memberMfaPendingFactor !== null) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="mfa_totp_activate">
+                                    <input type="hidden" name="factor_id" value="<?php echo sr_e((string) ($memberMfaPendingFactor['id'] ?? '0')); ?>">
+                                    <p>
+                                        <label for="modules_member_account_mfa_code">
+                                            <span><?php echo sr_e(sr_t('member::ui.login_mfa.code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                            <input class="form-input" id="modules_member_account_mfa_code" type="text" name="mfa_code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9\\s-]{6,20}" required>
+                                        </label>
+                                    </p>
+                                    <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_totp.activate')); ?></button>
+                                </form>
+                            <?php } ?>
+                        <?php } ?>
                     </section>
                 <?php } elseif ($memberAccountPage === 'privacy') { ?>
                     <section class="card member-skin-basic-stack member-skin-basic-padded-card">

@@ -12,6 +12,7 @@ $notice = '';
 $emailVerificationUrl = '';
 $submittedProfile = null;
 $submittedBasics = null;
+$memberMfaSetup = [];
 $memberSettings = sr_member_settings($pdo);
 $memberAccountBasePath = '/mypage';
 $memberAccountPage = 'overview';
@@ -56,6 +57,19 @@ if (sr_request_method() === 'GET') {
         $errors = is_array($flashErrors) ? array_values(array_filter(array_map('strval', $flashErrors))) : [];
     }
 
+    $mfaSetupFlash = isset($_SESSION['sr_member_mfa_setup_flash']) && is_array($_SESSION['sr_member_mfa_setup_flash'])
+        ? $_SESSION['sr_member_mfa_setup_flash']
+        : [];
+    unset($_SESSION['sr_member_mfa_setup_flash']);
+    if ($mfaSetupFlash !== []) {
+        $memberMfaSetup = [
+            'factor_id' => (int) ($mfaSetupFlash['factor_id'] ?? 0),
+            'issuer' => (string) ($mfaSetupFlash['issuer'] ?? ''),
+            'label' => (string) ($mfaSetupFlash['label'] ?? ''),
+            'secret_base32' => (string) ($mfaSetupFlash['secret_base32'] ?? ''),
+            'otpauth_uri' => (string) ($mfaSetupFlash['otpauth_uri'] ?? ''),
+        ];
+    }
 }
 
 $intent = '';
@@ -64,7 +78,7 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if (!in_array($intent, ['basics', 'profile', 'password'], true)) {
+    if (!in_array($intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate'], true)) {
         $errors[] = sr_t('member::action.account.intent_invalid');
     }
 
@@ -305,6 +319,115 @@ if (sr_request_method() === 'POST') {
         } elseif (!$reauthFailureLogged) {
             sr_member_log_auth($pdo, (int) $account['id'], $passwordAuthEvent, 'failure');
         }
+    } elseif ($errors === [] && $intent === 'mfa_totp_prepare') {
+        $memberAccountPage = 'security';
+        $hasPasswordLogin = trim((string) ($account['password_hash'] ?? '')) !== '';
+        $currentPassword = sr_post_string('current_password', 255);
+        $reauthFailureLogged = false;
+
+        $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
+        if ($hasPasswordLogin && !empty($reauthThrottle['limited'])) {
+            $errors[] = sr_t('member::action.reauth.throttled');
+            sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+            $reauthFailureLogged = true;
+        } elseif ($hasPasswordLogin && !password_verify($currentPassword, (string) $account['password_hash'])) {
+            $errors[] = sr_t('member::action.account.current_password_invalid');
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup_reauth', 'failure');
+            $reauthFailureLogged = true;
+        }
+
+        if ($errors === []) {
+            try {
+                $mfaSetup = sr_member_mfa_create_pending_totp_factor(
+                    $pdo,
+                    (int) $account['id'],
+                    sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo),
+                    (string) ($account['email'] ?? ('member' . (string) $account['id']))
+                );
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'member_mfa_totp_prepare');
+                $mfaSetup = [
+                    'created' => false,
+                    'reason' => 'secret_unavailable',
+                ];
+            }
+
+            if (!empty($mfaSetup['created'])) {
+                $_SESSION['sr_member_mfa_setup_flash'] = [
+                    'factor_id' => (int) ($mfaSetup['factor_id'] ?? 0),
+                    'issuer' => (string) ($mfaSetup['issuer'] ?? ''),
+                    'label' => (string) ($mfaSetup['label'] ?? ''),
+                    'secret_base32' => (string) ($mfaSetup['secret_base32'] ?? ''),
+                    'otpauth_uri' => (string) ($mfaSetup['otpauth_uri'] ?? ''),
+                ];
+                $notice = sr_t('member::action.account.mfa_totp_prepared');
+                sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup_prepare', 'success');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'member',
+                    'event_type' => 'member.mfa.totp.prepared',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $account['id'],
+                    'result' => 'success',
+                    'message' => 'Member TOTP MFA setup was prepared.',
+                    'metadata' => [
+                        'factor_id' => (int) ($mfaSetup['factor_id'] ?? 0),
+                    ],
+                ]);
+            } elseif ((string) ($mfaSetup['reason'] ?? '') === 'active_exists') {
+                $errors[] = sr_t('member::action.account.mfa_totp_active_exists');
+            } else {
+                $errors[] = sr_t('member::action.account.mfa_secret_unavailable');
+            }
+        } elseif (!$reauthFailureLogged) {
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup_prepare', 'failure');
+        }
+
+        $_SESSION['sr_member_account_flash'] = [
+            'notice' => $notice,
+            'errors' => $errors,
+        ];
+        sr_redirect($memberAccountBasePath . '/security');
+    } elseif ($errors === [] && $intent === 'mfa_totp_activate') {
+        $memberAccountPage = 'security';
+        $factorId = (int) sr_post_string('factor_id', 20);
+        $code = sr_post_string('mfa_code', 40);
+        $mfaResult = sr_member_mfa_activate_pending_totp_factor($pdo, (int) $account['id'], $factorId, $code);
+
+        if (!empty($mfaResult['activated'])) {
+            $notice = sr_t('member::action.account.mfa_totp_activated');
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_setup', 'success');
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'member',
+                'event_type' => 'member.mfa.totp.activated',
+                'target_type' => 'member_account',
+                'target_id' => (string) $account['id'],
+                'result' => 'success',
+                'message' => 'Member TOTP MFA setup was activated.',
+                'metadata' => [
+                    'factor_id' => (int) ($mfaResult['factor_id'] ?? 0),
+                ],
+            ]);
+        } else {
+            $reason = (string) ($mfaResult['reason'] ?? '');
+            if ($reason === 'active_exists') {
+                $errors[] = sr_t('member::action.account.mfa_totp_active_exists');
+            } elseif ($reason === 'factor_unavailable') {
+                $errors[] = sr_t('member::action.account.mfa_totp_pending_missing');
+            } elseif ($reason === 'secret_unavailable') {
+                $errors[] = sr_t('member::action.account.mfa_secret_unavailable');
+            } else {
+                $errors[] = sr_t('member::action.account.mfa_code_invalid');
+            }
+            sr_member_log_auth($pdo, (int) $account['id'], 'mfa_totp_failure', 'failure');
+        }
+
+        $_SESSION['sr_member_account_flash'] = [
+            'notice' => $notice,
+            'errors' => $errors,
+        ];
+        sr_redirect($memberAccountBasePath . '/security');
     }
 }
 
@@ -333,6 +456,8 @@ if ($profileExtraFieldDefinitions !== []) {
     $profileExtraValues = [];
 }
 $consents = sr_member_latest_consents($pdo, (int) $account['id']);
+$memberMfaActiveFactor = sr_member_mfa_active_totp_factor($pdo, (int) $account['id']);
+$memberMfaPendingFactor = sr_member_mfa_pending_totp_factor($pdo, (int) $account['id']);
 $oauthProviders = [];
 $oauthAccounts = [];
 $oauthCanUnlink = false;

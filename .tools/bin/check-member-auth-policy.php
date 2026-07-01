@@ -161,6 +161,7 @@ sr_member_auth_policy_assert(
 sr_member_auth_policy_assert(
     in_array('password_change_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('password_change_session_failed', sr_member_reauth_failure_event_types(), true)
+        && in_array('mfa_setup_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('withdraw_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('privacy_export_reauth', sr_member_reauth_failure_event_types(), true)
         && in_array('module_setting_reauth', sr_member_reauth_failure_event_types(), true)
@@ -244,6 +245,24 @@ sr_member_auth_policy_assert(
     empty($mfaWrongKey['verified'])
         && (string) ($mfaWrongKey['reason'] ?? '') === 'secret_unavailable',
     'MFA TOTP verification should fail closed when the app key cannot decrypt the stored secret.'
+);
+$mfaPendingSetup = sr_member_mfa_create_pending_totp_factor($mfaPdo, 79, 'Saanraan', 'member79@example.test', $mfaConfig);
+$mfaPendingSecret = sr_member_mfa_base32_decode((string) ($mfaPendingSetup['secret_base32'] ?? ''));
+$mfaPendingCode = is_string($mfaPendingSecret) ? sr_member_mfa_totp_code($mfaPendingSecret, 59) : '';
+$mfaPendingActivate = sr_member_mfa_activate_pending_totp_factor($mfaPdo, 79, (int) ($mfaPendingSetup['factor_id'] ?? 0), $mfaPendingCode, 59, $mfaConfig);
+$mfaSecondPending = sr_member_mfa_create_pending_totp_factor($mfaPdo, 79, 'Saanraan', 'member79@example.test', $mfaConfig);
+$mfaPendingMissing = sr_member_mfa_pending_totp_factor($mfaPdo, 79);
+sr_member_auth_policy_assert(
+    !empty($mfaPendingSetup['created'])
+        && (int) ($mfaPendingSetup['factor_id'] ?? 0) > 0
+        && str_starts_with((string) ($mfaPendingSetup['otpauth_uri'] ?? ''), 'otpauth://totp/')
+        && is_string($mfaPendingSecret)
+        && !empty($mfaPendingActivate['activated'])
+        && (int) $mfaPdo->query("SELECT COUNT(*) FROM sr_member_mfa_factors WHERE account_id = 79 AND status = 'active'")->fetchColumn() === 1
+        && empty($mfaSecondPending['created'])
+        && (string) ($mfaSecondPending['reason'] ?? '') === 'active_exists'
+        && $mfaPendingMissing === null,
+    'MFA TOTP setup should create one pending secret, activate it with the first valid code, and prevent duplicate active TOTP factors.'
 );
 $deletedMfa = sr_member_delete_mfa($mfaPdo, 77);
 sr_member_auth_policy_assert(
@@ -577,7 +596,7 @@ if ($logoutAction !== '') {
 $accountAction = sr_member_auth_policy_read('modules/member/actions/account.php');
 if ($accountAction !== '') {
     sr_member_auth_policy_assert(
-        strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password'], true)") !== false
+        strpos($accountAction, "in_array(\$intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate'], true)") !== false
             && (
                 strpos($accountAction, "sr_t('member::action.account.intent_invalid')") !== false
                 || strpos($accountAction, '계정 작업 값이 올바르지 않습니다.') !== false
@@ -602,6 +621,14 @@ if ($accountAction !== '') {
         strpos($accountAction, 'sr_member_reauth_throttle_status($pdo, (int) $account[\'id\'])') !== false
             && strpos($accountAction, 'password_change_reauth') !== false,
         'Password change should throttle current-password reauth failures.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($accountAction, "sr_member_mfa_create_pending_totp_factor(") !== false
+            && strpos($accountAction, "sr_member_mfa_activate_pending_totp_factor(") !== false
+            && strpos($accountAction, "'mfa_setup_reauth'") !== false
+            && strpos($accountAction, "sr_redirect(\$memberAccountBasePath . '/security')") !== false
+            && strpos($accountAction, 'sr_member_mfa_setup_flash') !== false,
+        'Account security action should prepare and activate TOTP MFA factors with reauth and PRG flash handling.'
     );
     sr_member_auth_policy_assert(
         strpos($accountAction, '$hasPasswordLogin') !== false
@@ -734,6 +761,13 @@ if ($accountView !== '') {
             && strpos($accountView, 'name="current_password"') !== false
             && strpos($accountView, 'autocomplete="current-password" required') !== false,
         'Account view privacy export form should ask for the current password.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($accountView, 'name="intent" value="mfa_totp_prepare"') !== false
+            && strpos($accountView, 'name="intent" value="mfa_totp_activate"') !== false
+            && strpos($accountView, 'name="mfa_code"') !== false
+            && strpos($accountView, 'member::ui.mfa_totp.secret') !== false,
+        'Account security view should expose TOTP setup, manual secret, and first-code activation controls.'
     );
 }
 

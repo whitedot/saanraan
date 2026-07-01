@@ -67,6 +67,48 @@ function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
     return (int) $stmt->fetchColumn() > 0;
 }
 
+function sr_member_mfa_active_totp_factor(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, factor_type, status, issuer, label, last_used_step, activated_at, created_at, updated_at
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+           AND factor_type = 'totp'
+           AND status = 'active'
+         ORDER BY id ASC
+         LIMIT 1"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $factor = $stmt->fetch();
+
+    return is_array($factor) ? $factor : null;
+}
+
+function sr_member_mfa_pending_totp_factor(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, factor_type, status, issuer, label, created_at, updated_at
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+           AND factor_type = 'totp'
+           AND status = 'pending'
+         ORDER BY id DESC
+         LIMIT 1"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $factor = $stmt->fetch();
+
+    return is_array($factor) ? $factor : null;
+}
+
 function sr_member_mfa_totp_secret_purpose(): string
 {
     return 'member.mfa.totp';
@@ -95,6 +137,172 @@ function sr_member_mfa_normalize_code(string $code): string
 function sr_member_mfa_code_is_valid_format(string $code): bool
 {
     return preg_match('/\A[0-9]{6,12}\z/', $code) === 1;
+}
+
+function sr_member_mfa_base32_encode(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $buffer = 0;
+    $bits = 0;
+    $encoded = '';
+    $length = strlen($value);
+    for ($index = 0; $index < $length; $index++) {
+        $buffer = ($buffer << 8) | ord($value[$index]);
+        $bits += 8;
+        while ($bits >= 5) {
+            $encoded .= $alphabet[($buffer >> ($bits - 5)) & 31];
+            $bits -= 5;
+        }
+    }
+
+    if ($bits > 0) {
+        $encoded .= $alphabet[($buffer << (5 - $bits)) & 31];
+    }
+
+    return $encoded;
+}
+
+function sr_member_mfa_base32_decode(string $value): ?string
+{
+    $clean = strtoupper(preg_replace('/[\s-]+/', '', trim($value)) ?? '');
+    $clean = rtrim($clean, '=');
+    if ($clean === '') {
+        return '';
+    }
+
+    $alphabet = array_flip(str_split('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'));
+    $buffer = 0;
+    $bits = 0;
+    $decoded = '';
+    $length = strlen($clean);
+    for ($index = 0; $index < $length; $index++) {
+        $char = $clean[$index];
+        if (!isset($alphabet[$char])) {
+            return null;
+        }
+        $buffer = ($buffer << 5) | (int) $alphabet[$char];
+        $bits += 5;
+        if ($bits >= 8) {
+            $decoded .= chr(($buffer >> ($bits - 8)) & 255);
+            $bits -= 8;
+        }
+    }
+
+    return $decoded;
+}
+
+function sr_member_mfa_totp_display_text(string $value, string $fallback, int $maxLength = 80): string
+{
+    $clean = trim(preg_replace('/[\x00-\x1F\x7F]+/', ' ', $value) ?? '');
+    $clean = str_replace(':', ' ', $clean);
+    $clean = preg_replace('/\s+/', ' ', $clean) ?? '';
+    if ($clean === '') {
+        $clean = $fallback;
+    }
+
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+        return mb_strlen($clean) > $maxLength ? mb_substr($clean, 0, $maxLength) : $clean;
+    }
+
+    return strlen($clean) > $maxLength ? substr($clean, 0, $maxLength) : $clean;
+}
+
+function sr_member_mfa_totp_otpauth_uri(string $issuer, string $label, string $secretBase32): string
+{
+    $issuer = sr_member_mfa_totp_display_text($issuer, 'Saanraan', 64);
+    $label = sr_member_mfa_totp_display_text($label, 'member', 120);
+    $path = rawurlencode($issuer . ':' . $label);
+    $query = http_build_query([
+        'secret' => $secretBase32,
+        'issuer' => $issuer,
+        'algorithm' => 'SHA1',
+        'digits' => sr_member_mfa_totp_digits(),
+        'period' => sr_member_mfa_totp_period_seconds(),
+    ], '', '&', PHP_QUERY_RFC3986);
+
+    return 'otpauth://totp/' . $path . '?' . $query;
+}
+
+function sr_member_mfa_create_pending_totp_factor(PDO $pdo, int $accountId, string $issuer, string $label, ?array $config = null): array
+{
+    if ($accountId < 1) {
+        return [
+            'created' => false,
+            'reason' => 'invalid_account',
+        ];
+    }
+
+    if (sr_member_mfa_active_factor_exists($pdo, $accountId)) {
+        return [
+            'created' => false,
+            'reason' => 'active_exists',
+        ];
+    }
+
+    $issuer = sr_member_mfa_totp_display_text($issuer, 'Saanraan', 64);
+    $label = sr_member_mfa_totp_display_text($label, 'member' . $accountId, 120);
+    $secret = random_bytes(20);
+    $secretBase32 = sr_member_mfa_base32_encode($secret);
+    $now = sr_now();
+    $secretCiphertext = sr_member_mfa_totp_secret_ciphertext($secret, $config);
+    $secretFingerprint = sr_member_mfa_totp_secret_fingerprint($secret, $config);
+
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
+    try {
+        $stmt = $pdo->prepare(
+            "DELETE FROM sr_member_mfa_factors
+             WHERE account_id = :account_id
+               AND factor_type = 'totp'
+               AND status = 'pending'"
+        );
+        $stmt->execute(['account_id' => $accountId]);
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_member_mfa_factors (
+                account_id, factor_type, status, secret_ciphertext, secret_fingerprint,
+                issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at
+             ) VALUES (
+                :account_id, 'totp', 'pending', :secret_ciphertext, :secret_fingerprint,
+                :issuer, :label, NULL, NULL, NULL, :created_at, :updated_at
+             )"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'secret_ciphertext' => $secretCiphertext,
+            'secret_fingerprint' => $secretFingerprint,
+            'issuer' => $issuer,
+            'label' => $label,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $factorId = (int) $pdo->lastInsertId();
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return [
+        'created' => true,
+        'reason' => '',
+        'factor_id' => $factorId,
+        'issuer' => $issuer,
+        'label' => $label,
+        'secret_base32' => $secretBase32,
+        'otpauth_uri' => sr_member_mfa_totp_otpauth_uri($issuer, $label, $secretBase32),
+    ];
 }
 
 function sr_member_mfa_totp_code(string $secret, ?int $time = null): string
@@ -132,6 +340,162 @@ function sr_member_mfa_totp_secret_ciphertext(string $secret, ?array $config = n
 function sr_member_mfa_totp_secret_fingerprint(string $secret, ?array $config = null): string
 {
     return sr_secret_at_rest_fingerprint($secret, sr_member_mfa_totp_secret_purpose(), $config);
+}
+
+function sr_member_mfa_activate_pending_totp_factor(PDO $pdo, int $accountId, int $factorId, string $code, ?int $time = null, ?array $config = null): array
+{
+    $code = sr_member_mfa_normalize_code($code);
+    if ($accountId < 1 || $factorId < 1 || !sr_member_mfa_code_is_valid_format($code)) {
+        return [
+            'activated' => false,
+            'reason' => 'invalid_code',
+            'factor_id' => 0,
+            'step' => null,
+        ];
+    }
+
+    $time = $time ?? time();
+    $period = sr_member_mfa_totp_period_seconds();
+    $currentStep = intdiv(max(0, $time), $period);
+    $window = sr_member_mfa_totp_window_steps();
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $activeFactor = sr_member_mfa_active_totp_factor($pdo, $accountId);
+        if (is_array($activeFactor)) {
+            if ($ownsTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'activated' => false,
+                'reason' => 'active_exists',
+                'factor_id' => 0,
+                'step' => null,
+            ];
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT id, secret_ciphertext
+             FROM sr_member_mfa_factors
+             WHERE id = :id
+               AND account_id = :account_id
+               AND factor_type = 'totp'
+               AND status = 'pending'
+             LIMIT 1"
+        );
+        $stmt->execute([
+            'id' => $factorId,
+            'account_id' => $accountId,
+        ]);
+        $factor = $stmt->fetch();
+        if (!is_array($factor)) {
+            if ($ownsTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'activated' => false,
+                'reason' => 'factor_unavailable',
+                'factor_id' => 0,
+                'step' => null,
+            ];
+        }
+
+        try {
+            $secret = sr_secret_at_rest_decrypt(
+                (string) ($factor['secret_ciphertext'] ?? ''),
+                sr_member_mfa_totp_secret_purpose(),
+                $config
+            );
+        } catch (Throwable $exception) {
+            $secret = null;
+        }
+        if ($secret === null || $secret === '') {
+            if ($ownsTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'activated' => false,
+                'reason' => 'secret_unavailable',
+                'factor_id' => 0,
+                'step' => null,
+            ];
+        }
+
+        $matchedStep = null;
+        for ($offset = -$window; $offset <= $window; $offset++) {
+            $step = $currentStep + $offset;
+            if ($step < 0) {
+                continue;
+            }
+            if (hash_equals(sr_member_mfa_hotp_code($secret, $step), $code)) {
+                $matchedStep = $step;
+                break;
+            }
+        }
+
+        if ($matchedStep === null) {
+            if ($ownsTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'activated' => false,
+                'reason' => 'invalid_code',
+                'factor_id' => 0,
+                'step' => null,
+            ];
+        }
+
+        $stmt = $pdo->prepare(
+            "UPDATE sr_member_mfa_factors
+             SET status = 'active',
+                 last_used_step = :last_used_step,
+                 activated_at = :activated_at,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND account_id = :account_id
+               AND factor_type = 'totp'
+               AND status = 'pending'"
+        );
+        $now = sr_now();
+        $stmt->execute([
+            'last_used_step' => $matchedStep,
+            'activated_at' => $now,
+            'updated_at' => $now,
+            'id' => $factorId,
+            'account_id' => $accountId,
+        ]);
+
+        if ($stmt->rowCount() !== 1) {
+            if ($ownsTransaction) {
+                $pdo->commit();
+            }
+            return [
+                'activated' => false,
+                'reason' => 'factor_unavailable',
+                'factor_id' => 0,
+                'step' => null,
+            ];
+        }
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+
+        return [
+            'activated' => true,
+            'reason' => '',
+            'factor_id' => $factorId,
+            'step' => $matchedStep,
+        ];
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, ?int $time = null, ?array $config = null): array

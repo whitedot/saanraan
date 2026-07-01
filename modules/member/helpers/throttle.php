@@ -205,7 +205,7 @@ function sr_member_login_failure_event_types(): array
 
 function sr_member_reauth_failure_event_types(): array
 {
-    return ['account_page_reauth', 'password_change_reauth', 'password_change_session_failed', 'withdraw_reauth', 'privacy_export_reauth', 'module_source_reauth', 'module_setting_reauth', 'site_setting_reauth', 'privacy_request_export_reauth', 'admin_permission_reauth', 'reauth_blocked'];
+    return ['account_page_reauth', 'password_change_reauth', 'password_change_session_failed', 'mfa_setup_reauth', 'withdraw_reauth', 'privacy_export_reauth', 'module_source_reauth', 'module_setting_reauth', 'site_setting_reauth', 'privacy_request_export_reauth', 'admin_permission_reauth', 'reauth_blocked'];
 }
 
 function sr_member_mfa_failure_event_types(): array
