@@ -846,6 +846,32 @@ function sr_check_installer_module_default_versions(): void
     }
 }
 
+function sr_check_installer_core_schema_version(): void
+{
+    $installer = file_get_contents('core/actions/install.php');
+    if (!is_string($installer)) {
+        sr_check_add_error('Installer action cannot be read for core schema version check.');
+        return;
+    }
+
+    $updateFiles = glob('database/core/updates/*.sql') ?: [];
+    sort($updateFiles, SORT_STRING);
+    $latestUpdate = $updateFiles !== [] ? pathinfo((string) end($updateFiles), PATHINFO_FILENAME) : '';
+    if ($latestUpdate === '') {
+        return;
+    }
+
+    if (preg_match('/sr_record_installed_core_schema_versions\(\$pdo, \'([^\']+)\'\)/', $installer, $matches) !== 1) {
+        sr_check_add_error('Installer core schema version recording call is missing.');
+        return;
+    }
+
+    $recordedVersion = (string) $matches[1];
+    if ($recordedVersion !== $latestUpdate) {
+        sr_check_add_error('Installer core schema version must match latest core update: installer=' . $recordedVersion . ' latest=' . $latestUpdate);
+    }
+}
+
 function sr_check_admin_menu_paths(): void
 {
     foreach (sr_check_module_dirs() as $moduleDir) {
@@ -1635,6 +1661,7 @@ sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
 sr_check_installer_module_default_versions();
+sr_check_installer_core_schema_version();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
 sr_check_module_ui_kit_routes();

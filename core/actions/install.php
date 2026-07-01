@@ -856,7 +856,7 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
             ]);
 
             $installStage = 'record_schema_versions';
-            sr_record_installed_core_schema_versions($pdo, '2026.04.008');
+            sr_record_installed_core_schema_versions($pdo, '2026.06.003');
             foreach ($requiredModules as $moduleKey => $module) {
                 sr_record_installed_module_schema_versions($pdo, $moduleKey, (string) $module['version']);
             }
