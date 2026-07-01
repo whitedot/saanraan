@@ -186,3 +186,20 @@ php .tools/bin/snapshot-schema-fallbacks.php
 - generic optional guard calls: 58
 
 The generic optional guard manual resolution queue remains unchanged at 6 entries.
+
+## Current Snapshot After Community Generic Guard Removal Pass
+
+Generated after removing current-schema generic optional table guards for community-owned board cleanup, extra field, and level recalculation job tables while keeping external module reference counts on the optional boundary:
+
+```sh
+php .tools/bin/snapshot-schema-fallbacks.php
+```
+
+- `schema_unavailable` occurrences: 0
+- `legacy_unknown` SQL alias occurrences: 0
+- other `legacy_unknown` occurrences: 4
+- named schema guard calls: 0
+- unique named schema guard helpers: 0
+- generic optional guard calls: 34
+
+The generic optional guard manual resolution queue remains unchanged at 6 entries.

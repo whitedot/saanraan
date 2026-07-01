@@ -593,34 +593,8 @@ function sr_community_level_tables_exist(PDO $pdo): bool
     return $exists;
 }
 
-function sr_community_level_recalculate_jobs_table_exists(PDO $pdo): bool
-{
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
-    }
-
-    if (function_exists('sr_community_optional_table_exists')) {
-        $exists = sr_community_optional_table_exists($pdo, 'sr_community_level_recalculate_jobs');
-        return $exists;
-    }
-
-    try {
-        $pdo->query('SELECT 1 FROM sr_community_level_recalculate_jobs LIMIT 1');
-        $exists = true;
-    } catch (Throwable $exception) {
-        $exists = false;
-    }
-
-    return $exists;
-}
-
 function sr_community_level_recalculate_job_create(PDO $pdo, int $accountId, int $total, int $batchSize): array
 {
-    if (!sr_community_level_recalculate_jobs_table_exists($pdo)) {
-        return ['id' => 0, 'lock_token' => '', 'cursor_value' => 0, 'processed_total' => 0, 'total_count' => $total, 'batch_size' => $batchSize];
-    }
-
     $now = sr_now();
     $lockToken = bin2hex(random_bytes(16));
     $stmt = $pdo->prepare(
@@ -651,7 +625,7 @@ function sr_community_level_recalculate_job_create(PDO $pdo, int $accountId, int
 
 function sr_community_level_recalculate_job_by_id(PDO $pdo, int $jobId): ?array
 {
-    if ($jobId < 1 || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+    if ($jobId < 1) {
         return null;
     }
 
@@ -671,7 +645,7 @@ function sr_community_level_recalculate_job_require_running(array $job, string $
 
 function sr_community_level_recalculate_job_progress(PDO $pdo, int $jobId, string $lockToken, int $cursor, int $processedTotal, int $total): void
 {
-    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+    if ($jobId < 1 || $lockToken === '') {
         return;
     }
 
@@ -700,7 +674,7 @@ function sr_community_level_recalculate_job_progress(PDO $pdo, int $jobId, strin
 
 function sr_community_level_recalculate_job_complete(PDO $pdo, int $jobId, string $lockToken, int $cursor, int $processedTotal, int $total): void
 {
-    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+    if ($jobId < 1 || $lockToken === '') {
         return;
     }
 
@@ -734,7 +708,7 @@ function sr_community_level_recalculate_job_complete(PDO $pdo, int $jobId, strin
 
 function sr_community_level_recalculate_job_fail(PDO $pdo, int $jobId, string $lockToken, Throwable $exception): void
 {
-    if ($jobId < 1 || $lockToken === '' || !sr_community_level_recalculate_jobs_table_exists($pdo)) {
+    if ($jobId < 1 || $lockToken === '') {
         return;
     }
 

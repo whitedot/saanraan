@@ -34,6 +34,18 @@ function sr_community_optional_count(PDO $pdo, string $tableName, string $whereS
     return (int) $stmt->fetchColumn();
 }
 
+function sr_community_count(PDO $pdo, string $tableName, string $whereSql, array $params = []): int
+{
+    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM ' . $tableName . ' WHERE ' . $whereSql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
 function sr_community_board_reference_counts(PDO $pdo, int $boardId): array
 {
     if ($boardId < 1) {
@@ -41,14 +53,10 @@ function sr_community_board_reference_counts(PDO $pdo, int $boardId): array
     }
 
     return [
-        'posts' => sr_community_optional_count($pdo, 'sr_community_posts', 'board_id = :board_id', ['board_id' => $boardId]),
-        'series' => sr_community_optional_count($pdo, 'sr_community_series', 'board_id = :board_id', ['board_id' => $boardId]),
-        'attachments' => sr_community_optional_table_exists($pdo, 'sr_community_attachments')
-            ? sr_community_optional_count($pdo, 'sr_community_attachments', 'post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)', ['board_id' => $boardId])
-            : 0,
-        'comments' => sr_community_optional_table_exists($pdo, 'sr_community_comments')
-            ? sr_community_optional_count($pdo, 'sr_community_comments', 'post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)', ['board_id' => $boardId])
-            : 0,
+        'posts' => sr_community_count($pdo, 'sr_community_posts', 'board_id = :board_id', ['board_id' => $boardId]),
+        'series' => sr_community_count($pdo, 'sr_community_series', 'board_id = :board_id', ['board_id' => $boardId]),
+        'attachments' => sr_community_count($pdo, 'sr_community_attachments', 'post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)', ['board_id' => $boardId]),
+        'comments' => sr_community_count($pdo, 'sr_community_comments', 'post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)', ['board_id' => $boardId]),
     ];
 }
 
@@ -134,57 +142,31 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     }
     $pdo->beginTransaction();
     try {
-        $deletedSettingSources = sr_community_optional_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
-        $deletedSettings = sr_community_optional_count($pdo, 'sr_community_board_settings', 'board_id = :board_id', ['board_id' => $boardId]);
-        $deletedBoardManagers = sr_community_optional_count($pdo, 'sr_community_board_managers', 'board_id = :board_id', ['board_id' => $boardId]);
-        $deletedCategories = sr_community_optional_count($pdo, 'sr_community_categories', 'board_id = :board_id', ['board_id' => $boardId]);
+        $deletedSettingSources = sr_community_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
+        $deletedSettings = sr_community_count($pdo, 'sr_community_board_settings', 'board_id = :board_id', ['board_id' => $boardId]);
+        $deletedBoardManagers = sr_community_count($pdo, 'sr_community_board_managers', 'board_id = :board_id', ['board_id' => $boardId]);
+        $deletedCategories = sr_community_count($pdo, 'sr_community_categories', 'board_id = :board_id', ['board_id' => $boardId]);
         $deletedPosts = (int) ($check['references']['posts'] ?? 0);
         $deletedComments = (int) ($check['references']['comments'] ?? 0);
         $deletedAttachments = (int) ($check['references']['attachments'] ?? 0);
         $deletedSeries = (int) ($check['references']['series'] ?? 0);
 
-        if (sr_community_optional_table_exists($pdo, 'sr_community_series_scraps')) {
-            $pdo->prepare('DELETE FROM sr_community_series_scraps WHERE series_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_series_items')) {
-            $pdo->prepare('DELETE FROM sr_community_series_items WHERE series_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_access_entitlements')) {
-            $pdo->prepare("DELETE FROM sr_community_access_entitlements WHERE subject_type IN ('community_post', 'community.post') AND subject_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
-            if (sr_community_optional_table_exists($pdo, 'sr_community_attachments')) {
-                $pdo->prepare("DELETE FROM sr_community_access_entitlements WHERE subject_type IN ('community.attachment', 'community_attachment') AND subject_id IN (SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id)")->execute(['board_id' => $boardId]);
-            }
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_reports')) {
-            $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'post' AND target_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
-            if (sr_community_optional_table_exists($pdo, 'sr_community_series')) {
-                $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'series' AND target_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
-            }
-            if (sr_community_optional_table_exists($pdo, 'sr_community_comments')) {
-                $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'comment' AND target_id IN (SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id)")->execute(['board_id' => $boardId]);
-            }
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_series')) {
-            $pdo->prepare('DELETE FROM sr_community_series WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_scraps')) {
-            $pdo->prepare('DELETE FROM sr_community_scraps WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_attachments')) {
-            $pdo->prepare('DELETE FROM sr_community_attachments WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_comments')) {
-            $pdo->prepare('DELETE FROM sr_community_comments WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
-        }
+        $pdo->prepare('DELETE FROM sr_community_series_scraps WHERE series_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_series_items WHERE series_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
+        $pdo->prepare("DELETE FROM sr_community_access_entitlements WHERE subject_type IN ('community_post', 'community.post') AND subject_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
+        $pdo->prepare("DELETE FROM sr_community_access_entitlements WHERE subject_type IN ('community.attachment', 'community_attachment') AND subject_id IN (SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id)")->execute(['board_id' => $boardId]);
+        $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'post' AND target_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
+        $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'series' AND target_id IN (SELECT id FROM sr_community_series WHERE board_id = :board_id)")->execute(['board_id' => $boardId]);
+        $pdo->prepare("DELETE FROM sr_community_reports WHERE target_type = 'comment' AND target_id IN (SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id)")->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_series WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_scraps WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_attachments WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_comments WHERE post_id IN (SELECT id FROM sr_community_posts WHERE board_id = :board_id)')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_posts WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_board_setting_sources WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_board_settings WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
-        if (sr_community_optional_table_exists($pdo, 'sr_community_board_managers')) {
-            $pdo->prepare('DELETE FROM sr_community_board_managers WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
-        }
-        if (sr_community_optional_table_exists($pdo, 'sr_community_categories')) {
-            $pdo->prepare('DELETE FROM sr_community_categories WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
-        }
+        $pdo->prepare('DELETE FROM sr_community_board_managers WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
+        $pdo->prepare('DELETE FROM sr_community_categories WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_boards WHERE id = :id')->execute(['id' => $boardId]);
         $pdo->commit();
         if (function_exists('sr_community_enabled_boards_file_cache_mark_stale')) {
@@ -238,7 +220,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
 
 function sr_community_record_storage_cleanup_failure(PDO $pdo, string $sourceType, int $sourceId, string $driver, string $key, string $errorMessage): void
 {
-    if (!sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures') || !sr_storage_key_is_safe($key)) {
+    if (!sr_storage_key_is_safe($key)) {
         return;
     }
 
@@ -267,10 +249,6 @@ function sr_community_record_storage_cleanup_failure(PDO $pdo, string $sourceTyp
 
 function sr_community_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
 {
-    if (!sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures')) {
-        return [];
-    }
-
     $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_community_storage_cleanup_failures
@@ -286,7 +264,7 @@ function sr_community_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
 
 function sr_community_retry_storage_cleanup_failure(PDO $pdo, int $failureId): array
 {
-    if ($failureId < 1 || !sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures')) {
+    if ($failureId < 1) {
         return ['ok' => false, 'message' => '저장소 정리 실패 기록을 찾을 수 없습니다.'];
     }
 
@@ -351,7 +329,7 @@ function sr_community_clean_cleanup_error(string $value): string
 
 function sr_community_board_attachment_storage_refs(PDO $pdo, int $boardId): array
 {
-    if ($boardId < 1 || !sr_community_optional_table_exists($pdo, 'sr_community_attachments')) {
+    if ($boardId < 1) {
         return [];
     }
 
@@ -380,7 +358,7 @@ function sr_community_board_attachment_storage_refs(PDO $pdo, int $boardId): arr
 function sr_community_board_group_reference_counts(PDO $pdo, int $groupId): array
 {
     return [
-        'boards' => $groupId > 0 ? sr_community_optional_count($pdo, 'sr_community_boards', 'board_group_id = :group_id', ['group_id' => $groupId]) : 0,
+        'boards' => $groupId > 0 ? sr_community_count($pdo, 'sr_community_boards', 'board_group_id = :group_id', ['group_id' => $groupId]) : 0,
     ];
 }
 
@@ -428,15 +406,13 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
 
     $pdo->beginTransaction();
     try {
-        $deletedSettings = sr_community_optional_count($pdo, 'sr_community_board_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
+        $deletedSettings = sr_community_count($pdo, 'sr_community_board_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $detachedBoards = (int) ($check['references']['boards'] ?? 0);
         $pdo->prepare('UPDATE sr_community_boards SET board_group_id = NULL, updated_at = :updated_at WHERE board_group_id = :group_id')->execute([
             'updated_at' => sr_now(),
             'group_id' => $groupId,
         ]);
-        if (sr_community_optional_table_exists($pdo, 'sr_community_board_group_settings')) {
-            $pdo->prepare('DELETE FROM sr_community_board_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
-        }
+        $pdo->prepare('DELETE FROM sr_community_board_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
         $pdo->prepare('DELETE FROM sr_community_board_groups WHERE id = :id')->execute(['id' => $groupId]);
         $pdo->commit();
         if (function_exists('sr_community_enabled_boards_file_cache_mark_stale')) {

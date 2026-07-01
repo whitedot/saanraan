@@ -9,14 +9,12 @@ function sr_community_post_extra_values_select(PDO $pdo, string $alias): string
 
 function sr_community_board_field_definitions_table_exists(PDO $pdo): bool
 {
-    return function_exists('sr_community_optional_table_exists')
-        && sr_community_optional_table_exists($pdo, 'sr_community_board_field_definitions');
+    return true;
 }
 
 function sr_community_post_field_values_table_exists(PDO $pdo): bool
 {
-    return function_exists('sr_community_optional_table_exists')
-        && sr_community_optional_table_exists($pdo, 'sr_community_post_field_values');
+    return true;
 }
 
 function sr_community_extra_field_type(string $type): string
@@ -391,9 +389,7 @@ function sr_community_sync_board_field_definitions(PDO $pdo, int $boardId, array
 
 function sr_community_sync_group_board_field_definitions(PDO $pdo, int $groupId, array $definitions): int
 {
-    if ($groupId < 1
-        || !sr_community_board_field_definitions_table_exists($pdo)
-        || !sr_community_optional_table_exists($pdo, 'sr_community_board_setting_sources')) {
+    if ($groupId < 1 || !sr_community_board_field_definitions_table_exists($pdo)) {
         return 0;
     }
 
