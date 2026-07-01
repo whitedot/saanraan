@@ -975,6 +975,49 @@ function sr_check_service_module_default_settings(): void
     }
 }
 
+function sr_check_literal_module_setting_contracts(): void
+{
+    $moduleSettings = [];
+    foreach (sr_check_module_dirs() as $moduleDir) {
+        $moduleKey = basename($moduleDir);
+        $moduleFile = $moduleDir . '/module.php';
+        if (!is_file($moduleFile)) {
+            continue;
+        }
+
+        $metadata = include $moduleFile;
+        if (!is_array($metadata)) {
+            continue;
+        }
+
+        $settings = is_array($metadata['settings'] ?? null) ? $metadata['settings'] : [];
+        $moduleSettings[$moduleKey] = array_fill_keys(array_keys($settings), true);
+    }
+
+    $files = sr_check_files('modules', 'php');
+    foreach ($files as $file) {
+        $contents = file_get_contents($file);
+        if (!is_string($contents) || strpos($contents, 'sr_module_setting') === false) {
+            continue;
+        }
+
+        if (!preg_match_all('/sr_module_setting\s*\([^,]+,\s*[\'"]([a-z0-9_]+)[\'"]\s*,\s*[\'"]([^\'"]+)[\'"]/', $contents, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            continue;
+        }
+
+        foreach ($matches as $match) {
+            $moduleKey = (string) $match[1][0];
+            $settingKey = (string) $match[2][0];
+            if (!array_key_exists($moduleKey, $moduleSettings) || isset($moduleSettings[$moduleKey][$settingKey])) {
+                continue;
+            }
+
+            $line = substr_count(substr($contents, 0, (int) $match[0][1]), "\n") + 1;
+            sr_check_add_error('Literal module setting is missing from module.php: ' . $moduleKey . '.' . $settingKey . ' at ' . $file . ':' . (string) $line);
+        }
+    }
+}
+
 function sr_check_installer_core_schema_version(): void
 {
     $installer = file_get_contents('core/actions/install.php');
@@ -1830,6 +1873,7 @@ sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
 sr_check_installer_module_default_versions();
 sr_check_service_module_default_settings();
+sr_check_literal_module_setting_contracts();
 sr_check_installer_core_schema_version();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();

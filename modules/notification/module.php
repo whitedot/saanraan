@@ -66,5 +66,6 @@ return [
         'delivery_cli_batch_size' => 20,
         'delivery_max_attempts' => 5,
         'delivery_lock_timeout_seconds' => 300,
+        'delivery_last_web_runner_at' => '',
     ],
 ];
