@@ -3745,6 +3745,43 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
 function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote): array
 {
     $refundNote = sr_coupon_clean_text($refundNote, 255);
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $refund = sr_coupon_refund_redemption_state_only($pdo, $redemptionId, $adminAccountId, $refundNote);
+        $revokedAccess = sr_coupon_revoke_target_access_or_fail(
+            $pdo,
+            (string) ($refund['target_type'] ?? ''),
+            (int) $refund['account_id'],
+            (string) $refund['original_dedupe_key']
+        );
+        sr_coupon_mark_payment_ledger_redemption_refunded_if_available($pdo, (int) $refund['account_id'], $redemptionId, $refundNote);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        $notificationPayload = is_array($refund['notification_payload'] ?? null) ? $refund['notification_payload'] : [];
+        $notificationPayload['revoked_access_count'] = $revokedAccess;
+        sr_coupon_notify_issue_event($pdo, (int) $refund['coupon_issue_id'], (string) ($refund['notification_event_key'] ?? 'redemption.refunded'), $adminAccountId, $notificationPayload);
+
+        $refund['revoked_access_count'] = $revokedAccess;
+
+        return $refund;
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
+function sr_coupon_refund_redemption_state_only(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote, array $options = []): array
+{
+    $refundNote = sr_coupon_clean_text($refundNote, 255);
     if ($redemptionId <= 0) {
         throw new InvalidArgumentException('환불할 쿠폰 사용 내역을 선택하세요.');
     }
@@ -3757,6 +3794,21 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
     if (!sr_coupon_redemption_refund_columns_available($pdo)) {
         throw new InvalidArgumentException('쿠폰 환불 컬럼 업데이트를 먼저 적용하세요.');
     }
+
+    $allowedCouponTypes = $options['allowed_coupon_types'] ?? ['access'];
+    if (!is_array($allowedCouponTypes)) {
+        $allowedCouponTypes = ['access'];
+    }
+    $allowedCouponTypes = array_values(array_filter(array_map(
+        static fn (mixed $type): string => sr_coupon_clean_key((string) $type, 40),
+        $allowedCouponTypes
+    ), static fn (string $type): bool => $type !== ''));
+    if ($allowedCouponTypes === []) {
+        $allowedCouponTypes = ['access'];
+    }
+    $requireRefundablePolicy = array_key_exists('require_refundable_policy', $options)
+        ? !empty($options['require_refundable_policy'])
+        : true;
 
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
@@ -3781,10 +3833,10 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
         if ((string) ($redemption['status'] ?? '') !== 'redeemed') {
             throw new InvalidArgumentException('이미 환불되었거나 환불할 수 없는 사용 내역입니다.');
         }
-        if ((string) ($redemption['refundable_policy'] ?? '') !== 'refundable') {
+        if ($requireRefundablePolicy && (string) ($redemption['refundable_policy'] ?? '') !== 'refundable') {
             throw new InvalidArgumentException('환급 가능 정책인 쿠폰만 수동 환불할 수 있습니다.');
         }
-        if ((string) ($redemption['coupon_type'] ?? 'access') !== 'access') {
+        if (!in_array((string) ($redemption['coupon_type'] ?? 'access'), $allowedCouponTypes, true)) {
             throw new InvalidArgumentException('접근권 쿠폰 사용 내역만 수동 환불할 수 있습니다. 할인 쿠폰 복합 결제는 소비 도메인 취소 계약이 필요합니다.');
         }
 
@@ -3831,35 +3883,34 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
             'id' => (int) $redemption['coupon_issue_id'],
         ]);
 
-        $revokedAccess = sr_coupon_revoke_target_access_or_fail($pdo, (string) ($redemption['target_type'] ?? ''), (int) $redemption['account_id'], $originalDedupeKey);
-        sr_coupon_mark_payment_ledger_redemption_refunded_if_available($pdo, (int) $redemption['account_id'], $redemptionId, $refundNote);
-
         if ($startedTransaction) {
             $pdo->commit();
         }
-
-        sr_coupon_notify_issue_event($pdo, (int) $redemption['coupon_issue_id'], 'redemption.refunded', $adminAccountId, [
-            'redemption_id' => $redemptionId,
-            'refund_note' => $refundNote,
-            'refunded_at' => $now,
-            'used_count' => $usedCount,
-            'revoked_access_count' => $revokedAccess,
-            'original_dedupe_key' => $originalDedupeKey,
-            'refunded_dedupe_key' => $refundedDedupeKey,
-            'status_label' => sr_coupon_issue_status_label($nextIssueStatus),
-        ]);
 
         return [
             'coupon_issue_id' => (int) $redemption['coupon_issue_id'],
             'coupon_definition_id' => (int) $redemption['coupon_definition_id'],
             'account_id' => (int) $redemption['account_id'],
+            'target_type' => (string) ($redemption['target_type'] ?? ''),
+            'target_id' => (string) ($redemption['target_id'] ?? ''),
+            'coupon_type' => (string) ($redemption['coupon_type'] ?? 'access'),
             'coupon_title' => (string) ($redemption['title'] ?? ''),
             'used_count' => $usedCount,
             'issue_status' => $nextIssueStatus,
             'refunded_at' => $now,
-            'revoked_access_count' => $revokedAccess,
+            'revoked_access_count' => 0,
             'original_dedupe_key' => $originalDedupeKey,
             'refunded_dedupe_key' => $refundedDedupeKey,
+            'notification_event_key' => 'redemption.refunded',
+            'notification_payload' => [
+                'redemption_id' => $redemptionId,
+                'refund_note' => $refundNote,
+                'refunded_at' => $now,
+                'used_count' => $usedCount,
+                'original_dedupe_key' => $originalDedupeKey,
+                'refunded_dedupe_key' => $refundedDedupeKey,
+                'status_label' => sr_coupon_issue_status_label($nextIssueStatus),
+            ],
         ];
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {

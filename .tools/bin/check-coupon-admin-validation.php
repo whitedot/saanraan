@@ -72,6 +72,14 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon definition save must reject refundable discount coupons until mixed asset cancellation has a domain contract.';
     }
+    if (strpos($helper, 'function sr_coupon_refund_redemption_state_only(PDO $pdo, int $redemptionId, int $adminAccountId, string $refundNote, array $options = []): array') === false
+        || strpos($helper, 'notification_payload') === false
+        || strpos($helper, 'sr_coupon_refund_redemption_state_only($pdo, $redemptionId, $adminAccountId, $refundNote)') === false
+        || strpos($helper, 'sr_coupon_revoke_target_access_or_fail(') === false
+        || strpos($helper, 'sr_coupon_notify_issue_event($pdo, (int) $refund[\'coupon_issue_id\']') === false
+    ) {
+        $errors[] = 'Coupon refund must expose a state-only primitive while keeping the standalone refund wrapper responsible for access revoke and notification.';
+    }
     if (strpos($helper, 'function sr_coupon_types(): array') === false
         || strpos($helper, "'fixed_discount' => '정액 할인'") === false
         || strpos($helper, "'percent_discount' => '정률 할인'") === false

@@ -1290,6 +1290,54 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($afterRefund['dedupe_key'] ?? '') === (string) ($refund['refunded_dedupe_key'] ?? ''), 'refund should update stored dedupe key to refunded namespace.');
     sr_coupon_runtime_assert((string) ($afterRefund['refund_note'] ?? '') === 'fixture refund', 'refund should store admin refund note.');
 
+    $notificationsBeforeStateOnly = (int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE event_key = 'redemption.refunded'")->fetchColumn();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('state_only_refund', 'State-only refund', '', 'active', 'access', 'content', '43', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $stateOnlyDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'used', 'fixture', NULL, :issued_at, NULL, 1, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $stateOnlyDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stateOnlyIssueId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_redemptions
+            (coupon_issue_id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, dedupe_key, status, redeemed_at, created_at)
+         VALUES
+            (:issue_id, :definition_id, 7, 'content', '43', 'content', 'content.view', '43', 'content:view:43:account:7:intent:state-only', 'redeemed', :redeemed_at, :created_at)"
+    )->execute([
+        'issue_id' => $stateOnlyIssueId,
+        'definition_id' => $stateOnlyDefinitionId,
+        'redeemed_at' => $now,
+        'created_at' => $now,
+    ]);
+    $stateOnlyRedemptionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_content_access_entitlements
+            (account_id, content_id, subject_type, subject_id, access_kind, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
+         VALUES
+            (7, 43, 'content', 43, 'view', 'coupon', '', 'once', 'content:view:43:account:7:intent:state-only', :granted_at, :created_at)"
+    )->execute([
+        'granted_at' => $now,
+        'created_at' => $now,
+    ]);
+    $stateOnlyRefund = sr_coupon_refund_redemption_state_only($pdo, $stateOnlyRedemptionId, 1, 'state only fixture refund');
+    sr_coupon_runtime_assert((int) ($stateOnlyRefund['used_count'] ?? -1) === 0, 'state-only refund should decrement issue used_count.');
+    sr_coupon_runtime_assert((int) ($stateOnlyRefund['revoked_access_count'] ?? -1) === 0, 'state-only refund should not revoke access itself.');
+    sr_coupon_runtime_assert(is_array($stateOnlyRefund['notification_payload'] ?? null), 'state-only refund should return a notification payload for an outer orchestrator.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_content_access_entitlements WHERE source_reference = 'content:view:43:account:7:intent:state-only'")->fetchColumn() === 1, 'state-only refund should leave access revocation to the domain orchestrator.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_notifications WHERE event_key = 'redemption.refunded'")->fetchColumn() === $notificationsBeforeStateOnly, 'state-only refund should not emit notification by itself.');
+
     $pdo->prepare(
         "INSERT INTO sr_coupon_definitions
             (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
