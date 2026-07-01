@@ -593,6 +593,8 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'sr_member_oauth_provider_profile',
     'sr_member_oauth_account_by_subject',
     'sr_member_login_or_start_mfa($pdo, $account, \'oauth\'',
+    '$loginResult === \'mfa_required\'',
+    'sr_redirect(\'/login/mfa\')',
     'sr_member_email_verification_blocks_login',
     'sr_member_oauth_create_completion_state',
     'member.oauth.login',
@@ -620,6 +622,8 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/complete.php', [
     '$emailVerificationEnabled',
     'sr_t(\'member::action.register.email_verification_notice\')',
     'sr_member_login_or_start_mfa($pdo, $account, \'oauth_completion\'',
+    '$loginResult === \'mfa_required\'',
+    'sr_redirect(\'/login/mfa\')',
     'member.oauth.registered',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/unlink.php', [

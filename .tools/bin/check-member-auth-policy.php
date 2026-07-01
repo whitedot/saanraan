@@ -207,6 +207,32 @@ sr_member_auth_policy_assert(
     sr_member_mfa_active_factor_exists($mfaPdo, 77) && !sr_member_mfa_active_factor_exists($mfaPdo, 79),
     'MFA active factor helper should only treat active TOTP factors as login challenges.'
 );
+$_SESSION = [];
+$oauthMfaGate = sr_member_login_or_start_mfa($mfaPdo, ['id' => 77], 'oauth', '/admin', ['provider_key' => 'mock', 'oauth_account_id' => 12]);
+$oauthMfaChallenge = sr_member_mfa_challenge();
+sr_member_auth_policy_assert(
+    $oauthMfaGate === 'mfa_required'
+        && is_array($oauthMfaChallenge)
+        && (int) ($oauthMfaChallenge['account_id'] ?? 0) === 77
+        && (string) ($oauthMfaChallenge['primary_method'] ?? '') === 'oauth'
+        && (string) ($oauthMfaChallenge['next_path'] ?? '') === '/admin'
+        && (string) ($oauthMfaChallenge['context']['provider_key'] ?? '') === 'mock'
+        && (string) ($oauthMfaChallenge['context']['oauth_account_id'] ?? '') === '12'
+        && !isset($_SESSION['sr_account_id'], $_SESSION['sr_session_token_hash'])
+        && sr_member_current_session_account_id() === null,
+    'OAuth login for an active MFA account should create only an MFA challenge, even when the next path is an admin route.'
+);
+$_SESSION = [];
+$oauthCompletionMfaGate = sr_member_login_or_start_mfa($mfaPdo, ['id' => 77], 'oauth_completion', '/admin/updates', ['provider_key' => 'mock']);
+$oauthCompletionMfaChallenge = sr_member_mfa_challenge();
+sr_member_auth_policy_assert(
+    $oauthCompletionMfaGate === 'mfa_required'
+        && is_array($oauthCompletionMfaChallenge)
+        && (string) ($oauthCompletionMfaChallenge['primary_method'] ?? '') === 'oauth_completion'
+        && (string) ($oauthCompletionMfaChallenge['next_path'] ?? '') === '/admin/updates'
+        && !isset($_SESSION['sr_account_id'], $_SESSION['sr_session_token_hash']),
+    'OAuth completion auto-login for an active MFA account should not create a completed member session before MFA.'
+);
 $mfaMetadata = sr_member_mfa_privacy_metadata($mfaPdo, 77);
 sr_member_auth_policy_assert(
     count($mfaMetadata['factors'] ?? []) === 2
@@ -387,6 +413,15 @@ if ($oauthCompleteAction !== '') {
     sr_member_auth_policy_assert(
         strpos($oauthCompleteAction, 'sr_member_login_or_start_mfa($pdo, $account, \'oauth_completion\', (string) $usedState[\'next_path\']') !== false,
         'OAuth completion auto-login should pass through the MFA gate.'
+    );
+}
+
+$adminDashboardAction = sr_member_auth_policy_read('modules/admin/actions/dashboard.php');
+if ($adminDashboardAction !== '') {
+    sr_member_auth_policy_assert(
+        strpos($adminDashboardAction, 'sr_member_require_login($pdo)') !== false
+            && strpos($adminDashboardAction, 'sr_admin_require_permission($pdo, (int) $account[\'id\'], \'/admin\', \'view\')') !== false,
+        'Admin dashboard should require a completed member login before admin permission checks.'
     );
 }
 
