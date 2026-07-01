@@ -49,6 +49,7 @@ if (sr_request_method() === 'POST') {
             if ($revokedSessions < 0) {
                 throw new RuntimeException('Member sessions could not be revoked before account withdrawal.');
             }
+            $deletedMfa = sr_member_delete_mfa($pdo, (int) $account['id']);
             $withdrawnConsents = sr_member_record_consent_withdrawals($pdo, (int) $account['id']);
             sr_member_anonymize_account($pdo, $config, (int) $account['id']);
             $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, (int) $account['id'], 'member.anonymized');
@@ -73,6 +74,7 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'revoked_sessions' => $revokedSessions,
                 'withdrawn_consents' => $withdrawnConsents,
+                'deleted_mfa' => $deletedMfa,
                 'processed_assets' => $processedAssets,
                 'privacy_cleanup' => $privacyCleanupResults ?? [],
                 'deposit_refund_account_provided' => isset($processedAssets['deposit']),

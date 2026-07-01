@@ -194,6 +194,7 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
         'profile' => $profile,
         'profile_extra_fields' => $profileExtraFields,
         'groups' => sr_member_group_privacy_export($pdo, $accountId),
+        'mfa' => sr_member_mfa_privacy_metadata($pdo, $accountId),
         'consents' => $consents,
         'auth_logs' => $authLogs,
         'sessions' => $sessions,

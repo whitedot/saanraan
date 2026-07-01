@@ -45,16 +45,99 @@ function sr_member_login_or_start_mfa(PDO $pdo, array $account, string $primaryM
 
 function sr_member_mfa_login_required(PDO $pdo, array $account): bool
 {
-    unset($pdo);
-
-    return (int) ($account['id'] ?? 0) > 0 && sr_member_mfa_active_factor_exists($account);
+    return sr_member_mfa_active_factor_exists($pdo, (int) ($account['id'] ?? 0));
 }
 
-function sr_member_mfa_active_factor_exists(array $account): bool
+function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
 {
-    unset($account);
+    if ($accountId < 1) {
+        return false;
+    }
 
-    return false;
+    $stmt = $pdo->prepare(
+        "SELECT id
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+           AND factor_type = 'totp'
+           AND status = 'active'
+         LIMIT 1"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
+function sr_member_mfa_privacy_metadata(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [
+            'factors' => [],
+            'recovery_code_counts' => [],
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, factor_type, status, issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $factors = [];
+    foreach ($stmt->fetchAll() as $factor) {
+        $factors[] = [
+            'id' => (int) ($factor['id'] ?? 0),
+            'factor_type' => (string) ($factor['factor_type'] ?? ''),
+            'status' => (string) ($factor['status'] ?? ''),
+            'issuer' => (string) ($factor['issuer'] ?? ''),
+            'label' => (string) ($factor['label'] ?? ''),
+            'last_used_step' => $factor['last_used_step'] === null ? null : (int) $factor['last_used_step'],
+            'activated_at' => $factor['activated_at'],
+            'disabled_at' => $factor['disabled_at'],
+            'created_at' => (string) ($factor['created_at'] ?? ''),
+            'updated_at' => (string) ($factor['updated_at'] ?? ''),
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT status, COUNT(*) AS code_count
+         FROM sr_member_mfa_recovery_codes
+         WHERE account_id = :account_id
+         GROUP BY status
+         ORDER BY status ASC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $recoveryCodeCounts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $recoveryCodeCounts[(string) ($row['status'] ?? '')] = (int) ($row['code_count'] ?? 0);
+    }
+
+    return [
+        'factors' => $factors,
+        'recovery_code_counts' => $recoveryCodeCounts,
+    ];
+}
+
+function sr_member_delete_mfa(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [
+            'factors_deleted' => 0,
+            'recovery_codes_deleted' => 0,
+        ];
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_recovery_codes WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+    $recoveryCodesDeleted = $stmt->rowCount();
+
+    $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_factors WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return [
+        'factors_deleted' => $stmt->rowCount(),
+        'recovery_codes_deleted' => $recoveryCodesDeleted,
+    ];
 }
 
 function sr_member_mfa_start_challenge(array $account, string $primaryMethod, string $nextPath, array $context = []): void

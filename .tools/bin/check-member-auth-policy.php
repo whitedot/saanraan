@@ -193,6 +193,34 @@ sr_member_auth_policy_assert(
     'Expired MFA challenge should be cleared.'
 );
 
+$mfaPdo = new PDO('sqlite::memory:');
+$mfaPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$mfaPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$mfaPdo->exec('CREATE TABLE sr_member_mfa_factors (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, factor_type TEXT NOT NULL, status TEXT NOT NULL, secret_ciphertext TEXT NOT NULL, secret_fingerprint TEXT NOT NULL, issuer TEXT NOT NULL, label TEXT NOT NULL, last_used_step INTEGER NULL, activated_at TEXT NULL, disabled_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+$mfaPdo->exec('CREATE TABLE sr_member_mfa_recovery_codes (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, factor_id INTEGER NULL, code_hash TEXT NOT NULL, status TEXT NOT NULL, batch_uid TEXT NOT NULL, used_at TEXT NULL, revoked_at TEXT NULL, created_at TEXT NOT NULL)');
+$mfaPdo->exec("INSERT INTO sr_member_mfa_factors (id, account_id, factor_type, status, secret_ciphertext, secret_fingerprint, issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at) VALUES (1, 77, 'totp', 'pending', 'cipher-pending', 'finger-pending', 'Site', 'member77', NULL, NULL, NULL, '2026-07-02 00:00:00', '2026-07-02 00:00:00'), (2, 77, 'totp', 'active', 'cipher-active', 'finger-active', 'Site', 'member77', 123, '2026-07-02 00:01:00', NULL, '2026-07-02 00:00:00', '2026-07-02 00:01:00'), (3, 78, 'totp', 'active', 'cipher-other', 'finger-other', 'Site', 'member78', NULL, '2026-07-02 00:01:00', NULL, '2026-07-02 00:00:00', '2026-07-02 00:01:00')");
+$mfaPdo->exec("INSERT INTO sr_member_mfa_recovery_codes (id, account_id, factor_id, code_hash, status, batch_uid, used_at, revoked_at, created_at) VALUES (1, 77, 2, 'hash-unused', 'unused', 'batch77', NULL, NULL, '2026-07-02 00:01:00'), (2, 77, 2, 'hash-used', 'used', 'batch77', '2026-07-02 00:02:00', NULL, '2026-07-02 00:01:00'), (3, 78, 3, 'hash-other', 'unused', 'batch78', NULL, NULL, '2026-07-02 00:01:00')");
+sr_member_auth_policy_assert(
+    sr_member_mfa_active_factor_exists($mfaPdo, 77) && !sr_member_mfa_active_factor_exists($mfaPdo, 79),
+    'MFA active factor helper should only treat active TOTP factors as login challenges.'
+);
+$mfaMetadata = sr_member_mfa_privacy_metadata($mfaPdo, 77);
+sr_member_auth_policy_assert(
+    count($mfaMetadata['factors'] ?? []) === 2
+        && (($mfaMetadata['recovery_code_counts']['unused'] ?? 0) === 1)
+        && (($mfaMetadata['recovery_code_counts']['used'] ?? 0) === 1)
+        && !array_key_exists('secret_ciphertext', $mfaMetadata['factors'][0] ?? [])
+        && !array_key_exists('secret_fingerprint', $mfaMetadata['factors'][0] ?? []),
+    'MFA privacy metadata should include status summaries without secret ciphertext, fingerprints, or recovery hashes.'
+);
+$deletedMfa = sr_member_delete_mfa($mfaPdo, 77);
+sr_member_auth_policy_assert(
+    ($deletedMfa['factors_deleted'] ?? 0) === 2
+        && ($deletedMfa['recovery_codes_deleted'] ?? 0) === 2
+        && (int) $mfaPdo->query('SELECT COUNT(*) FROM sr_member_mfa_factors WHERE account_id = 78')->fetchColumn() === 1,
+    'MFA delete helper should remove only the target account factors and recovery codes.'
+);
+
 $loginAction = sr_member_auth_policy_read('modules/member/actions/login.php');
 if ($loginAction !== '') {
     sr_member_auth_policy_assert(
@@ -431,6 +459,13 @@ sr_member_auth_policy_assert(
         && strpos($memberInstallSql, 'profile_text') === false,
     'Member install schema should not keep legacy fixed phone or introduction profile columns.'
 );
+sr_member_auth_policy_assert(
+    strpos($memberInstallSql, 'CREATE TABLE IF NOT EXISTS sr_member_mfa_factors') !== false
+        && strpos($memberInstallSql, 'CREATE TABLE IF NOT EXISTS sr_member_mfa_recovery_codes') !== false
+        && strpos($memberUpdateSql, 'CREATE TABLE IF NOT EXISTS sr_member_mfa_factors') !== false
+        && strpos($memberUpdateSql, 'CREATE TABLE IF NOT EXISTS sr_member_mfa_recovery_codes') !== false,
+    'Member install and update schema should create MFA factors and recovery code tables.'
+);
 
 $sessionHelper = sr_member_auth_policy_read('modules/member/helpers/sessions.php');
 if ($sessionHelper !== '') {
@@ -562,6 +597,20 @@ if ($withdrawAction !== '') {
         strpos($withdrawAction, 'sr_member_record_consent_withdrawals($pdo, (int) $account[\'id\'])') !== false
             && strpos($withdrawAction, "'withdrawn_consents' => \$withdrawnConsents") !== false,
         'Withdraw should record consent withdrawals before account anonymization.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($withdrawAction, 'sr_member_delete_mfa($pdo, (int) $account[\'id\'])') !== false
+            && strpos($withdrawAction, "'deleted_mfa' => \$deletedMfa") !== false,
+        'Withdraw should delete member-owned MFA factors and recovery codes before account anonymization.'
+    );
+}
+
+$adminMembersHelper = sr_member_auth_policy_read('modules/member/helpers/admin-members.php');
+if ($adminMembersHelper !== '') {
+    sr_member_auth_policy_assert(
+        strpos($adminMembersHelper, "\$privacyCleanupResults['member_mfa'] = sr_member_delete_mfa(\$pdo, \$targetAccountId);") !== false
+            && strpos($adminMembersHelper, "sr_member_run_privacy_cleanup_contracts(\$pdo, \$targetAccountId, 'member.status_' . \$status)") !== false,
+        'Admin member status changes to withdrawn/anonymized should delete member-owned MFA data before module privacy cleanup.'
     );
 }
 

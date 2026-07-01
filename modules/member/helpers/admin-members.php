@@ -789,7 +789,11 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     throw new RuntimeException('Member sessions could not be revoked after account update.');
                 }
                 if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
-                    $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status);
+                    $privacyCleanupResults['member_mfa'] = sr_member_delete_mfa($pdo, $targetAccountId);
+                    $privacyCleanupResults = array_merge(
+                        $privacyCleanupResults,
+                        sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status)
+                    );
                 }
                 $pdo->commit();
             } catch (Throwable $exception) {
@@ -842,7 +846,11 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 throw new RuntimeException('Member sessions could not be revoked after status update.');
             }
             if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
-                $privacyCleanupResults = sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status);
+                $privacyCleanupResults['member_mfa'] = sr_member_delete_mfa($pdo, $targetAccountId);
+                $privacyCleanupResults = array_merge(
+                    $privacyCleanupResults,
+                    sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status)
+                );
             }
             $pdo->commit();
         } catch (Throwable $exception) {

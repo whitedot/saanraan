@@ -31,7 +31,7 @@
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 없음 | 예치금 잔액, 원장, 환불 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `logo_manager` | `operational_retained` | 없음 | 없음 | 로고 운영 메타데이터의 작성자 계정 연결은 운영 보존 데이터로 분류한다. |
-| `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 기본/추가 프로필, 동의, 그룹 멤버십을 소유하고 탈퇴/익명화 시 설치 모듈의 cleanup 계약을 실행한다. 추가 프로필 값은 항목별 export 정책에 따라 사본 제공 범위를 정한다. |
+| `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 기본/추가 프로필, 동의, 그룹 멤버십, MFA factor/recovery code 저장소를 소유하고 탈퇴/익명화 시 회원 소유 MFA row를 직접 삭제한 뒤 설치 모듈의 cleanup 계약을 실행한다. 추가 프로필 값은 항목별 export 정책에 따라 사본 제공 범위를 정하고, MFA export는 factor 표시 메타데이터와 recovery code 상태별 개수만 제공한다. |
 | `member_oauth` | `export_cleanup` | 제공 | 제공 | OAuth provider 연결 증적과 최소 profile snapshot을 회원 계정에 연결하며, provider subject 원문은 저장하지 않고 HMAC hash와 hash prefix 표시값만 둔다. 탈퇴/익명화 시 연결을 해제하고 snapshot을 제거한다. |
 | `member_oauth_providers` | `no_member_personal_data` | 없음 | 없음 | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약만 제공하며 설정 저장, state, 계정 연결, profile snapshot은 `member_oauth` 모듈이 소유한다. |
 | `notification` | `export_retained` | 제공 | 제공 | 회원 알림과 읽음 상태, 대상 회원의 site/email delivery는 사본 제공 대상이다. 운영 알림과 발송 이력은 보존 정책으로 다루되, 회원 push endpoint secret은 탈퇴/익명화 cleanup에서 disabled tombstone으로 전환하고 ciphertext를 제거한다. |
@@ -54,7 +54,7 @@
 | 표면 | 현재 포함 모듈 | 주요 개인정보성 필드와 처리 표면 | 마일스톤 12 연결 |
 | --- | --- | --- | --- |
 | 쿠키와 브라우저 저장소 | `member`, `popup_layer`, `admin`, `antispam`, `antispam_captcha_providers`, `banner` | 세션 쿠키, 팝업 닫기 쿠키, 관리자 UI `localStorage`, CAPTCHA provider script와 remote IP 전달 옵션, 배너 클릭 dedupe hash | #151, #152, #160 |
-| 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers` | 계정 식별자/email hash, 세션/token hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 가입 동의 snapshot, OAuth provider 계약 | #158, #159, #160, #161 |
+| 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers` | 계정 식별자/email hash, 세션/token hash, MFA factor secret ciphertext/fingerprint/recovery code hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 가입 동의 snapshot, OAuth provider 계약 | #158, #159, #160, #161 |
 | 정책 문서와 동의 | `member`, `policy_documents`, `community`, `survey` | 회원 동의 증적, 정책 문서 버전 snapshot, 안내메일 delivery account 연결, 제출/응답 동의 snapshot | #151, #158, #160, #161 |
 | 사용자 제출과 활동 | `community`, `content`, `quiz`, `survey`, `reaction` | 작성자/응답자/시도자 account 연결, 댓글/쪽지/스크랩/리액션, answer/metadata snapshot, IP/UA hash, 제3자 식별자 | #155, #158, #159, #161 |
 | 금액성 원장과 권리 | `asset_ledger`, `payment_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/결제 기록/유료 접근권/보상 grant/보상 미회수 기록, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
