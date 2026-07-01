@@ -221,6 +221,9 @@ function sr_popup_layer_subject_target_contracts(PDO $pdo): array
             if ($targetType === '' || $label === '' || preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetType) !== 1) {
                 continue;
             }
+            if (isset($contracts[$targetType])) {
+                continue;
+            }
 
             $helperPath = sr_popup_layer_subject_target_contract_helper_path($moduleKey, $target);
             if ($helperPath !== '') {

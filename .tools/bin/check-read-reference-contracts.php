@@ -748,6 +748,7 @@ $expectedConsumers = [
     'member' => ['member-group-references.php'],
     'admin' => ['site-setting-references.php'],
 ];
+$couponTargetTypeProviders = [];
 
 foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
     $moduleKey = basename($moduleDir);
@@ -852,6 +853,15 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
             if (!is_array($entry)) {
                 continue;
             }
+            $targetType = $entry['target_type'] ?? null;
+            if (!is_string($targetType) || preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetType) !== 1) {
+                sr_read_reference_check_error('coupon-targets target_type is invalid: ' . $moduleDir);
+            } elseif (isset($couponTargetTypeProviders[$targetType])) {
+                sr_read_reference_check_error('coupon-targets target_type must be globally unique: ' . $targetType . ' ' . $couponTargetTypeProviders[$targetType] . ' ' . $moduleDir);
+            } else {
+                $couponTargetTypeProviders[$targetType] = $moduleDir;
+            }
+
             foreach (['health_function', 'admin_url_function'] as $optionalKey) {
                 if (!isset($entry[$optionalKey])) {
                     continue;
@@ -875,6 +885,17 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 }
             }
         }
+    }
+}
+
+foreach ([
+    'modules/coupon/helpers.php' => 'sr_coupon_target_contracts',
+    'modules/banner/helpers.php' => 'sr_banner_subject_target_contracts',
+    'modules/popup_layer/helpers.php' => 'sr_popup_layer_subject_target_contracts',
+] as $helperPath => $functionName) {
+    $contents = is_file($helperPath) ? file_get_contents($helperPath) : false;
+    if (!is_string($contents) || strpos($contents, 'function ' . $functionName . '(') === false || strpos($contents, 'isset($contracts[$targetType])') === false) {
+        sr_read_reference_check_error('coupon-targets consumers must ignore duplicate target_type entries: ' . $helperPath);
     }
 }
 
