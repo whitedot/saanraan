@@ -1,10 +1,13 @@
 <?php
 
 $adminContainerClass = 'admin-community-attachment-downloads admin-ui-scope';
-$downloadLogSortOptions = isset($downloadLogSortOptions) && is_array($downloadLogSortOptions) ? $downloadLogSortOptions : sr_community_admin_attachment_download_log_sort_options();
+$downloadLogSortOptions = isset($downloadLogSortOptions) && is_array($downloadLogSortOptions) ? $downloadLogSortOptions : sr_community_admin_attachment_download_log_sort_options($pdo ?? null);
 $downloadLogDefaultSort = isset($downloadLogDefaultSort) && is_array($downloadLogDefaultSort) ? $downloadLogDefaultSort : sr_community_admin_attachment_download_log_default_sort();
 $downloadLogSort = isset($downloadLogSort) && is_array($downloadLogSort) ? $downloadLogSort : $downloadLogDefaultSort;
 $selectedDownloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
+$selectedRefundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
+$canEditAttachmentDownloads = !empty($canEditAttachmentDownloads);
+$hasAttachmentDownloadRefundColumns = isset($pdo) && $pdo instanceof PDO && sr_community_attachment_download_log_refund_columns_exist($pdo);
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/attachment-downloads');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -27,6 +30,12 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                     <span class="filtering-label">구분</span>
                     <?php echo sr_admin_filter_radio_toggle_group_html('community_attachment_download_filter_type', 'download_type', ['free' => '무료', 'paid' => '유료'], $selectedDownloadTypes, '전체'); ?>
                 </div>
+                <?php if ($hasAttachmentDownloadRefundColumns) { ?>
+                    <div class="filtering-field">
+                        <span class="filtering-label">환불</span>
+                        <?php echo sr_admin_filter_toggle_group_html('community_attachment_download_filter_refund_status', 'refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], $selectedRefundStatuses, '전체'); ?>
+                    </div>
+                <?php } ?>
                 <label class="filtering-field-fill filtering-field" for="community_attachment_download_filter_q">
                     <span class="filtering-label">검색</span>
                     <input id="community_attachment_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="게시판, 게시글, 첨부파일, 회원">
@@ -100,23 +109,27 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                     <th<?php echo sr_admin_sort_aria('account_id', $downloadLogSort); ?>><?php echo sr_admin_sort_header_html('회원', 'account_id', $downloadLogSort, $downloadLogSortOptions, $downloadLogDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('download_type', $downloadLogSort); ?>><?php echo sr_admin_sort_header_html('구분', 'download_type', $downloadLogSort, $downloadLogSortOptions, $downloadLogDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('amount', $downloadLogSort); ?>><?php echo sr_admin_sort_header_html('차감', 'amount', $downloadLogSort, $downloadLogSortOptions, $downloadLogDefaultSort); ?></th>
+                    <th>처리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($downloadLogs === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">다운로드 내역이 없습니다.</td>
+                        <td colspan="8" class="admin-empty-state">다운로드 내역이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($downloadLogs as $downloadLog) { ?>
                     <?php
                     $isPaid = (string) ($downloadLog['download_type'] ?? '') === 'paid';
+                    $refundStatus = (string) ($downloadLog['refund_status'] ?? '');
                     $downloadAccountId = (int) ($downloadLog['account_id'] ?? 0);
                     $memberName = trim((string) ($downloadLog['display_name'] ?? ''));
                     $memberPublicHash = $downloadAccountId > 0 && function_exists('sr_admin_member_public_hash')
                         ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $downloadAccountId)
                         : '';
                     $assetLogSummary = trim((string) ($downloadLog['asset_log_summary'] ?? ''));
+                    $refundModalId = 'community-attachment-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);
+                    $canRefund = $canEditAttachmentDownloads && $hasAttachmentDownloadRefundColumns && $isPaid && $refundStatus === '' && $downloadAccountId > 0 && sr_community_attachment_download_log_access_log_ids($downloadLog) !== [];
                     ?>
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($downloadLog['created_at'] ?? '')); ?></td>
@@ -157,14 +170,96 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                                 차감 없음
                             <?php } ?>
                         </td>
+                        <td class="admin-table-nowrap">
+                            <?php if (!$hasAttachmentDownloadRefundColumns) { ?>
+                                <span class="admin-status is-blocked">업데이트 필요</span>
+                            <?php } elseif ($refundStatus === 'refunded') { ?>
+                                <span class="admin-status is-normal">환불 완료</span>
+                                <p class="form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
+                            <?php } elseif ($refundStatus === 'access_revoked') { ?>
+                                <span class="admin-status is-left">접근권 회수</span>
+                                <p class="form-help"><?php echo sr_e((string) ($downloadLog['access_revoked_at'] ?? '')); ?></p>
+                            <?php } elseif ($canRefund) { ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
+                                    처리
+                                </button>
+                            <?php } else { ?>
+                                <span class="admin-status is-normal">미처리</span>
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
     <?php echo sr_admin_status_description_list_html('community_attachment_download_type', ['free' => '무료', 'paid' => '유료'], [], '다운로드 유형 설명'); ?>
+    <?php if ($hasAttachmentDownloadRefundColumns) { ?>
+        <?php echo sr_admin_status_description_list_html('community_attachment_download_refund_status', ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수'], [], '환불 처리 상태 설명'); ?>
+    <?php } ?>
 </section>
 
 <?php echo sr_admin_pagination_html($downloadLogPagination, '첨부 다운로드 내역 페이지'); ?>
+
+<?php foreach ($downloadLogs as $downloadLog) { ?>
+    <?php
+    $isPaid = (string) ($downloadLog['download_type'] ?? '') === 'paid';
+    $refundStatus = (string) ($downloadLog['refund_status'] ?? '');
+    if (!$canEditAttachmentDownloads || !$hasAttachmentDownloadRefundColumns || !$isPaid || $refundStatus !== '' || (int) ($downloadLog['account_id'] ?? 0) <= 0 || sr_community_attachment_download_log_access_log_ids($downloadLog) === []) {
+        continue;
+    }
+    $refundModalId = 'community-attachment-download-refund-modal-' . (int) ($downloadLog['id'] ?? 0);
+    $refundFieldPrefix = 'community_attachment_download_refund_' . (int) ($downloadLog['id'] ?? 0);
+    $refundTitle = (int) ($downloadLog['amount'] ?? 0) > 0 ? '첨부 다운로드 수동 환불' : '첨부 다운로드 접근권 회수';
+    $refundAccountId = (int) ($downloadLog['account_id'] ?? 0);
+    $refundAccountHash = $refundAccountId > 0 && function_exists('sr_admin_member_public_hash')
+        ? sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), $refundAccountId)
+        : '';
+    ?>
+    <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundFieldPrefix); ?>_title" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/attachment-downloads')); ?>" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($refundFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($refundTitle); ?></h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($refundModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="refund_download">
+                    <input type="hidden" name="download_log_id" value="<?php echo sr_e((string) (int) ($downloadLog['id'] ?? 0)); ?>">
+                    <div class="admin-summary-stats">
+                        <?php if ($refundAccountHash !== '') { ?>
+                            <span class="admin-summary-meta">회원 <strong><?php echo sr_e($refundAccountHash); ?></strong></span>
+                        <?php } ?>
+                        <span class="admin-summary-meta">첨부 <strong>#<?php echo sr_e((string) (int) ($downloadLog['attachment_id'] ?? 0)); ?></strong></span>
+                        <span class="admin-summary-meta">금액 <strong><?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?></strong></span>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy">포인트 환불 유효기간</label>
+                        <div class="form-field">
+                            <select id="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy" name="refund_expiration_policy" class="form-select">
+                                <option value="original">환불 참조 원거래의 유효기간</option>
+                                <option value="reset">환불 시점부터 유효기간 계산</option>
+                            </select>
+                            <p class="form-help">포인트 차감 환불에 적용합니다. 다른 포인트/금액 항목 환불에는 영향이 없습니다.</p>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_note">처리 사유 <span class="sr-required-label">(필수)</span></label>
+                        <div class="form-field">
+                            <input id="<?php echo sr_e($refundFieldPrefix); ?>_note" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-overlay-focus>
+                            <p class="form-help">원장 거래가 있으면 같은 금액의 환불 거래를 만들고, 최초 1회 접근권은 함께 회수합니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($refundModalId); ?>">닫기</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">처리</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
