@@ -233,6 +233,34 @@ try {
 
 try {
     sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:invalid-payment-kind',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'payment_kind' => 'purchase-kind',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid payment kinds instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid payment kinds.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:invalid-status',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'status' => 'paid-now',
+    ], []);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid record statuses instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid record statuses.');
+}
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
         'dedupe_key' => 'content.view:payment:7:negative-amount',
         'account_id' => 7,
         'subject_module' => 'content',
@@ -327,6 +355,31 @@ try {
 } catch (InvalidArgumentException) {
     sr_payment_runtime_assert(true, 'payment ledger rejects invalid item currency codes.');
 }
+
+try {
+    sr_payment_ledger_record_payment($pdo, [
+        'dedupe_key' => 'content.view:payment:7:invalid-reversal-status',
+        'account_id' => 7,
+        'subject_module' => 'content',
+        'subject_type' => 'content.view',
+        'subject_id' => '7801',
+        'settlement_currency' => 'KRW',
+    ], [
+        [
+            'item_kind' => 'asset_transaction',
+            'owner_module' => 'point',
+            'reference_type' => 'point_transaction',
+            'reference_id' => 'invalid-reversal-status',
+            'amount' => -10,
+            'currency_code' => 'KRW',
+            'reversible' => true,
+            'reversal_status' => 'waiting-refund',
+        ],
+    ]);
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid item reversal statuses instead of defaulting them.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid item reversal statuses.');
+}
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'invalid payment inputs should not leave extra records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'invalid payment inputs should not leave extra items.');
 
@@ -340,6 +393,14 @@ sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_rec
 $reversedItems = sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, 'reversed');
 sr_payment_runtime_assert($reversedItems === 3, 'payment ledger should update reversible item reversal statuses.');
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger should persist item reversal status changes.');
+
+try {
+    sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, 'waiting-refund');
+    sr_payment_runtime_assert(false, 'payment ledger should reject invalid reversal status updates.');
+} catch (InvalidArgumentException) {
+    sr_payment_runtime_assert(true, 'payment ledger rejects invalid reversal status updates.');
+}
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'invalid reversal status updates should not mutate item statuses.');
 
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel again');
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'pending'")->fetchColumn() === 0, 'payment ledger repeated cancellation should not move reversed items back to pending.');

@@ -39,6 +39,25 @@ function sr_payment_ledger_clean_identifier(string $value, int $maxLength = 80, 
     return preg_match($pattern, $value) === 1 ? $value : '';
 }
 
+function sr_payment_ledger_optional_identifier(array $data, string $key, string $default, int $maxLength, string $message): string
+{
+    if (!array_key_exists($key, $data)) {
+        return $default;
+    }
+
+    $raw = trim((string) $data[$key]);
+    if ($raw === '') {
+        return $default;
+    }
+
+    $value = sr_payment_ledger_clean_identifier($raw, $maxLength);
+    if ($value === '') {
+        throw new InvalidArgumentException($message);
+    }
+
+    return $value;
+}
+
 function sr_payment_ledger_clean_reference_key(string $value, int $maxLength = 190): string
 {
     $value = trim($value);
@@ -197,6 +216,8 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
     }
     $payableAmount = sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.');
     $settlementAmount = sr_payment_ledger_nonnegative_amount($data['settlement_amount'] ?? 0, '실제 결제 금액은 0 이상이어야 합니다.');
+    $paymentKind = sr_payment_ledger_optional_identifier($data, 'payment_kind', 'purchase', 40, '결제 기록 종류가 올바르지 않습니다.');
+    $status = sr_payment_ledger_optional_identifier($data, 'status', 'paid', 30, '결제 기록 상태가 올바르지 않습니다.');
 
     $existing = sr_payment_ledger_record_by_dedupe($pdo, $dedupeKey);
     if (is_array($existing)) {
@@ -220,8 +241,8 @@ function sr_payment_ledger_create_record_result(PDO $pdo, array $data): array
             'subject_module' => $subjectModule,
             'subject_type' => $subjectType,
             'subject_id' => $subjectId,
-            'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? 'purchase'), 40) ?: 'purchase',
-            'status' => sr_payment_ledger_clean_identifier((string) ($data['status'] ?? 'paid'), 30) ?: 'paid',
+            'payment_kind' => $paymentKind,
+            'status' => $status,
             'payable_amount' => $payableAmount,
             'settlement_amount' => $settlementAmount,
             'settlement_currency' => $settlementCurrency,
@@ -259,6 +280,11 @@ function sr_payment_ledger_is_duplicate_record_exception(Throwable $exception): 
 
 function sr_payment_ledger_assert_existing_record_matches(array $existing, array $data): void
 {
+    $settlementCurrency = sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? ''));
+    if ((string) ($data['settlement_currency'] ?? '') !== '' && $settlementCurrency === '') {
+        throw new InvalidArgumentException('결제 기록 통화 코드가 올바르지 않습니다.');
+    }
+
     $checks = [
         'account_id' => (int) ($data['account_id'] ?? 0),
         'subject_module' => sr_payment_ledger_clean_module_key((string) ($data['subject_module'] ?? '')),
@@ -276,10 +302,10 @@ function sr_payment_ledger_assert_existing_record_matches(array $existing, array
     }
 
     $optionalChecks = [
-        'payment_kind' => sr_payment_ledger_clean_identifier((string) ($data['payment_kind'] ?? ''), 40),
+        'payment_kind' => sr_payment_ledger_optional_identifier($data, 'payment_kind', 'purchase', 40, '결제 기록 종류가 올바르지 않습니다.'),
         'payable_amount' => sr_payment_ledger_nonnegative_amount($data['payable_amount'] ?? 0, '결제 전 금액은 0 이상이어야 합니다.'),
         'settlement_amount' => sr_payment_ledger_nonnegative_amount($data['settlement_amount'] ?? 0, '실제 결제 금액은 0 이상이어야 합니다.'),
-        'settlement_currency' => sr_payment_ledger_clean_currency_code((string) ($data['settlement_currency'] ?? '')),
+        'settlement_currency' => $settlementCurrency,
     ];
 
     foreach ($optionalChecks as $field => $expected) {
@@ -412,8 +438,17 @@ function sr_payment_ledger_record_payment(PDO $pdo, array $record, array $items)
 
 function sr_payment_ledger_clean_reversal_status(string $status): string
 {
-    $status = sr_payment_ledger_clean_identifier($status, 30);
-    return in_array($status, ['none', 'pending', 'reversed', 'failed'], true) ? $status : 'none';
+    $raw = trim($status);
+    if ($raw === '') {
+        return 'none';
+    }
+
+    $status = sr_payment_ledger_clean_identifier($raw, 30);
+    if (in_array($status, ['none', 'pending', 'reversed', 'failed'], true)) {
+        return $status;
+    }
+
+    throw new InvalidArgumentException('결제 기록 항목 되돌림 상태가 올바르지 않습니다.');
 }
 
 function sr_payment_ledger_mark_record_items_reversal_status(PDO $pdo, int $paymentRecordId, string $status, array $fromStatuses = []): int
@@ -458,6 +493,7 @@ function sr_payment_ledger_mark_record_cancelled(PDO $pdo, int $paymentRecordId,
         throw new InvalidArgumentException('취소할 결제 기록을 선택하세요.');
     }
 
+    $itemReversalStatus = sr_payment_ledger_clean_reversal_status($itemReversalStatus);
     $now = sr_now();
     $stmt = $pdo->prepare(
         "UPDATE sr_payment_records
