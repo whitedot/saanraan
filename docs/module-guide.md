@@ -1118,6 +1118,7 @@ return [
 - 배열을 반환한다.
 - 각 항목 key는 `common.basic`, `content.basic`, `community.basic`, `quiz.basic`, `survey.basic`처럼 provider namespace를 포함한 안정적인 layout key다.
 - 각 항목은 `label`, `provider_module_key`, 선택 `provider_label`, 선택 `supports`, `views`를 가진다.
+- 모듈 제공 layout key의 provider namespace와 `provider_module_key`는 계약 파일을 제공하는 모듈 key와 일치해야 하며, 선택적으로 `asset_owner_key`를 선언한다면 같은 모듈 key를 사용한다.
 - `views.layout`은 필수이며 public layout 파일을 가리킨다.
 - `views.community_home`처럼 특정 화면용 view는 선택으로 제공할 수 있다.
 - 파일 경로는 모듈 또는 코어가 선언한 allowlist 값이어야 하며 DB에 저장하지 않는다.

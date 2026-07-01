@@ -327,6 +327,38 @@ function sr_check_core_version_satisfies(string $minimumVersion): bool
     return strcmp($coreVersion, $minimumVersion) >= 0;
 }
 
+function sr_check_layout_option_contract(string $moduleKey, string $contractPath, string $contractContents): void
+{
+    preg_match_all('/[\'"]([a-z0-9][a-z0-9_]{0,39})\.[a-z0-9][a-z0-9_]{0,39}[\'"]\s*=>\s*\[/', $contractContents, $layoutKeyMatches);
+    $layoutProviderKeys = $layoutKeyMatches[1] ?? [];
+    if ($layoutProviderKeys === []) {
+        sr_check_add_error('Module layout-options.php must declare at least one namespaced layout key: ' . $contractPath);
+    }
+    foreach ($layoutProviderKeys as $providerKey) {
+        if ((string) $providerKey !== $moduleKey) {
+            sr_check_add_error('Module layout option key provider must match module key: ' . $contractPath . ' ' . (string) $providerKey . ' != ' . $moduleKey);
+        }
+    }
+
+    preg_match_all('/[\'"]provider_module_key[\'"]\s*=>\s*[\'"]([a-z0-9][a-z0-9_]{0,39})[\'"]/', $contractContents, $providerMatches);
+    $declaredProviderKeys = $providerMatches[1] ?? [];
+    if (count($declaredProviderKeys) < count($layoutProviderKeys)) {
+        sr_check_add_error('Module layout-options.php entries must declare provider_module_key: ' . $contractPath);
+    }
+    foreach ($declaredProviderKeys as $providerKey) {
+        if ((string) $providerKey !== $moduleKey) {
+            sr_check_add_error('Module layout option provider_module_key must match module key: ' . $contractPath . ' ' . (string) $providerKey . ' != ' . $moduleKey);
+        }
+    }
+
+    preg_match_all('/[\'"]asset_owner_key[\'"]\s*=>\s*[\'"]([a-z0-9][a-z0-9_]{0,39})[\'"]/', $contractContents, $assetOwnerMatches);
+    foreach ($assetOwnerMatches[1] ?? [] as $assetOwnerKey) {
+        if ((string) $assetOwnerKey !== $moduleKey) {
+            sr_check_add_error('Module layout option asset_owner_key must match module key: ' . $contractPath . ' ' . (string) $assetOwnerKey . ' != ' . $moduleKey);
+        }
+    }
+}
+
 function sr_check_module_lifecycle_metadata(): void
 {
     $requiredModules = ['member', 'admin', 'privacy'];
@@ -605,6 +637,9 @@ function sr_check_module_contract_files(): void
                 && preg_match('/[\'"]rows_function[\'"]\s*=>/', $contractContents) !== 1
             ) {
                 sr_check_add_error('Module ' . $contractFile . ' must expose a rows provider shape: ' . $contractPath);
+            }
+            if ($contractFile === 'layout-options.php') {
+                sr_check_layout_option_contract($moduleKey, $contractPath, $contractContents);
             }
             if (
                 $contractFile === 'member-only-routes.php'

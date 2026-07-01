@@ -412,6 +412,22 @@ sr_output_helper_assert(
         && sr_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
     'Common public layout and legacy key should resolve to the layouts directory.'
 );
+sr_output_helper_assert(
+    sr_public_layout_provider_key_from_layout_key('content.basic') === 'content',
+    'Public layout provider key should be derived from the layout key namespace.'
+);
+sr_output_helper_assert(
+    sr_public_layout_contract_option_is_owned('content.basic', ['provider_module_key' => 'content'], 'content'),
+    'Public layout contract ownership should accept matching module provider declarations.'
+);
+sr_output_helper_assert(
+    !sr_public_layout_contract_option_is_owned('community.basic', ['provider_module_key' => 'content'], 'content'),
+    'Public layout contract ownership should reject mismatched layout key namespaces.'
+);
+sr_output_helper_assert(
+    !sr_public_layout_contract_option_is_owned('content.basic', ['provider_module_key' => 'community'], 'content'),
+    'Public layout contract ownership should reject mismatched provider_module_key declarations.'
+);
 
 foreach ([
     '/modules/admin/helpers/forms.php',

@@ -1250,6 +1250,29 @@ function sr_public_layout_normalized_option(string $layoutKey, array $layoutOpti
     return $layoutOption;
 }
 
+function sr_public_layout_provider_key_from_layout_key(string $layoutKey): string
+{
+    $layoutKey = sr_public_layout_normalize_key($layoutKey);
+    $separatorPosition = strpos($layoutKey, '.');
+    if ($separatorPosition === false) {
+        return '';
+    }
+
+    return substr($layoutKey, 0, $separatorPosition);
+}
+
+function sr_public_layout_contract_option_is_owned(string $layoutKey, array $layoutOption, string $moduleKey): bool
+{
+    if (!sr_is_safe_module_key($moduleKey)) {
+        return false;
+    }
+
+    $layoutProviderKey = sr_public_layout_provider_key_from_layout_key($layoutKey);
+    $declaredProviderKey = (string) ($layoutOption['provider_module_key'] ?? $moduleKey);
+
+    return $layoutProviderKey === $moduleKey && $declaredProviderKey === $moduleKey;
+}
+
 function sr_public_layout_module_stylesheet(string $layoutKey, string $themeKey = ''): string
 {
     $layoutKey = sr_public_layout_normalize_key($layoutKey);
@@ -1321,9 +1344,14 @@ function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModule
                 if (preg_match('/\A[a-z0-9][a-z0-9_]{0,39}\.[a-z0-9][a-z0-9_]{0,39}\z/', $layoutKey) !== 1 || !is_array($layoutOption)) {
                     continue;
                 }
+                if (!sr_public_layout_contract_option_is_owned($layoutKey, $layoutOption, (string) $moduleKey)) {
+                    continue;
+                }
 
                 $layoutOption['key'] = $layoutKey;
-                $layoutOption['provider_module_key'] = (string) ($layoutOption['provider_module_key'] ?? $moduleKey);
+                $layoutOption['provider_module_key'] = (string) $moduleKey;
+                $layoutOption['asset_owner'] = 'module';
+                $layoutOption['asset_owner_key'] = (string) $moduleKey;
                 $options[$layoutKey] = sr_public_layout_normalized_option($layoutKey, $layoutOption, $moduleKey);
             }
         }
