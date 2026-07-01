@@ -692,7 +692,22 @@ function sr_payment_ledger_refund_completed_record_ids(PDO $pdo, array $paymentR
     return $refunded;
 }
 
-function sr_payment_ledger_mark_item_references_reversed(PDO $pdo, int $accountId, array $references, string $reason = '', bool $markAllRecordItems = false): array
+function sr_payment_ledger_clean_item_kind_list(array $itemKinds): array
+{
+    $cleaned = [];
+    foreach ($itemKinds as $itemKind) {
+        $itemKind = sr_payment_ledger_clean_identifier((string) $itemKind, 40);
+        if ($itemKind === '') {
+            throw new InvalidArgumentException('결제 기록 항목 종류가 올바르지 않습니다.');
+        }
+
+        $cleaned[$itemKind] = $itemKind;
+    }
+
+    return array_values($cleaned);
+}
+
+function sr_payment_ledger_mark_item_references_reversed(PDO $pdo, int $accountId, array $references, string $reason = '', bool $markAllRecordItems = false, array $additionalRecordItemKinds = []): array
 {
     if ($accountId <= 0 || !sr_payment_ledger_tables_available($pdo)) {
         throw new InvalidArgumentException('되돌림 처리할 결제 기록을 확인할 수 없습니다.');
@@ -725,6 +740,7 @@ function sr_payment_ledger_mark_item_references_reversed(PDO $pdo, int $accountI
     }
 
     $now = sr_now();
+    $additionalRecordItemKinds = $markAllRecordItems ? [] : sr_payment_ledger_clean_item_kind_list($additionalRecordItemKinds);
     $reversedItemCount = 0;
     foreach ($paymentRecordIds as $paymentRecordId) {
         if ($markAllRecordItems) {
@@ -744,6 +760,29 @@ function sr_payment_ledger_mark_item_references_reversed(PDO $pdo, int $accountI
                AND " . $itemWhere
         );
         $stmt->execute($itemParams);
+        $reversedItemCount += $stmt->rowCount();
+
+        if ($additionalRecordItemKinds === []) {
+            continue;
+        }
+
+        $kindParams = ['payment_record_id' => $paymentRecordId, 'updated_at' => $now];
+        $kindPlaceholders = [];
+        foreach ($additionalRecordItemKinds as $index => $itemKind) {
+            $key = 'item_kind_' . (string) $index;
+            $kindParams[$key] = $itemKind;
+            $kindPlaceholders[] = ':' . $key;
+        }
+        $stmt = $pdo->prepare(
+            "UPDATE sr_payment_record_items
+             SET reversal_status = 'reversed',
+                 updated_at = :updated_at
+             WHERE payment_record_id = :payment_record_id
+               AND reversible = 1
+               AND reversal_status IN ('none', 'pending', 'failed')
+               AND item_kind IN (" . implode(', ', $kindPlaceholders) . ')'
+        );
+        $stmt->execute($kindParams);
         $reversedItemCount += $stmt->rowCount();
     }
 

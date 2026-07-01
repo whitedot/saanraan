@@ -687,13 +687,63 @@ $fullRefund = sr_payment_ledger_mark_item_references_reversed($pdo, 18, [[
     'owner_module' => 'coupon',
     'reference_type' => 'coupon_redemption',
     'reference_id' => '1801',
-]], 'fixture full coupon refund', true);
+]], 'fixture full coupon refund', false, ['access_entitlement']);
 sr_payment_runtime_assert((int) ($fullRefund['reversed_item_count'] ?? 0) === 2, 'payment ledger full refund should mark every reversible item in the matched record reversed.');
 sr_payment_runtime_assert((array) ($fullRefund['refunded_record_ids'] ?? []) === [$fullRefundRecordId], 'payment ledger full refund should report refunded records.');
 $fullRefundRecord = sr_payment_runtime_row($pdo, 'SELECT status, description FROM sr_payment_records WHERE id = :id', ['id' => $fullRefundRecordId]);
 sr_payment_runtime_assert((string) ($fullRefundRecord['status'] ?? '') === 'refunded', 'payment ledger full refund should mark the record refunded.');
 sr_payment_runtime_assert((string) ($fullRefundRecord['description'] ?? '') === 'fixture full coupon refund', 'payment ledger full refund should preserve the refund reason.');
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $fullRefundRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 2, 'payment ledger full refund should persist all reversed item statuses.');
+
+$couponAccessOnlyRefundRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.view:payment:mixed-coupon-access:1901',
+    'account_id' => 19,
+    'subject_module' => 'content',
+    'subject_type' => 'content.view',
+    'subject_id' => '9902',
+    'payment_kind' => 'purchase',
+    'payable_amount' => 100,
+    'settlement_amount' => 60,
+    'settlement_currency' => 'KRW',
+], [
+    [
+        'item_kind' => 'coupon_redemption',
+        'owner_module' => 'coupon',
+        'reference_type' => 'coupon_redemption',
+        'reference_id' => '1901',
+        'amount' => -40,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'asset_transaction',
+        'owner_module' => 'point',
+        'reference_type' => 'point_transaction',
+        'reference_id' => '1902',
+        'amount' => -60,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access_entitlement',
+        'reference_id' => 'content:9902:view',
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+    ],
+]);
+$couponAccessOnlyRefund = sr_payment_ledger_mark_item_references_reversed($pdo, 19, [[
+    'item_kind' => 'coupon_redemption',
+    'owner_module' => 'coupon',
+    'reference_type' => 'coupon_redemption',
+    'reference_id' => '1901',
+]], 'fixture coupon access refund', false, ['access_entitlement']);
+sr_payment_runtime_assert((int) ($couponAccessOnlyRefund['reversed_item_count'] ?? 0) === 2, 'payment ledger coupon access refund should mark only coupon and access items reversed.');
+sr_payment_runtime_assert((array) ($couponAccessOnlyRefund['refunded_record_ids'] ?? []) === [], 'payment ledger coupon access refund should not refund records while asset items remain open.');
+sr_payment_runtime_assert((string) $pdo->query('SELECT status FROM sr_payment_records WHERE id = ' . (int) $couponAccessOnlyRefundRecordId)->fetchColumn() === 'paid', 'payment ledger coupon access refund should keep mixed records paid.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $couponAccessOnlyRefundRecordId . " AND item_kind = 'asset_transaction' AND reversal_status = 'none'")->fetchColumn() === 1, 'payment ledger coupon access refund should preserve unreversed asset items.');
 
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel');
 $cancelled = sr_payment_runtime_row($pdo, 'SELECT status, description, cancelled_at FROM sr_payment_records WHERE id = :id', ['id' => $paymentRecordId]);

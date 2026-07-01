@@ -3690,7 +3690,7 @@ function sr_coupon_mark_payment_ledger_redemption_refunded_if_available(PDO $pdo
         'owner_module' => 'coupon',
         'reference_type' => 'coupon_redemption',
         'reference_id' => (string) $redemptionId,
-    ]], '쿠폰 사용 환불: ' . $reason, true);
+    ]], '쿠폰 사용 환불: ' . $reason, false, ['access_entitlement']);
 }
 
 function sr_coupon_asset_refund_reference_id(string $assetModule, int $transactionId): string
