@@ -548,6 +548,41 @@ function sr_check_module_contract_table_files(string $value): array
     return $files;
 }
 
+function sr_check_implementation_snapshot_bundle_modules(): void
+{
+    $doc = file_get_contents('docs/implementation-snapshot.md');
+    if (!is_string($doc)) {
+        sr_check_add_error('Implementation snapshot cannot be read.');
+        return;
+    }
+
+    preg_match_all('/^\| [^|]+ \| `([^`]+)` \| [^|]+ \|$/m', $doc, $matches);
+    $documentedModuleKeys = [];
+    foreach ($matches[1] ?? [] as $moduleKey) {
+        $moduleKey = (string) $moduleKey;
+        if (is_file('modules/' . $moduleKey . '/module.php')) {
+            $documentedModuleKeys[] = $moduleKey;
+        }
+    }
+    $documentedModuleKeys = array_values(array_unique($documentedModuleKeys));
+    sort($documentedModuleKeys);
+
+    $actualModuleKeys = [];
+    foreach (glob('modules/*/module.php') ?: [] as $moduleFile) {
+        $actualModuleKeys[] = basename(dirname($moduleFile));
+    }
+    sort($actualModuleKeys);
+
+    if ($documentedModuleKeys !== $actualModuleKeys) {
+        sr_check_add_error(
+            'Implementation snapshot bundle module table must match modules/*/module.php: documented='
+            . implode(',', $documentedModuleKeys)
+            . ' actual='
+            . implode(',', $actualModuleKeys)
+        );
+    }
+}
+
 function sr_check_module_lifecycle_ui_contract(): void
 {
     $moduleActions = file_get_contents('modules/admin/helpers/module-actions.php');
@@ -1526,6 +1561,7 @@ sr_check_sql_runtime_table_prefix_placeholders();
 sr_check_module_source_files();
 sr_check_module_lifecycle_metadata();
 sr_check_module_contract_table_documentation();
+sr_check_implementation_snapshot_bundle_modules();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();

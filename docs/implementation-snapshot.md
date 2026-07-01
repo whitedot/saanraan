@@ -24,11 +24,14 @@
 | 시스템 | `payment_ledger` | 숨김 기반 결제 기록, 쿠폰·자산·외부 결제 item 묶음 |
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
 | 회원 | `member_oauth` | OAuth/OIDC provider state, generic provider adapter, mock provider, 계정 연결/해제, completion 기반 |
+| 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver provider 계약 |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
 | 회원 | `asset_exchange` | 포인트/금액 항목 간 환전 기준값, 실행, 로그, 정정 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
+| 보안 | `antispam` | 회원가입과 공개 제출 폼 자동등록방지 정책 |
+| 플러그인 | `antispam_captcha_providers` | Turnstile, hCaptcha, reCAPTCHA 자동등록방지 provider 계약 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
 | 사이트 | `logo_manager` | 용도별 로고 배치 |
 | 사이트 | `banner` | 출력 슬롯용 배너 |
