@@ -2,36 +2,102 @@
 
 declare(strict_types=1);
 
-return static function (PDO $pdo, int $accountId, string $mode): array {
-    if ($accountId < 1 || $mode !== 'anonymize') {
+return static function (PDO $pdo, int $accountId, mixed $context = []): array {
+    $eventType = is_array($context) ? (string) ($context['event_type'] ?? '') : (string) $context;
+    $shouldAnonymize = in_array($eventType, ['anonymize', 'member.anonymized', 'member.status_anonymized', 'member.status_withdrawn'], true);
+    if ($accountId < 1 || !$shouldAnonymize) {
         return ['payment_records' => 0, 'payment_record_items' => 0];
     }
 
+    $accountReferencePattern = '/:account:' . preg_quote((string) $accountId, '/') . '(?=$|[:;,|])/';
+    $redactAccountReferenceString = static function (string $value) use ($accountReferencePattern): string {
+        return (string) preg_replace($accountReferencePattern, ':account:anonymous', $value);
+    };
+    $redactAccountReferences = static function (mixed $value) use (&$redactAccountReferences, $redactAccountReferenceString): mixed {
+        if (is_string($value)) {
+            return $redactAccountReferenceString($value);
+        }
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $redacted = [];
+        foreach ($value as $key => $item) {
+            $redacted[$key] = $redactAccountReferences($item);
+        }
+
+        return $redacted;
+    };
+
     $startedTransaction = !$pdo->inTransaction();
+    $savepointName = '';
     try {
         if ($startedTransaction) {
             $pdo->beginTransaction();
+        } else {
+            $savepointName = 'sr_payment_ledger_privacy_cleanup';
+            $pdo->exec('SAVEPOINT ' . $savepointName);
         }
 
-        $itemStmt = $pdo->prepare(
-            'UPDATE sr_payment_record_items
-             SET reference_id = REPLACE(reference_id, :account_marker, :anonymous_marker),
-                 updated_at = :updated_at
-             WHERE payment_record_id IN (
-                 SELECT id
-                 FROM sr_payment_records
-                 WHERE account_id = :account_id_for_items
-             )
-               AND reference_id LIKE :account_marker_like'
-        );
         $updatedAt = sr_now();
-        $itemStmt->execute([
-            'account_marker' => ':account:' . (string) $accountId,
-            'anonymous_marker' => ':account:anonymous',
-            'updated_at' => $updatedAt,
-            'account_id_for_items' => $accountId,
+        $itemSelectStmt = $pdo->prepare(
+            'SELECT i.id, i.reference_id, i.snapshot_json
+             FROM sr_payment_record_items i
+             INNER JOIN sr_payment_records r ON r.id = i.payment_record_id
+             WHERE r.account_id = :account_id
+               AND (i.reference_id LIKE :account_marker_like OR i.snapshot_json LIKE :account_marker_like)'
+        );
+        $itemSelectStmt->execute([
+            'account_id' => $accountId,
             'account_marker_like' => '%:account:' . (string) $accountId . '%',
         ]);
+        $itemRows = $itemSelectStmt->fetchAll();
+
+        $itemCount = 0;
+        $itemUpdateStmt = $pdo->prepare(
+            'UPDATE sr_payment_record_items
+             SET reference_id = :reference_id,
+                 snapshot_json = :snapshot_json,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        foreach ($itemRows as $itemRow) {
+            if (!is_array($itemRow)) {
+                continue;
+            }
+
+            $referenceId = (string) ($itemRow['reference_id'] ?? '');
+            $nextReferenceId = $redactAccountReferenceString($referenceId);
+            $snapshotJson = $itemRow['snapshot_json'] ?? null;
+            $nextSnapshotJson = $snapshotJson;
+
+            if (is_string($snapshotJson) && $snapshotJson !== '') {
+                $decodedSnapshot = json_decode($snapshotJson, true);
+                if (is_array($decodedSnapshot)) {
+                    $redactedSnapshot = $redactAccountReferences($decodedSnapshot);
+                    if ($redactedSnapshot !== $decodedSnapshot) {
+                        $encodedSnapshot = json_encode($redactedSnapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                        if (is_string($encodedSnapshot)) {
+                            $nextSnapshotJson = $encodedSnapshot;
+                        }
+                    }
+                } else {
+                    $nextSnapshotJson = $redactAccountReferenceString($snapshotJson);
+                }
+            }
+
+            if ($nextReferenceId === $referenceId && $nextSnapshotJson === $snapshotJson) {
+                continue;
+            }
+
+            $itemUpdateStmt->execute([
+                'reference_id' => $nextReferenceId,
+                'snapshot_json' => $nextSnapshotJson,
+                'updated_at' => $updatedAt,
+                'id' => (int) ($itemRow['id'] ?? 0),
+            ]);
+            $itemCount += $itemUpdateStmt->rowCount();
+        }
 
         $stmt = $pdo->prepare(
             'UPDATE sr_payment_records
@@ -46,15 +112,23 @@ return static function (PDO $pdo, int $accountId, string $mode): array {
 
         if ($startedTransaction) {
             $pdo->commit();
+        } elseif ($savepointName !== '') {
+            $pdo->exec('RELEASE SAVEPOINT ' . $savepointName);
         }
 
         return [
             'payment_records' => $stmt->rowCount(),
-            'payment_record_items' => $itemStmt->rowCount(),
+            'payment_record_items' => $itemCount,
         ];
     } catch (Throwable) {
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
+        } elseif ($savepointName !== '' && $pdo->inTransaction()) {
+            try {
+                $pdo->exec('ROLLBACK TO SAVEPOINT ' . $savepointName);
+                $pdo->exec('RELEASE SAVEPOINT ' . $savepointName);
+            } catch (Throwable) {
+            }
         }
 
         return ['payment_records' => 0, 'payment_record_items' => 0];

@@ -119,6 +119,10 @@ $paymentRecordId = sr_payment_ledger_record_payment($pdo, [
         'amount' => 0,
         'currency_code' => '',
         'reversible' => true,
+        'snapshot' => [
+            'source_reference' => 'content:view:7801:account:7:intent:abc',
+            'unrelated_reference' => 'content:view:7801:account:77:intent:abc',
+        ],
     ],
 ]);
 
@@ -406,19 +410,45 @@ sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel again')
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'pending'")->fetchColumn() === 0, 'payment ledger repeated cancellation should not move reversed items back to pending.');
 sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $paymentRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger repeated cancellation should preserve reversed item statuses.');
 
+$otherAccountRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.view:payment:77:7802',
+    'account_id' => 77,
+    'subject_module' => 'content',
+    'subject_type' => 'content.view',
+    'subject_id' => '7802',
+    'payment_kind' => 'purchase',
+    'payable_amount' => 100,
+    'settlement_amount' => 100,
+    'settlement_currency' => 'KRW',
+], [
+    [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access',
+        'reference_id' => 'content.view:7802:account:77',
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+        'snapshot' => [
+            'source_reference' => 'content:view:7802:account:77:intent:abc',
+        ],
+    ],
+]);
+sr_payment_runtime_assert($otherAccountRecordId > 0, 'payment ledger should create a fixture record for another account.');
+
 $exporter = require $root . '/modules/payment_ledger/privacy-export.php';
 $export = $exporter($pdo, 7);
 sr_payment_runtime_assert(count((array) ($export['payment_records'] ?? [])) === 1, 'payment ledger privacy export should include account records.');
 sr_payment_runtime_assert(count((array) ($export['payment_record_items'] ?? [])) === 3, 'payment ledger privacy export should include record items.');
 
 $cleanup = require $root . '/modules/payment_ledger/privacy-cleanup.php';
-$cleanupResult = $cleanup($pdo, 7, 'anonymize');
+$cleanupResult = $cleanup($pdo, 7, ['event_type' => 'member.anonymized']);
 sr_payment_runtime_assert((int) ($cleanupResult['payment_records'] ?? 0) === 1, 'payment ledger privacy cleanup should anonymize account records.');
 sr_payment_runtime_assert((int) ($cleanupResult['payment_record_items'] ?? 0) === 1, 'payment ledger privacy cleanup should anonymize access item account references.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger privacy cleanup should clear account_id.');
 $anonymizedAccessItem = sr_payment_runtime_row(
     $pdo,
-    "SELECT reference_id
+    "SELECT reference_id, snapshot_json
      FROM sr_payment_record_items
      WHERE payment_record_id = :payment_record_id
        AND item_kind = 'access_entitlement'
@@ -426,6 +456,20 @@ $anonymizedAccessItem = sr_payment_runtime_row(
     ['payment_record_id' => $paymentRecordId]
 );
 sr_payment_runtime_assert((string) ($anonymizedAccessItem['reference_id'] ?? '') === 'content.view:7801:account:anonymous', 'payment ledger privacy cleanup should remove raw account ids from access item references.');
+$anonymizedAccessSnapshot = json_decode((string) ($anonymizedAccessItem['snapshot_json'] ?? ''), true);
+sr_payment_runtime_assert(is_array($anonymizedAccessSnapshot) && (string) ($anonymizedAccessSnapshot['source_reference'] ?? '') === 'content:view:7801:account:anonymous:intent:abc', 'payment ledger privacy cleanup should remove raw account ids from access item snapshots.');
+sr_payment_runtime_assert(is_array($anonymizedAccessSnapshot) && (string) ($anonymizedAccessSnapshot['unrelated_reference'] ?? '') === 'content:view:7801:account:77:intent:abc', 'payment ledger privacy cleanup should not redact similar account id prefixes in snapshots.');
+$otherAccountAccessItem = sr_payment_runtime_row(
+    $pdo,
+    "SELECT r.account_id, i.reference_id, i.snapshot_json
+     FROM sr_payment_records r
+     INNER JOIN sr_payment_record_items i ON i.payment_record_id = r.id
+     WHERE r.id = :payment_record_id
+     LIMIT 1",
+    ['payment_record_id' => $otherAccountRecordId]
+);
+sr_payment_runtime_assert((int) ($otherAccountAccessItem['account_id'] ?? 0) === 77, 'payment ledger privacy cleanup should not anonymize other account records with similar ids.');
+sr_payment_runtime_assert((string) ($otherAccountAccessItem['reference_id'] ?? '') === 'content.view:7802:account:77', 'payment ledger privacy cleanup should not redact other account item references with similar ids.');
 
 $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
     'dedupe_key' => 'content.view:payment:7:7801',
@@ -449,7 +493,7 @@ $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
 ]);
 sr_payment_runtime_assert($lateReplayRecordId === $paymentRecordId, 'payment ledger should absorb late replay for anonymized duplicate records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger late replay should not relink anonymized account records.');
-sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'payment ledger late replay should not append items to anonymized duplicate records.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 4, 'payment ledger late replay should not append items to anonymized duplicate records.');
 
 if ($errors !== []) {
     foreach ($errors as $error) {
