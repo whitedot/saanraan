@@ -473,7 +473,7 @@ $installedSections = [
                             <dd>
                                 <?php echo !empty($module['is_foundation']) ? sr_e('예') : sr_e('아니오'); ?>
                                 <?php if ($foundationDependents !== []) { ?>
-                                    <br><?php echo sr_e('사용 중인 자산 모듈: ' . implode(', ', array_map('strval', $foundationDependents))); ?>
+                                    <br><?php echo sr_e('사용 중인 의존 모듈: ' . implode(', ', array_map('strval', $foundationDependents))); ?>
                                 <?php } ?>
                             </dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.dd537afa')); ?></dt>

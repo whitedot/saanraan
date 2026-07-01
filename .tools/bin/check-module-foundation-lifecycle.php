@@ -167,7 +167,9 @@ sr_module_foundation_lifecycle_assert(
 );
 sr_module_foundation_lifecycle_assert(
     str_contains($adminModulesView, '활성 의존 모듈')
-    && !str_contains($adminModulesView, '활성 자산 모듈('),
+    && str_contains($adminModulesView, '사용 중인 의존 모듈')
+    && !str_contains($adminModulesView, '활성 자산 모듈(')
+    && !str_contains($adminModulesView, '사용 중인 자산 모듈'),
     'admin module status modal must describe generic foundation dependents.'
 );
 
