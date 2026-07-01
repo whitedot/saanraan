@@ -175,6 +175,15 @@ if (!function_exists('sr_load_module_contract_file')) {
                         return ['html' => $html, 'cache_status' => 'fresh', 'target_cache_version' => (string) ($row['updated_at'] ?? '')];
                     },
                 ],
+                [
+                    'target_module' => 'content',
+                    'target_type' => 'content',
+                    'allowed_variants' => ['summary'],
+                    'default_variant' => 'summary',
+                    'embed_stylesheet' => '/modules/content/assets/embed.css',
+                    'resolve_url' => static fn (PDO $pdo, array $context): ?array => null,
+                    'render_embed' => static fn (PDO $pdo, array $embed, array $context): array => ['html' => '', 'cache_status' => 'broken'],
+                ],
             ],
         ];
     }
@@ -289,6 +298,9 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert(!sr_url_embed_cache_table_exists($emptyPdo), 'URL cache table detection must be scoped per PDO connection.');
     $emptyPdo->exec('CREATE TABLE sr_url_embed_cache (id INTEGER PRIMARY KEY)');
     sr_url_embed_contract_assert(sr_url_embed_cache_table_exists($emptyPdo), 'URL cache table detection must notice a table created later in the same process.');
+    $contractTargets = sr_url_embed_url_contract_targets($pdo);
+    sr_url_embed_contract_assert(isset($contractTargets['fixture']['item']), 'URL embed target loading must keep targets owned by the provider module.');
+    sr_url_embed_contract_assert(!isset($contractTargets['content']['content']), 'URL embed target loading must ignore targets whose target_module is owned by another provider module.');
 
     $body = '<p><a href="/fixture/1">/fixture/1</a></p><p>문장 안의 <a href="/fixture/2">/fixture/2</a> 링크</p>';
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
@@ -481,7 +493,10 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     sr_url_embed_contract_contains('modules/' . $moduleKey . '/actions/admin-embed-cache.php', "include SR_ROOT . '/core/actions/admin-url-embed-fragment-cache.php'");
 }
 
+sr_url_embed_contract_contains('core/helpers/url-embed.php', '$providerModuleKey = sr_url_embed_clean_identifier((string) $moduleKey)');
+sr_url_embed_contract_contains('core/helpers/url-embed.php', "(string) \$definition['target_module'] !== \$providerModuleKey");
 sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', "'embed_stylesheet' => '/modules/coupon/assets/embed.css'");
+sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', "'target_module' => 'coupon'");
 sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', '<sr-coupon-embed');
 sr_url_embed_contract_contains('modules/coupon/url-embed-targets.php', 'data-coupon-embed="claim"');
 sr_url_embed_contract_contains('modules/coupon/admin-menu.php', "'/admin/coupons/embed-cache'");

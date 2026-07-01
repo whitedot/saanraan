@@ -157,7 +157,18 @@ function sr_reaction_normalize_target(array $target, string $targetModule, strin
 
 function sr_reaction_target_contract(PDO $pdo, string $targetModule, string $targetType): ?array
 {
+    $targetModule = sr_reaction_clean_key($targetModule, 60);
+    $targetType = sr_reaction_clean_key($targetType, 60);
+    if (sr_reaction_target_key($targetModule, $targetType) === '') {
+        return null;
+    }
+
     foreach (sr_enabled_module_contract_files($pdo, 'reaction-targets.php', ['reaction']) as $moduleKey => $file) {
+        $providerModuleKey = sr_reaction_clean_key((string) $moduleKey, 60);
+        if ($providerModuleKey === '') {
+            continue;
+        }
+
         $contract = sr_load_module_contract_file($moduleKey, $file);
         $targets = is_array($contract['targets'] ?? null) ? $contract['targets'] : [];
         foreach ($targets as $target) {
@@ -165,7 +176,13 @@ function sr_reaction_target_contract(PDO $pdo, string $targetModule, string $tar
                 continue;
             }
 
-            if ((string) ($target['target_module'] ?? '') === $targetModule && (string) ($target['target_type'] ?? '') === $targetType) {
+            $contractTargetModule = sr_reaction_clean_key((string) ($target['target_module'] ?? ''), 60);
+            $contractTargetType = sr_reaction_clean_key((string) ($target['target_type'] ?? ''), 60);
+            if ($contractTargetModule !== $providerModuleKey) {
+                continue;
+            }
+
+            if ($contractTargetModule === $targetModule && $contractTargetType === $targetType) {
                 return $target;
             }
         }

@@ -301,7 +301,8 @@ function sr_url_embed_url_contract_targets(PDO $pdo): array
 {
     $targets = [];
     foreach (sr_enabled_module_contract_files($pdo, 'url-embed-targets.php', ['url_embed']) as $moduleKey => $file) {
-        if (!sr_url_embed_module_enabled($pdo, (string) $moduleKey)) {
+        $providerModuleKey = sr_url_embed_clean_identifier((string) $moduleKey);
+        if ($providerModuleKey === '' || !sr_url_embed_module_enabled($pdo, $providerModuleKey)) {
             continue;
         }
         $contract = sr_load_module_contract_file($moduleKey, $file);
@@ -314,6 +315,9 @@ function sr_url_embed_url_contract_targets(PDO $pdo): array
             }
             $definition = sr_url_embed_url_normalized_contract($definition);
             if ($definition !== []) {
+                if ((string) $definition['target_module'] !== $providerModuleKey) {
+                    continue;
+                }
                 $targets[(string) $definition['target_module']][(string) $definition['target_type']] = $definition;
             }
         }

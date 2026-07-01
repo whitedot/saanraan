@@ -97,7 +97,7 @@ php .tools/bin/smoke-http.php
 - 허용 태그와 속성 목록
 - CKEditor가 생성하는 정상 HTML fixture
 - XSS payload 제거 fixture
-- URL 임베드가 저장 HTML에 marker/script/iframe을 남기지 않고, 렌더 fragment sanitizer가 계약 `target_module`의 custom tag/data attribute 네임스페이스를 허용하는지 확인하는 fixture
+- URL 임베드가 저장 HTML에 marker/script/iframe을 남기지 않고, 렌더 fragment sanitizer가 계약 `target_module`의 custom tag/data attribute 네임스페이스를 허용하며, 계약 제공 모듈 밖 `target_module` 선언을 등록하지 않는지 확인하는 fixture
 - plain textarea fallback과 `body_format=html` 저장 경계 확인
 
 현재 기준:

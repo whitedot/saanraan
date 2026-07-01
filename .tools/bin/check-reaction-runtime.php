@@ -446,6 +446,7 @@ foreach ($targetContractFiles as $moduleKey => $file) {
         }
         $targetKey = (string) ($target['target_module'] ?? '') . '/' . (string) ($target['target_type'] ?? '');
         $contractTargets[$targetKey] = $target;
+        $assert((string) ($target['target_module'] ?? '') === $moduleKey, $moduleKey . ' reaction target_module should match provider module.');
         $assert(is_callable($target['resolve'] ?? null), $moduleKey . ' reaction target should provide resolve.');
         $assert(is_callable($target['batch_resolve'] ?? null), $moduleKey . ' reaction target should provide batch_resolve.');
     }
@@ -453,6 +454,12 @@ foreach ($targetContractFiles as $moduleKey => $file) {
 foreach ($expectedTargets as $targetKey) {
     $assert(isset($contractTargets[$targetKey]), $targetKey . ' should be provided by reaction target contracts.');
 }
+
+$reactionHelperSource = sr_reaction_check_read('modules/reaction/helpers.php');
+$assert(
+    str_contains($reactionHelperSource, '$contractTargetModule !== $providerModuleKey'),
+    'reaction target loading should ignore targets whose target_module is owned by another provider module.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "reaction runtime checks failed:\n");
