@@ -33,6 +33,23 @@ function sr_asset_settlement_check_contains(string $file, array $needles): void
     }
 }
 
+function sr_asset_settlement_check_not_contains(string $file, array $needles): void
+{
+    global $errors;
+
+    $contents = file_get_contents($file);
+    if (!is_string($contents)) {
+        $errors[] = 'cannot read required contract document: ' . $file;
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($contents, $needle)) {
+            $errors[] = $file . ' must not contain legacy asset settlement fallback marker: ' . $needle;
+        }
+    }
+}
+
 function sr_asset_settlement_check_assert(bool $condition, string $message): void
 {
     global $errors;
@@ -698,11 +715,20 @@ sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
 ]);
 
 sr_asset_settlement_check_contains('modules/content/helpers/files.php', [
-    "'legacy_unknown' AS settlement_kind",
-    "'asset_settlement_snapshot_v1' AS snapshot_schema_version",
-    "'asset_settlement_rounding_v1' AS rounding_policy_version",
     "\$accessLog['settlement_amount']",
 ]);
+foreach ([
+    'modules/content/helpers/files.php',
+    'modules/content/privacy-export.php',
+    'modules/community/helpers/attachments.php',
+    'modules/community/privacy-export.php',
+] as $settlementFallbackFile) {
+    sr_asset_settlement_check_not_contains($settlementFallbackFile, [
+        "'legacy_unknown'" . ' AS settlement_kind',
+        "'asset_settlement_snapshot_v1'" . ' AS snapshot_schema_version',
+        "'asset_settlement_rounding_v1'" . ' AS rounding_policy_version',
+    ]);
+}
 
 sr_asset_settlement_check_contains('modules/content/helpers/asset-access.php', [
     '$pendingAccessCharges = [];',

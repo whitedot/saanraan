@@ -91,11 +91,8 @@ return static function (PDO $pdo, int $accountId): array {
 
     $comments = [];
     try {
-        $threadSelectSql = function_exists('sr_quiz_comment_thread_columns_exist') && sr_quiz_comment_thread_columns_exist($pdo)
-            ? 'parent_comment_id, thread_root_id, depth,'
-            : 'NULL AS parent_comment_id, id AS thread_root_id, 1 AS depth,';
         $commentStmt = $pdo->prepare(
-            'SELECT id, quiz_id, ' . $threadSelectSql . ' author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
+            'SELECT id, quiz_id, parent_comment_id, thread_root_id, depth, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
              FROM sr_quiz_comments
              WHERE author_account_id = :account_id
              ORDER BY id ASC'

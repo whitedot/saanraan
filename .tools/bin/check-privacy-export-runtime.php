@@ -176,6 +176,9 @@ function sr_privacy_export_runtime_check_quiz(): void
         'CREATE TABLE sr_quiz_comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             quiz_id INTEGER NOT NULL,
+            parent_comment_id INTEGER NULL,
+            thread_root_id INTEGER NULL,
+            depth INTEGER NOT NULL DEFAULT 1,
             author_account_id INTEGER NULL,
             author_public_name_snapshot TEXT NOT NULL,
             body_text TEXT NOT NULL,
@@ -217,10 +220,10 @@ function sr_privacy_export_runtime_check_quiz(): void
     );
     $pdo->exec(
         "INSERT INTO sr_quiz_comments
-            (quiz_id, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at)
+            (quiz_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at)
          VALUES
-            (10, 7, 'name7', 'comment7', 0, 'published', '2026-06-12 00:03:00', '2026-06-12 00:03:00', NULL),
-            (10, 8, 'name8', 'comment8', 0, 'published', '2026-06-12 00:03:00', '2026-06-12 00:03:00', NULL)"
+            (10, NULL, 1, 1, 7, 'name7', 'comment7', 0, 'published', '2026-06-12 00:03:00', '2026-06-12 00:03:00', NULL),
+            (10, NULL, 2, 1, 8, 'name8', 'comment8', 0, 'published', '2026-06-12 00:03:00', '2026-06-12 00:03:00', NULL)"
     );
 
     $invalid = $export($pdo, 0);
@@ -299,6 +302,9 @@ function sr_privacy_export_runtime_check_survey(): void
         'CREATE TABLE sr_survey_comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             survey_id INTEGER NOT NULL,
+            parent_comment_id INTEGER NULL,
+            thread_root_id INTEGER NULL,
+            depth INTEGER NOT NULL DEFAULT 1,
             author_account_id INTEGER NULL,
             author_public_name_snapshot TEXT NOT NULL,
             body_text TEXT NOT NULL,
@@ -327,10 +333,10 @@ function sr_privacy_export_runtime_check_survey(): void
     );
     $pdo->exec(
         "INSERT INTO sr_survey_comments
-            (survey_id, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at)
+            (survey_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at)
          VALUES
-            (10, 7, 'name7', 'comment7', 0, 'published', '2026-06-12 00:02:00', '2026-06-12 00:02:00', NULL),
-            (10, 8, 'name8', 'comment8', 0, 'published', '2026-06-12 00:02:00', '2026-06-12 00:02:00', NULL)"
+            (10, NULL, 1, 1, 7, 'name7', 'comment7', 0, 'published', '2026-06-12 00:02:00', '2026-06-12 00:02:00', NULL),
+            (10, NULL, 2, 1, 8, 'name8', 'comment8', 0, 'published', '2026-06-12 00:02:00', '2026-06-12 00:02:00', NULL)"
     );
 
     $invalid = $export($pdo, 0);
@@ -389,6 +395,9 @@ function sr_privacy_export_runtime_check_content(): void
             settlement_amount INTEGER NOT NULL,
             settlement_currency TEXT NOT NULL,
             purchase_power_snapshot_json TEXT NOT NULL,
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            snapshot_schema_version TEXT NOT NULL DEFAULT "asset_settlement_snapshot_v1",
+            rounding_policy_version TEXT NOT NULL DEFAULT "asset_settlement_rounding_v1",
             group_policy_snapshot_json TEXT NOT NULL,
             created_at TEXT NOT NULL
         )'
@@ -408,6 +417,9 @@ function sr_privacy_export_runtime_check_content(): void
             settlement_amount INTEGER NOT NULL,
             settlement_currency TEXT NOT NULL,
             purchase_power_snapshot_json TEXT NOT NULL,
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            snapshot_schema_version TEXT NOT NULL DEFAULT "asset_settlement_snapshot_v1",
+            rounding_policy_version TEXT NOT NULL DEFAULT "asset_settlement_rounding_v1",
             group_policy_snapshot_json TEXT NOT NULL,
             created_at TEXT NOT NULL
         )'
@@ -424,6 +436,12 @@ function sr_privacy_export_runtime_check_content(): void
             asset_module TEXT NOT NULL,
             amount INTEGER NOT NULL,
             asset_access_log_ids_json TEXT NOT NULL,
+            refund_status TEXT NOT NULL DEFAULT "",
+            refund_transaction_ids_json TEXT NOT NULL DEFAULT "[]",
+            refund_note TEXT NOT NULL DEFAULT "",
+            refunded_by_account_id INTEGER NULL,
+            refunded_at TEXT NULL,
+            access_revoked_at TEXT NULL,
             created_at TEXT NOT NULL
         )'
     );
@@ -494,7 +512,7 @@ function sr_privacy_export_runtime_check_content(): void
     );
     $legacyPdo->exec("INSERT INTO sr_content_items (id, slug, title) VALUES (101, 'legacy-download', 'Legacy Download')");
     $legacyPdo->exec("INSERT INTO sr_content_files (id, title, original_name) VALUES (201, 'Legacy File', 'legacy.pdf')");
-    $legacyPdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at) VALUES (101, 201, 7, 'paid', 'once', 'point', 30, '[]', '')");
+    $legacyPdo->exec("INSERT INTO sr_content_file_download_logs (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, created_at) VALUES (101, 201, 7, 'paid', 'once', 'point', 30, '[]', '', '[]', '', '')");
     $legacyResult = $export($legacyPdo, 7);
     sr_privacy_export_runtime_assert(count($legacyResult['file_download_logs'] ?? []) === 1, 'content export must include legacy file download rows without refund columns.');
     sr_privacy_export_runtime_assert((string) ($legacyResult['file_download_logs'][0]['refund_status'] ?? 'missing') === '', 'content export must fallback legacy file download refund_status.');
@@ -534,6 +552,9 @@ function sr_privacy_export_runtime_check_content(): void
             settlement_amount INTEGER NOT NULL,
             settlement_currency TEXT NOT NULL,
             purchase_power_snapshot_json TEXT NOT NULL,
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            snapshot_schema_version TEXT NOT NULL DEFAULT "asset_settlement_snapshot_v1",
+            rounding_policy_version TEXT NOT NULL DEFAULT "asset_settlement_rounding_v1",
             group_policy_snapshot_json TEXT NOT NULL,
             created_at TEXT NOT NULL
         )'
@@ -553,6 +574,9 @@ function sr_privacy_export_runtime_check_content(): void
             settlement_amount INTEGER NOT NULL,
             settlement_currency TEXT NOT NULL,
             purchase_power_snapshot_json TEXT NOT NULL,
+            settlement_kind TEXT NOT NULL DEFAULT "paid",
+            snapshot_schema_version TEXT NOT NULL DEFAULT "asset_settlement_snapshot_v1",
+            rounding_policy_version TEXT NOT NULL DEFAULT "asset_settlement_rounding_v1",
             group_policy_snapshot_json TEXT NOT NULL,
             created_at TEXT NOT NULL
         )'
@@ -759,7 +783,7 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_account_levels (account_id INTEGER PRIMARY KEY, level_value INTEGER NOT NULL, score_value INTEGER NOT NULL, post_count INTEGER NOT NULL, comment_count INTEGER NOT NULL, evaluated_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_level_logs (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, old_level_value INTEGER NOT NULL, new_level_value INTEGER NOT NULL, old_score_value INTEGER NOT NULL, new_score_value INTEGER NOT NULL, reason_key TEXT NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_access_entitlements (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, event_key TEXT NOT NULL, source_kind TEXT NOT NULL, source_asset_module TEXT NOT NULL, source_charge_policy TEXT NOT NULL, source_reference TEXT NOT NULL, granted_at TEXT NOT NULL, created_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, asset_module TEXT NOT NULL, transaction_id INTEGER NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, event_key TEXT NOT NULL, direction TEXT NOT NULL, charge_policy TEXT NOT NULL, amount INTEGER NOT NULL, settlement_amount INTEGER NOT NULL, settlement_currency TEXT NOT NULL, purchase_power_snapshot_json TEXT NOT NULL, group_policy_snapshot_json TEXT NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, asset_module TEXT NOT NULL, transaction_id INTEGER NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, event_key TEXT NOT NULL, direction TEXT NOT NULL, charge_policy TEXT NOT NULL, amount INTEGER NOT NULL, settlement_amount INTEGER NOT NULL, settlement_currency TEXT NOT NULL, purchase_power_snapshot_json TEXT NOT NULL, settlement_kind TEXT NOT NULL DEFAULT "paid", snapshot_schema_version TEXT NOT NULL DEFAULT "asset_settlement_snapshot_v1", rounding_policy_version TEXT NOT NULL DEFAULT "asset_settlement_rounding_v1", group_policy_snapshot_json TEXT NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL, post_id INTEGER NOT NULL, attachment_id INTEGER NOT NULL, account_id INTEGER NOT NULL, download_type TEXT NOT NULL, charge_policy TEXT NOT NULL, asset_module TEXT NOT NULL, amount INTEGER NOT NULL, asset_access_log_ids_json TEXT NOT NULL, post_title_snapshot TEXT NOT NULL, attachment_original_name_snapshot TEXT NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, asset_module TEXT NOT NULL, original_asset_log_id INTEGER NOT NULL, original_transaction_id INTEGER NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, grant_event_key TEXT NOT NULL, reversal_event_key TEXT NOT NULL, operation_event_key TEXT NOT NULL, attempted_amount INTEGER NOT NULL, recovered_amount INTEGER NOT NULL, unrecovered_amount INTEGER NOT NULL, failure_reason TEXT NOT NULL, status TEXT NOT NULL, actor_account_id INTEGER NULL, actor_type TEXT NOT NULL, operation_context_json TEXT NULL, attempt_count INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, last_attempted_at TEXT NOT NULL, resolved_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY, charge_asset_log_id INTEGER NOT NULL, charge_transaction_id INTEGER NOT NULL, reward_transaction_id INTEGER NOT NULL, reversal_transaction_id INTEGER NULL, post_id INTEGER NOT NULL, attachment_id INTEGER NOT NULL, downloader_account_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL, asset_module TEXT NOT NULL, charge_amount INTEGER NOT NULL, reward_rate INTEGER NOT NULL, reward_amount INTEGER NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');

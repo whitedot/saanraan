@@ -21,121 +21,6 @@ function sr_content_comments_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function sr_content_comments_author_public_name_snapshot_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'author_public_name_snapshot') {
-                    $existsByConnection[$key] = true;
-                    return true;
-                }
-            }
-            $existsByConnection[$key] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => 'sr_content_comments',
-            'column_name' => 'author_public_name_snapshot',
-        ]);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
-function sr_content_comments_is_secret_column_exists(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                if ((string) ($row['name'] ?? '') === 'is_secret') {
-                    $existsByConnection[$key] = true;
-                    return true;
-                }
-            }
-            $existsByConnection[$key] = false;
-            return false;
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => 'sr_content_comments',
-            'column_name' => 'is_secret',
-        ]);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
-function sr_content_comments_thread_columns_exist(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $columns = [];
-            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
-            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
-                $columns[(string) ($row['name'] ?? '')] = true;
-            }
-            $existsByConnection[$key] = isset($columns['parent_comment_id'], $columns['thread_root_id'], $columns['depth']);
-            return $existsByConnection[$key];
-        }
-
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME IN (\'parent_comment_id\', \'thread_root_id\', \'depth\')'
-        );
-        $stmt->execute(['table_name' => 'sr_content_comments']);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 3;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
 function sr_content_comment_author_public_name_snapshot(PDO $pdo, int $accountId): string
 {
     $name = trim(sr_member_public_name_for_account_id($pdo, $accountId, '회원'));
@@ -151,19 +36,14 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
 
     $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
     $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
-    $snapshotSelect = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'c.author_public_name_snapshot,' : "'' AS author_public_name_snapshot,";
-    $secretSelect = sr_content_comments_is_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
-    $orderSql = sr_content_comments_thread_columns_exist($pdo)
-        ? 'COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC'
-        : 'c.id ASC';
     $stmt = $pdo->prepare(
-        "SELECT c.*, " . $snapshotSelect . " " . $secretSelect . " a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
+        "SELECT c.*, a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
          FROM sr_content_comments c
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          " . $join . "
          WHERE c.content_id = :content_id
            AND c.status = 'published'
-         ORDER BY " . $orderSql . "
+         ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
          LIMIT :limit_value"
     );
     $stmt->bindValue('content_id', $contentId, PDO::PARAM_INT);
@@ -196,11 +76,9 @@ function sr_content_recent_comments(PDO $pdo, int $limit = 8): array
     $limit = max(1, min(50, $limit));
     $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
     $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
-    $snapshotSelect = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'c.author_public_name_snapshot,' : "'' AS author_public_name_snapshot,";
-    $secretCondition = sr_content_comments_is_secret_column_exists($pdo) ? 'AND c.is_secret = 0' : '';
     $stmt = $pdo->prepare(
         "SELECT c.id, c.content_id, c.author_account_id, c.body_text, c.created_at, c.updated_at,
-                " . $snapshotSelect . "
+                c.author_public_name_snapshot,
                 p.slug AS content_slug, p.title AS content_title,
                 a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
          FROM sr_content_comments c
@@ -208,7 +86,7 @@ function sr_content_recent_comments(PDO $pdo, int $limit = 8): array
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          " . $join . "
          WHERE c.status = 'published'
-           " . $secretCondition . "
+           AND c.is_secret = 0
          ORDER BY c.created_at DESC, c.id DESC
          LIMIT :limit_value"
     );
@@ -261,9 +139,6 @@ function sr_content_validate_comment_parent(PDO $pdo, int $contentId, array $val
     if ($parentCommentId < 1) {
         return ['parent_comment' => null, 'errors' => []];
     }
-    if (!sr_content_comments_thread_columns_exist($pdo)) {
-        return ['parent_comment' => null, 'errors' => ['답글 기능을 사용할 수 없습니다. 업데이트를 먼저 적용해 주세요.']];
-    }
 
     $parentComment = sr_content_comment_by_id($pdo, $parentCommentId);
     if (!is_array($parentComment) || (int) ($parentComment['content_id'] ?? 0) !== $contentId || (string) ($parentComment['status'] ?? '') !== 'published') {
@@ -283,45 +158,33 @@ function sr_content_create_comment(PDO $pdo, int $contentId, int $authorAccountI
     }
 
     $now = sr_now();
-    $snapshotColumnSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'author_public_name_snapshot, ' : '';
-    $snapshotValueSql = $snapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
-    $secretColumnSql = sr_content_comments_is_secret_column_exists($pdo) ? 'is_secret, ' : '';
-    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
-    $threadColumnSql = sr_content_comments_thread_columns_exist($pdo) ? 'parent_comment_id, thread_root_id, depth, ' : '';
-    $threadValueSql = $threadColumnSql !== '' ? ':parent_comment_id, :thread_root_id, :depth, ' : '';
     $parentComment = is_array($values['parent_comment'] ?? null) ? $values['parent_comment'] : null;
     $parentCommentId = is_array($parentComment) ? (int) ($parentComment['id'] ?? 0) : 0;
     $depth = is_array($parentComment) ? min(3, max(2, (int) ($parentComment['depth'] ?? 1) + 1)) : 1;
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_comments
-            (content_id, ' . $threadColumnSql . 'author_account_id, ' . $snapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
+            (content_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
          VALUES
-            (:content_id, ' . $threadValueSql . ':author_account_id, ' . $snapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
+            (:content_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
     );
     $params = [
         'content_id' => $contentId,
+        'parent_comment_id' => $parentCommentId > 0 ? $parentCommentId : null,
+        'thread_root_id' => $threadRootId,
+        'depth' => $depth,
         'author_account_id' => $authorAccountId,
+        'author_public_name_snapshot' => sr_content_comment_author_public_name_snapshot($pdo, $authorAccountId),
         'body_text' => trim((string) $values['body_text']),
+        'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
     ];
-    if ($snapshotColumnSql !== '') {
-        $params['author_public_name_snapshot'] = sr_content_comment_author_public_name_snapshot($pdo, $authorAccountId);
-    }
-    if ($secretColumnSql !== '') {
-        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
-    }
-    if ($threadColumnSql !== '') {
-        $params['parent_comment_id'] = $parentCommentId > 0 ? $parentCommentId : null;
-        $params['thread_root_id'] = $threadRootId;
-        $params['depth'] = $depth;
-    }
     $stmt->execute($params);
 
     $commentId = (int) $pdo->lastInsertId();
-    if ($threadColumnSql !== '' && $parentCommentId < 1) {
+    if ($parentCommentId < 1) {
         $stmt = $pdo->prepare(
             'UPDATE sr_content_comments
              SET thread_root_id = :thread_root_id
@@ -342,10 +205,8 @@ function sr_content_comment_by_id(PDO $pdo, int $commentId): ?array
         return null;
     }
 
-    $secretSelect = sr_content_comments_is_secret_column_exists($pdo) ? 'is_secret,' : '0 AS is_secret,';
-    $threadSelect = sr_content_comments_thread_columns_exist($pdo) ? 'parent_comment_id, thread_root_id, depth,' : 'NULL AS parent_comment_id, id AS thread_root_id, 1 AS depth,';
     $stmt = $pdo->prepare(
-        'SELECT id, content_id, ' . $threadSelect . ' author_account_id, body_text, ' . $secretSelect . ' status, created_at, updated_at
+        'SELECT id, content_id, parent_comment_id, thread_root_id, depth, author_account_id, body_text, is_secret, status, created_at, updated_at
          FROM sr_content_comments
          WHERE id = :id
          LIMIT 1'
@@ -405,22 +266,19 @@ function sr_content_account_can_view_comment_body(array $comment, array $page, ?
 
 function sr_content_update_comment_content(PDO $pdo, int $commentId, array $values): void
 {
-    $secretSql = sr_content_comments_is_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
     $stmt = $pdo->prepare(
         'UPDATE sr_content_comments
          SET body_text = :body_text,
-             ' . $secretSql . '
+             is_secret = :is_secret,
              updated_at = :updated_at
          WHERE id = :id'
     );
     $params = [
         'body_text' => trim((string) $values['body_text']),
+        'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'updated_at' => sr_now(),
         'id' => $commentId,
     ];
-    if ($secretSql !== '') {
-        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
-    }
     $stmt->execute($params);
 }
 
@@ -446,11 +304,10 @@ function sr_content_update_comment_status(PDO $pdo, int $commentId, string $stat
 
 function sr_content_delete_comment_redacted(PDO $pdo, int $commentId): void
 {
-    $snapshotSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? "author_public_name_snapshot = ''," : '';
     $stmt = $pdo->prepare(
         "UPDATE sr_content_comments
          SET body_text = :body_text,
-             " . $snapshotSql . "
+             author_public_name_snapshot = '',
              status = 'deleted',
              updated_at = :updated_at
          WHERE id = :id"

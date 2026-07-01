@@ -62,6 +62,7 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE sr_site_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string")');
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL DEFAULT "", display_name TEXT NOT NULL DEFAULT "")');
     $pdo->exec('CREATE TABLE sr_content_items (
         id INTEGER PRIMARY KEY,
         title TEXT NOT NULL,
@@ -166,6 +167,18 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         file_id INTEGER NOT NULL,
         file_title_snapshot TEXT NOT NULL DEFAULT "",
         file_original_name_snapshot TEXT NOT NULL DEFAULT "",
+        account_id INTEGER,
+        download_type TEXT NOT NULL DEFAULT "free",
+        charge_policy TEXT NOT NULL DEFAULT "once",
+        asset_module TEXT NOT NULL DEFAULT "",
+        amount INTEGER NOT NULL DEFAULT 0,
+        asset_access_log_ids_json TEXT,
+        refund_status TEXT NOT NULL DEFAULT "",
+        refund_transaction_ids_json TEXT,
+        refund_note TEXT NOT NULL DEFAULT "",
+        refunded_by_account_id INTEGER,
+        refunded_at TEXT,
+        access_revoked_at TEXT,
         created_at TEXT NOT NULL
     )');
     $pdo->exec('CREATE TABLE sr_content_series (
@@ -302,8 +315,8 @@ $pdo->prepare('INSERT INTO sr_content_files (id, content_id, title, original_nam
 ]);
 $pdo->prepare('INSERT INTO sr_content_file_links (content_id, file_id, sort_order, status, updated_at) VALUES (:content_id, :file_id, 1, "active", :updated_at)')->execute(['content_id' => $contentId, 'file_id' => $downloadFileId, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_file_links (content_id, file_id, sort_order, status, updated_at) VALUES (:content_id, :file_id, 2, "active", :updated_at)')->execute(['content_id' => $contentId, 'file_id' => $sharedFileId, 'updated_at' => $now]);
-$pdo->prepare('INSERT INTO sr_content_file_download_logs (content_id, content_title_snapshot, content_slug_snapshot, file_id, file_title_snapshot, file_original_name_snapshot, created_at) VALUES (:content_id, "Runtime cleanup content", "runtime-cleanup-content", :file_id, "Download file", "download.txt", :created_at)')->execute(['content_id' => $contentId, 'file_id' => $downloadFileId, 'created_at' => $now]);
-$legacyDownloadLogFilters = [
+$pdo->prepare('INSERT INTO sr_content_file_download_logs (content_id, content_title_snapshot, content_slug_snapshot, file_id, file_title_snapshot, file_original_name_snapshot, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, refund_status, refund_transaction_ids_json, refund_note, created_at) VALUES (:content_id, "Runtime cleanup content", "runtime-cleanup-content", :file_id, "Download file", "download.txt", "free", "once", "", 0, "[]", "", "[]", "", :created_at)')->execute(['content_id' => $contentId, 'file_id' => $downloadFileId, 'created_at' => $now]);
+$downloadLogFilters = [
     'content_id' => 0,
     'file_id' => 0,
     'account_id' => 0,
@@ -313,12 +326,12 @@ $legacyDownloadLogFilters = [
     'date_to' => '',
     'q' => '',
 ];
-sr_content_file_cleanup_assert(sr_content_admin_file_download_log_count($pdo, $legacyDownloadLogFilters) === 1, 'content file download admin list should count legacy minimal download log rows.');
-$legacyDownloadLogs = sr_content_admin_file_download_logs($pdo, $legacyDownloadLogFilters, 20, 0, sr_admin_sort_default('amount', 'desc'));
-sr_content_file_cleanup_assert(count($legacyDownloadLogs) === 1, 'content file download admin list should read legacy minimal download log rows without refund columns.');
-sr_content_file_cleanup_assert((string) ($legacyDownloadLogs[0]['download_type'] ?? '') === 'free', 'content file download admin list should default legacy rows to free downloads.');
-sr_content_file_cleanup_assert((string) ($legacyDownloadLogs[0]['refund_status'] ?? '') === 'schema_unavailable', 'content file download admin list should mark missing refund columns as unavailable.');
-sr_content_file_cleanup_assert(sr_content_admin_file_download_log_count($pdo, ['download_type' => ['paid'], 'refund_status' => ['refunded']]) === 0, 'content file download admin list should not match paid/refunded filters on legacy minimal rows.');
+sr_content_file_cleanup_assert(sr_content_admin_file_download_log_count($pdo, $downloadLogFilters) === 1, 'content file download admin list should count current download log rows.');
+$downloadLogs = sr_content_admin_file_download_logs($pdo, $downloadLogFilters, 20, 0, sr_admin_sort_default('amount', 'desc'));
+sr_content_file_cleanup_assert(count($downloadLogs) === 1, 'content file download admin list should read current download log rows.');
+sr_content_file_cleanup_assert((string) ($downloadLogs[0]['download_type'] ?? '') === 'free', 'content file download admin list should read download type.');
+sr_content_file_cleanup_assert((string) ($downloadLogs[0]['refund_status'] ?? '') === '', 'content file download admin list should read empty refund status.');
+sr_content_file_cleanup_assert(sr_content_admin_file_download_log_count($pdo, ['download_type' => ['paid'], 'refund_status' => ['refunded']]) === 0, 'content file download admin list should not match paid/refunded filters on current free rows.');
 $pdo->prepare('INSERT INTO sr_content_series (id, series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at) VALUES (1, "runtime_series", "Runtime series", "", "active", "public", 1, 1, 1, :created_at, :updated_at)')->execute(['created_at' => $now, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at) VALUES (1, :content_id, :active_content_id, "1화", "active", 1, 1, :created_at, :updated_at)')->execute([
     'content_id' => $contentId,

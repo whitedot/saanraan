@@ -951,7 +951,6 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     $hasAssetModule = isset($columns['asset_module']);
     $hasAmount = isset($columns['amount']);
     $hasAssetAccessLogIds = isset($columns['asset_access_log_ids_json']);
-    $hasRefundColumns = sr_content_file_download_log_refund_columns_exist($pdo);
     $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
     $contentTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(p.title, ''), NULLIF(d.content_title_snapshot, ''))" : 'p.title';
     $contentSlugSelect = $hasSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
@@ -963,15 +962,8 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     $assetModuleSelect = $hasAssetModule ? 'd.asset_module' : "''";
     $amountSelect = $hasAmount ? 'd.amount' : '0';
     $assetAccessLogIdsSelect = $hasAssetAccessLogIds ? 'd.asset_access_log_ids_json' : "'[]'";
-    $refundStatusSelect = $hasRefundColumns ? 'd.refund_status' : "'schema_unavailable'";
-    $refundTransactionIdsSelect = $hasRefundColumns ? 'd.refund_transaction_ids_json' : "'[]'";
-    $refundNoteSelect = $hasRefundColumns ? 'd.refund_note' : "''";
-    $refundedByAccountIdSelect = $hasRefundColumns ? 'd.refunded_by_account_id' : 'NULL';
-    $refundedAtSelect = $hasRefundColumns ? 'd.refunded_at' : 'NULL';
-    $accessRevokedAtSelect = $hasRefundColumns ? 'd.access_revoked_at' : 'NULL';
     $memberJoinSql = $hasAccount ? 'LEFT JOIN sr_member_accounts a ON a.id = d.account_id' : '';
-    $refundedByJoinSql = $hasRefundColumns ? 'LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id' : '';
-    $refundedByDisplayNameSelect = $hasRefundColumns ? 'rb.display_name' : "''";
+    $refundedByJoinSql = 'LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id';
     $stmt = $pdo->prepare(
         'SELECT d.id,
                 d.content_id,
@@ -982,12 +974,12 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 ' . $assetModuleSelect . ' AS asset_module,
                 ' . $amountSelect . ' AS amount,
                 ' . $assetAccessLogIdsSelect . ' AS asset_access_log_ids_json,
-                ' . $refundStatusSelect . ' AS refund_status,
-                ' . $refundTransactionIdsSelect . ' AS refund_transaction_ids_json,
-                ' . $refundNoteSelect . ' AS refund_note,
-                ' . $refundedByAccountIdSelect . ' AS refunded_by_account_id,
-                ' . $refundedAtSelect . ' AS refunded_at,
-                ' . $accessRevokedAtSelect . ' AS access_revoked_at,
+                d.refund_status,
+                d.refund_transaction_ids_json,
+                d.refund_note,
+                d.refunded_by_account_id,
+                d.refunded_at,
+                d.access_revoked_at,
                 d.created_at,
                 ' . $contentTitleSelect . ' AS content_title,
                 ' . $contentSlugSelect . ' AS content_slug,
@@ -997,7 +989,7 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 f.status AS file_status,
                 ' . ($hasAccount ? 'a.email' : "''") . ' AS email,
                 ' . ($hasAccount ? 'a.display_name' : "''") . ' AS display_name,
-                ' . $refundedByDisplayNameSelect . ' AS refunded_by_display_name,
+                rb.display_name AS refunded_by_display_name,
                 \'\' AS access_log_summary
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
@@ -1047,13 +1039,6 @@ function sr_content_admin_file_download_logs_with_access_summaries(PDO $pdo, arr
         }
     }
 
-    $settlementAmountSelect = isset($columns['settlement_amount']) ? 'settlement_amount' : '0 AS settlement_amount';
-    $settlementCurrencySelect = isset($columns['settlement_currency']) ? 'settlement_currency' : "'KRW' AS settlement_currency";
-    $settlementKindSelect = isset($columns['settlement_kind']) ? 'settlement_kind' : "'legacy_unknown' AS settlement_kind";
-    $snapshotSchemaVersionSelect = isset($columns['snapshot_schema_version']) ? 'snapshot_schema_version' : "'asset_settlement_snapshot_v1' AS snapshot_schema_version";
-    $roundingPolicyVersionSelect = isset($columns['rounding_policy_version']) ? 'rounding_policy_version' : "'asset_settlement_rounding_v1' AS rounding_policy_version";
-    $groupPolicySnapshotSelect = isset($columns['group_policy_snapshot_json']) ? 'group_policy_snapshot_json' : "'' AS group_policy_snapshot_json";
-
     $placeholders = [];
     $params = [];
     foreach (array_values($allIds) as $index => $id) {
@@ -1064,12 +1049,12 @@ function sr_content_admin_file_download_logs_with_access_summaries(PDO $pdo, arr
 
     $stmt = $pdo->prepare(
         'SELECT id, content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, amount,
-                ' . $settlementAmountSelect . ',
-                ' . $settlementCurrencySelect . ',
-                ' . $settlementKindSelect . ',
-                ' . $snapshotSchemaVersionSelect . ',
-                ' . $roundingPolicyVersionSelect . ',
-                ' . $groupPolicySnapshotSelect . '
+                settlement_amount,
+                settlement_currency,
+                settlement_kind,
+                snapshot_schema_version,
+                rounding_policy_version,
+                group_policy_snapshot_json
          FROM sr_content_asset_access_logs
          WHERE id IN (' . implode(', ', $placeholders) . ')
          ORDER BY id ASC'

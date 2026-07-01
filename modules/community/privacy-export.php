@@ -105,13 +105,6 @@ if (!function_exists('sr_community_privacy_add_attachment_download_settlement_su
             }
         }
 
-        $settlementAmountSelect = isset($columns['settlement_amount']) ? 'settlement_amount' : '0 AS settlement_amount';
-        $settlementCurrencySelect = isset($columns['settlement_currency']) ? 'settlement_currency' : "'' AS settlement_currency";
-        $purchasePowerSnapshotSelect = isset($columns['purchase_power_snapshot_json']) ? 'purchase_power_snapshot_json' : "'' AS purchase_power_snapshot_json";
-        $settlementKindSelect = isset($columns['settlement_kind']) ? 'settlement_kind' : "'legacy_unknown' AS settlement_kind";
-        $snapshotSchemaVersionSelect = isset($columns['snapshot_schema_version']) ? 'snapshot_schema_version' : "'asset_settlement_snapshot_v1' AS snapshot_schema_version";
-        $roundingPolicyVersionSelect = isset($columns['rounding_policy_version']) ? 'rounding_policy_version' : "'asset_settlement_rounding_v1' AS rounding_policy_version";
-
         $placeholders = [];
         $params = [];
         foreach (array_values($allIds) as $index => $id) {
@@ -122,12 +115,12 @@ if (!function_exists('sr_community_privacy_add_attachment_download_settlement_su
 
         $stmt = $pdo->prepare(
             'SELECT id, account_id, asset_module, reference_type, subject_type, subject_id, event_key, amount,
-                    ' . $settlementAmountSelect . ',
-                    ' . $settlementCurrencySelect . ',
-                    ' . $purchasePowerSnapshotSelect . ',
-                    ' . $settlementKindSelect . ',
-                    ' . $snapshotSchemaVersionSelect . ',
-                    ' . $roundingPolicyVersionSelect . '
+                    settlement_amount,
+                    settlement_currency,
+                    purchase_power_snapshot_json,
+                    settlement_kind,
+                    snapshot_schema_version,
+                    rounding_policy_version
              FROM sr_community_asset_logs
              WHERE id IN (' . implode(', ', $placeholders) . ')
              ORDER BY id ASC'
@@ -430,11 +423,8 @@ return static function (PDO $pdo, int $accountId): array {
             $empty['access_entitlements'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'access_entitlements', $sectionLimits);
         }
 
-        $assetLogSettlementMetadataSelect = sr_community_asset_log_settlement_metadata_columns_exist($pdo)
-            ? 'settlement_kind, snapshot_schema_version, rounding_policy_version'
-            : '\'legacy_unknown\' AS settlement_kind, \'asset_settlement_snapshot_v1\' AS snapshot_schema_version, \'asset_settlement_rounding_v1\' AS rounding_policy_version';
         $stmt = $pdo->prepare(
-            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, ' . $assetLogSettlementMetadataSelect . ', group_policy_snapshot_json, created_at
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, group_policy_snapshot_json, created_at
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC

@@ -40,47 +40,19 @@ function sr_survey_comment_author_public_name_snapshot(PDO $pdo, int $accountId)
     return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
 }
 
-function sr_survey_comment_thread_columns_exist(PDO $pdo): bool
-{
-    static $existsByConnection = [];
-    $key = (string) spl_object_id($pdo);
-    if (array_key_exists($key, $existsByConnection)) {
-        return $existsByConnection[$key];
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME IN (\'parent_comment_id\', \'thread_root_id\', \'depth\')'
-        );
-        $stmt->execute(['table_name' => 'sr_survey_comments']);
-        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 3;
-    } catch (Throwable $exception) {
-        $existsByConnection[$key] = false;
-    }
-
-    return $existsByConnection[$key];
-}
-
 function sr_survey_comments(PDO $pdo, int $surveyId, int $limit = 100): array
 {
     if ($surveyId < 1 || !sr_survey_comments_table_exists($pdo)) {
         return [];
     }
 
-    $orderSql = sr_survey_comment_thread_columns_exist($pdo)
-        ? 'COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC'
-        : 'c.id ASC';
     $stmt = $pdo->prepare(
         "SELECT c.*, a.display_name AS author_display_name, a.status AS author_account_status
          FROM sr_survey_comments c
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          WHERE c.survey_id = :survey_id
            AND c.status = 'published'
-         ORDER BY " . $orderSql . "
+         ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
          LIMIT :limit_value"
     );
     $stmt->bindValue('survey_id', $surveyId, PDO::PARAM_INT);
@@ -134,9 +106,6 @@ function sr_survey_validate_comment_parent(PDO $pdo, int $surveyId, array $value
     if ($parentCommentId < 1) {
         return ['parent_comment' => null, 'errors' => []];
     }
-    if (!sr_survey_comment_thread_columns_exist($pdo)) {
-        return ['parent_comment' => null, 'errors' => ['답글 기능을 사용할 수 없습니다. 업데이트를 먼저 적용해 주세요.']];
-    }
 
     $parentComment = sr_survey_comment_by_id($pdo, $parentCommentId);
     if (!is_array($parentComment) || (int) ($parentComment['survey_id'] ?? 0) !== $surveyId || (string) ($parentComment['status'] ?? '') !== 'published') {
@@ -156,20 +125,21 @@ function sr_survey_create_comment(PDO $pdo, int $surveyId, int $accountId, array
     }
 
     $now = sr_now();
-    $threadColumnSql = sr_survey_comment_thread_columns_exist($pdo) ? 'parent_comment_id, thread_root_id, depth, ' : '';
-    $threadValueSql = $threadColumnSql !== '' ? ':parent_comment_id, :thread_root_id, :depth, ' : '';
     $parentComment = is_array($values['parent_comment'] ?? null) ? $values['parent_comment'] : null;
     $parentCommentId = is_array($parentComment) ? (int) ($parentComment['id'] ?? 0) : 0;
     $depth = is_array($parentComment) ? min(3, max(2, (int) ($parentComment['depth'] ?? 1) + 1)) : 1;
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_survey_comments
-            (survey_id, ' . $threadColumnSql . 'author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+            (survey_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
          VALUES
-            (:survey_id, ' . $threadValueSql . ':author_account_id, :author_public_name_snapshot, :body_text, :is_secret, \'published\', :created_at, :updated_at)'
+            (:survey_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, \'published\', :created_at, :updated_at)'
     );
     $params = [
         'survey_id' => $surveyId,
+        'parent_comment_id' => $parentCommentId > 0 ? $parentCommentId : null,
+        'thread_root_id' => $threadRootId,
+        'depth' => $depth,
         'author_account_id' => $accountId,
         'author_public_name_snapshot' => sr_survey_comment_author_public_name_snapshot($pdo, $accountId),
         'body_text' => (string) ($values['body_text'] ?? ''),
@@ -177,15 +147,10 @@ function sr_survey_create_comment(PDO $pdo, int $surveyId, int $accountId, array
         'created_at' => $now,
         'updated_at' => $now,
     ];
-    if ($threadColumnSql !== '') {
-        $params['parent_comment_id'] = $parentCommentId > 0 ? $parentCommentId : null;
-        $params['thread_root_id'] = $threadRootId;
-        $params['depth'] = $depth;
-    }
     $stmt->execute($params);
 
     $commentId = (int) $pdo->lastInsertId();
-    if ($threadColumnSql !== '' && $parentCommentId < 1) {
+    if ($parentCommentId < 1) {
         $stmt = $pdo->prepare(
             'UPDATE sr_survey_comments
              SET thread_root_id = :thread_root_id

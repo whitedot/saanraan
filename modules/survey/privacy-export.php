@@ -57,11 +57,8 @@ return static function (PDO $pdo, int $accountId): array {
 
     $comments = [];
     try {
-        $threadSelectSql = function_exists('sr_survey_comment_thread_columns_exist') && sr_survey_comment_thread_columns_exist($pdo)
-            ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
-            : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
         $commentStmt = $pdo->prepare(
-            'SELECT c.id, c.survey_id, ' . $threadSelectSql . ' s.survey_key, s.title, c.author_public_name_snapshot,
+            'SELECT c.id, c.survey_id, c.parent_comment_id, c.thread_root_id, c.depth, s.survey_key, s.title, c.author_public_name_snapshot,
                     c.body_text, c.is_secret, c.status, c.created_at, c.updated_at, c.deleted_at
              FROM sr_survey_comments c
              INNER JOIN sr_survey_forms s ON s.id = c.survey_id

@@ -917,12 +917,6 @@ function sr_community_admin_attachment_download_logs_with_asset_summaries(PDO $p
         }
     }
 
-    $settlementAmountSelect = isset($columns['settlement_amount']) ? 'settlement_amount' : '0 AS settlement_amount';
-    $settlementCurrencySelect = isset($columns['settlement_currency']) ? 'settlement_currency' : "'KRW' AS settlement_currency";
-    $settlementKindSelect = isset($columns['settlement_kind']) ? 'settlement_kind' : "'legacy_unknown' AS settlement_kind";
-    $snapshotSchemaVersionSelect = isset($columns['snapshot_schema_version']) ? 'snapshot_schema_version' : "'asset_settlement_snapshot_v1' AS snapshot_schema_version";
-    $roundingPolicyVersionSelect = isset($columns['rounding_policy_version']) ? 'rounding_policy_version' : "'asset_settlement_rounding_v1' AS rounding_policy_version";
-
     $placeholders = [];
     $params = [];
     foreach (array_values($allIds) as $index => $id) {
@@ -933,11 +927,11 @@ function sr_community_admin_attachment_download_logs_with_asset_summaries(PDO $p
 
     $stmt = $pdo->prepare(
         'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, amount,
-                ' . $settlementAmountSelect . ',
-                ' . $settlementCurrencySelect . ',
-                ' . $settlementKindSelect . ',
-                ' . $snapshotSchemaVersionSelect . ',
-                ' . $roundingPolicyVersionSelect . '
+                settlement_amount,
+                settlement_currency,
+                settlement_kind,
+                snapshot_schema_version,
+                rounding_policy_version
          FROM sr_community_asset_logs
          WHERE id IN (' . implode(', ', $placeholders) . ')
          ORDER BY id ASC'

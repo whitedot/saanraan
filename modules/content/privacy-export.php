@@ -108,13 +108,6 @@ if (!function_exists('sr_content_privacy_add_file_download_settlement_summaries'
             }
         }
 
-        $settlementAmountSelect = isset($columns['settlement_amount']) ? 'settlement_amount' : '0 AS settlement_amount';
-        $settlementCurrencySelect = isset($columns['settlement_currency']) ? 'settlement_currency' : "'' AS settlement_currency";
-        $purchasePowerSnapshotSelect = isset($columns['purchase_power_snapshot_json']) ? 'purchase_power_snapshot_json' : "'' AS purchase_power_snapshot_json";
-        $settlementKindSelect = isset($columns['settlement_kind']) ? 'settlement_kind' : "'legacy_unknown' AS settlement_kind";
-        $snapshotSchemaVersionSelect = isset($columns['snapshot_schema_version']) ? 'snapshot_schema_version' : "'asset_settlement_snapshot_v1' AS snapshot_schema_version";
-        $roundingPolicyVersionSelect = isset($columns['rounding_policy_version']) ? 'rounding_policy_version' : "'asset_settlement_rounding_v1' AS rounding_policy_version";
-
         $placeholders = [];
         $params = [];
         foreach (array_values($allIds) as $index => $id) {
@@ -125,12 +118,12 @@ if (!function_exists('sr_content_privacy_add_file_download_settlement_summaries'
 
         $stmt = $pdo->prepare(
             'SELECT id, content_id, account_id, asset_module, reference_type, reference_id, access_kind, amount,
-                    ' . $settlementAmountSelect . ',
-                    ' . $settlementCurrencySelect . ',
-                    ' . $purchasePowerSnapshotSelect . ',
-                    ' . $settlementKindSelect . ',
-                    ' . $snapshotSchemaVersionSelect . ',
-                    ' . $roundingPolicyVersionSelect . '
+                    settlement_amount,
+                    settlement_currency,
+                    purchase_power_snapshot_json,
+                    settlement_kind,
+                    snapshot_schema_version,
+                    rounding_policy_version
              FROM sr_content_asset_access_logs
              WHERE id IN (' . implode(', ', $placeholders) . ')
              ORDER BY id ASC'
@@ -203,14 +196,11 @@ return static function (PDO $pdo, int $accountId): array {
         $accessEntitlements = $stmt->fetchAll();
     }
 
-    $accessSettlementMetadataSelect = sr_content_asset_access_log_settlement_metadata_columns_exist($pdo)
-        ? 'l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version'
-        : '\'legacy_unknown\' AS settlement_kind, \'asset_settlement_snapshot_v1\' AS snapshot_schema_version, \'asset_settlement_rounding_v1\' AS rounding_policy_version';
     $stmt = $pdo->prepare(
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.access_kind, l.charge_policy, l.amount,
                 l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
-                ' . $accessSettlementMetadataSelect . ',
+                l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_access_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id
@@ -222,9 +212,6 @@ return static function (PDO $pdo, int $accountId): array {
 
     $accessLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
-    $actionSettlementMetadataSelect = sr_content_asset_action_log_settlement_metadata_columns_exist($pdo)
-        ? 'l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version'
-        : '\'legacy_unknown\' AS settlement_kind, \'asset_settlement_snapshot_v1\' AS snapshot_schema_version, \'asset_settlement_rounding_v1\' AS rounding_policy_version';
     $fileDownloadLogs = [];
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
         $hasDownloadLogSnapshots = function_exists('sr_content_file_download_log_snapshot_columns_exist') && sr_content_file_download_log_snapshot_columns_exist($pdo);
@@ -258,7 +245,7 @@ return static function (PDO $pdo, int $accountId): array {
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.action_key, l.direction, l.amount,
                 l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
-                ' . $actionSettlementMetadataSelect . ',
+                l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_action_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id
@@ -347,17 +334,9 @@ return static function (PDO $pdo, int $accountId): array {
 
     $comments = [];
     if (function_exists('sr_content_comments_table_exists') && sr_content_comments_table_exists($pdo)) {
-        $snapshotSelectSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo)
-            ? 'c.author_public_name_snapshot'
-            : "'' AS author_public_name_snapshot";
-        $secretSelectSql = sr_content_comments_is_secret_column_exists($pdo)
-            ? 'c.is_secret'
-            : '0 AS is_secret';
-        $threadSelectSql = function_exists('sr_content_comments_thread_columns_exist') && sr_content_comments_thread_columns_exist($pdo)
-            ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
-            : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
         $commentStmt = $pdo->prepare(
-            'SELECT c.id, c.content_id, ' . $threadSelectSql . ' p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ', c.status, c.created_at, c.updated_at
+            'SELECT c.id, c.content_id, c.parent_comment_id, c.thread_root_id, c.depth, p.slug, p.title, c.author_account_id,
+                    c.author_public_name_snapshot, c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
              FROM sr_content_comments c
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id
