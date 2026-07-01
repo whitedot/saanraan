@@ -56,6 +56,10 @@ if (sr_request_method() === 'POST') {
                 'target_id' => sr_post_string('target_id', 80),
                 'refundable_policy' => sr_post_string('refundable_policy', 30),
                 'max_uses_per_issue' => sr_post_string('max_uses_per_issue', 10),
+                'validity_policy' => sr_post_string('validity_policy', 30),
+                'validity_days' => sr_post_string('validity_days', 10),
+                'valid_from' => sr_post_string('valid_from', 30),
+                'valid_until' => sr_post_string('valid_until', 30),
             ]);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -83,6 +87,7 @@ if (sr_request_method() === 'POST') {
                 'starts_at' => sr_post_string('starts_at', 30),
                 'ends_at' => sr_post_string('ends_at', 30),
                 'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
+                'issue_expires_at' => sr_post_string('issue_expires_at', 30),
                 'total_claim_limit' => sr_post_string('total_claim_limit', 10),
                 'per_account_limit' => sr_post_string('per_account_limit', 10),
                 'visibility' => sr_post_string('visibility', 20),
@@ -115,6 +120,7 @@ if (sr_request_method() === 'POST') {
                 'starts_at' => sr_post_string('starts_at', 30),
                 'ends_at' => sr_post_string('ends_at', 30),
                 'issue_expires_in_days' => sr_post_string('issue_expires_in_days', 10),
+                'issue_expires_at' => sr_post_string('issue_expires_at', 30),
                 'total_claim_limit' => sr_post_string('total_claim_limit', 10),
                 'per_account_limit' => sr_post_string('per_account_limit', 10),
                 'visibility' => sr_post_string('visibility', 20),
@@ -137,6 +143,7 @@ if (sr_request_method() === 'POST') {
             if ($definitionId < 1) {
                 throw new InvalidArgumentException('지급할 쿠폰 종류를 선택하세요.');
             }
+            sr_coupon_assert_definition_issueable_now($pdo, $definitionId);
             $targetMode = sr_post_string('issue_target_mode', 20);
             $targetAccountIds = sr_coupon_issue_target_account_ids(
                 $pdo,

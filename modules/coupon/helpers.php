@@ -79,6 +79,23 @@ function sr_coupon_status_label(string $status): string
     };
 }
 
+function sr_coupon_validity_policies(): array
+{
+    return [
+        'none' => '제한 없음',
+        'fixed_range' => '고정 사용 기간',
+        'fixed_expiry' => '고정 만료일',
+        'relative_days' => '발급 후 일수',
+    ];
+}
+
+function sr_coupon_validity_policy_label(string $policy): string
+{
+    $labels = sr_coupon_validity_policies();
+
+    return (string) ($labels[$policy] ?? $policy);
+}
+
 function sr_coupon_definition_allows_issue(string $status): bool
 {
     return $status === 'active';
@@ -476,6 +493,25 @@ function sr_coupon_definition_benefit_label(array $definition): string
     }
 
     return sr_coupon_type_label($couponType);
+}
+
+function sr_coupon_definition_validity_label(array $definition): string
+{
+    $policy = (string) ($definition['validity_policy'] ?? 'none');
+    if ($policy === 'fixed_range') {
+        return '사용 기간: '
+            . ((string) ($definition['valid_from'] ?? '') !== '' ? (string) $definition['valid_from'] : '시작 미정')
+            . ' ~ '
+            . ((string) ($definition['valid_until'] ?? '') !== '' ? (string) $definition['valid_until'] : '만료 미정');
+    }
+    if ($policy === 'fixed_expiry') {
+        return '만료: ' . ((string) ($definition['valid_until'] ?? '') !== '' ? (string) $definition['valid_until'] : '미정');
+    }
+    if ($policy === 'relative_days') {
+        return '발급 후 ' . number_format(max(0, (int) ($definition['validity_days'] ?? 0))) . '일';
+    }
+
+    return '제한 없음';
 }
 
 function sr_coupon_discount_application(array $issue, array $pricing): array
@@ -889,6 +925,119 @@ function sr_coupon_claim_datetime_or_null(string $value): ?string
     return $date->format('Y-m-d H:i:s');
 }
 
+function sr_coupon_definition_validity_payload(array $data, string $now): array
+{
+    $policy = sr_coupon_optional_enum_value(
+        $data,
+        'validity_policy',
+        array_keys(sr_coupon_validity_policies()),
+        'none',
+        '쿠폰 사용기간 정책이 올바르지 않습니다.'
+    );
+    $validFrom = sr_coupon_claim_datetime_or_null((string) ($data['valid_from'] ?? ''));
+    $validUntil = sr_coupon_claim_datetime_or_null((string) ($data['valid_until'] ?? ''));
+    $validityDays = null;
+
+    if ($policy === 'none') {
+        $validFrom = null;
+        $validUntil = null;
+    } elseif ($policy === 'fixed_range') {
+        if ($validFrom === null || $validUntil === null) {
+            throw new InvalidArgumentException('고정 사용 기간은 시작 시각과 만료 시각을 모두 입력하세요.');
+        }
+        if (strcmp($validFrom, $validUntil) >= 0) {
+            throw new InvalidArgumentException('고정 사용 기간의 만료 시각은 시작 시각 이후여야 합니다.');
+        }
+        if (strcmp($validUntil, $now) <= 0) {
+            throw new InvalidArgumentException('쿠폰 만료 시각은 현재 이후여야 합니다.');
+        }
+    } elseif ($policy === 'fixed_expiry') {
+        $validFrom = null;
+        if ($validUntil === null) {
+            throw new InvalidArgumentException('고정 만료일 정책은 만료 시각을 입력하세요.');
+        }
+        if (strcmp($validUntil, $now) <= 0) {
+            throw new InvalidArgumentException('쿠폰 만료 시각은 현재 이후여야 합니다.');
+        }
+    } elseif ($policy === 'relative_days') {
+        $validFrom = null;
+        $validUntil = null;
+        $validityDays = sr_coupon_claim_positive_int($data['validity_days'] ?? '', 3650, '발급 후 사용일수');
+    }
+
+    return [
+        'validity_policy' => $policy,
+        'validity_days' => $validityDays,
+        'valid_from' => $validFrom,
+        'valid_until' => $validUntil,
+    ];
+}
+
+function sr_coupon_issue_validity_window(array $definition, string $issuedAt, ?string $expiresAtOverride = null, array $claimContext = []): array
+{
+    $policy = (string) ($definition['validity_policy'] ?? 'none');
+    if (!array_key_exists($policy, sr_coupon_validity_policies())) {
+        $policy = 'none';
+    }
+
+    $startsAt = null;
+    $expiresAt = null;
+    if ($policy === 'fixed_range') {
+        $startsAt = trim((string) ($definition['valid_from'] ?? '')) ?: null;
+        $expiresAt = trim((string) ($definition['valid_until'] ?? '')) ?: null;
+    } elseif ($policy === 'fixed_expiry') {
+        $expiresAt = trim((string) ($definition['valid_until'] ?? '')) ?: null;
+    } elseif ($policy === 'relative_days') {
+        $days = (int) ($definition['validity_days'] ?? 0);
+        if ($days > 0) {
+            $expiresAt = (new DateTimeImmutable($issuedAt))->modify('+' . (string) $days . ' days')->format('Y-m-d H:i:s');
+        }
+    }
+
+    $contextExpiresAt = null;
+    if (isset($claimContext['issue_expires_at'])) {
+        $contextExpiresAt = sr_coupon_claim_datetime_or_null((string) $claimContext['issue_expires_at']);
+    }
+    if ($contextExpiresAt === null && isset($claimContext['issue_expires_in_days'])) {
+        $days = sr_coupon_claim_optional_positive_int($claimContext['issue_expires_in_days'], 3650, '발급본 만료일수');
+        if ($days !== null) {
+            $contextExpiresAt = (new DateTimeImmutable($issuedAt))->modify('+' . (string) $days . ' days')->format('Y-m-d H:i:s');
+        }
+    }
+    if ($contextExpiresAt !== null) {
+        $expiresAt = $contextExpiresAt;
+    } elseif ($expiresAtOverride !== null && trim($expiresAtOverride) !== '') {
+        $expiresAt = sr_coupon_claim_datetime_or_null($expiresAtOverride);
+    }
+
+    if (!empty($claimContext['clamp_starts_at_to_issued_at']) && $startsAt !== null && strcmp($startsAt, $issuedAt) > 0) {
+        $startsAt = $issuedAt;
+    }
+
+    $effectiveStart = $startsAt ?? $issuedAt;
+    if ($expiresAt !== null && strcmp($expiresAt, $issuedAt) <= 0) {
+        throw new InvalidArgumentException('이미 만료된 쿠폰은 지급할 수 없습니다.');
+    }
+    if ($expiresAt !== null && strcmp($expiresAt, $effectiveStart) <= 0) {
+        throw new InvalidArgumentException('쿠폰 만료 시각은 사용 시작 시각 이후여야 합니다.');
+    }
+
+    return [
+        'starts_at' => $startsAt,
+        'expires_at' => $expiresAt,
+    ];
+}
+
+function sr_coupon_assert_definition_issueable_now(PDO $pdo, int $definitionId): void
+{
+    $definition = sr_coupon_definition_by_id($pdo, $definitionId);
+    if (!is_array($definition) || !sr_coupon_definition_allows_issue((string) ($definition['status'] ?? ''))) {
+        throw new InvalidArgumentException('사용 중인 쿠폰 종류만 지급할 수 있습니다.');
+    }
+
+    sr_coupon_issue_validity_window($definition, sr_now());
+}
+
 function sr_coupon_claim_campaign_by_key(PDO $pdo, string $campaignKey, bool $forUpdate = false): ?array
 {
     $campaignKey = sr_coupon_clean_key($campaignKey);
@@ -1158,6 +1307,11 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
     if ($surfaces === []) {
         $surfaces = ['coupon_zone'];
     }
+    $issueExpiresInDays = sr_coupon_claim_optional_positive_int($data['issue_expires_in_days'] ?? '', 3650, '발급본 만료일수');
+    $issueExpiresAt = sr_coupon_claim_datetime_or_null((string) ($data['issue_expires_at'] ?? ''));
+    if ($issueExpiresInDays !== null && $issueExpiresAt !== null) {
+        throw new InvalidArgumentException('발급본 만료는 상대 일수와 고정 시각 중 하나만 입력하세요.');
+    }
 
     return [
         'campaign_key' => $campaignKey,
@@ -1171,8 +1325,8 @@ function sr_coupon_claim_campaign_payload(PDO $pdo, array $data, ?array $current
         'allowed_asset_modules_json' => $allowedAssetModulesJson,
         'starts_at' => $startsAt,
         'ends_at' => $endsAt,
-        'issue_expires_in_days' => sr_coupon_claim_optional_positive_int($data['issue_expires_in_days'] ?? '', 3650, '발급본 만료일수'),
-        'issue_expires_at' => sr_coupon_claim_datetime_or_null((string) ($data['issue_expires_at'] ?? '')),
+        'issue_expires_in_days' => $issueExpiresInDays,
+        'issue_expires_at' => $issueExpiresAt,
         'total_claim_limit' => $totalClaimLimit,
         'per_account_limit' => $perAccountLimit,
         'visibility' => (string) ($data['visibility'] ?? 'hidden') === 'public' ? 'public' : 'hidden',
@@ -2307,6 +2461,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     }
 
     $now = sr_now();
+    $validity = sr_coupon_definition_validity_payload($data, $now);
     $insertColumns = [
         'coupon_key',
         'title',
@@ -2317,6 +2472,8 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
         'target_id',
         'refundable_policy',
         'max_uses_per_issue',
+        'validity_policy',
+        'validity_days',
         'valid_from',
         'valid_until',
         'created_at',
@@ -2332,8 +2489,10 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
         'target_id' => $targetId,
         'refundable_policy' => $refundablePolicy,
         'max_uses_per_issue' => $maxUses,
-        'valid_from' => null,
-        'valid_until' => null,
+        'validity_policy' => (string) $validity['validity_policy'],
+        'validity_days' => $validity['validity_days'],
+        'valid_from' => $validity['valid_from'],
+        'valid_until' => $validity['valid_until'],
         'created_at' => $now,
         'updated_at' => $now,
     ];
@@ -2459,6 +2618,7 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
     if (!in_array($claimType, ['manual', 'free', 'paid', 'admin'], true)) {
         $claimType = 'manual';
     }
+    $validityWindow = sr_coupon_issue_validity_window($definition, $now, $expiresAt, $claimContext);
     $snapshotJson = null;
     if (isset($claimContext['claim_snapshot_json']) && is_string($claimContext['claim_snapshot_json'])) {
         $snapshotJson = $claimContext['claim_snapshot_json'];
@@ -2469,9 +2629,9 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_coupon_issues
-            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, claim_type, claim_campaign_id, claim_log_id, nominal_price_amount, nominal_price_currency_code, asset_reference_module, asset_reference_type, asset_reference_id, claim_snapshot_json, issued_at, expires_at, used_count, created_at, updated_at)
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, claim_type, claim_campaign_id, claim_log_id, nominal_price_amount, nominal_price_currency_code, asset_reference_module, asset_reference_type, asset_reference_id, claim_snapshot_json, issued_at, starts_at, expires_at, used_count, created_at, updated_at)
          VALUES
-            (:coupon_definition_id, :account_id, :status, :issued_reason, :issued_by_account_id, :claim_type, :claim_campaign_id, :claim_log_id, :nominal_price_amount, :nominal_price_currency_code, :asset_reference_module, :asset_reference_type, :asset_reference_id, :claim_snapshot_json, :issued_at, :expires_at, 0, :created_at, :updated_at)'
+            (:coupon_definition_id, :account_id, :status, :issued_reason, :issued_by_account_id, :claim_type, :claim_campaign_id, :claim_log_id, :nominal_price_amount, :nominal_price_currency_code, :asset_reference_module, :asset_reference_type, :asset_reference_id, :claim_snapshot_json, :issued_at, :starts_at, :expires_at, 0, :created_at, :updated_at)'
     );
     $stmt->execute([
         'coupon_definition_id' => $definitionId,
@@ -2489,7 +2649,8 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
         'asset_reference_id' => sr_coupon_clean_text((string) ($claimContext['asset_reference_id'] ?? ''), 120),
         'claim_snapshot_json' => $snapshotJson,
         'issued_at' => $now,
-        'expires_at' => $expiresAt,
+        'starts_at' => $validityWindow['starts_at'],
+        'expires_at' => $validityWindow['expires_at'],
         'created_at' => $now,
         'updated_at' => $now,
     ]);
@@ -2764,11 +2925,14 @@ function sr_coupon_claim_free_campaign(PDO $pdo, string $campaignKey, int $accou
             $accountId,
             'claim_campaign:' . (string) ($campaign['campaign_key'] ?? ''),
             null,
-            sr_coupon_claim_issue_expires_at($campaign),
+            null,
             [
                 'claim_type' => 'free',
                 'claim_campaign_id' => (int) $campaign['id'],
                 'claim_log_id' => $claimLogId,
+                'issue_expires_at' => (string) ($campaign['issue_expires_at'] ?? ''),
+                'issue_expires_in_days' => $campaign['issue_expires_in_days'] ?? null,
+                'clamp_starts_at_to_issued_at' => true,
                 'claim_snapshot' => [
                     'schema_version' => 'coupon_claim_snapshot_v1',
                     'claim_type' => 'free',
@@ -3006,11 +3170,14 @@ function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey,
             $accountId,
             'paid_claim_campaign:' . (string) ($campaign['campaign_key'] ?? ''),
             null,
-            sr_coupon_claim_issue_expires_at($campaign),
+            null,
             [
                 'claim_type' => 'paid',
                 'claim_campaign_id' => (int) $campaign['id'],
                 'claim_log_id' => $claimLogId,
+                'issue_expires_at' => (string) ($campaign['issue_expires_at'] ?? ''),
+                'issue_expires_in_days' => $campaign['issue_expires_in_days'] ?? null,
+                'clamp_starts_at_to_issued_at' => true,
                 'nominal_price_amount' => $priceAmount,
                 'nominal_price_currency_code' => $priceCurrencyCode,
                 'asset_reference_module' => 'coupon',
@@ -3223,7 +3390,12 @@ function sr_coupon_active_account_target_issues(PDO $pdo, int $accountId, string
     }
 
     $matched = [];
+    $now = sr_now();
     foreach (sr_coupon_active_account_issues($pdo, $accountId, max(100, $limit * 5)) as $issue) {
+        $startsAt = (string) ($issue['starts_at'] ?? '');
+        if ($startsAt !== '' && strcmp($startsAt, $now) > 0) {
+            continue;
+        }
         if (!sr_coupon_issue_matches_target($issue, $targetType, $targetId)) {
             continue;
         }
@@ -3252,6 +3424,32 @@ function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
          WHERE i.account_id = :account_id
            AND i.status = 'active'
            AND d.status IN ('active', 'issue_stopped')
+           AND (i.expires_at IS NULL OR i.expires_at >= :now_value)"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'now_value' => sr_now(),
+    ]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_coupon_usable_account_issue_count(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0 || !sr_coupon_usage_enabled($pdo) || !sr_coupon_tables_available($pdo)) {
+        return 0;
+    }
+
+    sr_coupon_expire_active_issues($pdo, $accountId);
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_coupon_issues i
+         INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+         WHERE i.account_id = :account_id
+           AND i.status = 'active'
+           AND d.status IN ('active', 'issue_stopped')
+           AND (i.starts_at IS NULL OR i.starts_at <= :now_value)
            AND (i.expires_at IS NULL OR i.expires_at >= :now_value)"
     );
     $stmt->execute([
@@ -3958,6 +4156,7 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
              WHERE i.account_id = :account_id
                AND i.status = 'active'
                AND d.status IN ('active', 'issue_stopped')
+               AND (i.starts_at IS NULL OR i.starts_at <= :now_value)
                AND (i.expires_at IS NULL OR i.expires_at >= :now_value)" . $issueIdCondition . $couponTypeCondition . "
              ORDER BY i.expires_at IS NULL ASC, i.expires_at ASC, i.id ASC"
             . sr_coupon_for_update_clause($pdo)

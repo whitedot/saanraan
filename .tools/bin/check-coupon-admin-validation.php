@@ -19,6 +19,18 @@ if (!is_string($helper)) {
     if (strpos($helper, "preg_match('/\\A[1-9][0-9]*\\z/', \$maxUsesString)") === false) {
         $errors[] = 'Coupon max_uses_per_issue must reject non-integer POST values server-side.';
     }
+    if (strpos($helper, 'function sr_coupon_validity_policies(): array') === false
+        || strpos($helper, 'function sr_coupon_definition_validity_payload(array $data, string $now): array') === false
+        || strpos($helper, 'function sr_coupon_issue_validity_window(array $definition, string $issuedAt, ?string $expiresAtOverride = null, array $claimContext = []): array') === false
+        || strpos($helper, "'fixed_range' => '고정 사용 기간'") === false
+        || strpos($helper, "'relative_days' => '발급 후 일수'") === false
+        || strpos($helper, 'clamp_starts_at_to_issued_at') === false
+        || strpos($helper, '이미 만료된 쿠폰은 지급할 수 없습니다.') === false
+        || strpos($helper, 'function sr_coupon_usable_account_issue_count(PDO $pdo, int $accountId): int') === false
+        || strpos($helper, 'AND (i.starts_at IS NULL OR i.starts_at <= :now_value)') === false
+    ) {
+        $errors[] = 'Coupon validity policy must validate definition policy, compute issue starts/expires, and exclude future-start issues from usable paths.';
+    }
     if (strpos($helper, 'SELECT id FROM sr_coupon_definitions WHERE coupon_key = :coupon_key LIMIT 1') === false) {
         $errors[] = 'Coupon definitions must reject duplicate coupon_key values before insert.';
     }
@@ -103,6 +115,18 @@ if (!is_string($action)) {
 ) {
     $errors[] = 'Coupon admin action must pass raw max_uses_per_issue input to server-side validation.';
 }
+if (is_string($action)
+    && (
+        strpos($action, "'validity_policy' => sr_post_string('validity_policy', 30)") === false
+        || strpos($action, "'validity_days' => sr_post_string('validity_days', 10)") === false
+        || strpos($action, "'valid_from' => sr_post_string('valid_from', 30)") === false
+        || strpos($action, "'valid_until' => sr_post_string('valid_until', 30)") === false
+        || strpos($action, "'issue_expires_at' => sr_post_string('issue_expires_at', 30)") === false
+        || strpos($action, 'sr_coupon_assert_definition_issueable_now($pdo, $definitionId);') === false
+    )
+) {
+    $errors[] = 'Coupon admin action must pass validity policy inputs and preflight manual issue validity.';
+}
 if (is_string($action) && strpos($action, "'discount_currency_code' => sr_post_string('discount_currency_code', 3)") !== false) {
     $errors[] = 'Coupon definition form must not expose a standalone discount currency field for fixed discounts.';
 }
@@ -174,6 +198,19 @@ if (is_string($view)
     )
 ) {
     $errors[] = 'Coupon definition form must expose fixed and percent discount settings with units and conditional validation.';
+}
+if (is_string($view)
+    && (
+        strpos($view, 'data-coupon-validity-policy') === false
+        || strpos($view, 'data-coupon-validity-fixed-range-field') === false
+        || strpos($view, 'data-coupon-validity-fixed-field') === false
+        || strpos($view, 'data-coupon-validity-relative-field') === false
+        || strpos($view, 'syncCouponValidityFields') === false
+        || strpos($view, 'name="issue_expires_at"') === false
+        || strpos($view, 'sr_coupon_definition_validity_label($definition)') === false
+    )
+) {
+    $errors[] = 'Coupon admin view must expose validity policy controls, campaign fixed expiry override, and definition validity summary.';
 }
 if (is_string($view)
     && (
@@ -302,6 +339,15 @@ if (!is_string($discountUpdate)
     $errors[] = 'Coupon discount definition update must add discount columns and bump the module version.';
 }
 $settingsUpdate = file_get_contents($root . '/modules/coupon/updates/2026.06.007.sql');
+$validityUpdate = file_get_contents($root . '/modules/coupon/updates/2026.06.009.sql');
+if (!is_string($validityUpdate)
+    || strpos($validityUpdate, 'validity_policy') === false
+    || strpos($validityUpdate, 'validity_days') === false
+    || strpos($validityUpdate, 'starts_at') === false
+    || strpos($validityUpdate, "version = '2026.06.009'") === false
+) {
+    $errors[] = 'Coupon validity update must add definition policy columns, issue starts_at, and bump the module version.';
+}
 $notificationInstall = file_get_contents($root . '/modules/notification/install.sql');
 $notificationUpdate = file_get_contents($root . '/modules/notification/updates/2026.06.011.sql');
 if (!is_string($settingsUpdate)

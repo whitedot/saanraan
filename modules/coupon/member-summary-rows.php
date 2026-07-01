@@ -9,7 +9,7 @@ return static function (PDO $pdo, int $accountId): array {
 
     return [[
         'label' => '쿠폰·이용권',
-        'value' => number_format(sr_coupon_active_account_issue_count($pdo, $accountId)) . '개',
+        'value' => number_format(sr_coupon_usable_account_issue_count($pdo, $accountId)) . '개',
         'url' => '/account/coupons',
         'icon' => 'confirmation_number',
     ]];

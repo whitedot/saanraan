@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS sr_coupon_definitions (
     target_id VARCHAR(80) NOT NULL DEFAULT '',
     refundable_policy VARCHAR(30) NOT NULL DEFAULT 'none',
     max_uses_per_issue INT UNSIGNED NOT NULL DEFAULT 1,
+    validity_policy VARCHAR(30) NOT NULL DEFAULT 'none',
+    validity_days INT UNSIGNED NULL,
     valid_from DATETIME NULL,
     valid_until DATETIME NULL,
     created_at DATETIME NOT NULL,
@@ -38,12 +40,13 @@ CREATE TABLE IF NOT EXISTS sr_coupon_issues (
     asset_reference_id VARCHAR(120) NOT NULL DEFAULT '',
     claim_snapshot_json TEXT NULL,
     issued_at DATETIME NOT NULL,
+    starts_at DATETIME NULL,
     expires_at DATETIME NULL,
     used_count INT UNSIGNED NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    KEY idx_sr_coupon_issues_account_status (account_id, status, expires_at, id),
+    KEY idx_sr_coupon_issues_account_status (account_id, status, starts_at, expires_at, id),
     KEY idx_sr_coupon_issues_definition (coupon_definition_id, status, id),
     KEY idx_sr_coupon_issues_claim_campaign (claim_campaign_id, claim_log_id, id)
 );

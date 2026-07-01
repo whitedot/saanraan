@@ -6,6 +6,7 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/account/coupons'),
     'robots' => 'noindex, nofollow',
 ];
+$now = sr_now();
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
     <main class="ui-page">
@@ -41,7 +42,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                         </td>
                                         <td><?php echo sr_e(sr_coupon_definition_benefit_label($coupon)); ?></td>
                                         <td><?php echo sr_e(sr_coupon_target_display((string) $coupon['target_type'], (string) $coupon['target_id'], $pdo ?? null)); ?></td>
-                                        <td><?php echo sr_e((string) $coupon['used_count']); ?> / <?php echo sr_e((string) $coupon['max_uses_per_issue']); ?></td>
+                                        <td>
+                                            <?php echo sr_e((string) $coupon['used_count']); ?> / <?php echo sr_e((string) $coupon['max_uses_per_issue']); ?>
+                                            <?php if ((string) ($coupon['starts_at'] ?? '') !== '' && strcmp((string) $coupon['starts_at'], $now) > 0) { ?>
+                                                <br><small><?php echo sr_coupon_time_html((string) $coupon['starts_at']); ?>부터 사용 가능</small>
+                                            <?php } ?>
+                                        </td>
                                         <td><?php echo $coupon['expires_at'] === null ? sr_e('제한 없음') : sr_coupon_time_html((string) $coupon['expires_at']); ?></td>
                                     </tr>
                                 <?php } ?>

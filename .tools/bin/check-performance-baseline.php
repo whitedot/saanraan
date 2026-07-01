@@ -244,7 +244,7 @@ $requiredIndexMarkers = [
     ],
     'modules/coupon/install.sql' => [
         'KEY idx_sr_coupon_definitions_status_target (status, target_type, target_id)',
-        'KEY idx_sr_coupon_issues_account_status (account_id, status, expires_at, id)',
+        'KEY idx_sr_coupon_issues_account_status (account_id, status, starts_at, expires_at, id)',
         'UNIQUE KEY uq_sr_coupon_redemptions_dedupe (dedupe_key)',
         'KEY idx_sr_coupon_redemptions_reference (reference_module, reference_type, reference_id)',
     ],

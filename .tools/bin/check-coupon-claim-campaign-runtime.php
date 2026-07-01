@@ -73,6 +73,8 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         target_id TEXT NOT NULL DEFAULT '',
         refundable_policy TEXT NOT NULL DEFAULT 'none',
         max_uses_per_issue INTEGER NOT NULL DEFAULT 1,
+        validity_policy TEXT NOT NULL DEFAULT 'none',
+        validity_days INTEGER,
         valid_from TEXT,
         valid_until TEXT,
         created_at TEXT NOT NULL,
@@ -95,6 +97,7 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
         asset_reference_id TEXT NOT NULL DEFAULT '',
         claim_snapshot_json TEXT,
         issued_at TEXT NOT NULL,
+        starts_at TEXT,
         expires_at TEXT,
         used_count INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
@@ -300,6 +303,53 @@ function sr_coupon_claim_runtime_fixture(): void
     sr_coupon_claim_runtime_assert((int) ($issuedRow['claim_log_id'] ?? 0) === (int) $first['claim_log_id'], 'free campaign issue must link the claim log.');
     sr_coupon_claim_runtime_assert((int) ($issuedRow['nominal_price_amount'] ?? -1) === 0, 'free campaign issue must freeze zero nominal price.');
     sr_coupon_claim_runtime_assert(is_array($claimSnapshot) && ($claimSnapshot['schema_version'] ?? '') === 'coupon_claim_snapshot_v1' && ($claimSnapshot['settlement_kind'] ?? '') === 'free', 'free campaign issue must store a claim snapshot.');
+
+    $futureDefinitionId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'claim_future_range',
+        'title' => 'Future range claim',
+        'coupon_type' => 'access',
+        'target_type' => 'all',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+        'validity_policy' => 'fixed_range',
+        'valid_from' => (new DateTimeImmutable(sr_now()))->modify('+1 day')->format('Y-m-d H:i:s'),
+        'valid_until' => (new DateTimeImmutable(sr_now()))->modify('+2 days')->format('Y-m-d H:i:s'),
+    ]);
+    $futureCampaignId = sr_coupon_create_claim_campaign($pdo, [
+        'campaign_key' => 'claim_future_range',
+        'coupon_definition_id' => $futureDefinitionId,
+        'title' => 'Future range campaign',
+        'status' => 'active',
+        'claim_type' => 'free',
+        'issue_expires_in_days' => '1',
+        'per_account_limit' => 1,
+        'visibility' => 'public',
+        'exposure_surfaces' => ['coupon_zone'],
+        'login_required' => 1,
+    ]);
+    sr_coupon_claim_runtime_assert($futureCampaignId > 0, 'future range claim campaign fixture should create campaign.');
+    $futureClaim = sr_coupon_claim_free_campaign($pdo, 'claim_future_range', 8, 'intent-future');
+    $futureIssue = sr_coupon_claim_runtime_row($pdo, 'SELECT issued_at, starts_at, expires_at FROM sr_coupon_issues WHERE id = :id', ['id' => $futureClaim['coupon_issue_id']]);
+    sr_coupon_claim_runtime_assert((string) ($futureIssue['starts_at'] ?? '') === (string) ($futureIssue['issued_at'] ?? ''), 'campaign issues must clamp future definition starts_at to issued_at.');
+    sr_coupon_claim_runtime_assert(strcmp((string) ($futureIssue['expires_at'] ?? ''), (string) ($futureIssue['issued_at'] ?? '')) > 0, 'campaign relative expiry must be computed from issued_at.');
+    try {
+        sr_coupon_create_claim_campaign($pdo, [
+            'campaign_key' => 'claim_bad_expiry',
+            'coupon_definition_id' => $definitionId,
+            'title' => 'Bad expiry campaign',
+            'status' => 'draft',
+            'claim_type' => 'free',
+            'issue_expires_in_days' => '1',
+            'issue_expires_at' => (new DateTimeImmutable(sr_now()))->modify('+1 day')->format('Y-m-d H:i:s'),
+            'per_account_limit' => 1,
+            'visibility' => 'hidden',
+            'exposure_surfaces' => ['coupon_zone'],
+            'login_required' => 1,
+        ]);
+        sr_coupon_claim_runtime_assert(false, 'claim campaign save should reject simultaneous absolute and relative issue expiry.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_claim_runtime_assert(str_contains($exception->getMessage(), '하나만'), 'claim campaign expiry conflict should be user-facing.');
+    }
 
     try {
         sr_coupon_claim_free_campaign($pdo, 'claim_free', 7, 'intent-b');

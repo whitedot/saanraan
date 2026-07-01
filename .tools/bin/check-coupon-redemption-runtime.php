@@ -209,6 +209,8 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         target_id TEXT NOT NULL DEFAULT '',
         refundable_policy TEXT NOT NULL DEFAULT 'none',
         max_uses_per_issue INTEGER NOT NULL DEFAULT 1,
+        validity_policy TEXT NOT NULL DEFAULT 'none',
+        validity_days INTEGER,
         valid_from TEXT,
         valid_until TEXT,
         created_at TEXT NOT NULL,
@@ -231,6 +233,7 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         asset_reference_id TEXT NOT NULL DEFAULT '',
         claim_snapshot_json TEXT,
         issued_at TEXT NOT NULL,
+        starts_at TEXT,
         expires_at TEXT,
         used_count INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
@@ -540,6 +543,8 @@ function sr_coupon_runtime_create_legacy_definition_schema(PDO $pdo): void
         target_id TEXT NOT NULL DEFAULT '',
         refundable_policy TEXT NOT NULL DEFAULT 'none',
         max_uses_per_issue INTEGER NOT NULL DEFAULT 1,
+        validity_policy TEXT NOT NULL DEFAULT 'none',
+        validity_days INTEGER,
         valid_from TEXT,
         valid_until TEXT,
         created_at TEXT NOT NULL,
@@ -913,6 +918,43 @@ function sr_coupon_runtime_fixture(): void
         sr_coupon_runtime_assert(str_contains($exception->getMessage(), '복합 자산 결제 취소 계약'), 'refundable discount rejection should explain the missing mixed asset cancellation contract.');
     }
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'refundable_discount_attempt'")->fetchColumn() === 0, 'rejected refundable discount coupon should not create a coupon definition.');
+
+    $futureStart = (new DateTimeImmutable($now))->modify('+1 day')->format('Y-m-d H:i:s');
+    $futureEnd = (new DateTimeImmutable($now))->modify('+2 days')->format('Y-m-d H:i:s');
+    $futureDefinitionId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'future_start_access',
+        'title' => 'Future start access',
+        'coupon_type' => 'access',
+        'target_type' => 'all',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+        'validity_policy' => 'fixed_range',
+        'valid_from' => $futureStart,
+        'valid_until' => $futureEnd,
+    ]);
+    $futureIssueId = sr_coupon_issue_to_account($pdo, $futureDefinitionId, 7, 'future-start-test', null, null);
+    $futureIssue = sr_coupon_runtime_row($pdo, 'SELECT starts_at, expires_at, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $futureIssueId]);
+    sr_coupon_runtime_assert((string) ($futureIssue['starts_at'] ?? '') === $futureStart, 'fixed range definition must copy valid_from into issue starts_at.');
+    sr_coupon_runtime_assert((string) ($futureIssue['expires_at'] ?? '') === $futureEnd, 'fixed range definition must copy valid_until into issue expires_at.');
+    $holdingIssueIds = array_map('intval', array_column(sr_coupon_active_account_issues($pdo, 7), 'id'));
+    $usableIssueIds = array_map('intval', array_column(sr_coupon_active_account_target_issues($pdo, 7, 'content', '7701'), 'id'));
+    sr_coupon_runtime_assert(in_array($futureIssueId, $holdingIssueIds, true), 'future-start coupons must remain visible in the active holding list.');
+    sr_coupon_runtime_assert(!in_array($futureIssueId, $usableIssueIds, true), 'future-start coupons must not be returned as usable target candidates.');
+    sr_coupon_runtime_assert(sr_coupon_active_account_issue_count($pdo, 7) === 1, 'active coupon count must include future-start holdings.');
+    sr_coupon_runtime_assert(sr_coupon_usable_account_issue_count($pdo, 7) === 0, 'usable coupon count must exclude future-start holdings.');
+    $futureRedeem = sr_coupon_redeem_for_target($pdo, 7, 'content', '7701', [
+        'dedupe_key' => 'future-start-redeem',
+        'coupon_issue_id' => $futureIssueId,
+    ]);
+    sr_coupon_runtime_assert(empty($futureRedeem['allowed']) && empty($futureRedeem['processed']), 'redemption SQL must reject future-start coupon issues.');
+    $futureAfterRedeem = sr_coupon_runtime_row($pdo, 'SELECT used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $futureIssueId]);
+    sr_coupon_runtime_assert((int) ($futureAfterRedeem['used_count'] ?? -1) === 0, 'future-start redemption attempts must not consume the issue.');
+    try {
+        sr_coupon_issue_to_account($pdo, $futureDefinitionId, 8, 'expired-override-test', null, $now);
+        sr_coupon_runtime_assert(false, 'expired issue override should reject before creating a coupon issue.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '만료'), 'expired issue override rejection should explain the dead issue.');
+    }
 
     $pdo->prepare(
         "INSERT INTO sr_coupon_definitions

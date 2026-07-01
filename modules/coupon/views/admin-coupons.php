@@ -31,6 +31,7 @@ $couponSearchableTargetTypes = array_filter($targetTypes, static function (strin
     return $targetType !== 'all';
 }, ARRAY_FILTER_USE_KEY);
 $refundablePolicies = sr_coupon_refundable_policies();
+$validityPolicies = sr_coupon_validity_policies();
 $definitionStatusLabels = [
     'active' => '사용 중',
     'issue_stopped' => '지급 중지',
@@ -368,7 +369,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="coupon_claim_campaign_issue_expires_in_days">발급본 만료일수</label>
                 <div class="form-field">
                     <input id="coupon_claim_campaign_issue_expires_in_days" type="number" name="issue_expires_in_days" value="<?php echo isset($claimCampaignForm['issue_expires_in_days']) && $claimCampaignForm['issue_expires_in_days'] !== null ? sr_e((string) (int) $claimCampaignForm['issue_expires_in_days']) : ''; ?>" class="form-input" min="1" max="3650" step="1">
-                    <p class="form-help">회원에게 지급된 쿠폰의 개별 만료 기간입니다. 비워 두면 쿠폰 정의의 만료 정책을 따릅니다.</p>
+                    <p class="form-help">회원에게 지급된 쿠폰의 개별 만료 기간입니다. 고정 만료와 함께 입력하지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="coupon_claim_campaign_issue_expires_at">발급본 고정 만료</label>
+                <div class="form-field">
+                    <input id="coupon_claim_campaign_issue_expires_at" type="datetime-local" name="issue_expires_at" value="<?php echo sr_e($claimCampaignFormDateTime((string) ($claimCampaignForm['issue_expires_at'] ?? ''))); ?>" class="form-input">
+                    <p class="form-help">발급본 만료일수와 함께 입력하지 않습니다. 둘 다 비워 두면 쿠폰 정의의 만료 정책을 따릅니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -801,6 +809,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('Key', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('title', $definitionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰 이름', 'title', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th>혜택</th>
+                <th>사용기간</th>
                 <th<?php echo sr_admin_sort_aria('target_type', $definitionSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('status', $definitionSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th class="text-end">관리</th>
@@ -809,7 +818,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($definitions === []) { ?>
                 <tr>
-                    <td colspan="7" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
+                    <td colspan="8" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($definitions as $definition) { ?>
@@ -821,6 +830,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
                         <td><?php echo sr_e(sr_coupon_definition_benefit_label($definition)); ?></td>
+                        <td><?php echo sr_e(sr_coupon_definition_validity_label($definition)); ?></td>
                         <td><?php echo sr_e(sr_coupon_target_display((string) $definition['target_type'], (string) $definition['target_id'], $pdo)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
                         <td class="admin-table-actions-cell">
@@ -1158,6 +1168,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <p class="form-help">발급된 쿠폰 1장이 몇 번까지 사용할 수 있는지 정합니다.</p>
                     </div>
                 </div>
+                <div class="form-row">
+                    <label class="form-label" for="coupon_admin_validity_policy">사용기간 정책 <span class="sr-required-label">(필수)</span></label>
+                    <div class="form-field">
+                        <select id="coupon_admin_validity_policy" name="validity_policy" class="form-select" required data-coupon-validity-policy data-validation-message="사용기간 정책을 선택해 주세요.">
+                            <?php foreach ($validityPolicies as $policy => $policyLabel) { ?>
+                                <option value="<?php echo sr_e((string) $policy); ?>"><?php echo sr_e((string) $policyLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" data-coupon-validity-fixed-range-field hidden>
+                    <label class="form-label" for="coupon_admin_valid_from">사용 시작 <span class="sr-required-label" data-coupon-validity-range-required-label hidden>(필수)</span></label>
+                    <div class="form-field">
+                        <input id="coupon_admin_valid_from" type="datetime-local" name="valid_from" class="form-control" data-coupon-validity-range-required-input>
+                    </div>
+                </div>
+                <div class="form-row" data-coupon-validity-fixed-field hidden>
+                    <label class="form-label" for="coupon_admin_valid_until">사용 만료 <span class="sr-required-label" data-coupon-validity-fixed-required-label hidden>(필수)</span></label>
+                    <div class="form-field">
+                        <input id="coupon_admin_valid_until" type="datetime-local" name="valid_until" class="form-control" data-coupon-validity-fixed-required-input>
+                    </div>
+                </div>
+                <div class="form-row" data-coupon-validity-relative-field hidden>
+                    <label class="form-label" for="coupon_admin_validity_days">발급 후 사용일수 <span class="sr-required-label" data-coupon-validity-relative-required-label hidden>(필수)</span></label>
+                    <div class="form-field">
+                        <input id="coupon_admin_validity_days" type="number" name="validity_days" class="form-control" min="1" max="3650" step="1" data-coupon-validity-relative-required-input data-validation-message="발급 후 사용일수는 1부터 3650 사이로 입력해 주세요.">
+                    </div>
+                </div>
                 <input type="hidden" name="status" value="active">
             </div>
             <div class="modal-footer">
@@ -1181,6 +1219,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var percentInputs = form.querySelectorAll('[data-coupon-percent-required-input]');
     var fixedLabels = form.querySelectorAll('[data-coupon-fixed-required-label]');
     var percentLabels = form.querySelectorAll('[data-coupon-percent-required-label]');
+    var validityPolicy = form.querySelector('[data-coupon-validity-policy]');
+    var validityFixedFields = form.querySelectorAll('[data-coupon-validity-fixed-field]');
+    var validityRangeFields = form.querySelectorAll('[data-coupon-validity-fixed-range-field]');
+    var validityRelativeFields = form.querySelectorAll('[data-coupon-validity-relative-field]');
+    var validityFixedInputs = form.querySelectorAll('[data-coupon-validity-fixed-required-input]');
+    var validityRangeInputs = form.querySelectorAll('[data-coupon-validity-range-required-input]');
+    var validityRelativeInputs = form.querySelectorAll('[data-coupon-validity-relative-required-input]');
+    var validityFixedLabels = form.querySelectorAll('[data-coupon-validity-fixed-required-label]');
+    var validityRangeLabels = form.querySelectorAll('[data-coupon-validity-range-required-label]');
+    var validityRelativeLabels = form.querySelectorAll('[data-coupon-validity-relative-required-label]');
     function setHidden(nodes, hidden) {
         Array.prototype.forEach.call(nodes, function (node) {
             node.hidden = hidden;
@@ -1202,9 +1250,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         setRequired(fixedInputs, isFixed);
         setRequired(percentInputs, isPercent);
     }
+    function syncCouponValidityFields() {
+        var policy = validityPolicy ? validityPolicy.value : 'none';
+        var isRange = policy === 'fixed_range';
+        var isFixed = policy === 'fixed_range' || policy === 'fixed_expiry';
+        var isRelative = policy === 'relative_days';
+        setHidden(validityRangeFields, !isRange);
+        setHidden(validityFixedFields, !isFixed);
+        setHidden(validityRelativeFields, !isRelative);
+        setHidden(validityRangeLabels, !isRange);
+        setHidden(validityFixedLabels, !isFixed);
+        setHidden(validityRelativeLabels, !isRelative);
+        setRequired(validityRangeInputs, isRange);
+        setRequired(validityFixedInputs, isFixed);
+        setRequired(validityRelativeInputs, isRelative);
+    }
     if (typeSelect) {
         typeSelect.addEventListener('change', syncCouponBenefitFields);
         syncCouponBenefitFields();
+    }
+    if (validityPolicy) {
+        validityPolicy.addEventListener('change', syncCouponValidityFields);
+        syncCouponValidityFields();
     }
 })();
 </script>
