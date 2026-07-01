@@ -70,6 +70,13 @@ if (sr_request_method() === 'POST') {
         $messageWritePolicy = $messageEnabled && in_array($messageWritePolicyInput, ['member', 'group'], true) ? $messageWritePolicyInput : 'disabled';
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
+        $reportAutoActionEnabled = ($_POST['report_auto_action_enabled'] ?? '') === '1';
+        $reportAutoActionThreshold = sr_admin_post_int_in_range('report_auto_action_threshold', 2, 100);
+        $reportAutoActionWindowDays = sr_admin_post_int_in_range('report_auto_action_window_days', 0, 365);
+        $reportAutoActionPublicModeInput = sr_post_string('report_auto_action_public_mode', 20);
+        $reportAutoActionPublicMode = in_array($reportAutoActionPublicModeInput, ['exclude', 'placeholder'], true)
+            ? $reportAutoActionPublicModeInput
+            : 'exclude';
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
@@ -196,6 +203,18 @@ if (sr_request_method() === 'POST') {
         } elseif ($messageWriteMinLevel === null) {
             $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $levelMaxForValidation]);
             $messageWriteMinLevel = (int) $settings['message_write_min_level'];
+        }
+        if ($reportAutoActionThreshold === null) {
+            $errors[] = '신고 자동 임시 조치 임계값은 2 이상 100 이하로 입력하세요.';
+            $reportAutoActionThreshold = (int) ($settings['report_auto_action_threshold'] ?? 5);
+        }
+        if ($reportAutoActionWindowDays === null) {
+            $errors[] = '신고 자동 임시 조치 집계 기간은 0 이상 365 이하로 입력하세요.';
+            $reportAutoActionWindowDays = (int) ($settings['report_auto_action_window_days'] ?? 0);
+        }
+        if ($reportAutoActionPublicModeInput !== $reportAutoActionPublicMode) {
+            $errors[] = '신고 자동 임시 조치 공개 처리 방식 값이 올바르지 않습니다.';
+            $reportAutoActionPublicMode = (string) ($settings['report_auto_action_public_mode'] ?? 'exclude');
         }
 
         if (!isset($communityLayoutOptions[$layoutKey])) {
@@ -346,6 +365,10 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
+                ['report_auto_action_enabled', $reportAutoActionEnabled ? '1' : '0', 'bool'],
+                ['report_auto_action_threshold', (string) $reportAutoActionThreshold, 'int'],
+                ['report_auto_action_window_days', (string) $reportAutoActionWindowDays, 'int'],
+                ['report_auto_action_public_mode', $reportAutoActionPublicMode, 'string'],
                 ['layout_key', $layoutKey, 'string'],
                 ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
@@ -473,6 +496,10 @@ if (sr_request_method() === 'POST') {
                         'level_auto_recalculate' => $levelAutoRecalculate,
                         'message_write_policy' => $messageWritePolicy,
                         'message_write_min_level' => $messageWriteMinLevel,
+                        'report_auto_action_enabled' => $reportAutoActionEnabled,
+                        'report_auto_action_threshold' => $reportAutoActionThreshold,
+                        'report_auto_action_window_days' => $reportAutoActionWindowDays,
+                        'report_auto_action_public_mode' => $reportAutoActionPublicMode,
                         'layout_key' => $layoutKey,
                         'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,

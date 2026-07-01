@@ -86,6 +86,21 @@ sr_community_report_auto_action_check_contains('modules/community/actions/report
     "'event_type' => 'community.report.auto_action_failed'",
 ]);
 
+sr_community_report_auto_action_check_contains('modules/community/actions/admin-settings.php', [
+    "sr_admin_post_int_in_range('report_auto_action_threshold', 2, 100)",
+    "sr_admin_post_int_in_range('report_auto_action_window_days', 0, 365)",
+    '[\'report_auto_action_enabled\', $reportAutoActionEnabled ? \'1\' : \'0\', \'bool\']',
+    '[\'report_auto_action_public_mode\', $reportAutoActionPublicMode, \'string\']',
+]);
+
+sr_community_report_auto_action_check_contains('modules/community/views/admin-settings.php', [
+    'community-settings-section-report-auto-action',
+    "'report_auto_action_enabled'",
+    'name="report_auto_action_threshold"',
+    'name="report_auto_action_window_days"',
+    "'report_auto_action_public_mode'",
+]);
+
 sr_community_report_auto_action_check_contains('docs/implementation-snapshot.md', [
     'sr_community_report_auto_actions',
 ]);

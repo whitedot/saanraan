@@ -153,6 +153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 $communitySettingsSectionNavItems = [
     'community-settings-section-level' => '레벨 기본값',
     'community-settings-section-message' => '쪽지 정책',
+    'community-settings-section-report-auto-action' => '신고 자동조치',
     'community-settings-section-privacy-consent' => '개인정보 동의',
     'community-settings-section-assets' => '자산/과금',
     'community-settings-section-series' => '시리즈',
@@ -294,6 +295,40 @@ $communitySettingsSectionNavItems = [
                                         </option>
                                     <?php } ?>
                                 </select>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-report-auto-action" class="card" data-admin-section-anchor>
+        <h2>신고 자동조치</h2>
+        <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_report_auto_action_enabled">자동 임시 조치</label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('community_admin_settings_report_auto_action_enabled', 'report_auto_action_enabled', '1', !empty($settings['report_auto_action_enabled']), '사용'); ?>
+                    <p class="form-help">켜면 게시글이나 댓글이 임계 신고자 수에 도달했을 때 시스템이 먼저 숨김 처리하고, 운영자가 신고 관리에서 후속 판단을 남깁니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_report_auto_action_threshold">임계 신고자 수 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_report_auto_action_threshold" type="number" name="report_auto_action_threshold" min="2" max="100" value="<?php echo sr_e((string) (int) ($settings['report_auto_action_threshold'] ?? 5)); ?>" required class="form-input">
+                    <p class="form-help">서로 다른 신고자 수를 기준으로 계산합니다. 기각된 신고는 임계치 집계에서 제외합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_report_auto_action_window_days">집계 기간 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_report_auto_action_window_days" type="number" name="report_auto_action_window_days" min="0" max="365" value="<?php echo sr_e((string) (int) ($settings['report_auto_action_window_days'] ?? 0)); ?>" required class="form-input">
+                    <p class="form-help">0이면 전체 신고 이력을 기준으로 계산합니다. 1 이상이면 최근 N일 신고만 집계합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">공개 처리 방식 <span class="sr-required-label">(필수)</span></span>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_report_auto_action_public_mode', 'report_auto_action_public_mode', ['exclude' => '목록 제외', 'placeholder' => '대체 문구'], (string) ($settings['report_auto_action_public_mode'] ?? 'exclude'), true); ?>
+                    <p class="form-help">자동 숨김된 게시글과 댓글을 공개 화면에서 제외할지, 후속 구현에서 대체 문구로 표시할지 정하는 기준입니다. 현재 기본값은 목록 제외입니다.</p>
+                </div>
             </div>
         </div>
     </section>
