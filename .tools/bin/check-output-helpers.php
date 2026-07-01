@@ -428,6 +428,14 @@ sr_output_helper_assert(
     !sr_public_layout_contract_option_is_owned('content.basic', ['provider_module_key' => 'community'], 'content'),
     'Public layout contract ownership should reject mismatched provider_module_key declarations.'
 );
+sr_output_helper_assert(
+    sr_module_contract_key_has_module_prefix('community', 'community.post.view'),
+    'Module contract key ownership should accept matching module prefixes.'
+);
+sr_output_helper_assert(
+    !sr_module_contract_key_has_module_prefix('community', 'content.view'),
+    'Module contract key ownership should reject mismatched module prefixes.'
+);
 
 foreach ([
     '/modules/admin/helpers/forms.php',

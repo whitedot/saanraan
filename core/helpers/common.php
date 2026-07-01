@@ -108,6 +108,18 @@ function sr_truthy(mixed $value): bool
     return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
 }
 
+function sr_module_contract_key_has_module_prefix(string $moduleKey, string $contractKey): bool
+{
+    if (
+        preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) !== 1
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,119}\z/', $contractKey) !== 1
+    ) {
+        return false;
+    }
+
+    return str_starts_with($contractKey, $moduleKey . '.');
+}
+
 function sr_json_array(string $json): array
 {
     $decoded = json_decode($json, true);

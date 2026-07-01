@@ -992,7 +992,7 @@ return [
 
 - 배열을 반환한다.
 - 각 항목은 `point_key`, `label`, 선택 `surface`, `output`, `slots`, `subjects`를 가진다.
-- `point_key`는 `board.post.view`처럼 모듈 안에서 안정적인 key로 둔다.
+- `point_key`는 `board.post.view`처럼 모듈 key prefix를 포함해 모듈 안에서 안정적인 key로 둔다. 계약 파일을 제공하는 모듈이 `community`라면 `community.post.view`처럼 시작해야 한다.
 - `slots`가 있으면 각 slot은 `slot_key`를 가진 배열이다.
 
 `asset-exchange.php`:
@@ -1315,7 +1315,7 @@ return [
 
 필드 기준:
 
-- `point_key`: 모듈 안에서 안정적으로 유지되는 key
+- `point_key`: 제공 모듈 key prefix로 시작하고 모듈 안에서 안정적으로 유지되는 key
 - `label`: 관리자 화면 표시 이름
 - `surface`: `public`, `account`, `admin` 등 노출 영역
 - `output`: 출력형 확장이 붙을 수 있는지 여부

@@ -368,6 +368,9 @@ function sr_banner_available_targets(PDO $pdo): array
             if (preg_match('/\A[a-z0-9][a-z0-9_.-]{0,119}\z/', $pointKey) !== 1) {
                 continue;
             }
+            if (!sr_module_contract_key_has_module_prefix((string) $moduleKey, $pointKey)) {
+                continue;
+            }
 
             $pointLabel = (string) ($point['label'] ?? $pointKey);
             $slots = isset($point['slots']) && is_array($point['slots']) ? $point['slots'] : [];

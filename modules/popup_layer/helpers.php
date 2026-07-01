@@ -28,6 +28,9 @@ function sr_popup_layer_available_targets(PDO $pdo): array
             if (!sr_popup_layer_is_safe_key($pointKey, 120)) {
                 continue;
             }
+            if (!sr_module_contract_key_has_module_prefix((string) $moduleKey, $pointKey)) {
+                continue;
+            }
 
             if (($point['surface'] ?? 'public') !== 'public' || ($point['output'] ?? true) === false) {
                 continue;

@@ -359,6 +359,20 @@ function sr_check_layout_option_contract(string $moduleKey, string $contractPath
     }
 }
 
+function sr_check_extension_points_contract(string $moduleKey, string $contractPath, string $contractContents): void
+{
+    preg_match_all('/[\'"]point_key[\'"]\s*=>\s*[\'"]([a-z0-9][a-z0-9_.-]{0,119})[\'"]/', $contractContents, $pointMatches);
+    $pointKeys = $pointMatches[1] ?? [];
+    if ($pointKeys === []) {
+        sr_check_add_error('Module extension-points.php must declare at least one point_key: ' . $contractPath);
+    }
+    foreach ($pointKeys as $pointKey) {
+        if (!str_starts_with((string) $pointKey, $moduleKey . '.')) {
+            sr_check_add_error('Module extension point key provider must match module key: ' . $contractPath . ' ' . (string) $pointKey . ' != ' . $moduleKey . '.*');
+        }
+    }
+}
+
 function sr_check_module_lifecycle_metadata(): void
 {
     $requiredModules = ['member', 'admin', 'privacy'];
@@ -640,6 +654,9 @@ function sr_check_module_contract_files(): void
             }
             if ($contractFile === 'layout-options.php') {
                 sr_check_layout_option_contract($moduleKey, $contractPath, $contractContents);
+            }
+            if ($contractFile === 'extension-points.php') {
+                sr_check_extension_points_contract($moduleKey, $contractPath, $contractContents);
             }
             if (
                 $contractFile === 'member-only-routes.php'
