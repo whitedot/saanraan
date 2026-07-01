@@ -550,13 +550,13 @@ function sr_content_payment_coupon_item(array $couponResult, string $settlementC
     ];
 }
 
-function sr_content_payment_access_item(int $accountId, string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceReference = ''): array
+function sr_content_payment_access_item(string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceReference = ''): array
 {
     return [
         'item_kind' => 'access_entitlement',
         'owner_module' => 'content',
         'reference_type' => 'content.access_entitlement',
-        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $accessKind . ':account:' . (string) $accountId,
+        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $accessKind,
         'amount' => 0,
         'currency_code' => '',
         'reversible' => true,
@@ -723,7 +723,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
                 if (!empty($couponResult['processed'])) {
                     $paymentItems = array_values(array_filter([
                         sr_content_payment_coupon_item($couponResult, $settlementCurrency),
-                        sr_content_payment_access_item($accountId, 'content', $pageId, 'view', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
+                        sr_content_payment_access_item('content', $pageId, 'view', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
                     ]));
                     sr_content_record_payment_ledger_if_available($pdo, [
                         'dedupe_key' => 'content.view:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
@@ -927,7 +927,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             array_unshift($paymentItems, $couponPaymentItem);
             $paymentDedupeParts[] = 'coupon:' . (string) ($mixedCouponResult['coupon_redemption_id'] ?? '');
         }
-        $paymentItems[] = sr_content_payment_access_item($accountId, 'content', $pageId, 'view', 'asset', implode(',', $paymentDedupeParts));
+        $paymentItems[] = sr_content_payment_access_item('content', $pageId, 'view', 'asset', implode(',', $paymentDedupeParts));
         sr_content_record_payment_ledger_if_available($pdo, [
             'dedupe_key' => 'content.view:payment:' . sha1(implode('|', $paymentDedupeParts)),
             'account_id' => $accountId,
@@ -1180,7 +1180,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
                 if (!empty($couponResult['processed'])) {
                     $paymentItems = array_values(array_filter([
                         sr_content_payment_coupon_item($couponResult, $settlementCurrency),
-                        sr_content_payment_access_item($accountId, 'content_file', $fileId, 'download', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
+                        sr_content_payment_access_item('content_file', $fileId, 'download', 'coupon', (string) ($couponResult['dedupe_key'] ?? '')),
                     ]));
                     sr_content_record_payment_ledger_if_available($pdo, [
                         'dedupe_key' => 'content.download:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
@@ -1391,7 +1391,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             array_unshift($paymentItems, $couponPaymentItem);
             $paymentDedupeParts[] = 'coupon:' . (string) ($mixedCouponResult['coupon_redemption_id'] ?? '');
         }
-        $paymentItems[] = sr_content_payment_access_item($accountId, 'content_file', $fileId, 'download', 'asset', implode(',', $paymentDedupeParts));
+        $paymentItems[] = sr_content_payment_access_item('content_file', $fileId, 'download', 'asset', implode(',', $paymentDedupeParts));
         sr_content_record_payment_ledger_if_available($pdo, [
             'dedupe_key' => 'content.download:payment:' . sha1(implode('|', $paymentDedupeParts)),
             'account_id' => $accountId,

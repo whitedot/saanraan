@@ -414,7 +414,18 @@ sr_payment_runtime_assert(count((array) ($export['payment_record_items'] ?? []))
 $cleanup = require $root . '/modules/payment_ledger/privacy-cleanup.php';
 $cleanupResult = $cleanup($pdo, 7, 'anonymize');
 sr_payment_runtime_assert((int) ($cleanupResult['payment_records'] ?? 0) === 1, 'payment ledger privacy cleanup should anonymize account records.');
+sr_payment_runtime_assert((int) ($cleanupResult['payment_record_items'] ?? 0) === 1, 'payment ledger privacy cleanup should anonymize access item account references.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger privacy cleanup should clear account_id.');
+$anonymizedAccessItem = sr_payment_runtime_row(
+    $pdo,
+    "SELECT reference_id
+     FROM sr_payment_record_items
+     WHERE payment_record_id = :payment_record_id
+       AND item_kind = 'access_entitlement'
+     LIMIT 1",
+    ['payment_record_id' => $paymentRecordId]
+);
+sr_payment_runtime_assert((string) ($anonymizedAccessItem['reference_id'] ?? '') === 'content.view:7801:account:anonymous', 'payment ledger privacy cleanup should remove raw account ids from access item references.');
 
 $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
     'dedupe_key' => 'content.view:payment:7:7801',

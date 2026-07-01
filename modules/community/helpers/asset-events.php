@@ -321,13 +321,13 @@ function sr_community_payment_coupon_item(array $couponResult, string $settlemen
     ];
 }
 
-function sr_community_payment_access_item(int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceReference = ''): array
+function sr_community_payment_access_item(string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceReference = ''): array
 {
     return [
         'item_kind' => 'access_entitlement',
         'owner_module' => 'community',
         'reference_type' => 'community.access_entitlement',
-        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $eventKey . ':account:' . (string) $accountId,
+        'reference_id' => $subjectType . ':' . (string) $subjectId . ':' . $eventKey,
         'amount' => 0,
         'currency_code' => '',
         'reversible' => true,
@@ -560,7 +560,7 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
                 if ($remainingAmount <= 0 && !empty($couponResult['processed'])) {
                     $paymentItems = array_values(array_filter([
                         sr_community_payment_coupon_item($couponResult, $settlementCurrency),
-                        sr_community_payment_access_item($accountId, 'community.post', $postId, 'post_read', 'coupon', $couponDedupeKey),
+                        sr_community_payment_access_item('community.post', $postId, 'post_read', 'coupon', $couponDedupeKey),
                     ]));
                     sr_community_record_payment_ledger_if_available($pdo, [
                         'dedupe_key' => 'community.post.read:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
@@ -678,7 +678,7 @@ function sr_community_try_attachment_download_coupon_access(PDO $pdo, int $accou
             if ($remainingAmount <= 0 && !empty($couponResult['processed'])) {
                 $paymentItems = array_values(array_filter([
                     sr_community_payment_coupon_item($couponResult, $settlementCurrency),
-                    sr_community_payment_access_item($accountId, 'community.attachment', $attachmentId, 'attachment_download', 'coupon', $couponDedupeKey),
+                    sr_community_payment_access_item('community.attachment', $attachmentId, 'attachment_download', 'coupon', $couponDedupeKey),
                 ]));
                 sr_community_record_payment_ledger_if_available($pdo, [
                     'dedupe_key' => 'community.attachment.download:payment:coupon:' . (string) ($couponResult['coupon_redemption_id'] ?? ''),
@@ -1229,7 +1229,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
                 if (in_array($eventKey, ['post_read', 'attachment_download'], true)) {
                     $sourceReference = implode(',', $paymentDedupeParts);
                     $sourceKind = $couponPaymentItem !== [] ? 'mixed' : 'asset';
-                    $paymentItems[] = sr_community_payment_access_item($accountId, $subjectType, $subjectId, $eventKey, $sourceKind, $sourceReference);
+                    $paymentItems[] = sr_community_payment_access_item($subjectType, $subjectId, $eventKey, $sourceKind, $sourceReference);
                 }
 
                 sr_community_record_payment_ledger_if_available($pdo, [
