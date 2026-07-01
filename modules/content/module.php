@@ -38,6 +38,7 @@ return [
         'layout_tertiary_menu_key' => '',
         'layout_quaternary_menu_key' => '',
         'layout_quinary_menu_key' => '',
+        'series_enabled' => true,
         'member_submission_enabled' => false,
         'member_submission_default_review_required' => false,
         'member_submission_author_reward_enabled' => false,

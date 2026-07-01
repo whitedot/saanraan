@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 chdir($root);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
 require_once 'core/version.php';
 require_once 'core/helpers/settings.php';
 
@@ -916,6 +919,50 @@ function sr_check_installer_module_default_versions(): void
     }
 }
 
+function sr_check_service_module_default_settings(): void
+{
+    $modules = [
+        'content' => ['modules/content/helpers.php', 'sr_content_default_settings'],
+        'community' => ['modules/community/helpers/levels.php', 'sr_community_default_settings'],
+        'quiz' => ['modules/quiz/helpers.php', 'sr_quiz_default_settings'],
+        'survey' => ['modules/survey/helpers.php', 'sr_survey_default_settings'],
+    ];
+
+    foreach ($modules as $moduleKey => $definition) {
+        $moduleFile = 'modules/' . $moduleKey . '/module.php';
+        $helperFile = (string) ($definition[0] ?? '');
+        $functionName = (string) ($definition[1] ?? '');
+        if (!is_file($moduleFile) || !is_file($helperFile)) {
+            sr_check_add_error('Service module default setting files are missing: ' . $moduleKey);
+            continue;
+        }
+
+        require_once $helperFile;
+        if (!function_exists($functionName)) {
+            sr_check_add_error('Service module default settings helper is missing: ' . $functionName);
+            continue;
+        }
+
+        $metadata = include $moduleFile;
+        $moduleSettings = is_array($metadata['settings'] ?? null) ? $metadata['settings'] : [];
+        $helperSettings = $functionName();
+        if (!is_array($helperSettings)) {
+            sr_check_add_error('Service module default settings helper must return an array: ' . $functionName);
+            continue;
+        }
+
+        foreach ($helperSettings as $settingKey => $helperValue) {
+            if (!array_key_exists($settingKey, $moduleSettings)) {
+                sr_check_add_error('Service module default setting is missing from module.php: ' . $moduleKey . '.' . (string) $settingKey);
+                continue;
+            }
+            if (json_encode($moduleSettings[$settingKey], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !== json_encode($helperValue, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) {
+                sr_check_add_error('Service module default setting value differs from helper: ' . $moduleKey . '.' . (string) $settingKey);
+            }
+        }
+    }
+}
+
 function sr_check_installer_core_schema_version(): void
 {
     $installer = file_get_contents('core/actions/install.php');
@@ -1770,6 +1817,7 @@ sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
 sr_check_installer_module_default_versions();
+sr_check_service_module_default_settings();
 sr_check_installer_core_schema_version();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
