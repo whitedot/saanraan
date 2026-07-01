@@ -51,6 +51,14 @@ if (!is_string($helper)) {
     ) {
         $errors[] = 'Coupon definition save must require revoke_access capability for refundable target-specific coupons.';
     }
+    if (strpos($helper, 'function sr_coupon_assert_refundable_benefit_model(string $couponType, string $refundablePolicy): void') === false
+        || strpos($helper, '정액/정률 할인 쿠폰은 복합 자산 결제 취소 계약이 준비될 때까지 환급 가능으로 설정할 수 없습니다.') === false
+        || strpos($helper, 'sr_coupon_assert_refundable_benefit_model($couponType, $refundablePolicy);') === false
+        || strpos($helper, '접근권 쿠폰 사용 내역만 수동 환불할 수 있습니다. 할인 쿠폰 복합 결제는 소비 도메인 취소 계약이 필요합니다.') === false
+        || strpos($helper, 'd.coupon_key, d.title, d.coupon_type, d.refundable_policy') === false
+    ) {
+        $errors[] = 'Coupon definition save must reject refundable discount coupons until mixed asset cancellation has a domain contract.';
+    }
     if (strpos($helper, 'function sr_coupon_types(): array') === false
         || strpos($helper, "'fixed_discount' => '정액 할인'") === false
         || strpos($helper, "'percent_discount' => '정률 할인'") === false
@@ -134,6 +142,7 @@ if (is_string($view)
     && (
         strpos($view, '<th>가격 스냅샷</th>') === false
         || strpos($view, '$redemptionHasPriceSnapshot') === false
+        || strpos($view, "(string) (\$redemption['coupon_type'] ?? 'access') === 'access'") === false
     )
 ) {
     $errors[] = 'Coupon admin redemption view must expose the stored pricing snapshot.';

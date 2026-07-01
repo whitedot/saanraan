@@ -1621,6 +1621,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $redemptionStatus = (string) ($redemption['status'] ?? '');
                     $refundModalId = 'coupon-redemption-refund-modal-' . (string) $redemptionId;
                     $canRefund = $redemptionStatus === 'redeemed'
+                        && (string) ($redemption['coupon_type'] ?? 'access') === 'access'
                         && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
                     $redemptionPriceUnit = (string) ($redemption['currency_code'] ?? '') !== ''
                         ? (string) ($redemption['currency_code'] ?? '')
@@ -1686,6 +1687,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $redemptionId = (int) ($redemption['id'] ?? 0);
     $refundModalId = 'coupon-redemption-refund-modal-' . (string) $redemptionId;
     $canRefund = (string) ($redemption['status'] ?? '') === 'redeemed'
+        && (string) ($redemption['coupon_type'] ?? 'access') === 'access'
         && (string) ($redemption['refundable_policy'] ?? '') === 'refundable';
     if (!$canRefund) {
         continue;

@@ -727,6 +727,67 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($percentDiscount['coupon_type'] ?? '') === 'percent_discount', 'percent discount coupon definition should be stored.');
     sr_coupon_runtime_assert((int) ($percentDiscount['discount_percent'] ?? 0) === 15, 'percent discount coupon value should be stored.');
 
+    try {
+        sr_coupon_create_definition($pdo, [
+            'coupon_key' => 'refundable_discount_attempt',
+            'title' => 'Refundable discount attempt',
+            'coupon_type' => 'fixed_discount',
+            'discount_amount' => '1000',
+            'target_type' => 'content',
+            'target_id' => '7701',
+            'refundable_policy' => 'refundable',
+            'max_uses_per_issue' => '1',
+        ]);
+        sr_coupon_runtime_assert(false, 'discount coupon definitions should reject refundable policy until mixed asset cancellation is contracted.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '복합 자산 결제 취소 계약'), 'refundable discount rejection should explain the missing mixed asset cancellation contract.');
+    }
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_definitions WHERE coupon_key = 'refundable_discount_attempt'")->fetchColumn() === 0, 'rejected refundable discount coupon should not create a coupon definition.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, discount_amount, discount_percent, discount_currency_code, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('legacy_refundable_discount', 'Legacy refundable discount', '', 'active', 'fixed_discount', 1000, 0, 'KRW', 'content', '7701', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $legacyRefundableDiscountDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'used', 'legacy fixture', NULL, :issued_at, NULL, 1, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $legacyRefundableDiscountDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $legacyRefundableDiscountIssueId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_redemptions
+            (coupon_issue_id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, dedupe_key, status, redeemed_at, created_at)
+         VALUES
+            (:issue_id, :definition_id, 7, 'content', '7701', 'content', 'content.view', '7701', 'legacy-refundable-discount-dedupe', 'redeemed', :redeemed_at, :created_at)"
+    )->execute([
+        'issue_id' => $legacyRefundableDiscountIssueId,
+        'definition_id' => $legacyRefundableDiscountDefinitionId,
+        'redeemed_at' => $now,
+        'created_at' => $now,
+    ]);
+    $legacyRefundableDiscountRedemptionId = (int) $pdo->lastInsertId();
+    try {
+        sr_coupon_refund_redemption($pdo, $legacyRefundableDiscountRedemptionId, 1, 'legacy refundable discount refund');
+        sr_coupon_runtime_assert(false, 'legacy refundable discount redemption refund should be rejected before state changes.');
+    } catch (InvalidArgumentException $exception) {
+        sr_coupon_runtime_assert(str_contains($exception->getMessage(), '접근권 쿠폰'), 'legacy refundable discount refund rejection should explain that only access coupons can be refunded.');
+    }
+    $legacyRefundableDiscountRedemption = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => $legacyRefundableDiscountRedemptionId]);
+    $legacyRefundableDiscountIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $legacyRefundableDiscountIssueId]);
+    sr_coupon_runtime_assert((string) ($legacyRefundableDiscountRedemption['status'] ?? '') === 'redeemed', 'legacy refundable discount refund rejection should keep redemption active.');
+    sr_coupon_runtime_assert((string) ($legacyRefundableDiscountRedemption['dedupe_key'] ?? '') === 'legacy-refundable-discount-dedupe', 'legacy refundable discount refund rejection should keep original dedupe key.');
+    sr_coupon_runtime_assert((string) ($legacyRefundableDiscountRedemption['refund_note'] ?? '') === '', 'legacy refundable discount refund rejection should not persist refund note.');
+    sr_coupon_runtime_assert((string) ($legacyRefundableDiscountIssue['status'] ?? '') === 'used' && (int) ($legacyRefundableDiscountIssue['used_count'] ?? -1) === 1, 'legacy refundable discount refund rejection should keep issue status and used_count.');
+
     $statusLifecycleId = sr_coupon_create_definition($pdo, [
         'coupon_key' => 'status_lifecycle',
         'title' => 'Status lifecycle',

@@ -1338,6 +1338,15 @@ function sr_coupon_assert_refundable_target_contract(PDO $pdo, string $targetTyp
     }
 }
 
+function sr_coupon_assert_refundable_benefit_model(string $couponType, string $refundablePolicy): void
+{
+    if ($refundablePolicy !== 'refundable' || $couponType === 'access') {
+        return;
+    }
+
+    throw new InvalidArgumentException('정액/정률 할인 쿠폰은 복합 자산 결제 취소 계약이 준비될 때까지 환급 가능으로 설정할 수 없습니다.');
+}
+
 function sr_coupon_target_pricing(PDO $pdo, string $targetType, string $targetId, int $accountId = 0, array $context = []): array
 {
     $contracts = sr_coupon_target_contracts($pdo);
@@ -2238,6 +2247,7 @@ function sr_coupon_create_definition(PDO $pdo, array $data): int
     if ($title === '') {
         throw new InvalidArgumentException('쿠폰 키와 이름을 입력하세요.');
     }
+    sr_coupon_assert_refundable_benefit_model($couponType, $refundablePolicy);
     sr_coupon_assert_refundable_target_contract($pdo, $targetType, $refundablePolicy);
 
     $stmt = $pdo->prepare('SELECT id FROM sr_coupon_definitions WHERE coupon_key = :coupon_key LIMIT 1');
@@ -3462,7 +3472,7 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
     $sql = 'SELECT r.id, r.coupon_issue_id, r.coupon_definition_id, r.account_id,
                    r.target_type, r.target_id, r.reference_module, r.reference_type, r.reference_id,
                    r.dedupe_key, r.status, r.redeemed_at, ' . $refundColumns . ', ' . $pricingColumns . ',
-                   d.coupon_key, d.title, d.refundable_policy, i.status AS issue_status, i.used_count,
+                   d.coupon_key, d.title, d.coupon_type, d.refundable_policy, i.status AS issue_status, i.used_count,
                    a.display_name, a.email, a.status AS account_status
             FROM sr_coupon_redemptions r
             INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
@@ -3506,7 +3516,7 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
 
     try {
         $stmt = $pdo->prepare(
-            'SELECT r.*, d.refundable_policy, d.max_uses_per_issue, d.title, i.status AS issue_status, i.used_count
+            'SELECT r.*, d.refundable_policy, d.coupon_type, d.max_uses_per_issue, d.title, i.status AS issue_status, i.used_count
              FROM sr_coupon_redemptions r
              INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
              INNER JOIN sr_coupon_issues i ON i.id = r.coupon_issue_id
@@ -3524,6 +3534,9 @@ function sr_coupon_refund_redemption(PDO $pdo, int $redemptionId, int $adminAcco
         }
         if ((string) ($redemption['refundable_policy'] ?? '') !== 'refundable') {
             throw new InvalidArgumentException('환급 가능 정책인 쿠폰만 수동 환불할 수 있습니다.');
+        }
+        if ((string) ($redemption['coupon_type'] ?? 'access') !== 'access') {
+            throw new InvalidArgumentException('접근권 쿠폰 사용 내역만 수동 환불할 수 있습니다. 할인 쿠폰 복합 결제는 소비 도메인 취소 계약이 필요합니다.');
         }
 
         $now = sr_now();
