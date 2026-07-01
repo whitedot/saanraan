@@ -17,7 +17,7 @@ $addInstallError = function (string $message, string $stepKey) use (&$errors, &$
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.05.003',
+        'version' => '2026.06.004',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
@@ -29,13 +29,13 @@ $requiredModules = [
     ],
     'policy_documents' => [
         'name' => '약관/방침 관리',
-        'version' => '2026.06.001',
+        'version' => '2026.06.002',
         'label' => '약관/방침 관리',
         'description' => '회원가입과 공개 제출에 필요한 약관, 방침, 동의 문서를 version 단위로 관리합니다.',
     ],
     'privacy' => [
         'name' => '개인정보',
-        'version' => '2026.05.001',
+        'version' => '2026.05.002',
         'label' => sr_t('install.module.privacy.label'),
         'description' => '운영자 개인정보 대응 기록과 개인정보 사본 제공 보조 기능을 제공합니다.',
     ],
@@ -43,7 +43,7 @@ $requiredModules = [
 $foundationModuleDefaults = [
     'asset_ledger' => [
         'name' => '잔액 처리 기반',
-        'version' => '2026.06.001',
+        'version' => '2026.06.002',
         'label' => '잔액 처리 기반',
         'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
     ],
@@ -77,7 +77,7 @@ $optionalModules = [
     ],
     'site_menu' => [
         'name' => '사이트 메뉴',
-        'version' => '2026.05.001',
+        'version' => '2026.06.003',
         'label' => sr_t('install.module.site_menu.label'),
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
@@ -95,7 +95,7 @@ $optionalModules = [
     ],
     'popup_layer' => [
         'name' => '팝업레이어',
-        'version' => '2026.05.002',
+        'version' => '2026.06.002',
         'label' => sr_t('install.module.popup_layer.label'),
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
@@ -131,25 +131,25 @@ $optionalModules = [
     ],
     'point' => [
         'name' => '포인트',
-        'version' => '2026.04.001',
+        'version' => '2026.06.002',
         'label' => sr_t('install.module.point.label'),
         'description' => '회원별 포인트 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'deposit' => [
         'name' => '예치금',
-        'version' => '2026.04.001',
+        'version' => '2026.05.008',
         'label' => sr_t('install.module.deposit.label'),
         'description' => '회원별 예치금 잔액과 입금/사용/환불/출금 원장을 설치합니다.',
     ],
     'reward' => [
         'name' => '적립금',
-        'version' => '2026.04.001',
+        'version' => '2026.06.003',
         'label' => sr_t('install.module.reward.label'),
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
     ],
     'asset_exchange' => [
         'name' => '포인트/금액 환전',
-        'version' => '2026.05.007',
+        'version' => '2026.06.001',
         'label' => '포인트/금액 환전',
         'description' => '설치된 포인트/금액 항목 간 환전 정책과 실행 로그를 관리합니다.',
     ],
@@ -161,7 +161,7 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.05.001',
+        'version' => '2026.06.013',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],

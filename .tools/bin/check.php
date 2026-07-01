@@ -809,6 +809,43 @@ function sr_check_module_versions_and_updates(): void
     }
 }
 
+function sr_check_installer_module_default_versions(): void
+{
+    $installer = file_get_contents('core/actions/install.php');
+    if (!is_string($installer)) {
+        sr_check_add_error('Installer action cannot be read.');
+        return;
+    }
+
+    preg_match_all(
+        "/'([a-z0-9_]+)'\\s*=>\\s*\\[\\s*\\n\\s*'name'\\s*=>\\s*'[^']*'\\s*,\\s*\\n\\s*'version'\\s*=>\\s*'([^']+)'/",
+        $installer,
+        $matches,
+        PREG_SET_ORDER
+    );
+
+    foreach ($matches as $match) {
+        $moduleKey = (string) $match[1];
+        $installerVersion = (string) $match[2];
+        $moduleFile = 'modules/' . $moduleKey . '/module.php';
+        if (!is_file($moduleFile)) {
+            sr_check_add_error('Installer module default references missing module.php: ' . $moduleKey);
+            continue;
+        }
+
+        $metadata = include $moduleFile;
+        if (!is_array($metadata)) {
+            sr_check_add_error('Installer module default metadata cannot be loaded: ' . $moduleFile);
+            continue;
+        }
+
+        $moduleVersion = is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '';
+        if ($installerVersion !== $moduleVersion) {
+            sr_check_add_error('Installer module default version must match module.php: ' . $moduleKey . ' installer=' . $installerVersion . ' module=' . $moduleVersion);
+        }
+    }
+}
+
 function sr_check_admin_menu_paths(): void
 {
     foreach (sr_check_module_dirs() as $moduleDir) {
@@ -1597,6 +1634,7 @@ sr_check_implementation_snapshot_install_tables();
 sr_check_module_lifecycle_ui_contract();
 sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
+sr_check_installer_module_default_versions();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
 sr_check_module_ui_kit_routes();
