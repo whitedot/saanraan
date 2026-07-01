@@ -30,6 +30,10 @@ return [
             'member-action-rows.php',
             'dashboard.php',
         ],
+        'consumes' => [
+            'asset-exchange.php',
+            'notification-events.php',
+        ],
     ],
     'settings' => [
         'exchange_enabled' => '1',

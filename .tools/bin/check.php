@@ -587,6 +587,10 @@ function sr_check_module_contract_files(): void
         'admin' => [
             'dashboard.php',
         ],
+        'asset_exchange' => [
+            'asset-exchange.php',
+            'notification-events.php',
+        ],
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
