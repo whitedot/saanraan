@@ -12,7 +12,9 @@ $seo = [
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'consumer_target' => 'survey.home',
     'body_class' => 'sr-survey-page',
-    'stylesheets' => ['/modules/popup_layer/assets/module.css'],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+    ]),
 ]));
 ?>
 <?php echo sr_render_output_slot($pdo, [

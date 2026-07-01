@@ -139,6 +139,26 @@ function sr_module_enabled(PDO $pdo, string $moduleKey): bool
     return in_array($moduleKey, sr_enabled_module_keys($pdo), true);
 }
 
+function sr_enabled_module_asset_paths(?PDO $pdo, array $moduleAssetPaths): array
+{
+    if (!$pdo instanceof PDO) {
+        return [];
+    }
+
+    $paths = [];
+    foreach ($moduleAssetPaths as $moduleKey => $assetPath) {
+        if (!is_string($moduleKey) || !sr_module_enabled($pdo, $moduleKey)) {
+            continue;
+        }
+        if (!is_string($assetPath) || $assetPath === '') {
+            continue;
+        }
+        $paths[] = $assetPath;
+    }
+
+    return $paths;
+}
+
 function sr_module_homepage_contract(string $moduleKey, string $contractFile): array
 {
     $contract = sr_load_module_contract_file($moduleKey, $contractFile);

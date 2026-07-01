@@ -177,6 +177,15 @@ sr_runtime_helper_assert(
     'Module registry helpers should read installed and enabled safe module keys.'
 );
 sr_runtime_helper_assert(
+    sr_enabled_module_asset_paths($moduleFixturePdo, ['reaction' => '/modules/reaction/assets/module.css', 'coupon' => '/modules/coupon/assets/module.css'])
+        === ['/modules/reaction/assets/module.css'],
+    'Enabled module asset helper should only return assets for enabled modules.'
+);
+sr_runtime_helper_assert(
+    sr_enabled_module_asset_paths(null, ['reaction' => '/modules/reaction/assets/module.css']) === [],
+    'Enabled module asset helper should fail closed without a PDO.'
+);
+sr_runtime_helper_assert(
     sr_mail_http_api_endpoint_is_allowed('https://93.184.216.34/mail'),
     'Public HTTPS mail API endpoint should be allowed.'
 );

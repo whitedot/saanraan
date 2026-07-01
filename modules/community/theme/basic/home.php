@@ -5,10 +5,10 @@ $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings :
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.home',
     'layout_key' => (string) ($communityLayoutKey ?? ''),
-    'stylesheets' => [
-        '/modules/banner/assets/module.css',
-        '/modules/popup_layer/assets/module.css',
-    ],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'banner' => '/modules/banner/assets/module.css',
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+    ]),
 ]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = '새 글';

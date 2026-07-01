@@ -134,7 +134,10 @@ $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'example-quiz-body example-quiz-embed-body' : 'example-quiz-body',
     'include_skin_assets' => false,
-    'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+        'reaction' => '/modules/reaction/assets/module.css',
+    ]),
 ]);
 
 if ($quizEmbedded) {

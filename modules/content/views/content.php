@@ -19,11 +19,11 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
-$contentStylesheets = [
-    '/modules/banner/assets/module.css',
-    '/modules/popup_layer/assets/module.css',
-    '/modules/reaction/assets/module.css',
-];
+$contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
+    'banner' => '/modules/banner/assets/module.css',
+    'popup_layer' => '/modules/popup_layer/assets/module.css',
+    'reaction' => '/modules/reaction/assets/module.css',
+]);
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';

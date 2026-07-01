@@ -171,7 +171,10 @@ $quizConsumerTarget = $submitResult !== null ? 'quiz.result' : 'quiz.view';
 $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
-    'stylesheets' => ['/modules/popup_layer/assets/module.css', '/modules/reaction/assets/module.css'],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+        'reaction' => '/modules/reaction/assets/module.css',
+    ]),
 ]);
 
 if ($quizEmbedded) {

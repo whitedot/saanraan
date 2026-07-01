@@ -33,19 +33,19 @@ $seo = [
     'canonical' => $formAction,
     'robots' => 'noindex, nofollow',
 ];
-if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
-if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.form',
-    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
-        '/modules/banner/assets/module.css',
-        '/modules/popup_layer/assets/module.css',
-    ]),
+    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_enabled_module_asset_paths($pdo ?? null, [
+        'banner' => '/modules/banner/assets/module.css',
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+    ])),
 ]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;

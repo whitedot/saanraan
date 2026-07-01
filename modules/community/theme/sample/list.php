@@ -18,7 +18,10 @@ $seo = sr_community_board_seo_meta($pdo, $board, [
 $memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.list',
-    'stylesheets' => ['/modules/banner/assets/module.css', '/modules/popup_layer/assets/module.css'],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'banner' => '/modules/banner/assets/module.css',
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+    ]),
 ]));
 ?>
 

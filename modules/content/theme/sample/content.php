@@ -18,11 +18,11 @@ $seo = [
         'type' => 'article',
     ],
 ];
-$contentStylesheets = [
-    '/modules/banner/assets/module.css',
-    '/modules/popup_layer/assets/module.css',
-    '/modules/reaction/assets/module.css',
-];
+$contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
+    'banner' => '/modules/banner/assets/module.css',
+    'popup_layer' => '/modules/popup_layer/assets/module.css',
+    'reaction' => '/modules/reaction/assets/module.css',
+]);
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',

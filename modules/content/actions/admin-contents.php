@@ -5,10 +5,10 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
-if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
-if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {

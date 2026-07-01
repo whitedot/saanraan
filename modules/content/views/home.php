@@ -42,7 +42,9 @@ $contentHomeExcerptText = static function (array $content): string {
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.home',
     'layout_key' => (string) ($contentHomeLayoutKey ?? ''),
-    'stylesheets' => ['/modules/popup_layer/assets/module.css'],
+    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+    ]),
 ]));
 ?>
 

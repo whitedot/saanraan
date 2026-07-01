@@ -10,11 +10,11 @@ $memberSettings = sr_member_settings($pdo);
 $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.post',
-    'stylesheets' => array_merge([
-        '/modules/banner/assets/module.css',
-        '/modules/popup_layer/assets/module.css',
-        '/modules/reaction/assets/module.css',
-    ], sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
+    'stylesheets' => array_merge(sr_enabled_module_asset_paths($pdo ?? null, [
+        'banner' => '/modules/banner/assets/module.css',
+        'popup_layer' => '/modules/popup_layer/assets/module.css',
+        'reaction' => '/modules/reaction/assets/module.css',
+    ]), sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
 ]));
 ?>
 
