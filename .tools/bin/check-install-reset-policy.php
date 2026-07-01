@@ -166,13 +166,84 @@ foreach (['config env is production-looking.', 'site base_url is not local/stagi
     }
 }
 
+$execRoot = sys_get_temp_dir() . '/sr-install-reset-check-' . bin2hex(random_bytes(4));
+mkdir($execRoot . '/config', 0755, true);
+mkdir($execRoot . '/storage', 0755, true);
+file_put_contents($execRoot . '/config/config.php', "<?php\nreturn [];\n");
+file_put_contents($execRoot . '/storage/installed.lock', "{}\n");
+file_put_contents($execRoot . '/storage/update-failed.json', "{}\n");
+
+$execKeyA = 'cache/check-install-reset-policy/exec-a.txt';
+$execKeyB = 'cache/check-install-reset-policy/exec-b.txt';
+file_put_contents(SR_ROOT . '/storage/' . $execKeyA, 'a');
+file_put_contents(SR_ROOT . '/storage/' . $execKeyB, 'b');
+
+$execPdo = new PDO('sqlite::memory:', null, null, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$execPdo->exec('CREATE TABLE sr_content_files (id INTEGER PRIMARY KEY, storage_driver TEXT, storage_key TEXT)');
+$execPdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY)');
+$execPdo->exec("INSERT INTO sr_content_files (id, storage_driver, storage_key) VALUES (1, 'local', '" . $execKeyA . "'), (2, 'local', '" . $execKeyB . "')");
+$execPdo->exec('INSERT INTO sr_member_accounts (id) VALUES (1)');
+$execTables = ['sr_content_files', 'sr_member_accounts'];
+$safeConfig = ['env' => 'local', 'site' => ['base_url' => 'http://127.0.0.1']];
+
+$refused = sr_install_reset_execute($execPdo, $execTables, $safeConfig, $execRoot, ['confirmation' => 'wrong']);
+if (($refused['state'] ?? '') !== 'refused') {
+    sr_install_reset_check_error('Install reset execution must refuse mismatched confirmation.');
+}
+
+$prodRefused = sr_install_reset_execute($execPdo, $execTables, ['env' => 'production'], $execRoot, ['confirmation' => '초기화']);
+if (($prodRefused['state'] ?? '') !== 'refused') {
+    sr_install_reset_check_error('Install reset execution must refuse production-looking config by default.');
+}
+
+$firstBatch = sr_install_reset_execute($execPdo, $execTables, $safeConfig, $execRoot, ['confirmation' => '초기화', 'batch_size' => 1]);
+if (($firstBatch['state'] ?? '') !== 'partial' || ($firstBatch['stage'] ?? '') !== 'storage') {
+    sr_install_reset_check_error('Install reset first batch should stop after partial storage deletion.');
+}
+if (is_file(SR_ROOT . '/storage/' . $execKeyA) === is_file(SR_ROOT . '/storage/' . $execKeyB)) {
+    sr_install_reset_check_error('Install reset first storage batch should delete exactly one fixture file.');
+}
+if (!is_file($execRoot . '/config/config.php') || !is_file($execRoot . '/storage/installed.lock')) {
+    sr_install_reset_check_error('Install reset must keep install state files until DB/storage batches complete.');
+}
+
+$secondBatch = sr_install_reset_execute($execPdo, $execTables, $safeConfig, $execRoot, ['confirmation' => '초기화', 'batch_size' => 1]);
+if (($secondBatch['state'] ?? '') !== 'partial' || ($secondBatch['stage'] ?? '') !== 'database') {
+    sr_install_reset_check_error('Install reset second batch should stop after partial database deletion.');
+}
+
+$thirdBatch = sr_install_reset_execute($execPdo, $execTables, $safeConfig, $execRoot, ['confirmation' => '초기화', 'batch_size' => 1]);
+if (($thirdBatch['state'] ?? '') !== 'completed') {
+    sr_install_reset_check_error('Install reset third batch should complete.');
+}
+if (sr_install_reset_existing_prefixed_tables($execPdo, 'sr_') !== []) {
+    sr_install_reset_check_error('Install reset should drop all target tables after repeated batches.');
+}
+if (is_file($execRoot . '/config/config.php') || is_file($execRoot . '/storage/installed.lock') || is_file($execRoot . '/storage/update-failed.json')) {
+    sr_install_reset_check_error('Install reset should remove install state files after DB/storage completion.');
+}
+
+@unlink(SR_ROOT . '/storage/' . $execKeyA);
+@unlink(SR_ROOT . '/storage/' . $execKeyB);
+@unlink($execRoot . '/config/config.php');
+@unlink($execRoot . '/storage/installed.lock');
+@unlink($execRoot . '/storage/update-failed.json');
+@unlink($execRoot . '/storage/install-reset.lock');
+@rmdir($execRoot . '/config');
+@rmdir($execRoot . '/storage');
+@rmdir($execRoot);
+
 sr_install_reset_check_contains('.tools/bin/install-reset.php', [
     'install-reset-preview-version: 1',
-    'This command is read-only. Destructive execution is not implemented yet.',
+    '--execute --confirm=초기화',
     'sr_install_reset_table_allowlist',
     'sr_install_reset_table_preview',
     'sr_install_reset_storage_preview',
     'sr_install_reset_environment_warnings',
+    'sr_install_reset_execute',
 ]);
 
 sr_install_reset_check_contains('docs/install-reset.md', [
@@ -180,9 +251,10 @@ sr_install_reset_check_contains('docs/install-reset.md', [
     'CLI preview',
     'allowlist',
     'DB introspection',
-    '실행 모드는 아직 구현하지 않는다',
+    '--execute --confirm=초기화',
     'config/config.php',
     'storage/installed.lock',
+    'storage/install-reset.lock',
     'storage reference',
     'production-looking',
 ]);

@@ -402,6 +402,337 @@ function sr_install_reset_url_is_local_or_staging(string $url): bool
         || str_contains($host, 'dev');
 }
 
+function sr_install_reset_execute(PDO $pdo, array $targetTables, array $config, string $root, array $options = []): array
+{
+    $confirmation = (string) ($options['confirmation'] ?? '');
+    if ($confirmation !== '초기화') {
+        return [
+            'state' => 'refused',
+            'message' => 'confirmation phrase mismatch.',
+        ];
+    }
+
+    $requestedTablePrefix = (string) ($options['table_prefix'] ?? 'sr_');
+    $tablePrefix = sr_is_safe_table_prefix($requestedTablePrefix) ? $requestedTablePrefix : 'sr_';
+    $batchSize = max(1, min(500, (int) ($options['batch_size'] ?? 50)));
+    $environmentWarnings = sr_install_reset_environment_warnings($config);
+    if ($environmentWarnings !== [] && empty($options['allow_production_looking'])) {
+        return [
+            'state' => 'refused',
+            'message' => 'production-looking environment warning requires explicit override.',
+            'environment_warnings' => $environmentWarnings,
+        ];
+    }
+
+    $lock = sr_install_reset_acquire_lock($root);
+    if ($lock === null) {
+        return [
+            'state' => 'locked',
+            'message' => 'another install reset appears to be running.',
+        ];
+    }
+
+    try {
+        $storagePreview = sr_install_reset_storage_preview($pdo, $targetTables, $config, [
+            'table_prefix' => $tablePrefix,
+            'max_references_per_column' => $batchSize,
+        ]);
+        if ((int) ($storagePreview['unsafe_reference_count'] ?? 0) > 0) {
+            return [
+                'state' => 'refused',
+                'message' => 'unsafe storage references must be reviewed before execution.',
+                'storage' => $storagePreview,
+            ];
+        }
+        if ((int) ($storagePreview['remote_reference_count'] ?? 0) > 0 && empty($options['confirm_remote_storage'])) {
+            return [
+                'state' => 'refused',
+                'message' => 'remote storage references require explicit confirmation.',
+                'storage' => $storagePreview,
+            ];
+        }
+
+        $storageResult = sr_install_reset_delete_storage_batch($pdo, $targetTables, $config, [
+            'table_prefix' => $tablePrefix,
+            'limit' => $batchSize,
+            'include_remote' => !empty($options['confirm_remote_storage']),
+        ]);
+        if ((int) ($storageResult['remaining_reference_count'] ?? 0) > 0 || (int) ($storageResult['failed_reference_count'] ?? 0) > 0) {
+            return [
+                'state' => 'partial',
+                'stage' => 'storage',
+                'message' => 'storage batch processed; rerun to continue.',
+                'storage' => $storageResult,
+            ];
+        }
+
+        $dropResult = sr_install_reset_drop_table_batch($pdo, $targetTables, $tablePrefix, $batchSize);
+        if ((int) ($dropResult['remaining_table_count'] ?? 0) > 0 || (int) ($dropResult['failed_table_count'] ?? 0) > 0) {
+            return [
+                'state' => 'partial',
+                'stage' => 'database',
+                'message' => 'database table batch processed; rerun to continue.',
+                'database' => $dropResult,
+            ];
+        }
+
+        $stateFiles = sr_install_reset_remove_install_state_files($root);
+        return [
+            'state' => 'completed',
+            'message' => 'install reset execution completed.',
+            'storage' => $storageResult,
+            'database' => $dropResult,
+            'install_state_files' => $stateFiles,
+        ];
+    } finally {
+        sr_install_reset_release_lock($lock);
+    }
+}
+
+function sr_install_reset_acquire_lock(string $root): mixed
+{
+    $lockPath = sr_install_reset_lock_path($root);
+    $lockDir = dirname($lockPath);
+    if (!is_dir($lockDir) && !mkdir($lockDir, 0755, true) && !is_dir($lockDir)) {
+        return null;
+    }
+
+    $handle = @fopen($lockPath, 'x');
+    if (!is_resource($handle)) {
+        return null;
+    }
+
+    fwrite($handle, json_encode(['pid' => getmypid(), 'started_at' => gmdate('c')], JSON_UNESCAPED_SLASHES) . "\n");
+    return $handle;
+}
+
+function sr_install_reset_release_lock(mixed $lock): void
+{
+    if (!is_resource($lock)) {
+        return;
+    }
+
+    $metadata = stream_get_meta_data($lock);
+    $path = is_array($metadata) ? (string) ($metadata['uri'] ?? '') : '';
+    fclose($lock);
+    if ($path !== '' && is_file($path)) {
+        @unlink($path);
+    }
+}
+
+function sr_install_reset_lock_path(string $root): string
+{
+    return rtrim($root, '/\\') . '/storage/install-reset.lock';
+}
+
+function sr_install_reset_delete_storage_batch(PDO $pdo, array $targetTables, array $config, array $options = []): array
+{
+    $limit = max(1, min(500, (int) ($options['limit'] ?? 50)));
+    $references = sr_install_reset_storage_reference_rows($pdo, $targetTables, $config, array_merge($options, ['limit' => 50000]));
+    $processed = 0;
+    $deleted = 0;
+    $failed = 0;
+    $alreadyAbsent = 0;
+    $actionable = 0;
+    $seen = [];
+
+    foreach ($references['references'] as $reference) {
+        $driver = (string) ($reference['driver'] ?? '');
+        $key = (string) ($reference['key'] ?? '');
+        $dedupeKey = $driver . ':' . $key;
+        if (isset($seen[$dedupeKey])) {
+            continue;
+        }
+        $seen[$dedupeKey] = true;
+
+        if ($driver === 'local' && function_exists('sr_storage_local_path') && sr_storage_local_path($key) === null) {
+            $alreadyAbsent++;
+            continue;
+        }
+
+        $actionable++;
+        if ($processed >= $limit) {
+            continue;
+        }
+        $processed++;
+
+        if (!function_exists('sr_storage_delete') || !sr_storage_delete($driver, $key, $config)) {
+            $failed++;
+            continue;
+        }
+        $deleted++;
+    }
+
+    return [
+        'processed_reference_count' => $processed,
+        'deleted_reference_count' => $deleted,
+        'failed_reference_count' => $failed,
+        'already_absent_reference_count' => $alreadyAbsent,
+        'remaining_reference_count' => max(0, $actionable - $processed),
+        'safe_reference_count' => (int) ($references['safe_reference_count'] ?? 0),
+    ];
+}
+
+function sr_install_reset_storage_reference_rows(PDO $pdo, array $targetTables, array $config, array $options = []): array
+{
+    $limit = max(1, min(50000, (int) ($options['limit'] ?? 5000)));
+    $tablePrefix = sr_is_safe_table_prefix((string) ($options['table_prefix'] ?? 'sr_')) ? (string) $options['table_prefix'] : 'sr_';
+    $includeRemote = !empty($options['include_remote']);
+    $defaultDriver = function_exists('sr_storage_default_driver') ? sr_storage_default_driver($config) : 'local';
+    $references = [];
+    $safeReferenceCount = 0;
+    $unsafeReferenceCount = 0;
+
+    foreach ($targetTables as $tableName) {
+        $tableName = (string) $tableName;
+        if (!sr_install_reset_table_name_is_safe($tableName, $tablePrefix)) {
+            continue;
+        }
+
+        $columns = sr_install_reset_table_columns($pdo, $tableName);
+        foreach (sr_install_reset_storage_key_columns($columns) as $keyColumn) {
+            $driverColumn = sr_install_reset_matching_storage_driver_column($columns, $keyColumn);
+            foreach (sr_install_reset_storage_column_reference_rows($pdo, $tableName, $keyColumn, $driverColumn, $defaultDriver, $limit) as $row) {
+                $key = (string) ($row['key'] ?? '');
+                $driver = (string) ($row['driver'] ?? $defaultDriver);
+                if (!function_exists('sr_storage_key_is_safe') || !sr_storage_key_is_safe($key)) {
+                    $unsafeReferenceCount++;
+                    continue;
+                }
+                if ($driver === 's3' && !$includeRemote) {
+                    continue;
+                }
+
+                $safeReferenceCount++;
+                if (count($references) < $limit) {
+                    $references[] = [
+                        'driver' => $driver,
+                        'key' => $key,
+                    ];
+                }
+            }
+        }
+    }
+
+    return [
+        'references' => $references,
+        'safe_reference_count' => $safeReferenceCount,
+        'unsafe_reference_count' => $unsafeReferenceCount,
+    ];
+}
+
+function sr_install_reset_storage_column_reference_rows(
+    PDO $pdo,
+    string $tableName,
+    string $keyColumn,
+    string $driverColumn,
+    string $defaultDriver,
+    int $limit
+): array {
+    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $quotedTable = sr_install_reset_quote_identifier($tableName, $driver);
+    $quotedKeyColumn = sr_install_reset_quote_identifier($keyColumn, $driver);
+    $where = $quotedKeyColumn . " IS NOT NULL AND " . $quotedKeyColumn . " <> ''";
+    $select = $quotedKeyColumn . ' AS storage_key';
+    if ($driverColumn !== '') {
+        $select .= ', ' . sr_install_reset_quote_identifier($driverColumn, $driver) . ' AS storage_driver';
+    }
+
+    $statement = $pdo->query('SELECT ' . $select . ' FROM ' . $quotedTable . ' WHERE ' . $where . ' LIMIT ' . (string) $limit);
+    if (!$statement instanceof PDOStatement) {
+        return [];
+    }
+
+    $rows = [];
+    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $referenceDriver = strtolower(trim((string) ($row['storage_driver'] ?? $defaultDriver)));
+        if (!in_array($referenceDriver, ['local', 's3'], true)) {
+            $referenceDriver = $defaultDriver;
+        }
+        $rows[] = [
+            'driver' => $referenceDriver,
+            'key' => (string) ($row['storage_key'] ?? ''),
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_install_reset_drop_table_batch(PDO $pdo, array $targetTables, string $tablePrefix = 'sr_', int $limit = 50): array
+{
+    $limit = max(1, min(500, $limit));
+    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $existing = array_fill_keys(sr_install_reset_existing_prefixed_tables($pdo, $tablePrefix), true);
+    $tables = [];
+    foreach ($targetTables as $tableName) {
+        $tableName = (string) $tableName;
+        if (sr_install_reset_table_name_is_safe($tableName, $tablePrefix) && isset($existing[$tableName])) {
+            $tables[] = $tableName;
+        }
+    }
+    sort($tables, SORT_STRING);
+
+    $dropped = 0;
+    $failed = 0;
+    $processed = 0;
+    if ($driver === 'sqlite') {
+        $pdo->exec('PRAGMA foreign_keys = OFF');
+    } else {
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+    }
+
+    try {
+        foreach ($tables as $tableName) {
+            if ($processed >= $limit) {
+                break;
+            }
+            $processed++;
+            try {
+                $pdo->exec('DROP TABLE IF EXISTS ' . sr_install_reset_quote_identifier($tableName, $driver));
+                $dropped++;
+            } catch (Throwable $exception) {
+                $failed++;
+            }
+        }
+    } finally {
+        if ($driver !== 'sqlite') {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+        }
+    }
+
+    return [
+        'processed_table_count' => $processed,
+        'dropped_table_count' => $dropped,
+        'failed_table_count' => $failed,
+        'remaining_table_count' => max(0, count($tables) - $processed),
+    ];
+}
+
+function sr_install_reset_remove_install_state_files(string $root): array
+{
+    $paths = [
+        'storage/update-failed.json',
+        'storage/installed.lock',
+        'config/config.php',
+    ];
+    foreach (glob(rtrim($root, '/\\') . '/config/config-*.tmp.php') ?: [] as $path) {
+        $paths[] = substr($path, strlen(rtrim($root, '/\\')) + 1);
+    }
+    $results = [];
+    foreach (array_values(array_unique($paths)) as $relativePath) {
+        $path = rtrim($root, '/\\') . '/' . $relativePath;
+        $presentBefore = is_file($path);
+        $removed = !$presentBefore || @unlink($path);
+        $results[] = [
+            'path' => $relativePath,
+            'present_before' => $presentBefore,
+            'removed' => $removed,
+        ];
+    }
+
+    return $results;
+}
+
 function sr_install_reset_table_row_count(PDO $pdo, string $tableName): ?int
 {
     $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);

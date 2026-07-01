@@ -11,7 +11,13 @@ php .tools/bin/install-reset.php --preview
 php .tools/bin/install-reset.php --preview --json
 ```
 
-CLI preview는 read-only로 동작한다. 실행 모드는 아직 구현하지 않는다. destructive 실행을 추가하기 전까지 이 명령은 DB table, 파일, 설정을 삭제하지 않는다.
+기본 preview는 read-only로 동작한다. 실행은 CLI에서만 제공하고 확인 문구를 요구한다.
+
+```sh
+php .tools/bin/install-reset.php --execute --confirm=초기화 --batch-size=50
+```
+
+실행 모드는 production-looking 경고가 있으면 기본 중단한다. disposable production-like staging에서 꼭 실행해야 하는 경우에만 `--allow-production-looking`을 붙인다. remote storage reference가 있으면 별도 확인 없이 중단하며, 등록 key 삭제를 승인할 때만 `--confirm-remote-storage`를 붙인다.
 
 ## Preview 범위
 
@@ -33,7 +39,17 @@ Preview는 다음 값을 보여준다.
 
 Storage preview는 target table의 `storage_key` 또는 `*_storage_key` column을 introspection으로 찾고, 같은 접두사의 `storage_driver` 또는 `*_storage_driver`가 있으면 driver로 사용한다. driver가 없으면 configured default storage driver를 쓴다. 기본값은 column당 최대 5,000개 reference만 sample해서 local 파일 존재와 byte를 확인하며, 더 많은 reference가 있으면 `truncated`로 표시한다. remote storage는 count만 표시하고 object head/list/delete는 실행하지 않는다.
 
-Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-looking 신호도 표시한다. 이 값은 read-only preview의 경고이며, 실행 모드에서는 기본 중단 조건으로 승격해야 한다.
+Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-looking 신호도 표시한다. 이 값은 read-only preview의 경고이며, 실행 모드에서는 기본 중단 조건이다.
+
+## 실행 순서
+
+실행은 `storage/install-reset.lock`을 만들어 중복 실행을 막는다. 같은 명령을 반복 실행할 수 있도록 batch 단위로 진행한다.
+
+1. confirmation phrase가 `초기화`인지 확인한다.
+2. production-looking 경고와 unsafe/remote storage reference를 확인한다.
+3. storage reference를 batch 크기만큼 삭제한다. 남은 reference가 있으면 DB와 설치 상태 파일은 건드리지 않고 종료한다.
+4. 현재 DB introspection과 allowlist의 교집합 table을 batch 크기만큼 drop한다. 남은 table이 있으면 설치 상태 파일은 건드리지 않고 종료한다.
+5. DB/storage batch가 모두 끝난 뒤 `storage/update-failed.json`, `storage/installed.lock`, `config/config.php`, `config/config-*.tmp.php`를 제거한다.
 
 ## 안전 기준
 

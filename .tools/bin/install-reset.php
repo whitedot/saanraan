@@ -15,6 +15,11 @@ require_once SR_ROOT . '/core/helpers/install-reset.php';
 
 $args = array_slice($argv, 1);
 $json = false;
+$execute = false;
+$confirmation = '';
+$batchSize = 50;
+$allowProductionLooking = false;
+$confirmRemoteStorage = false;
 foreach ($args as $arg) {
     if ($arg === '--json') {
         $json = true;
@@ -23,10 +28,30 @@ foreach ($args as $arg) {
     if ($arg === '--preview') {
         continue;
     }
+    if ($arg === '--execute') {
+        $execute = true;
+        continue;
+    }
+    if (str_starts_with($arg, '--confirm=')) {
+        $confirmation = substr($arg, strlen('--confirm='));
+        continue;
+    }
+    if (str_starts_with($arg, '--batch-size=')) {
+        $batchSize = (int) substr($arg, strlen('--batch-size='));
+        continue;
+    }
+    if ($arg === '--allow-production-looking') {
+        $allowProductionLooking = true;
+        continue;
+    }
+    if ($arg === '--confirm-remote-storage') {
+        $confirmRemoteStorage = true;
+        continue;
+    }
     if ($arg === '--help' || $arg === '-h') {
         echo "install-reset-preview-version: 1\n";
         echo "Usage: php .tools/bin/install-reset.php [--preview] [--json]\n";
-        echo "This command is read-only. Destructive execution is not implemented yet.\n";
+        echo "       php .tools/bin/install-reset.php --execute --confirm=초기화 [--batch-size=50] [--confirm-remote-storage] [--allow-production-looking]\n";
         exit(0);
     }
 
@@ -75,6 +100,16 @@ try {
     );
     $storagePreview = sr_install_reset_storage_preview($pdo, $targetTables, $config, ['table_prefix' => $tablePrefix]);
     $environmentWarnings = sr_install_reset_environment_warnings($config);
+    $execution = null;
+    if ($execute) {
+        $execution = sr_install_reset_execute($pdo, $targetTables, $config, SR_ROOT, [
+            'confirmation' => $confirmation,
+            'table_prefix' => $tablePrefix,
+            'batch_size' => $batchSize,
+            'allow_production_looking' => $allowProductionLooking,
+            'confirm_remote_storage' => $confirmRemoteStorage,
+        ]);
+    }
 } catch (Throwable $exception) {
     sr_install_reset_print_preview([
         'version' => 1,
@@ -95,6 +130,7 @@ sr_install_reset_print_preview([
     'environment_warnings' => $environmentWarnings,
     'database' => $tablePreview,
     'storage' => $storagePreview,
+    'execution' => $execution,
 ], $json);
 
 function sr_install_reset_state_file_preview(string $configPath, string $lockPath): array
@@ -164,5 +200,15 @@ function sr_install_reset_print_preview(array $preview, bool $json): void
         echo "- local-existing-files: " . (string) ($storage['local_existing_file_count'] ?? 0) . "\n";
         echo "- local-existing-bytes: " . (string) ($storage['local_existing_bytes'] ?? 0) . "\n";
         echo "- truncated: " . (!empty($storage['truncated']) ? 'yes' : 'no') . "\n";
+    }
+
+    $execution = $preview['execution'] ?? null;
+    if (is_array($execution)) {
+        echo "execution:\n";
+        echo "- state: " . (string) ($execution['state'] ?? '') . "\n";
+        echo "- message: " . (string) ($execution['message'] ?? '') . "\n";
+        if (isset($execution['stage'])) {
+            echo "- stage: " . (string) $execution['stage'] . "\n";
+        }
     }
 }
