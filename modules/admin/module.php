@@ -24,6 +24,7 @@ return [
             'paths.php',
         ],
         'consumes' => [
+            'admin-menu.php',
             'dashboard.php',
             'homepage-candidates.php',
             'site-setting-references.php',

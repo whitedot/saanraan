@@ -585,6 +585,7 @@ function sr_check_module_contract_files(): void
     ];
     $requiredConsumes = [
         'admin' => [
+            'admin-menu.php',
             'dashboard.php',
         ],
         'asset_exchange' => [
