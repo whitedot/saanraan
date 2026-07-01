@@ -677,17 +677,24 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
         sr_read_reference_check_error('read reference coupon helper is missing: ' . $couponHelper);
         return;
     }
+    $functionStart = strpos($contents, 'function sr_coupon_definition_reference_rows(');
+    $functionEnd = strpos($contents, 'function sr_coupon_definition_reference_health(', is_int($functionStart) ? $functionStart : 0);
+    if ($functionStart === false || $functionEnd === false || $functionEnd <= $functionStart) {
+        sr_read_reference_check_error('read reference coupon rows function source is not readable');
+        return;
+    }
+    $rowsFunctionSource = substr($contents, $functionStart, $functionEnd - $functionStart);
 
-    if (strpos($contents, '$targetKey = (string) ($target[\'target_key\'] ?? \'\');') === false) {
+    if (strpos($rowsFunctionSource, '$targetKey = (string) ($target[\'target_key\'] ?? \'\');') === false) {
         sr_read_reference_check_error('read reference coupon rows must normalize target_key from target only');
     }
-    if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
+    if (substr_count($rowsFunctionSource, "'target_key' => \$targetKey") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');
     }
-    if (substr_count($contents, "'reference_type' => 'coupon_history'") < 2) {
+    if (substr_count($rowsFunctionSource, "'reference_type' => 'coupon_history'") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must use the declared coupon_history reference_type');
     }
-    if (strpos($contents, "'reference_type' => 'coupon_issue'") !== false || strpos($contents, "'reference_type' => 'coupon_redemption'") !== false) {
+    if (strpos($rowsFunctionSource, "'reference_type' => 'coupon_issue'") !== false || strpos($rowsFunctionSource, "'reference_type' => 'coupon_redemption'") !== false) {
         sr_read_reference_check_error('read reference coupon rows must not emit undeclared issue/redemption reference_type values');
     }
 }

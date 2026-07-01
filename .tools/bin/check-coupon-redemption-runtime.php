@@ -86,6 +86,24 @@ function sr_coupon_runtime_payment_item_reference(PDO $pdo, int $paymentRecordId
     return (string) ($stmt->fetchColumn() ?: '');
 }
 
+function sr_coupon_runtime_payment_item_status_count(PDO $pdo, int $paymentRecordId, string $itemKind, string $status): int
+{
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_payment_record_items
+         WHERE payment_record_id = :payment_record_id
+           AND item_kind = :item_kind
+           AND reversal_status = :reversal_status'
+    );
+    $stmt->execute([
+        'payment_record_id' => $paymentRecordId,
+        'item_kind' => $itemKind,
+        'reversal_status' => $status,
+    ]);
+
+    return (int) $stmt->fetchColumn();
+}
+
 function sr_coupon_runtime_create_schema(PDO $pdo): void
 {
     $pdo->exec("CREATE TABLE sr_modules (
@@ -1532,6 +1550,10 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_transaction_ids_json'] ?? '') === '[]', 'content paid download fixture should persist empty refund transaction ids.');
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_note'] ?? '') === 'coupon access revoke', 'content paid download fixture should persist access revoke note.');
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['access_revoked_at'] ?? '') !== '', 'content paid download fixture should store access_revoked_at.');
+    $contentDownloadPaymentAfterRevoke = sr_coupon_runtime_row($pdo, 'SELECT status FROM sr_payment_records WHERE id = :id', ['id' => $contentDownloadPaymentId]);
+    sr_coupon_runtime_assert((string) ($contentDownloadPaymentAfterRevoke['status'] ?? '') === 'paid', 'content paid download access revoke should keep the payment record paid while the coupon item remains used.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $contentDownloadPaymentId, 'access_entitlement', 'reversed') === 1, 'content paid download access revoke should mark the access entitlement payment item reversed.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $contentDownloadPaymentId, 'coupon_redemption', 'none') === 1, 'content paid download access revoke should not reverse the coupon redemption payment item.');
 
     $communityIssueId = sr_coupon_runtime_issue($pdo, 'community_priority', 'community_post', '9901', 7);
     $pdo->prepare(
@@ -1653,6 +1675,10 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((int) ($communityRefund['revoked_access_count'] ?? -1) === 1, 'community paid read fixture should revoke coupon access entitlement through refund helper.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.post' AND subject_id = 9901 AND event_key = 'post_read'")->fetchColumn() === 0, 'community paid read fixture should remove coupon-backed post entitlement on refund.');
     sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'community paid read fixture must still have no point transactions after coupon refund.');
+    $communityReadPaymentAfterRefund = sr_coupon_runtime_row($pdo, 'SELECT status FROM sr_payment_records WHERE id = :id', ['id' => $communityReadPaymentId]);
+    sr_coupon_runtime_assert((string) ($communityReadPaymentAfterRefund['status'] ?? '') === 'refunded', 'community paid read coupon refund should mark the payment record refunded.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityReadPaymentId, 'coupon_redemption', 'reversed') === 1, 'community paid read coupon refund should mark the coupon payment item reversed.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityReadPaymentId, 'access_entitlement', 'reversed') === 1, 'community paid read coupon refund should mark the access payment item reversed.');
 
     $attachmentIssueId = sr_coupon_runtime_issue($pdo, 'community_attachment_download', 'community_attachment', '8801', 7);
     $attachmentTargets = sr_community_coupon_target_search($pdo, 'community_attachment', 'paid-attachment', 5);
@@ -1716,6 +1742,10 @@ function sr_coupon_runtime_fixture(): void
     $attachmentRefund = sr_coupon_refund_redemption($pdo, $attachmentRedemptionId, 1, 'community attachment coupon access revoke');
     sr_coupon_runtime_assert((int) ($attachmentRefund['revoked_access_count'] ?? -1) === 1, 'community attachment download fixture should revoke coupon access entitlement through refund helper.');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.attachment' AND subject_id = 8801 AND event_key = 'attachment_download'")->fetchColumn() === 0, 'community attachment download fixture should remove coupon-backed attachment entitlement on refund.');
+    $communityAttachmentPaymentAfterRefund = sr_coupon_runtime_row($pdo, 'SELECT status FROM sr_payment_records WHERE id = :id', ['id' => $communityAttachmentPaymentId]);
+    sr_coupon_runtime_assert((string) ($communityAttachmentPaymentAfterRefund['status'] ?? '') === 'refunded', 'community attachment coupon refund should mark the payment record refunded.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'coupon_redemption', 'reversed') === 1, 'community attachment coupon refund should mark the coupon payment item reversed.');
+    sr_coupon_runtime_assert(sr_coupon_runtime_payment_item_status_count($pdo, $communityAttachmentPaymentId, 'access_entitlement', 'reversed') === 1, 'community attachment coupon refund should mark the access payment item reversed.');
 
     $pdo->prepare(
         "INSERT INTO sr_content_items

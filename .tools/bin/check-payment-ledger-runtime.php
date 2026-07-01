@@ -578,6 +578,123 @@ try {
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records')->fetchColumn() === 1, 'invalid payment inputs should not leave extra records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 3, 'invalid payment inputs should not leave extra items.');
 
+$partialRefundRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.download:payment:17:8803',
+    'account_id' => 17,
+    'subject_module' => 'content',
+    'subject_type' => 'content.download',
+    'subject_id' => '8803',
+    'payment_kind' => 'purchase',
+    'payable_amount' => 100,
+    'settlement_amount' => 60,
+    'settlement_currency' => 'KRW',
+], [
+    [
+        'item_kind' => 'coupon_redemption',
+        'owner_module' => 'coupon',
+        'reference_type' => 'coupon_redemption',
+        'reference_id' => '1701',
+        'amount' => -40,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'asset_transaction',
+        'owner_module' => 'point',
+        'reference_type' => 'point_transaction',
+        'reference_id' => '1702',
+        'amount' => -60,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'asset_access_log',
+        'owner_module' => 'content',
+        'reference_type' => 'content_asset_access_log',
+        'reference_id' => '1703',
+        'amount' => 60,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access_entitlement',
+        'reference_id' => 'content_file:8803:download',
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+    ],
+]);
+$partialRefund = sr_payment_ledger_mark_item_references_reversed($pdo, 17, [
+    [
+        'item_kind' => 'asset_transaction',
+        'owner_module' => 'point',
+        'reference_type' => 'point_transaction',
+        'reference_id' => '1702',
+    ],
+    [
+        'item_kind' => 'asset_access_log',
+        'owner_module' => 'content',
+        'reference_type' => 'content_asset_access_log',
+        'reference_id' => '1703',
+    ],
+    [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access_entitlement',
+        'reference_id' => 'content_file:8803:download',
+    ],
+], 'fixture partial refund');
+sr_payment_runtime_assert((int) ($partialRefund['reversed_item_count'] ?? 0) === 3, 'payment ledger partial refund should mark matching items reversed.');
+sr_payment_runtime_assert((array) ($partialRefund['refunded_record_ids'] ?? []) === [], 'payment ledger partial refund should not mark records refunded while coupon items remain open.');
+sr_payment_runtime_assert((string) $pdo->query('SELECT status FROM sr_payment_records WHERE id = ' . (int) $partialRefundRecordId)->fetchColumn() === 'paid', 'payment ledger partial refund should keep the record paid.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $partialRefundRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 3, 'payment ledger partial refund should persist reversed item statuses.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $partialRefundRecordId . " AND item_kind = 'coupon_redemption' AND reversal_status = 'none'")->fetchColumn() === 1, 'payment ledger partial refund should preserve unreversed coupon items.');
+
+$fullRefundRecordId = sr_payment_ledger_record_payment($pdo, [
+    'dedupe_key' => 'content.view:payment:coupon:1801',
+    'account_id' => 18,
+    'subject_module' => 'content',
+    'subject_type' => 'content.view',
+    'subject_id' => '9901',
+    'payment_kind' => 'purchase',
+    'payable_amount' => 100,
+    'settlement_amount' => 0,
+    'settlement_currency' => 'KRW',
+], [
+    [
+        'item_kind' => 'coupon_redemption',
+        'owner_module' => 'coupon',
+        'reference_type' => 'coupon_redemption',
+        'reference_id' => '1801',
+        'amount' => -100,
+        'currency_code' => 'KRW',
+        'reversible' => true,
+    ],
+    [
+        'item_kind' => 'access_entitlement',
+        'owner_module' => 'content',
+        'reference_type' => 'content.access_entitlement',
+        'reference_id' => 'content:9901:view',
+        'amount' => 0,
+        'currency_code' => '',
+        'reversible' => true,
+    ],
+]);
+$fullRefund = sr_payment_ledger_mark_item_references_reversed($pdo, 18, [[
+    'item_kind' => 'coupon_redemption',
+    'owner_module' => 'coupon',
+    'reference_type' => 'coupon_redemption',
+    'reference_id' => '1801',
+]], 'fixture full coupon refund', true);
+sr_payment_runtime_assert((int) ($fullRefund['reversed_item_count'] ?? 0) === 2, 'payment ledger full refund should mark every reversible item in the matched record reversed.');
+sr_payment_runtime_assert((array) ($fullRefund['refunded_record_ids'] ?? []) === [$fullRefundRecordId], 'payment ledger full refund should report refunded records.');
+$fullRefundRecord = sr_payment_runtime_row($pdo, 'SELECT status, description FROM sr_payment_records WHERE id = :id', ['id' => $fullRefundRecordId]);
+sr_payment_runtime_assert((string) ($fullRefundRecord['status'] ?? '') === 'refunded', 'payment ledger full refund should mark the record refunded.');
+sr_payment_runtime_assert((string) ($fullRefundRecord['description'] ?? '') === 'fixture full coupon refund', 'payment ledger full refund should preserve the refund reason.');
+sr_payment_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = " . (int) $fullRefundRecordId . " AND reversal_status = 'reversed'")->fetchColumn() === 2, 'payment ledger full refund should persist all reversed item statuses.');
+
 sr_payment_ledger_mark_cancelled($pdo, $paymentRecordId, 'fixture cancel');
 $cancelled = sr_payment_runtime_row($pdo, 'SELECT status, description, cancelled_at FROM sr_payment_records WHERE id = :id', ['id' => $paymentRecordId]);
 sr_payment_runtime_assert((string) ($cancelled['status'] ?? '') === 'cancelled', 'payment ledger should mark a payment record cancelled.');
@@ -695,7 +812,7 @@ $lateReplayRecordId = sr_payment_ledger_record_payment($pdo, [
 ]);
 sr_payment_runtime_assert($lateReplayRecordId === $paymentRecordId, 'payment ledger should absorb late replay for anonymized duplicate records.');
 sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_records WHERE account_id = 0')->fetchColumn() === 1, 'payment ledger late replay should not relink anonymized account records.');
-sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items')->fetchColumn() === 4, 'payment ledger late replay should not append items to anonymized duplicate records.');
+sr_payment_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_payment_record_items WHERE payment_record_id = ' . (int) $paymentRecordId)->fetchColumn() === 3, 'payment ledger late replay should not append items to anonymized duplicate records.');
 
 if ($errors !== []) {
     foreach ($errors as $error) {

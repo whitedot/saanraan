@@ -1179,6 +1179,23 @@ function sr_content_file_download_access_logs_for_refund(PDO $pdo, array $downlo
     return $stmt->fetchAll();
 }
 
+function sr_content_mark_payment_ledger_items_reversed_if_available(PDO $pdo, int $accountId, array $references, string $reason): array
+{
+    if ($references === [] || !function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
+        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
+    }
+    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
+        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
+    }
+
+    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
+    if (!function_exists('sr_payment_ledger_mark_item_references_reversed') || !sr_payment_ledger_tables_available($pdo)) {
+        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
+    }
+
+    return sr_payment_ledger_mark_item_references_reversed($pdo, $accountId, $references, $reason, false);
+}
+
 function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $adminAccountId, string $refundNote, string $refundExpirationPolicy = 'original'): array
 {
     $refundNote = sr_content_clean_single_line($refundNote, 255);
@@ -1227,6 +1244,7 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
         }
 
         $refundTransactionIds = [];
+        $paymentLedgerReferences = [];
         foreach ($accessLogs as $accessLog) {
             $amount = (int) ($accessLog['amount'] ?? 0);
             $transactionId = (int) ($accessLog['transaction_id'] ?? 0);
@@ -1252,6 +1270,18 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
             if ($assetModule === 'point') {
                 $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
             }
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'asset_transaction',
+                'owner_module' => $assetModule,
+                'reference_type' => $assetModule . '_transaction',
+                'reference_id' => (string) $transactionId,
+            ];
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'asset_access_log',
+                'owner_module' => 'content',
+                'reference_type' => 'content_asset_access_log',
+                'reference_id' => (string) (int) ($accessLog['id'] ?? 0),
+            ];
             if ($assetModule === 'point' && function_exists('sr_point_create_refund_transactions')) {
                 foreach (sr_point_create_refund_transactions($pdo, $transactionData) as $refundTransactionId) {
                     $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
@@ -1266,6 +1296,14 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
         $accessRevoked = false;
         if ((string) ($downloadLog['charge_policy'] ?? '') === 'once' || (int) ($downloadLog['amount'] ?? 0) <= 0) {
             $accessRevoked = sr_content_revoke_file_download_access_entitlement($pdo, $accountId, $contentId, $fileId) > 0;
+        }
+        if ($accessRevoked || $refundTransactionIds !== []) {
+            $paymentLedgerReferences[] = [
+                'item_kind' => 'access_entitlement',
+                'owner_module' => 'content',
+                'reference_type' => 'content.access_entitlement',
+                'reference_id' => 'content_file:' . (string) $fileId . ':download',
+            ];
         }
 
         if ($refundTransactionIds === [] && !$accessRevoked) {
@@ -1298,6 +1336,7 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
         if ($stmt->rowCount() < 1) {
             throw new RuntimeException('이미 처리된 다운로드입니다.');
         }
+        sr_content_mark_payment_ledger_items_reversed_if_available($pdo, $accountId, $paymentLedgerReferences, '콘텐츠 파일 다운로드 환불: ' . $refundNote);
 
         if ($startedTransaction) {
             $pdo->commit();

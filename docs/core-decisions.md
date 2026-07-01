@@ -142,7 +142,7 @@
 - 결제 record의 subject module/type은 활성 모듈이 제공하는 `payment-ledger-targets.php` 계약에 있어야 한다. 계약 제공 모듈은 자기 모듈 키와 같은 `subject_module`만 선언할 수 있고, 오타나 아직 계약되지 않은 결제 대상은 공통 결제 기록에 저장하지 않는다.
 - 결제 record와 item의 identifier, dedupe/reference key, 통화 코드, 금액은 저장 전에 검증한다. 길이 초과 key, 3자리 ISO 형태가 아닌 통화 코드, 비정수 금액, 음수 record 금액은 잘라내거나 0으로 보정하지 않고 거부한다.
 - 결제 record item 중 접근권 부여 item의 `reference_id`는 접근 대상과 접근 종류만 식별하고 raw account id를 포함하지 않는다. 탈퇴/익명화 cleanup은 record `account_id`를 끊기 전에 과거 접근권 item reference와 item snapshot 문자열의 정확한 `:account:{id}` segment도 익명 marker로 바꾸며, `:account:77`처럼 다른 계정 ID prefix를 잘못 치환하지 않는다.
-- 취소/환불 실행은 도메인 모듈이 자기 정책과 원장 되돌림을 수행하고, `payment_ledger`는 record/status와 item `reversal_status`를 통해 결과 증빙을 보존한다. record가 새로 취소 상태로 전이될 때만 reversible item을 `pending`으로 표시하며, 이미 `reversed`인 item을 재호출로 `pending`에 되돌리지 않는다.
+- 취소/환불 실행은 도메인 모듈이 자기 정책과 원장 되돌림을 수행하고, `payment_ledger`는 record/status와 item `reversal_status`를 통해 결과 증빙을 보존한다. record가 새로 취소 상태로 전이될 때만 reversible item을 `pending`으로 표시하며, 이미 `reversed`인 item을 재호출로 `pending`에 되돌리지 않는다. 도메인 환불이 실제 원장 환불이나 접근권 회수를 끝내면 연결 item을 `reversed`로 표시하고, 해당 record의 reversible item이 모두 `reversed`가 된 경우 record 상태를 `refunded`로 닫는다. 할인 쿠폰처럼 일부 구성 item이 환불 대상이 아니면 해당 item은 열린 상태로 남고 record도 부분 환불 증빙으로 유지한다.
 - `payment_ledger`가 활성화되어 있는데 helper나 테이블이 준비되지 않은 부분 설치 상태라면 유료 접근 처리 모듈은 결제 기록 없이 성공시키지 않고 실패 처리한다.
 - 개인정보 export/cleanup은 `payment_ledger`가 소유한다. 사본 제공에는 결제 record와 item snapshot이 포함되고, member cleanup event context로 탈퇴/익명화가 전달되면 결제 record의 account 연결을 제거한다. cleanup 저장소 오류는 0건 처리로 숨기지 않고 member cleanup orchestrator로 전파해 전체 익명화 트랜잭션이 rollback되게 한다.
 

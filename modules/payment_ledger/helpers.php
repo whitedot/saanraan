@@ -600,6 +600,177 @@ function sr_payment_ledger_mark_record_items_reversal_status(PDO $pdo, int $paym
     return $stmt->rowCount();
 }
 
+function sr_payment_ledger_normalized_item_reference(array $reference): array
+{
+    $itemKind = array_key_exists('item_kind', $reference)
+        ? sr_payment_ledger_clean_identifier((string) $reference['item_kind'], 40)
+        : '';
+    $ownerModule = sr_payment_ledger_clean_module_key((string) ($reference['owner_module'] ?? ''));
+    $referenceType = sr_payment_ledger_clean_identifier((string) ($reference['reference_type'] ?? ''), 80, true);
+    $referenceId = sr_payment_ledger_clean_reference_key((string) ($reference['reference_id'] ?? ''), 120);
+    if ($ownerModule === '' || $referenceType === '' || $referenceId === '' || (array_key_exists('item_kind', $reference) && $itemKind === '')) {
+        throw new InvalidArgumentException('결제 기록 항목 참조를 확인할 수 없습니다.');
+    }
+
+    return [
+        'item_kind' => $itemKind,
+        'owner_module' => $ownerModule,
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+    ];
+}
+
+function sr_payment_ledger_item_reference_conditions(array $references, array &$params, string $alias = 'i'): string
+{
+    $normalized = [];
+    foreach ($references as $reference) {
+        if (!is_array($reference)) {
+            continue;
+        }
+
+        $row = sr_payment_ledger_normalized_item_reference($reference);
+        $key = implode("\x1F", $row);
+        $normalized[$key] = $row;
+    }
+    if ($normalized === []) {
+        return '1 = 0';
+    }
+
+    $conditions = [];
+    $index = 0;
+    $columnPrefix = $alias === '' ? '' : $alias . '.';
+    foreach ($normalized as $reference) {
+        $prefix = 'ref_' . (string) $index . '_';
+        $condition = $columnPrefix . 'owner_module = :' . $prefix . 'owner_module'
+            . ' AND ' . $columnPrefix . 'reference_type = :' . $prefix . 'reference_type'
+            . ' AND ' . $columnPrefix . 'reference_id = :' . $prefix . 'reference_id';
+        $params[$prefix . 'owner_module'] = $reference['owner_module'];
+        $params[$prefix . 'reference_type'] = $reference['reference_type'];
+        $params[$prefix . 'reference_id'] = $reference['reference_id'];
+        if ($reference['item_kind'] !== '') {
+            $condition .= ' AND ' . $columnPrefix . 'item_kind = :' . $prefix . 'item_kind';
+            $params[$prefix . 'item_kind'] = $reference['item_kind'];
+        }
+        $conditions[] = '(' . $condition . ')';
+        $index++;
+    }
+
+    return '(' . implode(' OR ', $conditions) . ')';
+}
+
+function sr_payment_ledger_refund_completed_record_ids(PDO $pdo, array $paymentRecordIds): array
+{
+    $ids = [];
+    foreach ($paymentRecordIds as $paymentRecordId) {
+        $paymentRecordId = (int) $paymentRecordId;
+        if ($paymentRecordId > 0) {
+            $ids[$paymentRecordId] = $paymentRecordId;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $refunded = [];
+    foreach ($ids as $paymentRecordId) {
+        $stmt = $pdo->prepare(
+            "SELECT
+                SUM(CASE WHEN reversible = 1 THEN 1 ELSE 0 END) AS reversible_count,
+                SUM(CASE WHEN reversible = 1 AND reversal_status <> 'reversed' THEN 1 ELSE 0 END) AS open_count
+             FROM sr_payment_record_items
+             WHERE payment_record_id = :payment_record_id"
+        );
+        $stmt->execute(['payment_record_id' => $paymentRecordId]);
+        $row = $stmt->fetch();
+        if (!is_array($row) || (int) ($row['reversible_count'] ?? 0) < 1 || (int) ($row['open_count'] ?? 0) > 0) {
+            continue;
+        }
+
+        $refunded[] = $paymentRecordId;
+    }
+
+    return $refunded;
+}
+
+function sr_payment_ledger_mark_item_references_reversed(PDO $pdo, int $accountId, array $references, string $reason = '', bool $markAllRecordItems = false): array
+{
+    if ($accountId <= 0 || !sr_payment_ledger_tables_available($pdo)) {
+        throw new InvalidArgumentException('되돌림 처리할 결제 기록을 확인할 수 없습니다.');
+    }
+
+    $params = ['account_id' => $accountId];
+    $referenceWhere = sr_payment_ledger_item_reference_conditions($references, $params);
+    if ($referenceWhere === '1 = 0') {
+        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT DISTINCT i.payment_record_id
+         FROM sr_payment_record_items i
+         INNER JOIN sr_payment_records r ON r.id = i.payment_record_id
+         WHERE r.account_id = :account_id
+           AND ' . $referenceWhere
+    );
+    $stmt->execute($params);
+
+    $paymentRecordIds = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $paymentRecordId = (int) ($row['payment_record_id'] ?? 0);
+        if ($paymentRecordId > 0) {
+            $paymentRecordIds[$paymentRecordId] = $paymentRecordId;
+        }
+    }
+    if ($paymentRecordIds === []) {
+        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
+    }
+
+    $now = sr_now();
+    $reversedItemCount = 0;
+    foreach ($paymentRecordIds as $paymentRecordId) {
+        if ($markAllRecordItems) {
+            $reversedItemCount += sr_payment_ledger_mark_record_items_reversal_status($pdo, $paymentRecordId, 'reversed', ['none', 'pending', 'failed']);
+            continue;
+        }
+
+        $itemParams = ['payment_record_id' => $paymentRecordId, 'updated_at' => $now];
+        $itemWhere = sr_payment_ledger_item_reference_conditions($references, $itemParams, '');
+        $stmt = $pdo->prepare(
+            "UPDATE sr_payment_record_items
+             SET reversal_status = 'reversed',
+                 updated_at = :updated_at
+             WHERE payment_record_id = :payment_record_id
+               AND reversible = 1
+               AND reversal_status IN ('none', 'pending', 'failed')
+               AND " . $itemWhere
+        );
+        $stmt->execute($itemParams);
+        $reversedItemCount += $stmt->rowCount();
+    }
+
+    $refundedRecordIds = sr_payment_ledger_refund_completed_record_ids($pdo, array_values($paymentRecordIds));
+    foreach ($refundedRecordIds as $paymentRecordId) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_payment_records
+             SET status = 'refunded',
+                 description = CASE WHEN :reason = '' THEN description ELSE :reason END,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status NOT IN ('cancelled', 'refunded')"
+        );
+        $stmt->execute([
+            'reason' => sr_payment_ledger_clean_key($reason, 255),
+            'updated_at' => $now,
+            'id' => $paymentRecordId,
+        ]);
+    }
+
+    return [
+        'payment_record_ids' => array_values($paymentRecordIds),
+        'reversed_item_count' => $reversedItemCount,
+        'refunded_record_ids' => $refundedRecordIds,
+    ];
+}
+
 function sr_payment_ledger_mark_record_cancelled(PDO $pdo, int $paymentRecordId, string $reason = '', string $itemReversalStatus = 'pending'): void
 {
     if ($paymentRecordId <= 0 || !sr_payment_ledger_tables_available($pdo)) {
