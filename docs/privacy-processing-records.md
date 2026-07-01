@@ -54,7 +54,7 @@
 | `privacy` | 개인정보 요청 기록, requester, admin note, handler, export 조정 | 관리자 메모 최소화, 민감정보 redaction, 처리 상태와 실제 조치의 정합성을 기록한다. |
 | `quiz` | 퀴즈, 시도, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash | 답안/결과 snapshot과 접속 hash, 보상 grant, 댓글 작성자 cleanup을 표면별로 기록한다. |
 | `reaction` | 계정별 target reaction 원장과 알림 연결 | 리액션 원장 삭제 cleanup, target owner 알림 no-op 조건, target resolver 접근 정책을 기록한다. |
-| `reward` | 적립금 잔액/원장, 만료 소비 매핑, 출금 신청 계좌 | 금액성 증빙으로 보존하고 만료 source/consume 연결, 출금 계좌 마스킹 시점, 처리자 접근 범위를 기록한다. |
+| `reward` | 적립금 잔액/원장, 만료 소비 매핑, 출금 신청 | 금액성 증빙으로 원장과 출금 금액/상태/처리자 연결을 보존한다. 탈퇴/익명화 cleanup은 출금 은행명, 계좌번호, 예금주, 요청자/관리자 note를 빈 값으로 정리한다. |
 | `seo` | sitemap/robots/default meta 설정 | 현재 회원 귀속 개인정보 없음. 콘텐츠별 SEO 개인정보는 소유 모듈 책임이다. |
 | `site_menu` | 메뉴 구조와 링크 자산 | 현재 회원 귀속 개인정보 없음. 연결 대상 개인정보는 소유 모듈 책임이다. |
 | `survey` | 설문, 응답, 답변/metadata/consent snapshot, 댓글, 보상 grant, IP/UA hash | 응답 동의, 익명 허용, 답변 snapshot, 민감정보 입력 가능성, 보상 grant cleanup을 표면별로 기록한다. |
@@ -163,7 +163,7 @@
 
 | 표면 | 보존 기준 | cleanup 기준 |
 | --- | --- | --- |
-| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. | 모듈 cleanup을 제공하지 않고 원장 보존으로 처리한다. |
+| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. reward 출금 신청은 금액, 상태, 거래 연결, 처리자를 증빙으로 유지한다. | point/deposit은 모듈 cleanup을 제공하지 않고 원장 보존으로 처리한다. reward cleanup은 출금 은행명, 계좌번호, 예금주와 요청자/관리자 note만 빈 값으로 정리한다. |
 | `coupon`, `asset_exchange` 로그 | 지급/사용/환불/환전 묶음과 실패 사유는 권리성 증빙으로 유지한다. | 상태 정정은 반대 거래나 정정 row로 남기며 원거래 account 연결을 제거하지 않는다. |
 | `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`의 completed 원장성 row는 account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 파일 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`를 함께 제공한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 account 연결을 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
 | `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`의 completed 원장성 row는 downloader/publisher account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 첨부 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`를 함께 제공한다. | `sr_community_access_entitlements`는 접근권 상태이므로 account 연결과 source reference를 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |

@@ -42,7 +42,7 @@
 | `privacy` | `coordinator_direct` | 소비 | 없음 | 관리자 전용 개인정보 요청 대응 기록과 사본 제공을 보조한다. `sr_privacy_export_data()`가 대응 기록을 직접 포함하고 다른 모듈 export 계약을 수집한다. |
 | `quiz` | `export_cleanup` | 제공 | 제공 | 응시, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash를 가진다. |
 | `reaction` | `export_cleanup` | 제공 | 제공 | 계정별 target reaction 원장을 가지며, 탈퇴/익명화 시 해당 계정의 reaction record를 삭제한다. |
-| `reward` | `export_retained` | 제공 | 없음 | 적립금 잔액, 원장, 출금 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
+| `reward` | `export_cleanup` | 제공 | 제공 | 적립금 잔액과 원장, 출금 신청 금액/상태/처리자 증빙은 사본 제공과 보존 대상이다. 탈퇴/익명화 cleanup은 출금 신청의 은행명, 계좌번호, 예금주, 요청자/관리자 free-text note를 빈 값으로 정리한다. |
 | `seo` | `no_member_personal_data` | 없음 | 없음 | SEO 설정과 sitemap 정책은 현재 회원 귀속 데이터가 아니다. |
 | `site_menu` | `no_member_personal_data` | 없음 | 없음 | 메뉴 구조는 현재 회원 귀속 데이터가 아니다. |
 | `survey` | `export_cleanup` | 제공 | 제공 | 설문 응답, 답변, 댓글, 보상 grant, IP/UA hash를 가진다. |
@@ -84,7 +84,7 @@
 - `export_cleanup` 모듈은 `module.php`의 `contracts.provides`에 `privacy-export.php`와 `privacy-cleanup.php`를 모두 선언하고 실제 파일을 둔다. `.tools/bin/check-privacy-contract-matrix.php`는 계약 파일을 include해 `privacy-export.php`가 배열 또는 `(PDO $pdo, int $accountId): array` callable을 반환하고, `privacy-cleanup.php`가 최소 `(PDO $pdo, int $accountId): array` callable을 반환하는지 확인한다.
 - `.tools/bin/check-privacy-contract-matrix.php`는 `install.sql`뿐 아니라 `updates/*.sql`도 함께 훑어 `*_account_id`, `email`, `recipient`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, 동의/답변/metadata snapshot 계열 컬럼이나 참조가 생겼는데 매트릭스 상태가 `no_member_personal_data`로 남는 경우를 차단한다.
 - `.tools/bin/check-privacy-export-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` export 계약과 `asset_ledger`, `asset_exchange`, `coupon`, `deposit`, `notification`, `payment_ledger`, `point`, `reward` 보존형 export 계약을 실행한다. 퀴즈/설문은 상세 답변과 JSON snapshot 구조화를 확인하고, 콘텐츠/커뮤니티는 접근권, 자산 로그, 다운로드 로그, 작가 신청, 시리즈, 댓글/게시글, 신고/쪽지/스크랩/동의 증적이 대상 계정 기준으로 포함되며 다른 계정 row가 섞이지 않는지 확인한다. 보존형 export fixture는 보상 회수 실패 큐, 결제 record/item, 금액성 원장, 쿠폰 환불, 환불/출금 계좌, 알림 delivery, 포인트/적립금 만료 소비 매핑처럼 운영 증빙으로 남기는 고위험 필드가 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다.
-- `.tools/bin/check-privacy-cleanup-runtime.php`는 SQLite fixture로 `asset_ledger`, `quiz`, `survey`, `content`, `community`, `notification`, `payment_ledger`, `policy_documents` cleanup 계약을 실행한다. asset_ledger는 보상 회수 실패 큐의 account 연결, dedupe key, operation context를 익명화하는지 확인하고, 퀴즈/설문은 응시/응답, 보상 grant, 댓글 작성자 snapshot을 확인하고, 콘텐츠/커뮤니티는 접근권, 다운로드 로그, 작가 신청, 닉네임, 레벨, 동의 증적, 시리즈 메타데이터, 작성자 snapshot이 대상 계정에 대해서만 익명화되며 다른 계정 row가 유지되는지 확인한다. notification은 push endpoint row를 disabled tombstone으로 전환하고 ciphertext를 비우는지, payment_ledger는 결제 record의 account 연결 제거와 item account 참조 익명화를 수행하는지, policy_documents는 안내메일 delivery의 대상 account 연결만 제거하는지 확인한다. 이 fixture는 설치 DB에서의 전체 개인정보 smoke를 대체하지 않고, 계약 반환 형태와 핵심 익명화 동작의 회귀를 막는 최소 런타임 증거다.
+- `.tools/bin/check-privacy-cleanup-runtime.php`는 SQLite fixture로 `asset_ledger`, `quiz`, `survey`, `content`, `community`, `notification`, `payment_ledger`, `policy_documents`, `reward` cleanup 계약을 실행한다. asset_ledger는 보상 회수 실패 큐의 account 연결, dedupe key, operation context를 익명화하는지 확인하고, 퀴즈/설문은 응시/응답, 보상 grant, 댓글 작성자 snapshot을 확인하고, 콘텐츠/커뮤니티는 접근권, 다운로드 로그, 작가 신청, 닉네임, 레벨, 동의 증적, 시리즈 메타데이터, 작성자 snapshot이 대상 계정에 대해서만 익명화되며 다른 계정 row가 유지되는지 확인한다. notification은 push endpoint row를 disabled tombstone으로 전환하고 ciphertext를 비우는지, payment_ledger는 결제 record의 account 연결 제거와 item account 참조 익명화를 수행하는지, policy_documents는 안내메일 delivery의 대상 account 연결만 제거하는지 확인한다. reward는 출금 신청의 계좌정보와 요청자/관리자 note를 비우되 금액, 상태, 처리자, 거래 연결은 보존하는지 확인한다. 이 fixture는 설치 DB에서의 전체 개인정보 smoke를 대체하지 않고, 계약 반환 형태와 핵심 익명화 동작의 회귀를 막는 최소 런타임 증거다.
 - `export_retained` 모듈은 `privacy-export.php`를 제공해야 한다. cleanup이 없거나 일부 secret/부가 데이터만 정리하는 이유는 보존 정책, 회원 자산 정리 계약, 운영 증빙 중 하나로 설명한다.
 - `operational_retained` 모듈은 사본 제공 제외가 확정됐다는 뜻이 아니다. 1.0 전 보존 정책 검토와 운영자 안내 대상이다.
 - `privacy` 모듈은 `privacy-export.php`를 제공하지 않고 소비한다. 자기 요청 이력은 `sr_privacy_export_data()`에서 직접 포함한다.
@@ -98,7 +98,7 @@
 | `admin` | 관리자 권한, 감사 로그, 운영 설정 변경의 책임 추적 | 소유자와 권한 있는 관리자 화면, 감사 로그 조회 권한 | 감사 로그는 본인 export 기본 범위에서 제외한다. 탈퇴 계정 표시명을 공개 식별자 또는 익명 label로 낮출 수 있는지 검토 |
 | `logo_manager` | 로고 변경 이력과 운영 설정 변경 책임 추적 | 사이트 설정 권한이 있는 관리자 화면 | 단순 설정 변경자 ID를 감사 로그로 충분히 대체할 수 있는지 검토 |
 
-`export_retained` 모듈은 사본 제공 대상이므로 `privacy-export.php`를 유지한다. 탈퇴/익명화 시에는 거래 원장, 쿠폰 권리, 환불/출금 신청, 알림 delivery처럼 운영상 보관해야 하는 행을 임의 삭제하지 않는다. 대신 export 결과, 관리자 화면, 운영 문서에서 보존 사유를 설명하고, 표시명/연락처/계좌정보처럼 재식별성이 높은 필드는 업무 종료 후 별도 마스킹 또는 보존기간 정책을 둘 수 있는지 1.0 전 검토한다.
+`export_retained` 모듈은 사본 제공 대상이므로 `privacy-export.php`를 유지한다. 탈퇴/익명화 시에는 거래 원장, 쿠폰 권리, 환불/출금 신청, 알림 delivery처럼 운영상 보관해야 하는 행을 임의 삭제하지 않는다. 대신 export 결과, 관리자 화면, 운영 문서에서 보존 사유를 설명하고, 표시명/연락처/계좌정보처럼 재식별성이 높은 필드는 업무 종료 후 별도 마스킹 또는 보존기간 정책을 둘 수 있는지 1.0 전 검토한다. `reward`처럼 상태는 `export_cleanup`이지만 원장 row 일부 필드를 보존하는 모듈도 이 표에 보존 필드와 cleanup 필드를 함께 적는다.
 
 | 모듈 | 보존 사유 | 고위험 필드/연결 | 1.0 전 검토 항목 |
 | --- | --- | --- | --- |
@@ -107,4 +107,4 @@
 | `deposit` | 현금성 예치금 원장, 환불 신청, 처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 은행명/계좌번호/예금주 | 환불 완료 후 계좌정보 마스킹 시점과 보존 기간 |
 | `notification` | 회원 알림 제공 이력, delivery 실패 추적, 운영 알림 읽음 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, delivery destination/metadata, push endpoint ciphertext | 대상 회원 delivery만 export하고 다른 회원 recipient는 제외한다. 발송 완료/실패 delivery의 주소 마스킹과 재발송 가능 기간, 탈퇴/익명화 시 push endpoint ciphertext 제거 |
 | `point` | 포인트 원장, 만료 소비 매핑, 환불/회수 증빙 | `account_id`, `created_by_account_id`, 만료 source/consume transaction 연결 | 탈퇴 후 회원 식별자 노출 최소화와 오래된 만료 소비 매핑 보존 기간 |
-| `reward` | 적립금 원장, 출금 신청, 회수/처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 은행명/계좌번호/예금주 | 출금 완료 후 계좌정보 마스킹 시점과 보존 기간 |
+| `reward` | 적립금 원장, 출금 신청, 회수/처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 출금 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 세무 snapshot을 추가할 때 법정 보존 clock과 은행 PII cleanup 경계를 필드 단위로 재확인 |

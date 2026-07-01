@@ -27,6 +27,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+            'privacy-cleanup.php',
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',
