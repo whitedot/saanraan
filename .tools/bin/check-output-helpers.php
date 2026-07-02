@@ -400,6 +400,14 @@ sr_output_helper_assert(
     'Plain text URL linkification should preserve line breaks and trailing punctuation.'
 );
 sr_output_helper_assert(
+    sr_markdown_text_html("# Title\n\n**Safe** [link](/docs) <script>") === '<h1>Title</h1>' . "\n" . '<p><strong>Safe</strong> <a href="/docs" rel="nofollow noopener noreferrer">link</a> &lt;script&gt;</p>',
+    'Markdown renderer should render basic blocks and inline links while escaping raw HTML.'
+);
+sr_output_helper_assert(
+    sr_body_text_html(['body_text' => '*Hello*', 'body_format' => 'markdown']) === '<p><em>Hello</em></p>',
+    'Body text helper should render markdown body_format through the Markdown renderer.'
+);
+sr_output_helper_assert(
     sr_public_layout_key(['public_layout_key' => 'basic']) === 'common.basic',
     'Legacy public layout key should normalize to the namespaced common layout key.'
 );

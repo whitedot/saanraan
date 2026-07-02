@@ -45,12 +45,16 @@ function sr_policy_document_plain_text_to_html(string $bodyText): string
 function sr_policy_document_body_html_from_editor_data(array $data): string
 {
     $mode = (string) ($data['body_editor_mode'] ?? 'html');
-    if (!in_array($mode, ['plain', 'html', 'ckeditor'], true)) {
+    if (!in_array($mode, ['plain', 'html', 'markdown', 'ckeditor'], true)) {
         $mode = 'html';
     }
 
     if ($mode === 'plain') {
         return sr_policy_document_sanitize_body(sr_policy_document_plain_text_to_html((string) ($data['body_plain'] ?? '')));
+    }
+
+    if ($mode === 'markdown') {
+        return sr_policy_document_sanitize_body(sr_markdown_text_html((string) ($data['body_markdown'] ?? '')));
     }
 
     if ($mode === 'ckeditor') {

@@ -18,7 +18,7 @@ function sr_notification_clean_text(string $value, int $maxLength): string
 
 function sr_notification_body_format(string $value): string
 {
-    return in_array($value, ['plain', 'html'], true) ? $value : 'plain';
+    return in_array($value, ['plain', 'html', 'markdown'], true) ? $value : 'plain';
 }
 
 function sr_notification_body_html(array $notification): string

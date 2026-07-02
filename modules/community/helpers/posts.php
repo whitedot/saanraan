@@ -176,6 +176,8 @@ function sr_community_body_plain_text(string $bodyText, string $bodyFormat = 'pl
     if ($bodyFormat === 'html') {
         $bodyText = str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText);
         $bodyText = html_entity_decode(strip_tags($bodyText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    } elseif ($bodyFormat === 'markdown') {
+        $bodyText = sr_markdown_plain_text($bodyText);
     }
 
     return trim(preg_replace('/\s+/', ' ', $bodyText) ?? '');
@@ -973,6 +975,8 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
     $bodyText = (string) ($post['body_text'] ?? '');
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
+    } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
+        $html = sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
@@ -994,6 +998,8 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     $bodyText = (string) ($post['body_text'] ?? '');
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
+    } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
+        $html = sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
@@ -1014,6 +1020,16 @@ function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?ar
 
     $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')) === 'ckeditor';
+}
+
+function sr_community_markdown_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool
+{
+    if (is_array($board)) {
+        return sr_community_effective_post_editor($pdo, $board, $settings) === 'markdown';
+    }
+
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')) === 'markdown';
 }
 
 function sr_community_body_text_is_empty(string $bodyText, string $bodyFormat): bool

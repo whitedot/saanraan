@@ -801,11 +801,133 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
 function sr_body_text_html(array $record, bool $linkPlainUrls = false): string
 {
     $bodyText = (string) ($record['body_text'] ?? '');
-    if ((string) ($record['body_format'] ?? 'plain') === 'html') {
+    $bodyFormat = sr_body_format((string) ($record['body_format'] ?? 'plain'));
+    if ($bodyFormat === 'html') {
         return sr_sanitize_rich_text_html($bodyText);
+    }
+    if ($bodyFormat === 'markdown') {
+        return sr_markdown_text_html($bodyText);
     }
 
     return sr_plain_text_html($bodyText, $linkPlainUrls);
+}
+
+function sr_body_format(string $value): string
+{
+    return in_array($value, ['plain', 'html', 'markdown'], true) ? $value : 'plain';
+}
+
+function sr_markdown_text_html(string $markdown): string
+{
+    $markdown = trim(str_replace(["\r\n", "\r"], "\n", $markdown));
+    if ($markdown === '') {
+        return '';
+    }
+
+    $html = [];
+    $paragraph = [];
+    $listType = '';
+    $listItems = [];
+
+    $flushParagraph = static function () use (&$html, &$paragraph): void {
+        if ($paragraph === []) {
+            return;
+        }
+        $html[] = '<p>' . sr_markdown_inline_html(implode("\n", $paragraph)) . '</p>';
+        $paragraph = [];
+    };
+    $flushList = static function () use (&$html, &$listType, &$listItems): void {
+        if ($listType === '' || $listItems === []) {
+            return;
+        }
+        $items = [];
+        foreach ($listItems as $item) {
+            $items[] = '<li>' . sr_markdown_inline_html($item) . '</li>';
+        }
+        $html[] = '<' . $listType . '>' . implode('', $items) . '</' . $listType . '>';
+        $listType = '';
+        $listItems = [];
+    };
+
+    foreach (explode("\n", $markdown) as $line) {
+        $trimmedLine = trim($line);
+        if ($trimmedLine === '') {
+            $flushParagraph();
+            $flushList();
+            continue;
+        }
+
+        if (preg_match('/\A(#{1,6})\s+(.+)\z/', $trimmedLine, $headingMatches) === 1) {
+            $flushParagraph();
+            $flushList();
+            $level = strlen($headingMatches[1]);
+            $html[] = '<h' . $level . '>' . sr_markdown_inline_html((string) $headingMatches[2]) . '</h' . $level . '>';
+            continue;
+        }
+
+        if (preg_match('/\A[-*+]\s+(.+)\z/', $trimmedLine, $unorderedMatches) === 1) {
+            $flushParagraph();
+            if ($listType !== 'ul') {
+                $flushList();
+                $listType = 'ul';
+            }
+            $listItems[] = (string) $unorderedMatches[1];
+            continue;
+        }
+
+        if (preg_match('/\A[0-9]+\.\s+(.+)\z/', $trimmedLine, $orderedMatches) === 1) {
+            $flushParagraph();
+            if ($listType !== 'ol') {
+                $flushList();
+                $listType = 'ol';
+            }
+            $listItems[] = (string) $orderedMatches[1];
+            continue;
+        }
+
+        $flushList();
+        $paragraph[] = $trimmedLine;
+    }
+
+    $flushParagraph();
+    $flushList();
+
+    return implode("\n", $html);
+}
+
+function sr_markdown_inline_html(string $text): string
+{
+    $placeholders = [];
+    $text = preg_replace_callback('/`([^`]+)`/', static function (array $matches) use (&$placeholders): string {
+        $token = "\x1A" . count($placeholders) . "\x1A";
+        $placeholders[$token] = '<code>' . sr_e((string) $matches[1]) . '</code>';
+        return $token;
+    }, $text) ?? $text;
+
+    $text = preg_replace_callback('/\[([^\]\n]+)\]\(([^)\s]+)\)/', static function (array $matches) use (&$placeholders): string {
+        $url = trim((string) $matches[2]);
+        if (!sr_is_safe_relative_url($url) && !sr_is_http_url($url)) {
+            return (string) $matches[0];
+        }
+
+        $token = "\x1A" . count($placeholders) . "\x1A";
+        $placeholders[$token] = '<a href="' . sr_e($url) . '" rel="nofollow noopener noreferrer">' . sr_e((string) $matches[1]) . '</a>';
+        return $token;
+    }, $text) ?? $text;
+
+    $html = sr_e($text);
+    $html = preg_replace('/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $html) ?? $html;
+    $html = preg_replace('/__([^_\n]+)__/', '<strong>$1</strong>', $html) ?? $html;
+    $html = preg_replace('/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $html) ?? $html;
+    $html = preg_replace('/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $html) ?? $html;
+    $html = nl2br($html, false);
+
+    return strtr($html, $placeholders);
+}
+
+function sr_markdown_plain_text(string $markdown): string
+{
+    return trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(sr_markdown_text_html($markdown)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')) ?? '');
 }
 
 function sr_editor_normalize_key(string $editorKey, bool $allowInherit = false): string
@@ -872,7 +994,7 @@ function sr_editor_contracts(?PDO $pdo = null): array
 function sr_editor_available(PDO $pdo, string $editorKey): bool
 {
     $editorKey = sr_editor_normalize_key($editorKey);
-    if ($editorKey === 'textarea') {
+    if ($editorKey === 'textarea' || $editorKey === 'markdown') {
         return true;
     }
 
@@ -889,6 +1011,7 @@ function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
 {
     $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
     $options['textarea'] = '기본 textarea';
+    $options['markdown'] = 'Markdown';
     foreach (sr_editor_contracts($pdo) as $editorKey => $contract) {
         $options[(string) $editorKey] = (string) ($contract['label'] ?? $editorKey);
     }
@@ -902,6 +1025,9 @@ function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $pres
     if ($editorKey === 'textarea') {
         return '';
     }
+    if ($editorKey === 'markdown') {
+        return ' data-sr-editor="markdown" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="markdown"';
+    }
 
     return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';
 }
@@ -909,7 +1035,7 @@ function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $pres
 function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 'default'): string
 {
     $editorKey = sr_editor_effective_key($pdo, $editorKey);
-    if ($editorKey === 'textarea') {
+    if ($editorKey === 'textarea' || $editorKey === 'markdown') {
         return '';
     }
 

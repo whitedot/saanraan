@@ -53,7 +53,7 @@ if ($errors === []) {
         $stmt->execute([
             'title' => $title,
             'body_text' => $sourceBodyText,
-            'body_format' => (string) ($sourcePopup['body_format'] ?? 'plain') === 'html' ? 'html' : 'plain',
+            'body_format' => sr_body_format((string) ($sourcePopup['body_format'] ?? 'plain')),
             'status' => 'draft',
             'skin_key' => (string) ($sourcePopup['skin_key'] ?? 'basic'),
             'starts_at' => $sourcePopup['starts_at'] ?? null,

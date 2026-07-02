@@ -13,6 +13,8 @@ function sr_content_input_values(?PDO $pdo = null): array
     $bodyFormat = 'plain';
     if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) {
         $bodyFormat = 'html';
+    } elseif ($pdo instanceof PDO && (sr_post_string('body_format', 20) === 'markdown' || sr_content_markdown_body_enabled($pdo))) {
+        $bodyFormat = 'markdown';
     }
     $bodyText = sr_post_string_without_truncation('body_text', 100000);
     if (!is_string($bodyText)) {
@@ -181,7 +183,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = '콘텐츠 레이아웃 값이 올바르지 않습니다.';
     }
 
-    if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)) {
+    if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html', 'markdown'], true)) {
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
 

@@ -268,7 +268,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         $previousStmt->execute(['id' => $postId]);
         $previousBodyText = (string) ($previousStmt->fetchColumn() ?: '');
 
-        $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
+        $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html', 'markdown'], true)
             ? (string) $values['body_format']
             : 'plain';
         $bodyText = trim((string) $values['body_text']);
@@ -431,6 +431,8 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
     $bodyFormat = 'plain';
     if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) {
         $bodyFormat = 'html';
+    } elseif ($pdo instanceof PDO && (sr_post_string('body_format', 20) === 'markdown' || sr_community_markdown_post_body_enabled($pdo, $board, $settings))) {
+        $bodyFormat = 'markdown';
     }
 
     $bodyText = sr_post_string_without_truncation('body_text', sr_community_post_body_storage_max_bytes());
@@ -487,7 +489,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $initialStatus = in_array($initialStatusInput, ['published', 'pending'], true)
         ? $initialStatusInput
         : 'published';
-    $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
+    $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html', 'markdown'], true)
         ? (string) $values['body_format']
         : 'plain';
     $bodyText = trim((string) ($values['body_text'] ?? ''));

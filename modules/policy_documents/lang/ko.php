@@ -22,6 +22,7 @@ return [
     'ui.body.help' => '저장 시 허용된 HTML만 남도록 정리됩니다.',
     'ui.body_mode.ckeditor' => 'CKEditor',
     'ui.body_mode.html' => 'HTML',
+    'ui.body_mode.markdown' => 'Markdown',
     'ui.body_mode.plain' => '일반 텍스트',
     'ui.body_hash' => '본문 해시',
     'ui.description' => '약관, 방침, 동의 문서의 published version을 관리합니다.',

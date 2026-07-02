@@ -269,7 +269,12 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'save') {
         $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);
-        $bodyFormat = $popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html' ? 'html' : 'plain';
+        $bodyFormat = 'plain';
+        if ($popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html') {
+            $bodyFormat = 'html';
+        } elseif ($popupLayerEditorKey === 'markdown') {
+            $bodyFormat = 'markdown';
+        }
         $rawBodyText = sr_post_string('body_text', 5000);
         $bodyText = $bodyFormat === 'html'
             ? sr_sanitize_rich_text_html(sr_popup_layer_clean_text($rawBodyText, 5000))

@@ -48,7 +48,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 - 자기 테이블은 있을 수 있지만 독립 도메인이라기보다 어댑터 성격이다.
 - 소셜 로그인 제공자, 결제 수단 어댑터, 에디터 연동처럼 특정 모듈의 확장점에 붙는다.
 
-CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type => plugin`으로 등록하고, 적용 대상 textarea와 저장/출력 정책은 화면을 소유한 모듈이 결정한다. 콘텐츠는 콘텐츠 환경설정에서 에디터와 콘텐츠 본문 툴바 구성을 저장하고, 커뮤니티는 환경설정에서 게시글 툴바 구성을 저장하며 환경설정/게시판 그룹/게시판에서 에디터 선택을 저장한다. 관리자는 사이트 설정의 관리자 화면 섹션에서 에디터 선택을 저장한다. CKEditor 플러그인은 에셋 로딩, 초기화 스크립트, 전역 기본 툴바 preset, 화면 소유 모듈이 넘긴 upload endpoint에 대한 adapter 연결만 소유하고, 화면 소유 모듈은 `body_format`, HTML sanitizer, plain text URL 자동 링크 여부, 출력 helper, 파일 권한과 보존 정책을 책임진다. CKEditor 툴바 preset은 콘텐츠/커뮤니티 환경설정의 명시 override, CKEditor 전역 기본 `toolbar_preset`, 코드 fallback 순서로 적용한다. 관리자 공통 에디터 설정은 업로드 endpoint를 자동으로 제공하지 않으며, 알림/팝업레이어/설정 화면처럼 rich textarea를 가진 소유 모듈이 필요할 때만 자기 subject id 또는 setting key 기준 upload endpoint를 textarea에 명시한다. CKEditor 설정은 관리자 사이드바의 `플러그인` 분류에서 접근할 수 있지만, 이 메뉴는 도메인 관리 화면이 아니라 플러그인 런타임 자산 설정이다. 플러그인이 비활성화되거나 에셋 로딩에 실패하면 일반 textarea 제출이 유지되어야 한다.
+CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type => plugin`으로 등록하고, 적용 대상 textarea와 저장/출력 정책은 화면을 소유한 모듈이 결정한다. 콘텐츠는 콘텐츠 환경설정에서 에디터와 콘텐츠 본문 툴바 구성을 저장하고, 커뮤니티는 환경설정에서 게시글 툴바 구성을 저장하며 환경설정/게시판 그룹/게시판에서 에디터 선택을 저장한다. 팝업레이어는 팝업레이어 설정에서 본문 에디터를 저장하고, 약관/방침 문서는 작성 화면에서 본문 입력 모드를 선택한다. 코어 내장 `textarea`와 `Markdown`은 플러그인이 아니라 저장 형식과 출력 helper만 제공하는 기본 입력 방식이며, Markdown은 제한된 문법을 escape 기반 HTML로 렌더링한다. CKEditor 플러그인은 에셋 로딩, 초기화 스크립트, 전역 기본 툴바 preset, 화면 소유 모듈이 넘긴 upload endpoint에 대한 adapter 연결만 소유하고, 화면 소유 모듈은 `body_format`, HTML sanitizer, plain text URL 자동 링크 여부, Markdown 출력, 파일 권한과 보존 정책을 책임진다. CKEditor 툴바 preset은 콘텐츠/커뮤니티 환경설정의 명시 override, CKEditor 전역 기본 `toolbar_preset`, 코드 fallback 순서로 적용한다. 관리자 공통 에디터 설정은 업로드 endpoint를 자동으로 제공하지 않으며, 알림/팝업레이어/설정 화면처럼 rich textarea를 가진 소유 모듈이 필요할 때만 자기 subject id 또는 setting key 기준 upload endpoint를 textarea에 명시한다. CKEditor 설정은 관리자 사이드바의 `플러그인` 분류에서 접근할 수 있지만, 이 메뉴는 도메인 관리 화면이 아니라 플러그인 런타임 자산 설정이다. 플러그인이 비활성화되거나 에셋 로딩에 실패하면 일반 textarea 제출이 유지되어야 한다.
 
 공식 선택 모듈로 만든다:
 
@@ -1081,7 +1081,7 @@ return [
 
 - 배열을 반환한다.
 - `key`, `label`, 선택 `helpers`, 선택 `assets_function`을 제공한다.
-- core의 기본 `textarea` 외 에디터 플러그인이 관리자 설정 후보로 노출될 때 사용한다.
+- core의 기본 `textarea`와 `Markdown` 외 에디터 플러그인이 관리자 설정 후보로 노출될 때 사용한다.
 - `assets_function` callable 형식은 `function (PDO $pdo, string $presetKey): string`이다.
 - 화면 소유 모듈은 저장한 editor key를 core helper에 넘기고, core helper는 활성 플러그인의 계약만 읽어 textarea 속성과 에셋 HTML을 만든다.
 

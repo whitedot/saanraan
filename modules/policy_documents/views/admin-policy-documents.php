@@ -47,6 +47,7 @@ $policyDocumentCkeditorAvailable = isset($pdo) && $pdo instanceof PDO && sr_edit
 $policyDocumentBodyEditorMode = $policyDocumentCkeditorAvailable ? 'ckeditor' : 'html';
 $policyDocumentBodyEditorOptions = [
     'plain' => sr_t('policy_documents::ui.body_mode.plain'),
+    'markdown' => sr_t('policy_documents::ui.body_mode.markdown'),
     'html' => sr_t('policy_documents::ui.body_mode.html'),
 ];
 if ($policyDocumentCkeditorAvailable) {
@@ -169,6 +170,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="btn-space-before" data-admin-body-editor-panel="plain"<?php echo $policyDocumentBodyEditorMode === 'plain' ? '' : ' hidden'; ?>>
                         <textarea id="policy_document_body_plain" class="form-textarea form-control-full" name="body_plain" rows="14"><?php echo sr_e($policyDocumentBodyTextValue($policyDocumentBodyHtmlValue)); ?></textarea>
+                    </div>
+                    <div class="btn-space-before" data-admin-body-editor-panel="markdown"<?php echo $policyDocumentBodyEditorMode === 'markdown' ? '' : ' hidden'; ?>>
+                        <textarea id="policy_document_body_markdown" class="form-textarea form-control-full" name="body_markdown" rows="14"><?php echo sr_e($policyDocumentBodyTextValue($policyDocumentBodyHtmlValue)); ?></textarea>
                     </div>
                     <div class="btn-space-before" data-admin-body-editor-panel="html"<?php echo $policyDocumentBodyEditorMode === 'html' ? '' : ' hidden'; ?>>
                         <textarea id="policy_document_body_html" class="form-textarea form-control-full" name="body_html" rows="14"><?php echo sr_e($policyDocumentBodyHtmlValue); ?></textarea>

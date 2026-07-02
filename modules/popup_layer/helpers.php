@@ -710,9 +710,7 @@ function sr_popup_layer_render_basic_stack(array $popups): string
         $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
         $html[] = '<section class="sr-popup-layer" data-sr-popup-layer data-popup-id="' . sr_e((string) $popup['id']) . '" data-cookie-days="' . sr_e((string) $cookieDays) . '">';
         $html[] = '<h2>' . sr_e((string) $popup['title']) . '</h2>';
-        $bodyText = (string) ($popup['body_text'] ?? '');
-        $bodyHtml = (string) ($popup['body_format'] ?? 'plain') === 'html' ? sr_sanitize_rich_text_html($bodyText) : nl2br(sr_e($bodyText), false);
-        $html[] = '<div class="sr-popup-layer-body">' . $bodyHtml . '</div>';
+        $html[] = '<div class="sr-popup-layer-body">' . sr_body_text_html($popup) . '</div>';
         $html[] = '<div class="sr-popup-layer-actions">';
         $couponCta = sr_popup_layer_coupon_cta($popup);
         if ($couponCta !== []) {

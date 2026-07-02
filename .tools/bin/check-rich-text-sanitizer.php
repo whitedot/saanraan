@@ -240,10 +240,11 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
         ],
         'popup layer rich text flow' => [
             'modules/popup_layer/helpers.php' => [
-                '$bodyHtml = (string) ($popup[\'body_format\'] ?? \'plain\') === \'html\' ? sr_sanitize_rich_text_html($bodyText) : nl2br(sr_e($bodyText), false);',
+                '\'<div class="sr-popup-layer-body">\' . sr_body_text_html($popup) . \'</div>\';',
             ],
             'modules/popup_layer/actions/admin-popup-layers.php' => [
-                '$bodyFormat = $popupLayerEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\' ? \'html\' : \'plain\';',
+                'if ($popupLayerEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\')',
+                '} elseif ($popupLayerEditorKey === \'markdown\')',
                 '? sr_sanitize_rich_text_html(sr_popup_layer_clean_text($rawBodyText, 5000))',
                 ': sr_popup_layer_clean_text($rawBodyText, 5000);',
             ],

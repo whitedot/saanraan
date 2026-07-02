@@ -518,6 +518,11 @@ function sr_content_html_body_enabled(PDO $pdo): bool
     return sr_content_editor_key($pdo) === 'ckeditor';
 }
 
+function sr_content_markdown_body_enabled(PDO $pdo): bool
+{
+    return sr_content_editor_key($pdo) === 'markdown';
+}
+
 function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
 {
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
