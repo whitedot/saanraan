@@ -765,6 +765,7 @@ foreach ($optionalModules as $moduleKey => $module) {
             var installPreviewMode = form && form.getAttribute('data-install-preview') === '1';
             var promptMirror = document.querySelector('[data-install-prompt-mirror]');
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
+            var bulkModuleSelectionDepth = 0;
 
             function inputLabelText(input) {
                 if (!input) {
@@ -778,12 +779,23 @@ foreach ($optionalModules as $moduleKey => $module) {
                     label = field ? field.querySelector('label, .sr-install-field-label') : null;
                 }
 
+                if (label && (input.getAttribute('type') || '').toLowerCase() === 'checkbox') {
+                    var strongLabel = label.querySelector('strong');
+                    if (strongLabel) {
+                        return strongLabel.textContent.replace(/\s+/g, ' ').trim();
+                    }
+                }
+
                 return label ? label.textContent.replace(/\s+/g, ' ').replace('(필수)', '').trim() : (input.getAttribute('name') || 'INPUT');
             }
 
             function promptInputValue(input) {
                 if (!input) {
                     return '';
+                }
+
+                if ((input.getAttribute('type') || '').toLowerCase() === 'checkbox') {
+                    return input.checked ? '선택함' : '선택 해제';
                 }
 
                 if (input.tagName && input.tagName.toLowerCase() === 'select') {
@@ -802,6 +814,10 @@ foreach ($optionalModules as $moduleKey => $module) {
                     return;
                 }
 
+                if (bulkModuleSelectionDepth > 0) {
+                    return;
+                }
+
                 if (!input || !input.matches('input:not([type="hidden"]), select')) {
                     promptMirror.textContent = '';
                     return;
@@ -809,6 +825,14 @@ foreach ($optionalModules as $moduleKey => $module) {
 
                 var value = promptInputValue(input);
                 promptMirror.textContent = inputLabelText(input) + (value !== '' ? ' = ' + value : ' = ');
+            }
+
+            function updatePromptText(text) {
+                if (!promptMirror) {
+                    return;
+                }
+
+                promptMirror.textContent = text || '';
             }
 
             function stepPanel(stepKey) {
@@ -1112,14 +1136,20 @@ foreach ($optionalModules as $moduleKey => $module) {
                 selectAllInput.addEventListener('change', function () {
                     var checked = selectAllInput.checked;
                     var moduleType = selectAllInput.getAttribute('data-install-module-select-all-type') || '';
-                    moduleOptionInputsByType(moduleType).forEach(function (input) {
-                        if (!input.disabled) {
-                            input.checked = checked;
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    });
+                    bulkModuleSelectionDepth += 1;
+                    try {
+                        moduleOptionInputsByType(moduleType).forEach(function (input) {
+                            if (!input.disabled) {
+                                input.checked = checked;
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                    } finally {
+                        bulkModuleSelectionDepth = Math.max(0, bulkModuleSelectionDepth - 1);
+                    }
                     syncModuleSelectAll();
                     updateSummary();
+                    updatePromptText(inputLabelText(selectAllInput) + ' = ' + (checked ? '선택함' : '선택 해제'));
                 });
             });
 
