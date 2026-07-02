@@ -49,9 +49,9 @@
 
 | 계획 | 상태 | 기준 문서 |
 | --- | --- | --- |
-| 본인확인 플러그인 | `planned` | [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md) |
-| 회원 마이그레이션 | `planned` | [회원 마이그레이션 계획](plans/member-migration-plan.md) |
-| 결제 플러그인 | `planned` | [결제 플러그인 계획](plans/payment-plugin-plan.md) |
+| 본인확인 선택 모듈과 provider 플러그인 | `planned` | [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md) |
+| 회원 마이그레이션 선택 모듈 | `planned` | [회원 마이그레이션 계획](plans/member-migration-plan.md) |
+| 결제 선택 모듈과 PG 플러그인 | `planned` | [결제 플러그인 계획](plans/payment-plugin-plan.md) |
 
 ## 갱신 기준
 
