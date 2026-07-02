@@ -87,7 +87,7 @@
 
 ## 쿠키와 브라우저 저장소 inventory
 
-현재 번들 기준으로 공개 화면에서 확인된 쿠키와 브라우저 저장소 표면은 기능·보안 목적에 한정한다. 마케팅, 행동 분석, 광고, 제3자 추적 script는 기본 번들에 포함하지 않는다. 따라서 `/privacy/cookie-settings`의 선택 항목은 현재 비필수 브라우저 저장소로 확인된 팝업 닫기 쿠키만 표시하고, 새 비필수 저장소가 추가될 때 이 inventory와 동의 gate를 함께 확장한다.
+현재 번들 기준으로 공개 화면에서 확인된 쿠키와 브라우저 저장소 표면은 기능·보안 목적에 한정한다. 마케팅, 행동 분석, 광고, 제3자 추적 script는 기본 번들에 포함하지 않는다. 따라서 `/privacy/cookie-settings`의 선택 항목은 현재 비필수 브라우저 저장소로 확인된 팝업 닫기 쿠키만 표시하고, 새 비필수 저장소가 추가될 때 이 inventory와 동의 gate를 함께 확장한다. 새 선택 항목은 key, 표시 이름, 목적, 필수/선택 구분, 저장 위치, 저장 값의 개인정보성, 기본 보관 기간, 철회 방법, 철회 후 영향, 관련 모듈, 외부 provider 또는 국외 이전 여부를 같은 변경에서 문서화한다.
 
 | 표면 | 저장 위치 | 목적 | 동의/차단 기준 | 검증 |
 | --- | --- | --- | --- | --- |
@@ -105,17 +105,17 @@
 
 ## 권리 요청 전파 기준
 
-`privacy` 모듈의 처리 요청 유형은 `access`, `rectification`, `erasure`, `restriction`, `portability`, `objection`, `withdrawal`이다. 관리자 화면의 상태값은 요청 처리 기록의 상태이며, 각 모듈 데이터가 자동으로 바뀌었다는 뜻이 아니다. 요청을 `completed`로 종결하려면 요청자 확인, 처리 자료 또는 처리 결과 확인, 처리 내용 메모가 함께 남아야 한다.
+`privacy` 모듈의 처리 요청 유형은 `access`, `rectification`, `erasure`, `restriction`, `portability`, `objection`, `withdrawal`이다. #377 결정에 따라 기본 설치의 `/account/privacy-requests`는 안내 전용 화면이며 회원 self-service 요청 ticket을 생성하지 않는다. 외부 문의, 이메일, 고객센터, 게시판 등 별도 채널로 들어온 요청은 운영자가 `/admin/privacy-requests`에서 수기 등록한다. 관리자 화면의 상태값은 요청 처리 기록의 상태이며, 각 모듈 데이터가 자동으로 바뀌었다는 뜻이 아니다. 요청을 `completed`로 종결하려면 요청자 확인, 처리 자료 또는 처리 결과 확인, 처리 내용 메모가 함께 남아야 한다.
 
 | 요청 유형 | 기본 처리 기준 | 모듈별 전파 기준 |
 | --- | --- | --- |
-| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `policy_documents`, `notification`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. |
-| `rectification` 정정 | 계정 원천 데이터는 `member` 관리자/회원 화면에서 정정하고, 원문 신원정보는 재검증을 유도한다. | 게시글/댓글/응답/원장은 과거 작성 시점 snapshot을 임의 수정하지 않는다. 표시명 snapshot 정정은 운영자가 공개 오표시와 증빙 보존을 비교해 판단한다. |
-| `erasure` 삭제 | 회원 탈퇴/익명화 cleanup 계약을 우선 사용한다. | 운영 증빙, 금액성 원장, 정책문서 delivery, 감사 로그처럼 보존 사유가 있는 row는 account 연결 제거, tombstone, 마스킹, 보존기간 만료 후 정리 중 하나로 처리한다. |
-| `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. |
-| `portability` 이동권 | 산란이 보관하는 구조화 가능한 사본만 제공한다. | provider 원문, CI/DI 원문, 외부 처리자 내부 로그는 제공하지 않는다. export JSON은 다른 계정 row가 섞이지 않아야 한다. |
-| `objection` 처리 반대 | 정당한 이익이나 운영 목적 처리에 대한 중단 가능성을 검토한다. | 마케팅/분석/비필수 알림, 리액션/추천/통계 반영은 중단 후보로 두되, 보안/정산/법적 의무 기록은 보존 사유를 메모한다. |
-| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티/설문 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `/account/privacy-requests`의 기능성 쿠키 철회, `community` 제출 동의의 신규 제출 차단, `survey` 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. |
+| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `policy_documents`, `notification`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
+| `rectification` 정정 | 계정 원천 데이터는 `member` 관리자/회원 화면에서 정정하고, 원문 신원정보는 재검증을 유도한다. | 게시글/댓글/응답/원장은 과거 작성 시점 snapshot을 임의 수정하지 않는다. 표시명 snapshot 정정은 운영자가 공개 오표시와 증빙 보존을 비교해 판단한다. 정정 전후 원문 전체를 메모에 붙이지 않고 처리 위치와 결과만 남긴다. |
+| `erasure` 삭제 | 회원 탈퇴/익명화 cleanup 계약을 우선 사용한다. | 운영 증빙, 금액성 원장, 정책문서 delivery, 감사 로그처럼 보존 사유가 있는 row는 account 연결 제거, tombstone, 마스킹, 보존기간 만료 후 정리 중 하나로 처리한다. 삭제하지 못한 범위와 보존 사유를 메모한다. |
+| `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. 제한 기간과 해제 조건을 메모한다. |
+| `portability` 이동권 | 산란이 보관하는 구조화 가능한 사본만 제공한다. | provider 원문, CI/DI 원문, 외부 처리자 내부 로그는 제공하지 않는다. export JSON은 다른 계정 row가 섞이지 않아야 한다. 별도 포맷 변환은 기본 범위에 넣지 않고 제공 파일명, 시각, 전달 경로를 메모한다. |
+| `objection` 처리 반대 | 정당한 이익이나 운영 목적 처리에 대한 중단 가능성을 검토한다. | 마케팅/분석/비필수 알림, 리액션/추천/통계 반영은 중단 후보로 두되, 보안/정산/법적 의무 기록은 보존 사유를 메모한다. 거부 가능한 항목은 소유 모듈에서 중단하고, 거부 불가 항목은 근거를 남긴다. |
+| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티/설문 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `/account/privacy-requests`의 기능성 쿠키 철회, `community` 제출 동의의 신규 제출 차단, `survey` 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. 철회 후에도 남는 제출/거래/감사 기록이 있으면 보존 사유를 메모한다. |
 
 권리 요청 전파는 자동 일괄 변경보다 모듈 소유 정책을 우선한다. 여러 모듈에 반복되는 동작이 확인되면 먼저 좁은 helper 또는 계약을 추가하고, 코어로 올리는 것은 도메인 정책이 사라진 뒤에만 검토한다.
 
@@ -174,7 +174,7 @@
 
 ## 관리자 메모 redaction 기준
 
-관리자 메모는 개인정보 처리 요청의 판단 근거와 처리 결과를 남기기 위한 운영 기록이다. 요청자 본문과 달리 내부 판단을 위한 필드이므로 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, token, provider 원문 응답을 남기지 않는다.
+관리자 메모는 개인정보 처리 요청의 판단 근거와 처리 결과를 남기기 위한 운영 기록이다. 요청자 본문과 달리 내부 판단을 위한 필드이므로 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, token, provider 원문 응답을 남기지 않는다. 기본 보관 권고는 요청 종결일 기준 3년 후 운영자 검토/정리 대상이며, 법정 분쟁, 금액성 거래, 세무, abuse 대응과 연결된 요청은 해당 모듈의 더 긴 보존 정책을 우선한다.
 
 | 표면 | 기준 |
 | --- | --- |
@@ -182,7 +182,14 @@
 | 저장 전 처리 | `sr_admin_privacy_request_admin_note_sanitize()`가 secret류 문자열, 이메일, 휴대폰 번호, 주민등록번호 형태를 redaction한다. |
 | export 처리 | 개인정보 요청 export와 계정 전체 export의 `privacy_requests.admin_note`는 저장된 기존 row라도 같은 redaction helper를 거쳐 제공한다. |
 | 감사 metadata | 감사 로그 metadata는 `sr_audit_metadata_sanitize()`로 저장 전 처리하고 `/admin/audit-logs` 표시 전에도 `sr_admin_audit_log_display_metadata()`를 거친다. |
+| 입력 금지 | 주민등록번호, 여권/운전면허번호, 신분증 이미지 원문, 비밀번호, 인증 코드, access/refresh token, API key, provider secret, 원문 OAuth 응답, 전체 계좌번호, 제3자 연락처/주소/식별자를 입력하지 않는다. |
 | 한계 | 자동 redaction은 명백한 패턴만 줄인다. 운영자는 제3자 사연, 민감정보, provider 원문 응답을 메모에 붙여넣지 않는 것을 원칙으로 한다. |
+
+## 개인정보 export 표시 기준
+
+회원 개인정보 사본 export는 단일 JSON 파일을 기본으로 유지한다. 별도 zip/README 번들은 공유호스팅 환경의 임시 파일, 압축 확장, 다운로드 실패 처리를 추가하므로 2차 개선으로 둔다. 대신 JSON 최상위에 `export_schema_version`, `description`, `sections` 설명 metadata를 포함해 사용자가 파일 구조를 이해할 수 있게 한다. 설명 metadata는 법률 문서 원문을 대체하지 않으며, 자동 삭제나 자동 정정처럼 제공하지 않는 기능을 암시하면 안 된다.
+
+모듈별 `privacy-export.php` 수집은 부분 실패를 숨기지 않는다. 각 export에는 `module_export_status`와 `partial_export`를 포함한다. 상태값은 `success`, `empty`, `failed`, `skipped` 중 하나를 사용한다. 실패한 모듈은 사용자 JSON에 raw exception message, stack trace, DB DSN, 파일 경로, secret을 넣지 않고 `error_code`와 운영자가 서버 로그와 대조할 수 있는 `evidence_id`만 제공한다. 운영자는 `partial_export = true`인 요청을 바로 완료하지 않고 재시도 또는 수동 확인 후 `export_confirmed`를 체크한다.
 
 ## 마일스톤 12 conformance 자동화 기준
 
