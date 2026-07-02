@@ -831,7 +831,12 @@ if ($privacyHelper !== '' && $privacyOrchestrationHelper !== '') {
             && strpos($privacyOrchestrationHelper, 'if (is_array($moduleExportData))') !== false
             && strpos($privacyOrchestrationHelper, 'sr_privacy_export_sanitize_module_data($moduleExportData)') !== false
             && strpos($privacyOrchestrationHelper, 'catch (Throwable $exception)') !== false
-            && strpos($privacyOrchestrationHelper, "sr_log_exception(\$exception, 'privacy_export_module_' . \$moduleKey)") !== false
+            && strpos($privacyOrchestrationHelper, 'function sr_privacy_module_export_results') !== false
+            && strpos($privacyOrchestrationHelper, "'module_export_status' => \$moduleExportResults['status']") !== false
+            && strpos($privacyOrchestrationHelper, "'partial_export' => \$moduleExportResults['partial_export']") !== false
+            && strpos($privacyOrchestrationHelper, 'function sr_privacy_export_evidence_id') !== false
+            && strpos($privacyOrchestrationHelper, "'error_code' => 'module_export_exception'") !== false
+            && strpos($privacyOrchestrationHelper, "sr_log_exception(\$exception, 'privacy_export_module_' . \$moduleKey . '_evidence_' . \$evidenceId)") !== false
             && strpos($privacyOrchestrationHelper, 'password|token|secret|credential|bearer|authorization') !== false
             && strpos($privacyOrchestrationHelper, "str_ends_with(\$normalizedKey, '_token_hash')") !== false
             && strpos($privacyOrchestrationHelper, "str_ends_with(\$normalizedKey, '_hash')") !== false,
@@ -972,8 +977,10 @@ if ($adminPrivacyRequestsHelper !== '') {
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, 'sr_privacy_export_data($pdo, (int) $privacyRequest[\'account_id\'])') !== false
             && strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') !== false
-            && strpos($adminPrivacyRequestsHelper, "sr_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'])") !== false
-            && strpos($adminPrivacyRequestsHelper, "\$export['account_data_unavailable'] = true") !== false,
+            && strpos($adminPrivacyRequestsHelper, "sr_privacy_export_evidence_id('privacy_request_account_data', (int) \$privacyRequest['id'], \$exportedAt)") !== false
+            && strpos($adminPrivacyRequestsHelper, "sr_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'] . '_evidence_' . \$evidenceId)") !== false
+            && strpos($adminPrivacyRequestsHelper, "\$export['account_data_unavailable'] = true") !== false
+            && strpos($adminPrivacyRequestsHelper, "\$export['account_data_status'] = [") !== false,
         'Admin privacy request export should isolate linked account export failures.'
     );
 }

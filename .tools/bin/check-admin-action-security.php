@@ -702,8 +702,10 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('admin_note', 2000)") === false
     || strpos($adminPrivacyRequestsHelper, '$adminNote === null') === false
     || strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') === false
-    || strpos($adminPrivacyRequestsHelper, "sr_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'])") === false
+    || strpos($adminPrivacyRequestsHelper, "sr_privacy_export_evidence_id('privacy_request_account_data', (int) \$privacyRequest['id'], \$exportedAt)") === false
+    || strpos($adminPrivacyRequestsHelper, "sr_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'] . '_evidence_' . \$evidenceId)") === false
     || strpos($adminPrivacyRequestsHelper, "'account_data_unavailable'") === false
+    || strpos($adminPrivacyRequestsHelper, "'account_data_status'") === false
     || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 요청 대응 기록 상태는 다시 변경할 수 없습니다.') === false
     || strpos($adminPrivacyRequestsHelper, '$preserveTerminalHandler = !$statusChanged && $isTerminalStatus;') === false
     || strpos($adminPrivacyRequestsHelper, "sr_admin_post_positive_int('request_id')") === false

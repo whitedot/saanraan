@@ -455,8 +455,15 @@ function sr_admin_privacy_request(PDO $pdo, int $requestId): ?array
 
 function sr_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest): array
 {
+    $exportedAt = sr_now();
     $export = [
-        'exported_at' => sr_now(),
+        'export_schema_version' => 'privacy_request_export_v1',
+        'description' => '개인정보 요청 대응 기록과 연결 계정의 개인정보 사본입니다. 요청 기록은 실제 데이터 조치를 자동 실행했다는 뜻이 아니며, 처리 결과는 관리자 메모와 소유 모듈 기록을 함께 확인해야 합니다.',
+        'sections' => [
+            'privacy_request' => '개인정보 요청 대응 기록',
+            'account_data' => '요청과 연결된 회원 계정의 개인정보 사본',
+        ],
+        'exported_at' => $exportedAt,
         'privacy_request' => [
             'id' => (int) $privacyRequest['id'],
             'account_id' => $privacyRequest['account_id'] !== null ? (int) $privacyRequest['account_id'] : null,
@@ -476,8 +483,14 @@ function sr_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest): 
         try {
             $export['account_data'] = sr_privacy_export_data($pdo, (int) $privacyRequest['account_id']);
         } catch (Throwable $exception) {
-            sr_log_exception($exception, 'privacy_request_export_account_' . (int) $privacyRequest['id']);
+            $evidenceId = sr_privacy_export_evidence_id('privacy_request_account_data', (int) $privacyRequest['id'], $exportedAt);
+            sr_log_exception($exception, 'privacy_request_export_account_' . (int) $privacyRequest['id'] . '_evidence_' . $evidenceId);
             $export['account_data_unavailable'] = true;
+            $export['account_data_status'] = [
+                'status' => 'failed',
+                'error_code' => 'account_export_exception',
+                'evidence_id' => $evidenceId,
+            ];
         }
     }
 
@@ -486,6 +499,7 @@ function sr_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest): 
 
 function sr_privacy_export_data(PDO $pdo, int $accountId): array
 {
+    $exportedAt = sr_now();
     $stmt = $pdo->prepare(
         'SELECT id, request_type, status, request_message, admin_note, handled_at, created_at, updated_at
          FROM sr_privacy_requests
@@ -500,17 +514,38 @@ function sr_privacy_export_data(PDO $pdo, int $accountId): array
         }
     }
 
+    $moduleExportResults = sr_privacy_module_export_results($pdo, $accountId, $exportedAt);
+
     return [
-        'exported_at' => sr_now(),
+        'export_schema_version' => 'privacy_export_v1',
+        'generated_by' => 'saanraan privacy module',
+        'description' => '이 파일은 회원 계정과 연결된 개인정보 사본입니다. 일부 운영 보존 기록은 법적 또는 서비스 운영 근거로 남을 수 있습니다.',
+        'sections' => [
+            'privacy_requests' => '개인정보 요청 대응 기록',
+            'module_exports' => '활성 모듈이 privacy-export.php 계약으로 제공한 회원 관련 데이터',
+            'module_export_status' => '모듈별 사본 제공 성공, 빈 결과, 실패 또는 건너뜀 증빙',
+        ],
+        'exported_at' => $exportedAt,
         'account_id' => $accountId,
         'privacy_requests' => $privacyRequests,
-        'module_exports' => sr_privacy_module_exports($pdo, $accountId),
+        'module_exports' => $moduleExportResults['exports'],
+        'module_export_status' => $moduleExportResults['status'],
+        'partial_export' => $moduleExportResults['partial_export'],
     ];
 }
 
 function sr_privacy_module_exports(PDO $pdo, int $accountId): array
 {
+    $results = sr_privacy_module_export_results($pdo, $accountId, sr_now());
+
+    return $results['exports'];
+}
+
+function sr_privacy_module_export_results(PDO $pdo, int $accountId, string $exportedAt): array
+{
     $exports = [];
+    $statuses = [];
+    $partialExport = false;
     foreach (sr_enabled_module_contract_files($pdo, 'privacy-export.php', ['privacy']) as $moduleKey => $exportFile) {
         try {
             $moduleExport = sr_load_module_contract_file($moduleKey, $exportFile);
@@ -518,16 +553,62 @@ function sr_privacy_module_exports(PDO $pdo, int $accountId): array
                 $moduleExportData = $moduleExport($pdo, $accountId);
                 if (is_array($moduleExportData)) {
                     $exports[$moduleKey] = sr_privacy_export_sanitize_module_data($moduleExportData);
+                    $statuses[$moduleKey] = [
+                        'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
+                    ];
+                } else {
+                    $statuses[$moduleKey] = [
+                        'status' => 'skipped',
+                        'error_code' => 'module_export_non_array',
+                    ];
+                    $partialExport = true;
                 }
             } elseif (is_array($moduleExport)) {
                 $exports[$moduleKey] = sr_privacy_export_sanitize_module_data($moduleExport);
+                $statuses[$moduleKey] = [
+                    'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
+                ];
+            } else {
+                $statuses[$moduleKey] = [
+                    'status' => 'skipped',
+                    'error_code' => 'module_export_invalid_contract',
+                ];
+                $partialExport = true;
             }
         } catch (Throwable $exception) {
-            sr_log_exception($exception, 'privacy_export_module_' . $moduleKey);
+            $evidenceId = sr_privacy_export_evidence_id('privacy_export_module_' . (string) $moduleKey, $accountId, $exportedAt);
+            sr_log_exception($exception, 'privacy_export_module_' . $moduleKey . '_evidence_' . $evidenceId);
+            $statuses[$moduleKey] = [
+                'status' => 'failed',
+                'error_code' => 'module_export_exception',
+                'evidence_id' => $evidenceId,
+            ];
+            $partialExport = true;
         }
     }
 
-    return $exports;
+    return [
+        'exports' => $exports,
+        'status' => $statuses,
+        'partial_export' => $partialExport,
+    ];
+}
+
+function sr_privacy_export_evidence_id(string $scope, int $subjectId, string $exportedAt): string
+{
+    $scope = strtolower($scope);
+    $safeScope = preg_replace('/[^a-z0-9_]+/', '_', $scope) ?? 'privacy_export';
+    $safeScope = trim($safeScope, '_');
+    if ($safeScope === '') {
+        $safeScope = 'privacy_export';
+    }
+    $safeTime = preg_replace('/[^0-9]+/', '', $exportedAt) ?? '';
+    if ($safeTime === '') {
+        $safeTime = date('YmdHis');
+    }
+    $digest = substr(sha1($safeScope . '|' . $subjectId . '|' . $exportedAt), 0, 12);
+
+    return $safeScope . '_' . $subjectId . '_' . $safeTime . '_' . $digest;
 }
 
 function sr_privacy_export_sanitize_module_data(mixed $value): mixed
