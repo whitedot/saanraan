@@ -29,21 +29,29 @@ foreach ($installChecks as $check) {
         break;
     }
 }
-$selectedOptionalModuleLabels = [];
+$selectedModuleLabels = [];
+$selectedPluginLabels = [];
 foreach ($selectedOptionalModuleKeys as $moduleKey) {
     if (isset($optionalModules[$moduleKey])) {
-        $selectedOptionalModuleLabels[] = (string) $optionalModules[$moduleKey]['label'];
+        $selectedModuleType = (string) ($optionalModules[$moduleKey]['type'] ?? 'module');
+        if ($selectedModuleType === 'plugin') {
+            $selectedPluginLabels[] = (string) $optionalModules[$moduleKey]['label'];
+        } else {
+            $selectedModuleLabels[] = (string) $optionalModules[$moduleKey]['label'];
+        }
     }
 }
-$selectedAutoFoundationModuleLabels = [];
-foreach (($selectedAutoFoundationModuleKeys ?? []) as $moduleKey) {
+$selectedAutoDependencyModuleLabels = [];
+foreach (($selectedAutoDependencyModuleKeys ?? []) as $moduleKey) {
     if (isset($foundationModules[$moduleKey])) {
-        $selectedAutoFoundationModuleLabels[] = (string) $foundationModules[$moduleKey]['label'] . ' (자동)';
+        $selectedAutoDependencyModuleLabels[] = (string) $foundationModules[$moduleKey]['label'] . ' (기반 자동)';
     } elseif (isset($optionalModules[$moduleKey])) {
-        $selectedAutoFoundationModuleLabels[] = (string) $optionalModules[$moduleKey]['label'] . ' (자동)';
+        $selectedAutoDependencyModuleLabels[] = (string) $optionalModules[$moduleKey]['label'] . ' (자동)';
     }
 }
-$selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedOptionalModuleLabels, $selectedAutoFoundationModuleLabels)));
+$selectedModuleLabels = array_values(array_unique($selectedModuleLabels));
+$selectedPluginLabels = array_values(array_unique($selectedPluginLabels));
+$selectedAutoDependencyModuleLabels = array_values(array_unique($selectedAutoDependencyModuleLabels));
 $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr_url('/');
 $optionalModuleSections = [
     'module' => [
@@ -441,6 +449,32 @@ foreach ($optionalModules as $moduleKey => $module) {
                         <?php } ?>
                     </div>
 
+                    <?php if ($foundationModules !== []) { ?>
+                        <div class="sr-install-module-section">
+                            <h3>자동 포함 기반 모듈</h3>
+                            <p class="sr-install-subsection-help">직접 선택하는 기능은 아니지만, 선택한 모듈이 필요로 하면 자동으로 함께 설치됩니다.</p>
+                            <div class="sr-install-module-grid">
+                                <?php foreach ($foundationModules as $moduleKey => $module) { ?>
+                                    <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                    <div class="sr-install-module">
+                                        <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '자동 포함' : sr_t('ui.text.84dd6e38'); ?></span>
+                                        <strong><?php echo sr_e((string) $module['label']); ?></strong>
+                                        <span class="sr-install-type-badge">기반 모듈</span>
+                                        <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
+                                        <p><?php echo sr_e((string) $module['description']); ?></p>
+                                        <?php if ($moduleErrors !== []) { ?>
+                                            <ul>
+                                                <?php foreach ($moduleErrors as $moduleError) { ?>
+                                                    <li><?php echo sr_e((string) $moduleError); ?></li>
+                                                <?php } ?>
+                                            </ul>
+                                        <?php } ?>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    <?php } ?>
+
                     <?php foreach ($optionalModuleSections as $sectionType => $section) { ?>
                         <?php $sectionRows = $section['rows']; ?>
                         <div class="sr-install-module-section" data-install-module-section="<?php echo sr_e((string) $sectionType); ?>">
@@ -460,10 +494,10 @@ foreach ($optionalModules as $moduleKey => $module) {
                                 <div class="sr-install-module-grid">
                                     <?php foreach ($sectionRows as $moduleKey => $module) { ?>
                                         <?php $moduleOwnErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                                        <?php $moduleFoundationErrors = isset($module['foundation_dependency_errors']) && is_array($module['foundation_dependency_errors']) ? $module['foundation_dependency_errors'] : []; ?>
-                                        <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleFoundationErrors)))); ?>
-                                        <?php $moduleFoundationKeys = isset($module['foundation_dependency_keys']) && is_array($module['foundation_dependency_keys']) ? array_values(array_map('strval', $module['foundation_dependency_keys'])) : []; ?>
-                                        <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
+                                        <?php $moduleAutoDependencyErrors = isset($module['auto_dependency_errors']) && is_array($module['auto_dependency_errors']) ? $module['auto_dependency_errors'] : []; ?>
+                                        <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleAutoDependencyErrors)))); ?>
+                                        <?php $moduleAutoDependencyKeys = isset($module['auto_dependency_keys']) && is_array($module['auto_dependency_keys']) ? array_values(array_map('strval', $module['auto_dependency_keys'])) : []; ?>
+                                        <?php $moduleAutoDependencyLabels = isset($module['auto_dependency_labels']) && is_array($module['auto_dependency_labels']) ? array_values(array_map('strval', $module['auto_dependency_labels'])) : []; ?>
                                         <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
                                         <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
                                         <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
@@ -478,8 +512,8 @@ foreach ($optionalModules as $moduleKey => $module) {
                                                     data-install-module-option
                                                     data-install-module-type="<?php echo sr_e((string) $sectionType); ?>"
                                                     data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
-                                                    data-install-required-module-keys="<?php echo sr_e(sr_js_json_encode($moduleFoundationKeys)); ?>"
-                                                    data-install-foundation-labels="<?php echo sr_e(sr_js_json_encode($moduleFoundationLabels)); ?>"
+                                                    data-install-required-module-keys="<?php echo sr_e(sr_js_json_encode($moduleAutoDependencyKeys)); ?>"
+                                                    data-install-auto-dependency-labels="<?php echo sr_e(sr_js_json_encode($moduleAutoDependencyLabels)); ?>"
                                                     <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
                                                     <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
                                                 >
@@ -491,8 +525,8 @@ foreach ($optionalModules as $moduleKey => $module) {
                                             <?php } ?>
                                             <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
                                             <p><?php echo sr_e((string) $module['description']); ?></p>
-                                            <?php if ($moduleFoundationLabels !== []) { ?>
-                                                <p class="sr-install-help">함께 설치됨: <?php echo sr_e(implode(', ', $moduleFoundationLabels)); ?></p>
+                                            <?php if ($moduleAutoDependencyLabels !== []) { ?>
+                                                <p class="sr-install-help">자동 포함: <?php echo sr_e(implode(', ', $moduleAutoDependencyLabels)); ?></p>
                                             <?php } ?>
                                             <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
                                                 <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
@@ -606,8 +640,12 @@ foreach ($optionalModules as $moduleKey => $module) {
                         <dl>
                             <dt>필수</dt>
                             <dd><?php echo sr_e(implode(', ', array_map(static function (array $module): string { return (string) $module['label']; }, $requiredModules))); ?></dd>
-                            <dt>선택</dt>
-                            <dd data-summary-target="optional_modules"><?php echo sr_e($selectedOptionalModuleLabels !== [] ? implode(', ', $selectedOptionalModuleLabels) : '선택 없음'); ?></dd>
+                            <dt>선택 모듈</dt>
+                            <dd data-summary-target="optional_modules"><?php echo sr_e($selectedModuleLabels !== [] ? implode(', ', $selectedModuleLabels) : '선택 없음'); ?></dd>
+                            <dt>플러그인</dt>
+                            <dd data-summary-target="optional_plugins"><?php echo sr_e($selectedPluginLabels !== [] ? implode(', ', $selectedPluginLabels) : '선택 없음'); ?></dd>
+                            <dt>자동 포함</dt>
+                            <dd data-summary-target="auto_dependencies"><?php echo sr_e($selectedAutoDependencyModuleLabels !== [] ? implode(', ', $selectedAutoDependencyModuleLabels) : '없음'); ?></dd>
                         </dl>
                     </div>
                 </div>
@@ -620,7 +658,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                         <li>설정 파일 작성 준비</li>
                         <li>DB 연결 및 코어 스키마 설치</li>
                         <li>필수 모듈 설치: member → admin → policy_documents → privacy</li>
-                        <li>선택 모듈과 필요한 기반 모듈 설치</li>
+                        <li>선택 모듈, 플러그인, 자동 포함 모듈 설치</li>
                         <li>사이트 설정 저장</li>
                         <li>관리자 계정과 매니저 권한 생성</li>
                         <li>설치 lock 작성</li>
@@ -876,24 +914,28 @@ foreach ($optionalModules as $moduleKey => $module) {
                 }
 
                 var moduleLabels = [];
-                var foundationLabels = [];
+                var pluginLabels = [];
+                var autoDependencyLabels = [];
                 document.querySelectorAll('[data-install-module-option]:checked').forEach(function (input) {
-                    moduleLabels.push(input.getAttribute('data-install-module-label') || input.value);
+                    var label = input.getAttribute('data-install-module-label') || input.value;
+                    if (input.getAttribute('data-install-module-type') === 'plugin') {
+                        pluginLabels.push(label);
+                    } else {
+                        moduleLabels.push(label);
+                    }
                     try {
-                        JSON.parse(input.getAttribute('data-install-foundation-labels') || '[]').forEach(function (label) {
-                            if (label && foundationLabels.indexOf(label + ' (자동)') === -1) {
-                                foundationLabels.push(label + ' (자동)');
+                        JSON.parse(input.getAttribute('data-install-auto-dependency-labels') || '[]').forEach(function (dependencyLabel) {
+                            var summaryLabel = dependencyLabel ? dependencyLabel + ' (자동)' : '';
+                            if (summaryLabel && autoDependencyLabels.indexOf(summaryLabel) === -1) {
+                                autoDependencyLabels.push(summaryLabel);
                             }
                         });
                     } catch (error) {
                     }
                 });
-                foundationLabels.forEach(function (label) {
-                    if (moduleLabels.indexOf(label) === -1) {
-                        moduleLabels.push(label);
-                    }
-                });
                 updateTextSummary('optional_modules', moduleLabels.length ? moduleLabels.join(', ') : '선택 없음');
+                updateTextSummary('optional_plugins', pluginLabels.length ? pluginLabels.join(', ') : '선택 없음');
+                updateTextSummary('auto_dependencies', autoDependencyLabels.length ? autoDependencyLabels.join(', ') : '없음');
             }
 
             document.querySelectorAll('[data-install-key-input]').forEach(function (input) {

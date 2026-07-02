@@ -376,13 +376,13 @@ foreach ($optionalModules as $moduleKey => $module) {
                 . (string) $dependencyModuleError;
         }
     }
-    $optionalModules[$moduleKey]['foundation_dependency_keys'] = array_values(array_unique($dependencyKeys));
-    $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($dependencyLabels));
-    $optionalModules[$moduleKey]['foundation_dependency_errors'] = array_values(array_unique($dependencyErrors));
+    $optionalModules[$moduleKey]['auto_dependency_keys'] = array_values(array_unique($dependencyKeys));
+    $optionalModules[$moduleKey]['auto_dependency_labels'] = array_values(array_unique($dependencyLabels));
+    $optionalModules[$moduleKey]['auto_dependency_errors'] = array_values(array_unique($dependencyErrors));
 }
 
 $selectedOptionalModuleKeys = [];
-$selectedAutoFoundationModuleKeys = [];
+$selectedAutoDependencyModuleKeys = [];
 $selectedInstallModuleKeys = [];
 $values = [
     'db_host' => 'localhost',
@@ -521,7 +521,7 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
         $selectedOptionalModuleKeys = array_values($selectedOptionalModuleKeys);
     }
     $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
-    $selectedAutoFoundationModuleKeys = [];
+    $selectedAutoDependencyModuleKeys = [];
     foreach (sr_install_module_dependency_keys($selectedOptionalModuleKeys, $availableInstallModuleKeys, array_keys($requiredModules)) as $dependencyModuleKey) {
         if (isset($requiredModules[$dependencyModuleKey]) || isset($selectedOptionalModuleMap[$dependencyModuleKey])) {
             continue;
@@ -533,10 +533,10 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
             continue;
         }
 
-        $selectedAutoFoundationModuleKeys[$dependencyModuleKey] = $dependencyModuleKey;
+        $selectedAutoDependencyModuleKeys[$dependencyModuleKey] = $dependencyModuleKey;
     }
-    $selectedAutoFoundationModuleKeys = array_values($selectedAutoFoundationModuleKeys);
-    $selectedInstallModuleKeys = array_values(array_unique(array_merge($selectedAutoFoundationModuleKeys, $selectedOptionalModuleKeys)));
+    $selectedAutoDependencyModuleKeys = array_values($selectedAutoDependencyModuleKeys);
+    $selectedInstallModuleKeys = array_values(array_unique(array_merge($selectedAutoDependencyModuleKeys, $selectedOptionalModuleKeys)));
 
     foreach ($requiredModules as $moduleKey => $module) {
         $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
@@ -545,11 +545,11 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
         }
     }
 
-    foreach ($selectedAutoFoundationModuleKeys as $moduleKey) {
+    foreach ($selectedAutoDependencyModuleKeys as $moduleKey) {
         $module = sr_install_module_definition_lookup((string) $moduleKey, $requiredModules, $foundationModules, $optionalModules);
         $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 기반 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'modules');
+            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 자동 포함 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'modules');
         }
     }
 
