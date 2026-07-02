@@ -9,7 +9,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, ['title' => $pageTitle, 'rob
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
     <section class="card">
         <div class="card-body ui-card-body-stack">
-            <form method="post" action="<?php echo sr_e(sr_url('/oauth/complete')); ?>" class="ui-card-body-stack" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/oauth/complete')); ?>" class="ui-card-body-stack" data-sr-validate-form data-member-autofocus-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="state" value="<?php echo sr_e($stateToken); ?>">
                 <p>

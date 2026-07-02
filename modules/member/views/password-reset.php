@@ -19,7 +19,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         <?php if ($notice !== '') { ?>
             <p><a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
         <?php } else { ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+            <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_password_reset_password">

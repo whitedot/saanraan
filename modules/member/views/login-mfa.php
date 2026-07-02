@@ -16,7 +16,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </div>
             <div class="card-body member-skin-basic-stack">
                 <p class="member-skin-basic-muted type-small"><?php echo sr_e(sr_t('member::ui.login_mfa.pending_help')); ?></p>
-                <form method="post" action="<?php echo sr_e(sr_url('/login/mfa')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                <form method="post" action="<?php echo sr_e(sr_url('/login/mfa')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
                     <div class="member-skin-basic-field">

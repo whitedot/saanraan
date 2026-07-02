@@ -21,7 +21,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
 
                 <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 
-                <form method="post" action="<?php echo sr_e(sr_url('/login')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                <form method="post" action="<?php echo sr_e(sr_url('/login')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
                     <div class="member-skin-basic-field">

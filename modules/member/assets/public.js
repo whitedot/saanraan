@@ -161,6 +161,36 @@
         form.setAttribute('novalidate', 'novalidate');
     });
 
+    function autofocusControls(root) {
+        return Array.prototype.slice.call(root.querySelectorAll('input, select, textarea')).filter(function (control) {
+            var type = String(control.type || '').toLowerCase();
+            return !control.disabled
+                && !control.readOnly
+                && ['hidden', 'button', 'submit', 'reset'].indexOf(type) === -1
+                && control.getClientRects().length > 0;
+        });
+    }
+
+    function applyAutofocus() {
+        var active = document.activeElement;
+        if (window.location.hash || (active && active !== document.body && active !== document.documentElement)) {
+            return;
+        }
+
+        var target = document.querySelector('[data-member-autofocus]');
+        if (!target) {
+            var form = document.querySelector('[data-member-autofocus-form]');
+            var controls = form ? autofocusControls(form) : [];
+            target = controls.length > 0 ? controls[0] : null;
+        }
+
+        if (target && typeof target.focus === 'function') {
+            target.focus();
+        }
+    }
+
+    applyAutofocus();
+
     document.addEventListener('input', function (event) {
         var control = event.target && event.target.closest ? event.target.closest('input, select, textarea') : null;
         if (control) {

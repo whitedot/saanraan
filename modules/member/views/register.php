@@ -27,7 +27,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 $memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileExtraDefinition['key'] ?? '')] = $memberRegisterProfileExtraDefinition;
             }
             ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
+            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                 <?php echo sr_csrf_field(); ?>
                 <p>
                     <label for="modules_member_register_email">

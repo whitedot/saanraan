@@ -54,6 +54,10 @@ function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
         return false;
     }
 
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
+        return false;
+    }
+
     $stmt = $pdo->prepare(
         "SELECT id
          FROM sr_member_mfa_factors
@@ -70,6 +74,10 @@ function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
 function sr_member_mfa_active_totp_factor(PDO $pdo, int $accountId): ?array
 {
     if ($accountId < 1) {
+        return null;
+    }
+
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
         return null;
     }
 
@@ -91,6 +99,10 @@ function sr_member_mfa_active_totp_factor(PDO $pdo, int $accountId): ?array
 function sr_member_mfa_pending_totp_factor(PDO $pdo, int $accountId): ?array
 {
     if ($accountId < 1) {
+        return null;
+    }
+
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
         return null;
     }
 
@@ -630,6 +642,13 @@ function sr_member_mfa_create_pending_totp_factor(PDO $pdo, int $accountId, stri
         ];
     }
 
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
+        return [
+            'created' => false,
+            'reason' => 'storage_unavailable',
+        ];
+    }
+
     if (sr_member_mfa_active_factor_exists($pdo, $accountId)) {
         return [
             'created' => false,
@@ -746,6 +765,15 @@ function sr_member_mfa_activate_pending_totp_factor(PDO $pdo, int $accountId, in
         return [
             'activated' => false,
             'reason' => 'invalid_code',
+            'factor_id' => 0,
+            'step' => null,
+        ];
+    }
+
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
+        return [
+            'activated' => false,
+            'reason' => 'factor_unavailable',
             'factor_id' => 0,
             'step' => null,
         ];
@@ -906,6 +934,15 @@ function sr_member_mfa_rotate_recovery_codes(PDO $pdo, int $accountId, ?int $fac
         ];
     }
 
+    if (!sr_member_mfa_recovery_codes_table_exists($pdo)) {
+        return [
+            'rotated' => false,
+            'reason' => 'storage_unavailable',
+            'codes' => [],
+            'batch_uid' => '',
+        ];
+    }
+
     $count = $count > 0 ? min($count, 20) : sr_member_mfa_recovery_code_count();
     $config = is_array($config) ? $config : sr_runtime_config();
     $batchUid = bin2hex(random_bytes(16));
@@ -992,6 +1029,16 @@ function sr_member_mfa_consume_recovery_code(PDO $pdo, int $accountId, string $c
         ];
     }
 
+    if (!sr_member_mfa_recovery_codes_table_exists($pdo)) {
+        return [
+            'verified' => false,
+            'reason' => 'storage_unavailable',
+            'recovery_code_id' => 0,
+            'factor_id' => 0,
+            'remaining_unused' => null,
+        ];
+    }
+
     try {
         $codeHash = sr_member_mfa_recovery_code_hash($normalizedCode, $config);
     } catch (Throwable $exception) {
@@ -1062,7 +1109,7 @@ function sr_member_mfa_consume_recovery_code(PDO $pdo, int $accountId, string $c
 
 function sr_member_mfa_recovery_code_counts(PDO $pdo, int $accountId): array
 {
-    if ($accountId < 1) {
+    if ($accountId < 1 || !sr_member_mfa_recovery_codes_table_exists($pdo)) {
         return [];
     }
 
@@ -1099,6 +1146,17 @@ function sr_member_mfa_disable(PDO $pdo, int $accountId): array
         ];
     }
 
+    $hasFactorTable = sr_member_mfa_factors_table_exists($pdo);
+    $hasRecoveryCodeTable = sr_member_mfa_recovery_codes_table_exists($pdo);
+    if (!$hasFactorTable && !$hasRecoveryCodeTable) {
+        return [
+            'disabled' => false,
+            'reason' => 'storage_unavailable',
+            'factors_disabled' => 0,
+            'recovery_codes_revoked' => 0,
+        ];
+    }
+
     $ownsTransaction = !$pdo->inTransaction();
     if ($ownsTransaction) {
         $pdo->beginTransaction();
@@ -1106,34 +1164,40 @@ function sr_member_mfa_disable(PDO $pdo, int $accountId): array
 
     try {
         $now = sr_now();
-        $stmt = $pdo->prepare(
-            "UPDATE sr_member_mfa_factors
-             SET status = 'disabled',
-                 disabled_at = :disabled_at,
-                 updated_at = :updated_at
-             WHERE account_id = :account_id
-               AND factor_type = 'totp'
-               AND status IN ('active', 'pending')"
-        );
-        $stmt->execute([
-            'disabled_at' => $now,
-            'updated_at' => $now,
-            'account_id' => $accountId,
-        ]);
-        $factorsDisabled = $stmt->rowCount();
+        $factorsDisabled = 0;
+        if ($hasFactorTable) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_member_mfa_factors
+                 SET status = 'disabled',
+                     disabled_at = :disabled_at,
+                     updated_at = :updated_at
+                 WHERE account_id = :account_id
+                   AND factor_type = 'totp'
+                   AND status IN ('active', 'pending')"
+            );
+            $stmt->execute([
+                'disabled_at' => $now,
+                'updated_at' => $now,
+                'account_id' => $accountId,
+            ]);
+            $factorsDisabled = $stmt->rowCount();
+        }
 
-        $stmt = $pdo->prepare(
-            "UPDATE sr_member_mfa_recovery_codes
-             SET status = 'revoked',
-                 revoked_at = :revoked_at
-             WHERE account_id = :account_id
-               AND status = 'unused'"
-        );
-        $stmt->execute([
-            'revoked_at' => $now,
-            'account_id' => $accountId,
-        ]);
-        $recoveryCodesRevoked = $stmt->rowCount();
+        $recoveryCodesRevoked = 0;
+        if ($hasRecoveryCodeTable) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_member_mfa_recovery_codes
+                 SET status = 'revoked',
+                     revoked_at = :revoked_at
+                 WHERE account_id = :account_id
+                   AND status = 'unused'"
+            );
+            $stmt->execute([
+                'revoked_at' => $now,
+                'account_id' => $accountId,
+            ]);
+            $recoveryCodesRevoked = $stmt->rowCount();
+        }
 
         if ($ownsTransaction) {
             $pdo->commit();
@@ -1219,6 +1283,15 @@ function sr_member_mfa_verify_totp_code(PDO $pdo, int $accountId, string $code, 
         return [
             'verified' => false,
             'reason' => 'invalid_code',
+            'factor_id' => 0,
+            'step' => null,
+        ];
+    }
+
+    if (!sr_member_mfa_factors_table_exists($pdo)) {
+        return [
+            'verified' => false,
+            'reason' => 'factor_unavailable',
             'factor_id' => 0,
             'step' => null,
         ];
@@ -1314,40 +1387,44 @@ function sr_member_mfa_privacy_metadata(PDO $pdo, int $accountId): array
         ];
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT id, factor_type, status, issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at
-         FROM sr_member_mfa_factors
-         WHERE account_id = :account_id
-         ORDER BY id ASC'
-    );
-    $stmt->execute(['account_id' => $accountId]);
     $factors = [];
-    foreach ($stmt->fetchAll() as $factor) {
-        $factors[] = [
-            'id' => (int) ($factor['id'] ?? 0),
-            'factor_type' => (string) ($factor['factor_type'] ?? ''),
-            'status' => (string) ($factor['status'] ?? ''),
-            'issuer' => (string) ($factor['issuer'] ?? ''),
-            'label' => (string) ($factor['label'] ?? ''),
-            'last_used_step' => $factor['last_used_step'] === null ? null : (int) $factor['last_used_step'],
-            'activated_at' => $factor['activated_at'],
-            'disabled_at' => $factor['disabled_at'],
-            'created_at' => (string) ($factor['created_at'] ?? ''),
-            'updated_at' => (string) ($factor['updated_at'] ?? ''),
-        ];
+    if (sr_member_mfa_factors_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT id, factor_type, status, issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at
+             FROM sr_member_mfa_factors
+             WHERE account_id = :account_id
+             ORDER BY id ASC'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        foreach ($stmt->fetchAll() as $factor) {
+            $factors[] = [
+                'id' => (int) ($factor['id'] ?? 0),
+                'factor_type' => (string) ($factor['factor_type'] ?? ''),
+                'status' => (string) ($factor['status'] ?? ''),
+                'issuer' => (string) ($factor['issuer'] ?? ''),
+                'label' => (string) ($factor['label'] ?? ''),
+                'last_used_step' => $factor['last_used_step'] === null ? null : (int) $factor['last_used_step'],
+                'activated_at' => $factor['activated_at'],
+                'disabled_at' => $factor['disabled_at'],
+                'created_at' => (string) ($factor['created_at'] ?? ''),
+                'updated_at' => (string) ($factor['updated_at'] ?? ''),
+            ];
+        }
     }
 
-    $stmt = $pdo->prepare(
-        'SELECT status, COUNT(*) AS code_count
-         FROM sr_member_mfa_recovery_codes
-         WHERE account_id = :account_id
-         GROUP BY status
-         ORDER BY status ASC'
-    );
-    $stmt->execute(['account_id' => $accountId]);
     $recoveryCodeCounts = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $recoveryCodeCounts[(string) ($row['status'] ?? '')] = (int) ($row['code_count'] ?? 0);
+    if (sr_member_mfa_recovery_codes_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT status, COUNT(*) AS code_count
+             FROM sr_member_mfa_recovery_codes
+             WHERE account_id = :account_id
+             GROUP BY status
+             ORDER BY status ASC'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        foreach ($stmt->fetchAll() as $row) {
+            $recoveryCodeCounts[(string) ($row['status'] ?? '')] = (int) ($row['code_count'] ?? 0);
+        }
     }
 
     return [
@@ -1365,15 +1442,22 @@ function sr_member_delete_mfa(PDO $pdo, int $accountId): array
         ];
     }
 
-    $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_recovery_codes WHERE account_id = :account_id');
-    $stmt->execute(['account_id' => $accountId]);
-    $recoveryCodesDeleted = $stmt->rowCount();
+    $recoveryCodesDeleted = 0;
+    if (sr_member_mfa_recovery_codes_table_exists($pdo)) {
+        $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_recovery_codes WHERE account_id = :account_id');
+        $stmt->execute(['account_id' => $accountId]);
+        $recoveryCodesDeleted = $stmt->rowCount();
+    }
 
-    $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_factors WHERE account_id = :account_id');
-    $stmt->execute(['account_id' => $accountId]);
+    $factorsDeleted = 0;
+    if (sr_member_mfa_factors_table_exists($pdo)) {
+        $stmt = $pdo->prepare('DELETE FROM sr_member_mfa_factors WHERE account_id = :account_id');
+        $stmt->execute(['account_id' => $accountId]);
+        $factorsDeleted = $stmt->rowCount();
+    }
 
     return [
-        'factors_deleted' => $stmt->rowCount(),
+        'factors_deleted' => $factorsDeleted,
         'recovery_codes_deleted' => $recoveryCodesDeleted,
     ];
 }
@@ -1562,6 +1646,24 @@ function sr_member_sessions_table_exists(PDO $pdo): bool
     try {
         $pdo->query('SELECT 1 FROM sr_member_sessions LIMIT 1');
         return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function sr_member_mfa_factors_table_exists(PDO $pdo): bool
+{
+    try {
+        return $pdo->query('SELECT 1 FROM sr_member_mfa_factors LIMIT 1') !== false;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function sr_member_mfa_recovery_codes_table_exists(PDO $pdo): bool
+{
+    try {
+        return $pdo->query('SELECT 1 FROM sr_member_mfa_recovery_codes LIMIT 1') !== false;
     } catch (PDOException $exception) {
         return false;
     }

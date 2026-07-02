@@ -20,7 +20,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             <p><a class="btn btn-outline-default" href="<?php echo sr_e($resetUrl); ?>"><?php echo sr_e(sr_t('member::ui.settings.44dd1586')); ?></a></p>
         <?php } ?>
 
-        <form method="post" action="<?php echo sr_e(sr_url('/password/reset')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+        <form method="post" action="<?php echo sr_e(sr_url('/password/reset')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
             <?php echo sr_csrf_field(); ?>
             <p>
                 <label for="modules_member_password_reset_request_email">
