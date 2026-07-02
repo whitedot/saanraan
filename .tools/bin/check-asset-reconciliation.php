@@ -95,9 +95,9 @@ sr_asset_reconciliation_check_file_contains('core/actions/install.php', [
 
 sr_asset_reconciliation_check_file_contains('core/views/install.php', [
     'member → admin → policy_documents → privacy',
-    '선택 모듈과 필요한 기반 모듈 설치',
-    '함께 설치됨:',
-    'data-install-foundation-labels',
+    '선택 모듈, 플러그인, 자동 포함 모듈 설치',
+    '자동 포함:',
+    'data-install-auto-dependency-labels',
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/actions/admin-assets-reconciliation.php', [
