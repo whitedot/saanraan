@@ -53,6 +53,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
     $canCancel = in_array($jobStatus, ['pending', 'failed', 'paused'], true);
     $hasTargetBoard = (int) ($job['target_board_id'] ?? 0) > 0;
+    $mapStatusCounts = is_array($jobMapStatusCounts ?? null) ? $jobMapStatusCounts : [];
+    $failedMaps = is_array($jobFailedMaps ?? null) ? $jobFailedMaps : [];
+    $mapEntityLabels = [
+        'category' => '카테고리',
+        'post' => '게시글',
+        'comment' => '댓글',
+        'attachment' => '첨부',
+        'series' => '시리즈',
+        'series_item' => '시리즈 항목',
+    ];
     ?>
     <section class="card admin-form ui-form-theme admin-community-board-copy-job-detail">
         <div class="card-header">
@@ -106,6 +116,72 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         <?php } ?>
     </section>
+    <?php if ($mapStatusCounts !== []) { ?>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header">
+                <h2 class="card-title"><?php echo sr_e('단계별 처리 현황'); ?></h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="table table-list">
+                    <caption class="sr-only"><?php echo sr_e('게시판 복사 단계별 처리 현황'); ?></caption>
+                    <thead>
+                    <tr>
+                        <th><?php echo sr_e('대상'); ?></th>
+                        <th><?php echo sr_e('대기'); ?></th>
+                        <th><?php echo sr_e('복사됨'); ?></th>
+                        <th><?php echo sr_e('검증됨'); ?></th>
+                        <th><?php echo sr_e('실패'); ?></th>
+                        <th><?php echo sr_e('건너뜀'); ?></th>
+                        <th><?php echo sr_e('정리됨'); ?></th>
+                        <th><?php echo sr_e('정리 실패'); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($mapStatusCounts as $entityType => $statusCounts) { ?>
+                        <tr>
+                            <td class="admin-table-nowrap"><?php echo sr_e($mapEntityLabels[(string) $entityType] ?? (string) $entityType); ?></td>
+                            <?php foreach (['pending', 'copied', 'verified', 'failed', 'skipped', 'cleaned', 'cleanup_failed'] as $statusKey) { ?>
+                                <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($statusCounts[$statusKey] ?? 0))); ?></td>
+                            <?php } ?>
+                        </tr>
+                    <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <?php } ?>
+    <?php if ($failedMaps !== []) { ?>
+        <section class="card admin-list-card admin-list-form">
+            <div class="card-header">
+                <h2 class="card-title"><?php echo sr_e('실패 항목'); ?></h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="table table-list">
+                    <caption class="sr-only"><?php echo sr_e('게시판 복사 실패 항목'); ?></caption>
+                    <thead>
+                    <tr>
+                        <th><?php echo sr_e('대상'); ?></th>
+                        <th><?php echo sr_e('원본 ID'); ?></th>
+                        <th><?php echo sr_e('대상 ID'); ?></th>
+                        <th><?php echo sr_e('오류'); ?></th>
+                        <th><?php echo sr_e('갱신일'); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($failedMaps as $failedMap) { ?>
+                        <tr>
+                            <td class="admin-table-nowrap"><?php echo sr_e($mapEntityLabels[(string) ($failedMap['entity_type'] ?? '')] ?? (string) ($failedMap['entity_type'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($failedMap['source_id'] ?? 0)); ?></td>
+                            <td class="admin-table-nowrap"><?php echo (int) ($failedMap['target_id'] ?? 0) > 0 ? sr_e((string) (int) $failedMap['target_id']) : '-'; ?></td>
+                            <td class="admin-table-break"><?php echo sr_e((string) ($failedMap['error_text'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($failedMap['updated_at'] ?? '')); ?></td>
+                        </tr>
+                    <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <?php } ?>
     <?php if ($canRun || $canRetry || $canCancel || $hasTargetBoard) { ?>
         <div class="form-sticky-actions form-actions form-actions-split admin-community-board-copy-job-actions">
             <?php if ($canRun || $canRetry || $canCancel) { ?>
@@ -123,7 +199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="admin-community-board-copy-job-action-right">
                     <?php if ($canRetry) { ?>
-                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light"><?php echo sr_e('재시도 준비'); ?></button>
+                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('실패 map을 다시 대기 상태로 돌립니다. 이미 복사된 항목은 유지됩니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
                     <?php } ?>
                     <?php if ($canRun) { ?>
                         <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '다음 단계'); ?></button>

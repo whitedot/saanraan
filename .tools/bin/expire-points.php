@@ -9,15 +9,28 @@ chdir(SR_ROOT);
 require_once SR_ROOT . '/core/helpers.php';
 require_once SR_ROOT . '/modules/point/helpers.php';
 
+$args = array_slice($argv, 1);
+if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
+    echo "Usage: php .tools/bin/expire-points.php [--dry-run] [limit]\n";
+    echo "Expires due point grants up to limit. Use --dry-run to preview due_count and due_amount without mutation.\n";
+    echo "Exit codes: 0 success, 1 runtime failure, 2 environment/configuration or argument issue.\n";
+    exit(0);
+}
+
 if (!sr_is_installed()) {
     fwrite(STDERR, "saanraan is not installed.\n");
     exit(2);
 }
 
-$dryRun = in_array('--dry-run', array_slice($argv, 1), true);
+$dryRun = in_array('--dry-run', $args, true);
 $limit = 200;
-foreach (array_slice($argv, 1) as $argument) {
+foreach ($args as $argument) {
     if ($argument !== '--dry-run') {
+        if (!ctype_digit($argument)) {
+            fwrite(STDERR, "Unknown option or invalid limit: " . $argument . "\n");
+            fwrite(STDERR, "Run php .tools/bin/expire-points.php --help for usage.\n");
+            exit(2);
+        }
         $limit = (int) $argument;
         break;
     }

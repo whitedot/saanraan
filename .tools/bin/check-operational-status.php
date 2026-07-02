@@ -208,7 +208,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
 
     $stmt = $pdo->prepare('INSERT INTO sr_community_board_copy_jobs (status, updated_at) VALUES (:status, :updated_at)');
     $stmt->execute(['status' => 'running', 'updated_at' => $oldAt]);
-    $stmt->execute(['status' => 'failed', 'updated_at' => $recentAt]);
+    $stmt->execute(['status' => 'cancelled', 'updated_at' => $recentAt]);
 
     $stmt = $pdo->prepare('INSERT INTO sr_community_level_recalculate_jobs (requested_by, processed_total, total_count, status, updated_at) VALUES (:requested_by, :processed_total, :total_count, :status, :updated_at)');
     $stmt->execute(['requested_by' => 901, 'processed_total' => 25, 'total_count' => 100, 'status' => 'running', 'updated_at' => $oldAt]);
@@ -267,7 +267,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
         sr_operational_status_error('Bundle fixture active board copy job should be overdue.');
     }
     if ((string) ($byLabel['community.board_copy.failed']['status'] ?? '') !== 'overdue') {
-        sr_operational_status_error('Bundle fixture failed board copy job should be overdue immediately.');
+        sr_operational_status_error('Bundle fixture failed/cancelled board copy job should be overdue immediately.');
     }
     if ((string) ($byLabel['community.level_recalculate.running']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture running community level recalculate job should be overdue.');
@@ -421,6 +421,7 @@ function sr_operational_status_point_expiration_fixture_check(PDO $pdo): void
 $docFile = 'docs/operational-status.md';
 $toolFile = '.tools/bin/ops-status.php';
 $expireToolFile = '.tools/bin/expire-points.php';
+$notificationToolFile = '.tools/bin/run-notification-deliveries.php';
 $helperFile = 'modules/admin/helpers/operational-status.php';
 $pathsFile = 'modules/admin/paths.php';
 $navigationFile = 'modules/admin/helpers/navigation.php';
@@ -428,6 +429,7 @@ $viewFile = 'modules/admin/views/operations.php';
 $doc = is_file($docFile) ? file_get_contents($docFile) : false;
 $tool = is_file($toolFile) ? file_get_contents($toolFile) : false;
 $expireTool = is_file($expireToolFile) ? file_get_contents($expireToolFile) : false;
+$notificationTool = is_file($notificationToolFile) ? file_get_contents($notificationToolFile) : false;
 $helper = is_file($helperFile) ? file_get_contents($helperFile) : false;
 $paths = is_file($pathsFile) ? file_get_contents($pathsFile) : false;
 $navigation = is_file($navigationFile) ? file_get_contents($navigationFile) : false;
@@ -448,6 +450,9 @@ if (!is_string($tool)) {
 }
 if (!is_string($expireTool)) {
     sr_operational_status_error('expire-points.php is missing or unreadable.');
+}
+if (!is_string($notificationTool)) {
+    sr_operational_status_error('run-notification-deliveries.php is missing or unreadable.');
 }
 if (!is_string($helper)) {
     sr_operational_status_error('Operational status helper is missing or unreadable.');
@@ -492,8 +497,16 @@ foreach ($signals as $signal) {
 foreach ([
     'php .tools/bin/ops-status.php',
     'php .tools/bin/expire-points.php',
+    'php .tools/bin/run-notification-deliveries.php --help',
+    'Usage: php .tools/bin/ops-status.php [--help]',
+    'Usage: php .tools/bin/expire-points.php [--dry-run] [limit]',
+    'Usage: php .tools/bin/run-notification-deliveries.php [--help]',
+    '자동 정리 실행 상태',
+    '정책 문서 안내메일 기준',
     '/admin/operations',
     '/admin/assets/reconciliation',
+    '/admin/retention',
+    '/admin/community/board-copy-jobs',
     '자산 불일치 대응 절차',
     'balance row를 직접 수정하지 않는다',
     '환전 묶음 정정',
@@ -513,6 +526,9 @@ foreach ([
 
 foreach ([
     'sr_is_installed()',
+    '--help',
+    'Usage: php .tools/bin/ops-status.php [--help]',
+    'Unknown option:',
     'sr_admin_operational_status_rows($pdo)',
     'sr_admin_operational_status_cli_row_line($row)',
     'sr_admin_operational_status_cli_summary_line(sr_admin_operational_status_summary($rows))',
@@ -525,6 +541,8 @@ foreach ([
 foreach ([
     'sr_is_installed()',
     "require_once SR_ROOT . '/modules/point/helpers.php'",
+    '--help',
+    'Usage: php .tools/bin/expire-points.php [--dry-run] [limit]',
     '--dry-run',
     'sr_point_expire_due_preview_transactions($pdo, $limit)',
     'dry_run=yes',
@@ -535,9 +553,23 @@ foreach ([
     'dry_run=no',
     'expired_count=',
     'expired_amount=',
+    'Unknown option or invalid limit:',
 ] as $marker) {
     if (is_string($expireTool) && !str_contains($expireTool, $marker)) {
         sr_operational_status_error('expire-points.php is missing marker: ' . $marker);
+    }
+}
+
+foreach ([
+    'sr_is_installed()',
+    '--help',
+    'Usage: php .tools/bin/run-notification-deliveries.php [--help]',
+    'Unknown option:',
+    'sr_notification_run_delivery_batch($pdo',
+    'claimed=',
+] as $marker) {
+    if (is_string($notificationTool) && !str_contains($notificationTool, $marker)) {
+        sr_operational_status_error('run-notification-deliveries.php is missing marker: ' . $marker);
     }
 }
 
@@ -580,11 +612,72 @@ foreach ([
 
 foreach ([
     'function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $lockToken): void',
+    'function sr_community_board_copy_job_map_status_counts(PDO $pdo, int $jobId): array',
+    'function sr_community_board_copy_job_failed_maps(PDO $pdo, int $jobId, int $limit = 10): array',
     '복사 작업 lock이 만료되었거나 다른 요청이 이어받았습니다.',
 ] as $marker) {
     $boardCopyJobs = is_file('modules/community/helpers/board-copy-jobs.php') ? file_get_contents('modules/community/helpers/board-copy-jobs.php') : false;
     if (!is_string($boardCopyJobs) || !str_contains($boardCopyJobs, $marker)) {
         sr_operational_status_error('Community board copy job lock marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    '단계별 처리 현황',
+    '실패 항목',
+    '실패 map을 다시 대기 상태로 돌립니다.',
+] as $marker) {
+    $boardCopyJobsView = is_file('modules/community/views/admin-board-copy-jobs.php') ? file_get_contents('modules/community/views/admin-board-copy-jobs.php') : false;
+    if (!is_string($boardCopyJobsView) || !str_contains($boardCopyJobsView, $marker)) {
+        sr_operational_status_error('Community board copy job view marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    'function sr_policy_document_requeue_failed_mail_deliveries(PDO $pdo, int $jobId): int',
+    'function sr_policy_document_cancel_pending_mail_deliveries(PDO $pdo, int $jobId): int',
+    'stale_claim_cutoff',
+    'claimed_at = :claimed_at',
+] as $marker) {
+    $policyDocumentHelper = is_file('modules/policy_documents/helpers.php') ? file_get_contents('modules/policy_documents/helpers.php') : false;
+    if (!is_string($policyDocumentHelper) || !str_contains($policyDocumentHelper, $marker)) {
+        sr_operational_status_error('Policy document mail operation marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    'requeue_mail_failures',
+    'cancel_mail_pending',
+    '실패 재대기',
+    '남은 발송 취소',
+] as $marker) {
+    $policyDocumentAdminSource = '';
+    foreach (['modules/policy_documents/actions/admin-policy-documents.php', 'modules/policy_documents/views/admin-policy-documents.php'] as $policyDocumentAdminFile) {
+        $contents = is_file($policyDocumentAdminFile) ? file_get_contents($policyDocumentAdminFile) : false;
+        if (is_string($contents)) {
+            $policyDocumentAdminSource .= "\n" . $contents;
+        }
+    }
+    if (!str_contains($policyDocumentAdminSource, $marker)) {
+        sr_operational_status_error('Policy document admin mail operation marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    'function sr_admin_retention_record_auto_cleanup_failure(PDO $pdo, string $autoScope, Throwable $exception): void',
+    'function sr_admin_retention_auto_cleanup_runtime_status(PDO $pdo): array',
+    '자동 정리 실행 상태',
+    '마지막 실패',
+] as $marker) {
+    $retentionSource = '';
+    foreach (['modules/admin/helpers/retention.php', 'modules/admin/views/retention.php'] as $retentionFile) {
+        $contents = is_file($retentionFile) ? file_get_contents($retentionFile) : false;
+        if (is_string($contents)) {
+            $retentionSource .= "\n" . $contents;
+        }
+    }
+    if (!str_contains($retentionSource, $marker)) {
+        sr_operational_status_error('Retention auto cleanup failure marker missing: ' . $marker);
     }
 }
 

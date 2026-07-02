@@ -231,16 +231,49 @@ $pdo->exec(
     "INSERT INTO sr_policy_document_mail_deliveries (job_id, account_id, status, failure_code, created_at, updated_at)
      VALUES (" . (int) $jobId . ", 2, 'queued', '', '', '')"
 );
+$pdo->exec(
+    "INSERT INTO sr_policy_document_mail_deliveries (job_id, account_id, status, failure_code, claimed_at, created_at, updated_at)
+     VALUES (" . (int) $jobId . ", 2, 'processing', '', '2000-01-01 00:00:00', '', '')"
+);
 $result = sr_policy_document_process_mail_batch($pdo, [], $jobId, 20);
 sr_policy_documents_check_assert((int) $result['sent'] === 1, 'dry-run policy document mail batch should mark active queued deliveries as sent.');
-sr_policy_documents_check_assert((int) $result['skipped'] === 1, 'policy document mail batch should skip inactive queued deliveries.');
+sr_policy_documents_check_assert((int) $result['claimed'] === 1, 'policy document mail batch should only send claimed deliveries.');
+sr_policy_documents_check_assert((int) $result['skipped'] === 2, 'policy document mail batch should skip inactive queued or stale processing deliveries.');
 sr_policy_documents_check_assert(
-    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_deliveries WHERE account_id = 2')->fetchColumn() === 'skipped',
-    'inactive policy document mail delivery should be closed as skipped.'
+    (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_mail_deliveries WHERE account_id = 2 AND status = "skipped"')->fetchColumn() === 2,
+    'inactive policy document mail deliveries should be closed as skipped.'
 );
 sr_policy_documents_check_assert(
     (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $jobId)->fetchColumn() === 'sent',
     'policy document mail job should finish when queued deliveries are sent or skipped.'
+);
+
+$pdo->exec(
+    "INSERT INTO sr_policy_document_mail_deliveries (job_id, account_id, status, failure_code, claimed_at, created_at, updated_at)
+     VALUES (" . (int) $jobId . ", 3, 'failed', 'send_failed', '', '', '')"
+);
+$pdo->exec("INSERT INTO sr_member_accounts (id, email, status) VALUES (3, 'retry@example.test', 'active'), (4, 'cancel@example.test', 'active')");
+$requeued = sr_policy_document_requeue_failed_mail_deliveries($pdo, $jobId);
+sr_policy_documents_check_assert($requeued === 1, 'failed policy document mail deliveries should be requeued explicitly.');
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_deliveries WHERE account_id = 3')->fetchColumn() === 'queued',
+    'requeued policy document delivery should return to queued status.'
+);
+$result = sr_policy_document_process_mail_batch($pdo, [], $jobId, 20);
+sr_policy_documents_check_assert((int) $result['sent'] === 1 && (int) $result['claimed'] === 1, 'requeued policy document delivery should be claimed and sent once.');
+$pdo->exec(
+    "INSERT INTO sr_policy_document_mail_deliveries (job_id, account_id, status, failure_code, created_at, updated_at)
+     VALUES (" . (int) $jobId . ", 4, 'queued', '', '', '')"
+);
+$cancelled = sr_policy_document_cancel_pending_mail_deliveries($pdo, $jobId);
+sr_policy_documents_check_assert($cancelled === 1, 'queued policy document mail deliveries should be cancellable.');
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_deliveries WHERE account_id = 4')->fetchColumn() === 'cancelled',
+    'cancelled policy document delivery should not remain queued.'
+);
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $jobId)->fetchColumn() === 'sent',
+    'policy document mail job should ignore cancelled deliveries when all live deliveries are closed.'
 );
 
 if ($errors !== []) {

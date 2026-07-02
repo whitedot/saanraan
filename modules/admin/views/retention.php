@@ -199,6 +199,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<?php $autoCleanupStatusRows = is_array($autoCleanupRuntimeStatus ?? null) ? $autoCleanupRuntimeStatus : []; ?>
+<?php if ($autoCleanupStatusRows !== []) { ?>
+    <section class="card admin-list-card">
+        <div class="card-header">
+            <h2 class="card-title"><?php echo sr_e('자동 정리 실행 상태'); ?></h2>
+        </div>
+        <div class="table-wrapper">
+            <table class="table table-list">
+                <caption class="sr-only"><?php echo sr_e('자동 정리 실행 상태'); ?></caption>
+                <thead>
+                <tr>
+                    <th><?php echo sr_e('범위'); ?></th>
+                    <th><?php echo sr_e('마지막 성공'); ?></th>
+                    <th><?php echo sr_e('마지막 실패'); ?></th>
+                    <th><?php echo sr_e('실패 메시지'); ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($autoCleanupStatusRows as $autoCleanupStatusRow) { ?>
+                    <?php
+                    $autoCleanupScope = (string) ($autoCleanupStatusRow['scope'] ?? '');
+                    $autoCleanupScopeLabel = $autoCleanupScope === 'admin' ? '관리자 요청' : '공개 요청';
+                    ?>
+                    <tr>
+                        <td class="admin-table-nowrap"><?php echo sr_e($autoCleanupScopeLabel); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($autoCleanupStatusRow['last_success_at'] ?? ''), '-'); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($autoCleanupStatusRow['last_failure_at'] ?? ''), '-'); ?></td>
+                        <td class="admin-table-break"><?php echo (string) ($autoCleanupStatusRow['last_failure_message'] ?? '') !== '' ? sr_e((string) $autoCleanupStatusRow['last_failure_message']) : '-'; ?></td>
+                    </tr>
+                <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+<?php } ?>
+
 <?php foreach ($retentionHelp as $retentionHelpModal) { ?>
     <?php echo sr_admin_help_modal_html($retentionHelpModal['id'], $retentionHelpModal['title'], $retentionHelpModal['body_html']); ?>
 <?php } ?>

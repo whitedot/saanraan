@@ -100,6 +100,16 @@ if (sr_request_method() === 'POST') {
             ]);
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/policy-documents');
+        } elseif ($action === 'requeue_mail_failures') {
+            $jobId = max(0, (int) ($_POST['job_id'] ?? 0));
+            $changed = sr_policy_document_requeue_failed_mail_deliveries($pdo, $jobId);
+            sr_admin_flash_result(sr_admin_action_result([], '실패 안내메일 ' . (string) $changed . '건을 다시 대기 상태로 돌렸습니다.'));
+            sr_redirect('/admin/policy-documents');
+        } elseif ($action === 'cancel_mail_pending') {
+            $jobId = max(0, (int) ($_POST['job_id'] ?? 0));
+            $changed = sr_policy_document_cancel_pending_mail_deliveries($pdo, $jobId);
+            sr_admin_flash_result(sr_admin_action_result([], '남은 안내메일 ' . (string) $changed . '건을 취소했습니다.'));
+            sr_redirect('/admin/policy-documents');
         }
     } catch (Throwable $exception) {
         sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));

@@ -355,7 +355,7 @@
 | --- | --- | --- |
 | 회원 안내 | 회원 계정 영역에서 사본 직접 내려받기와 운영자 문의 안내를 제공하되, 기본 설치는 회원 요청 티켓을 만들지 않는다. | `/account/privacy-export`, 개인정보 문의 안내 |
 | 정책 문서 관리 | 약관, 개인정보 처리방침, 커뮤니티 동의문처럼 version이 필요한 문서를 별도 모듈로 관리해 가입·OAuth 완료·커뮤니티 제출 동의 snapshot을 같은 기준으로 남긴다. | `policy_documents`, 문서/버전 관리, published version, effective 시각, 동의 snapshot |
-| 정책 안내 메일 | 새 published version 안내가 필요한 경우 활성 회원 기준 delivery job을 만들고 batch 단위로 처리해 공유호스팅 환경에서도 발송 상태를 추적한다. | 정책 문서 안내메일 job, delivery 상태, skipped 처리, 개인정보 export/cleanup 계약 |
+| 정책 안내 메일 | 새 published version 안내가 필요한 경우 활성 회원 기준 delivery job을 만들고 batch 단위로 처리해 공유호스팅 환경에서도 발송 상태를 추적하며, 실패 delivery 재대기와 남은 발송 취소를 지원한다. | 정책 문서 안내메일 job, delivery 상태, claim, skipped/cancelled 처리, 개인정보 export/cleanup 계약 |
 | 관리자 대응 기록 | 운영자 문의로 접수한 건의 요청 분류, 요청자 식별값, 검토 상태와 처리 결과를 남길 수 있어 개인정보 요청 대응 과정이 화면 안에서 기록된다. | 관리자 개인정보 요청 대응 기록 |
 | 사본 제공 | 모듈별 export 계약을 모아 회원에게 제공할 개인정보 사본을 구성하므로 확장 모듈 데이터도 함께 포함된다. | 개인정보 사본 제공, `privacy-export.php` 계약 |
 | 회원 직접 내보내기 | 회원이 재인증 뒤 자기 개인정보 사본을 직접 내려받을 수 있어 단순 열람 요청을 관리자 처리에만 의존하지 않는다. | `/account/privacy-export`, 비밀번호 재확인, 다운로드 감사 로그 |

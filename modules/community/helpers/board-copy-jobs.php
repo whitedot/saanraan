@@ -197,6 +197,57 @@ function sr_community_board_copy_jobs_recent(PDO $pdo, int $limit = 30): array
     return $stmt->fetchAll();
 }
 
+function sr_community_board_copy_job_map_status_counts(PDO $pdo, int $jobId): array
+{
+    if ($jobId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT entity_type, status, COUNT(*) AS count_value
+         FROM sr_community_board_copy_job_maps
+         WHERE job_id = :job_id
+         GROUP BY entity_type, status
+         ORDER BY entity_type ASC, status ASC'
+    );
+    $stmt->execute(['job_id' => $jobId]);
+
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $entityType = (string) ($row['entity_type'] ?? '');
+        $status = (string) ($row['status'] ?? '');
+        if ($entityType === '' || $status === '') {
+            continue;
+        }
+        if (!isset($counts[$entityType])) {
+            $counts[$entityType] = [];
+        }
+        $counts[$entityType][$status] = (int) ($row['count_value'] ?? 0);
+    }
+
+    return $counts;
+}
+
+function sr_community_board_copy_job_failed_maps(PDO $pdo, int $jobId, int $limit = 10): array
+{
+    if ($jobId < 1) {
+        return [];
+    }
+
+    $limit = max(1, min(50, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT entity_type, source_id, target_id, error_text, updated_at
+         FROM sr_community_board_copy_job_maps
+         WHERE job_id = :job_id
+           AND status = "failed"
+         ORDER BY updated_at DESC, id DESC
+         LIMIT ' . (string) $limit
+    );
+    $stmt->execute(['job_id' => $jobId]);
+
+    return $stmt->fetchAll();
+}
+
 function sr_community_board_copy_job_run(PDO $pdo, int $jobId, int $accountId, array $limits = []): array
 {
     $job = sr_community_board_copy_job_by_id($pdo, $jobId);

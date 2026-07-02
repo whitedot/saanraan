@@ -8,6 +8,19 @@ chdir(SR_ROOT);
 
 require_once SR_ROOT . '/core/helpers.php';
 
+$args = array_slice($argv, 1);
+if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
+    echo "Usage: php .tools/bin/run-notification-deliveries.php [--help]\n";
+    echo "Runs one notification delivery CLI batch using the configured delivery_cli_batch_size.\n";
+    echo "Exit codes: 0 success, 1 runtime failure, 2 environment/configuration issue.\n";
+    exit(0);
+}
+foreach ($args as $arg) {
+    fwrite(STDERR, "Unknown option: " . $arg . "\n");
+    fwrite(STDERR, "Run php .tools/bin/run-notification-deliveries.php --help for usage.\n");
+    exit(2);
+}
+
 if (!sr_is_installed()) {
     fwrite(STDERR, "saanraan is not installed.\n");
     exit(2);

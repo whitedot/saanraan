@@ -22,12 +22,20 @@
 php .tools/bin/ops-status.php
 ```
 
+사용 가능한 옵션은 다음 명령으로 확인한다.
+
+```sh
+php .tools/bin/ops-status.php --help
+```
+
+현재 usage는 `Usage: php .tools/bin/ops-status.php [--help]`이다.
+
 이 명령은 데이터를 변경하지 않고 다음 항목의 status, count, 허용 지연, 가장 오래된 시각을 출력하고 마지막에 `summary` 행으로 status별 개수와 전체 대기/실패 건수를 요약한다. 실패 항목은 건수가 생기는 즉시 `지연 초과`로 본다.
 
 | 항목 | 의미 | 허용 지연 | 후속 확인 |
 | --- | --- | --- | --- |
 | `policy_documents.mail_jobs.queued` | 정책 문서 안내메일 발송 작업이 대기 중 | 1시간 | `/admin/policy-documents` 발송 배치와 delivery 상태 |
-| `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | 실패 delivery, 메일 설정, 재발송 기준 |
+| `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | `/admin/policy-documents` 실패 delivery 재대기/취소, 메일 설정, 재발송 기준 |
 | `asset_recovery.open` | 포인트/금액 회수 실패가 미해소 상태로 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 재회수, 수동 해소, 취소 기준 |
 | `community.asset_recovery_legacy.open` | 커뮤니티 legacy 자산 미회수 row가 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 공통 미회수 큐와 legacy 잔여 row |
 | `community.publisher_rewards.pending` | 커뮤니티 첨부 다운로드 게시자 보상 로그가 대기 중 | 15분 | `/admin/community/publisher-rewards` 보상 로그와 자산 지급 상태 |
@@ -39,7 +47,7 @@ php .tools/bin/ops-status.php
 | `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | 콘텐츠 관리자 정리 실패 목록과 재시도 |
 | `community.storage_cleanup.pending` | 커뮤니티 삭제 후 저장소 파일 정리 실패 | 24시간 | 게시판 관리자 정리 실패 목록과 재시도 |
 | `community.board_copy.active` | 게시판 복사 작업이 대기 또는 실행 중 | 15분 | 복사 작업 진행 상태와 lock 만료 |
-| `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | 실패 단계, 부분 생성물 정리 |
+| `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | `/admin/community/board-copy-jobs` 실패 단계, 실패 항목, 부분 생성물 정리 |
 | `community.level_recalculate.running` | 커뮤니티 레벨 재계산 작업이 실행 중 | 15분 | `/admin/community/levels` 재계산 진행 상태와 재실행 필요 여부 |
 | `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | 실패 사유, 재실행 가능 여부 |
 | `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | `/admin/quiz/attempts` 리워드 로그에서 보상 정책, 자산/쿠폰 provider 상태 확인 |
@@ -56,6 +64,12 @@ php .tools/bin/ops-status.php
 
 현재 코드베이스에서 같은 방식으로 감지할 수 있는 후보와 후속 처리 순서는 [운영 지연/실패 점검 전수 조사와 처리 계획](plans/operational-delay-failure-coverage-plan.md)에 정리한다.
 
+### 정책 문서 안내메일 기준
+
+정책 문서 version을 published 상태로 만들면 `sr_policy_document_mail_jobs`와 회원별 `sr_policy_document_mail_deliveries`가 생성된다. 발송 batch는 `queued` delivery 또는 오래된 `processing` claim만 먼저 `processing`으로 claim한 뒤, 그 요청이 claim한 row만 발송한다. 따라서 같은 job을 운영자가 다시 실행하거나 cron 후보로 옮기더라도 아직 claim하지 못한 row를 중복 발송하지 않는다.
+
+delivery 상태는 `queued`, `processing`, `sent`, `failed`, `skipped`, `cancelled`로 본다. 비활성 회원은 `skipped`로 닫고, 발송 실패 row는 `/admin/policy-documents`에서 `queued`로 되돌려 재시도하거나 `cancelled`로 닫는다. `sent`는 터미널 상태로 보고 재대기나 취소 대상으로 되돌리지 않는다. 취소는 아직 완료되지 않은 `queued`, `processing`, `failed`만 닫으며, 작업 목록에는 대기/처리중/실패/건너뜀/취소 count를 함께 표시한다.
+
 ### 알림 delivery 재시도/취소 기준
 
 `/admin/notification-deliveries`는 외부 발송 작업 상태를 확인하고 이메일 delivery runner를 수동 실행할 수 있다. runner는 `queued` 작업을 `processing`으로 claim한 뒤 성공하면 `sent`, 실패하면 backoff를 둔 `queued` 또는 최대 시도 초과 시 `dead`로 전환한다. 재시도는 `failed`, `canceled`, `dead` 상태를 `queued`로 되돌리는 작업이며, 이때 provider message ID, 오류 메시지, 시도 시각, lock, 다음 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued`, `processing`, `failed`, `dead` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed`, `dead`, `sent`로 표시하는 전이는 운영자가 외부 provider 상태를 확인한 뒤 수행하며, 모든 상태 변경과 수동 runner 실행은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 상태 업데이트, 감사 로그 기록을 거쳐야 한다.
@@ -65,6 +79,18 @@ php .tools/bin/ops-status.php
 ```sh
 php .tools/bin/run-notification-deliveries.php
 ```
+
+사용 가능한 옵션은 다음 명령으로 확인한다.
+
+```sh
+php .tools/bin/run-notification-deliveries.php --help
+```
+
+현재 usage는 `Usage: php .tools/bin/run-notification-deliveries.php [--help]`이다.
+
+### Retention 자동 정리 상태
+
+자동 보존 정리는 public 요청과 admin 요청 범위를 분리해 마지막 성공 시각을 저장한다. 정리 중 예외가 발생하면 마지막 실패 시각과 짧은 실패 메시지를 site setting에 남기고 예외 로그를 이어서 기록한다. 운영자는 `/admin/retention`의 `자동 정리 실행 상태` 표에서 범위별 마지막 성공, 마지막 실패, 실패 메시지를 확인한 뒤 보관 기간 설정, DB 권한, 저장소 권한, 대상 모듈 cleanup 계약을 점검한다.
 
 ## 포인트/금액 정합성 점검
 
@@ -109,7 +135,17 @@ php .tools/bin/ops-status.php
 php .tools/bin/run-notification-deliveries.php
 ```
 
-`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 `운영 지연/실패 점검` 화면에서 대상 규모를 먼저 확인한다.
+각 CLI의 사용 가능한 옵션은 다음 help 명령으로 확인한다.
+
+```sh
+php .tools/bin/expire-points.php --help
+php .tools/bin/ops-status.php --help
+php .tools/bin/run-notification-deliveries.php --help
+```
+
+현재 usage는 각각 `Usage: php .tools/bin/expire-points.php [--dry-run] [limit]`, `Usage: php .tools/bin/ops-status.php [--help]`, `Usage: php .tools/bin/run-notification-deliveries.php [--help]`이다.
+
+`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 `운영 지연/실패 점검` 화면에서 대상 규모를 먼저 확인한다. `expire-points.php`의 limit 인자는 숫자만 허용하며, 알 수 없는 옵션이나 잘못된 limit은 exit code 2로 종료한다.
 
 ## 기록 기준
 

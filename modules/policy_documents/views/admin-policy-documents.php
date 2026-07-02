@@ -367,15 +367,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['document_key']); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['version_key']); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass((string) $mailJob['status'])); ?>"><?php echo sr_e((string) $mailJob['status']); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) (int) $mailJob['sent_count']); ?> / <?php echo sr_e((string) (int) $mailJob['delivery_count']); ?></td>
+                            <td class="admin-table-nowrap">
+                                <?php echo sr_e('완료 ' . number_format((int) $mailJob['sent_count']) . ' / 전체 ' . number_format((int) $mailJob['delivery_count'])); ?>
+                                <p class="form-help">
+                                    <?php echo sr_e('대기 ' . number_format((int) $mailJob['queued_count']) . ', 처리중 ' . number_format((int) ($mailJob['processing_count'] ?? 0)) . ', 실패 ' . number_format((int) $mailJob['failed_count']) . ', 건너뜀 ' . number_format((int) ($mailJob['skipped_count'] ?? 0)) . ', 취소 ' . number_format((int) ($mailJob['cancelled_count'] ?? 0))); ?>
+                                </p>
+                            </td>
                             <td class="admin-table-actions-cell">
-                                <?php if ((int) $mailJob['queued_count'] > 0) { ?>
+                                <?php if ((int) $mailJob['queued_count'] > 0 || (int) ($mailJob['processing_count'] ?? 0) > 0 || (int) $mailJob['failed_count'] > 0) { ?>
+                                <div class="admin-row-actions">
+                                <?php if ((int) $mailJob['queued_count'] > 0 || (int) ($mailJob['processing_count'] ?? 0) > 0) { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="action" value="run_mail_batch">
                                         <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
                                         <button class="btn btn-sm btn-solid-primary" type="submit"><?php echo sr_e(sr_t('policy_documents::ui.mail_run')); ?></button>
                                     </form>
+                                <?php } ?>
+                                <?php if ((int) $mailJob['failed_count'] > 0) { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="action" value="requeue_mail_failures">
+                                        <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                        <button class="btn btn-sm btn-solid-light" type="submit"><?php echo sr_e('실패 재대기'); ?></button>
+                                    </form>
+                                <?php } ?>
+                                <?php if ((int) $mailJob['queued_count'] > 0 || (int) ($mailJob['processing_count'] ?? 0) > 0 || (int) $mailJob['failed_count'] > 0) { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="action" value="cancel_mail_pending">
+                                        <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="<?php echo sr_e('아직 발송 완료되지 않은 안내메일을 취소합니다. 계속할까요?'); ?>"><?php echo sr_e('남은 발송 취소'); ?></button>
+                                    </form>
+                                <?php } ?>
+                                </div>
                                 <?php } else { ?>
                                     -
                                 <?php } ?>
@@ -385,7 +410,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
-        <?php echo sr_admin_status_description_list_html('policy_document_mail_status', ['queued' => '대기', 'sent' => '발송 완료', 'failed' => '실패']); ?>
+        <?php echo sr_admin_status_description_list_html('policy_document_mail_status', ['queued' => '대기', 'processing' => '처리중', 'sent' => '발송 완료', 'failed' => '실패', 'skipped' => '건너뜀', 'cancelled' => '취소']); ?>
     </section>
 <?php } ?>
 

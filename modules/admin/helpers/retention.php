@@ -633,6 +633,53 @@ function sr_admin_retention_last_auto_cleanup_setting_key(string $autoScope): st
     return 'admin.retention.last_auto_cleanup_at.' . $autoScope;
 }
 
+function sr_admin_retention_last_auto_cleanup_failure_setting_key(string $autoScope, string $field): string
+{
+    return 'admin.retention.last_auto_cleanup_failure_' . $field . '.' . $autoScope;
+}
+
+function sr_admin_retention_record_auto_cleanup_failure(PDO $pdo, string $autoScope, Throwable $exception): void
+{
+    if (!sr_admin_retention_auto_cleanup_scope_valid($autoScope)) {
+        return;
+    }
+
+    $message = sr_clean_single_line($exception->getMessage(), 300);
+    if ($message === '') {
+        $message = 'unknown failure';
+    }
+
+    try {
+        sr_save_site_settings($pdo, [
+            sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'at') => [
+                'value' => sr_now(),
+                'type' => 'string',
+            ],
+            sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'message') => [
+                'value' => $message,
+                'type' => 'string',
+            ],
+        ]);
+    } catch (Throwable $ignored) {
+        return;
+    }
+}
+
+function sr_admin_retention_auto_cleanup_runtime_status(PDO $pdo): array
+{
+    $rows = [];
+    foreach (sr_admin_retention_auto_cleanup_scopes() as $autoScope) {
+        $rows[$autoScope] = [
+            'scope' => $autoScope,
+            'last_success_at' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), ''),
+            'last_failure_at' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'at'), ''),
+            'last_failure_message' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'message'), ''),
+        ];
+    }
+
+    return $rows;
+}
+
 function sr_admin_retention_auto_cleanup_due(PDO $pdo, array $values, string $autoScope): bool
 {
     if ((int) ($values['auto_cleanup_enabled'] ?? 0) !== 1) {
@@ -742,6 +789,7 @@ function sr_admin_retention_maybe_run_auto_cleanup(PDO $pdo, string $autoScope):
             ],
         ]);
     } catch (Throwable $exception) {
+        sr_admin_retention_record_auto_cleanup_failure($pdo, $autoScope, $exception);
         sr_log_exception($exception, 'retention_auto_cleanup_failed');
     } finally {
         sr_admin_retention_auto_cleanup_lock_release($pdo, $autoScope);

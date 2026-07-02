@@ -96,18 +96,18 @@ return [
     'title' => '게시판 복사 실패',
     'module' => 'community',
     'table' => 'sr_community_board_copy_jobs',
-    'where' => 'status IN (\'failed\', \'canceled\')',
+    'where' => 'status IN (\'failed\', \'cancelled\')',
     'age_column' => 'updated_at',
     'delay_tolerance' => '즉시',
     'warn_after_seconds' => 0,
     'target_sql' => 'SELECT b.title AS target_label, j.id AS target_fallback
                 FROM sr_community_board_copy_jobs j
                 LEFT JOIN sr_community_boards b ON b.id = j.source_board_id
-                WHERE j.status IN (\'failed\', \'canceled\')
+                WHERE j.status IN (\'failed\', \'cancelled\')
                 ORDER BY j.updated_at ASC, j.id ASC
                 LIMIT 5',
     'target_fallback_prefix' => '작업',
-    'followup' => '실패 단계와 부분 생성물 정리 필요 여부를 확인합니다.',
+    'followup' => '/admin/community/board-copy-jobs에서 실패 단계, 실패 항목, 부분 생성물 정리 필요 여부를 확인합니다.',
   ],
   [
     'label' => 'community.level_recalculate.running',

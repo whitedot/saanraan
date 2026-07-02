@@ -586,8 +586,11 @@ function sr_policy_document_mail_jobs(PDO $pdo): array
                 d.document_key, v.version_key,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id) AS delivery_count,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "queued") AS queued_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "processing") AS processing_count,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "sent") AS sent_count,
-                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "failed") AS failed_count
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "failed") AS failed_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "skipped") AS skipped_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "cancelled") AS cancelled_count
          FROM sr_policy_document_mail_jobs j
          INNER JOIN sr_policy_documents d ON d.id = j.document_id
          INNER JOIN sr_policy_document_versions v ON v.id = j.version_id
@@ -602,15 +605,19 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
 {
     $limit = min(100, max(1, $limit));
     $now = sr_now();
+    $staleClaimCutoff = date('Y-m-d H:i:s', time() - 900);
     $skipSelectStmt = $pdo->prepare(
         'SELECT d.id
          FROM sr_policy_document_mail_deliveries d
          LEFT JOIN sr_member_accounts a ON a.id = d.account_id
          WHERE d.job_id = :job_id
-           AND d.status = "queued"
+           AND (d.status = "queued" OR (d.status = "processing" AND d.claimed_at < :stale_claim_cutoff))
            AND (a.id IS NULL OR a.status <> "active")'
     );
-    $skipSelectStmt->execute(['job_id' => $jobId]);
+    $skipSelectStmt->execute([
+        'job_id' => $jobId,
+        'stale_claim_cutoff' => $staleClaimCutoff,
+    ]);
     $skipIds = array_map('intval', array_column($skipSelectStmt->fetchAll(), 'id'));
     $skipUpdateStmt = $pdo->prepare(
         'UPDATE sr_policy_document_mail_deliveries
@@ -618,13 +625,14 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
              failure_code = "account_not_active",
              updated_at = :updated_at
          WHERE id = :id
-           AND status = "queued"'
+           AND (status = "queued" OR (status = "processing" AND claimed_at < :stale_claim_cutoff))'
     );
     $skipped = 0;
     foreach ($skipIds as $skipId) {
         $skipUpdateStmt->execute([
             'id' => $skipId,
             'updated_at' => $now,
+            'stale_claim_cutoff' => $staleClaimCutoff,
         ]);
         $skipped += $skipUpdateStmt->rowCount() > 0 ? 1 : 0;
     }
@@ -635,13 +643,40 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
          INNER JOIN sr_policy_document_mail_jobs j ON j.id = d.job_id
          INNER JOIN sr_member_accounts a ON a.id = d.account_id
          WHERE d.job_id = :job_id
-           AND d.status = "queued"
+           AND (d.status = "queued" OR (d.status = "processing" AND d.claimed_at < :stale_claim_cutoff))
            AND a.status = "active"
          ORDER BY d.id ASC
          LIMIT ' . (string) $limit
     );
-    $stmt->execute(['job_id' => $jobId]);
+    $stmt->execute([
+        'job_id' => $jobId,
+        'stale_claim_cutoff' => $staleClaimCutoff,
+    ]);
     $rows = $stmt->fetchAll();
+
+    $claimedRows = [];
+    $claimStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = "processing",
+             failure_code = "",
+             claimed_at = :claimed_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND job_id = :job_id
+           AND (status = "queued" OR (status = "processing" AND claimed_at < :stale_claim_cutoff))'
+    );
+    foreach ($rows as $row) {
+        $claimStmt->execute([
+            'claimed_at' => $now,
+            'updated_at' => $now,
+            'id' => (int) $row['id'],
+            'job_id' => $jobId,
+            'stale_claim_cutoff' => $staleClaimCutoff,
+        ]);
+        if ($claimStmt->rowCount() > 0) {
+            $claimedRows[] = $row;
+        }
+    }
 
     $sent = 0;
     $failed = 0;
@@ -649,46 +684,99 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
         'UPDATE sr_policy_document_mail_deliveries
          SET status = :status,
              failure_code = :failure_code,
-             claimed_at = COALESCE(claimed_at, :claimed_at),
              sent_at = :sent_at,
              updated_at = :updated_at
          WHERE id = :id
-           AND status = "queued"'
+           AND job_id = :job_id
+           AND status = "processing"
+           AND claimed_at = :claimed_at'
     );
 
-    foreach ($rows as $row) {
+    foreach ($claimedRows as $row) {
         $dryRun = !empty($row['dry_run']);
         $ok = $dryRun ? true : sr_send_mail($site, (string) $row['email'], (string) $row['subject_snapshot'], (string) $row['body_snapshot']);
         $updateStmt->execute([
             'status' => $ok ? 'sent' : 'failed',
             'failure_code' => $ok ? '' : 'send_failed',
-            'claimed_at' => $now,
             'sent_at' => $ok ? $now : null,
             'updated_at' => $now,
             'id' => (int) $row['id'],
+            'job_id' => $jobId,
+            'claimed_at' => $now,
         ]);
-        if ($ok) {
-            $sent++;
-        } else {
-            $failed++;
+        if ($updateStmt->rowCount() > 0) {
+            if ($ok) {
+                $sent++;
+            } else {
+                $failed++;
+            }
         }
     }
 
     sr_policy_document_refresh_mail_job_status($pdo, $jobId);
 
     return [
-        'claimed' => count($rows),
+        'claimed' => count($claimedRows),
         'sent' => $sent,
         'failed' => $failed,
         'skipped' => $skipped,
     ];
 }
 
+function sr_policy_document_requeue_failed_mail_deliveries(PDO $pdo, int $jobId): int
+{
+    if ($jobId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = "queued",
+             failure_code = "",
+             claimed_at = NULL,
+             updated_at = :updated_at
+         WHERE job_id = :job_id
+           AND status = "failed"'
+    );
+    $stmt->execute([
+        'updated_at' => sr_now(),
+        'job_id' => $jobId,
+    ]);
+    $changed = $stmt->rowCount();
+    sr_policy_document_refresh_mail_job_status($pdo, $jobId);
+
+    return $changed;
+}
+
+function sr_policy_document_cancel_pending_mail_deliveries(PDO $pdo, int $jobId): int
+{
+    if ($jobId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = "cancelled",
+             failure_code = "manual_cancelled",
+             updated_at = :updated_at
+         WHERE job_id = :job_id
+           AND status IN ("queued", "processing", "failed")'
+    );
+    $stmt->execute([
+        'updated_at' => sr_now(),
+        'job_id' => $jobId,
+    ]);
+    $changed = $stmt->rowCount();
+    sr_policy_document_refresh_mail_job_status($pdo, $jobId);
+
+    return $changed;
+}
+
 function sr_policy_document_refresh_mail_job_status(PDO $pdo, int $jobId): void
 {
     $stmt = $pdo->prepare(
         'SELECT
-            SUM(CASE WHEN status = "queued" THEN 1 ELSE 0 END) AS queued_count,
+            SUM(CASE WHEN status IN ("queued", "processing") THEN 1 ELSE 0 END) AS queued_count,
             SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) AS failed_count
          FROM sr_policy_document_mail_deliveries
          WHERE job_id = :job_id'

@@ -67,6 +67,8 @@ if (sr_request_method() === 'POST') {
 }
 
 $job = $jobId > 0 ? sr_community_board_copy_job_by_id($pdo, $jobId) : null;
+$jobMapStatusCounts = is_array($job) ? sr_community_board_copy_job_map_status_counts($pdo, (int) $job['id']) : [];
+$jobFailedMaps = is_array($job) ? sr_community_board_copy_job_failed_maps($pdo, (int) $job['id'], 10) : [];
 $jobs = sr_community_board_copy_jobs_recent($pdo);
 
 include SR_ROOT . '/modules/community/views/admin-board-copy-jobs.php';
