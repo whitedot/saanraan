@@ -15,6 +15,7 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_member_settings($pdo);
 $integerSettingKeys = sr_member_integer_setting_keys();
+$memberMfaProviderDefinitions = sr_member_mfa_provider_definitions($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -33,6 +34,32 @@ if (sr_request_method() === 'POST') {
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
+    $settings['mfa_login_mode'] = sr_member_mfa_login_mode($_POST['mfa_login_mode'] ?? null);
+    $settings['mfa_login_enabled'] = $settings['mfa_login_mode'] !== 'disabled';
+    $postedMfaProviderKeys = isset($_POST['mfa_login_providers']) && is_array($_POST['mfa_login_providers'])
+        ? $_POST['mfa_login_providers']
+        : [];
+    $mfaLoginProviderKeys = [];
+    foreach (sr_member_mfa_valid_provider_keys($postedMfaProviderKeys) as $providerKey) {
+        if (isset($memberMfaProviderDefinitions[$providerKey]) && !empty($memberMfaProviderDefinitions[$providerKey]['login_supported'])) {
+            $mfaLoginProviderKeys[] = $providerKey;
+        }
+    }
+    if ($settings['mfa_login_mode'] !== 'disabled' && $mfaLoginProviderKeys === []) {
+        $errors[] = sr_t('member::action.admin_settings.mfa_provider_required');
+    }
+    if ($settings['mfa_login_mode'] === 'required') {
+        $mfaSetupProviderKeys = [];
+        foreach ($mfaLoginProviderKeys as $providerKey) {
+            if (!empty($memberMfaProviderDefinitions[$providerKey]['account_setup_supported'])) {
+                $mfaSetupProviderKeys[] = $providerKey;
+            }
+        }
+        if ($mfaSetupProviderKeys === []) {
+            $errors[] = sr_t('member::action.admin_settings.mfa_setup_provider_required');
+        }
+    }
+    $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json($mfaLoginProviderKeys);
     $settings['nickname_enabled'] = ($_POST['nickname_enabled'] ?? '') === '1';
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['registration_terms_document_key'] = sr_member_registration_policy_document_clean_key(sr_post_string('registration_terms_document_key', 80));
@@ -151,6 +178,9 @@ if (sr_request_method() === 'POST') {
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
+            ['mfa_login_mode', (string) $settings['mfa_login_mode'], 'string'],
+            ['mfa_login_enabled', $settings['mfa_login_enabled'] ? '1' : '0', 'bool'],
+            ['mfa_login_providers_json', (string) $settings['mfa_login_providers_json'], 'json'],
             ['nickname_enabled', $settings['nickname_enabled'] ? '1' : '0', 'bool'],
             ['nickname_required', $settings['nickname_required'] ? '1' : '0', 'bool'],
             ['registration_terms_document_key', (string) $settings['registration_terms_document_key'], 'string'],
@@ -197,6 +227,9 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
+                'mfa_login_mode' => (string) $settings['mfa_login_mode'],
+                'mfa_login_enabled' => (bool) $settings['mfa_login_enabled'],
+                'mfa_login_providers' => sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '[]'),
                 'nickname_enabled' => (bool) $settings['nickname_enabled'],
                 'nickname_required' => (bool) $settings['nickname_required'],
                 'registration_policy_documents' => [

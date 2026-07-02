@@ -109,6 +109,11 @@ $memberRegistrationPolicyDocumentSelectOptionsHtml = static function (string $cu
 
     return $html;
 };
+$memberMfaProviderDefinitions = isset($memberMfaProviderDefinitions) && is_array($memberMfaProviderDefinitions)
+    ? $memberMfaProviderDefinitions
+    : sr_member_mfa_provider_definitions($pdo);
+$memberMfaLoginMode = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
+$memberMfaLoginProviderKeys = sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["totp"]');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -120,6 +125,7 @@ $memberSettingsSectionNavItems = [
     'member-settings-section-skin' => '스킨',
     'member-settings-section-profile' => '프로필',
     'member-settings-section-policy-consent' => '가입 약관',
+    'member-settings-section-mfa' => '2차 인증',
     'member-settings-section-login' => '로그인 제한',
     'member-settings-section-register-limit' => '가입 제한',
     'member-settings-section-password' => '비밀번호',
@@ -256,6 +262,61 @@ $memberSettingsSectionNavItems = [
             </div>
         </div>
         <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_policy_documents.help')); ?></p>
+    </section>
+
+    <section id="member-settings-section-mfa" class="card" data-admin-section-anchor>
+        <h2><?php echo sr_e(sr_t('member::ui.mfa_totp.title')); ?></h2>
+        <div class="form-row">
+            <span class="form-label">로그인 2차 인증 정책</span>
+            <div class="form-field">
+                <div class="radio-group">
+                    <?php foreach (sr_member_mfa_login_mode_options() as $memberMfaModeKey => $memberMfaModeLabel) { ?>
+                        <label class="form-check" for="<?php echo sr_e('modules_member_admin_settings_mfa_login_mode_' . (string) $memberMfaModeKey); ?>">
+                            <input
+                                id="<?php echo sr_e('modules_member_admin_settings_mfa_login_mode_' . (string) $memberMfaModeKey); ?>"
+                                type="radio"
+                                name="mfa_login_mode"
+                                value="<?php echo sr_e((string) $memberMfaModeKey); ?>"
+                                class="form-radio"
+                                required
+                                <?php echo $memberMfaLoginMode === (string) $memberMfaModeKey ? ' checked' : ''; ?>
+                            >
+                            <span><?php echo sr_e((string) $memberMfaModeLabel); ?></span>
+                        </label>
+                    <?php } ?>
+                </div>
+                <p class="form-help">필수는 허용된 방식을 등록한 회원에게 로그인 2차 인증을 강제하고 해제를 막으며, 아직 등록하지 않은 회원은 보안 화면으로 이동시킵니다. 선택은 회원이 등록한 경우에만 로그인 challenge를 시작합니다. 사용안함은 로그인 2차 인증과 신규 등록을 중지합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label">인증 방식</span>
+            <div class="form-field">
+                <?php if ($memberMfaProviderDefinitions === []) { ?>
+                    <p class="form-help">사용 가능한 2차 인증 provider 계약이 없습니다.</p>
+                <?php } else { ?>
+                    <div class="checkbox-group">
+                        <?php foreach ($memberMfaProviderDefinitions as $memberMfaProviderKey => $memberMfaProvider) { ?>
+                            <?php if (empty($memberMfaProvider['login_supported'])) { continue; } ?>
+                            <label class="form-check" for="<?php echo sr_e('modules_member_admin_settings_mfa_provider_' . (string) $memberMfaProviderKey); ?>">
+                                <input
+                                    id="<?php echo sr_e('modules_member_admin_settings_mfa_provider_' . (string) $memberMfaProviderKey); ?>"
+                                    type="checkbox"
+                                    name="mfa_login_providers[]"
+                                    value="<?php echo sr_e((string) $memberMfaProviderKey); ?>"
+                                    class="form-checkbox"
+                                    <?php echo in_array((string) $memberMfaProviderKey, $memberMfaLoginProviderKeys, true) ? ' checked' : ''; ?>
+                                >
+                                <span><?php echo sr_e((string) ($memberMfaProvider['label'] ?? $memberMfaProviderKey)); ?></span>
+                            </label>
+                            <?php if ((string) ($memberMfaProvider['description'] ?? '') !== '') { ?>
+                                <p class="form-help"><?php echo sr_e((string) $memberMfaProvider['description']); ?></p>
+                            <?php } ?>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
+                <p class="form-help">회원이 등록한 방식이 이 목록에 포함되어 있을 때만 로그인 2차 인증 challenge가 시작됩니다. 이메일, SMS, 다른 OTP 방식은 provider 계약을 제공하는 모듈을 활성화하면 이 목록에 추가됩니다.</p>
+            </div>
+        </div>
     </section>
 
     <section id="member-settings-section-login" class="card" data-admin-section-anchor>

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/member/helpers/settings.php';
+
 function sr_member_login(PDO $pdo, array $account): bool
 {
     sr_member_cleanup_sessions($pdo);
@@ -35,7 +37,9 @@ function sr_member_login(PDO $pdo, array $account): bool
 
 function sr_member_login_or_start_mfa(PDO $pdo, array $account, string $primaryMethod, string $nextPath, array $context = []): string
 {
-    if (sr_member_mfa_login_required($pdo, $account)) {
+    $mfaProviderKeys = sr_member_active_login_mfa_provider_keys($pdo, (int) ($account['id'] ?? 0));
+    if ($mfaProviderKeys !== []) {
+        $context['mfa_provider_keys'] = implode(',', $mfaProviderKeys);
         sr_member_mfa_start_challenge($account, $primaryMethod, $nextPath, $context);
         return 'mfa_required';
     }
@@ -45,10 +49,92 @@ function sr_member_login_or_start_mfa(PDO $pdo, array $account, string $primaryM
 
 function sr_member_mfa_login_required(PDO $pdo, array $account): bool
 {
-    return sr_member_mfa_active_factor_exists($pdo, (int) ($account['id'] ?? 0));
+    return sr_member_active_login_mfa_provider_keys($pdo, (int) ($account['id'] ?? 0)) !== [];
 }
 
-function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
+function sr_member_mfa_runtime_settings(PDO $pdo): array
+{
+    if (function_exists('sr_member_settings') && function_exists('sr_module_metadata') && function_exists('sr_module_settings')) {
+        return sr_member_settings($pdo);
+    }
+
+    return [
+        'mfa_login_mode' => 'optional',
+        'mfa_login_enabled' => true,
+        'mfa_login_providers_json' => '["totp"]',
+    ];
+}
+
+function sr_member_mfa_login_setup_required(PDO $pdo, array $account): bool
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $settings = sr_member_mfa_runtime_settings($pdo);
+    if (sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null) !== 'required') {
+        return false;
+    }
+
+    $allowedProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $settings);
+    if ($allowedProviderKeys === []) {
+        return false;
+    }
+
+    $providers = sr_member_mfa_provider_definitions($pdo);
+    $setupProviderExists = false;
+    foreach ($allowedProviderKeys as $providerKey) {
+        if (!empty($providers[$providerKey]['account_setup_supported'])) {
+            $setupProviderExists = true;
+            break;
+        }
+    }
+    if (!$setupProviderExists) {
+        return false;
+    }
+
+    return !sr_member_mfa_active_factor_exists($pdo, $accountId, $allowedProviderKeys);
+}
+
+function sr_member_active_login_mfa_provider_keys(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [];
+    }
+
+    $settings = sr_member_mfa_runtime_settings($pdo);
+    if (!sr_member_mfa_login_policy_enabled($settings)) {
+        return [];
+    }
+
+    $allowedProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $settings);
+    if ($allowedProviderKeys === []) {
+        return [];
+    }
+
+    return sr_member_mfa_active_factor_provider_keys($pdo, $accountId, $allowedProviderKeys);
+}
+
+function sr_member_mfa_enabled_login_provider_keys(PDO $pdo, array $settings): array
+{
+    if (!sr_member_mfa_login_policy_enabled($settings)) {
+        return [];
+    }
+
+    $configuredKeys = sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["totp"]');
+    $providers = sr_member_mfa_provider_definitions($pdo);
+    $enabledKeys = [];
+    foreach ($configuredKeys as $providerKey) {
+        if (isset($providers[$providerKey]) && !empty($providers[$providerKey]['login_supported'])) {
+            $enabledKeys[] = $providerKey;
+        }
+    }
+
+    return $enabledKeys;
+}
+
+function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId, ?array $providerKeys = null): bool
 {
     if ($accountId < 1) {
         return false;
@@ -58,17 +144,150 @@ function sr_member_mfa_active_factor_exists(PDO $pdo, int $accountId): bool
         return false;
     }
 
+    $providerKeys = $providerKeys === null ? ['totp'] : sr_member_mfa_valid_provider_keys($providerKeys);
+    if ($providerKeys === []) {
+        return false;
+    }
+
+    $placeholders = [];
+    $params = ['account_id' => $accountId];
+    foreach ($providerKeys as $index => $providerKey) {
+        $placeholder = 'provider_' . (string) $index;
+        $placeholders[] = ':' . $placeholder;
+        $params[$placeholder] = $providerKey;
+    }
+
     $stmt = $pdo->prepare(
         "SELECT id
          FROM sr_member_mfa_factors
          WHERE account_id = :account_id
-           AND factor_type = 'totp'
+           AND factor_type IN (" . implode(', ', $placeholders) . ")
            AND status = 'active'
          LIMIT 1"
     );
-    $stmt->execute(['account_id' => $accountId]);
+    $stmt->execute($params);
 
     return (int) $stmt->fetchColumn() > 0;
+}
+
+function sr_member_mfa_active_factor_provider_keys(PDO $pdo, int $accountId, array $providerKeys): array
+{
+    if ($accountId < 1 || !sr_member_mfa_factors_table_exists($pdo)) {
+        return [];
+    }
+
+    $providerKeys = sr_member_mfa_valid_provider_keys($providerKeys);
+    if ($providerKeys === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = ['account_id' => $accountId];
+    foreach ($providerKeys as $index => $providerKey) {
+        $placeholder = 'provider_' . (string) $index;
+        $placeholders[] = ':' . $placeholder;
+        $params[$placeholder] = $providerKey;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT DISTINCT factor_type
+         FROM sr_member_mfa_factors
+         WHERE account_id = :account_id
+           AND factor_type IN (" . implode(', ', $placeholders) . ")
+           AND status = 'active'
+         ORDER BY factor_type ASC"
+    );
+    $stmt->execute($params);
+    $active = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $providerKey = (string) ($row['factor_type'] ?? '');
+        if (sr_member_mfa_key_is_valid($providerKey)) {
+            $active[] = $providerKey;
+        }
+    }
+
+    return $active;
+}
+
+function sr_member_mfa_valid_provider_keys(array $providerKeys): array
+{
+    $valid = [];
+    foreach ($providerKeys as $providerKey) {
+        if (!is_scalar($providerKey)) {
+            continue;
+        }
+        $providerKey = strtolower(trim((string) $providerKey));
+        if (sr_member_mfa_key_is_valid($providerKey)) {
+            $valid[$providerKey] = true;
+        }
+    }
+
+    return array_keys($valid);
+}
+
+function sr_member_mfa_provider_definitions(?PDO $pdo = null): array
+{
+    $providers = [];
+    $contractFiles = [];
+    $memberProviderFile = SR_ROOT . '/modules/member/member-mfa-providers.php';
+    if (is_file($memberProviderFile)) {
+        $contractFiles['member'] = $memberProviderFile;
+    }
+
+    if ($pdo instanceof PDO && function_exists('sr_enabled_module_contract_files')) {
+        $contractFiles += sr_enabled_module_contract_files($pdo, 'member-mfa-providers.php', ['member']);
+    }
+
+    foreach ($contractFiles as $moduleKey => $file) {
+        $contract = $pdo instanceof PDO && function_exists('sr_load_module_contract_file')
+            ? sr_load_module_contract_file((string) $moduleKey, (string) $file)
+            : include (string) $file;
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        foreach ($contract as $providerKey => $provider) {
+            $providerKey = is_string($providerKey) ? strtolower(trim($providerKey)) : '';
+            if ($providerKey === '' || !sr_member_mfa_key_is_valid($providerKey) || !is_array($provider)) {
+                continue;
+            }
+
+            $normalized = sr_member_mfa_normalize_provider_definition($provider, (string) $moduleKey, $providerKey);
+            if ($normalized !== []) {
+                $providers[$providerKey] = $normalized;
+            }
+        }
+    }
+
+    ksort($providers);
+    return $providers;
+}
+
+function sr_member_mfa_normalize_provider_definition(array $provider, string $moduleKey, string $providerKey): array
+{
+    $label = trim((string) ($provider['label'] ?? ''));
+    $method = strtolower(trim((string) ($provider['method'] ?? $providerKey)));
+    $moduleKeyValid = function_exists('sr_is_safe_module_key')
+        ? sr_is_safe_module_key($moduleKey)
+        : preg_match('/\A[a-z][a-z0-9_]{1,63}\z/', $moduleKey) === 1;
+    if ($label === '' || !sr_member_mfa_key_is_valid($providerKey) || !$moduleKeyValid) {
+        return [];
+    }
+
+    if (!in_array($method, ['totp', 'email', 'sms', 'otp', 'backup'], true)) {
+        return [];
+    }
+
+    return [
+        'provider_key' => $providerKey,
+        'provider_module_key' => $moduleKey,
+        'label' => $label,
+        'description' => trim((string) ($provider['description'] ?? '')),
+        'method' => $method,
+        'login_supported' => (bool) ($provider['login_supported'] ?? true),
+        'account_setup_supported' => (bool) ($provider['account_setup_supported'] ?? false),
+        'built_in' => (bool) ($provider['built_in'] ?? false),
+    ];
 }
 
 function sr_member_mfa_active_totp_factor(PDO $pdo, int $accountId): ?array

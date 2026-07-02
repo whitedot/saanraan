@@ -855,6 +855,7 @@ function sr_module_known_contract_files(): array
         'member-action-rows.php',
         'member-only-routes.php',
         'member-registration.php',
+        'member-mfa-providers.php',
         'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',

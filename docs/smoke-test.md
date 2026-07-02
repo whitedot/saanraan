@@ -146,6 +146,8 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 / 응답이 500 없이 열리는지 확인
 /login 응답이 500 없이 열리는지 확인
 /login/mfa 응답이 500 없이 로그인 또는 2차 인증 challenge 흐름으로 이어지는지 확인
+회원 환경설정에서 로그인 2차 인증 정책을 `사용안함`으로 바꾸면 활성 TOTP factor가 있는 계정도 `/login/mfa`로 이동하지 않고 로그인되며, `선택`으로 바꾸고 TOTP provider를 허용하면 회원이 등록한 factor 기준으로 challenge가 복구되는지 확인
+회원 환경설정에서 로그인 2차 인증 정책을 `필수`로 바꾸면 활성 TOTP factor가 있는 계정은 challenge를 거치고, factor가 없는 로그인 회원은 `/mypage/security`로 이동하며, `/mypage/security`의 2차 인증 해제 action이 거부되는지 확인
 로그인한 계정의 `/mypage/security`에서 TOTP 준비가 현재 비밀번호 재확인 뒤 pending factor를 만들고, 등록용 QR 이미지, 수동 secret/otpauth URI, 첫 code 활성화 form을 보여주는지 확인
 TOTP 활성화 직후 백업 코드가 한 번 표시되고, `/login/mfa`에서 미사용 백업 코드 1개로 로그인한 뒤 같은 백업 코드 재사용이 거부되는지 확인
 로그인한 계정의 `/mypage/security`에서 백업 코드 재발급과 2차 인증 해제가 재인증, CSRF, PRG 흐름으로 처리되는지 확인

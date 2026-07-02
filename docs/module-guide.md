@@ -91,6 +91,7 @@ modules/{module_key}/
 - member-action-rows.php (optional)
 - member-only-routes.php (optional)
 - member-registration.php (optional)
+- member-mfa-providers.php (optional)
 - homepage-candidates.php (optional)
 - editor-options.php (optional)
 - coupon-targets.php (optional)
@@ -971,6 +972,7 @@ return [
 - `member-assets.php`: 콘텐츠/커뮤니티에서 쓰는 금액성 회원 자산 후보
 - `member-withdrawal-assets.php`: 회원 탈퇴 시 정리할 자산 후보와 처리 계약
 - `member-registration.php`: 회원가입 추가 입력, 검증, 저장. 확장 입력값은 `registration_extensions[...]` POST namespace로 전달된다.
+- `member-mfa-providers.php`: 로그인 2차 인증 provider 후보. provider key, label, method, 로그인 지원 여부, 회원 직접 등록 지원 여부를 선언한다.
 - `homepage-candidates.php`: 과거 초기화면 저장 경로와 모듈 소유 공개 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
@@ -1195,6 +1197,14 @@ return [
 - 추가 입력은 `registration_extensions[{module_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
 - `validate_function`은 가입 트랜잭션 전에 오류 배열을 반환하고, `save_function`은 가입 트랜잭션 안에서 자기 모듈 확장 데이터를 저장한다.
 
+`member-mfa-providers.php`:
+
+- provider key를 key로 하는 배열을 반환한다.
+- 각 provider는 `label`, `method`, 선택 `description`, 선택 `login_supported`, 선택 `account_setup_supported`, 선택 `built_in`을 가진다.
+- `method`는 `totp`, `email`, `sms`, `otp`, `backup` 중 하나다.
+- `login_supported`가 true인 provider만 로그인 MFA 운영자 허용 목록에 들어갈 수 있다.
+- `account_setup_supported`가 true인 provider는 로그인 MFA `필수` 정책에서 회원이 직접 등록할 수 있는 방식으로 취급된다.
+
 `homepage-candidates.php`:
 
 - 배열을 반환한다.
@@ -1334,6 +1344,7 @@ return [
 | `member-action-rows.php` | core public layout helper | 공개 레이아웃 회원 요약 영역 | 계정별 행동 row 후보 |
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
+| `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
 | `homepage-candidates.php` | core/admin | `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 과거 저장값이나 모듈 소유 공개 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `oauth-providers.php` | `member_oauth` 모듈 | OAuth 설정 화면, 로그인 버튼 렌더링, 인증 callback 처리 | 설치된 provider 플러그인의 OAuth endpoint와 client 설정 key 후보 |
@@ -1363,7 +1374,7 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
 | `privacy` | `paths.php`, `admin-menu.php` | `privacy-export.php`, `admin-notification-events.php` |

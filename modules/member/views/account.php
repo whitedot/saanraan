@@ -9,6 +9,10 @@ $memberMfaPendingFactor = isset($memberMfaPendingFactor) && is_array($memberMfaP
 $memberMfaSetup = isset($memberMfaSetup) && is_array($memberMfaSetup) ? $memberMfaSetup : [];
 $memberMfaRecoveryCodes = isset($memberMfaRecoveryCodes) && is_array($memberMfaRecoveryCodes) ? array_values(array_filter(array_map('strval', $memberMfaRecoveryCodes))) : [];
 $memberMfaRecoveryCodeCounts = isset($memberMfaRecoveryCodeCounts) && is_array($memberMfaRecoveryCodeCounts) ? $memberMfaRecoveryCodeCounts : [];
+$memberMfaLoginMode = isset($memberMfaLoginMode) && is_string($memberMfaLoginMode) ? $memberMfaLoginMode : 'optional';
+$memberMfaTotpLoginAllowed = isset($memberMfaTotpLoginAllowed) ? (bool) $memberMfaTotpLoginAllowed : true;
+$memberMfaTotpSetupAllowed = isset($memberMfaTotpSetupAllowed) ? (bool) $memberMfaTotpSetupAllowed : $memberMfaTotpLoginAllowed;
+$memberMfaDisableAllowed = isset($memberMfaDisableAllowed) ? (bool) $memberMfaDisableAllowed : $memberMfaLoginMode !== 'required';
 $memberAccountPages = [
     'overview' => [
         'label' => '요약',
@@ -281,6 +285,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <dt><?php echo sr_e(sr_t('member::ui.mfa_recovery.remaining')); ?></dt>
                                 <dd><?php echo sr_e((string) ((int) ($memberMfaRecoveryCodeCounts['unused'] ?? 0))); ?></dd>
                             </dl>
+                            <?php if ($memberMfaLoginMode === 'required') { ?>
+                                <p class="member-skin-basic-muted type-small">운영자 설정에서 로그인 2차 인증이 필수로 지정되어 있습니다.</p>
+                            <?php } elseif (!$memberMfaTotpLoginAllowed) { ?>
+                                <p class="member-skin-basic-muted type-small">운영자 설정에서 인증 앱 OTP 로그인이 비활성화되어 있어 현재 등록된 2차 인증은 로그인 때 요구되지 않습니다.</p>
+                            <?php } ?>
                             <?php if ($memberMfaRecoveryCodes !== []) { ?>
                                 <div class="member-skin-basic-stack">
                                     <p><?php echo sr_e(sr_t('member::ui.mfa_recovery.once_help')); ?></p>
@@ -311,41 +320,50 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <?php } ?>
                                 <button class="btn btn-outline-primary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_recovery.rotate')); ?></button>
                             </form>
-                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="mfa_disable">
-                                <?php if ($memberAccountHasPassword) { ?>
-                                    <p>
-                                        <label for="modules_member_account_mfa_disable_current_password">
-                                            <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_disable_current_password" type="password" name="current_password" autocomplete="current-password" required>
-                                        </label>
-                                    </p>
-                                <?php } else { ?>
-                                    <p>
-                                        <label for="modules_member_account_mfa_disable_code">
-                                            <span><?php echo sr_e(sr_t('member::ui.mfa_totp.reauth_code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_disable_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
-                                        </label>
-                                    </p>
-                                <?php } ?>
-                                <button class="btn btn-outline-danger" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_totp.disable')); ?></button>
-                            </form>
+                            <?php if ($memberMfaDisableAllowed) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="mfa_disable">
+                                    <?php if ($memberAccountHasPassword) { ?>
+                                        <p>
+                                            <label for="modules_member_account_mfa_disable_current_password">
+                                                <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                                <input class="form-input" id="modules_member_account_mfa_disable_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                            </label>
+                                        </p>
+                                    <?php } else { ?>
+                                        <p>
+                                            <label for="modules_member_account_mfa_disable_code">
+                                                <span><?php echo sr_e(sr_t('member::ui.mfa_totp.reauth_code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                                <input class="form-input" id="modules_member_account_mfa_disable_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
+                                            </label>
+                                        </p>
+                                    <?php } ?>
+                                    <button class="btn btn-outline-danger" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_totp.disable')); ?></button>
+                                </form>
+                            <?php } ?>
                         <?php } else { ?>
                             <p><?php echo sr_e(sr_t('member::ui.mfa_totp.help')); ?></p>
-                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="mfa_totp_prepare">
-                                <?php if ($memberAccountHasPassword) { ?>
-                                    <p>
-                                        <label for="modules_member_account_mfa_current_password">
-                                            <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" autocomplete="current-password" required>
-                                        </label>
-                                    </p>
-                                <?php } ?>
-                                <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
-                            </form>
+                            <?php if ($memberMfaLoginMode === 'required') { ?>
+                                <p class="member-skin-basic-muted type-small">운영자 설정에서 로그인 2차 인증이 필수입니다. 아래에서 인증 앱 OTP를 등록하세요.</p>
+                            <?php } ?>
+                            <?php if (!$memberMfaTotpSetupAllowed) { ?>
+                                <p class="member-skin-basic-muted type-small">운영자 설정에서 인증 앱 OTP 로그인이 비활성화되어 있어 새 2차 인증 등록을 시작할 수 없습니다.</p>
+                            <?php } else { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="mfa_totp_prepare">
+                                    <?php if ($memberAccountHasPassword) { ?>
+                                        <p>
+                                            <label for="modules_member_account_mfa_current_password">
+                                                <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+                                                <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                            </label>
+                                        </p>
+                                    <?php } ?>
+                                    <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
+                                </form>
+                            <?php } ?>
 
                             <?php if ((string) ($memberMfaSetup['secret_base32'] ?? '') !== '') { ?>
                                 <div class="member-skin-basic-stack">
@@ -372,7 +390,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <p><?php echo sr_e(sr_t('member::ui.mfa_totp.pending_help')); ?></p>
                             <?php } ?>
 
-                            <?php if ($memberMfaPendingFactor !== null) { ?>
+                            <?php if ($memberMfaPendingFactor !== null && $memberMfaTotpSetupAllowed) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="mfa_totp_activate">

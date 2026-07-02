@@ -34,11 +34,23 @@ if (sr_request_method() === 'POST') {
         sr_redirect('/login');
     }
 
+    $challengeProviderKeys = sr_member_mfa_valid_provider_keys(explode(',', (string) (($challenge['context']['mfa_provider_keys'] ?? ''))));
+    $activeProviderKeys = sr_member_active_login_mfa_provider_keys($pdo, $accountId);
+    if ($challengeProviderKeys === []) {
+        $challengeProviderKeys = $activeProviderKeys;
+    }
+    $availableProviderKeys = array_values(array_intersect($challengeProviderKeys, $activeProviderKeys));
+    if ($availableProviderKeys === []) {
+        sr_member_mfa_clear_challenge();
+        $errors[] = sr_t('member::action.login_mfa.factor_unavailable');
+        sr_member_log_auth($pdo, $accountId, 'mfa_challenge_expired', 'failure');
+    }
+
     $code = sr_post_string_without_truncation('code', 80);
     $normalizedCode = is_string($code) ? sr_member_mfa_normalize_code($code) : '';
     $normalizedRecoveryCode = is_string($code) ? sr_member_mfa_recovery_code_normalize($code) : '';
     $mfaThrottle = sr_member_mfa_throttle_status($pdo, $accountId);
-    if (!empty($mfaThrottle['limited'])) {
+    if ($errors === [] && !empty($mfaThrottle['limited'])) {
         $errors[] = sr_t('member::action.login_mfa.throttled');
         sr_member_log_auth($pdo, $accountId, 'mfa_rate_limited', 'failure');
         sr_audit_log($pdo, [
@@ -54,26 +66,26 @@ if (sr_request_method() === 'POST') {
                 'primary_method' => (string) ($challenge['primary_method'] ?? ''),
             ],
         ]);
-    } elseif (
+    } elseif ($errors === [] && (
         $code === null
         || (
             !sr_member_mfa_code_is_valid_format($normalizedCode)
             && !sr_member_mfa_recovery_code_is_valid_format($normalizedRecoveryCode)
         )
-    ) {
+    )) {
         $errors[] = sr_t('member::action.login_mfa.code_invalid');
         sr_member_log_auth($pdo, $accountId, 'mfa_totp_failure', 'failure');
-    } else {
+    } elseif ($errors === []) {
         $mfaMethod = 'totp';
         $mfaResult = [
             'verified' => false,
             'reason' => 'invalid_code',
             'factor_id' => 0,
         ];
-        if (sr_member_mfa_code_is_valid_format($normalizedCode)) {
+        if (in_array('totp', $availableProviderKeys, true) && sr_member_mfa_code_is_valid_format($normalizedCode)) {
             $mfaResult = sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode);
         }
-        if (empty($mfaResult['verified']) && sr_member_mfa_recovery_code_is_valid_format($normalizedRecoveryCode)) {
+        if (in_array('totp', $availableProviderKeys, true) && empty($mfaResult['verified']) && sr_member_mfa_recovery_code_is_valid_format($normalizedRecoveryCode)) {
             $mfaMethod = 'backup';
             $mfaResult = sr_member_mfa_consume_recovery_code($pdo, $accountId, $normalizedRecoveryCode);
         }

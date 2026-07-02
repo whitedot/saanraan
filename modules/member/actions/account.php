@@ -15,6 +15,11 @@ $submittedBasics = null;
 $memberMfaSetup = [];
 $memberMfaRecoveryCodes = [];
 $memberSettings = sr_member_settings($pdo);
+$memberMfaLoginMode = sr_member_mfa_login_mode($memberSettings['mfa_login_mode'] ?? null, $memberSettings['mfa_login_enabled'] ?? null);
+$memberMfaLoginProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $memberSettings);
+$memberMfaTotpLoginAllowed = in_array('totp', $memberMfaLoginProviderKeys, true);
+$memberMfaTotpSetupAllowed = $memberMfaLoginMode !== 'disabled' && $memberMfaTotpLoginAllowed;
+$memberMfaDisableAllowed = $memberMfaLoginMode !== 'required';
 $memberAccountBasePath = '/mypage';
 $memberAccountPage = 'overview';
 $memberAccountRoutePages = [
@@ -336,7 +341,9 @@ if (sr_request_method() === 'POST') {
         $reauthFailureLogged = false;
 
         $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
-        if ($hasPasswordLogin && !empty($reauthThrottle['limited'])) {
+        if (!$memberMfaTotpSetupAllowed) {
+            $errors[] = sr_t('member::action.account.mfa_provider_disabled');
+        } elseif ($hasPasswordLogin && !empty($reauthThrottle['limited'])) {
             $errors[] = sr_t('member::action.reauth.throttled');
             sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
             $reauthFailureLogged = true;
@@ -404,18 +411,26 @@ if (sr_request_method() === 'POST') {
         $factorId = (int) sr_post_string('factor_id', 20);
         $code = sr_post_string('mfa_code', 40);
         $recoveryCodeSetup = [];
-        $pdo->beginTransaction();
-        try {
-            $mfaResult = sr_member_mfa_activate_pending_totp_factor($pdo, (int) $account['id'], $factorId, $code);
-            if (!empty($mfaResult['activated'])) {
-                $recoveryCodeSetup = sr_member_mfa_rotate_recovery_codes($pdo, (int) $account['id'], (int) ($mfaResult['factor_id'] ?? 0));
+        if (!$memberMfaTotpSetupAllowed) {
+            $mfaResult = [
+                'activated' => false,
+                'reason' => 'provider_disabled',
+                'factor_id' => 0,
+            ];
+        } else {
+            $pdo->beginTransaction();
+            try {
+                $mfaResult = sr_member_mfa_activate_pending_totp_factor($pdo, (int) $account['id'], $factorId, $code);
+                if (!empty($mfaResult['activated'])) {
+                    $recoveryCodeSetup = sr_member_mfa_rotate_recovery_codes($pdo, (int) $account['id'], (int) ($mfaResult['factor_id'] ?? 0));
+                }
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
             }
-            $pdo->commit();
-        } catch (Throwable $exception) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            throw $exception;
         }
 
         if (!empty($mfaResult['activated'])) {
@@ -441,6 +456,8 @@ if (sr_request_method() === 'POST') {
             $reason = (string) ($mfaResult['reason'] ?? '');
             if ($reason === 'active_exists') {
                 $errors[] = sr_t('member::action.account.mfa_totp_active_exists');
+            } elseif ($reason === 'provider_disabled') {
+                $errors[] = sr_t('member::action.account.mfa_provider_disabled');
             } elseif ($reason === 'factor_unavailable') {
                 $errors[] = sr_t('member::action.account.mfa_totp_pending_missing');
             } elseif ($reason === 'secret_unavailable') {
@@ -472,6 +489,9 @@ if (sr_request_method() === 'POST') {
 
         if ($activeFactor === null) {
             $errors[] = sr_t('member::action.account.mfa_not_active');
+        }
+        if ($errors === [] && $intent === 'mfa_disable' && !$memberMfaDisableAllowed) {
+            $errors[] = sr_t('member::action.account.mfa_required_by_policy');
         }
 
         if ($errors === []) {
