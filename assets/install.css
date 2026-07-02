@@ -1608,7 +1608,11 @@ code {
 }
 
 .sr-install-main-page-option::before {
-    content: "[ 초기화면으로 설정 ]";
+    content: "[ ] 초기화면으로 설정";
+}
+
+.sr-install-main-page-option:has(> input:checked)::before {
+    content: "[*] 초기화면으로 설정";
 }
 
 .sr-install-main-page-option > input,
