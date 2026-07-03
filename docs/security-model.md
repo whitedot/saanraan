@@ -152,7 +152,7 @@ sr_render_error()
 sr_finish_response()
 ```
 
-`header('Location: ...')`도 action에서 직접 호출하지 않는다. 내부 redirect는 `sr_redirect()`를 통과해야 안전한 상대 URL 검증과 contract 검사를 함께 받는다. 사용자나 관리자가 입력한 외부 URL로 redirect해야 하는 경우에는 `sr_redirect_external()`을 사용하며, 대상 URL은 public network 검증을 통과해야 한다. S3 public URL이나 presigned URL처럼 서버 설정과 저장소 helper가 만든 URL을 넘기는 경우에만 `sr_redirect_trusted_external()`을 사용한다.
+`header('Location: ...')`도 action에서 직접 호출하지 않는다. 내부 redirect는 `sr_redirect()`를 통과해야 안전한 상대 URL 검증과 contract 검사를 함께 받는다. 사용자나 관리자가 입력한 외부 URL로 redirect해야 하는 경우에는 `sr_redirect_external()`을 사용하며, 대상 URL은 public network 검증을 통과해야 한다. S3 public URL이나 presigned URL처럼 서버 설정과 저장소 helper가 만든 URL은 `sr_redirect_trusted_external()`을 사용하되, 대상 origin은 런타임 저장소 설정에서 파생된 allowlist를 통과해야 한다. OAuth authorization endpoint처럼 저장소가 아닌 서버 생성 외부 URL은 호출부가 provider endpoint origin을 명시 allowlist로 넘긴다.
 
 허용되는 예:
 

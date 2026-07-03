@@ -353,9 +353,9 @@ sr_output_helper_assert(
 
 $trustedExternalRedirect = sr_output_helper_run_fixture('trusted external redirect', <<<'PHP'
 sr_start_request_contract('GET', '/fixture', 'fixture', 'fixture-trusted-redirect.php');
-sr_redirect_trusted_external('http://127.0.0.1/storage-object');
+sr_redirect_trusted_external('http://127.0.0.1/storage-object', ['http://127.0.0.1']);
 PHP);
-sr_output_helper_assert($trustedExternalRedirect['exit_code'] === 0, 'Trusted external redirect fixture should allow server-generated local storage URLs.');
+sr_output_helper_assert($trustedExternalRedirect['exit_code'] === 0, 'Trusted external redirect fixture should allow explicitly allowlisted server-generated URLs.');
 sr_output_helper_assert(
     is_array($trustedExternalRedirect['contract'] ?? null)
         && (($trustedExternalRedirect['contract']['exit_reason'] ?? null) === 'completed')
@@ -363,12 +363,45 @@ sr_output_helper_assert(
     'Trusted external redirect should complete the request contract.'
 );
 
+$unlistedTrustedExternalRedirect = sr_output_helper_run_fixture('trusted external redirect rejects unlisted host', <<<'PHP'
+sr_start_request_contract('GET', '/fixture', 'fixture', 'fixture-trusted-redirect.php');
+sr_redirect_trusted_external('http://127.0.0.1/storage-object', ['https://storage.example.test']);
+PHP);
+sr_output_helper_assert($unlistedTrustedExternalRedirect['exit_code'] === 0, 'Trusted external redirect unlisted host rejection should render a controlled error response.');
+sr_output_helper_assert($unlistedTrustedExternalRedirect['status'] === 500, 'Trusted external redirect should reject HTTP URLs outside the allowlist.');
+
 $badTrustedExternalRedirect = sr_output_helper_run_fixture('trusted external redirect rejects non-http', <<<'PHP'
 sr_start_request_contract('GET', '/fixture', 'fixture', 'fixture-trusted-redirect.php');
 sr_redirect_trusted_external('javascript:alert(1)');
 PHP);
 sr_output_helper_assert($badTrustedExternalRedirect['exit_code'] === 0, 'Trusted external redirect invalid URL rejection should render a controlled error response.');
 sr_output_helper_assert($badTrustedExternalRedirect['status'] === 500, 'Trusted external redirect should reject non-HTTP URLs.');
+
+$previousRuntimeConfig = sr_runtime_config();
+sr_set_runtime_config([
+    'storage' => [
+        's3' => [
+            'bucket' => 'fixture-bucket',
+            'region' => 'ap-northeast-2',
+            'endpoint' => 'https://s3.example.test/base',
+            'public_base_url' => 'https://cdn.example.test/assets',
+            'path_style' => false,
+        ],
+    ],
+]);
+sr_output_helper_assert(
+    sr_trusted_external_redirect_url_is_allowed('https://fixture-bucket.s3.example.test/base/object?X-Amz-Signature=abc'),
+    'Trusted external redirect should allow S3 signed URL origins derived from runtime storage config.'
+);
+sr_output_helper_assert(
+    sr_trusted_external_redirect_url_is_allowed('https://cdn.example.test/assets/object.png'),
+    'Trusted external redirect should allow S3 public base URL origins derived from runtime storage config.'
+);
+sr_output_helper_assert(
+    !sr_trusted_external_redirect_url_is_allowed('https://other.example.test/object.png'),
+    'Trusted external redirect should reject HTTP URLs outside configured storage origins.'
+);
+sr_set_runtime_config($previousRuntimeConfig);
 
 $encodedScriptValue = sr_js_json_encode([
     'tag' => '</script><script>alert(1)</script>',
@@ -612,8 +645,8 @@ if (is_string($outputHelper)) {
     sr_output_helper_assert(
         strpos($outputHelper, 'function sr_redirect_external(string $url): void') !== false
             && strpos($outputHelper, 'if (!sr_is_public_http_url($url))') !== false
-            && strpos($outputHelper, 'function sr_redirect_trusted_external(string $url): void') !== false
-            && strpos($outputHelper, 'if (!sr_is_http_url($url))') !== false,
+            && strpos($outputHelper, 'function sr_redirect_trusted_external(string $url, array $allowedOrigins = []): void') !== false
+            && strpos($outputHelper, 'sr_trusted_external_redirect_url_is_allowed($url, $allowedOrigins)') !== false,
         'External redirect helpers should split public user URLs from trusted server-generated URLs.'
     );
     sr_output_helper_assert(

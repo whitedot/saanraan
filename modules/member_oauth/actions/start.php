@@ -28,7 +28,10 @@ if (!empty($providers[$providerKey]['mock'])) {
 
 try {
     sr_member_oauth_store_transient_secrets((string) $state['state'], $state, (int) $settings['state_ttl_seconds']);
-    sr_redirect_trusted_external(sr_member_oauth_authorization_url($providers[$providerKey], $site ?? [], $state));
+    sr_redirect_trusted_external(
+        sr_member_oauth_authorization_url($providers[$providerKey], $site ?? [], $state),
+        [sr_member_oauth_provider_value($providers[$providerKey], 'authorization_url')]
+    );
 } catch (Throwable) {
     sr_render_error(500, 'OAuth provider settings are invalid.');
 }

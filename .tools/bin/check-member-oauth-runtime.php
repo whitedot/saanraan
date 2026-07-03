@@ -543,7 +543,9 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
     'sr_member_require_login($pdo)',
     'sr_member_oauth_create_state',
     'sr_member_oauth_store_transient_secrets',
-    'sr_redirect_trusted_external(sr_member_oauth_authorization_url',
+    'sr_redirect_trusted_external(',
+    'sr_member_oauth_authorization_url($providers[$providerKey], $site ?? [], $state)',
+    "sr_member_oauth_provider_value(\$providers[\$providerKey], 'authorization_url')",
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/admin-settings.php', [
     'sr_admin_require_owner',

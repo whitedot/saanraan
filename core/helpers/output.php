@@ -2863,9 +2863,9 @@ function sr_redirect_external(string $url): void
     sr_finish_response();
 }
 
-function sr_redirect_trusted_external(string $url): void
+function sr_redirect_trusted_external(string $url, array $allowedOrigins = []): void
 {
-    if (!sr_is_http_url($url)) {
+    if (!sr_trusted_external_redirect_url_is_allowed($url, $allowedOrigins)) {
         sr_render_error(500, sr_t('error.external_redirect_invalid'));
     }
 
@@ -2873,6 +2873,113 @@ function sr_redirect_trusted_external(string $url): void
 
     header('Location: ' . $url, true, 302);
     sr_finish_response();
+}
+
+function sr_trusted_external_redirect_url_is_allowed(string $url, array $allowedOrigins = []): bool
+{
+    if (!sr_is_http_url($url)) {
+        return false;
+    }
+
+    $origins = $allowedOrigins === [] ? sr_trusted_external_redirect_default_origins() : $allowedOrigins;
+    foreach ($origins as $origin) {
+        if (!is_string($origin) || $origin === '') {
+            continue;
+        }
+
+        if (sr_http_url_origins_match($url, $origin)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sr_trusted_external_redirect_default_origins(?array $config = null): array
+{
+    $config = $config ?? sr_runtime_config();
+    $storage = isset($config['storage']) && is_array($config['storage']) ? $config['storage'] : [];
+    $s3 = isset($storage['s3']) && is_array($storage['s3']) ? $storage['s3'] : [];
+
+    $origins = [];
+    $publicBaseUrl = trim((string) ($s3['public_base_url'] ?? ''));
+    if ($publicBaseUrl !== '' && sr_is_http_url($publicBaseUrl)) {
+        $origins[] = $publicBaseUrl;
+    }
+
+    $bucket = trim((string) ($s3['bucket'] ?? ''));
+    $region = trim((string) ($s3['region'] ?? 'us-east-1'));
+    $region = $region === '' ? 'us-east-1' : $region;
+    $endpoint = rtrim(trim((string) ($s3['endpoint'] ?? '')), '/');
+    if (preg_match('/\A[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]\z/', $bucket) !== 1 || str_contains($bucket, '..')) {
+        return array_values(array_unique($origins));
+    }
+
+    if ($endpoint === '') {
+        $host = $region === 'us-east-1'
+            ? $bucket . '.s3.amazonaws.com'
+            : $bucket . '.s3.' . $region . '.amazonaws.com';
+        $origins[] = 'https://' . $host;
+
+        return array_values(array_unique($origins));
+    }
+
+    if (!sr_is_http_url($endpoint)) {
+        return array_values(array_unique($origins));
+    }
+
+    if (!empty($s3['path_style'])) {
+        $origins[] = $endpoint;
+
+        return array_values(array_unique($origins));
+    }
+
+    $scheme = strtolower((string) parse_url($endpoint, PHP_URL_SCHEME));
+    $host = parse_url($endpoint, PHP_URL_HOST);
+    if (!is_string($host) || $scheme === '') {
+        return array_values(array_unique($origins));
+    }
+
+    $port = parse_url($endpoint, PHP_URL_PORT);
+    $hostPart = $bucket . '.' . strtolower($host);
+    if (is_int($port)) {
+        $hostPart .= ':' . (string) $port;
+    }
+    $origins[] = $scheme . '://' . $hostPart;
+
+    return array_values(array_unique($origins));
+}
+
+function sr_http_url_origins_match(string $url, string $origin): bool
+{
+    $urlOrigin = sr_http_url_origin_parts($url);
+    $allowedOrigin = sr_http_url_origin_parts($origin);
+
+    return $urlOrigin !== null
+        && $allowedOrigin !== null
+        && $urlOrigin === $allowedOrigin;
+}
+
+function sr_http_url_origin_parts(string $url): ?array
+{
+    if (!sr_is_http_url($url)) {
+        return null;
+    }
+
+    $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return null;
+    }
+
+    $port = parse_url($url, PHP_URL_PORT);
+    $port = is_int($port) ? $port : ($scheme === 'http' ? 80 : 443);
+
+    return [
+        'scheme' => $scheme,
+        'host' => strtolower(trim($host, '[]')),
+        'port' => $port,
+    ];
 }
 
 function sr_finish_response(): void
