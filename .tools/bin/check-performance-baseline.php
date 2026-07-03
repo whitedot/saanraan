@@ -154,16 +154,45 @@ sr_performance_baseline_require_markers('modules/admin/helpers/pagination.php', 
 sr_performance_baseline_require_markers('modules/admin/actions/modules.php', [
     '$installableModules = array_values(array_filter',
     '$installablePlugins = array_values(array_filter',
-    '$modules = $sortDisabledFirst',
-    '$plugins = $sortDisabledFirst',
+    '$installableModuleSort = sr_admin_sort_from_request',
+    '$installablePluginSort = sr_admin_sort_from_request',
+    '$moduleSort = sr_admin_sort_from_request',
+    '$pluginSort = sr_admin_sort_from_request',
+    '$modules = $sortModuleRows($modules, $moduleSort, true);',
+    '$plugins = $sortModuleRows($plugins, $pluginSort, true);',
 ]);
 sr_performance_baseline_require_markers('modules/admin/views/modules.php', [
     'sticky-tabs anchor-tabs tab-nav-justified',
+    '$installableSection[\'id\']); ?>" class="card admin-list-card admin-list-form" data-admin-section-anchor',
+    '$installedSection[\'id\']); ?>" class="card admin-list-card admin-list-form" data-admin-section-anchor',
+    'card-header',
+    '$adminPageTitleActionsHtml',
+    '$moduleManagementClassificationLabel',
+    '$moduleManagementClassificationBadgeHtml',
+    'badge-soft-primary',
+    'badge-soft-info',
+    'badge-soft-secondary',
     'admin-modules-section-installable-modules',
     'admin-modules-section-installable-plugins',
     'admin-modules-section-installed-modules',
     'admin-modules-section-installed-plugins',
+    'table table-list',
+    "sr_admin_sort_header_html('이름', 'name'",
+    "sr_admin_sort_header_html('상태', 'status'",
 ]);
+$moduleManagementView = sr_performance_baseline_read('modules/admin/views/modules.php');
+if (str_contains($moduleManagementView, 'admin-module-card-grid') || str_contains($moduleManagementView, 'admin-module-installable-grid')) {
+    sr_performance_baseline_error('Module management lists must use table UI instead of module card grids.');
+}
+if (str_contains($moduleManagementView, 'admin-section-heading')) {
+    sr_performance_baseline_error('Module management sections must use card headers instead of nested section heading wrappers.');
+}
+if (str_contains($moduleManagementView, 'admin-modules-section-source') || str_contains($moduleManagementView, 'show_foundations')) {
+    sr_performance_baseline_error('Module source actions must stay out of section tabs, and foundation modules must not require a visibility toggle.');
+}
+if (substr_count($moduleManagementView, '$moduleManagementClassificationBadgeHtml($module, $requiredModules);') < 2) {
+    sr_performance_baseline_error('Module management classification badges must be rendered in both installable and installed module/plugin lists.');
+}
 
 $paginationPairs = [
     ['modules/admin/actions/roles.php', 'modules/admin/views/roles.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],

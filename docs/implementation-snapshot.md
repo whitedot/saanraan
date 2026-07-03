@@ -17,13 +17,13 @@
 
 현재 저장소에는 다음 주요 모듈 또는 플러그인이 포함되어 있다.
 
-새 설치 화면 기준으로 `member`, `admin`, `policy_documents`, `privacy`는 필수 모듈로 항상 설치된다. `asset_ledger`, `payment_ledger`는 직접 선택 카드가 아니라 선택한 기능이 필요로 할 때 자동 포함되는 숨김 기반 모듈이다. 나머지 `type => module` 항목은 선택 모듈로, `type => plugin` 항목은 플러그인으로 표시된다.
+새 설치 화면 기준으로 `member`, `admin`, `policy_documents`, `privacy`는 필수 모듈로 항상 설치된다. `asset_ledger`, `payment_ledger`는 직접 선택 대상은 아니지만 기반 모듈 목록에 표시하고, 선택한 기능이 필요로 할 때 자동 포함 상태와 최종 선택 모듈 요약에 함께 표시한다. 나머지 `type => module` 항목은 선택 모듈로, `type => plugin` 항목은 플러그인으로 표시된다.
 
 | 분류 | key | 성격 |
 | --- | --- | --- |
 | 시스템 | `admin` | 관리자 대시보드, 설정, 메뉴, 모듈, 업데이트, 권한 |
-| 시스템 | `asset_ledger` | 숨김 기반 잔액 처리 primitive, 자산 모듈 자동 준비 |
-| 시스템 | `payment_ledger` | 숨김 기반 결제 기록, 쿠폰·자산·외부 결제·접근권 부여 item 묶음 |
+| 시스템 | `asset_ledger` | 기반 잔액 처리 primitive, 자산 모듈 자동 준비 |
+| 시스템 | `payment_ledger` | 기반 결제 기록, 쿠폰·자산·외부 결제·접근권 부여 item 묶음 |
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
 | 회원 | `member_oauth` | OAuth/OIDC provider state, generic provider adapter, mock provider, 계정 연결/해제, completion 기반 |
 | 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver, GitHub, Apple ID provider 계약 |

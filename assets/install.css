@@ -589,6 +589,11 @@ code {
     background: var(--sr-primary-soft);
 }
 
+.sr-install-module[data-install-foundation-included="1"] {
+    border-color: var(--sr-primary);
+    background: var(--sr-primary-soft);
+}
+
 .sr-install-main-page-option:has(.form-checkbox:checked) {
     color: var(--sr-primary);
 }
@@ -1524,6 +1529,7 @@ code {
 }
 
 .sr-install-module-option:has(> .sr-install-module-title .form-checkbox:checked),
+.sr-install-module[data-install-foundation-included="1"],
 .sr-install-module-option:hover,
 .sr-install-module-select-all:hover {
     border-color: transparent;

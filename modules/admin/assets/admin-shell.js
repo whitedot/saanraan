@@ -543,10 +543,25 @@ window.AdminShell = {
             return Number.isFinite(number) ? number : 0;
         };
 
-        const adminStickyOffset = () => {
+        const cssLengthToPixels = value => {
+            const rawValue = String(value || '').trim();
+            const number = cssNumberValue(rawValue);
+            if (rawValue.endsWith('rem')) {
+                return number * cssNumberValue(window.getComputedStyle(document.documentElement).fontSize);
+            }
+            if (rawValue.endsWith('em')) {
+                return number * cssNumberValue(window.getComputedStyle(document.body).fontSize);
+            }
+
+            return number;
+        };
+
+        const adminStickyOffset = tabs => {
             const rootStyle = window.getComputedStyle(document.documentElement);
-            const shellBarHeight = cssNumberValue(rootStyle.getPropertyValue('--admin-shell-bar-height'));
-            const tabsHeight = cssNumberValue(rootStyle.getPropertyValue('--config-tabs-height')) || 52;
+            const shellBar = document.getElementById('hd_top');
+            const shellBarHeight = shellBar ? shellBar.getBoundingClientRect().height : cssLengthToPixels(rootStyle.getPropertyValue('--admin-shell-bar-height'));
+            const activeTabs = tabs && tabs.offsetParent !== null ? tabs : document.querySelector('.sticky-tabs.anchor-tabs');
+            const tabsHeight = activeTabs ? activeTabs.getBoundingClientRect().height : (cssLengthToPixels(rootStyle.getPropertyValue('--config-tabs-height')) || 52);
             return shellBarHeight + tabsHeight + 12;
         };
 
@@ -611,7 +626,7 @@ window.AdminShell = {
             };
             const canAutoScrollTab = () => Date.now() - lastDirectTabScrollAt > 700;
             const scrollSectionIntoView = section => {
-                const targetTop = Math.max(0, window.scrollY + section.getBoundingClientRect().top - adminStickyOffset());
+                const targetTop = Math.max(0, window.scrollY + section.getBoundingClientRect().top - adminStickyOffset(tabs));
                 window.scrollTo({ top: targetTop, behavior: scrollBehavior });
             };
             const activePairFromScroll = () => {
@@ -619,7 +634,7 @@ window.AdminShell = {
                 if (availablePairs.length === 0) {
                     return null;
                 }
-                const probeY = adminStickyOffset() + Math.min(96, window.innerHeight * 0.25);
+                const probeY = adminStickyOffset(tabs) + Math.min(96, window.innerHeight * 0.25);
                 let activePair = availablePairs[0];
                 availablePairs.forEach(pair => {
                     const rect = pair.section.getBoundingClientRect();

@@ -529,9 +529,7 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
         $row['lifecycle_state'] = (string) $lifecycle['state'];
         $row['lifecycle_label'] = (string) $lifecycle['label'];
         $row['lifecycle_action'] = (string) $lifecycle['action'];
-        if (!sr_admin_module_should_hide_in_management($row)) {
-            $modules[] = $row;
-        }
+        $modules[] = $row;
     }
 
     $installableModules = [];
@@ -578,29 +576,12 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
                 'lifecycle_action' => $metadataErrors === [] ? '설치 가능' : '모듈 파일 확인',
             ];
             $installableModule['is_foundation'] = sr_module_is_foundation($moduleKey);
-            if (!sr_admin_module_should_hide_in_management($installableModule)) {
-                $installableModules[] = $installableModule;
-            }
+            $installableModules[] = $installableModule;
         }
     }
 
     return [
         'modules' => $modules,
         'installable_modules' => $installableModules,
-        'show_foundation_modules' => sr_admin_show_foundation_modules(),
     ];
-}
-
-function sr_admin_module_should_hide_in_management(array $module): bool
-{
-    if (sr_admin_show_foundation_modules()) {
-        return false;
-    }
-
-    return !empty($module['is_foundation']);
-}
-
-function sr_admin_show_foundation_modules(): bool
-{
-    return (string) ($_GET['show_foundations'] ?? '') === '1';
 }

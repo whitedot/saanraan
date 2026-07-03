@@ -146,6 +146,19 @@ foreach (['function sr_install_module_dependency_keys', 'sr_install_module_depen
     }
 }
 
+$installView = $read('core/views/install.php');
+foreach ([
+    '$selectedModuleSummaryLabels = array_values(array_unique(array_merge($selectedModuleLabels, $selectedAutoDependencyModuleLabels)));',
+    'data-install-foundation-module',
+    'data-install-foundation-status',
+    '이번 설치 포함',
+    "updateTextSummary('optional_modules', moduleLabels.concat(autoDependencyLabels).length",
+] as $marker) {
+    if (!str_contains($installView, $marker)) {
+        $errors[] = 'initial installer must show auto-included foundation modules in the selected module list: ' . $marker;
+    }
+}
+
 if ($errors !== []) {
     foreach ($errors as $error) {
         fwrite(STDERR, $error . PHP_EOL);

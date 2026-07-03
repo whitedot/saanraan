@@ -30,7 +30,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 새 설치 화면은 운영자가 선택해야 하는 관계를 기준으로 다음 네 가지로 나누어 표시한다.
 
 - 필수 모듈: 사이트 실행과 초기 운영에 항상 필요한 모듈이다. 현재 새 설치에서는 `member`, `admin`, `policy_documents`, `privacy`가 항상 설치된다.
-- 자동 포함 기반 모듈: 운영자가 직접 기능으로 고르지는 않지만 선택한 모듈이 필요로 하면 자동 설치된다. 현재 `asset_ledger`, `payment_ledger`가 여기에 속한다.
+- 자동 포함 기반 모듈: 운영자가 직접 기능으로 고르지는 않지만 선택한 모듈이 필요로 하면 자동 설치된다. 새 설치 화면에서는 기반 모듈 목록에 표시하고, 선택한 기능 때문에 포함될 때는 선택 모듈 요약에도 함께 표시한다. 현재 `asset_ledger`, `payment_ledger`가 여기에 속한다.
 - 선택 모듈: public/account/admin 화면, 테이블, 정책, 실행 흐름을 자기 책임으로 소유하는 기능 단위다.
 - 플러그인: 특정 모듈이나 계약 파일에 붙는 provider, adapter, 입력 경험 보강 단위다.
 
@@ -395,7 +395,7 @@ return [
 - `requires.modules`: 활성화 전에 필요한 모듈. 활성 모듈이 요구하는 모듈은 해당 의존 모듈을 먼저 비활성화하기 전까지 관리자 상태 변경에서 비활성화할 수 없다.
 - `requires.contracts`: 활성화 전에 필요한 계약 파일. 대상 모듈이 enabled여도 현재 코어와 메타데이터/계약이 맞지 않으면 요구사항을 만족하지 않은 것으로 본다.
 - `admin`, `member` 자신을 제외하고 `/admin` 경로를 제공하는 모듈은 관리자 권한 검사와 로그인 helper를 직접 호출하므로 `admin`, `member`를 모두 `requires.modules`에 선언한다.
-- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `requires.modules`, `sr_foundation_module_keys()`, `sr_module_foundation_dependencies()`를 기준으로 선택 모듈과 플러그인에 필요한 의존 모듈을 자동 포함하고 화면에 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit`, `community` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이나 활성 커뮤니티가 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community` 설치/활성화 시 자동 준비되며, 이 모듈들이 활성 상태인 동안 비활성화가 차단된다. 숨김 기반 모듈도 `/admin` 경로와 관리자 메뉴를 직접 제공하면 `admin`, `member` 의존성을 선언한다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
+- 숨김 기반 모듈은 `admin.hidden => true`, `admin.foundation => true`를 선언할 수 있다. 새 설치기는 `requires.modules`, `sr_foundation_module_keys()`, `sr_module_foundation_dependencies()`를 기준으로 선택 모듈과 플러그인에 필요한 의존 모듈을 자동 포함하고, 기반 모듈 목록과 최종 선택 모듈 요약에서 함께 설치됨을 안내한다. `asset_ledger`는 `point`, `reward`, `deposit`, `community` 설치/활성화 시 자동 준비되며, 활성 자산 모듈이나 활성 커뮤니티가 있는 동안 비활성화가 차단된다. `payment_ledger`는 `content`, `community` 설치/활성화 시 자동 준비되며, 이 모듈들이 활성 상태인 동안 비활성화가 차단된다. 숨김 기반 모듈도 `/admin` 경로와 관리자 메뉴를 직접 제공하면 `admin`, `member` 의존성을 선언한다. 새 기반 모듈을 추가할 때는 자동 준비 대상, 설치 안내, 실패 표시, 감사 로그, 삭제/비활성화 차단 기준을 함께 문서화한다.
 - `contracts.provides`: 이 모듈이 제공하는 계약 파일. `paths.php`, `admin-menu.php`, `output-slots.php` 같은 계약 파일이 실제로 있으면 반드시 선언하고, 선언한 파일은 실제로 있어야 한다.
 - `contracts.consumes`: 이 모듈이 읽는 계약 파일
 - `admin`: 관리자 메뉴 분류, 아이콘, 관리자 전용 stylesheet 같은 선택 메타데이터

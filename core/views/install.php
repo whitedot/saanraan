@@ -2,6 +2,7 @@
 
 $pageTitle = sr_t('ui.saanraan.878daf3c');
 $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
+$selectedAutoDependencyModuleMap = array_fill_keys($selectedAutoDependencyModuleKeys ?? [], true);
 $selectedMainPageOption = $mainPageOptions[$values['main_page_path']] ?? $mainPageOptions['/'];
 $installStepLabels = [
     'environment' => '환경 확인',
@@ -52,6 +53,7 @@ foreach (($selectedAutoDependencyModuleKeys ?? []) as $moduleKey) {
 $selectedModuleLabels = array_values(array_unique($selectedModuleLabels));
 $selectedPluginLabels = array_values(array_unique($selectedPluginLabels));
 $selectedAutoDependencyModuleLabels = array_values(array_unique($selectedAutoDependencyModuleLabels));
+$selectedModuleSummaryLabels = array_values(array_unique(array_merge($selectedModuleLabels, $selectedAutoDependencyModuleLabels)));
 $installFormAction = $installPreviewMode ? sr_url('/?sr_install_preview=1') : sr_url('/');
 $optionalModuleSections = [
     'module' => [
@@ -456,8 +458,9 @@ foreach ($optionalModules as $moduleKey => $module) {
                             <div class="sr-install-module-grid">
                                 <?php foreach ($foundationModules as $moduleKey => $module) { ?>
                                     <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                                    <div class="sr-install-module">
-                                        <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? '자동 포함' : sr_t('ui.text.84dd6e38'); ?></span>
+                                    <?php $foundationIncluded = isset($selectedAutoDependencyModuleMap[$moduleKey]); ?>
+                                    <div class="sr-install-module" data-install-foundation-module="<?php echo sr_e((string) $moduleKey); ?>" data-install-foundation-available="<?php echo $moduleErrors === [] ? '1' : '0'; ?>"<?php echo $foundationIncluded ? ' data-install-foundation-included="1"' : ''; ?>>
+                                        <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? ($foundationIncluded ? 'ok' : 'warning') : 'error'; ?>" data-install-foundation-status><?php echo $moduleErrors === [] ? ($foundationIncluded ? '이번 설치 포함' : '자동 포함 대기') : sr_t('ui.text.84dd6e38'); ?></span>
                                         <strong><?php echo sr_e((string) $module['label']); ?></strong>
                                         <span class="sr-install-type-badge">기반 모듈</span>
                                         <small>Key: <?php echo sr_e((string) $moduleKey); ?></small>
@@ -641,7 +644,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                             <dt>필수</dt>
                             <dd><?php echo sr_e(implode(', ', array_map(static function (array $module): string { return (string) $module['label']; }, $requiredModules))); ?></dd>
                             <dt>선택 모듈</dt>
-                            <dd data-summary-target="optional_modules"><?php echo sr_e($selectedModuleLabels !== [] ? implode(', ', $selectedModuleLabels) : '선택 없음'); ?></dd>
+                            <dd data-summary-target="optional_modules"><?php echo sr_e($selectedModuleSummaryLabels !== [] ? implode(', ', $selectedModuleSummaryLabels) : '선택 없음'); ?></dd>
                             <dt>플러그인</dt>
                             <dd data-summary-target="optional_plugins"><?php echo sr_e($selectedPluginLabels !== [] ? implode(', ', $selectedPluginLabels) : '선택 없음'); ?></dd>
                             <dt>자동 포함</dt>
@@ -940,12 +943,22 @@ foreach ($optionalModules as $moduleKey => $module) {
                 var moduleLabels = [];
                 var pluginLabels = [];
                 var autoDependencyLabels = [];
+                var autoDependencyKeys = [];
                 document.querySelectorAll('[data-install-module-option]:checked').forEach(function (input) {
                     var label = input.getAttribute('data-install-module-label') || input.value;
                     if (input.getAttribute('data-install-module-type') === 'plugin') {
                         pluginLabels.push(label);
                     } else {
                         moduleLabels.push(label);
+                    }
+                    try {
+                        JSON.parse(input.getAttribute('data-install-required-module-keys') || '[]').forEach(function (dependencyKey) {
+                            var normalizedDependencyKey = String(dependencyKey || '');
+                            if (normalizedDependencyKey && autoDependencyKeys.indexOf(normalizedDependencyKey) === -1) {
+                                autoDependencyKeys.push(normalizedDependencyKey);
+                            }
+                        });
+                    } catch (error) {
                     }
                     try {
                         JSON.parse(input.getAttribute('data-install-auto-dependency-labels') || '[]').forEach(function (dependencyLabel) {
@@ -957,9 +970,27 @@ foreach ($optionalModules as $moduleKey => $module) {
                     } catch (error) {
                     }
                 });
-                updateTextSummary('optional_modules', moduleLabels.length ? moduleLabels.join(', ') : '선택 없음');
+                updateTextSummary('optional_modules', moduleLabels.concat(autoDependencyLabels).length ? moduleLabels.concat(autoDependencyLabels).join(', ') : '선택 없음');
                 updateTextSummary('optional_plugins', pluginLabels.length ? pluginLabels.join(', ') : '선택 없음');
                 updateTextSummary('auto_dependencies', autoDependencyLabels.length ? autoDependencyLabels.join(', ') : '없음');
+                document.querySelectorAll('[data-install-foundation-module]').forEach(function (card) {
+                    if (card.getAttribute('data-install-foundation-available') !== '1') {
+                        return;
+                    }
+                    var foundationKey = card.getAttribute('data-install-foundation-module') || '';
+                    var status = card.querySelector('[data-install-foundation-status]');
+                    var included = autoDependencyKeys.indexOf(foundationKey) !== -1;
+                    if (included) {
+                        card.setAttribute('data-install-foundation-included', '1');
+                    } else {
+                        card.removeAttribute('data-install-foundation-included');
+                    }
+                    if (status) {
+                        status.textContent = included ? '이번 설치 포함' : '자동 포함 대기';
+                        status.classList.toggle('sr-install-status-ok', included);
+                        status.classList.toggle('sr-install-status-warning', !included);
+                    }
+                });
             }
 
             document.querySelectorAll('[data-install-key-input]').forEach(function (input) {
