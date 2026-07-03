@@ -580,7 +580,7 @@
                                         <div
                                             class="modal-dialog-fluid">
                                             <div
-                                                class="modal-content-fullscreen">
+                                                class="modal-content-fullscreen modal-radius-md">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="fullscreeexampleModal-label"
@@ -624,7 +624,7 @@
                                         <div
                                             class="modal-dialog-responsive modal-open-sm-mt">
                                             <div
-                                                class="modal-content-fluid">
+                                                class="modal-content-fluid modal-radius-md">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenSm-label"
@@ -668,7 +668,7 @@
                                         <div
                                             class="modal-dialog-responsive modal-open-md-mt">
                                             <div
-                                                class="modal-content-fluid modal-border-md">
+                                                class="modal-content-fluid modal-radius-md modal-border-md">
                                                 <div
                                                     class="modal-header">
                                                     <h3 id="exampleModalFullscreenMd-label"

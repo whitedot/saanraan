@@ -919,6 +919,29 @@ sr_skin_theme_check_contains([
     '.modal-dialog-sm{width:calc(100% - calc(var(--spacing) * 6))',
 ], 'Default modal viewport margins');
 
+$modalSamplePaths = [
+    'layouts/public/basic/ui-kit-samples/ui-modals.php',
+    'modules/admin/views/ui-kit-samples/ui-modals.php',
+    'modules/content/views/ui-kit-samples/ui-modals.php',
+    'modules/community/views/ui-kit-samples/ui-modals.php',
+    'modules/quiz/views/ui-kit-samples/ui-modals.php',
+    'modules/survey/views/ui-kit-samples/ui-modals.php',
+];
+foreach ($modalSamplePaths as $modalSamplePath) {
+    sr_skin_theme_check_contains($modalSamplePath, [
+        'class="modal-content-fullscreen modal-radius-md"',
+        'class="modal-content-fluid modal-radius-md"',
+        'class="modal-content-fluid modal-radius-md modal-border-md"',
+        'class="modal-content-fluid modal-radius-lg modal-border-lg"',
+        'class="modal-content-fluid modal-radius-xl modal-border-xl"',
+    ], 'Fullscreen modal radius samples in ' . $modalSamplePath);
+    sr_skin_theme_check_not_contains($modalSamplePath, [
+        'class="modal-content-fullscreen">',
+        'class="modal-content-fluid">',
+        'class="modal-content-fluid modal-border-md">',
+    ], 'Fullscreen modal radius samples in ' . $modalSamplePath);
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "skin/layout UI checks failed:\n");
     foreach ($errors as $error) {
