@@ -73,7 +73,7 @@ return [
     'ui.standard_template.confirm' => '현재 본문을 표준 문안으로 교체할까요?',
     'ui.standard_template.privacy_policy' => '표준 개인정보처리방침 자동 채우기',
     'ui.standard_template.terms' => '표준 이용약관 자동 채우기',
-    'ui.standard_template.verified_at' => '표준 확인: {date}',
+    'ui.standard_template.revised_at' => '최근 개정: {date}',
     'ui.summary' => '요약',
     'ui.sort_order' => '정렬 순서',
     'ui.title' => '제목',

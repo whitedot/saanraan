@@ -40,10 +40,20 @@ function sr_policy_document_standard_template_button_label(string $documentKey):
     };
 }
 
-function sr_policy_document_standard_template_verified_label(string $documentKey): string
+function sr_policy_document_standard_template_revision_date_label(string $documentKey): string
 {
     return match (trim($documentKey)) {
-        'member_terms', 'member_privacy_policy' => sr_t('policy_documents::ui.standard_template.verified_at', ['date' => '2026년 7월 3일']),
+        'member_terms' => sr_t('policy_documents::ui.standard_template.revised_at', ['date' => '2015년 6월 26일']),
+        'member_privacy_policy' => sr_t('policy_documents::ui.standard_template.revised_at', ['date' => '2026년 4월 23일']),
+        default => '',
+    };
+}
+
+function sr_policy_document_standard_template_notice_url(string $documentKey): string
+{
+    return match (trim($documentKey)) {
+        'member_terms' => 'https://www.ftc.go.kr/www/selectBbsNttView.do?bordCd=201&key=202&nttSn=11139&pageIndex=1&pageUnit=10&searchCnd=all&searchKrwd=%EC%A0%84%EC%9E%90%EC%83%81%EA%B1%B0%EB%9E%98',
+        'member_privacy_policy' => 'https://www.pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS217&nttId=12018',
         default => '',
     };
 }

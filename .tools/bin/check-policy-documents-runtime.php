@@ -61,8 +61,12 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.effective_from.help')
             && str_contains($policyDocumentViewSource, 'sr_datetime_local_value($policyDocumentVersionValue(\'effective_from\'))')
             && str_contains($policyDocumentViewSource, 'sr_admin_time_html((string) ($version[\'effective_from\'] ?? \'\'), sr_t(\'policy_documents::ui.effective_from.empty\'))')
-            && str_contains($policyDocumentViewSource, 'sr_policy_document_standard_template_verified_label($policyDocumentSelectedDocumentKey)')
-            && str_contains($policyDocumentViewSource, '$policyDocumentStandardTemplateVerifiedLabel')
+            && str_contains($policyDocumentViewSource, 'sr_policy_document_standard_template_revision_date_label($policyDocumentSelectedDocumentKey)')
+            && str_contains($policyDocumentViewSource, 'sr_policy_document_standard_template_notice_url($policyDocumentSelectedDocumentKey)')
+            && str_contains($policyDocumentViewSource, '$policyDocumentStandardTemplateRevisionDateLabel')
+            && str_contains($policyDocumentViewSource, '$policyDocumentStandardTemplateNoticeUrl')
+            && str_contains($policyDocumentViewSource, 'target="_blank"')
+            && str_contains($policyDocumentViewSource, 'rel="noopener noreferrer"')
             && str_contains($policyDocumentViewSource, 'sr_policy_document_render_body_html($pdo, $version)')
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
@@ -334,7 +338,8 @@ sr_policy_documents_check_assert(
         && str_contains($termsTemplate, '김대표')
         && str_contains($termsTemplate, '2026-서울테스트-0001')
         && str_contains($termsTemplate, '전자상거래 등에서의 소비자보호에 관한 법률')
-        && str_contains(sr_policy_document_standard_template_verified_label('member_terms'), '2026년 7월 3일'),
+        && str_contains(sr_policy_document_standard_template_revision_date_label('member_terms'), '2015년 6월 26일')
+        && str_contains(sr_policy_document_standard_template_notice_url('member_terms'), 'ftc.go.kr'),
     'standard terms template should use official e-commerce terms structure and site business information.'
 );
 $privacyTemplate = sr_policy_document_standard_template_html($pdo, 'member_privacy_policy', ['name' => '테스트몰', 'base_url' => 'https://example.test']);
@@ -346,6 +351,8 @@ sr_policy_documents_check_assert(
         && str_contains($privacyTemplate, '테스트호스팅')
         && str_contains($privacyTemplate, '동의 없이 처리하는 개인정보')
         && str_contains($privacyTemplate, '자동화된 결정')
+        && str_contains(sr_policy_document_standard_template_revision_date_label('member_privacy_policy'), '2026년 4월 23일')
+        && str_contains(sr_policy_document_standard_template_notice_url('member_privacy_policy'), 'pipc.go.kr')
         && str_contains(sr_policy_document_standard_template_button_label('member_privacy_policy'), '개인정보처리방침'),
     'standard privacy policy template should follow the current privacy policy guide structure and use site business information.'
 );

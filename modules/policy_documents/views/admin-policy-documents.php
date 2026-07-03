@@ -85,12 +85,14 @@ if ($selectedDocumentId > 0) {
 }
 $policyDocumentStandardTemplateHtml = '';
 $policyDocumentStandardTemplateLabel = '';
-$policyDocumentStandardTemplateVerifiedLabel = '';
+$policyDocumentStandardTemplateRevisionDateLabel = '';
+$policyDocumentStandardTemplateNoticeUrl = '';
 $policyDocumentSelectedDocumentKey = is_array($selectedDocument) ? (string) ($selectedDocument['document_key'] ?? '') : '';
 if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentSelectedDocumentKey !== '' && isset($pdo) && $pdo instanceof PDO) {
     $policyDocumentStandardTemplateHtml = sr_policy_document_standard_template_html($pdo, $policyDocumentSelectedDocumentKey, is_array($site ?? null) ? $site : null);
     $policyDocumentStandardTemplateLabel = sr_policy_document_standard_template_button_label($policyDocumentSelectedDocumentKey);
-    $policyDocumentStandardTemplateVerifiedLabel = sr_policy_document_standard_template_verified_label($policyDocumentSelectedDocumentKey);
+    $policyDocumentStandardTemplateRevisionDateLabel = sr_policy_document_standard_template_revision_date_label($policyDocumentSelectedDocumentKey);
+    $policyDocumentStandardTemplateNoticeUrl = sr_policy_document_standard_template_notice_url($policyDocumentSelectedDocumentKey);
 }
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -201,8 +203,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-policy-document-standard-template data-policy-document-standard-template-confirm="<?php echo sr_e(sr_t('policy_documents::ui.standard_template.confirm')); ?>">
                                 <?php echo sr_material_icon_html('auto_fix_high'); ?><?php echo sr_e($policyDocumentStandardTemplateLabel); ?>
                             </button>
-                            <?php if ($policyDocumentStandardTemplateVerifiedLabel !== '') { ?>
-                                <span class="badge badge-soft-secondary"><?php echo sr_e($policyDocumentStandardTemplateVerifiedLabel); ?></span>
+                            <?php if ($policyDocumentStandardTemplateRevisionDateLabel !== '' && $policyDocumentStandardTemplateNoticeUrl !== '') { ?>
+                                <a class="badge badge-soft-secondary" href="<?php echo sr_e($policyDocumentStandardTemplateNoticeUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e($policyDocumentStandardTemplateRevisionDateLabel); ?></a>
+                            <?php } elseif ($policyDocumentStandardTemplateRevisionDateLabel !== '') { ?>
+                                <span class="badge badge-soft-secondary"><?php echo sr_e($policyDocumentStandardTemplateRevisionDateLabel); ?></span>
                             <?php } ?>
                             <script type="application/json" data-policy-document-standard-template-json><?php echo sr_js_json_encode($policyDocumentStandardTemplateHtml); ?></script>
                         </div>
