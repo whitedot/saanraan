@@ -51,6 +51,19 @@ function sr_sanitizer_check_file_contains(string $file, array $needles, string $
     }
 }
 
+function sr_sanitizer_check_ckeditor_client_sync_markers(): void
+{
+    sr_sanitizer_check_file_contains(SR_ROOT . '/modules/ckeditor/assets/saanraan-ckeditor.js', [
+        'function syncTextareaValue(textarea, editor, notify)',
+        'textarea.value = nextValue;',
+        'textarea.dispatchEvent(new Event(\'input\', { bubbles: true }));',
+        'editor.model.document.on(\'change:data\', function () {',
+        'document.addEventListener(\'submit\', function (event) {',
+        'syncFormEditors(event.target);',
+        '}, true);',
+    ], 'CKEditor client source textarea sync');
+}
+
 function sr_sanitizer_check_case(callable $sanitize, string $label): void
 {
     $dangerousHtml = '<p onclick="alert(1)" style="color:red">Hello <script>alert(1)</script><strong onmouseover="bad()">world</strong></p>'
@@ -323,6 +336,7 @@ sr_sanitizer_check_namespace_url_payload_case('sr_sanitize_rich_text_html_fallba
 sr_sanitizer_check_ckeditor_case('sr_sanitize_rich_text_html', 'common rich text sanitizer');
 sr_sanitizer_check_ckeditor_case('sr_community_sanitize_post_html', 'community post sanitizer');
 sr_sanitizer_check_ckeditor_case('sr_sanitize_rich_text_html_fallback', 'common rich text sanitizer fallback');
+sr_sanitizer_check_ckeditor_client_sync_markers();
 sr_sanitizer_check_body_text_helper_case();
 sr_sanitizer_check_rich_text_module_flow_markers();
 

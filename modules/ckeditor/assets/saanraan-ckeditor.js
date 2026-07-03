@@ -211,6 +211,49 @@
     form.appendChild(input);
   }
 
+  function editorForTextarea(textarea) {
+    if (!textarea) {
+      return null;
+    }
+
+    if (textarea._srCkeditorInstance) {
+      return textarea._srCkeditorInstance;
+    }
+
+    if (textarea.id && window.srCkeditorInstances && window.srCkeditorInstances[textarea.id]) {
+      return window.srCkeditorInstances[textarea.id];
+    }
+
+    return null;
+  }
+
+  function syncTextareaValue(textarea, editor, notify) {
+    if (!textarea || !editor || typeof editor.getData !== 'function') {
+      return;
+    }
+
+    var nextValue = editor.getData();
+    if (textarea.value === nextValue) {
+      return;
+    }
+
+    textarea.value = nextValue;
+    if (notify) {
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function syncFormEditors(form) {
+    if (!form || !form.querySelectorAll) {
+      return;
+    }
+
+    form.querySelectorAll('textarea[data-sr-editor="ckeditor"]').forEach(function (textarea) {
+      syncTextareaValue(textarea, editorForTextarea(textarea), false);
+    });
+  }
+
   function enhance(ckeditor) {
     if (!ckeditor || !ckeditor.ClassicEditor) {
       return;
@@ -225,11 +268,18 @@
         if (editor.ui && editor.ui.view && editor.ui.view.element) {
           editor.ui.view.element.classList.add('sr-ckeditor');
         }
+        textarea._srCkeditorInstance = editor;
         if (textarea.id) {
           window.srCkeditorInstances[textarea.id] = editor;
         }
         textarea.dataset.srEditorReady = '1';
         markHtmlFormat(textarea);
+        syncTextareaValue(textarea, editor, false);
+        if (editor.model && editor.model.document && typeof editor.model.document.on === 'function') {
+          editor.model.document.on('change:data', function () {
+            syncTextareaValue(textarea, editor, true);
+          });
+        }
       }).catch(function () {
         textarea.dataset.srEditorReady = '0';
       });
@@ -246,4 +296,8 @@
       document.documentElement.classList.add('sr-ckeditor-unavailable');
     });
   });
+
+  document.addEventListener('submit', function (event) {
+    syncFormEditors(event.target);
+  }, true);
 }());
