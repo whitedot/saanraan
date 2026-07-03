@@ -899,8 +899,8 @@ sr_skin_theme_check_contains([
     'modules/survey/theme/sample/assets/ui-kit.css',
 ], [
     '--modal-viewport-gap:clamp(',
-    'width:calc(100% - var(--modal-viewport-gap) - var(--modal-viewport-gap))',
-    'height:calc(100% - var(--modal-viewport-gap) - var(--modal-viewport-gap))',
+    'box-sizing:border-box',
+    'padding:var(--modal-viewport-gap)',
 ], 'Fluid modal viewport margins');
 
 if ($errors !== []) {
