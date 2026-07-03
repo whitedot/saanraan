@@ -57,9 +57,15 @@ $policyDocumentCkeditorAttributes = $policyDocumentCkeditorAvailable && isset($p
     ? sr_editor_textarea_attributes($pdo, 'ckeditor', 'admin_basic', 'body_editor_format')
     : '';
 $policyDocumentVersionsByDocumentId = [];
+$policyDocumentLatestVersionKeyByDocumentId = [];
 foreach ($versions as $policyDocumentVersionRow) {
-    $policyDocumentVersionsByDocumentId[(int) $policyDocumentVersionRow['document_id']][] = $policyDocumentVersionRow;
+    $policyDocumentVersionDocumentId = (int) $policyDocumentVersionRow['document_id'];
+    $policyDocumentVersionsByDocumentId[$policyDocumentVersionDocumentId][] = $policyDocumentVersionRow;
+    if (!isset($policyDocumentLatestVersionKeyByDocumentId[$policyDocumentVersionDocumentId])) {
+        $policyDocumentLatestVersionKeyByDocumentId[$policyDocumentVersionDocumentId] = (string) ($policyDocumentVersionRow['version_key'] ?? '');
+    }
 }
+$policyDocumentLatestVersionKey = $selectedDocumentId > 0 ? (string) ($policyDocumentLatestVersionKeyByDocumentId[$selectedDocumentId] ?? '') : '';
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -149,7 +155,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="policy_document_version_key"><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
                     <div class="form-field">
-                        <input id="policy_document_version_key" class="form-input" type="text" name="version_key" maxlength="40" pattern="[A-Za-z0-9._-]{1,40}" placeholder="<?php echo sr_e(sr_t('policy_documents::ui.version_key.placeholder')); ?>" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-version-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.version_key_invalid')); ?>">
+                        <div class="admin-setting-source-line">
+                            <input id="policy_document_version_key" class="form-input" type="text" name="version_key" maxlength="40" pattern="[A-Za-z0-9._-]{1,40}" placeholder="<?php echo sr_e(sr_t('policy_documents::ui.version_key.placeholder')); ?>" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-version-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.version_key_invalid')); ?>">
+                            <?php if ($policyDocumentLatestVersionKey !== '') { ?>
+                                <span class="badge badge-soft-secondary badge-pill" title="<?php echo sr_e(sr_t('policy_documents::ui.version_key.latest_badge.title')); ?>">
+                                    <?php echo sr_e(sr_t('policy_documents::ui.version_key.latest_badge', ['version' => $policyDocumentLatestVersionKey])); ?>
+                                </span>
+                            <?php } ?>
+                        </div>
                         <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.version_key.help')); ?></p>
                     </div>
                 </div>

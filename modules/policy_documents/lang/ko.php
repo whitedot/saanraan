@@ -70,5 +70,7 @@ return [
     'ui.version.view' => '버전 보기',
     'ui.version_key' => '버전 키',
     'ui.version_key.help' => '이 문서 안에서 중복되지 않는 버전 식별자입니다. 202020, 2026.06.001, v1처럼 직접 정할 수 있습니다. 공백 없이 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용해 주세요.',
+    'ui.version_key.latest_badge' => '마지막 버전 {version}',
+    'ui.version_key.latest_badge.title' => '이 문서에 마지막으로 등록된 버전 키입니다.',
     'ui.version_key.placeholder' => '202020',
 ];

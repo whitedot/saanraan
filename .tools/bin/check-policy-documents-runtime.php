@@ -50,6 +50,16 @@ function sr_policy_documents_check_assert(bool $condition, string $message): voi
     }
 }
 
+$policyDocumentViewSource = file_get_contents('modules/policy_documents/views/admin-policy-documents.php');
+if (is_string($policyDocumentViewSource)) {
+    sr_policy_documents_check_assert(
+        str_contains($policyDocumentViewSource, '$policyDocumentLatestVersionKeyByDocumentId')
+            && str_contains($policyDocumentViewSource, 'policy_documents::ui.version_key.latest_badge')
+            && str_contains($policyDocumentViewSource, 'badge badge-soft-secondary badge-pill'),
+        'policy document new version form should show the latest existing version key as a badge next to the version key input.'
+    );
+}
+
 function sr_policy_documents_check_pdo(): PDO
 {
     $pdo = new PDO('sqlite::memory:');
