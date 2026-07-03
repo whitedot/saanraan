@@ -61,6 +61,8 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.effective_from.help')
             && str_contains($policyDocumentViewSource, 'sr_datetime_local_value($policyDocumentVersionValue(\'effective_from\'))')
             && str_contains($policyDocumentViewSource, 'sr_admin_time_html((string) ($version[\'effective_from\'] ?? \'\'), sr_t(\'policy_documents::ui.effective_from.empty\'))')
+            && str_contains($policyDocumentViewSource, 'sr_policy_document_standard_template_verified_label($policyDocumentSelectedDocumentKey)')
+            && str_contains($policyDocumentViewSource, '$policyDocumentStandardTemplateVerifiedLabel')
             && str_contains($policyDocumentViewSource, 'sr_policy_document_render_body_html($pdo, $version)')
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
@@ -187,7 +189,7 @@ function sr_policy_documents_check_pdo(): PDO
         "INSERT INTO sr_site_settings (setting_key, setting_value, value_type)
          VALUES ('site.name', '테스트몰', 'string'),
                 ('site.base_url', 'https://example.test', 'string'),
-                ('site.business_info_items', '[{\"key\":\"company_name\",\"value\":\"테스트 주식회사\"},{\"key\":\"customer_service_phone\",\"value\":\"070-1234-5678\"},{\"key\":\"privacy_officer_name\",\"value\":\"홍길동\"},{\"key\":\"privacy_officer_email\",\"value\":\"privacy@example.test\"}]', 'json')"
+                ('site.business_info_items', '[{\"key\":\"company_name\",\"label\":\"상호\",\"value\":\"테스트 주식회사\"},{\"key\":\"representative_name\",\"label\":\"대표자명\",\"value\":\"김대표\"},{\"key\":\"business_registration_number\",\"label\":\"사업자등록번호\",\"value\":\"123-45-67890\"},{\"key\":\"mail_order_report_number\",\"label\":\"통신판매업 신고번호\",\"value\":\"2026-서울테스트-0001\"},{\"key\":\"business_address\",\"label\":\"사업장 주소\",\"value\":\"서울특별시 테스트구 테스트로 1\"},{\"key\":\"business_email\",\"label\":\"사업자 전자우편주소\",\"value\":\"hello@example.test\"},{\"key\":\"customer_service_phone\",\"label\":\"고객센터 전화번호\",\"value\":\"070-1234-5678\"},{\"key\":\"customer_service_email\",\"label\":\"고객센터 전자우편주소\",\"value\":\"support@example.test\"},{\"key\":\"privacy_officer_name\",\"label\":\"개인정보보호책임자\",\"value\":\"홍길동\"},{\"key\":\"privacy_officer_email\",\"label\":\"개인정보보호책임자 이메일\",\"value\":\"privacy@example.test\"},{\"key\":\"hosting_provider\",\"label\":\"호스팅 제공자\",\"value\":\"테스트호스팅\"}]', 'json')"
     );
 
     return $pdo;
@@ -328,16 +330,24 @@ sr_policy_documents_check_assert(
     str_contains($termsTemplate, '테스트몰')
         && str_contains($termsTemplate, 'https://example.test')
         && str_contains($termsTemplate, '070-1234-5678')
-        && str_contains($termsTemplate, '테스트 주식회사'),
-    'standard terms template should use site settings and business information.'
+        && str_contains($termsTemplate, '테스트 주식회사')
+        && str_contains($termsTemplate, '김대표')
+        && str_contains($termsTemplate, '2026-서울테스트-0001')
+        && str_contains($termsTemplate, '전자상거래 등에서의 소비자보호에 관한 법률')
+        && str_contains(sr_policy_document_standard_template_verified_label('member_terms'), '2026년 7월 3일'),
+    'standard terms template should use official e-commerce terms structure and site business information.'
 );
 $privacyTemplate = sr_policy_document_standard_template_html($pdo, 'member_privacy_policy', ['name' => '테스트몰', 'base_url' => 'https://example.test']);
 sr_policy_documents_check_assert(
     str_contains($privacyTemplate, '테스트몰')
         && str_contains($privacyTemplate, '홍길동')
         && str_contains($privacyTemplate, 'privacy@example.test')
+        && str_contains($privacyTemplate, 'support@example.test')
+        && str_contains($privacyTemplate, '테스트호스팅')
+        && str_contains($privacyTemplate, '동의 없이 처리하는 개인정보')
+        && str_contains($privacyTemplate, '자동화된 결정')
         && str_contains(sr_policy_document_standard_template_button_label('member_privacy_policy'), '개인정보처리방침'),
-    'standard privacy policy template should use site settings and expose an admin button label.'
+    'standard privacy policy template should follow the current privacy policy guide structure and use site business information.'
 );
 
 $staleJobId = sr_policy_document_create_notice_job($pdo, 1, $futureVersionId, 'future subject', 'future body', true);

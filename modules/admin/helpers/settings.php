@@ -843,10 +843,14 @@ function sr_admin_business_info_default_items(): array
         'company_name' => '상호',
         'representative_name' => '대표자명',
         'business_registration_number' => '사업자등록번호',
+        'mail_order_report_number' => '통신판매업 신고번호',
         'business_address' => '사업장 주소',
+        'business_email' => '사업자 전자우편주소',
         'customer_service_phone' => '고객센터 전화번호',
+        'customer_service_email' => '고객센터 전자우편주소',
         'privacy_officer_name' => '개인정보보호책임자',
         'privacy_officer_email' => '개인정보보호책임자 이메일',
+        'hosting_provider' => '호스팅 제공자',
     ];
 }
 

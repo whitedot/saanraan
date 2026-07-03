@@ -40,6 +40,14 @@ function sr_policy_document_standard_template_button_label(string $documentKey):
     };
 }
 
+function sr_policy_document_standard_template_verified_label(string $documentKey): string
+{
+    return match (trim($documentKey)) {
+        'member_terms', 'member_privacy_policy' => sr_t('policy_documents::ui.standard_template.verified_at', ['date' => '2026년 7월 3일']),
+        default => '',
+    };
+}
+
 function sr_policy_document_standard_context(PDO $pdo, ?array $site = null): array
 {
     $settings = sr_site_settings($pdo);
@@ -47,14 +55,19 @@ function sr_policy_document_standard_context(PDO $pdo, ?array $site = null): arr
     $baseUrl = trim((string) ($site['base_url'] ?? $settings['site.base_url'] ?? ''));
     $businessItems = is_array($settings['site.business_info_items'] ?? null) ? $settings['site.business_info_items'] : [];
     $business = [];
+    $businessLabels = sr_policy_document_standard_business_info_labels();
     foreach ($businessItems as $item) {
         if (!is_array($item)) {
             continue;
         }
         $key = strtolower(trim((string) ($item['key'] ?? '')));
+        $label = sr_clean_single_line((string) ($item['label'] ?? ''), 80);
         $value = sr_clean_single_line((string) ($item['value'] ?? ''), 255);
         if ($key !== '' && $value !== '') {
             $business[$key] = $value;
+            if ($label !== '') {
+                $businessLabels[$key] = $label;
+            }
         }
     }
 
@@ -62,6 +75,7 @@ function sr_policy_document_standard_context(PDO $pdo, ?array $site = null): arr
         'site_name' => $siteName,
         'base_url' => $baseUrl,
         'business' => $business,
+        'business_labels' => $businessLabels,
     ];
 }
 
@@ -73,20 +87,39 @@ function sr_policy_document_standard_value(array $context, string $key, string $
     return $value !== '' ? $value : $default;
 }
 
-function sr_policy_document_standard_business_info_list_html(array $context): string
+function sr_policy_document_standard_business_info_labels(): array
 {
-    $labels = [
+    return [
         'company_name' => '상호',
         'representative_name' => '대표자명',
         'business_registration_number' => '사업자등록번호',
+        'mail_order_report_number' => '통신판매업 신고번호',
         'business_address' => '사업장 주소',
+        'business_email' => '사업자 전자우편주소',
         'customer_service_phone' => '고객센터 전화번호',
+        'customer_service_email' => '고객센터 전자우편주소',
         'privacy_officer_name' => '개인정보보호책임자',
         'privacy_officer_email' => '개인정보보호책임자 이메일',
+        'hosting_provider' => '호스팅 제공자',
     ];
+}
+
+function sr_policy_document_standard_label(array $context, string $key, string $default = ''): string
+{
+    $labels = is_array($context['business_labels'] ?? null) ? $context['business_labels'] : [];
+
+    return trim((string) ($labels[$key] ?? $default));
+}
+
+function sr_policy_document_standard_business_info_list_html(array $context, array $keys = []): string
+{
+    $labels = is_array($context['business_labels'] ?? null) ? $context['business_labels'] : sr_policy_document_standard_business_info_labels();
     $business = is_array($context['business'] ?? null) ? $context['business'] : [];
+    $keys = $keys !== [] ? $keys : array_keys($labels);
     $items = [];
-    foreach ($labels as $key => $label) {
+    foreach ($keys as $key) {
+        $key = (string) $key;
+        $label = trim((string) ($labels[$key] ?? $key));
         $value = trim((string) ($business[$key] ?? ''));
         if ($value !== '') {
             $items[] = '<li>' . sr_e($label) . ': ' . sr_e($value) . '</li>';
@@ -96,45 +129,92 @@ function sr_policy_document_standard_business_info_list_html(array $context): st
     return $items !== [] ? '<ul>' . implode('', $items) . '</ul>' : '';
 }
 
+function sr_policy_document_standard_contact_sentence(array $context): string
+{
+    $phone = sr_policy_document_standard_value($context, 'customer_service_phone');
+    $email = sr_policy_document_standard_value($context, 'customer_service_email', sr_policy_document_standard_value($context, 'business_email'));
+    $parts = [];
+    if ($phone !== '') {
+        $parts[] = '전화 ' . $phone;
+    }
+    if ($email !== '') {
+        $parts[] = '전자우편 ' . $email;
+    }
+
+    return $parts !== [] ? implode(', ', $parts) : '서비스 화면의 문의 수단';
+}
+
 function sr_policy_document_standard_terms_html(PDO $pdo, ?array $site = null): string
 {
     $context = sr_policy_document_standard_context($pdo, $site);
     $siteName = (string) $context['site_name'];
     $baseUrl = (string) $context['base_url'];
+    $companyName = sr_policy_document_standard_value($context, 'company_name', $siteName);
+    $representativeName = sr_policy_document_standard_value($context, 'representative_name');
+    $businessAddress = sr_policy_document_standard_value($context, 'business_address');
+    $businessEmail = sr_policy_document_standard_value($context, 'business_email');
     $customerServicePhone = sr_policy_document_standard_value($context, 'customer_service_phone');
-    $businessInfoHtml = sr_policy_document_standard_business_info_list_html($context);
+    $contactSentence = sr_policy_document_standard_contact_sentence($context);
+    $businessInfoHtml = sr_policy_document_standard_business_info_list_html($context, [
+        'company_name',
+        'representative_name',
+        'business_registration_number',
+        'mail_order_report_number',
+        'business_address',
+        'business_email',
+        'customer_service_phone',
+        'customer_service_email',
+        'hosting_provider',
+    ]);
     $serviceLabel = $baseUrl !== '' ? $siteName . '(' . $baseUrl . ')' : $siteName;
 
     $html = '<h2>제1조 목적</h2>';
-    $html .= '<p>이 약관은 ' . sr_e($siteName) . '(이하 "회사")가 제공하는 ' . sr_e($serviceLabel) . ' 및 관련 서비스의 이용 조건, 절차, 회원과 회사의 권리와 의무, 책임 사항을 정합니다.</p>';
-    $html .= '<h2>제2조 용어의 정의</h2>';
-    $html .= '<p>"서비스"란 회사가 온라인으로 제공하는 모든 기능과 콘텐츠를 말합니다. "회원"이란 이 약관에 동의하고 회사가 정한 절차에 따라 계정을 만든 이용자를 말합니다.</p>';
-    $html .= '<h2>제3조 약관의 게시와 변경</h2>';
-    $html .= '<p>회사는 이 약관의 내용을 회원이 쉽게 확인할 수 있도록 서비스 화면에 게시합니다. 회사는 관련 법령을 위반하지 않는 범위에서 약관을 변경할 수 있으며, 변경 시 적용일자와 주요 변경 내용을 사전에 공지합니다.</p>';
-    $html .= '<h2>제4조 이용계약의 성립</h2>';
-    $html .= '<p>이용계약은 이용자가 회원가입 절차에서 약관에 동의하고 가입을 신청한 뒤 회사가 이를 승낙함으로써 성립합니다. 회사는 허위 정보, 타인 명의 사용, 서비스 운영상 지장이 있는 신청을 거절하거나 사후에 이용을 제한할 수 있습니다.</p>';
-    $html .= '<h2>제5조 회원의 의무</h2>';
-    $html .= '<p>회원은 관련 법령, 이 약관, 서비스 안내와 공지사항을 준수해야 하며, 타인의 권리 침해, 계정 공유 또는 도용, 서비스의 정상 운영을 방해하는 행위를 해서는 안 됩니다.</p>';
-    $html .= '<h2>제6조 서비스의 제공과 변경</h2>';
-    $html .= '<p>회사는 안정적인 서비스 제공을 위해 노력합니다. 다만 설비 점검, 장애, 운영상 필요, 천재지변 등 부득이한 사유가 있는 경우 서비스의 전부 또는 일부를 변경하거나 일시 중단할 수 있습니다.</p>';
-    $html .= '<h2>제7조 게시물과 콘텐츠</h2>';
-    $html .= '<p>회원이 서비스에 게시한 콘텐츠의 권리와 책임은 해당 회원에게 있습니다. 회사는 법령, 약관, 운영정책에 위반되거나 권리 침해 소지가 있는 콘텐츠를 사전 통지 없이 숨김, 삭제, 접근 제한할 수 있습니다.</p>';
-    $html .= '<h2>제8조 유료서비스와 환불</h2>';
-    $html .= '<p>유료서비스가 제공되는 경우 결제, 이용기간, 청약철회, 환불 조건은 서비스 화면에 표시된 안내와 관련 법령을 따릅니다. 이미 사용되었거나 디지털 콘텐츠 제공이 개시된 경우에는 법령상 허용되는 범위에서 환불이 제한될 수 있습니다.</p>';
-    $html .= '<h2>제9조 계약해지와 이용제한</h2>';
-    $html .= '<p>회원은 언제든지 서비스에서 제공하는 절차에 따라 탈퇴를 신청할 수 있습니다. 회사는 회원이 약관 또는 운영정책을 위반한 경우 이용을 제한하거나 계약을 해지할 수 있습니다.</p>';
-    $html .= '<h2>제10조 책임의 제한</h2>';
-    $html .= '<p>회사는 회사의 고의 또는 중대한 과실이 없는 한 무료로 제공되는 서비스의 이용과 관련하여 발생한 손해에 대해 책임을 부담하지 않습니다. 회원의 귀책사유로 발생한 서비스 이용 장애나 분쟁에 대해서도 회사는 책임을 부담하지 않습니다.</p>';
-    $html .= '<h2>제11조 준거법과 관할</h2>';
-    $html .= '<p>이 약관은 대한민국 법령에 따라 해석됩니다. 서비스 이용과 관련하여 분쟁이 발생한 경우 회사와 회원은 성실히 협의하며, 협의가 이루어지지 않을 때에는 관련 법령이 정한 관할 법원에 따릅니다.</p>';
-    if ($customerServicePhone !== '' || $businessInfoHtml !== '') {
-        $html .= '<h2>제12조 고객문의와 사업자 정보</h2>';
-        if ($customerServicePhone !== '') {
-            $html .= '<p>서비스 이용 문의는 고객센터 전화번호 ' . sr_e($customerServicePhone) . ' 또는 서비스에서 안내하는 문의 수단을 통해 접수할 수 있습니다.</p>';
+    $html .= '<p>이 약관은 ' . sr_e($companyName) . '(이하 "회사")가 운영하는 ' . sr_e($serviceLabel) . '에서 제공하는 인터넷 관련 서비스와 재화 또는 용역(이하 "서비스 등")의 이용에 관한 회사와 이용자의 권리·의무 및 책임사항을 정합니다.</p>';
+    $html .= '<h2>제2조 정의</h2>';
+    $html .= '<ul><li>"몰"이란 회사가 서비스 등을 이용자에게 제공하기 위하여 컴퓨터 등 정보통신설비를 이용해 설정한 가상의 영업장을 말하며, 아울러 사이버몰을 운영하는 사업자의 의미로도 사용합니다.</li><li>"이용자"란 몰에 접속하여 이 약관에 따라 회사가 제공하는 서비스를 받는 회원 및 비회원을 말합니다.</li><li>"회원"이란 회사에 개인정보를 제공하여 회원등록을 한 자로서, 회사의 정보를 계속 제공받으며 회사가 제공하는 서비스를 계속 이용할 수 있는 자를 말합니다.</li><li>"비회원"이란 회원에 가입하지 않고 회사가 제공하는 서비스를 이용하는 자를 말합니다.</li></ul>';
+    $html .= '<h2>제3조 약관의 명시와 개정</h2>';
+    $html .= '<p>회사는 이 약관의 내용과 상호, 대표자, 영업소 소재지, 전화번호, 전자우편주소, 사업자등록번호 등 사업자 정보를 이용자가 쉽게 알 수 있도록 몰의 초기화면 또는 연결화면에 게시합니다.</p>';
+    $html .= '<p>회사는 「약관의 규제에 관한 법률」, 「전자상거래 등에서의 소비자보호에 관한 법률」 등 관련 법령을 위반하지 않는 범위에서 이 약관을 개정할 수 있습니다. 약관을 개정할 때에는 적용일자, 개정내용 및 개정사유를 명시하여 적용일자 7일 전부터 공지합니다. 이용자에게 불리하게 변경하는 경우에는 최소 30일 이상의 사전 유예기간을 두고 변경 전·후 내용을 알기 쉽게 비교하여 고지합니다.</p>';
+    $html .= '<h2>제4조 서비스의 제공 및 변경</h2>';
+    $html .= '<p>회사는 이용자에게 정보 제공, 콘텐츠 제공, 재화 또는 용역에 대한 거래, 회원 관리, 문의 대응 등 몰에서 정한 서비스를 제공합니다. 회사는 운영상 또는 기술상 필요가 있는 경우 제공하는 서비스의 내용을 변경할 수 있으며, 중요한 변경이 있는 경우 사전에 공지합니다.</p>';
+    $html .= '<h2>제5조 서비스의 중단</h2>';
+    $html .= '<p>회사는 정보통신설비의 보수·점검·교체, 장애, 통신 두절, 천재지변 등 부득이한 사유가 있는 경우 서비스 제공을 일시적으로 중단할 수 있습니다. 회사는 서비스 중단 사유와 기간을 사전에 공지하되, 사전에 공지할 수 없는 부득이한 사유가 있는 경우 사후에 공지할 수 있습니다.</p>';
+    $html .= '<h2>제6조 회원가입</h2>';
+    $html .= '<p>이용자는 회사가 정한 가입 양식에 따라 회원정보를 입력하고 이 약관에 동의한다는 의사표시를 함으로써 회원가입을 신청합니다. 회사는 가입 신청자에게 허위 정보 입력, 타인 명의 사용, 이전 회원자격 상실, 기술상 지장 등 승낙하기 어려운 사유가 있는 경우 신청을 거절하거나 승낙을 유보할 수 있습니다.</p>';
+    $html .= '<h2>제7조 회원 탈퇴 및 자격 상실</h2>';
+    $html .= '<p>회원은 언제든지 회사에 탈퇴를 요청할 수 있으며, 회사는 관련 법령과 내부 절차에 따라 회원 탈퇴를 처리합니다. 회원이 허위 정보를 등록하거나, 다른 이용자의 이용을 방해하거나, 법령·약관·운영정책을 위반한 경우 회사는 회원자격을 제한하거나 정지·상실시킬 수 있습니다.</p>';
+    $html .= '<h2>제8조 회원에 대한 통지</h2>';
+    $html .= '<p>회사가 회원에게 통지하는 경우 회원이 제공한 전자우편주소, 서비스 알림, 문자메시지, 서비스 화면 공지 등 합리적인 방법으로 할 수 있습니다. 불특정 다수 회원에 대한 통지는 1주일 이상 서비스 화면에 게시함으로써 개별 통지를 갈음할 수 있습니다.</p>';
+    $html .= '<h2>제9조 구매신청 및 이용신청</h2>';
+    $html .= '<p>이용자는 몰에서 제공하는 절차에 따라 서비스 등 검색과 선택, 약관 및 개인정보 처리에 대한 확인, 결제방법 선택, 신청 정보 확인 등 필요한 사항을 입력하여 구매 또는 이용을 신청할 수 있습니다.</p>';
+    $html .= '<h2>제10조 계약의 성립</h2>';
+    $html .= '<p>회사는 이용자의 신청에 대해 재고 부족, 기술상 문제, 허위 신청, 미성년자의 법정대리인 동의 미확인, 기타 승낙하기 어려운 사유가 있는 경우 승낙하지 않을 수 있습니다. 회사의 승낙이 이용자에게 도달한 때 계약이 성립한 것으로 봅니다.</p>';
+    $html .= '<h2>제11조 지급방법</h2>';
+    $html .= '<p>서비스 등에 대한 대금 지급은 회사가 제공하는 결제수단 중 이용자가 선택한 방법으로 할 수 있습니다. 회사는 이용자의 결제 정보 처리에 필요한 범위에서 관련 법령과 개인정보처리방침을 준수합니다.</p>';
+    $html .= '<h2>제12조 서비스 등의 공급</h2>';
+    $html .= '<p>회사는 이용자와 서비스 등의 공급시기에 관하여 별도 약정이 없는 한 이용자가 청약을 한 날부터 관련 법령에서 정한 기간 안에 서비스 등을 제공할 수 있도록 필요한 조치를 합니다. 공급 방식, 배송, 이용기간 등 구체적인 내용은 서비스 화면의 안내를 따릅니다.</p>';
+    $html .= '<h2>제13조 환급, 반품 및 교환</h2>';
+    $html .= '<p>회사는 이용자가 신청한 서비스 등을 제공할 수 없거나 계약 내용과 다르게 제공한 경우 관련 법령과 서비스 안내에 따라 환급, 반품, 교환 또는 필요한 조치를 합니다. 디지털 콘텐츠나 서비스의 제공이 개시된 경우 청약철회와 환불이 법령상 허용되는 범위에서 제한될 수 있습니다.</p>';
+    $html .= '<h2>제14조 청약철회 등</h2>';
+    $html .= '<p>이용자는 관련 법령에서 정한 기간과 방법에 따라 청약철회를 할 수 있습니다. 다만 이용자의 책임 있는 사유로 재화 등이 멸실·훼손된 경우, 사용 또는 소비로 가치가 현저히 감소한 경우, 복제가 가능한 콘텐츠의 포장을 훼손한 경우, 디지털 콘텐츠 제공이 개시된 경우 등 법령이 정한 사유가 있으면 청약철회가 제한될 수 있습니다.</p>';
+    $html .= '<h2>제15조 개인정보보호</h2>';
+    $html .= '<p>회사는 이용자의 개인정보를 보호하기 위해 관계 법령을 준수하며, 개인정보의 처리 목적, 항목, 보유기간, 제3자 제공, 처리위탁, 권리 행사 방법 등은 개인정보처리방침에서 정합니다.</p>';
+    $html .= '<h2>제16조 회사의 의무</h2>';
+    $html .= '<p>회사는 법령과 이 약관이 금지하거나 공서양속에 반하는 행위를 하지 않으며, 안정적인 서비스 제공을 위해 노력합니다. 회사는 이용자가 안전하게 서비스를 이용할 수 있도록 개인정보 보호와 보안에 필요한 조치를 합니다.</p>';
+    $html .= '<h2>제17조 이용자의 의무</h2>';
+    $html .= '<p>이용자는 신청 또는 변경 시 허위 내용을 등록해서는 안 되며, 타인의 정보 도용, 회사 또는 제3자의 권리 침해, 서비스 운영 방해, 법령이나 약관에 위반되는 행위를 해서는 안 됩니다.</p>';
+    $html .= '<h2>제18조 저작권의 귀속 및 이용제한</h2>';
+    $html .= '<p>회사가 작성한 저작물에 대한 저작권과 지식재산권은 회사에 귀속합니다. 이용자는 회사의 사전 승낙 없이 서비스를 이용하여 얻은 정보를 영리 목적으로 복제, 송신, 출판, 배포, 방송하거나 제3자에게 이용하게 해서는 안 됩니다.</p>';
+    $html .= '<h2>제19조 분쟁해결</h2>';
+    $html .= '<p>회사는 이용자가 제기하는 정당한 의견이나 불만을 반영하고 피해를 보상하기 위한 절차를 마련합니다. 이용자의 불만과 문의는 ' . sr_e($contactSentence) . '로 접수할 수 있습니다.</p>';
+    $html .= '<h2>제20조 재판권 및 준거법</h2>';
+    $html .= '<p>회사와 이용자 사이에 발생한 전자상거래 분쟁에 관한 소송은 관련 법령이 정한 관할 법원에 제기하며, 대한민국 법을 적용합니다.</p>';
+    if ($businessInfoHtml !== '') {
+        $html .= '<h2>부칙 및 사업자 정보</h2>';
+        if ($representativeName !== '' || $businessAddress !== '' || $businessEmail !== '' || $customerServicePhone !== '') {
+            $html .= '<p>회사는 다음 사업자 정보를 기준으로 서비스를 운영하며, 정보가 변경되는 경우 사이트 설정과 정책 문서에 반영합니다.</p>';
         }
-        if ($businessInfoHtml !== '') {
-            $html .= $businessInfoHtml;
-        }
+        $html .= $businessInfoHtml;
     }
 
     return $html;
@@ -145,40 +225,76 @@ function sr_policy_document_standard_privacy_policy_html(PDO $pdo, ?array $site 
     $context = sr_policy_document_standard_context($pdo, $site);
     $siteName = (string) $context['site_name'];
     $baseUrl = (string) $context['base_url'];
+    $companyName = sr_policy_document_standard_value($context, 'company_name', $siteName);
+    $representativeName = sr_policy_document_standard_value($context, 'representative_name');
+    $businessAddress = sr_policy_document_standard_value($context, 'business_address');
+    $businessEmail = sr_policy_document_standard_value($context, 'business_email');
+    $customerServicePhone = sr_policy_document_standard_value($context, 'customer_service_phone');
+    $customerServiceEmail = sr_policy_document_standard_value($context, 'customer_service_email', $businessEmail);
     $privacyOfficerName = sr_policy_document_standard_value($context, 'privacy_officer_name', $siteName . ' 개인정보보호 담당자');
-    $privacyOfficerEmail = sr_policy_document_standard_value($context, 'privacy_officer_email');
-    $businessInfoHtml = sr_policy_document_standard_business_info_list_html($context);
+    $privacyOfficerEmail = sr_policy_document_standard_value($context, 'privacy_officer_email', $customerServiceEmail);
+    $businessInfoHtml = sr_policy_document_standard_business_info_list_html($context, [
+        'company_name',
+        'representative_name',
+        'business_registration_number',
+        'mail_order_report_number',
+        'business_address',
+        'business_email',
+        'customer_service_phone',
+        'customer_service_email',
+        'privacy_officer_name',
+        'privacy_officer_email',
+        'hosting_provider',
+    ]);
     $serviceLabel = $baseUrl !== '' ? $siteName . '(' . $baseUrl . ')' : $siteName;
 
-    $html = '<h2>1. 개인정보의 처리 목적</h2>';
-    $html .= '<p>' . sr_e($siteName) . '(이하 "회사")는 ' . sr_e($serviceLabel) . ' 서비스 제공, 회원 관리, 본인 확인, 문의 대응, 부정 이용 방지, 서비스 개선과 고지사항 전달을 위해 개인정보를 처리합니다.</p>';
-    $html .= '<h2>2. 처리하는 개인정보 항목</h2>';
-    $html .= '<ul><li>회원가입 및 계정 관리: 이메일, 비밀번호, 이름 또는 닉네임, 로그인 기록</li><li>서비스 이용 과정: IP 주소, 쿠키, 접속 일시, 기기 및 브라우저 정보, 서비스 이용 기록</li><li>문의 및 운영 대응: 문의 내용, 답변 기록, 필요한 경우 연락처</li><li>유료서비스 이용 시: 결제 및 환불 처리에 필요한 거래 정보</li></ul>';
-    $html .= '<h2>3. 개인정보의 보유 및 이용기간</h2>';
-    $html .= '<p>회사는 개인정보 처리 목적이 달성되면 지체 없이 해당 정보를 파기합니다. 다만 관계 법령에 따라 보존해야 하는 정보는 법령에서 정한 기간 동안 보관하며, 서비스 부정 이용 방지와 분쟁 대응을 위해 필요한 최소한의 기록은 운영정책에 따라 보관할 수 있습니다.</p>';
+    $html = '<h2>1. 개인정보 처리방침의 목적</h2>';
+    $html .= '<p>' . sr_e($companyName) . '(이하 "회사")는 ' . sr_e($serviceLabel) . ' 서비스를 제공하면서 정보주체의 자유와 권리 보호를 위해 개인정보 보호법 및 관계 법령이 정한 절차와 기준을 준수합니다. 이 처리방침은 회사가 처리하는 개인정보의 항목, 목적, 보유기간, 권리 행사 방법과 보호 조치를 안내합니다.</p>';
+    $html .= '<h2>2. 개인정보의 처리 목적, 항목 및 보유기간</h2>';
+    $html .= '<ul><li>회원가입 및 계정 관리: 이메일, 비밀번호, 이름 또는 닉네임, 가입·탈퇴 기록을 회원 식별, 로그인, 부정 이용 방지, 가입 의사 확인 목적으로 처리하며 회원 탈퇴 시까지 보유합니다. 다만 법령상 보존 의무 또는 분쟁 대응 필요가 있는 기록은 해당 기간 동안 보관합니다.</li><li>서비스 제공 및 운영: 서비스 이용 기록, 접속 로그, IP 주소, 쿠키, 기기·브라우저 정보, 알림·문의 기록을 서비스 제공, 보안, 장애 대응, 고객상담, 통계와 서비스 개선 목적으로 처리하며 목적 달성 또는 보존기간 경과 시 파기합니다.</li><li>유료서비스 및 거래 처리: 결제 내역, 환불·정산 기록, 주문·이용 내역 등 거래 처리에 필요한 정보를 결제, 청약철회, 환불, 분쟁 대응 및 법정 증빙 보존 목적으로 처리합니다.</li><li>이벤트, 마케팅 또는 선택 동의 항목: 정보주체가 별도로 동의한 경우에 한해 수신 동의 여부, 연락처, 참여 내역 등을 고지한 목적과 기간 안에서 처리합니다.</li></ul>';
+    $html .= '<h2>3. 동의 없이 처리하는 개인정보와 동의를 받아 처리하는 개인정보</h2>';
+    $html .= '<p>회사는 계약의 체결 및 이행, 법령상 의무 준수, 정당한 이익 등 개인정보 보호법에서 허용하는 근거가 있는 경우 필요한 범위에서 개인정보를 동의 없이 처리할 수 있습니다. 민감정보, 고유식별정보, 개인정보의 제3자 제공, 선택 마케팅 수신 등 별도 동의가 필요한 사항은 정보주체에게 명확히 알리고 동의를 받은 뒤 처리합니다.</p>';
     $html .= '<h2>4. 개인정보의 제3자 제공</h2>';
-    $html .= '<p>회사는 이용자의 동의가 있거나 법령에 특별한 근거가 있는 경우를 제외하고 개인정보를 제3자에게 제공하지 않습니다. 제3자 제공이 필요한 경우 제공받는 자, 제공 목적, 제공 항목, 보유기간을 사전에 안내하고 동의를 받습니다.</p>';
-    $html .= '<h2>5. 개인정보 처리의 위탁</h2>';
-    $html .= '<p>회사는 안정적인 서비스 제공을 위해 호스팅, 이메일 발송, 결제 처리 등 업무를 외부 업체에 위탁할 수 있습니다. 위탁이 발생하는 경우 위탁받는 자와 업무 내용을 서비스 화면 또는 별도 고지로 안내하고, 수탁자가 개인정보를 안전하게 처리하도록 관리합니다.</p>';
-    $html .= '<h2>6. 정보주체의 권리와 행사 방법</h2>';
-    $html .= '<p>이용자는 언제든지 본인의 개인정보 열람, 정정, 삭제, 처리정지, 동의 철회를 요청할 수 있습니다. 회사는 본인 확인 후 관련 법령에 따라 지체 없이 필요한 조치를 합니다.</p>';
-    $html .= '<h2>7. 쿠키 등 자동 수집 장치</h2>';
-    $html .= '<p>회사는 로그인 유지, 보안, 이용 통계와 서비스 개선을 위해 쿠키를 사용할 수 있습니다. 이용자는 브라우저 설정을 통해 쿠키 저장을 거부하거나 삭제할 수 있으나, 이 경우 일부 서비스 이용이 제한될 수 있습니다.</p>';
-    $html .= '<h2>8. 개인정보의 안전성 확보 조치</h2>';
-    $html .= '<p>회사는 개인정보 보호를 위해 접근 권한 관리, 비밀번호 및 중요 정보 암호화 또는 해시 처리, 보안 로그 관리, 취약점 점검 등 필요한 기술적·관리적 보호 조치를 시행합니다.</p>';
-    $html .= '<h2>9. 개인정보보호책임자</h2>';
-    $html .= '<p>개인정보 처리와 관련한 문의, 권리 행사, 피해 구제 요청은 아래 담당자에게 연락할 수 있습니다.</p>';
+    $html .= '<p>회사는 정보주체의 동의가 있거나 법령에 특별한 근거가 있는 경우를 제외하고 개인정보를 제3자에게 제공하지 않습니다. 제3자 제공이 필요한 경우 제공받는 자, 제공 목적, 제공 항목, 보유 및 이용기간을 사전에 알리고 동의를 받습니다.</p>';
+    $html .= '<h2>5. 개인정보 처리업무의 위탁</h2>';
+    $html .= '<p>회사는 안정적인 서비스 제공을 위해 호스팅, 이메일 발송, 문자 발송, 결제 처리, 고객상담 도구 등 업무를 외부 업체에 위탁할 수 있습니다. 위탁이 발생하는 경우 수탁자와 위탁업무 내용을 이 처리방침 또는 별도 화면에 공개하고, 수탁자가 개인정보를 안전하게 처리하도록 계약과 점검으로 관리합니다.</p>';
+    $html .= '<h2>6. 개인정보의 파기 절차 및 방법</h2>';
+    $html .= '<p>회사는 개인정보 보유기간이 지나거나 처리 목적이 달성된 경우 지체 없이 개인정보를 파기합니다. 전자적 파일은 복구 및 재생되지 않도록 삭제하고, 종이 문서는 분쇄 또는 소각합니다. 다른 법령에 따라 보존해야 하는 개인정보는 해당 개인정보 또는 파일을 분리하여 보관합니다.</p>';
+    $html .= '<h2>7. 정보주체와 법정대리인의 권리 및 행사 방법</h2>';
+    $html .= '<p>정보주체는 회사에 대해 개인정보 열람, 정정·삭제, 처리정지, 동의 철회를 요구할 수 있습니다. 만 14세 미만 아동의 개인정보 처리와 관련한 권리는 법정대리인이 행사할 수 있습니다. 회사는 본인 또는 정당한 대리인 여부를 확인한 뒤 관련 법령에 따라 지체 없이 조치합니다.</p>';
+    $html .= '<h2>8. 개인정보 자동 수집 장치의 설치·운영 및 거부</h2>';
+    $html .= '<p>회사는 로그인 유지, 보안, 이용 통계, 서비스 개선을 위해 쿠키 등 자동 수집 장치를 사용할 수 있습니다. 이용자는 브라우저 설정을 통해 쿠키 저장을 거부하거나 삭제할 수 있으며, 이 경우 로그인 유지 등 일부 기능 이용이 제한될 수 있습니다.</p>';
+    $html .= '<h2>9. 행태정보 및 맞춤형 광고</h2>';
+    $html .= '<p>회사가 이용자의 웹사이트 방문 이력, 앱 이용 이력 등 행태정보를 맞춤형 광고에 활용하는 경우 수집 항목, 수집 방법, 이용 목적, 보유기간 및 통제 방법을 별도로 안내합니다. 현재 해당 기능을 사용하지 않는 경우 이 항목은 "해당 없음"으로 표시할 수 있습니다.</p>';
+    $html .= '<h2>10. 자동화된 결정에 관한 사항</h2>';
+    $html .= '<p>회사가 완전히 자동화된 시스템으로 정보주체의 권리 또는 의무에 중대한 영향을 미치는 결정을 하는 경우 그 기준과 절차, 정보주체의 설명 요구 및 이의제기 방법을 별도로 안내합니다. 현재 해당 처리를 하지 않는 경우 이 항목은 "해당 없음"으로 표시할 수 있습니다.</p>';
+    $html .= '<h2>11. 개인정보의 안전성 확보 조치</h2>';
+    $html .= '<p>회사는 개인정보 보호를 위해 개인정보취급자 접근 권한 관리, 비밀번호 및 주요 인증정보의 암호화 또는 해시 처리, 접속기록 보관과 점검, 악성코드 및 취약점 점검, 물리적 접근 통제 등 필요한 기술적·관리적·물리적 보호 조치를 시행합니다.</p>';
+    $html .= '<h2>12. 개인정보보호책임자 및 문의처</h2>';
+    $html .= '<p>개인정보 처리와 관련한 문의, 권리 행사, 피해 구제 요청은 아래 담당자 또는 고객센터로 연락할 수 있습니다.</p>';
     $html .= '<ul><li>개인정보보호책임자: ' . sr_e($privacyOfficerName) . '</li>';
     if ($privacyOfficerEmail !== '') {
-        $html .= '<li>이메일: ' . sr_e($privacyOfficerEmail) . '</li>';
+        $html .= '<li>개인정보보호책임자 이메일: ' . sr_e($privacyOfficerEmail) . '</li>';
+    }
+    if ($customerServicePhone !== '') {
+        $html .= '<li>고객센터 전화번호: ' . sr_e($customerServicePhone) . '</li>';
+    }
+    if ($customerServiceEmail !== '') {
+        $html .= '<li>고객센터 전자우편주소: ' . sr_e($customerServiceEmail) . '</li>';
     }
     $html .= '</ul>';
+    $html .= '<h2>13. 권익침해 구제 방법</h2>';
+    $html .= '<p>정보주체는 개인정보 침해에 대한 상담이나 피해 구제를 위해 개인정보침해신고센터, 개인정보분쟁조정위원회 등 전문기관에 문의할 수 있습니다.</p>';
+    $html .= '<h2>14. 사업자 정보</h2>';
     if ($businessInfoHtml !== '') {
-        $html .= '<h2>10. 사업자 정보</h2>' . $businessInfoHtml;
-        $html .= '<h2>11. 개인정보처리방침의 변경</h2>';
+        $html .= $businessInfoHtml;
     } else {
-        $html .= '<h2>10. 개인정보처리방침의 변경</h2>';
+        $html .= '<p>사업자 정보는 사이트 설정에 등록된 값을 기준으로 표시합니다.</p>';
     }
+    if ($representativeName !== '' || $businessAddress !== '') {
+        $html .= '<p>개인정보 처리와 관련한 회사의 기본 정보는 위 사업자 정보와 같습니다.</p>';
+    }
+    $html .= '<h2>15. 개인정보처리방침의 변경</h2>';
     $html .= '<p>이 개인정보처리방침은 관련 법령, 서비스 정책, 개인정보 처리 항목의 변경에 따라 개정될 수 있습니다. 변경 시 적용일자와 주요 변경 내용을 서비스 화면에 공지합니다.</p>';
 
     return $html;
