@@ -15,12 +15,20 @@ $adminContainerClass = $policyDocumentAdminPage === 'form' ? 'admin-page-policy-
 
 $policyDocumentStatusClass = static function (string $status): string {
     return match ($status) {
-        'enabled', 'published' => 'is-normal',
-        'draft' => 'is-left',
-        'disabled', 'archived' => 'is-blocked',
+        'enabled', 'published', 'sent' => 'is-normal',
+        'draft', 'queued', 'processing', 'skipped' => 'is-left',
+        'disabled', 'archived', 'failed', 'cancelled' => 'is-blocked',
         default => 'is-left',
     };
 };
+$policyDocumentMailStatusLabels = [
+    'queued' => sr_t('policy_documents::ui.mail_status.queued'),
+    'processing' => sr_t('policy_documents::ui.mail_status.processing'),
+    'sent' => sr_t('policy_documents::ui.mail_status.sent'),
+    'failed' => sr_t('policy_documents::ui.mail_status.failed'),
+    'skipped' => sr_t('policy_documents::ui.mail_status.skipped'),
+    'cancelled' => sr_t('policy_documents::ui.mail_status.cancelled'),
+];
 $policyDocumentVersionValue = static function (string $key, string $default = '') use ($editingVersion, $formVersion, $selectedDocument): string {
     if ($editingVersion && is_array($formVersion)) {
         if ($key === 'title') {
@@ -229,7 +237,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
                 <div class="form-field">
-                    <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from" value="<?php echo sr_e(str_replace(' ', 'T', $policyDocumentVersionValue('effective_from'))); ?>">
+                    <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from" value="<?php echo sr_e(sr_datetime_local_value($policyDocumentVersionValue('effective_from'))); ?>">
+                    <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>
                 </div>
             </div>
         </section>
@@ -312,6 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></th>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></th>
                                             <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
                                         </tr>
@@ -319,7 +329,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <tbody>
                                         <?php if ($policyDocumentRows === []) { ?>
                                             <tr>
-                                                <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
+                                                <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
                                             </tr>
                                         <?php } ?>
                                         <?php foreach ($policyDocumentRows as $version) { ?>
@@ -331,6 +341,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <td class="admin-table-break"><?php echo sr_e((string) $version['title_snapshot']); ?></td>
                                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span></td>
                                                 <td class="admin-table-nowrap"><?php echo sr_e(substr((string) $version['body_hash'], 0, 16)); ?></td>
+                                                <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($version['effective_from'] ?? ''), sr_t('policy_documents::ui.effective_from.empty')); ?></td>
                                                 <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></td>
                                                 <td class="admin-table-actions-cell">
                                                     <div class="admin-row-actions">
@@ -390,6 +401,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <dd><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></dd>
                                 </div>
                                 <div>
+                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></dt>
+                                    <dd><?php echo sr_admin_time_html((string) ($version['effective_from'] ?? ''), sr_t('policy_documents::ui.effective_from.empty')); ?></dd>
+                                </div>
+                                <div>
                                     <dt><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></dt>
                                     <dd><?php echo sr_e((string) $version['body_hash']); ?></dd>
                                 </div>
@@ -429,9 +444,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </tr>
                     <?php } ?>
                     <?php foreach ($mailJobs as $mailJob) { ?>
+                        <?php $mailJobStatus = (string) $mailJob['status']; ?>
                         <tr>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['document_key']); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass((string) $mailJob['status'])); ?>"><?php echo sr_e((string) $mailJob['status']); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($mailJobStatus)); ?>"><?php echo sr_e($policyDocumentMailStatusLabels[$mailJobStatus] ?? $mailJobStatus); ?></span></td>
                             <td class="admin-table-nowrap">
                                 <?php echo sr_e('완료 ' . number_format((int) $mailJob['sent_count']) . ' / 전체 ' . number_format((int) $mailJob['delivery_count'])); ?>
                                 <p class="form-help">
@@ -475,7 +491,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
-        <?php echo sr_admin_status_description_list_html('policy_document_mail_status', ['queued' => '대기', 'processing' => '처리중', 'sent' => '발송 완료', 'failed' => '실패', 'skipped' => '건너뜀', 'cancelled' => '취소']); ?>
+        <?php echo sr_admin_status_description_list_html('policy_document_mail_status', $policyDocumentMailStatusLabels); ?>
     </section>
 <?php } ?>
 

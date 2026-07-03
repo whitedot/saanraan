@@ -386,6 +386,32 @@ function sr_policy_document_history_date_label(string $date): string
     return $date;
 }
 
+function sr_policy_document_effective_date_label(?string $date): string
+{
+    $date = trim((string) $date);
+    if ($date === '') {
+        return sr_t('policy_documents::ui.effective_from.empty');
+    }
+
+    return sr_policy_document_history_date_label($date);
+}
+
+function sr_policy_document_notice_mail_body(PDO $pdo, int $versionId): string
+{
+    $version = sr_policy_document_version_by_id($pdo, $versionId);
+    if (!is_array($version)) {
+        return sr_t('policy_documents::mail.notice.body', [
+            'title' => '',
+            'effective_date' => sr_t('policy_documents::ui.effective_from.empty'),
+        ]);
+    }
+
+    return sr_t('policy_documents::mail.notice.body', [
+        'title' => (string) ($version['title_snapshot'] ?? ''),
+        'effective_date' => sr_policy_document_effective_date_label((string) ($version['effective_from'] ?? '')),
+    ]);
+}
+
 function sr_policy_document_render_body_html(PDO $pdo, array $version): string
 {
     $bodyHtml = sr_policy_document_sanitize_body((string) ($version['body_html'] ?? ''));
@@ -841,9 +867,67 @@ function sr_policy_document_create_notice_job(PDO $pdo, int $documentId, int $ve
     ]);
 
     $jobId = (int) $pdo->lastInsertId();
+    sr_policy_document_cancel_unfinished_notice_jobs($pdo, $documentId, $jobId);
     sr_policy_document_seed_notice_deliveries($pdo, $jobId);
 
     return $jobId;
+}
+
+function sr_policy_document_cancel_unfinished_notice_jobs(PDO $pdo, int $documentId, int $currentJobId = 0): int
+{
+    if ($documentId < 1) {
+        return 0;
+    }
+
+    $sql = 'SELECT id
+            FROM sr_policy_document_mail_jobs
+            WHERE document_id = :document_id
+              AND status IN ("queued", "processing", "failed")';
+    $params = ['document_id' => $documentId];
+    if ($currentJobId > 0) {
+        $sql .= ' AND id <> :current_job_id';
+        $params['current_job_id'] = $currentJobId;
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $jobIds = array_map('intval', array_column($stmt->fetchAll(), 'id'));
+    if ($jobIds === []) {
+        return 0;
+    }
+
+    $cancelled = 0;
+    $deliveryStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = "cancelled",
+             failure_code = "superseded_by_new_version",
+             updated_at = :updated_at
+         WHERE job_id = :job_id
+           AND status IN ("queued", "processing", "failed")'
+    );
+    $jobStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_jobs
+         SET status = "cancelled",
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status IN ("queued", "processing", "failed")'
+    );
+    foreach ($jobIds as $jobId) {
+        $now = sr_now();
+        $deliveryStmt->execute([
+            'updated_at' => $now,
+            'job_id' => $jobId,
+        ]);
+        $jobStmt->execute([
+            'updated_at' => $now,
+            'id' => $jobId,
+        ]);
+        if ($jobStmt->rowCount() > 0) {
+            $cancelled++;
+        }
+    }
+
+    return $cancelled;
 }
 
 function sr_policy_document_seed_notice_deliveries(PDO $pdo, int $jobId): int
@@ -1043,21 +1127,27 @@ function sr_policy_document_requeue_failed_mail_deliveries(PDO $pdo, int $jobId)
     return $changed;
 }
 
-function sr_policy_document_cancel_pending_mail_deliveries(PDO $pdo, int $jobId): int
+function sr_policy_document_cancel_pending_mail_deliveries(PDO $pdo, int $jobId, string $failureCode = 'manual_cancelled'): int
 {
     if ($jobId < 1) {
         return 0;
     }
 
+    $failureCode = sr_clean_single_line($failureCode, 80);
+    if ($failureCode === '') {
+        $failureCode = 'manual_cancelled';
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_policy_document_mail_deliveries
          SET status = "cancelled",
-             failure_code = "manual_cancelled",
+             failure_code = :failure_code,
              updated_at = :updated_at
          WHERE job_id = :job_id
            AND status IN ("queued", "processing", "failed")'
     );
     $stmt->execute([
+        'failure_code' => $failureCode,
         'updated_at' => sr_now(),
         'job_id' => $jobId,
     ]);
@@ -1071,16 +1161,20 @@ function sr_policy_document_refresh_mail_job_status(PDO $pdo, int $jobId): void
 {
     $stmt = $pdo->prepare(
         'SELECT
+            COUNT(*) AS delivery_count,
             SUM(CASE WHEN status IN ("queued", "processing") THEN 1 ELSE 0 END) AS queued_count,
-            SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) AS failed_count
+            SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) AS failed_count,
+            SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) AS cancelled_count
          FROM sr_policy_document_mail_deliveries
          WHERE job_id = :job_id'
     );
     $stmt->execute(['job_id' => $jobId]);
     $row = $stmt->fetch();
+    $deliveryCount = (int) ($row['delivery_count'] ?? 0);
     $queued = (int) ($row['queued_count'] ?? 0);
     $failed = (int) ($row['failed_count'] ?? 0);
-    $status = $queued > 0 ? 'queued' : ($failed > 0 ? 'failed' : 'sent');
+    $cancelled = (int) ($row['cancelled_count'] ?? 0);
+    $status = $queued > 0 ? 'queued' : ($failed > 0 ? 'failed' : ($deliveryCount > 0 && $cancelled > 0 ? 'cancelled' : 'sent'));
 
     $updateStmt = $pdo->prepare(
         'UPDATE sr_policy_document_mail_jobs

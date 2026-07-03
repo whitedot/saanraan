@@ -19,6 +19,7 @@ foreach ([
     'modules/policy_documents/helpers.php',
     'modules/policy_documents/actions/admin-policy-documents.php',
     'modules/policy_documents/views/admin-policy-documents.php',
+    'modules/policy_documents/module.php',
 ] as $policyDocumentSourcePath) {
     $policyDocumentSource = file_get_contents($policyDocumentSourcePath);
     if (!is_string($policyDocumentSource)) {
@@ -57,9 +58,14 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.previous_versions.option')
             && str_contains($policyDocumentViewSource, 'data-policy-document-standard-template')
             && str_contains($policyDocumentViewSource, 'data-policy-document-standard-template-json')
+            && str_contains($policyDocumentViewSource, 'policy_documents::ui.effective_from.help')
+            && str_contains($policyDocumentViewSource, 'sr_datetime_local_value($policyDocumentVersionValue(\'effective_from\'))')
+            && str_contains($policyDocumentViewSource, 'sr_admin_time_html((string) ($version[\'effective_from\'] ?? \'\'), sr_t(\'policy_documents::ui.effective_from.empty\'))')
             && str_contains($policyDocumentViewSource, 'sr_policy_document_render_body_html($pdo, $version)')
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
+            && str_contains($policyDocumentViewSource, 'policy_documents::ui.mail_status.queued')
+            && str_contains($policyDocumentViewSource, '$policyDocumentMailStatusLabels[$mailJobStatus] ?? $mailJobStatus')
             && !str_contains($policyDocumentViewSource, 'class="modal-content-fullscreen">')
             && !str_contains($policyDocumentViewSource, "modal-body-fill\">\n                            <section class=\"card admin-list-card admin-list-form\">")
             && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"')
@@ -74,6 +80,22 @@ if (is_string($policyDocumentInstallSource)) {
     sr_policy_documents_check_assert(
         !str_contains($policyDocumentInstallSource, 'version_key'),
         'policy document install schema should not include the removed version_key compatibility column.'
+    );
+}
+$policyDocumentCleanupUpdateSource = file_get_contents('modules/policy_documents/updates/2026.07.002.sql');
+if (is_string($policyDocumentCleanupUpdateSource)) {
+    sr_policy_documents_check_assert(
+        str_contains($policyDocumentCleanupUpdateSource, "COLUMN_NAME = 'version_key'")
+            && str_contains($policyDocumentCleanupUpdateSource, 'DROP COLUMN version_key')
+            && str_contains($policyDocumentCleanupUpdateSource, "version = '2026.07.002'"),
+        'policy document 2026.07.002 update should remove leftover version_key columns from already-installed development databases.'
+    );
+}
+$policyDocumentModuleSource = file_get_contents('modules/policy_documents/module.php');
+if (is_string($policyDocumentModuleSource)) {
+    sr_policy_documents_check_assert(
+        str_contains($policyDocumentModuleSource, "'version' => '2026.07.002'"),
+        'policy document module version should expose the version_key cleanup update as pending.'
     );
 }
 
@@ -260,6 +282,11 @@ $futureVersionId = sr_policy_document_create_version($pdo, 1, [
 ]);
 sr_policy_documents_check_assert($futureVersionId > $secondVersionId, 'future policy document version should be inserted.');
 sr_policy_documents_check_assert(
+    str_contains(sr_policy_document_notice_mail_body($pdo, $futureVersionId), '시행일: 2099년 1월 1일')
+        && str_contains(sr_policy_document_notice_mail_body($pdo, $secondVersionId), '시행일: 공개 즉시'),
+    'policy document notice mail body should include the policy effective date.'
+);
+sr_policy_documents_check_assert(
     (int) $pdo->query('SELECT id FROM sr_policy_document_versions WHERE status = "published" AND (effective_from IS NULL OR effective_from <= CURRENT_TIMESTAMP) ORDER BY id DESC LIMIT 1')->fetchColumn() === $secondVersionId,
     'future published policy document versions should not archive the currently effective version.'
 );
@@ -313,7 +340,20 @@ sr_policy_documents_check_assert(
     'standard privacy policy template should use site settings and expose an admin button label.'
 );
 
+$staleJobId = sr_policy_document_create_notice_job($pdo, 1, $futureVersionId, 'future subject', 'future body', true);
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $staleJobId)->fetchColumn() === 'queued',
+    'policy document notice job should start as queued before a newer notice job supersedes it.'
+);
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $staleJobId)->fetchColumn() === 'cancelled',
+    'new policy document notice jobs should cancel unfinished notice jobs for the same document.'
+);
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_deliveries WHERE job_id = ' . (int) $staleJobId . ' LIMIT 1')->fetchColumn() === 'cancelled',
+    'superseded policy document notice deliveries should be marked cancelled.'
+);
 try {
     sr_policy_document_create_notice_job($pdo, 404, $secondVersionId, 'subject', 'body', true);
     sr_policy_documents_check_assert(false, 'policy document notice job creation should reject version/document mismatch.');
@@ -323,11 +363,11 @@ try {
 $sameJobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
 sr_policy_documents_check_assert($jobId === $sameJobId, 'notice job creation should be idempotent per version.');
 sr_policy_documents_check_assert(
-    (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_mail_jobs')->fetchColumn() === 1,
+    (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_mail_jobs WHERE version_id = ' . (int) $secondVersionId)->fetchColumn() === 1,
     'duplicate notice jobs should not be created for the same version.'
 );
 sr_policy_documents_check_assert(
-    (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_mail_deliveries')->fetchColumn() === 1,
+    (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_mail_deliveries WHERE job_id = ' . (int) $jobId)->fetchColumn() === 1,
     'notice delivery seed should include only active member accounts.'
 );
 
@@ -376,8 +416,8 @@ sr_policy_documents_check_assert(
     'cancelled policy document delivery should not remain queued.'
 );
 sr_policy_documents_check_assert(
-    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $jobId)->fetchColumn() === 'sent',
-    'policy document mail job should ignore cancelled deliveries when all live deliveries are closed.'
+    (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $jobId)->fetchColumn() === 'cancelled',
+    'policy document mail job should be marked cancelled when remaining live deliveries are cancelled.'
 );
 
 if ($errors !== []) {

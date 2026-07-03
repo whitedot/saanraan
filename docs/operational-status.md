@@ -66,7 +66,7 @@ php .tools/bin/ops-status.php --help
 
 ### 정책 문서 안내메일 기준
 
-정책 문서 version을 published 상태로 만들면 `sr_policy_document_mail_jobs`와 회원별 `sr_policy_document_mail_deliveries`가 생성된다. 발송 batch는 `queued` delivery 또는 오래된 `processing` claim만 먼저 `processing`으로 claim한 뒤, 그 요청이 claim한 row만 발송한다. 따라서 같은 job을 운영자가 다시 실행하거나 cron 후보로 옮기더라도 아직 claim하지 못한 row를 중복 발송하지 않는다.
+정책 문서 version을 published 상태로 만들면 `sr_policy_document_mail_jobs`와 회원별 `sr_policy_document_mail_deliveries`가 생성된다. 미래 시행일을 지정한 version도 먼저 published로 고지할 수 있으며, 안내메일 본문에는 시행일을 포함한다. 같은 문서의 새 안내메일 작업이 생성되면 기존의 `queued`, `processing`, `failed` 작업은 더 오래된 변경 안내로 보고 남은 delivery를 `cancelled`로 닫는다. 발송 batch는 `queued` delivery 또는 오래된 `processing` claim만 먼저 `processing`으로 claim한 뒤, 그 요청이 claim한 row만 발송한다. 따라서 같은 job을 운영자가 다시 실행하거나 cron 후보로 옮기더라도 아직 claim하지 못한 row를 중복 발송하지 않는다.
 
 delivery 상태는 `queued`, `processing`, `sent`, `failed`, `skipped`, `cancelled`로 본다. 비활성 회원은 `skipped`로 닫고, 발송 실패 row는 `/admin/policy-documents`에서 `queued`로 되돌려 재시도하거나 `cancelled`로 닫는다. `sent`는 터미널 상태로 보고 재대기나 취소 대상으로 되돌리지 않는다. 취소는 아직 완료되지 않은 `queued`, `processing`, `failed`만 닫으며, 작업 목록에는 대기/처리중/실패/건너뜀/취소 count를 함께 표시한다.
 

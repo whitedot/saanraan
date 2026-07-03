@@ -635,7 +635,7 @@ foreach ([
 
 foreach ([
     'function sr_policy_document_requeue_failed_mail_deliveries(PDO $pdo, int $jobId): int',
-    'function sr_policy_document_cancel_pending_mail_deliveries(PDO $pdo, int $jobId): int',
+    "function sr_policy_document_cancel_pending_mail_deliveries(PDO \$pdo, int \$jobId, string \$failureCode = 'manual_cancelled'): int",
     'stale_claim_cutoff',
     'claimed_at = :claimed_at',
 ] as $marker) {

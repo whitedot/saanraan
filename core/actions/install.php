@@ -29,7 +29,7 @@ $requiredModules = [
     ],
     'policy_documents' => [
         'name' => '약관/방침 관리',
-        'version' => '2026.07.001',
+        'version' => '2026.07.002',
         'label' => '약관/방침 관리',
         'description' => '회원가입과 공개 제출에 필요한 약관, 방침, 동의 문서를 version 단위로 관리합니다.',
     ],
