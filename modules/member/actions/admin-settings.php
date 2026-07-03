@@ -50,12 +50,16 @@ if (sr_request_method() === 'POST') {
     }
     if ($settings['mfa_login_mode'] === 'required') {
         $mfaSetupProviderKeys = [];
+        $mfaNoSetupProviderKeys = [];
         foreach ($mfaLoginProviderKeys as $providerKey) {
             if (!empty($memberMfaProviderDefinitions[$providerKey]['account_setup_supported'])) {
                 $mfaSetupProviderKeys[] = $providerKey;
             }
+            if ((string) ($memberMfaProviderDefinitions[$providerKey]['method'] ?? '') === 'email') {
+                $mfaNoSetupProviderKeys[] = $providerKey;
+            }
         }
-        if ($mfaSetupProviderKeys === []) {
+        if ($mfaSetupProviderKeys === [] && $mfaNoSetupProviderKeys === []) {
             $errors[] = sr_t('member::action.admin_settings.mfa_setup_provider_required');
         }
     }

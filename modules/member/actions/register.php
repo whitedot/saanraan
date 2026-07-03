@@ -280,6 +280,9 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/login/mfa');
             }
             if ($loginResult === 'logged_in') {
+                if (sr_member_mfa_login_setup_required($pdo, $newAccount)) {
+                    sr_member_redirect_mfa_setup_required();
+                }
                 sr_redirect('/account');
             }
 

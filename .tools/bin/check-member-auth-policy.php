@@ -105,6 +105,20 @@ sr_member_auth_policy_check_input_helper_fixtures();
 
 $memberLang = sr_member_auth_policy_read('modules/member/lang/ko.php');
 $privacyLang = sr_member_auth_policy_read('modules/privacy/lang/ko.php');
+$memberModule = sr_member_auth_policy_read('modules/member/module.php');
+$memberMfaProviders = sr_member_auth_policy_read('modules/member/member-mfa-providers.php');
+sr_member_auth_policy_assert(
+    strpos($memberModule, "'mfa_login_mode' => 'disabled'") !== false
+        && strpos($memberModule, "'mfa_login_enabled' => false") !== false
+        && strpos($memberModule, "'mfa_login_providers_json' => '[\"email\",\"totp\"]'") !== false,
+    'Member module install defaults should keep login MFA policy disabled with email and TOTP providers available.'
+);
+sr_member_auth_policy_assert(
+    strpos($memberMfaProviders, "'email' => [") !== false
+        && strpos($memberMfaProviders, "'method' => 'email'") !== false
+        && strpos($memberMfaProviders, "'account_setup_supported' => false") !== false,
+    'Member MFA providers should include built-in email login codes without account setup.'
+);
 
 $unverifiedAccount = [
     'id' => 1,
@@ -273,6 +287,19 @@ sr_member_auth_policy_assert(
         && (string) ($mfaWrongKey['reason'] ?? '') === 'secret_unavailable',
     'MFA TOTP verification should fail closed when the app key cannot decrypt the stored secret.'
 );
+$mfaEmailCode = '123456';
+sr_member_mfa_start_challenge(['id' => 80], 'password', '/', ['mfa_provider_keys' => 'email']);
+$_SESSION['sr_member_mfa_challenge']['context']['email_code_hash'] = sr_member_mfa_email_code_hash($mfaEmailCode, 80, $mfaConfig);
+$_SESSION['sr_member_mfa_challenge']['context']['email_code_expires_at'] = (string) (time() + sr_member_mfa_email_code_ttl_seconds());
+$mfaEmailVerify = sr_member_mfa_verify_email_code(80, $mfaEmailCode, $mfaConfig);
+$mfaEmailReplay = sr_member_mfa_verify_email_code(80, $mfaEmailCode, $mfaConfig);
+sr_member_auth_policy_assert(
+    !empty($mfaEmailVerify['verified'])
+        && empty($mfaEmailReplay['verified'])
+        && (string) ($mfaEmailReplay['reason'] ?? '') === 'expired_code'
+        && !isset($_SESSION['sr_debug_mfa_email_code']),
+    'MFA email code verification should accept a matching hashed session code once and clear it after success.'
+);
 $mfaPendingSetup = sr_member_mfa_create_pending_totp_factor($mfaPdo, 79, 'Saanraan', 'member79@example.test', $mfaConfig);
 $mfaPendingSecret = sr_member_mfa_base32_decode((string) ($mfaPendingSetup['secret_base32'] ?? ''));
 $mfaPendingQrDataUri = (string) ($mfaPendingSetup['otpauth_qr_svg_data_uri'] ?? '');
@@ -357,6 +384,11 @@ if ($loginAction !== '') {
         'Password login should pass through the MFA gate before member session creation.'
     );
     sr_member_auth_policy_assert(
+        strpos($loginAction, 'sr_member_mfa_login_setup_required($pdo, $account)') !== false
+            && strpos($loginAction, 'sr_member_redirect_mfa_setup_required()') !== false,
+        'Password login should send members without a required setup MFA factor to the security setup screen after session creation.'
+    );
+    sr_member_auth_policy_assert(
         strpos($loginAction, 'sr_member_email_verification_throttle_status($pdo, (int) $account[\'id\'])') !== false
             && strpos($loginAction, 'sr_member_create_email_verification($pdo, $config, (int) $account[\'id\'], (string) $account[\'email\'])') !== false,
         'Login action should resend email verification within throttle limits after a valid password for an unverified account.'
@@ -398,6 +430,11 @@ if ($registerAction !== '') {
         strpos($registerAction, 'sr_member_login_or_start_mfa($pdo, $newAccount, \'register\', \'/account\')') !== false,
         'Registration auto-login should pass through the MFA gate.'
     );
+    sr_member_auth_policy_assert(
+        strpos($registerAction, 'sr_member_mfa_login_setup_required($pdo, $newAccount)') !== false
+            && strpos($registerAction, 'sr_member_redirect_mfa_setup_required()') !== false,
+        'Registration auto-login should send members without a required setup MFA factor to the security setup screen.'
+    );
 }
 
 $oauthCallbackAction = sr_member_auth_policy_read('modules/member_oauth/actions/callback.php');
@@ -406,6 +443,11 @@ if ($oauthCallbackAction !== '') {
         strpos($oauthCallbackAction, 'sr_member_login_or_start_mfa($pdo, $account, \'oauth\', (string) $state[\'next_path\']') !== false,
         'OAuth callback login should pass through the MFA gate.'
     );
+    sr_member_auth_policy_assert(
+        strpos($oauthCallbackAction, 'sr_member_mfa_login_setup_required($pdo, $account)') !== false
+            && strpos($oauthCallbackAction, 'sr_member_redirect_mfa_setup_required()') !== false,
+        'OAuth callback login should send members without a required setup MFA factor to the security setup screen.'
+    );
 }
 
 $oauthCompleteAction = sr_member_auth_policy_read('modules/member_oauth/actions/complete.php');
@@ -413,6 +455,11 @@ if ($oauthCompleteAction !== '') {
     sr_member_auth_policy_assert(
         strpos($oauthCompleteAction, 'sr_member_login_or_start_mfa($pdo, $account, \'oauth_completion\', (string) $usedState[\'next_path\']') !== false,
         'OAuth completion auto-login should pass through the MFA gate.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($oauthCompleteAction, 'sr_member_mfa_login_setup_required($pdo, $account)') !== false
+            && strpos($oauthCompleteAction, 'sr_member_redirect_mfa_setup_required()') !== false,
+        'OAuth completion auto-login should send members without a required setup MFA factor to the security setup screen.'
     );
 }
 
@@ -446,8 +493,10 @@ if ($loginMfaAction !== '') {
             && strpos($loginMfaAction, 'sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode)') !== false
             && strpos($loginMfaAction, 'sr_member_mfa_consume_recovery_code($pdo, $accountId, $normalizedRecoveryCode)') !== false
             && strpos($loginMfaAction, '$loginSucceeded = sr_member_login($pdo, $challengeAccount)') !== false
+            && strpos($loginMfaAction, 'sr_member_mfa_login_setup_required($pdo, $challengeAccount)') !== false
+            && strpos($loginMfaAction, 'sr_member_redirect_mfa_setup_required()') !== false
             && strpos($loginMfaAction, 'sr_redirect(sr_member_safe_next_path($next))') !== false,
-        'MFA login action should throttle MFA attempts, verify active TOTP factors or consume backup codes, complete member login, and re-check next path before redirect.'
+        'MFA login action should throttle MFA attempts, verify available factors, complete member login, send required setup members to security, and re-check next path before redirect.'
     );
     sr_member_auth_policy_assert(
         strpos($loginMfaAction, 'mfa_totp_success') !== false

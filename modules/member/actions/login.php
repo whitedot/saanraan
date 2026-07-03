@@ -131,6 +131,9 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Member login succeeded.',
             ]);
+            if (sr_member_mfa_login_setup_required($pdo, $account)) {
+                sr_member_redirect_mfa_setup_required();
+            }
             sr_redirect($next);
         }
 

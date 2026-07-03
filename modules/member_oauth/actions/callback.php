@@ -149,6 +149,9 @@ if (is_array($oauthAccount)) {
             'updated_at' => sr_now(),
             'id' => (int) $oauthAccount['id'],
         ]);
+        if (sr_member_mfa_login_setup_required($pdo, $account)) {
+            sr_member_redirect_mfa_setup_required();
+        }
         sr_redirect((string) $state['next_path']);
     }
     sr_member_log_auth($pdo, (int) $account['id'], 'oauth_login_session_failed', 'failure');

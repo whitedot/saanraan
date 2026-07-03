@@ -18,33 +18,43 @@ $errors = [];
 $notice = '';
 $memberSettings = sr_member_settings($pdo);
 $next = sr_member_safe_next_path((string) ($challenge['next_path'] ?? ''));
+$accountId = (int) ($challenge['account_id'] ?? 0);
+$challengeAccount = sr_member_find_by_id($pdo, $accountId);
+if (!is_array($challengeAccount) || (string) ($challengeAccount['status'] ?? '') !== 'active') {
+    sr_member_mfa_clear_challenge();
+    sr_redirect('/login');
+}
+
+if (sr_member_email_verification_blocks_login($memberSettings, $challengeAccount)) {
+    sr_member_mfa_clear_challenge();
+    sr_redirect('/login');
+}
+
+$challengeProviderKeys = sr_member_mfa_valid_provider_keys(explode(',', (string) (($challenge['context']['mfa_provider_keys'] ?? ''))));
+$activeProviderKeys = sr_member_active_login_mfa_provider_keys($pdo, $accountId);
+if ($challengeProviderKeys === []) {
+    $challengeProviderKeys = $activeProviderKeys;
+}
+$availableProviderKeys = array_values(array_intersect($challengeProviderKeys, $activeProviderKeys));
+if ($availableProviderKeys === []) {
+    sr_member_mfa_clear_challenge();
+    $errors[] = sr_t('member::action.login_mfa.factor_unavailable');
+    sr_member_log_auth($pdo, $accountId, 'mfa_challenge_expired', 'failure');
+}
+
+if ($errors === [] && in_array('email', $availableProviderKeys, true)) {
+    $emailChallenge = sr_member_mfa_send_email_challenge($pdo, $site, $config, $challengeAccount);
+    if (!empty($emailChallenge['sent'])) {
+        $notice = sr_t('member::action.login_mfa.email_sent');
+        sr_member_log_auth($pdo, $accountId, 'mfa_email_sent', 'success');
+    } elseif ((string) ($emailChallenge['reason'] ?? '') === 'mail_failed') {
+        $errors[] = sr_t('member::action.login_mfa.email_failed');
+        sr_member_log_auth($pdo, $accountId, 'mfa_email_failed', 'failure');
+    }
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    $accountId = (int) ($challenge['account_id'] ?? 0);
-    $challengeAccount = sr_member_find_by_id($pdo, $accountId);
-    if (!is_array($challengeAccount) || (string) ($challengeAccount['status'] ?? '') !== 'active') {
-        sr_member_mfa_clear_challenge();
-        sr_redirect('/login');
-    }
-
-    $memberSettings = sr_member_settings($pdo);
-    if (sr_member_email_verification_blocks_login($memberSettings, $challengeAccount)) {
-        sr_member_mfa_clear_challenge();
-        sr_redirect('/login');
-    }
-
-    $challengeProviderKeys = sr_member_mfa_valid_provider_keys(explode(',', (string) (($challenge['context']['mfa_provider_keys'] ?? ''))));
-    $activeProviderKeys = sr_member_active_login_mfa_provider_keys($pdo, $accountId);
-    if ($challengeProviderKeys === []) {
-        $challengeProviderKeys = $activeProviderKeys;
-    }
-    $availableProviderKeys = array_values(array_intersect($challengeProviderKeys, $activeProviderKeys));
-    if ($availableProviderKeys === []) {
-        sr_member_mfa_clear_challenge();
-        $errors[] = sr_t('member::action.login_mfa.factor_unavailable');
-        sr_member_log_auth($pdo, $accountId, 'mfa_challenge_expired', 'failure');
-    }
 
     $code = sr_post_string_without_truncation('code', 80);
     $normalizedCode = is_string($code) ? sr_member_mfa_normalize_code($code) : '';
@@ -85,6 +95,10 @@ if (sr_request_method() === 'POST') {
         if (in_array('totp', $availableProviderKeys, true) && sr_member_mfa_code_is_valid_format($normalizedCode)) {
             $mfaResult = sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode);
         }
+        if (in_array('email', $availableProviderKeys, true) && empty($mfaResult['verified']) && sr_member_mfa_code_is_valid_format($normalizedCode)) {
+            $mfaMethod = 'email';
+            $mfaResult = sr_member_mfa_verify_email_code($accountId, $normalizedCode, $config);
+        }
         if (in_array('totp', $availableProviderKeys, true) && empty($mfaResult['verified']) && sr_member_mfa_recovery_code_is_valid_format($normalizedRecoveryCode)) {
             $mfaMethod = 'backup';
             $mfaResult = sr_member_mfa_consume_recovery_code($pdo, $accountId, $normalizedRecoveryCode);
@@ -92,7 +106,7 @@ if (sr_request_method() === 'POST') {
         if (!empty($mfaResult['verified'])) {
             $loginSucceeded = sr_member_login($pdo, $challengeAccount);
             if ($loginSucceeded) {
-                sr_member_log_auth($pdo, $accountId, $mfaMethod === 'backup' ? 'mfa_backup_success' : 'mfa_totp_success', 'success');
+                sr_member_log_auth($pdo, $accountId, $mfaMethod === 'backup' ? 'mfa_backup_success' : ($mfaMethod === 'email' ? 'mfa_email_success' : 'mfa_totp_success'), 'success');
                 sr_audit_log($pdo, [
                     'actor_account_id' => $accountId,
                     'actor_type' => 'member',
@@ -110,6 +124,9 @@ if (sr_request_method() === 'POST') {
                         'next_path' => $next,
                     ],
                 ]);
+                if (sr_member_mfa_login_setup_required($pdo, $challengeAccount)) {
+                    sr_member_redirect_mfa_setup_required();
+                }
                 sr_redirect(sr_member_safe_next_path($next));
             }
 
@@ -119,7 +136,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = (string) ($mfaResult['reason'] ?? '') === 'secret_unavailable'
                 ? sr_t('member::action.login_mfa.factor_unavailable')
                 : sr_t('member::action.login_mfa.code_invalid');
-            sr_member_log_auth($pdo, $accountId, $mfaMethod === 'backup' ? 'mfa_backup_failure' : 'mfa_totp_failure', 'failure');
+            sr_member_log_auth($pdo, $accountId, $mfaMethod === 'backup' ? 'mfa_backup_failure' : ($mfaMethod === 'email' ? 'mfa_email_failure' : 'mfa_totp_failure'), 'failure');
             sr_audit_log($pdo, [
                 'actor_account_id' => $accountId,
                 'actor_type' => 'member',

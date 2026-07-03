@@ -136,6 +136,9 @@ if (sr_request_method() === 'POST') {
                     'result' => 'success',
                     'message' => 'OAuth member registered and logged in.',
                 ]);
+                if (sr_member_mfa_login_setup_required($pdo, $account)) {
+                    sr_member_redirect_mfa_setup_required();
+                }
                 sr_redirect((string) $usedState['next_path']);
             }
             sr_redirect('/login');

@@ -25,7 +25,7 @@ function sr_member_default_settings(): array
         'login_identifier' => sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both'),
         'mfa_login_mode' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null),
         'mfa_login_enabled' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null) !== 'disabled',
-        'mfa_login_providers_json' => is_string($settings['mfa_login_providers_json'] ?? null) ? (string) $settings['mfa_login_providers_json'] : '["totp"]',
+        'mfa_login_providers_json' => is_string($settings['mfa_login_providers_json'] ?? null) ? (string) $settings['mfa_login_providers_json'] : '["email","totp"]',
         'login_throttle_window_seconds' => (int) ($settings['login_throttle_window_seconds'] ?? 900),
         'login_throttle_account_limit' => (int) ($settings['login_throttle_account_limit'] ?? 5),
         'login_throttle_ip_limit' => (int) ($settings['login_throttle_ip_limit'] ?? 20),
@@ -62,7 +62,7 @@ function sr_member_settings(PDO $pdo): array
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['mfa_login_mode'] = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
     $settings['mfa_login_enabled'] = $settings['mfa_login_mode'] !== 'disabled';
-    $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json(sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["totp"]'));
+    $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json(sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]'));
     $settings['nickname_enabled'] = (bool) ($settings['nickname_enabled'] ?? true);
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
@@ -128,7 +128,7 @@ function sr_member_mfa_login_mode(mixed $value, mixed $legacyEnabled = null): st
         return !empty($legacyEnabled) ? 'optional' : 'disabled';
     }
 
-    return 'optional';
+    return 'disabled';
 }
 
 function sr_member_mfa_login_mode_options(): array

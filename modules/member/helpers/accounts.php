@@ -301,14 +301,19 @@ function sr_member_require_login(PDO $pdo): array
         sr_member_mfa_login_setup_required($pdo, $account)
         && $requestPath !== '/mypage/security'
     ) {
-        $_SESSION['sr_member_account_flash'] = [
-            'notice' => sr_t('member::action.account.mfa_setup_required_by_policy'),
-            'errors' => [],
-        ];
-        sr_redirect('/mypage/security');
+        sr_member_redirect_mfa_setup_required();
     }
 
     return $account;
+}
+
+function sr_member_redirect_mfa_setup_required(): void
+{
+    $_SESSION['sr_member_account_flash'] = [
+        'notice' => sr_t('member::action.account.mfa_setup_required_by_policy'),
+        'errors' => [],
+    ];
+    sr_redirect('/mypage/security');
 }
 
 function sr_member_public_account_summary(PDO $pdo, int $accountId): ?array

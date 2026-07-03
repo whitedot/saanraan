@@ -210,7 +210,7 @@ function sr_member_reauth_failure_event_types(): array
 
 function sr_member_mfa_failure_event_types(): array
 {
-    return ['mfa_totp_failure', 'mfa_backup_failure', 'mfa_challenge_expired', 'mfa_rate_limited'];
+    return ['mfa_totp_failure', 'mfa_email_failure', 'mfa_backup_failure', 'mfa_challenge_expired', 'mfa_rate_limited'];
 }
 
 function sr_member_rate_limits_table_exists(PDO $pdo): bool

@@ -83,18 +83,17 @@ function sr_member_mfa_login_setup_required(PDO $pdo, array $account): bool
     }
 
     $providers = sr_member_mfa_provider_definitions($pdo);
-    $setupProviderExists = false;
+    $setupProviderKeys = [];
     foreach ($allowedProviderKeys as $providerKey) {
         if (!empty($providers[$providerKey]['account_setup_supported'])) {
-            $setupProviderExists = true;
-            break;
+            $setupProviderKeys[] = $providerKey;
         }
     }
-    if (!$setupProviderExists) {
+    if ($setupProviderKeys === []) {
         return false;
     }
 
-    return !sr_member_mfa_active_factor_exists($pdo, $accountId, $allowedProviderKeys);
+    return !sr_member_mfa_active_factor_exists($pdo, $accountId, $setupProviderKeys);
 }
 
 function sr_member_active_login_mfa_provider_keys(PDO $pdo, int $accountId): array
@@ -113,7 +112,22 @@ function sr_member_active_login_mfa_provider_keys(PDO $pdo, int $accountId): arr
         return [];
     }
 
-    return sr_member_mfa_active_factor_provider_keys($pdo, $accountId, $allowedProviderKeys);
+    $activeKeys = [];
+    foreach (sr_member_mfa_active_factor_provider_keys($pdo, $accountId, $allowedProviderKeys) as $providerKey) {
+        $activeKeys[$providerKey] = true;
+    }
+    if (in_array('email', $allowedProviderKeys, true) && sr_member_mfa_email_provider_available($pdo, $accountId)) {
+        $activeKeys['email'] = true;
+    }
+
+    $orderedKeys = [];
+    foreach ($allowedProviderKeys as $providerKey) {
+        if (isset($activeKeys[$providerKey])) {
+            $orderedKeys[] = $providerKey;
+        }
+    }
+
+    return $orderedKeys;
 }
 
 function sr_member_mfa_enabled_login_provider_keys(PDO $pdo, array $settings): array
@@ -207,6 +221,29 @@ function sr_member_mfa_active_factor_provider_keys(PDO $pdo, int $accountId, arr
     }
 
     return $active;
+}
+
+function sr_member_mfa_email_provider_available(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT email
+             FROM sr_member_accounts
+             WHERE id = :id
+               AND status = 'active'
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $accountId]);
+        $email = $stmt->fetchColumn();
+    } catch (Throwable $exception) {
+        return false;
+    }
+
+    return is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 function sr_member_mfa_valid_provider_keys(array $providerKeys): array
@@ -368,6 +405,115 @@ function sr_member_mfa_normalize_code(string $code): string
 function sr_member_mfa_code_is_valid_format(string $code): bool
 {
     return preg_match('/\A[0-9]{6,12}\z/', $code) === 1;
+}
+
+function sr_member_mfa_email_code_ttl_seconds(): int
+{
+    return 300;
+}
+
+function sr_member_mfa_email_code_hash(string $code, int $accountId, ?array $config = null): string
+{
+    $config = is_array($config) ? $config : sr_runtime_config();
+    $normalizedCode = sr_member_mfa_normalize_code($code);
+    if ($accountId < 1 || !sr_member_mfa_code_is_valid_format($normalizedCode)) {
+        return '';
+    }
+
+    return sr_hmac_hash('member.mfa.email|' . (string) $accountId . '|' . $normalizedCode, $config);
+}
+
+function sr_member_mfa_generate_email_code(): string
+{
+    return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+function sr_member_mfa_send_email_challenge(PDO $pdo, array $site, array $config, array $account): array
+{
+    $accountId = (int) ($account['id'] ?? 0);
+    $email = (string) ($account['email'] ?? '');
+    $challenge = sr_member_mfa_challenge();
+    if (
+        $accountId < 1
+        || !is_array($challenge)
+        || (int) ($challenge['account_id'] ?? 0) !== $accountId
+        || filter_var($email, FILTER_VALIDATE_EMAIL) === false
+    ) {
+        return ['sent' => false, 'reason' => 'factor_unavailable'];
+    }
+
+    $context = isset($challenge['context']) && is_array($challenge['context']) ? $challenge['context'] : [];
+    $existingHash = (string) ($context['email_code_hash'] ?? '');
+    $existingExpiresAt = (int) ($context['email_code_expires_at'] ?? 0);
+    if ($existingHash !== '' && $existingExpiresAt >= time()) {
+        return ['sent' => false, 'reason' => 'already_sent'];
+    }
+
+    $code = sr_member_mfa_generate_email_code();
+    $expiresAt = min((int) ($challenge['expires_at'] ?? 0), time() + sr_member_mfa_email_code_ttl_seconds());
+    if ($expiresAt <= time()) {
+        return ['sent' => false, 'reason' => 'challenge_expired'];
+    }
+
+    $mailSent = sr_send_mail(
+        $site,
+        $email,
+        sr_t('member::action.login_mfa.email_subject'),
+        sr_t('member::action.login_mfa.email_body', [
+            'code' => $code,
+            'minutes' => (string) max(1, (int) ceil(($expiresAt - time()) / 60)),
+        ])
+    );
+    if (!$mailSent) {
+        unset($_SESSION['sr_debug_mfa_email_code']);
+        return ['sent' => false, 'reason' => 'mail_failed'];
+    }
+
+    $_SESSION['sr_member_mfa_challenge']['context']['email_code_hash'] = sr_member_mfa_email_code_hash($code, $accountId, $config);
+    $_SESSION['sr_member_mfa_challenge']['context']['email_code_expires_at'] = (string) $expiresAt;
+    $_SESSION['sr_member_mfa_challenge']['context']['email_code_sent_at'] = (string) time();
+    if (!empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''))) {
+        $_SESSION['sr_debug_mfa_email_code'] = $code;
+    } else {
+        unset($_SESSION['sr_debug_mfa_email_code']);
+    }
+
+    return ['sent' => true, 'reason' => ''];
+}
+
+function sr_member_mfa_verify_email_code(int $accountId, string $code, ?array $config = null): array
+{
+    $challenge = sr_member_mfa_challenge();
+    $normalizedCode = sr_member_mfa_normalize_code($code);
+    if (
+        $accountId < 1
+        || !is_array($challenge)
+        || (int) ($challenge['account_id'] ?? 0) !== $accountId
+        || !sr_member_mfa_code_is_valid_format($normalizedCode)
+    ) {
+        return ['verified' => false, 'reason' => 'invalid_code'];
+    }
+
+    $context = isset($challenge['context']) && is_array($challenge['context']) ? $challenge['context'] : [];
+    $expectedHash = (string) ($context['email_code_hash'] ?? '');
+    $expiresAt = (int) ($context['email_code_expires_at'] ?? 0);
+    if ($expectedHash === '' || $expiresAt < time()) {
+        return ['verified' => false, 'reason' => 'expired_code'];
+    }
+
+    $actualHash = sr_member_mfa_email_code_hash($normalizedCode, $accountId, $config);
+    if ($actualHash === '' || !hash_equals($expectedHash, $actualHash)) {
+        return ['verified' => false, 'reason' => 'invalid_code'];
+    }
+
+    unset(
+        $_SESSION['sr_member_mfa_challenge']['context']['email_code_hash'],
+        $_SESSION['sr_member_mfa_challenge']['context']['email_code_expires_at'],
+        $_SESSION['sr_member_mfa_challenge']['context']['email_code_sent_at'],
+        $_SESSION['sr_debug_mfa_email_code']
+    );
+
+    return ['verified' => true, 'reason' => ''];
 }
 
 function sr_member_mfa_recovery_code_count(): int
@@ -1733,7 +1879,7 @@ function sr_member_mfa_challenge(): ?array
 
 function sr_member_mfa_clear_challenge(): void
 {
-    unset($_SESSION['sr_member_mfa_challenge']);
+    unset($_SESSION['sr_member_mfa_challenge'], $_SESSION['sr_debug_mfa_email_code']);
 }
 
 function sr_member_mfa_challenge_ttl_seconds(): int
