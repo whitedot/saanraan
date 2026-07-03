@@ -135,11 +135,11 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
         <?php echo sr_admin_pagination_summary_html($installablePagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table table-list">
+        <table class="table table-list admin-module-management-table">
             <caption class="sr-only"><?php echo sr_e((string) $installableSection['title']); ?></caption>
             <thead>
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('name', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
+                    <th class="admin-module-name-column"<?php echo sr_admin_sort_aria('name', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('module_key', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('Key', 'module_key', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('version', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('버전', 'version', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
@@ -160,7 +160,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                         <?php $canInstall = $moduleErrors === []; ?>
                         <tr>
-                            <td class="admin-table-break">
+                            <td class="admin-table-break admin-module-name-column">
                                 <?php echo $moduleManagementClassificationBadgeHtml($module, $requiredModules); ?>
                                 <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
                                 <span class="table-meta"><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></span>
@@ -315,11 +315,11 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
         <?php echo sr_admin_pagination_summary_html($installedPagination); ?>
     </div>
     <div class="table-wrapper">
-        <table class="table table-list">
+        <table class="table table-list admin-module-management-table">
             <caption class="sr-only"><?php echo sr_e((string) $installedSection['title']); ?></caption>
             <thead>
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('name', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
+                    <th class="admin-module-name-column"<?php echo sr_admin_sort_aria('name', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('module_key', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('Key', 'module_key', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('version', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('설치 버전', 'version', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
@@ -349,7 +349,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                         <?php $moduleStatus = (string) $module['status']; ?>
                         <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
                         <tr>
-                            <td class="admin-table-break">
+                            <td class="admin-table-break admin-module-name-column">
                                 <?php echo $moduleManagementClassificationBadgeHtml($module, $requiredModules); ?>
                                 <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
                                 <span class="table-meta"><?php echo sr_e((string) ($module['description'] !== '' ? sr_admin_module_description_label((string) $module['description']) : '-')); ?></span>

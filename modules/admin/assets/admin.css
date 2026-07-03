@@ -583,6 +583,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-module-status-help{margin-top:0;margin-bottom:calc(var(--spacing) * 4)}
 .admin-module-sync-form{gap:calc(var(--spacing) * 2);display:grid}
 .admin-module-sync-form .form-input{width:100%}
+.admin-module-management-table :is(th,td).admin-module-name-column{width:34%;min-width:18rem}
+.admin-module-management-table td.admin-module-name-column{word-break:normal;overflow-wrap:anywhere}
 .admin-module-detail-list{grid-template-columns:minmax(8rem,14rem) minmax(0,1fr);gap:calc(var(--spacing) * 3) calc(var(--spacing) * 5);display:grid;margin:0}
 .admin-module-detail-list dt{color:var(--text-muted);font-weight:var(--font-weight-semibold)}
 .admin-module-detail-list dd{margin:0;min-width:0;overflow-wrap:anywhere}
