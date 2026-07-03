@@ -174,7 +174,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
         $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
     }
     $pdo->exec('CREATE TABLE sr_policy_documents (id INTEGER PRIMARY KEY AUTOINCREMENT, document_key TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_policy_document_versions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL, version_key TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_policy_document_versions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_policy_document_mail_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL, version_id INTEGER NOT NULL, job_key TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, source_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, asset_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
@@ -191,7 +191,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $futureAt = date('Y-m-d H:i:s', time() + 90000);
 
     $pdo->exec("INSERT INTO sr_policy_documents (id, document_key) VALUES (1, 'member_terms')");
-    $pdo->exec("INSERT INTO sr_policy_document_versions (id, document_id, version_key) VALUES (1, 1, '2026.06.001')");
+    $pdo->exec('INSERT INTO sr_policy_document_versions (id, document_id) VALUES (1, 1)');
     $stmt = $pdo->prepare('INSERT INTO sr_policy_document_mail_jobs (document_id, version_id, job_key, status, updated_at) VALUES (:document_id, :version_id, :job_key, :status, :updated_at)');
     $stmt->execute(['document_id' => 1, 'version_id' => 1, 'job_key' => 'member_terms:queued', 'status' => 'queued', 'updated_at' => $oldAt]);
     $stmt->execute(['document_id' => 1, 'version_id' => 1, 'job_key' => 'member_terms:failed', 'status' => 'failed', 'updated_at' => $recentAt]);
@@ -239,8 +239,8 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if ((string) ($byLabel['policy_documents.mail_jobs.queued']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture queued policy document mail job should be overdue.');
     }
-    if (($byLabel['policy_documents.mail_jobs.queued']['targets'] ?? []) !== ['member_terms / 2026.06.001']) {
-        sr_operational_status_error('Bundle fixture queued policy document mail job should include document/version target.');
+    if (($byLabel['policy_documents.mail_jobs.queued']['targets'] ?? []) !== ['member_terms']) {
+        sr_operational_status_error('Bundle fixture queued policy document mail job should hide internal version keys from operator targets.');
     }
     if ((string) ($byLabel['policy_documents.mail_jobs.failed']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture failed policy document mail job should be overdue immediately.');

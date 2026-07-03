@@ -57,15 +57,31 @@ $policyDocumentCkeditorAttributes = $policyDocumentCkeditorAvailable && isset($p
     ? sr_editor_textarea_attributes($pdo, 'ckeditor', 'admin_basic', 'body_editor_format')
     : '';
 $policyDocumentVersionsByDocumentId = [];
-$policyDocumentLatestVersionKeyByDocumentId = [];
 foreach ($versions as $policyDocumentVersionRow) {
     $policyDocumentVersionDocumentId = (int) $policyDocumentVersionRow['document_id'];
     $policyDocumentVersionsByDocumentId[$policyDocumentVersionDocumentId][] = $policyDocumentVersionRow;
-    if (!isset($policyDocumentLatestVersionKeyByDocumentId[$policyDocumentVersionDocumentId])) {
-        $policyDocumentLatestVersionKeyByDocumentId[$policyDocumentVersionDocumentId] = (string) ($policyDocumentVersionRow['version_key'] ?? '');
+}
+$policyDocumentPreviousHistoryCandidateCount = 0;
+if ($selectedDocumentId > 0) {
+    $policyDocumentCurrentFormVersionId = $editingVersion && is_array($formVersion) ? (int) ($formVersion['id'] ?? 0) : 0;
+    foreach ($policyDocumentVersionsByDocumentId[$selectedDocumentId] ?? [] as $policyDocumentHistoryCandidate) {
+        $policyDocumentHistoryCandidateStatus = (string) ($policyDocumentHistoryCandidate['status'] ?? '');
+        if (!in_array($policyDocumentHistoryCandidateStatus, ['published', 'archived'], true)) {
+            continue;
+        }
+        if ($policyDocumentCurrentFormVersionId > 0 && (int) ($policyDocumentHistoryCandidate['id'] ?? 0) >= $policyDocumentCurrentFormVersionId) {
+            continue;
+        }
+        $policyDocumentPreviousHistoryCandidateCount++;
     }
 }
-$policyDocumentLatestVersionKey = $selectedDocumentId > 0 ? (string) ($policyDocumentLatestVersionKeyByDocumentId[$selectedDocumentId] ?? '') : '';
+$policyDocumentStandardTemplateHtml = '';
+$policyDocumentStandardTemplateLabel = '';
+$policyDocumentSelectedDocumentKey = is_array($selectedDocument) ? (string) ($selectedDocument['document_key'] ?? '') : '';
+if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentSelectedDocumentKey !== '' && isset($pdo) && $pdo instanceof PDO) {
+    $policyDocumentStandardTemplateHtml = sr_policy_document_standard_template_html($pdo, $policyDocumentSelectedDocumentKey, is_array($site ?? null) ? $site : null);
+    $policyDocumentStandardTemplateLabel = sr_policy_document_standard_template_button_label($policyDocumentSelectedDocumentKey);
+}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -143,31 +159,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } ?>
 
-            <?php if ($editingVersion) { ?>
-                <div class="form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></span>
-                    <div class="form-field">
-                        <?php echo sr_e((string) $formVersion['version_key']); ?>
-                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::error.version_edit_draft_only')); ?></p>
-                    </div>
-                </div>
-            <?php } else { ?>
-                <div class="form-row">
-                    <label class="form-label" for="policy_document_version_key"><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                    <div class="form-field">
-                        <div class="admin-setting-source-line">
-                            <input id="policy_document_version_key" class="form-input" type="text" name="version_key" maxlength="40" pattern="[A-Za-z0-9._-]{1,40}" placeholder="<?php echo sr_e(sr_t('policy_documents::ui.version_key.placeholder')); ?>" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-version-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.version_key_invalid')); ?>">
-                            <?php if ($policyDocumentLatestVersionKey !== '') { ?>
-                                <span class="badge badge-soft-secondary badge-pill" title="<?php echo sr_e(sr_t('policy_documents::ui.version_key.latest_badge.title')); ?>">
-                                    <?php echo sr_e(sr_t('policy_documents::ui.version_key.latest_badge', ['version' => $policyDocumentLatestVersionKey])); ?>
-                                </span>
-                            <?php } ?>
-                        </div>
-                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.version_key.help')); ?></p>
-                    </div>
-                </div>
-            <?php } ?>
-
             <div class="form-row">
                 <label class="form-label" for="policy_document_title"><?php echo sr_e(sr_t('policy_documents::ui.title')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
                 <div class="form-field">
@@ -195,6 +186,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <textarea id="policy_document_body_ckeditor_html" class="form-textarea form-control-full" name="body_ckeditor_html" rows="14"<?php echo $policyDocumentCkeditorAttributes; ?>><?php echo sr_e($policyDocumentBodyHtmlValue); ?></textarea>
                         </div>
                     <?php } ?>
+                    <?php if ($policyDocumentStandardTemplateHtml !== '' && $policyDocumentStandardTemplateLabel !== '') { ?>
+                        <div class="form-actions btn-space-before">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-policy-document-standard-template data-policy-document-standard-template-confirm="<?php echo sr_e(sr_t('policy_documents::ui.standard_template.confirm')); ?>">
+                                <?php echo sr_material_icon_html('auto_fix_high'); ?><?php echo sr_e($policyDocumentStandardTemplateLabel); ?>
+                            </button>
+                            <script type="application/json" data-policy-document-standard-template-json><?php echo sr_js_json_encode($policyDocumentStandardTemplateHtml); ?></script>
+                        </div>
+                    <?php } ?>
                     <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
                 </div>
             </div>
@@ -203,6 +202,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="policy_document_summary_text"><?php echo sr_e(sr_t('policy_documents::ui.summary')); ?></label>
                 <div class="form-field">
                     <textarea id="policy_document_summary_text" class="form-textarea form-control-full" name="summary_text" rows="3" maxlength="1000"><?php echo sr_e($policyDocumentVersionValue('summary_text')); ?></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.previous_versions.option')); ?></span>
+                <div class="form-field">
+                    <?php echo sr_admin_checkbox_toggle_html('policy_document_append_previous_versions', 'append_previous_versions', '1', $policyDocumentVersionValue('append_previous_versions') === '1', sr_t('policy_documents::ui.previous_versions.option.enable')); ?>
+                    <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.previous_versions.option.help', ['count' => number_format($policyDocumentPreviousHistoryCandidateCount)])); ?></p>
                 </div>
             </div>
 
@@ -246,7 +253,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
-                        <th><?php echo sr_e(sr_t('policy_documents::ui.published_version')); ?></th>
+                        <th><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
                         <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
                     </tr>
@@ -262,7 +269,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td class="admin-table-break"><?php echo sr_e((string) $document['title']); ?></td>
                             <td class="admin-table-nowrap"><a href="<?php echo sr_e(sr_url('/admin/policy-documents?document_id=' . (string) (int) $document['id'])); ?>"><?php echo sr_e((string) $document['document_key']); ?></a></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($document['published_version_key'] ?? '-')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($document['published_at'] ?? ''), '-'); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($documentStatus)); ?>"><?php echo sr_e(sr_admin_code_label($documentStatus, 'content_status')); ?></span></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -302,7 +309,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></caption>
                                     <thead>
                                         <tr>
-                                            <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
                                             <th><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></th>
@@ -313,7 +319,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <tbody>
                                         <?php if ($policyDocumentRows === []) { ?>
                                             <tr>
-                                                <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
+                                                <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
                                             </tr>
                                         <?php } ?>
                                         <?php foreach ($policyDocumentRows as $version) { ?>
@@ -322,7 +328,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             $policyDocumentVersionDetailModalId = 'policy-document-version-detail-' . (string) (int) $version['id'];
                                             ?>
                                             <tr>
-                                                <td class="admin-table-nowrap"><?php echo sr_e((string) $version['version_key']); ?></td>
                                                 <td class="admin-table-break"><?php echo sr_e((string) $version['title_snapshot']); ?></td>
                                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span></td>
                                                 <td class="admin-table-nowrap"><?php echo sr_e(substr((string) $version['body_hash'], 0, 16)); ?></td>
@@ -337,7 +342,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                 <input type="hidden" name="action" value="publish_version">
                                                                 <input type="hidden" name="version_id" value="<?php echo sr_e((string) (int) $version['id']); ?>">
                                                                 <input type="hidden" name="document_id" value="<?php echo sr_e((string) (int) $version['document_id']); ?>">
-                                                                <button type="submit" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
+                                                                <button type="submit" class="btn btn-sm btn-icon btn-solid-primary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
                                                             </form>
                                                         <?php } ?>
                                                     </div>
@@ -361,7 +366,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php
             $versionStatus = (string) $version['status'];
             $policyDocumentVersionDetailModalId = 'policy-document-version-detail-' . (string) (int) $version['id'];
-            $policyDocumentVersionBodyHtml = sr_policy_document_sanitize_body((string) ($version['body_html'] ?? ''));
+            $policyDocumentVersionBodyHtml = sr_policy_document_render_body_html($pdo, $version);
             ?>
             <div id="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>-label" aria-hidden="true" inert data-overlay-stack="true">
                 <div class="modal-dialog-fluid">
@@ -379,10 +384,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div>
                                     <dt><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></dt>
                                     <dd><?php echo sr_e((string) ($version['document_key'] ?? '')); ?></dd>
-                                </div>
-                                <div>
-                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></dt>
-                                    <dd><?php echo sr_e((string) $version['version_key']); ?></dd>
                                 </div>
                                 <div>
                                     <dt><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></dt>
@@ -416,7 +417,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
-                        <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.mail_counts')); ?></th>
                         <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
@@ -425,13 +425,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($mailJobs === []) { ?>
                         <tr>
-                            <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.mail_job_empty')); ?></td>
+                            <td colspan="4" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.mail_job_empty')); ?></td>
                         </tr>
                     <?php } ?>
                     <?php foreach ($mailJobs as $mailJob) { ?>
                         <tr>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['document_key']); ?></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['version_key']); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass((string) $mailJob['status'])); ?>"><?php echo sr_e((string) $mailJob['status']); ?></span></td>
                             <td class="admin-table-nowrap">
                                 <?php echo sr_e('완료 ' . number_format((int) $mailJob['sent_count']) . ' / 전체 ' . number_format((int) $mailJob['delivery_count'])); ?>
@@ -480,6 +479,152 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
+<?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentStandardTemplateHtml !== '') { ?>
+<script>
+(function () {
+    function policyDocumentText(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function policyDocumentHtmlToPlain(html) {
+        var documentFragment = new DOMParser().parseFromString(String(html || ''), 'text/html');
+        var parts = [];
+        Array.prototype.slice.call(documentFragment.body.children).forEach(function (node) {
+            var tagName = node.tagName ? node.tagName.toLowerCase() : '';
+            if (tagName === 'ul' || tagName === 'ol') {
+                Array.prototype.slice.call(node.querySelectorAll('li')).forEach(function (item) {
+                    var itemText = policyDocumentText(item.textContent);
+                    if (itemText !== '') {
+                        parts.push('- ' + itemText);
+                    }
+                });
+                return;
+            }
+
+            var text = policyDocumentText(node.textContent);
+            if (text !== '') {
+                parts.push(text);
+            }
+        });
+
+        return parts.join("\n\n");
+    }
+
+    function policyDocumentHtmlToMarkdown(html) {
+        var documentFragment = new DOMParser().parseFromString(String(html || ''), 'text/html');
+        var parts = [];
+        Array.prototype.slice.call(documentFragment.body.children).forEach(function (node) {
+            var tagName = node.tagName ? node.tagName.toLowerCase() : '';
+            if (/^h[1-6]$/.test(tagName)) {
+                var headingText = policyDocumentText(node.textContent);
+                if (headingText !== '') {
+                    parts.push('## ' + headingText);
+                }
+                return;
+            }
+
+            if (tagName === 'ul' || tagName === 'ol') {
+                var listParts = [];
+                Array.prototype.slice.call(node.querySelectorAll('li')).forEach(function (item) {
+                    var itemText = policyDocumentText(item.textContent);
+                    if (itemText !== '') {
+                        listParts.push('- ' + itemText);
+                    }
+                });
+                if (listParts.length > 0) {
+                    parts.push(listParts.join("\n"));
+                }
+                return;
+            }
+
+            var text = policyDocumentText(node.textContent);
+            if (text !== '') {
+                parts.push(text);
+            }
+        });
+
+        return parts.join("\n\n");
+    }
+
+    function policyDocumentSetTextarea(textarea, value) {
+        if (!textarea) {
+            return;
+        }
+
+        textarea.value = value;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function policyDocumentCurrentValue(textarea) {
+        if (!textarea) {
+            return '';
+        }
+
+        var instances = window.srCkeditorInstances || {};
+        var editor = instances[textarea.id];
+        if (editor && typeof editor.getData === 'function') {
+            return String(editor.getData() || '');
+        }
+
+        return String(textarea.value || '');
+    }
+
+    function policyDocumentHasExistingBody(group) {
+        return Array.prototype.slice.call(group.querySelectorAll('textarea')).some(function (textarea) {
+            return policyDocumentCurrentValue(textarea).trim() !== '';
+        });
+    }
+
+    function policyDocumentSetCkeditor(textarea, html) {
+        policyDocumentSetTextarea(textarea, html);
+        if (!textarea) {
+            return;
+        }
+
+        var instances = window.srCkeditorInstances || {};
+        var editor = instances[textarea.id];
+        if (editor && typeof editor.setData === 'function') {
+            editor.setData(html);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-policy-document-standard-template]');
+        if (!button) {
+            return;
+        }
+
+        var group = button.closest('[data-admin-body-editor-mode-group]');
+        var templateJson = group ? group.querySelector('[data-policy-document-standard-template-json]') : null;
+        if (!group || !templateJson) {
+            return;
+        }
+
+        var html = '';
+        try {
+            html = JSON.parse(templateJson.textContent || '""');
+        } catch (error) {
+            html = '';
+        }
+        if (html === '') {
+            return;
+        }
+
+        if (policyDocumentHasExistingBody(group) && !window.confirm(button.getAttribute('data-policy-document-standard-template-confirm') || '현재 본문을 표준 문안으로 교체할까요?')) {
+            return;
+        }
+
+        var plain = policyDocumentHtmlToPlain(html);
+        var markdown = policyDocumentHtmlToMarkdown(html);
+        policyDocumentSetTextarea(group.querySelector('textarea[name="body_plain"]'), plain);
+        policyDocumentSetTextarea(group.querySelector('textarea[name="body_markdown"]'), markdown);
+        policyDocumentSetTextarea(group.querySelector('textarea[name="body_html"]'), html);
+        policyDocumentSetCkeditor(group.querySelector('textarea[name="body_ckeditor_html"]'), html);
+    });
+}());
+</script>
+<?php } ?>
 <?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO) { ?>
     <?php echo sr_editor_assets_html($pdo, 'ckeditor', 'admin_basic'); ?>
 <?php } ?>

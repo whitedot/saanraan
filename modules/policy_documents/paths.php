@@ -7,4 +7,5 @@ return [
     'GET /admin/policy-documents/new' => 'actions/admin-policy-document-new.php',
     'GET /admin/policy-documents/edit' => 'actions/admin-policy-document-edit.php',
     'POST /admin/policy-documents/save' => 'actions/admin-policy-document-save.php',
+    'GET /policy-documents/version' => 'actions/version.php',
 ];

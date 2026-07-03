@@ -380,11 +380,11 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
         'CREATE TABLE sr_policy_document_versions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_id INTEGER NOT NULL,
-            version_key TEXT NOT NULL,
             title_snapshot TEXT NOT NULL,
             body_html TEXT NOT NULL,
             summary_text TEXT NULL,
             body_hash TEXT NOT NULL,
+            append_previous_versions INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL,
             effective_from TEXT NULL,
             published_at TEXT NULL,
@@ -394,7 +394,7 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
     );
     $pdo->exec("INSERT INTO sr_modules (id, module_key, status, version) VALUES (1, 'policy_documents', 'enabled', '2026.06.002')");
     $pdo->exec("INSERT INTO sr_policy_documents (id, document_key, title, description, status, sort_order, created_at, updated_at) VALUES (1, 'community_privacy_default', '기본 커뮤니티 동의', '', 'enabled', 1, '', ''), (2, 'community_privacy_board', '게시판 커뮤니티 동의', '', 'enabled', 2, '', '')");
-    $pdo->exec("INSERT INTO sr_policy_document_versions (id, document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at) VALUES (1, 1, '2026.06.001', '기본 커뮤니티 동의', '<p>기본 본문</p>', '', '" . hash('sha256', '<p>기본 본문</p>') . "', 'published', NULL, '', '', ''), (2, 2, '2026.06.002', '게시판 커뮤니티 동의', '<p>게시판 본문</p>', '', '" . hash('sha256', '<p>게시판 본문</p>') . "', 'published', NULL, '', '', '')");
+    $pdo->exec("INSERT INTO sr_policy_document_versions (id, document_id, title_snapshot, body_html, summary_text, body_hash, append_previous_versions, status, effective_from, published_at, created_at, updated_at) VALUES (1, 1, '기본 커뮤니티 동의', '<p>기본 본문</p>', '', '" . hash('sha256', '<p>기본 본문</p>') . "', 0, 'published', NULL, '', '', ''), (2, 2, '게시판 커뮤니티 동의', '<p>게시판 본문</p>', '', '" . hash('sha256', '<p>게시판 본문</p>') . "', 0, 'published', NULL, '', '', '')");
     $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title) VALUES (1, 1, 'free', 'Free')");
     $pdo->exec("INSERT INTO sr_member_accounts (id, display_name, status) VALUES (7, 'Tester', 'active')");
     $pdo->exec("INSERT INTO sr_member_nicknames (account_id, nickname) VALUES (7, 'tester')");
@@ -489,7 +489,7 @@ function sr_community_privacy_consent_check_runtime(): void
     sr_community_privacy_consent_check_assert((int) sr_community_privacy_consent_check_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_submission_consents WHERE account_id IS NULL AND action_key = "post"') === 1, 'guest consent record must allow NULL account_id.');
     sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT policy_document_key_snapshot FROM sr_community_submission_consents WHERE id = 1') === 'community_privacy_default', 'consent record must snapshot policy document key.');
     sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT consent_title_snapshot FROM sr_community_submission_consents WHERE id = 1') === '기본 커뮤니티 동의', 'consent record must snapshot policy title.');
-    sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT consent_version_snapshot FROM sr_community_submission_consents WHERE id = 1') === '2026.06.001', 'consent record must snapshot policy version.');
+    sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT consent_version_snapshot FROM sr_community_submission_consents WHERE id = 1') === '1', 'consent record must snapshot policy version id.');
     sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT consent_body_hash FROM sr_community_submission_consents WHERE id = 1') === hash('sha256', '<p>기본 본문</p>'), 'consent record must snapshot policy body hash.');
     sr_community_privacy_consent_check_assert((string) sr_community_privacy_consent_check_scalar($pdo, 'SELECT ip_hash FROM sr_community_submission_consents WHERE id = 1') === hash('sha256', '203.0.113.10'), 'consent record must hash IP.');
     $insertedComment = sr_community_record_submission_consents($pdo, 1, 7, 'community.comment', 21, ['comment'], $board);

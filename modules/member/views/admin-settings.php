@@ -99,11 +99,7 @@ $memberRegistrationPolicyDocumentSelectOptionsHtml = static function (string $cu
     $currentKey = sr_member_registration_policy_document_clean_key($currentKey);
     $html = $allowEmpty ? '<option value="">' . sr_e('선택 안 함') . '</option>' : '<option value="">' . sr_e('정책 문서 선택') . '</option>';
     foreach ($memberRegistrationPolicyDocumentOptions as $documentKey => $documentOption) {
-        $versionKey = (string) ($documentOption['version_key'] ?? '');
         $label = (string) ($documentOption['title'] ?? $documentKey);
-        if ($versionKey !== '') {
-            $label .= ' / ' . $versionKey;
-        }
         $html .= '<option value="' . sr_e((string) $documentKey) . '"' . ($currentKey === (string) $documentKey ? ' selected' : '') . '>' . sr_e($label) . '</option>';
     }
 

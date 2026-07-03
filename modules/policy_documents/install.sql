@@ -15,18 +15,17 @@ CREATE TABLE IF NOT EXISTS sr_policy_documents (
 CREATE TABLE IF NOT EXISTS sr_policy_document_versions (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     document_id BIGINT UNSIGNED NOT NULL,
-    version_key VARCHAR(40) NOT NULL,
     title_snapshot VARCHAR(190) NOT NULL,
     body_html MEDIUMTEXT NOT NULL,
     summary_text TEXT NULL,
     body_hash CHAR(64) NOT NULL,
+    append_previous_versions TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(30) NOT NULL DEFAULT 'draft',
     effective_from DATETIME NULL,
     published_at DATETIME NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_sr_policy_document_versions_key (document_id, version_key),
     KEY idx_sr_policy_document_versions_status (document_id, status, effective_from, published_at, id)
 );
 
@@ -76,13 +75,13 @@ LEFT JOIN sr_policy_documents existing_document ON existing_document.document_ke
 WHERE existing_document.id IS NULL;
 
 INSERT INTO sr_policy_document_versions
-    (document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at)
+    (document_id, title_snapshot, body_html, summary_text, body_hash, append_previous_versions, status, effective_from, published_at, created_at, updated_at)
 SELECT d.id,
-       '2026.06.001',
        d.title,
        seed.body_html,
        seed.summary_text,
        SHA2(seed.body_html, 256),
+       0,
        'published',
        NOW(),
        NOW(),
@@ -98,5 +97,5 @@ INNER JOIN (
 ) seed ON seed.document_key = d.document_key
 LEFT JOIN sr_policy_document_versions existing_version
     ON existing_version.document_id = d.id
-   AND existing_version.version_key = '2026.06.001'
+   AND existing_version.status = 'published'
 WHERE existing_version.id IS NULL;

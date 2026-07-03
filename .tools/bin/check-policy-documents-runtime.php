@@ -53,17 +53,27 @@ function sr_policy_documents_check_assert(bool $condition, string $message): voi
 $policyDocumentViewSource = file_get_contents('modules/policy_documents/views/admin-policy-documents.php');
 if (is_string($policyDocumentViewSource)) {
     sr_policy_documents_check_assert(
-        str_contains($policyDocumentViewSource, '$policyDocumentLatestVersionKeyByDocumentId')
-            && str_contains($policyDocumentViewSource, 'policy_documents::ui.version_key.latest_badge')
-            && str_contains($policyDocumentViewSource, 'badge badge-soft-secondary badge-pill')
-            && str_contains($policyDocumentViewSource, 'policy_documents::ui.version.body_view')
-            && str_contains($policyDocumentViewSource, 'sr_policy_document_sanitize_body((string) ($version[\'body_html\'] ?? \'\'))')
+        str_contains($policyDocumentViewSource, 'policy_documents::ui.version.body_view')
+            && str_contains($policyDocumentViewSource, 'policy_documents::ui.previous_versions.option')
+            && str_contains($policyDocumentViewSource, 'data-policy-document-standard-template')
+            && str_contains($policyDocumentViewSource, 'data-policy-document-standard-template-json')
+            && str_contains($policyDocumentViewSource, 'sr_policy_document_render_body_html($pdo, $version)')
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
             && !str_contains($policyDocumentViewSource, 'class="modal-content-fullscreen">')
             && !str_contains($policyDocumentViewSource, "modal-body-fill\">\n                            <section class=\"card admin-list-card admin-list-form\">")
-            && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"'),
-        'policy document admin view should show the latest existing version key badge and provide fullscreen read-only body viewing for each version.'
+            && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"')
+            && !str_contains($policyDocumentViewSource, 'name="version_key"')
+            && !str_contains($policyDocumentViewSource, 'data-admin-version-key-input')
+            && !str_contains($policyDocumentViewSource, 'policy_documents::ui.version_key'),
+        'policy document admin view should hide internal version keys and provide fullscreen read-only body viewing for each version.'
+    );
+}
+$policyDocumentInstallSource = file_get_contents('modules/policy_documents/install.sql');
+if (is_string($policyDocumentInstallSource)) {
+    sr_policy_documents_check_assert(
+        !str_contains($policyDocumentInstallSource, 'version_key'),
+        'policy document install schema should not include the removed version_key compatibility column.'
     );
 }
 
@@ -88,11 +98,11 @@ function sr_policy_documents_check_pdo(): PDO
         'CREATE TABLE sr_policy_document_versions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_id INTEGER NOT NULL,
-            version_key TEXT NOT NULL,
             title_snapshot TEXT NOT NULL,
             body_html TEXT NOT NULL,
             summary_text TEXT NULL,
             body_hash TEXT NOT NULL,
+            append_previous_versions INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL DEFAULT "draft",
             effective_from TEXT NULL,
             published_at TEXT NULL,
@@ -136,6 +146,13 @@ function sr_policy_documents_check_pdo(): PDO
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_site_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT "string"
+        )'
+    );
+    $pdo->exec(
         "INSERT INTO sr_policy_documents (id, document_key, title, description, status, sort_order, created_at, updated_at)
          VALUES (1, 'member_terms', '이용약관', '', 'enabled', 10, '', '')"
     );
@@ -144,6 +161,12 @@ function sr_policy_documents_check_pdo(): PDO
          VALUES (1, 'active@example.test', 'active'),
                 (2, 'suspended@example.test', 'suspended')"
     );
+    $pdo->exec(
+        "INSERT INTO sr_site_settings (setting_key, setting_value, value_type)
+         VALUES ('site.name', '테스트몰', 'string'),
+                ('site.base_url', 'https://example.test', 'string'),
+                ('site.business_info_items', '[{\"key\":\"company_name\",\"value\":\"테스트 주식회사\"},{\"key\":\"customer_service_phone\",\"value\":\"070-1234-5678\"},{\"key\":\"privacy_officer_name\",\"value\":\"홍길동\"},{\"key\":\"privacy_officer_email\",\"value\":\"privacy@example.test\"}]', 'json')"
+    );
 
     return $pdo;
 }
@@ -151,7 +174,6 @@ function sr_policy_documents_check_pdo(): PDO
 $pdo = sr_policy_documents_check_pdo();
 try {
     sr_policy_document_create_version($pdo, 404, [
-        'version_key' => '2026.06.000',
         'title' => '없는 문서',
         'body_html' => '<p>본문</p>',
         'summary_text' => '',
@@ -163,20 +185,29 @@ try {
 }
 
 $firstVersionId = sr_policy_document_create_version($pdo, 1, [
-    'version_key' => '2026.06.001',
     'title' => '이용약관',
     'body_html' => '<p>첫 버전</p>',
-    'summary_text' => '',
+    'summary_text' => '첫 변경 기록',
+    'effective_from' => '2026-07-02T00:00',
     'status' => 'published',
 ]);
 $secondVersionId = sr_policy_document_create_version($pdo, 1, [
-    'version_key' => '2026.06.002',
     'title' => '이용약관',
     'body_html' => '<p>둘째 버전</p>',
     'summary_text' => '',
+    'append_previous_versions' => 1,
     'status' => 'published',
 ]);
 sr_policy_documents_check_assert($firstVersionId > 0 && $secondVersionId > $firstVersionId, 'published policy document versions should be inserted.');
+$firstVersion = sr_policy_document_version_by_id($pdo, $firstVersionId);
+$secondVersion = sr_policy_document_version_by_id($pdo, $secondVersionId);
+sr_policy_documents_check_assert(
+    is_array($firstVersion)
+        && is_array($secondVersion)
+        && !array_key_exists('version_key', $firstVersion)
+        && !array_key_exists('version_key', $secondVersion),
+    'policy document version rows should not expose the removed version_key compatibility column.'
+);
 sr_policy_documents_check_assert(
     (int) $pdo->query('SELECT COUNT(*) FROM sr_policy_document_versions WHERE document_id = 1 AND status = "published"')->fetchColumn() === 1,
     'publishing a new policy document version should archive previous published versions.'
@@ -185,8 +216,42 @@ sr_policy_documents_check_assert(
     (int) $pdo->query('SELECT id FROM sr_policy_document_versions WHERE status = "published"')->fetchColumn() === $secondVersionId,
     'the latest published policy document version should remain published.'
 );
+$renderData = sr_policy_document_public_render_data($pdo, 'member_terms');
+sr_policy_documents_check_assert(
+    is_array($renderData)
+        && str_contains((string) ($renderData['body_html'] ?? ''), 'policy-document-version-history')
+        && str_contains((string) ($renderData['body_html'] ?? ''), '2026년 7월 2일')
+        && str_contains((string) ($renderData['body_html'] ?? ''), '/policy-documents/version?id=' . (string) $firstVersionId)
+        && str_contains((string) ($renderData['body_html'] ?? ''), 'target="_blank" rel="noopener noreferrer"')
+        && !str_contains((string) ($renderData['body_html'] ?? ''), '2026.06.001')
+        && !str_contains((string) ($renderData['body_html'] ?? ''), '첫 변경 기록')
+        && !str_contains((string) ($renderData['body_html'] ?? ''), '<p>첫 버전</p>')
+        && str_contains((string) ($renderData['body_html'] ?? ''), '<time datetime="2026-07-02T00:00:00">2026년 7월 2일</time>'),
+    'published policy document render data should append previous policy date links only when requested.'
+);
+sr_policy_documents_check_assert(
+    (string) $pdo->query('SELECT body_html FROM sr_policy_document_versions WHERE id = ' . (int) $secondVersionId)->fetchColumn() === '<p>둘째 버전</p>',
+    'previous version history should not be inserted into the stored policy document body.'
+);
+sr_policy_documents_check_assert(
+    is_array($renderData)
+        && (string) ($renderData['body_hash'] ?? '') === hash('sha256', (string) ($renderData['body_html'] ?? ''))
+        && (string) ($renderData['stored_body_hash'] ?? '') === hash('sha256', '<p>둘째 버전</p>'),
+    'policy document render data should expose a rendered body hash while preserving the stored body hash.'
+);
+$snapshot = sr_policy_document_snapshot($pdo, 'member_terms');
+sr_policy_documents_check_assert(
+    (string) ($snapshot['body_hash'] ?? '') === (string) ($renderData['body_hash'] ?? ''),
+    'policy document snapshots should store the hash of the rendered policy content.'
+);
+$previousPublicVersion = sr_policy_document_public_version_by_id($pdo, $firstVersionId);
+sr_policy_documents_check_assert(
+    is_array($previousPublicVersion)
+        && !array_key_exists('version_key', $previousPublicVersion)
+        && (string) ($previousPublicVersion['body_html'] ?? '') === '<p>첫 버전</p>',
+    'linked previous policy document versions should be readable through the public version lookup.'
+);
 $futureVersionId = sr_policy_document_create_version($pdo, 1, [
-    'version_key' => '2026.06.003',
     'title' => '이용약관',
     'body_html' => '<p>미래 버전</p>',
     'summary_text' => '',
@@ -199,17 +264,19 @@ sr_policy_documents_check_assert(
     'future published policy document versions should not archive the currently effective version.'
 );
 sr_policy_documents_check_assert(
-    (string) sr_policy_document_published_version($pdo, 'member_terms')['version_key'] === '2026.06.002',
+    (int) sr_policy_document_published_version($pdo, 'member_terms')['id'] === $secondVersionId,
     'current policy document lookup should ignore future effective versions until their effective time.'
 );
 $currentDocuments = sr_policy_documents_with_current_versions($pdo);
 sr_policy_documents_check_assert(
-    (string) ($currentDocuments[0]['published_version_key'] ?? '') === '2026.06.002',
+    (int) ($currentDocuments[0]['published_version_id'] ?? 0) === $secondVersionId
+        && !array_key_exists('published_version_key', $currentDocuments[0]),
     'admin policy document list should ignore future effective versions until their effective time.'
 );
 $enabledChoices = sr_policy_document_enabled_choices($pdo);
 sr_policy_documents_check_assert(
-    (string) ($enabledChoices[0]['published_version_key'] ?? '') === '2026.06.002',
+    (int) ($enabledChoices[0]['published_version_id'] ?? 0) === $secondVersionId
+        && !array_key_exists('published_version_key', $enabledChoices[0]),
     'policy document choices should ignore future effective versions until their effective time.'
 );
 $allVersions = sr_policy_document_all_versions($pdo);
@@ -218,7 +285,6 @@ sr_policy_documents_check_assert(
     'admin policy document version list should include body HTML for read-only previous version review.'
 );
 $plainVersionId = sr_policy_document_create_version($pdo, 1, [
-    'version_key' => '2026.06.004',
     'title' => '일반 텍스트 약관',
     'body_editor_mode' => 'plain',
     'body_plain' => "첫 줄\n둘째 줄",
@@ -229,6 +295,22 @@ $plainVersion = sr_policy_document_version_by_id($pdo, $plainVersionId);
 sr_policy_documents_check_assert(
     is_array($plainVersion) && str_contains((string) ($plainVersion['body_html'] ?? ''), '<p>첫 줄<br>'),
     'plain policy document bodies should be converted to sanitized HTML.'
+);
+$termsTemplate = sr_policy_document_standard_template_html($pdo, 'member_terms', ['name' => '테스트몰', 'base_url' => 'https://example.test']);
+sr_policy_documents_check_assert(
+    str_contains($termsTemplate, '테스트몰')
+        && str_contains($termsTemplate, 'https://example.test')
+        && str_contains($termsTemplate, '070-1234-5678')
+        && str_contains($termsTemplate, '테스트 주식회사'),
+    'standard terms template should use site settings and business information.'
+);
+$privacyTemplate = sr_policy_document_standard_template_html($pdo, 'member_privacy_policy', ['name' => '테스트몰', 'base_url' => 'https://example.test']);
+sr_policy_documents_check_assert(
+    str_contains($privacyTemplate, '테스트몰')
+        && str_contains($privacyTemplate, '홍길동')
+        && str_contains($privacyTemplate, 'privacy@example.test')
+        && str_contains(sr_policy_document_standard_template_button_label('member_privacy_policy'), '개인정보처리방침'),
+    'standard privacy policy template should use site settings and expose an admin button label.'
 );
 
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);

@@ -66,7 +66,6 @@ function sr_member_registration_policy_documents(PDO $pdo): array
             'document_key' => $documentKey,
             'required' => (bool) $spec['required'],
             'post_key' => (string) $spec['post_key'],
-            'version_key' => (string) $renderData['version_key'],
             'version_id' => (int) ($renderData['version_id'] ?? 0),
             'title' => (string) $renderData['title'],
             'body_html' => (string) $renderData['body_html'],
@@ -92,7 +91,6 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
         if ($currentKey !== '' && !isset($options[$currentKey])) {
             $options[$currentKey] = [
                 'title' => $currentKey,
-                'version_key' => '',
             ];
         }
 
@@ -100,7 +98,7 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
     }
 
     if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
-        return $currentKey !== '' ? [$currentKey => ['title' => $currentKey, 'version_key' => '']] : [];
+        return $currentKey !== '' ? [$currentKey => ['title' => $currentKey]] : [];
     }
 
     require_once SR_ROOT . '/modules/policy_documents/helpers.php';
@@ -122,7 +120,6 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
 
             $options[$policyDocumentKey] = [
                 'title' => (string) ($policyDocumentChoice['title'] ?? $policyDocumentKey),
-                'version_key' => (string) ($policyDocumentChoice['published_version_key'] ?? ''),
             ];
         }
     }
@@ -131,7 +128,6 @@ function sr_member_registration_policy_document_options(PDO $pdo, string $curren
     if ($currentKey !== '' && !isset($options[$currentKey])) {
         $options[$currentKey] = [
             'title' => $currentKey,
-            'version_key' => '',
         ];
     }
 
@@ -228,10 +224,6 @@ function sr_member_registration_policy_consent_section_html(array $documents, ar
             $html .= '</details>';
         }
 
-        $versionKey = (string) ($document['version_key'] ?? '');
-        if ($versionKey !== '') {
-            $html .= '<p><small>' . sr_e(sr_t('member::ui.policy_consent.version', ['version' => $versionKey])) . '</small></p>';
-        }
         $html .= '</div>';
     }
 
@@ -253,7 +245,7 @@ function sr_member_record_registration_policy_consents(PDO $pdo, int $accountId,
             $pdo,
             $accountId,
             $consentKey,
-            (string) ($document['version_key'] ?? ''),
+            (string) (int) ($document['version_id'] ?? 0),
             !empty($consentValues[$consentKey]),
             $document
         );

@@ -45,6 +45,7 @@ if (sr_request_method() === 'POST') {
                     'body_html' => sr_post_string_without_truncation('body_html', 100000) ?? '',
                     'body_ckeditor_html' => sr_post_string_without_truncation('body_ckeditor_html', 100000) ?? '',
                     'summary_text' => sr_post_string('summary_text', 1000),
+                    'append_previous_versions' => (string) ($_POST['append_previous_versions'] ?? '') === '1' ? 1 : 0,
                     'effective_from' => sr_post_string('effective_from', 30),
                 ]);
                 sr_admin_flash_result(sr_admin_action_result([], sr_t('policy_documents::notice.version_updated')));
@@ -57,7 +58,6 @@ if (sr_request_method() === 'POST') {
 
             $versionStatus = sr_post_string('status', 30);
             $versionId = sr_policy_document_create_version($pdo, $selectedDocumentId, [
-                'version_key' => sr_post_string('version_key', 40),
                 'title' => sr_post_string('title', 190),
                 'body_editor_mode' => sr_post_string('body_editor_mode', 20),
                 'body_plain' => sr_post_string_without_truncation('body_plain', 100000) ?? '',
@@ -65,6 +65,7 @@ if (sr_request_method() === 'POST') {
                 'body_html' => sr_post_string_without_truncation('body_html', 100000) ?? '',
                 'body_ckeditor_html' => sr_post_string_without_truncation('body_ckeditor_html', 100000) ?? '',
                 'summary_text' => sr_post_string('summary_text', 1000),
+                'append_previous_versions' => (string) ($_POST['append_previous_versions'] ?? '') === '1' ? 1 : 0,
                 'status' => $versionStatus,
                 'effective_from' => sr_post_string('effective_from', 30),
             ]);

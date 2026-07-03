@@ -92,7 +92,6 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
         if ($currentKey !== '' && !isset($options[$currentKey])) {
             $options[$currentKey] = [
                 'title' => $currentKey,
-                'version_key' => '',
             ];
         }
 
@@ -100,7 +99,7 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
     }
 
     if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
-        return $currentKey !== '' ? [$currentKey => ['title' => $currentKey, 'version_key' => '']] : [];
+        return $currentKey !== '' ? [$currentKey => ['title' => $currentKey]] : [];
     }
 
     require_once SR_ROOT . '/modules/policy_documents/helpers.php';
@@ -122,7 +121,6 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
 
             $options[$policyDocumentKey] = [
                 'title' => (string) ($policyDocumentChoice['title'] ?? $policyDocumentKey),
-                'version_key' => (string) ($policyDocumentChoice['published_version_key'] ?? ''),
             ];
         }
     }
@@ -131,7 +129,6 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
     if ($currentKey !== '' && !isset($options[$currentKey])) {
         $options[$currentKey] = [
             'title' => $currentKey,
-            'version_key' => '',
         ];
     }
 
@@ -223,7 +220,7 @@ function sr_community_effective_privacy_consent_config(PDO $pdo, array $board): 
         'policy_ready' => $policyReady,
         'title' => is_array($legacySnapshot) ? (string) $legacySnapshot['title'] : '',
         'body' => '',
-        'version' => is_array($legacySnapshot) ? (string) $legacySnapshot['version_key'] : '',
+        'version' => is_array($legacySnapshot) ? (string) (int) ($legacySnapshot['version_id'] ?? 0) : '',
         'snapshot' => is_array($legacySnapshot) ? $legacySnapshot : [],
         'target_documents' => $targetDocuments,
         'snapshots' => $snapshots,
@@ -361,13 +358,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
             }
         }
     }
-    $versionLabels = [];
-    $snapshots = is_array($config['snapshots'] ?? null) ? $config['snapshots'] : [];
-    foreach ($actions as $actionKey) {
-        $snapshot = is_array($snapshots[$actionKey] ?? null) ? $snapshots[$actionKey] : [];
-        $versionLabels[] = sr_community_privacy_consent_label((string) $actionKey) . ': ' . (string) ($snapshot['version_key'] ?? '');
-    }
-    $html .= '<p><small>' . sr_e('적용 대상: ' . implode(', ', $labels) . ' / 버전: ' . implode(', ', $versionLabels)) . '</small></p>';
+    $html .= '<p><small>' . sr_e('적용 대상: ' . implode(', ', $labels)) . '</small></p>';
     $html .= '<label for="' . sr_e($id) . '">';
     $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="community_privacy_consent_accepted" value="1" class="form-checkbox"' . ($browserRequired ? ' required' : '') . '>';
     $html .= ' ' . sr_e('위 개인정보 수집 및 이용에 동의합니다.');
@@ -439,12 +430,12 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
             'action_key' => $actionKey,
             'account_id' => $accountId > 0 ? $accountId : null,
             'policy_document_key_snapshot' => (string) $snapshot['document_key'],
-            'policy_version_key_snapshot' => (string) $snapshot['version_key'],
+            'policy_version_key_snapshot' => (string) (int) ($snapshot['version_id'] ?? 0),
             'policy_document_version_id' => (int) $snapshot['version_id'],
             'consent_title_snapshot' => (string) $snapshot['title'],
             'consent_body_snapshot' => '',
             'consent_body_hash' => (string) $snapshot['body_hash'],
-            'consent_version_snapshot' => (string) $snapshot['version_key'],
+            'consent_version_snapshot' => (string) (int) ($snapshot['version_id'] ?? 0),
             'consent_required' => 1,
             'consent_accepted' => 1,
             'ip_hash' => hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? '')),

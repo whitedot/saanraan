@@ -2,7 +2,7 @@
 
 return [
     'name' => '약관/방침 관리',
-    'version' => '2026.06.002',
+    'version' => '2026.07.001',
     'type' => 'module',
     'description' => '약관, 방침, 동의 문서를 version 단위로 관리하고 다른 모듈이 참조할 수 있는 helper를 제공합니다.',
     'requires' => [
