@@ -492,7 +492,7 @@ function sr_asset_exchange_validate_settings(array $settings): array
     }
     $rawRoundingMode = (string) ($settings['policy_default_rounding_mode'] ?? '');
     if (!in_array($rawRoundingMode, ['floor', 'round', 'ceil'], true)) {
-        throw new InvalidArgumentException('공통 반올림 방식이 올바르지 않습니다.');
+        throw new InvalidArgumentException('공통 소수 처리 방식이 올바르지 않습니다.');
     }
     $rawFeeTrigger = (string) ($settings['policy_default_fee_trigger'] ?? '');
     if (!in_array($rawFeeTrigger, ['none', 'always', 'reexchange'], true)) {
@@ -542,10 +542,12 @@ function sr_asset_exchange_validate_settings(array $settings): array
     return $settings;
 }
 
-function sr_asset_exchange_save_settings(PDO $pdo, array $settings): void
+function sr_asset_exchange_save_settings(PDO $pdo, array $settings, bool $syncPolicies = true): void
 {
     $settings = sr_asset_exchange_validate_settings($settings);
-    sr_asset_exchange_validate_canonical_policy_rates_for_settings($pdo, $settings);
+    if ($syncPolicies) {
+        sr_asset_exchange_validate_canonical_policy_rates_for_settings($pdo, $settings);
+    }
 
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'asset_exchange' LIMIT 1");
     $stmt->execute();
@@ -566,16 +568,29 @@ function sr_asset_exchange_save_settings(PDO $pdo, array $settings): void
     }
 
     try {
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_module_settings
+        try {
+            $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        } catch (Throwable) {
+            $driver = '';
+        }
+        $upsertSql = $driver === 'sqlite'
+            ? 'INSERT INTO sr_module_settings
+                (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+             VALUES
+                (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+             ON CONFLICT(module_id, setting_key) DO UPDATE SET
+                setting_value = excluded.setting_value,
+                value_type = excluded.value_type,
+                updated_at = excluded.updated_at'
+            : 'INSERT INTO sr_module_settings
                 (module_id, setting_key, setting_value, value_type, created_at, updated_at)
              VALUES
                 (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
              ON DUPLICATE KEY UPDATE
                 setting_value = VALUES(setting_value),
                 value_type = VALUES(value_type),
-                updated_at = VALUES(updated_at)'
-        );
+                updated_at = VALUES(updated_at)';
+        $stmt = $pdo->prepare($upsertSql);
         foreach ($rows as $row) {
             $stmt->execute([
                 'module_id' => (int) $module['id'],
@@ -587,7 +602,9 @@ function sr_asset_exchange_save_settings(PDO $pdo, array $settings): void
             ]);
         }
 
-        sr_asset_exchange_sync_canonical_policies($pdo, $settings);
+        if ($syncPolicies) {
+            sr_asset_exchange_sync_canonical_policies($pdo, $settings);
+        }
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -689,7 +706,7 @@ function sr_asset_exchange_validate_relative_policy_cycles(array $settings): voi
             $forward = $rowsBySlot[sr_asset_exchange_policy_slot_key($firstAssetKey, $secondAssetKey)] ?? null;
             $back = $rowsBySlot[sr_asset_exchange_policy_slot_key($secondAssetKey, $firstAssetKey)] ?? null;
             if (is_array($forward) && is_array($back) && sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])) {
-                throw new InvalidArgumentException('자산별 환산 기준과 반올림 설정으로 양방향 반복 환전 가치가 증가할 수 있습니다. 환산 기준, 반올림 또는 수수료 정책을 조정하세요.');
+                throw new InvalidArgumentException('자산별 환산 기준과 소수 처리 방식 설정으로 양방향 반복 환전 가치가 증가할 수 있습니다. 환산 기준, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
             }
 
             foreach (sr_asset_exchange_canonical_asset_keys() as $thirdAssetKey) {
@@ -706,7 +723,7 @@ function sr_asset_exchange_validate_relative_policy_cycles(array $settings): voi
                     && is_array($third)
                     && sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])
                 ) {
-                    throw new InvalidArgumentException('자산별 환산 기준과 반올림 설정으로 3자 순환 환전 가치가 증가할 수 있습니다. 환산 기준, 반올림 또는 수수료 정책을 조정하세요.');
+                    throw new InvalidArgumentException('자산별 환산 기준과 소수 처리 방식 설정으로 3자 순환 환전 가치가 증가할 수 있습니다. 환산 기준, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
                 }
             }
         }
@@ -814,6 +831,8 @@ function sr_asset_exchange_canonical_policy_rows_for_sync(PDO $pdo, array $setti
         if (is_array($existingRow)) {
             $preservedKeys = [
                 'status',
+                'rate_numerator',
+                'rate_denominator',
                 'min_amount',
                 'max_amount',
                 'rounding_mode',
@@ -859,7 +878,7 @@ function sr_asset_exchange_validate_canonical_policy_rates_for_settings(PDO $pdo
             $forward = $rowsBySlot[sr_asset_exchange_policy_slot_key($firstAssetKey, $secondAssetKey)] ?? null;
             $back = $rowsBySlot[sr_asset_exchange_policy_slot_key($secondAssetKey, $firstAssetKey)] ?? null;
             if (is_array($forward) && is_array($back) && sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])) {
-                throw new InvalidArgumentException('자산별 환산 기준 변경으로 양방향 반복 환전 가치가 증가할 수 있습니다. 환산 기준, 반올림 또는 수수료 정책을 조정하세요.');
+                throw new InvalidArgumentException('자산별 환산 기준 변경으로 양방향 반복 환전 가치가 증가할 수 있습니다. 환산 기준, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
             }
 
             foreach (sr_asset_exchange_canonical_asset_keys() as $thirdAssetKey) {
@@ -876,7 +895,7 @@ function sr_asset_exchange_validate_canonical_policy_rates_for_settings(PDO $pdo
                     && is_array($third)
                     && sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])
                 ) {
-                    throw new InvalidArgumentException('자산별 환산 기준 변경으로 3자 순환 환전 가치가 증가할 수 있습니다. 환산 기준, 반올림 또는 수수료 정책을 조정하세요.');
+                    throw new InvalidArgumentException('자산별 환산 기준 변경으로 3자 순환 환전 가치가 증가할 수 있습니다. 환산 기준, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
                 }
             }
         }
@@ -1025,7 +1044,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         throw new InvalidArgumentException('정책 상태가 올바르지 않습니다.');
     }
     if (!in_array($roundingMode, ['floor', 'round', 'ceil'], true)) {
-        throw new InvalidArgumentException('반올림 방식이 올바르지 않습니다.');
+        throw new InvalidArgumentException('소수 처리 방식이 올바르지 않습니다.');
     }
     if (!in_array($feeTrigger, ['none', 'always', 'reexchange'], true)) {
         throw new InvalidArgumentException('수수료 적용 조건이 올바르지 않습니다.');
@@ -1050,12 +1069,33 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         throw new InvalidArgumentException('설치되어 있고 활성화된 포인트/금액 항목만 사용 상태로 저장할 수 있습니다.');
     }
 
-    [$rateNumerator, $rateDenominator] = sr_asset_exchange_rate_parts_for_pair(
-        sr_asset_exchange_settings($pdo),
-        $fromModuleKey,
-        $toModuleKey
-    );
+    if (
+        array_key_exists('rate_ratio', $data)
+        || array_key_exists('rate_numerator', $data)
+        || array_key_exists('rate_denominator', $data)
+    ) {
+        [$rateNumerator, $rateDenominator] = sr_asset_exchange_rate_parts($data);
+    } elseif (is_array($existingPolicy)) {
+        $rateNumerator = sr_asset_exchange_positive_int($existingPolicy['rate_numerator'] ?? 1, '입금 기준값은 1 이상이어야 합니다.');
+        $rateDenominator = sr_asset_exchange_positive_int($existingPolicy['rate_denominator'] ?? 1, '출금 기준값은 1 이상이어야 합니다.');
+    } else {
+        [$rateNumerator, $rateDenominator] = sr_asset_exchange_rate_parts_for_pair(
+            sr_asset_exchange_settings($pdo),
+            $fromModuleKey,
+            $toModuleKey
+        );
+    }
     $minAmount = sr_asset_exchange_positive_int($data['min_amount'] ?? 0, '최소 환전량은 1 이상이어야 합니다.');
+    $minimumRequestAmount = sr_asset_exchange_minimum_request_amount_for_positive_deposit($rateNumerator, $rateDenominator, $roundingMode);
+    if ($minAmount < $minimumRequestAmount) {
+        throw new InvalidArgumentException(
+            '최소 환전량은 현재 환산 기준과 소수 처리 방식 기준 최소 '
+            . number_format($minimumRequestAmount)
+            . ' 이상이어야 합니다. 입력된 최소 환전량은 '
+            . number_format($minAmount)
+            . '입니다.'
+        );
+    }
     $maxAmount = sr_asset_exchange_nullable_int($data['max_amount'] ?? null, '최대 환전량은 0 이상의 정수로 입력하세요.');
     if ($maxAmount !== null && $maxAmount < $minAmount) {
         throw new InvalidArgumentException('최대 환전량은 최소 환전량 이상이어야 합니다.');
@@ -1232,7 +1272,7 @@ function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy)
             $forward = $policiesBySlot[sr_asset_exchange_policy_slot_key($firstAssetKey, $secondAssetKey)] ?? null;
             $back = $policiesBySlot[sr_asset_exchange_policy_slot_key($secondAssetKey, $firstAssetKey)] ?? null;
             if (is_array($forward) && is_array($back) && sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])) {
-                throw new InvalidArgumentException('무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 반올림 또는 수수료 정책을 조정하세요.');
+                throw new InvalidArgumentException('무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
             }
 
             foreach (sr_asset_exchange_canonical_asset_keys() as $thirdAssetKey) {
@@ -1249,7 +1289,7 @@ function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy)
                     && is_array($third)
                     && sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])
                 ) {
-                    throw new InvalidArgumentException('무수수료 3자 순환 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 반올림 또는 수수료 정책을 조정하세요.');
+                    throw new InvalidArgumentException('무수수료 3자 순환 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
                 }
             }
         }
@@ -1727,6 +1767,23 @@ function sr_asset_exchange_apply_ratio(int $amount, int $numerator, int $denomin
     return intdiv($product, $denominator);
 }
 
+function sr_asset_exchange_minimum_request_amount_for_positive_deposit(int $numerator, int $denominator, string $roundingMode): int
+{
+    $numerator = max(1, $numerator);
+    $denominator = max(1, $denominator);
+
+    if ($roundingMode === 'ceil') {
+        return 1;
+    }
+
+    if ($roundingMode === 'round') {
+        $minimumProduct = intdiv($denominator + 1, 2);
+        return max(1, intdiv($minimumProduct + $numerator - 1, $numerator));
+    }
+
+    return max(1, intdiv($denominator + $numerator - 1, $numerator));
+}
+
 function sr_asset_exchange_fee_applies(PDO $pdo, array $policy, int $accountId): bool
 {
     $trigger = (string) ($policy['fee_trigger'] ?? 'none');
@@ -1765,7 +1822,12 @@ function sr_asset_exchange_fee_amount(array $policy, int $fromAmount, int $toAmo
     $rateNumerator = (int) ($policy['fee_rate_numerator'] ?? 0);
     $rateDenominator = 100;
     if ($rateNumerator > 0) {
-        $fee += intdiv($basis * $rateNumerator, $rateDenominator);
+        $fee += sr_asset_exchange_apply_ratio(
+            $basis,
+            $rateNumerator,
+            $rateDenominator,
+            (string) ($policy['rounding_mode'] ?? 'floor')
+        );
     }
     if (isset($policy['fee_min_amount']) && $policy['fee_min_amount'] !== null) {
         $fee = max($fee, (int) $policy['fee_min_amount']);
@@ -1784,14 +1846,35 @@ function sr_asset_exchange_validate_policy_positive_result(array $policy): void
     }
 
     $minAmount = max(1, (int) ($policy['min_amount'] ?? 1));
+    $rateNumerator = max(1, (int) ($policy['rate_numerator'] ?? 1));
+    $rateDenominator = max(1, (int) ($policy['rate_denominator'] ?? 1));
+    $roundingMode = (string) ($policy['rounding_mode'] ?? 'floor');
+    $minimumRequestAmount = sr_asset_exchange_minimum_request_amount_for_positive_deposit($rateNumerator, $rateDenominator, $roundingMode);
+    if ($minAmount < $minimumRequestAmount) {
+        throw new InvalidArgumentException(
+            '최소 환전량은 현재 환산 기준과 소수 처리 방식 기준 최소 '
+            . number_format($minimumRequestAmount)
+            . ' 이상이어야 합니다. 입력된 최소 환전량은 '
+            . number_format($minAmount)
+            . '입니다.'
+        );
+    }
     $depositAmount = sr_asset_exchange_apply_ratio(
         $minAmount,
-        max(1, (int) ($policy['rate_numerator'] ?? 1)),
-        max(1, (int) ($policy['rate_denominator'] ?? 1)),
-        (string) ($policy['rounding_mode'] ?? 'floor')
+        $rateNumerator,
+        $rateDenominator,
+        $roundingMode
     );
     if ($depositAmount <= 0) {
-        throw new InvalidArgumentException('최소 환전량 기준 입금 결과가 0입니다. 최소 환전량, 환산 기준 또는 반올림 방식을 조정하세요.');
+        throw new InvalidArgumentException(
+            '최소 환전량 '
+            . number_format($minAmount)
+            . ' 기준 입금 결과가 0입니다. 현재 비율은 출금 '
+            . number_format(max(1, (int) ($policy['rate_denominator'] ?? 1)))
+            . ' -> 입금 '
+            . number_format(max(1, (int) ($policy['rate_numerator'] ?? 1)))
+            . '이며, 최소 환전량을 올리거나 환산 기준 또는 소수 처리 방식을 조정하세요.'
+        );
     }
 
     if ((string) ($policy['fee_trigger'] ?? 'none') === 'none') {
@@ -1800,7 +1883,18 @@ function sr_asset_exchange_validate_policy_positive_result(array $policy): void
 
     $feeAmount = sr_asset_exchange_fee_amount($policy, $minAmount, $depositAmount);
     if ($depositAmount - $feeAmount <= 0) {
-        throw new InvalidArgumentException('최소 환전량 기준 수수료 차감 후 입금 결과가 0 이하입니다. 최소 환전량 또는 수수료를 조정하세요.');
+        $finalAmount = $depositAmount - $feeAmount;
+        throw new InvalidArgumentException(
+            '최소 환전량 '
+            . number_format($minAmount)
+            . ' 기준: 입금액 '
+            . number_format($depositAmount)
+            . ' - 수수료 '
+            . number_format($feeAmount)
+            . ' = 최종 입금액 '
+            . number_format($finalAmount)
+            . '입니다. 최소 환전량을 올리거나, 환산 기준값을 조정하거나, 수수료를 낮추세요.'
+        );
     }
 }
 

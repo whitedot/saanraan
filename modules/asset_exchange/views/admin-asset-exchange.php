@@ -4,10 +4,10 @@ $adminPageTitle = '환전 정책';
 $adminContainerClass = 'admin-page-asset-exchange admin-ui-scope';
 $settings = isset($settings) && is_array($settings) ? sr_asset_exchange_normalize_settings($settings) : sr_asset_exchange_default_settings();
 $assets = isset($assets) && is_array($assets) ? $assets : [];
-$relativeValues = isset($relativeValues) && is_array($relativeValues) ? $relativeValues : sr_asset_exchange_relative_values_from_settings($settings);
 $policySlots = isset($policySlots) && is_array($policySlots) ? $policySlots : [];
+$assetExchangePostedPolicies = isset($assetExchangePostedPolicies) && is_array($assetExchangePostedPolicies) ? $assetExchangePostedPolicies : [];
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
-$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환금성 항목 재환전만 적용'];
+$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환전으로 받은 예치금을 다시 바꿀 때'];
 $feeBasisLabels = ['from_amount' => '출금액 기준', 'to_amount' => '입금액 기준'];
 $feeTypeLabels = ['rate' => '정률', 'fixed' => '정액'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];
@@ -19,15 +19,7 @@ $assetExchangePolicyMinimumExchangeAmounts = static function (array $policy): ar
     $numerator = max(1, (int) ($policy['rate_numerator'] ?? 1));
     $denominator = max(1, (int) ($policy['rate_denominator'] ?? 1));
     $roundingMode = (string) ($policy['rounding_mode'] ?? 'floor');
-    if ($roundingMode === 'ceil') {
-        $minimumFromAmount = 1;
-    } elseif ($roundingMode === 'round') {
-        $minimumProduct = intdiv($denominator + 1, 2);
-        $minimumFromAmount = intdiv($minimumProduct + $numerator - 1, $numerator);
-    } else {
-        $minimumFromAmount = intdiv($denominator + $numerator - 1, $numerator);
-    }
-    $minimumFromAmount = max(1, $minimumFromAmount);
+    $minimumFromAmount = sr_asset_exchange_minimum_request_amount_for_positive_deposit($numerator, $denominator, $roundingMode);
     $minimumToAmount = max(1, sr_asset_exchange_apply_ratio($minimumFromAmount, $numerator, $denominator, $roundingMode));
 
     return [$minimumFromAmount, $minimumToAmount];
@@ -67,6 +59,11 @@ $assetExchangePolicyFeeLabel = static function (array $policy) use ($feeTriggerL
 
     return implode(' · ', $parts);
 };
+$assetExchangeAssetUnitLabel = static function (array $assets, string $moduleKey): string {
+    $unitLabel = trim((string) ($assets[$moduleKey]['unit_label'] ?? ''));
+
+    return $unitLabel !== '' ? $unitLabel : sr_asset_exchange_asset_label($assets, $moduleKey);
+};
 $assetExchangePolicyFieldValue = static function (array $policy, string $key): string {
     if (!array_key_exists($key, $policy) || $policy[$key] === null) {
         return '';
@@ -74,38 +71,51 @@ $assetExchangePolicyFieldValue = static function (array $policy, string $key): s
 
     return (string) $policy[$key];
 };
-$assetExchangePolicyForSlot = static function (array $slot) use ($settings): array {
+$assetExchangePolicyForSlot = static function (array $slot) use ($settings, $assetExchangePostedPolicies): array {
     $fromModuleKey = (string) ($slot['from_module_key'] ?? '');
     $toModuleKey = (string) ($slot['to_module_key'] ?? '');
     $policy = isset($slot['policy']) && is_array($slot['policy']) ? $slot['policy'] : null;
     if (is_array($policy)) {
-        return $policy;
-    }
-
-    foreach (sr_asset_exchange_canonical_policy_rows_from_settings($settings) as $defaultRow) {
-        if ((string) ($defaultRow['from_module_key'] ?? '') === $fromModuleKey && (string) ($defaultRow['to_module_key'] ?? '') === $toModuleKey) {
-            $defaultRow['id'] = 0;
-            return $defaultRow;
+        $resolvedPolicy = $policy;
+    } else {
+        $resolvedPolicy = [];
+        foreach (sr_asset_exchange_canonical_policy_rows_from_settings($settings) as $defaultRow) {
+            if ((string) ($defaultRow['from_module_key'] ?? '') === $fromModuleKey && (string) ($defaultRow['to_module_key'] ?? '') === $toModuleKey) {
+                $defaultRow['id'] = 0;
+                $resolvedPolicy = $defaultRow;
+                break;
+            }
         }
     }
 
-    return [
-        'id' => 0,
-        'from_module_key' => $fromModuleKey,
-        'to_module_key' => $toModuleKey,
-        'status' => 'disabled',
-        'rate_numerator' => 1,
-        'rate_denominator' => 1,
-        'min_amount' => 1,
-        'max_amount' => null,
-        'rounding_mode' => 'floor',
-        'fee_trigger' => 'none',
-        'fee_basis' => 'to_amount',
-        'fee_rate_numerator' => 0,
-        'fee_fixed_amount' => 0,
-        'fee_min_amount' => null,
-        'fee_max_amount' => null,
-    ];
+    if ($resolvedPolicy === []) {
+        $resolvedPolicy = [
+            'id' => 0,
+            'from_module_key' => $fromModuleKey,
+            'to_module_key' => $toModuleKey,
+            'status' => 'disabled',
+            'rate_numerator' => 1,
+            'rate_denominator' => 1,
+            'min_amount' => 1,
+            'max_amount' => null,
+            'rounding_mode' => 'floor',
+            'fee_trigger' => 'none',
+            'fee_basis' => 'to_amount',
+            'fee_rate_numerator' => 0,
+            'fee_fixed_amount' => 0,
+            'fee_min_amount' => null,
+            'fee_max_amount' => null,
+        ];
+    }
+
+    $slotKey = sr_asset_exchange_policy_slot_key($fromModuleKey, $toModuleKey);
+    if (isset($assetExchangePostedPolicies[$slotKey]) && is_array($assetExchangePostedPolicies[$slotKey])) {
+        $resolvedPolicy = array_merge($resolvedPolicy, $assetExchangePostedPolicies[$slotKey]);
+        $resolvedPolicy['from_module_key'] = $fromModuleKey;
+        $resolvedPolicy['to_module_key'] = $toModuleKey;
+    }
+
+    return $resolvedPolicy;
 };
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -114,9 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice ?? '', $errors ?? []); ?>
 
 <?php
-$assetExchangeSectionNavItems = [
-    'asset-exchange-section-values' => '환산 기준',
-];
+$assetExchangeSectionNavItems = [];
 foreach ($policySlots as $assetExchangeNavSlot) {
     $assetExchangeNavFrom = (string) ($assetExchangeNavSlot['from_module_key'] ?? '');
     $assetExchangeNavTo = (string) ($assetExchangeNavSlot['to_module_key'] ?? '');
@@ -138,31 +146,9 @@ foreach ($policySlots as $assetExchangeNavSlot) {
     <?php } ?>
 </nav>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-form ui-form-theme admin-asset-exchange-admin-form" data-asset-exchange-policy-form data-sr-validate-form>
+<form method="post" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-form ui-form-theme admin-asset-exchange-admin-form" data-asset-exchange-policy-form data-sr-validate-form novalidate>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_all">
-
-    <section id="asset-exchange-section-values" class="card admin-asset-exchange-value-card" data-admin-section-anchor>
-        <div class="card-header">
-            <h2 class="card-title">환산 기준</h2>
-        </div>
-        <?php foreach (sr_asset_exchange_relative_value_setting_keys() as $moduleKey => $settingKey) { ?>
-            <?php $inputId = 'asset_exchange_' . (string) $settingKey; ?>
-            <div class="form-row">
-                <label class="form-label" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $moduleKey)); ?> <span class="sr-required-label">(필수)</span></label>
-                <div class="form-field">
-                    <input id="<?php echo sr_e($inputId); ?>" type="number" name="<?php echo sr_e((string) $settingKey); ?>" value="<?php echo sr_e((string) ($relativeValues[$moduleKey] ?? 1)); ?>" class="form-input" min="1" required>
-                    <p class="form-help">1단위 기준 환율입니다. 값이 낮을수록 같은 1단위의 가치가 큽니다.</p>
-                </div>
-            </div>
-        <?php } ?>
-        <div class="form-row">
-            <span class="form-label">저장 영향</span>
-            <div class="form-field">
-                <p class="admin-form-static">기준값을 저장하면 각 방향 정책의 계산 비율만 새로 반영되고, 카드별 상태와 조건은 유지됩니다.</p>
-            </div>
-        </div>
-    </section>
 
     <?php foreach ($policySlots as $slot) { ?>
         <?php
@@ -176,8 +162,9 @@ foreach ($policySlots as $assetExchangeNavSlot) {
         $sectionId = 'asset-exchange-section-policy-' . $fromModuleKey . '-' . $toModuleKey;
         $slotKey = sr_asset_exchange_policy_slot_key($fromModuleKey, $toModuleKey);
         $policyFieldNamePrefix = 'policies[' . $slotKey . ']';
+        $policyAlertId = $fieldPrefix . '_policy_alert';
         ?>
-        <section id="<?php echo sr_e($sectionId); ?>" class="card admin-asset-exchange-policy-card<?php echo $executable ? ' is-executable' : ''; ?>" data-asset-exchange-policy-section data-admin-section-anchor>
+        <section id="<?php echo sr_e($sectionId); ?>" class="card admin-asset-exchange-policy-card<?php echo $executable ? ' is-executable' : ''; ?>" data-asset-exchange-policy-section data-asset-exchange-from="<?php echo sr_e($fromModuleKey); ?>" data-asset-exchange-to="<?php echo sr_e($toModuleKey); ?>" data-asset-exchange-label="<?php echo sr_e(sr_asset_exchange_asset_label($assets, $fromModuleKey) . ' -> ' . sr_asset_exchange_asset_label($assets, $toModuleKey)); ?>" data-asset-exchange-from-unit="<?php echo sr_e($assetExchangeAssetUnitLabel($assets, $fromModuleKey)); ?>" data-asset-exchange-to-unit="<?php echo sr_e($assetExchangeAssetUnitLabel($assets, $toModuleKey)); ?>" data-admin-section-anchor>
                 <input type="hidden" name="<?php echo sr_e($policyFieldNamePrefix); ?>[id]" value="<?php echo sr_e((string) ((int) ($policy['id'] ?? 0))); ?>">
                 <input type="hidden" name="<?php echo sr_e($policyFieldNamePrefix); ?>[from_module_key]" value="<?php echo sr_e($fromModuleKey); ?>">
                 <input type="hidden" name="<?php echo sr_e($policyFieldNamePrefix); ?>[to_module_key]" value="<?php echo sr_e($toModuleKey); ?>">
@@ -192,30 +179,51 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                         <span class="sr-only"><?php echo sr_e(sr_asset_exchange_asset_label($assets, $fromModuleKey) . '에서 ' . sr_asset_exchange_asset_label($assets, $toModuleKey) . ' 환전 사용'); ?></span>
                     </label>
                 </div>
+                <div id="<?php echo sr_e($policyAlertId); ?>" class="alert alert-danger admin-asset-exchange-policy-alert" role="alert" tabindex="-1" hidden data-asset-exchange-policy-alert></div>
 
-                <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_rounding_mode">반올림 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-row admin-asset-exchange-rate-row">
+                    <span class="form-label">환산 기준 <span class="sr-required-label">(필수)</span></span>
                     <div class="form-field">
-                        <select id="<?php echo sr_e($fieldPrefix); ?>_rounding_mode" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rounding_mode]" class="form-select" required>
-                            <?php foreach ($roundingModeLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) ($policy['rounding_mode'] ?? 'floor') === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
-                        <p class="form-help">환산 비율로 계산한 입금액의 소수 처리 방식입니다.</p>
+                        <div class="admin-asset-exchange-rate-grid">
+                            <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_rate_denominator">
+                                <span>출금 기준값</span>
+                                <input id="<?php echo sr_e($fieldPrefix); ?>_rate_denominator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_denominator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_denominator')); ?>" class="form-input" min="1" required>
+                            </label>
+                            <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_rate_numerator">
+                                <span>입금 기준값</span>
+                                <input id="<?php echo sr_e($fieldPrefix); ?>_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_numerator')); ?>" class="form-input" min="1" required>
+                            </label>
+                        </div>
+                        <p class="form-help">출금 기준값당 입금 기준값으로 계산합니다.</p>
+                        <div class="admin-asset-exchange-preview" data-asset-exchange-preview>
+                            <span class="badge badge-soft-secondary" data-asset-exchange-preview-status>확인 중</span>
+                        </div>
+                    </div>
+                </div>
+                <?php $minAmountHelpId = $fieldPrefix . '_min_amount_help'; ?>
+                <?php $maxAmountHelpId = $fieldPrefix . '_max_amount_help'; ?>
+                <div class="form-row admin-asset-exchange-amount-row">
+                    <span class="form-label">환전량</span>
+                    <div class="form-field">
+                        <div class="admin-asset-exchange-rate-grid">
+                            <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_min_amount">
+                                <span>최소 환전량 <span class="sr-required-label">(필수)</span></span>
+                                <input id="<?php echo sr_e($fieldPrefix); ?>_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'min_amount')); ?>" class="form-input" min="1" required aria-describedby="<?php echo sr_e($minAmountHelpId); ?>">
+                            </label>
+                            <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_max_amount">
+                                <span>최대 환전량</span>
+                                <input id="<?php echo sr_e($fieldPrefix); ?>_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'max_amount')); ?>" class="form-input" min="0" aria-describedby="<?php echo sr_e($maxAmountHelpId); ?>">
+                            </label>
+                        </div>
+                        <p id="<?php echo sr_e($minAmountHelpId); ?>" class="form-help">최소 환전량은 회원이 한 번에 신청할 수 있는 최소 출금 수량입니다. 환산 기준과 소수 처리 방식에 따라 계산된 최소 허용값보다 작으면 저장할 수 없습니다.</p>
+                        <p id="<?php echo sr_e($maxAmountHelpId); ?>" class="form-help">최대 환전량을 비워두면 1회 최대 환전량을 제한하지 않습니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_min_amount">최소 환전량 <span class="sr-required-label">(필수)</span></label>
+                    <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_rounding_mode">소수 처리 방식 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'min_amount')); ?>" class="form-input" min="1" required>
-                        <p class="form-help">회원이 한 번에 신청할 수 있는 최소 출금 수량입니다. 이 수량의 환전 결과가 0이면 저장할 수 없습니다.</p>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_max_amount">최대 환전량</label>
-                    <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'max_amount')); ?>" class="form-input" min="0">
-                        <p class="form-help">비워두면 1회 최대 환전량을 제한하지 않습니다.</p>
+                        <?php echo sr_admin_radio_toggle_group_html($fieldPrefix . '_rounding_mode', $policyFieldNamePrefix . '[rounding_mode]', $roundingModeLabels, (string) ($policy['rounding_mode'] ?? 'floor'), true); ?>
+                        <p class="form-help">환산 비율로 계산한 입금액과 정률 수수료 계산 결과의 소수 처리 방식입니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -226,7 +234,7 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                                 <option value="<?php echo sr_e($value); ?>"<?php echo (string) ($policy['fee_trigger'] ?? 'none') === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">수수료를 적용하지 않거나, 모든 환전 또는 재환전 상황에만 적용할 수 있습니다.</p>
+                        <p class="form-help">환전으로 받은 예치금을 다시 바꿀 때는 회원이 이전 환전에서 예치금을 받은 적이 있고, 이번 환전에서 그 예치금을 포인트나 적립금으로 바꿀 때만 수수료를 적용합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row>
@@ -248,14 +256,14 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                                 <option value="<?php echo sr_e($value); ?>"<?php echo (string) ($policy['fee_basis'] ?? 'to_amount') === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">정률 수수료를 출금액과 입금액 중 어느 금액에서 계산할지 정합니다.</p>
+                        <p class="form-help">정률 수수료를 출금액과 입금액 중 어느 금액에서 계산할지 정합니다. 소수점 처리는 소수 처리 방식을 따릅니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row data-asset-exchange-fee-type="rate">
                     <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_fee_rate_numerator">정률 수수료 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
                         <input id="<?php echo sr_e($fieldPrefix); ?>_fee_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_rate_numerator')); ?>" class="form-input" min="0">
-                        <p class="form-help">5%라면 5를 입력합니다.</p>
+                        <p class="form-help">5%라면 5를 입력합니다. 계산 결과의 소수점은 소수 처리 방식에 따라 처리합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row data-asset-exchange-fee-type="fixed">
@@ -283,23 +291,445 @@ foreach ($policySlots as $assetExchangeNavSlot) {
     <?php } ?>
 
     <div class="form-sticky-actions form-actions form-actions-primary form-actions-split">
+        <button type="button" class="btn btn-outline-secondary" data-asset-exchange-enable-all>
+            전체 사용
+        </button>
+        <button type="button" class="btn btn-solid-light" data-asset-exchange-disable-all>
+            전체 해제
+        </button>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
 
 <script>
 (function () {
+    var policyForm = document.querySelector('[data-asset-exchange-policy-form]');
+
+    function nameEndsWith(control, suffix) {
+        return control.name && control.name.slice(-suffix.length) === suffix;
+    }
+
+    function numberValue(control, fallback) {
+        if (!control || String(control.value || '').trim() === '') {
+            return fallback;
+        }
+        var parsed = parseInt(control.value, 10);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function formatNumber(value) {
+        return Number(value || 0).toLocaleString('ko-KR');
+    }
+
+    function formatAssetAmount(value, unit) {
+        return formatNumber(value) + (unit ? ' ' + unit : '');
+    }
+
+    function setControlError(control, message, note) {
+        if (!control) {
+            return;
+        }
+        if (typeof control.setCustomValidity === 'function') {
+            control.setCustomValidity(message);
+        }
+        if (message) {
+            control.setAttribute('aria-invalid', 'true');
+        } else {
+            control.removeAttribute('aria-invalid');
+        }
+        if (note) {
+            note.textContent = message;
+            note.hidden = message === '';
+        }
+    }
+
+    function clearNode(node) {
+        while (node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
+    }
+
+    function appendAlertText(parent, tagName, className, text) {
+        if (!text) {
+            return null;
+        }
+        var node = document.createElement(tagName);
+        if (className) {
+            node.className = className;
+        }
+        node.textContent = text;
+        parent.appendChild(node);
+
+        return node;
+    }
+
+    function setSectionAlert(section, details) {
+        var alert = section.querySelector('[data-asset-exchange-policy-alert]');
+        if (!alert) {
+            return;
+        }
+        clearNode(alert);
+        if (!details) {
+            alert.hidden = true;
+            return;
+        }
+        if (typeof details === 'string') {
+            details = {problem: details};
+        }
+        appendAlertText(alert, 'strong', 'admin-asset-exchange-policy-alert-title', details.title || '저장할 수 없습니다');
+        appendAlertText(alert, 'p', 'admin-asset-exchange-policy-alert-problem', details.problem || '');
+        appendAlertText(alert, 'p', 'admin-asset-exchange-policy-alert-formula', details.formula || '');
+        if (details.actions && details.actions.length > 0) {
+            var actionList = document.createElement('ul');
+            actionList.className = 'admin-asset-exchange-policy-alert-actions';
+            details.actions.forEach(function (action) {
+                if (!action) {
+                    return;
+                }
+                var item = document.createElement('li');
+                item.textContent = action;
+                actionList.appendChild(item);
+            });
+            if (actionList.children.length > 0) {
+                alert.appendChild(actionList);
+            }
+        }
+        alert.hidden = false;
+    }
+
+    function applyRatio(amount, numerator, denominator, roundingMode) {
+        if (amount <= 0 || numerator <= 0 || denominator <= 0) {
+            return 0;
+        }
+        var product = amount * numerator;
+        if (roundingMode === 'ceil') {
+            return Math.floor((product + denominator - 1) / denominator);
+        }
+        if (roundingMode === 'round') {
+            return Math.floor(((product * 2) + denominator) / (denominator * 2));
+        }
+        return Math.floor(product / denominator);
+    }
+
+    function minimumAmountForPositiveDeposit(numerator, denominator, roundingMode) {
+        if (numerator <= 0 || denominator <= 0) {
+            return 1;
+        }
+        if (roundingMode === 'ceil') {
+            return 1;
+        }
+        if (roundingMode === 'round') {
+            return Math.max(1, Math.ceil(Math.floor((denominator + 1) / 2) / numerator));
+        }
+        return Math.max(1, Math.ceil(denominator / numerator));
+    }
+
+    function firstPositiveFinalAmount(section, startAmount, numerator, denominator, roundingMode) {
+        var limit = Math.max(startAmount + 10000, startAmount * 4);
+        for (var amount = Math.max(1, startAmount); amount <= limit; amount += 1) {
+            var deposit = applyRatio(amount, numerator, denominator, roundingMode);
+            if (deposit > feeAmount(section, amount, deposit)) {
+                return amount;
+            }
+        }
+
+        return 0;
+    }
+
+    function feeAmount(section, fromAmount, toAmount) {
+        var basisControl = section.querySelector('select[name$="[fee_basis]"]');
+        var rateControl = section.querySelector('input[name$="[fee_rate_numerator]"]');
+        var fixedControl = section.querySelector('input[name$="[fee_fixed_amount]"]');
+        var minControl = section.querySelector('input[name$="[fee_min_amount]"]');
+        var maxControl = section.querySelector('input[name$="[fee_max_amount]"]');
+        var roundingControl = section.querySelector('input[type="radio"][name$="[rounding_mode]"]:checked');
+        var roundingMode = roundingControl ? roundingControl.value : 'floor';
+        var basis = basisControl && basisControl.value === 'from_amount' ? fromAmount : toAmount;
+        var fee = numberValue(fixedControl, 0);
+        var rate = numberValue(rateControl, 0);
+        if (rate > 0) {
+            fee += applyRatio(basis, rate, 100, roundingMode);
+        }
+        if (minControl && String(minControl.value || '').trim() !== '') {
+            fee = Math.max(fee, numberValue(minControl, 0));
+        }
+        if (maxControl && String(maxControl.value || '').trim() !== '') {
+            fee = Math.min(fee, numberValue(maxControl, 0));
+        }
+        return Math.max(0, fee);
+    }
+
+    function setPreviewStatus(section, kind) {
+        var status = section.querySelector('[data-asset-exchange-preview-status]');
+        if (!status) {
+            return;
+        }
+        status.className = 'badge';
+        if (kind === 'ok') {
+            status.classList.add('badge-soft-success');
+            status.textContent = '저장 가능';
+        } else if (kind === 'blocked') {
+            status.classList.add('badge-soft-danger');
+            status.textContent = '저장 불가';
+        } else {
+            status.classList.add('badge-soft-secondary');
+            status.textContent = '중지';
+        }
+    }
+
+    function updatePreview(section, state) {
+        setPreviewStatus(section, state.kind);
+    }
+
     function setControls(row, enabled) {
         row.querySelectorAll('input, select, textarea').forEach(function (control) {
             control.disabled = !enabled;
             if (
-                control.name === 'fee_basis'
-                || control.name === 'fee_type'
-                || control.name === 'fee_rate_numerator'
-                || control.name === 'fee_fixed_amount'
+                nameEndsWith(control, '[fee_basis]')
+                || nameEndsWith(control, '[fee_type]')
+                || nameEndsWith(control, '[fee_rate_numerator]')
+                || nameEndsWith(control, '[fee_fixed_amount]')
             ) {
                 control.required = enabled;
             }
+        });
+    }
+
+    function validateSection(section) {
+        section.querySelectorAll('input, select, textarea').forEach(function (control) {
+            setControlError(control, '', null);
+        });
+        setSectionAlert(section, '');
+
+        var label = section.getAttribute('data-asset-exchange-label') || '이 방향';
+        var rateDenominatorControl = section.querySelector('input[name$="[rate_denominator]"]');
+        var rateNumeratorControl = section.querySelector('input[name$="[rate_numerator]"]');
+        var statusControl = section.querySelector('input[type="checkbox"][name$="[status]"]');
+        var minControl = section.querySelector('input[name$="[min_amount]"]');
+        var roundingControl = section.querySelector('input[type="radio"][name$="[rounding_mode]"]:checked');
+        var triggerControl = section.querySelector('select[name$="[fee_trigger]"]');
+        var typeControl = section.querySelector('select[name$="[fee_type]"]');
+        var rateControl = section.querySelector('input[name$="[fee_rate_numerator]"]');
+        var fixedControl = section.querySelector('input[name$="[fee_fixed_amount]"]');
+        var feeMaxControl = section.querySelector('input[name$="[fee_max_amount]"]');
+        var feeMinControl = section.querySelector('input[name$="[fee_min_amount]"]');
+        var usesFee = triggerControl && triggerControl.value !== 'none';
+        var feeType = typeControl ? typeControl.value : 'rate';
+        var rateNumerator = numberValue(rateNumeratorControl, 0);
+        var rateDenominator = numberValue(rateDenominatorControl, 0);
+
+        if (rateDenominatorControl && rateDenominator <= 0) {
+            var denominatorMessage = '출금 기준값은 1 이상이어야 합니다.';
+            rateDenominatorControl.setCustomValidity(denominatorMessage);
+            setSectionAlert(section, {
+                problem: denominatorMessage,
+                actions: ['출금 기준값을 1 이상으로 입력하기']
+            });
+            updatePreview(section, {
+                kind: statusControl && statusControl.checked ? 'blocked' : 'off',
+                message: denominatorMessage,
+                fromAmount: numberValue(minControl, 0),
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: 0
+            });
+            return;
+        }
+        if (rateNumeratorControl && rateNumerator <= 0) {
+            var numeratorMessage = '입금 기준값은 1 이상이어야 합니다.';
+            rateNumeratorControl.setCustomValidity(numeratorMessage);
+            setSectionAlert(section, {
+                problem: numeratorMessage,
+                actions: ['입금 기준값을 1 이상으로 입력하기']
+            });
+            updatePreview(section, {
+                kind: statusControl && statusControl.checked ? 'blocked' : 'off',
+                message: numeratorMessage,
+                fromAmount: numberValue(minControl, 0),
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: 0
+            });
+            return;
+        }
+        var roundingMode = roundingControl ? roundingControl.value : 'floor';
+        var computedMinimumAmount = minimumAmountForPositiveDeposit(rateNumerator, rateDenominator, roundingMode);
+        if (minControl) {
+            minControl.min = String(computedMinimumAmount);
+        }
+
+        if (usesFee && feeType === 'rate' && rateControl && numberValue(rateControl, 0) <= 0) {
+            var rateMessage = '정률 수수료는 1 이상이어야 합니다.';
+            rateControl.setCustomValidity(rateMessage);
+            setSectionAlert(section, {
+                problem: rateMessage,
+                actions: ['정률 수수료를 1 이상으로 입력하기', '수수료 적용을 사용 안 함으로 바꾸기']
+            });
+            updatePreview(section, {
+                kind: statusControl && statusControl.checked ? 'blocked' : 'off',
+                message: rateMessage,
+                fromAmount: numberValue(minControl, 0),
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+        if (usesFee && feeType === 'fixed' && fixedControl && numberValue(fixedControl, 0) <= 0) {
+            var fixedMessage = '정액 수수료는 1 이상이어야 합니다.';
+            fixedControl.setCustomValidity(fixedMessage);
+            setSectionAlert(section, {
+                problem: fixedMessage,
+                actions: ['정액 수수료를 1 이상으로 입력하기', '수수료 적용을 사용 안 함으로 바꾸기']
+            });
+            updatePreview(section, {
+                kind: statusControl && statusControl.checked ? 'blocked' : 'off',
+                message: fixedMessage,
+                fromAmount: numberValue(minControl, 0),
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+        if (
+            feeMinControl
+            && feeMaxControl
+            && String(feeMinControl.value || '').trim() !== ''
+            && String(feeMaxControl.value || '').trim() !== ''
+            && numberValue(feeMaxControl, 0) < numberValue(feeMinControl, 0)
+        ) {
+            var feeLimitMessage = '최대 수수료는 최소 수수료 이상이어야 합니다.';
+            feeMaxControl.setCustomValidity(feeLimitMessage);
+            setSectionAlert(section, {
+                problem: feeLimitMessage,
+                formula: '최소 수수료 ' + formatNumber(numberValue(feeMinControl, 0)) + ' / 최대 수수료 ' + formatNumber(numberValue(feeMaxControl, 0)),
+                actions: ['최대 수수료를 최소 수수료 이상으로 올리기', '최소 수수료를 낮추기']
+            });
+            updatePreview(section, {
+                kind: statusControl && statusControl.checked ? 'blocked' : 'off',
+                message: feeLimitMessage,
+                fromAmount: numberValue(minControl, 0),
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+        var minAmount = numberValue(minControl, 0);
+        if (minControl && minAmount < computedMinimumAmount) {
+            var minimumMessage = '최소 환전량이 계산 최소보다 작습니다.';
+            setControlError(minControl, minimumMessage, null);
+            setSectionAlert(section, {
+                problem: minimumMessage,
+                formula: '입력 최소 ' + formatNumber(minAmount) + ' / 계산 최소 ' + formatNumber(computedMinimumAmount),
+                actions: [
+                    '최소 환전량을 ' + formatNumber(computedMinimumAmount) + ' 이상으로 올리기',
+                    '입금 기준값을 높이기',
+                    '출금 기준값을 낮추기',
+                    '소수 처리 방식을 조정하기'
+                ]
+            });
+            updatePreview(section, {
+                kind: 'blocked',
+                message: '',
+                fromAmount: minAmount,
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+
+        if (!statusControl || !statusControl.checked || !minControl || !rateDenominatorControl || !rateNumeratorControl) {
+            var offMinAmount = numberValue(minControl, 0);
+            var offDepositAmount = applyRatio(offMinAmount, rateNumerator, rateDenominator, roundingMode);
+            var offFeeAmount = usesFee ? feeAmount(section, offMinAmount, offDepositAmount) : 0;
+            updatePreview(section, {
+                kind: 'off',
+                message: '중지 상태입니다. 저장해도 회원 환전 후보에는 표시되지 않습니다.',
+                fromAmount: offMinAmount,
+                beforeFee: offDepositAmount,
+                fee: offFeeAmount,
+                finalAmount: Math.max(0, offDepositAmount - offFeeAmount),
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+
+        var depositAmount = applyRatio(minAmount, rateNumerator, rateDenominator, roundingMode);
+        if (depositAmount <= 0) {
+            var zeroMessage = '입금액이 0이라 환전 결과가 없습니다.';
+            setControlError(minControl, zeroMessage, null);
+            setSectionAlert(section, {
+                problem: zeroMessage,
+                formula: '최소 환전량 ' + formatNumber(minAmount) + ' → 입금액 ' + formatNumber(depositAmount),
+                actions: [
+                    '최소 환전량을 ' + formatNumber(computedMinimumAmount) + ' 이상으로 올리기',
+                    '입금 기준값을 높이기',
+                    '출금 기준값을 낮추기',
+                    '소수 처리 방식을 조정하기'
+                ]
+            });
+            updatePreview(section, {
+                kind: 'blocked',
+                message: '',
+                fromAmount: minAmount,
+                beforeFee: 0,
+                fee: 0,
+                finalAmount: 0,
+                minimumAmount: computedMinimumAmount
+            });
+            return;
+        }
+
+        var currentFeeAmount = usesFee ? feeAmount(section, minAmount, depositAmount) : 0;
+        var finalAmount = depositAmount - currentFeeAmount;
+        if (usesFee) {
+            var feeControl = feeType === 'fixed' ? fixedControl : rateControl;
+            if (feeControl && finalAmount <= 0) {
+                var firstPositive = firstPositiveFinalAmount(section, minAmount + 1, rateNumerator, rateDenominator, roundingMode);
+                var feeMessage = '최종 입금액이 0 이하입니다.';
+                var feeActions = [];
+                if (firstPositive > 0) {
+                    feeActions.push('최소 환전량을 ' + formatNumber(firstPositive) + ' 이상으로 올리기');
+                } else {
+                    feeActions.push('최소 환전량을 올리기');
+                }
+                feeActions.push('입금 기준값을 높이기');
+                feeActions.push('수수료를 낮추기');
+                setControlError(minControl, feeMessage, null);
+                setSectionAlert(section, {
+                    problem: feeMessage,
+                    formula: '입금액 ' + formatNumber(depositAmount) + ' - 수수료 ' + formatNumber(currentFeeAmount) + ' = ' + formatNumber(finalAmount),
+                    actions: feeActions
+                });
+                updatePreview(section, {
+                    kind: 'blocked',
+                    message: '',
+                    fromAmount: minAmount,
+                    beforeFee: depositAmount,
+                    fee: currentFeeAmount,
+                    finalAmount: Math.max(0, finalAmount),
+                    minimumAmount: computedMinimumAmount
+                });
+                return;
+            }
+        }
+        updatePreview(section, {
+            kind: 'ok',
+            message: formatAssetAmount(minAmount, section.getAttribute('data-asset-exchange-from-unit') || '') + ' 신청 시 최종 ' + formatAssetAmount(finalAmount, section.getAttribute('data-asset-exchange-to-unit') || '') + ' 입금됩니다.',
+            fromAmount: minAmount,
+            beforeFee: depositAmount,
+            fee: currentFeeAmount,
+            finalAmount: finalAmount,
+            minimumAmount: computedMinimumAmount
         });
     }
 
@@ -318,14 +748,80 @@ foreach ($policySlots as $assetExchangeNavSlot) {
         });
     }
 
+    function syncAllPolicySections() {
+        document.querySelectorAll('[data-asset-exchange-policy-section]').forEach(function (section) {
+            syncFeeRows(section);
+            validateSection(section);
+        });
+    }
+
+    function setAllPolicyStatus(enabled) {
+        document.querySelectorAll('[data-asset-exchange-policy-section] input[type="checkbox"][name$="[status]"]').forEach(function (control) {
+            control.checked = enabled;
+            control.dispatchEvent(new Event('change', {bubbles: true}));
+        });
+        syncAllPolicySections();
+    }
+
     document.querySelectorAll('[data-asset-exchange-policy-section]').forEach(function (section) {
         section.querySelectorAll('[data-asset-exchange-fee-trigger], [data-asset-exchange-fee-type-control]').forEach(function (control) {
             control.addEventListener('change', function () {
                 syncFeeRows(section);
+                validateSection(section);
+            });
+        });
+        section.querySelectorAll('input, select').forEach(function (control) {
+            control.addEventListener('input', function () {
+                validateSection(section);
+            });
+            control.addEventListener('change', function () {
+                validateSection(section);
             });
         });
         syncFeeRows(section);
+        validateSection(section);
     });
+
+    if (policyForm) {
+        var enableAllButton = policyForm.querySelector('[data-asset-exchange-enable-all]');
+        var disableAllButton = policyForm.querySelector('[data-asset-exchange-disable-all]');
+        if (enableAllButton) {
+            enableAllButton.addEventListener('click', function () {
+                setAllPolicyStatus(true);
+            });
+        }
+        if (disableAllButton) {
+            disableAllButton.addEventListener('click', function () {
+                setAllPolicyStatus(false);
+            });
+        }
+        policyForm.addEventListener('submit', function (event) {
+            var invalidControl = null;
+            var firstAlert = null;
+            document.querySelectorAll('[data-asset-exchange-policy-section]').forEach(function (section) {
+                syncFeeRows(section);
+                validateSection(section);
+                if (!firstAlert) {
+                    firstAlert = section.querySelector('[data-asset-exchange-policy-alert]:not([hidden])');
+                }
+                if (!invalidControl) {
+                    invalidControl = Array.prototype.slice.call(section.querySelectorAll('input, select, textarea')).find(function (control) {
+                        return !control.disabled && control.validity && !control.validity.valid;
+                    }) || null;
+                }
+            });
+            if (invalidControl) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (firstAlert) {
+                    firstAlert.focus();
+                    firstAlert.scrollIntoView({block: 'center', behavior: 'smooth'});
+                } else {
+                    invalidControl.reportValidity();
+                }
+            }
+        });
+    }
 })();
 </script>
 

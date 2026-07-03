@@ -151,8 +151,21 @@ sr_performance_baseline_require_markers('modules/admin/helpers/pagination.php', 
     'function sr_admin_paginate_array(PDO $pdo, array $rows, string $pageParam = \'page\'): array',
 ]);
 
+sr_performance_baseline_require_markers('modules/admin/actions/modules.php', [
+    '$installableModules = array_values(array_filter',
+    '$installablePlugins = array_values(array_filter',
+    '$modules = $sortDisabledFirst',
+    '$plugins = $sortDisabledFirst',
+]);
+sr_performance_baseline_require_markers('modules/admin/views/modules.php', [
+    'sticky-tabs anchor-tabs tab-nav-justified',
+    'admin-modules-section-installable-modules',
+    'admin-modules-section-installable-plugins',
+    'admin-modules-section-installed-modules',
+    'admin-modules-section-installed-plugins',
+]);
+
 $paginationPairs = [
-    ['modules/admin/actions/modules.php', 'modules/admin/views/modules.php', 'sr_admin_paginate_array', 'sr_admin_pagination_html'],
     ['modules/admin/actions/roles.php', 'modules/admin/views/roles.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/admin/actions/audit-logs.php', 'modules/admin/views/audit-logs.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/member/actions/admin-members.php', 'modules/member/views/admin-members.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],

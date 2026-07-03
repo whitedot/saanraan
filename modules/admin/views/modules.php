@@ -40,38 +40,52 @@ $adminModuleCardIconHtml = static function (PDO $pdo, string $moduleKey): string
 
 $installableSections = [
     [
+        'id' => 'admin-modules-section-installable-modules',
         'title' => '설치 가능 모듈',
         'rows' => $installableModules,
-        'pagination' => $installableModulePagination,
         'empty' => '설치 가능한 모듈이 없습니다.',
-        'pagination_label' => '설치 가능 모듈 목록 페이지',
         'show_foundation_toggle' => true,
     ],
     [
+        'id' => 'admin-modules-section-installable-plugins',
         'title' => '설치 가능 플러그인',
         'rows' => $installablePlugins,
-        'pagination' => $installablePluginPagination,
         'empty' => '설치 가능한 플러그인이 없습니다.',
-        'pagination_label' => '설치 가능 플러그인 목록 페이지',
         'show_foundation_toggle' => false,
     ],
 ];
 $installedSections = [
     [
+        'id' => 'admin-modules-section-installed-modules',
         'title' => '설치된 모듈',
         'rows' => $modules,
-        'pagination' => $modulePagination,
-        'pagination_label' => '설치된 모듈 목록 페이지',
     ],
     [
+        'id' => 'admin-modules-section-installed-plugins',
         'title' => '설치된 플러그인',
         'rows' => $plugins,
-        'pagination' => $pluginPagination,
-        'pagination_label' => '설치된 플러그인 목록 페이지',
     ],
+];
+$moduleManagementSectionNavItems = [
+    'admin-modules-section-source' => '파일 반영',
+    'admin-modules-section-installable-modules' => '설치 가능 모듈',
+    'admin-modules-section-installable-plugins' => '설치 가능 플러그인',
+    'admin-modules-section-installed-modules' => '설치된 모듈',
+    'admin-modules-section-installed-plugins' => '설치된 플러그인',
 ];
 ?>
 
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="모듈 플러그인 관리 섹션">
+    <?php $moduleManagementSectionNavIndex = 0; ?>
+    <?php foreach ($moduleManagementSectionNavItems as $sectionId => $sectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $sectionId); ?>" class="tab-trigger-underline-justified<?php echo $moduleManagementSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $moduleManagementSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $sectionLabel); ?>
+        </a>
+        <?php $moduleManagementSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
+
+<section id="admin-modules-section-source" data-admin-section-anchor>
 <div class="admin-section-heading">
     <h2>모듈 파일 반영</h2>
     <?php if ($canManageModuleSources && !$moduleSourcesEnabled) { ?>
@@ -109,10 +123,11 @@ $installedSections = [
         <p>모듈 zip 업로드와 파일 전용 업데이트 반영은 매니저 비밀번호 재확인 후 일시 허용됩니다. 기본 운영 경로는 FTP나 호스팅 파일 관리자로 파일을 배치한 뒤 설치와 업데이트를 진행하는 방식입니다.</p>
     <?php } ?>
 </section>
+</section>
 
 <?php foreach ($installableSections as $installableSection) { ?>
     <?php $installableRows = $installableSection['rows']; ?>
-    <?php $installablePagination = $installableSection['pagination']; ?>
+<section id="<?php echo sr_e((string) $installableSection['id']); ?>" data-admin-section-anchor>
 <div class="admin-section-heading">
     <h2><?php echo sr_e((string) $installableSection['title']); ?></h2>
     <?php if (!empty($installableSection['show_foundation_toggle'])) { ?>
@@ -121,7 +136,6 @@ $installedSections = [
         </a>
     <?php } ?>
 </div>
-<?php echo sr_admin_pagination_summary_html($installablePagination); ?>
 <?php if ($installableRows === []) { ?>
     <section class="card admin-list-card">
         <p><?php echo sr_e((string) $installableSection['empty']); ?></p>
@@ -283,17 +297,16 @@ $installedSections = [
         <?php } ?>
     </div>
     <?php echo sr_admin_status_description_list_html('module_installable_status', ['installable' => '설치 가능', 'blocked' => '설치 불가'], [], '설치 가능 상태 설명'); ?>
-    <?php echo sr_admin_pagination_html($installablePagination, (string) $installableSection['pagination_label']); ?>
 <?php } ?>
+</section>
 <?php } ?>
 
 <?php foreach ($installedSections as $installedSection) { ?>
     <?php $installedRows = $installedSection['rows']; ?>
-    <?php $installedPagination = $installedSection['pagination']; ?>
+<section id="<?php echo sr_e((string) $installedSection['id']); ?>" data-admin-section-anchor>
 <div class="admin-section-heading">
     <h2><?php echo sr_e((string) $installedSection['title']); ?></h2>
 </div>
-<?php echo sr_admin_pagination_summary_html($installedPagination); ?>
 <?php if ($installedRows === []) { ?>
     <section class="card admin-list-card">
         <p><?php echo sr_e((string) $installedSection['title']); ?><?php echo sr_e('이 없습니다.'); ?></p>
@@ -554,8 +567,8 @@ $installedSections = [
     <?php } ?>
 </div>
 <?php echo sr_admin_status_description_list_html('module_status'); ?>
-<?php echo sr_admin_pagination_html($installedPagination, (string) $installedSection['pagination_label']); ?>
 <?php } ?>
+</section>
 <?php } ?>
 
 <div id="module-source-enable-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="module-source-enable-modal-label">

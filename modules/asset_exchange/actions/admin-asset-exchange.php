@@ -14,6 +14,24 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $assets = sr_asset_exchange_assets($pdo);
 $settings = sr_asset_exchange_settings($pdo);
+$assetExchangePostedSettings = [];
+$assetExchangePostedPolicies = [];
+
+if (sr_request_method() === 'GET' && session_status() === PHP_SESSION_ACTIVE) {
+    $assetExchangeFormValues = $_SESSION['sr_asset_exchange_policy_form_values'] ?? null;
+    unset($_SESSION['sr_asset_exchange_policy_form_values']);
+    if (is_array($assetExchangeFormValues)) {
+        $assetExchangePostedSettings = isset($assetExchangeFormValues['settings']) && is_array($assetExchangeFormValues['settings'])
+            ? $assetExchangeFormValues['settings']
+            : [];
+        $assetExchangePostedPolicies = isset($assetExchangeFormValues['policies']) && is_array($assetExchangeFormValues['policies'])
+            ? $assetExchangeFormValues['policies']
+            : [];
+        if ($assetExchangePostedSettings !== []) {
+            $settings = sr_asset_exchange_normalize_settings(array_merge($settings, $assetExchangePostedSettings));
+        }
+    }
+}
 
 $assetExchangePolicySnapshot = static function (?array $policy): array {
     if (!is_array($policy)) {
@@ -40,6 +58,19 @@ $assetExchangePolicySnapshot = static function (?array $policy): array {
         'fee_fixed_amount' => (string) ((int) ($policy['fee_fixed_amount'] ?? 0)),
         'fee_min_amount' => $feeMinAmount === null ? '' : (string) ((int) $feeMinAmount),
         'fee_max_amount' => $feeMaxAmount === null ? '' : (string) ((int) $feeMaxAmount),
+    ];
+};
+$assetExchangePolicyDirectionLabel = static function (string $fromModuleKey, string $toModuleKey) use ($assets): string {
+    return sr_asset_exchange_asset_label($assets, $fromModuleKey) . ' -> ' . sr_asset_exchange_asset_label($assets, $toModuleKey);
+};
+$assetExchangeFlashPostedForm = static function (array $postedSettings, array $postedPolicies): void {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $_SESSION['sr_asset_exchange_policy_form_values'] = [
+        'settings' => $postedSettings,
+        'policies' => $postedPolicies,
     ];
 };
 
@@ -109,9 +140,6 @@ if (sr_request_method() === 'POST') {
 
     if ($intent === 'save_all') {
         $postedSettings = $settings;
-        foreach (sr_asset_exchange_relative_value_setting_keys() as $settingKey) {
-            $postedSettings[$settingKey] = sr_post_string($settingKey, 30);
-        }
 
         $postedPolicyRows = $_POST['policies'] ?? [];
         if (!is_array($postedPolicyRows)) {
@@ -135,6 +163,8 @@ if (sr_request_method() === 'POST') {
                 'from_module_key' => $fromModuleKey,
                 'to_module_key' => $toModuleKey,
                 'status' => (string) ($postedRow['status'] ?? 'disabled'),
+                'rate_numerator' => (string) ($postedRow['rate_numerator'] ?? ''),
+                'rate_denominator' => (string) ($postedRow['rate_denominator'] ?? ''),
                 'min_amount' => (string) ($postedRow['min_amount'] ?? ''),
                 'max_amount' => (string) ($postedRow['max_amount'] ?? ''),
                 'rounding_mode' => (string) ($postedRow['rounding_mode'] ?? 'floor'),
@@ -165,7 +195,8 @@ if (sr_request_method() === 'POST') {
             }
 
             try {
-                sr_asset_exchange_save_settings($pdo, $postedSettings);
+                sr_asset_exchange_save_settings($pdo, $postedSettings, false);
+                sr_asset_exchange_remove_noncanonical_policies($pdo);
 
                 $now = sr_now();
                 $pdo->exec(
@@ -178,7 +209,15 @@ if (sr_request_method() === 'POST') {
 
                 $savedPolicyIds = [];
                 foreach ($postedPolicies as $slotKey => $postedPolicy) {
-                    $savedPolicyIds[$slotKey] = sr_asset_exchange_save_policy($pdo, $postedPolicy);
+                    try {
+                        $savedPolicyIds[$slotKey] = sr_asset_exchange_save_policy($pdo, $postedPolicy);
+                    } catch (InvalidArgumentException $exception) {
+                        $policyLabel = $assetExchangePolicyDirectionLabel(
+                            (string) ($postedPolicy['from_module_key'] ?? ''),
+                            (string) ($postedPolicy['to_module_key'] ?? '')
+                        );
+                        throw new InvalidArgumentException($policyLabel . ' 정책: ' . $exception->getMessage(), 0, $exception);
+                    }
                 }
 
                 if ($startedTransaction) {
@@ -229,6 +268,7 @@ if (sr_request_method() === 'POST') {
             sr_admin_flash_result(sr_admin_action_result([], '환전 정책을 저장했습니다.'));
             sr_redirect('/admin/asset-exchange');
         } catch (Throwable $exception) {
+            sr_clear_module_settings_cache('asset_exchange');
             $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 정책 저장에 실패했습니다.';
             if (!$exception instanceof InvalidArgumentException) {
                 sr_log_exception($exception, 'asset_exchange_policies_save_failed');
@@ -246,6 +286,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
+            $assetExchangeFlashPostedForm($postedSettings, $postedPolicies);
             sr_admin_flash_result(sr_admin_action_result([$message], ''));
             sr_redirect('/admin/asset-exchange');
         }
@@ -259,6 +300,8 @@ if (sr_request_method() === 'POST') {
             'from_module_key' => $fromModuleKey,
             'to_module_key' => $toModuleKey,
             'status' => sr_post_string('status', 20),
+            'rate_numerator' => sr_post_string('rate_numerator', 30),
+            'rate_denominator' => sr_post_string('rate_denominator', 30),
             'min_amount' => sr_post_string('min_amount', 30),
             'max_amount' => sr_post_string('max_amount', 30),
             'rounding_mode' => sr_post_string('rounding_mode', 20),
@@ -319,7 +362,14 @@ if (sr_request_method() === 'POST') {
     sr_redirect('/admin/asset-exchange');
 }
 
-$relativeValues = sr_asset_exchange_relative_values_from_settings($settings);
+try {
+    $relativeValues = sr_asset_exchange_relative_values_from_settings($settings);
+} catch (InvalidArgumentException) {
+    $relativeValues = [];
+    foreach (sr_asset_exchange_relative_value_setting_keys() as $moduleKey => $settingKey) {
+        $relativeValues[$moduleKey] = (string) ($settings[$settingKey] ?? '');
+    }
+}
 $policySlots = sr_asset_exchange_policy_slots($pdo, $assets);
 
 include SR_ROOT . '/modules/asset_exchange/views/admin-asset-exchange.php';

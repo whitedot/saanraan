@@ -59,28 +59,20 @@ $sortDisabledFirst = static function (array $rows): array {
     return $rows;
 };
 
-$installableModulePagination = sr_admin_paginate_array($pdo, array_values(array_filter($installableModules, static function (array $module): bool {
+$installableModules = array_values(array_filter($installableModules, static function (array $module): bool {
     return (string) ($module['type'] ?? 'module') === 'module';
-})), 'installable_module_page');
-$installableModules = $installableModulePagination['rows'];
-$installableModulePagination = $installableModulePagination['pagination'];
+}));
 
-$installablePluginPagination = sr_admin_paginate_array($pdo, array_values(array_filter($viewData['installable_modules'], static function (array $module): bool {
+$installablePlugins = array_values(array_filter($viewData['installable_modules'], static function (array $module): bool {
     return (string) ($module['type'] ?? 'module') === 'plugin';
-})), 'installable_plugin_page');
-$installablePlugins = $installablePluginPagination['rows'];
-$installablePluginPagination = $installablePluginPagination['pagination'];
+}));
 
-$modulePagination = sr_admin_paginate_array($pdo, $sortDisabledFirst(array_values(array_filter($modules, static function (array $module): bool {
+$modules = $sortDisabledFirst(array_values(array_filter($modules, static function (array $module): bool {
     return (string) ($module['code_type'] ?? 'module') === 'module';
-}))), 'module_page');
-$modules = $modulePagination['rows'];
-$modulePagination = $modulePagination['pagination'];
+})));
 
-$pluginPagination = sr_admin_paginate_array($pdo, $sortDisabledFirst(array_values(array_filter($viewData['modules'], static function (array $module): bool {
+$plugins = $sortDisabledFirst(array_values(array_filter($viewData['modules'], static function (array $module): bool {
     return (string) ($module['code_type'] ?? 'module') === 'plugin';
-}))), 'plugin_page');
-$plugins = $pluginPagination['rows'];
-$pluginPagination = $pluginPagination['pagination'];
+})));
 
 include SR_ROOT . '/modules/admin/views/modules.php';

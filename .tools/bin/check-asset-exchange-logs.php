@@ -118,21 +118,29 @@ if (
     || strpos($helper, 'function sr_asset_exchange_canonical_policy_rows_from_settings(array $settings): array') === false
     || strpos($helper, 'function sr_asset_exchange_sync_canonical_policies(PDO $pdo, array $settings): void') === false
     || strpos($helper, 'function sr_asset_exchange_validate_policy_positive_result(array $policy): void') === false
+    || strpos($helper, 'function sr_asset_exchange_minimum_request_amount_for_positive_deposit(int $numerator, int $denominator, string $roundingMode): int') === false
+    || strpos($helper, '$minimumRequestAmount = sr_asset_exchange_minimum_request_amount_for_positive_deposit($rateNumerator, $rateDenominator, $roundingMode);') === false
+    || strpos($helper, '최소 환전량은 현재 환산 기준과 소수 처리 방식 기준 최소') === false
     || strpos($helper, 'return [$values[$toModuleKey], $values[$fromModuleKey]];') === false
     || strpos($helper, "'rate_numerator' => \$values[\$toModuleKey]") === false
     || strpos($helper, "'rate_denominator' => \$values[\$fromModuleKey]") === false
+    || strpos($helper, "array_key_exists('rate_numerator', \$data)") === false
+    || strpos($helper, '[$rateNumerator, $rateDenominator] = sr_asset_exchange_rate_parts($data);') === false
+    || strpos($helper, "'rate_numerator',\n                'rate_denominator',") === false
     || strpos($helper, 'function sr_asset_exchange_remove_noncanonical_policies(PDO $pdo): void') === false
     || strpos($helper, 'sr_asset_exchange_remove_noncanonical_policies($pdo);') === false
     || strpos($helper, 'sr_asset_exchange_is_canonical_asset_key($moduleKey)') === false
     || strpos($helper, 'sr_asset_exchange_is_canonical_pair((string) ($policy[\'from_module_key\'] ?? \'\'), (string) ($policy[\'to_module_key\'] ?? \'\'))') === false
     || strpos($helper, 'if (!sr_asset_exchange_enabled($pdo))') === false
 ) {
-    $errors[] = 'Asset exchange must use global enablement and point/reward/deposit relative values to synchronize fixed canonical exchange rows and filter execution candidates.';
+    $errors[] = 'Asset exchange must use global enablement, fixed canonical exchange rows, and direct per-direction policy rates.';
 }
 if (
     !is_string($adminExchangeAction)
     || strpos($adminExchangeAction, 'sr_asset_exchange_relative_value_setting_keys()') === false
     || strpos($adminExchangeAction, 'sr_asset_exchange_save_settings($pdo, $postedSettings)') === false
+    || strpos($adminExchangeAction, "'rate_numerator' => (string) (\$postedRow['rate_numerator'] ?? '')") === false
+    || strpos($adminExchangeAction, "'rate_denominator' => (string) (\$postedRow['rate_denominator'] ?? '')") === false
     || strpos($adminExchangeAction, "\$intent === 'save_all'") === false
     || strpos($adminExchangeAction, "\$_POST['policies']") === false
     || strpos($adminExchangeAction, "\$intent === 'save_relative_values'") === false
@@ -142,17 +150,39 @@ if (
     || strpos($adminExchangeAction, 'asset_exchange.policy.updated') === false
     || strpos($adminExchangeAction, 'sr_asset_exchange_save_policy($pdo, $postedPolicy)') === false
 ) {
-    $errors[] = 'Asset exchange admin action must support one-shot saves for relative values and all per-direction policies.';
+    $errors[] = 'Asset exchange admin action must support one-shot saves for all per-direction policies with direct rate inputs.';
 }
 if (
     !is_string($adminExchangeView)
     || strpos($adminExchangeView, '환산 기준') === false
     || strpos($adminExchangeView, 'sticky-tabs anchor-tabs tab-nav-justified') === false
-    || strpos($adminExchangeView, 'asset-exchange-section-values') === false
+    || strpos($adminExchangeView, 'asset-exchange-section-values') !== false
     || strpos($adminExchangeView, 'data-admin-section-anchor') === false
     || strpos($adminExchangeView, 'data-asset-exchange-policy-form') === false
     || strpos($adminExchangeView, 'data-asset-exchange-policy-section') === false
+    || strpos($adminExchangeView, 'admin-asset-exchange-rate-row') === false
+    || strpos($adminExchangeView, 'admin-asset-exchange-amount-row') === false
+    || strpos($adminExchangeView, '[rate_denominator]') === false
+    || strpos($adminExchangeView, '[rate_numerator]') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-preview-status') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-policy-alert') === false
+    || strpos($adminExchangeView, 'admin-asset-exchange-policy-alert-actions') === false
+    || strpos($adminExchangeView, 'minControl.min = String(computedMinimumAmount);') === false
+    || strpos($adminExchangeView, '최소 환전량이 계산 최소보다 작습니다.') === false
+    || strpos($adminExchangeView, '최종 입금액이 0 이하입니다.') === false
+    || strpos($adminExchangeView, '최대 환전량을 비워두면 1회 최대 환전량을 제한하지 않습니다.') === false
+    || strpos($adminExchangeView, '소수 처리 방식 <span class="sr-required-label">(필수)</span>') === false
+    || strpos($adminExchangeView, "sr_admin_radio_toggle_group_html(\$fieldPrefix . '_rounding_mode'") === false
+    || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_rounding_mode"') !== false
+    || strpos($adminExchangeView, '환산 비율로 계산한 입금액과 정률 수수료 계산 결과의 소수 처리 방식입니다.') === false
+    || strpos($adminExchangeView, '소수점 처리는 소수 처리 방식을 따릅니다.') === false
+    || strpos($adminExchangeView, '계산 결과의 소수점은 소수 처리 방식에 따라 처리합니다.') === false
     || strpos($adminExchangeView, 'form-sticky-actions form-actions form-actions-primary form-actions-split') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-enable-all') === false
+    || strpos($adminExchangeView, 'data-asset-exchange-disable-all') === false
+    || strpos($adminExchangeView, 'setAllPolicyStatus(true)') === false
+    || strpos($adminExchangeView, 'setAllPolicyStatus(false)') === false
+    || strpos($adminExchangeView, 'input[type="radio"][name$="[rounding_mode]"]:checked') === false
     || strpos($adminExchangeView, '<input type="hidden" name="intent" value="save_all">') === false
     || strpos($adminExchangeView, '$assetExchangePolicyTitleLabel($policy, $assets)') === false
     || strpos($adminExchangeView, '$assetExchangePolicyTitleLabel($assetExchangeNavPolicy, $assets)') === false
@@ -164,14 +194,21 @@ if (
     || strpos($adminExchangeView, 'modal-overlay') !== false
     || strpos($adminExchangeView, 'data-overlay') !== false
     || strpos($adminExchangeView, 'asset-exchange-relative-values-modal') !== false
-    || strpos($adminExchangeView, 'sr_asset_exchange_relative_value_setting_keys()') === false
+    || strpos($adminExchangeView, 'sr_asset_exchange_relative_value_setting_keys()') !== false
     || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_from_module_key"') !== false
     || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_to_module_key"') !== false
     || strpos($adminExchangeView, '정책 등록') !== false
     || strpos($adminExchangeView, '파생 환전표') !== false
     || strpos($adminExchangeView, 'policy_default_sort_order') !== false
 ) {
-    $errors[] = 'Asset exchange admin view must expose one sticky-save form with inline relative value editing and per-direction policy sections, without modal editors or arbitrary from/to and sort-order controls.';
+    $errors[] = 'Asset exchange admin view must expose one sticky-save form with direct per-direction rate inputs and policy sections, without modal editors or arbitrary from/to and sort-order controls.';
+}
+if (is_string($adminExchangeView)) {
+    $amountRowPosition = strpos($adminExchangeView, 'admin-asset-exchange-amount-row');
+    $roundingModePosition = strpos($adminExchangeView, '_rounding_mode');
+    if ($amountRowPosition === false || $roundingModePosition === false || $amountRowPosition > $roundingModePosition) {
+        $errors[] = 'Asset exchange admin view must show minimum and maximum exchange amounts in one row above the decimal handling field.';
+    }
 }
 if (
     !is_string($adminExchangeSettingsAction)
