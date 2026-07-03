@@ -325,7 +325,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .modal-overlay-bottom{bottom:0}
 .modal-overlay-fade{transition-property:opacity,visibility;transition-timing-function:var(--default-transition-timing-function);transition-duration:.2s}
 .modal-dialog,.modal-dialog-sm,.modal-dialog-bottom,.modal-dialog-center,.modal-dialog-responsive,.modal-dialog-fluid{margin:calc(var(--spacing) * 3);scale:95% 95%;opacity:0;transition-property:all;transition-timing-function:var(--ease-in-out);transition-duration:.2s}
-@media (min-width:40rem){.modal-dialog,.modal-dialog-bottom,.modal-dialog-center{width:100%;max-width:var(--container-lg);margin-inline:auto}.modal-dialog-sm{width:100%;max-width:var(--container-xs);margin-inline:auto}}
+@media (min-width:40rem){.modal-dialog,.modal-dialog-bottom,.modal-dialog-center{width:calc(100% - calc(var(--spacing) * 6));max-width:var(--container-lg);margin-inline:auto}.modal-dialog-sm{width:calc(100% - calc(var(--spacing) * 6));max-width:var(--container-xs);margin-inline:auto}}
 @media (min-width:64rem){.modal-dialog-lg{width:100%;max-width:var(--container-3xl)}.modal-dialog-full{width:100%;max-width:100%}}
 .modal-dialog-bottom,.modal-dialog-center{min-height:calc(100% - 56px);display:flex}
 .modal-dialog-bottom{align-items:flex-end}
