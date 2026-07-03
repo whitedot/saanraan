@@ -273,6 +273,9 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .table-align-end,.table-list thead th.text-end,.table-list tbody td.text-end{text-align:end!important}
 .table-nowrap,.table-actions-cell,.admin-list-form .admin-table-nowrap,.admin-list-form .admin-table-actions-cell{white-space:nowrap}
 .table-actions-cell,.admin-list-form .admin-table-actions-cell{min-width:9.75rem;text-align:end}
+.admin-content .table-list:has(tbody :is(.admin-table-actions-cell,.table-actions-cell)) thead th:last-child,
+.admin-content .table-list tbody :is(td.admin-table-actions-cell,td.table-actions-cell){inset-inline-end:0;position:sticky;background:var(--sr-surface,var(--color-card));box-shadow:-1px 0 0 var(--sr-border,var(--color-default-300));z-index:20}
+.admin-content .table-list:has(tbody :is(.admin-table-actions-cell,.table-actions-cell)) thead th:last-child{background:var(--sr-surface-muted,var(--color-default-100));z-index:25}
 .table-break,.admin-list-form .admin-table-break{white-space:normal;word-break:break-all}
 .table-list thead th.text-end{width:1%}
 .table-list td :is(input,select,textarea){max-width:18rem}
