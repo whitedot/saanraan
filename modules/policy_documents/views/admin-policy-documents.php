@@ -285,7 +285,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $policyDocumentVersionModalId = 'policy-document-versions-' . (string) $policyDocumentId;
         $policyDocumentRows = $policyDocumentVersionsByDocumentId[$policyDocumentId] ?? [];
         ?>
-        <div id="<?php echo sr_e($policyDocumentVersionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyDocumentVersionModalId); ?>-label" aria-hidden="true" inert>
+        <div id="<?php echo sr_e($policyDocumentVersionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyDocumentVersionModalId); ?>-label" aria-hidden="true" inert data-overlay-stack="true">
             <div class="modal-dialog modal-dialog-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -317,7 +317,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             </tr>
                                         <?php } ?>
                                         <?php foreach ($policyDocumentRows as $version) { ?>
-                                            <?php $versionStatus = (string) $version['status']; ?>
+                                            <?php
+                                            $versionStatus = (string) $version['status'];
+                                            $policyDocumentVersionDetailModalId = 'policy-document-version-detail-' . (string) (int) $version['id'];
+                                            ?>
                                             <tr>
                                                 <td class="admin-table-nowrap"><?php echo sr_e((string) $version['version_key']); ?></td>
                                                 <td class="admin-table-break"><?php echo sr_e((string) $version['title_snapshot']); ?></td>
@@ -325,8 +328,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <td class="admin-table-nowrap"><?php echo sr_e(substr((string) $version['body_hash'], 0, 16)); ?></td>
                                                 <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></td>
                                                 <td class="admin-table-actions-cell">
-                                                    <?php if ($versionStatus === 'draft') { ?>
-                                                        <div class="admin-row-actions">
+                                                    <div class="admin-row-actions">
+                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.version.body_view')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.version.body_view')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>" data-overlay-stack="true"><?php echo sr_material_icon_html('visibility'); ?></button>
+                                                        <?php if ($versionStatus === 'draft') { ?>
                                                             <a href="<?php echo sr_e(sr_url('/admin/policy-documents/edit?id=' . (string) (int) $version['id'])); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
                                                                 <?php echo sr_csrf_field(); ?>
@@ -335,10 +339,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                 <input type="hidden" name="document_id" value="<?php echo sr_e((string) (int) $version['document_id']); ?>">
                                                                 <button type="submit" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
                                                             </form>
-                                                        </div>
-                                                    <?php } else { ?>
-                                                        -
-                                                    <?php } ?>
+                                                        <?php } ?>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php } ?>
@@ -355,6 +357,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
+        <?php foreach ($policyDocumentRows as $version) { ?>
+            <?php
+            $versionStatus = (string) $version['status'];
+            $policyDocumentVersionDetailModalId = 'policy-document-version-detail-' . (string) (int) $version['id'];
+            $policyDocumentVersionBodyHtml = sr_policy_document_sanitize_body((string) ($version['body_html'] ?? ''));
+            ?>
+            <div id="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>-label" aria-hidden="true" inert data-overlay-stack="true">
+                <div class="modal-dialog modal-dialog-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('policy_documents::ui.version.body_view')); ?></h3>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <section class="card admin-list-card admin-list-form">
+                                <div class="card-header">
+                                    <h4 class="card-title"><?php echo sr_e((string) $version['title_snapshot']); ?></h4>
+                                    <span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span>
+                                </div>
+                                <dl class="card-description-list">
+                                    <div>
+                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></dt>
+                                        <dd><?php echo sr_e((string) ($version['document_key'] ?? '')); ?></dd>
+                                    </div>
+                                    <div>
+                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></dt>
+                                        <dd><?php echo sr_e((string) $version['version_key']); ?></dd>
+                                    </div>
+                                    <div>
+                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></dt>
+                                        <dd><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></dd>
+                                    </div>
+                                    <div>
+                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></dt>
+                                        <dd><?php echo sr_e((string) $version['body_hash']); ?></dd>
+                                    </div>
+                                </dl>
+                                <div class="admin-help-modal-body">
+                                    <?php echo $policyDocumentVersionBodyHtml !== '' ? $policyDocumentVersionBodyHtml : '<p>' . sr_e(sr_t('policy_documents::ui.version.body_empty')) . '</p>'; ?>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>"><?php echo sr_e('닫기'); ?></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php } ?>
     <?php } ?>
 
     <section class="card admin-list-card admin-list-form">

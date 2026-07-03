@@ -55,8 +55,11 @@ if (is_string($policyDocumentViewSource)) {
     sr_policy_documents_check_assert(
         str_contains($policyDocumentViewSource, '$policyDocumentLatestVersionKeyByDocumentId')
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.version_key.latest_badge')
-            && str_contains($policyDocumentViewSource, 'badge badge-soft-secondary badge-pill'),
-        'policy document new version form should show the latest existing version key as a badge next to the version key input.'
+            && str_contains($policyDocumentViewSource, 'badge badge-soft-secondary badge-pill')
+            && str_contains($policyDocumentViewSource, 'policy_documents::ui.version.body_view')
+            && str_contains($policyDocumentViewSource, 'sr_policy_document_sanitize_body((string) ($version[\'body_html\'] ?? \'\'))')
+            && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"'),
+        'policy document admin view should show the latest existing version key badge and provide read-only body viewing for each version.'
     );
 }
 
@@ -204,6 +207,11 @@ $enabledChoices = sr_policy_document_enabled_choices($pdo);
 sr_policy_documents_check_assert(
     (string) ($enabledChoices[0]['published_version_key'] ?? '') === '2026.06.002',
     'policy document choices should ignore future effective versions until their effective time.'
+);
+$allVersions = sr_policy_document_all_versions($pdo);
+sr_policy_documents_check_assert(
+    str_contains((string) ($allVersions[0]['body_html'] ?? ''), '<p>미래 버전</p>'),
+    'admin policy document version list should include body HTML for read-only previous version review.'
 );
 $plainVersionId = sr_policy_document_create_version($pdo, 1, [
     'version_key' => '2026.06.004',

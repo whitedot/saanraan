@@ -62,6 +62,8 @@ return [
     'ui.sort_order' => '정렬 순서',
     'ui.title' => '제목',
     'ui.version.create' => '버전 작성',
+    'ui.version.body_empty' => '저장된 본문이 없습니다.',
+    'ui.version.body_view' => '본문 보기',
     'ui.version.edit' => '버전 수정',
     'ui.version.empty' => '등록된 버전이 없습니다.',
     'ui.version.form_description' => '게시된 약관은 이력 보존을 위해 직접 수정하지 않고 새 버전으로 등록합니다.',

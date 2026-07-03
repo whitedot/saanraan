@@ -232,7 +232,7 @@ function sr_policy_document_versions(PDO $pdo, int $documentId): array
 function sr_policy_document_all_versions(PDO $pdo): array
 {
     $stmt = $pdo->query(
-        'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.summary_text, v.body_hash,
+        'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.body_html, v.summary_text, v.body_hash,
                 v.status, v.effective_from, v.published_at, v.created_at, v.updated_at,
                 d.document_key, d.title AS document_title, d.sort_order AS document_sort_order
          FROM sr_policy_document_versions v
