@@ -365,7 +365,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             ?>
             <div id="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>-label" aria-hidden="true" inert data-overlay-stack="true">
                 <div class="modal-dialog-fluid">
-                    <div class="modal-content-fullscreen">
+                    <div class="modal-content-fullscreen modal-radius-md">
                         <div class="modal-header">
                             <h3 id="<?php echo sr_e($policyDocumentVersionDetailModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('policy_documents::ui.version.body_view')); ?></h3>
                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
