@@ -896,22 +896,6 @@
     }
 }
 
-.modal-radius-md {
-    border-radius: var(--radius-xl);
-}
-
-.modal-radius-lg,
-.modal-radius-xl {
-    border-radius: var(--radius-xl);
-}
-
-.modal-border-md,
-.modal-border-lg,
-.modal-border-xl {
-    border: 1px solid var(--color-default-300);
-}
-
-
 .dropdown-menu-profile {
     --dropdown-profile-muted: var(--color-default-500);
     --dropdown-profile-icon: var(--color-default-500);

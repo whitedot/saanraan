@@ -924,6 +924,10 @@ sr_skin_theme_check_contains('modules/admin/assets/common.css', [
     '.modal-radius-md,.modal-radius-lg,.modal-radius-xl{border-radius:var(--radius-xl)}',
     '.modal-border-md,.modal-border-lg,.modal-border-xl{border:1px solid var(--color-default-300)}',
 ], 'Admin modal radius helpers');
+sr_skin_theme_check_not_contains('modules/admin/assets/ui-kit.css', [
+    '.modal-radius-md',
+    '.modal-border-md',
+], 'Admin UI kit demo CSS should not duplicate common modal helpers');
 
 $modalSamplePaths = [
     'layouts/public/basic/ui-kit-samples/ui-modals.php',
