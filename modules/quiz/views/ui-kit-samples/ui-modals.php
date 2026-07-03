@@ -608,74 +608,30 @@
                                     </div>
                                 </div>
 
-                                <!-- Full screen below sm -->
+                                <!-- Full screen on small screens -->
                                 <div>
                                     <button type="button"
                                         class="btn btn-solid-primary"
                                         aria-haspopup="dialog" aria-expanded="false"
-                                        aria-controls="exampleModalFullscreenSm"
-                                        data-overlay="#exampleModalFullscreenSm">
-                                        <?php echo sr_e(sr_t('ui.sm.all.46c07fe1')); ?>
+                                        aria-controls="exampleModalFullscreenSmall"
+                                        data-overlay="#exampleModalFullscreenSmall">
+                                        <?php echo sr_e(sr_t('ui.small.screen.fullscreen.modal.2e7a3c40')); ?>
                                     </button>
 
-                                    <div id="exampleModalFullscreenSm"
+                                    <div id="exampleModalFullscreenSmall"
                                         class="modal-overlay overlay overlay-closed-static"
-                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenSm-label">
-                                        <div
-                                            class="modal-dialog-responsive modal-open-sm-mt">
-                                            <div
-                                                class="modal-content-fluid modal-radius-md">
-                                                <div
-                                                    class="modal-header">
-                                                    <h3 id="exampleModalFullscreenSm-label"
-                                                        class="modal-title"><?php echo sr_e(sr_t('ui.sm.all.46c07fe1')); ?></h3>
-
-                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
-                                                        data-overlay="#exampleModalFullscreenSm">
-                                                        <span class="sr-only"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
-                                                        <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
-                                                    </button>
-                                                </div>
-
-                                                <div class="modal-body-fill"><?php echo sr_e(sr_t('ui.text.01025abc')); ?></div>
-
-                                                <div
-                                                    class="modal-footer">
-                                                    <button type="button" class="btn btn-soft-default modal-action"
-                                                        data-overlay="#exampleModalFullscreenSm"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
-
-                                                    <button type="button"
-                                                        class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('ui.save.011c4ffe')); ?></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Full screen below md -->
-                                <div>
-                                    <button type="button"
-                                        class="btn btn-solid-primary"
-                                        aria-haspopup="dialog" aria-expanded="false"
-                                        aria-controls="exampleModalFullscreenMd"
-                                        data-overlay="#exampleModalFullscreenMd">
-                                        <?php echo sr_e(sr_t('ui.md.all.72277b49')); ?>
-                                    </button>
-
-                                    <div id="exampleModalFullscreenMd"
-                                        class="modal-overlay overlay overlay-closed-static"
-                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenMd-label">
+                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenSmall-label">
                                         <div
                                             class="modal-dialog-responsive modal-open-md-mt">
                                             <div
                                                 class="modal-content-fluid modal-radius-md modal-border-md">
                                                 <div
                                                     class="modal-header">
-                                                    <h3 id="exampleModalFullscreenMd-label"
-                                                        class="modal-title"><?php echo sr_e(sr_t('ui.md.all.72277b49')); ?></h3>
+                                                    <h3 id="exampleModalFullscreenSmall-label"
+                                                        class="modal-title"><?php echo sr_e(sr_t('ui.small.screen.fullscreen.modal.2e7a3c40')); ?></h3>
 
                                                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
-                                                        data-overlay="#exampleModalFullscreenMd">
+                                                        data-overlay="#exampleModalFullscreenSmall">
                                                         <span class="sr-only"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
                                                         <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
                                                     </button>
@@ -686,7 +642,7 @@
                                                 <div
                                                     class="modal-footer">
                                                     <button type="button" class="btn btn-soft-default modal-action"
-                                                        data-overlay="#exampleModalFullscreenMd"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
+                                                        data-overlay="#exampleModalFullscreenSmall"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
 
                                                     <button type="button"
                                                         class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('ui.save.011c4ffe')); ?></button>
@@ -696,137 +652,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Full screen below lg -->
-                                <div>
-                                    <button type="button"
-                                        class="btn btn-solid-primary"
-                                        aria-haspopup="dialog" aria-expanded="false"
-                                        aria-controls="exampleModalFullscreenLg"
-                                        data-overlay="#exampleModalFullscreenLg">
-                                        <?php echo sr_e(sr_t('ui.lg.all.e1be95a5')); ?>
-                                    </button>
-
-                                    <div id="exampleModalFullscreenLg"
-                                        class="modal-overlay overlay overlay-closed-static"
-                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenLg-label">
-                                        <div
-                                            class="modal-dialog-responsive modal-open-lg-mt">
-                                            <div
-                                                class="modal-content-fluid modal-radius-lg modal-border-lg">
-                                                <div
-                                                    class="modal-header">
-                                                    <h3 id="exampleModalFullscreenLg-label"
-                                                        class="modal-title"><?php echo sr_e(sr_t('ui.lg.all.e1be95a5')); ?></h3>
-
-                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
-                                                        data-overlay="#exampleModalFullscreenLg">
-                                                        <span class="sr-only"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
-                                                        <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
-                                                    </button>
-                                                </div>
-
-                                                <div class="modal-body-fill"><?php echo sr_e(sr_t('ui.text.01025abc')); ?></div>
-
-                                                <div
-                                                    class="modal-footer">
-                                                    <button type="button" class="btn btn-soft-default modal-action"
-                                                        data-overlay="#exampleModalFullscreenLg"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
-
-                                                    <button type="button"
-                                                        class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('ui.save.011c4ffe')); ?></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Full screen below xl -->
-                                <div>
-                                    <button type="button"
-                                        class="btn btn-solid-primary"
-                                        aria-haspopup="dialog" aria-expanded="false"
-                                        aria-controls="exampleModalFullscreenXl"
-                                        data-overlay="#exampleModalFullscreenXl">
-                                        <?php echo sr_e(sr_t('ui.xl.all.73cd73a0')); ?>
-                                    </button>
-
-                                    <div id="exampleModalFullscreenXl"
-                                        class="modal-overlay overlay overlay-closed-static"
-                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXl-label">
-                                        <div
-                                            class="modal-dialog-responsive modal-open-xl-mt">
-                                            <div
-                                                class="modal-content-fluid modal-radius-xl modal-border-xl">
-                                                <div
-                                                    class="modal-header">
-                                                    <h3 id="exampleModalFullscreenXl-label"
-                                                        class="modal-title"><?php echo sr_e(sr_t('ui.xl.all.73cd73a0')); ?></h3>
-
-                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
-                                                        data-overlay="#exampleModalFullscreenXl">
-                                                        <span class="sr-only"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
-                                                        <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
-                                                    </button>
-                                                </div>
-
-                                                <div class="modal-body-fill"><?php echo sr_e(sr_t('ui.text.01025abc')); ?></div>
-
-                                                <div
-                                                    class="modal-footer">
-                                                    <button type="button" class="btn btn-soft-default modal-action"
-                                                        data-overlay="#exampleModalFullscreenXl"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
-
-                                                    <button type="button"
-                                                        class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('ui.save.011c4ffe')); ?></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Full screen below xxl -->
-                                <div>
-                                    <button type="button"
-                                        class="btn btn-solid-primary"
-                                        aria-haspopup="dialog" aria-expanded="false"
-                                        aria-controls="exampleModalFullscreenXxl"
-                                        data-overlay="#exampleModalFullscreenXxl">
-                                        <?php echo sr_e(sr_t('ui.xxl.all.9f6190c6')); ?>
-                                    </button>
-
-                                    <div id="exampleModalFullscreenXxl"
-                                        class="modal-overlay overlay overlay-closed-static"
-                                        role="dialog" tabindex="-1" aria-labelledby="exampleModalFullscreenXxl-label">
-                                        <div
-                                            class="modal-dialog-responsive modal-open-xl-mt">
-                                            <div
-                                                class="modal-content-fluid modal-radius-xl modal-border-xl">
-                                                <div
-                                                    class="modal-header">
-                                                    <h3 id="exampleModalFullscreenXxl-label"
-                                                        class="modal-title"><?php echo sr_e(sr_t('ui.xxl.all.9f6190c6')); ?></h3>
-
-                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="Close"
-                                                        data-overlay="#exampleModalFullscreenXxl">
-                                                        <span class="sr-only"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></span>
-                                                        <?php echo sr_material_icon_html('close', '', sr_t('ui.close.1e8c1020')); ?>
-                                                    </button>
-                                                </div>
-
-                                                <div class="modal-body-fill"><?php echo sr_e(sr_t('ui.text.01025abc')); ?></div>
-
-                                                <div
-                                                    class="modal-footer">
-                                                    <button type="button" class="btn btn-soft-default modal-action"
-                                                        data-overlay="#exampleModalFullscreenXxl"><?php echo sr_e(sr_t('ui.close.1e8c1020')); ?></button>
-
-                                                    <button type="button"
-                                                        class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('ui.save.011c4ffe')); ?></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

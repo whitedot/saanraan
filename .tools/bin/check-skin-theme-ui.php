@@ -929,16 +929,26 @@ $modalSamplePaths = [
 ];
 foreach ($modalSamplePaths as $modalSamplePath) {
     sr_skin_theme_check_contains($modalSamplePath, [
+        'exampleModalFullscreenSmall',
+        'small.screen.fullscreen.modal.2e7a3c40',
+        'class="modal-dialog-responsive modal-open-md-mt"',
         'class="modal-content-fullscreen modal-radius-md"',
-        'class="modal-content-fluid modal-radius-md"',
         'class="modal-content-fluid modal-radius-md modal-border-md"',
-        'class="modal-content-fluid modal-radius-lg modal-border-lg"',
-        'class="modal-content-fluid modal-radius-xl modal-border-xl"',
     ], 'Fullscreen modal radius samples in ' . $modalSamplePath);
     sr_skin_theme_check_not_contains($modalSamplePath, [
+        'id="exampleModalFullscreenSm"',
+        'id="exampleModalFullscreenMd"',
+        'id="exampleModalFullscreenLg"',
+        'id="exampleModalFullscreenXl"',
+        'id="exampleModalFullscreenXxl"',
+        'class="modal-dialog-responsive modal-open-sm-mt"',
+        'class="modal-dialog-responsive modal-open-lg-mt"',
+        'class="modal-dialog-responsive modal-open-xl-mt"',
         'class="modal-content-fullscreen">',
         'class="modal-content-fluid">',
         'class="modal-content-fluid modal-border-md">',
+        'class="modal-content-fluid modal-radius-lg modal-border-lg"',
+        'class="modal-content-fluid modal-radius-xl modal-border-xl"',
     ], 'Fullscreen modal radius samples in ' . $modalSamplePath);
 }
 
