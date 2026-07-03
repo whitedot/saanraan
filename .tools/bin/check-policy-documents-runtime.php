@@ -60,8 +60,19 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'sr_policy_document_sanitize_body((string) ($version[\'body_html\'] ?? \'\'))')
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen')
+            && str_contains($policyDocumentViewSource, 'admin-policy-document-body-dialog')
             && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"'),
         'policy document admin view should show the latest existing version key badge and provide fullscreen read-only body viewing for each version.'
+    );
+}
+
+$adminCssSource = file_get_contents('modules/admin/assets/admin.css');
+if (is_string($adminCssSource)) {
+    sr_policy_documents_check_assert(
+        str_contains($adminCssSource, '.admin-policy-document-body-dialog')
+            && str_contains($adminCssSource, 'width:calc(100% - var(--admin-policy-document-body-modal-gap) - var(--admin-policy-document-body-modal-gap))')
+            && str_contains($adminCssSource, '.admin-policy-document-body-content'),
+        'policy document body view modal should keep readable viewport margins.'
     );
 }
 
