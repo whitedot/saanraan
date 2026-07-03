@@ -61,6 +61,7 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
             && !str_contains($policyDocumentViewSource, 'class="modal-content-fullscreen">')
+            && !str_contains($policyDocumentViewSource, "modal-body-fill\">\n                            <section class=\"card admin-list-card admin-list-form\">")
             && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"'),
         'policy document admin view should show the latest existing version key badge and provide fullscreen read-only body viewing for each version.'
     );

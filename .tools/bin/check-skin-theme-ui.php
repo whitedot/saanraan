@@ -919,6 +919,12 @@ sr_skin_theme_check_contains([
     '.modal-dialog-sm{width:calc(100% - calc(var(--spacing) * 6))',
 ], 'Default modal viewport margins');
 
+sr_skin_theme_check_contains('modules/admin/assets/common.css', [
+    '.modal-content-fullscreen,.modal-content-fluid{width:100%;height:100%;max-height:100%;border-radius:0}',
+    '.modal-radius-md,.modal-radius-lg,.modal-radius-xl{border-radius:var(--radius-xl)}',
+    '.modal-border-md,.modal-border-lg,.modal-border-xl{border:1px solid var(--color-default-300)}',
+], 'Admin modal radius helpers');
+
 $modalSamplePaths = [
     'layouts/public/basic/ui-kit-samples/ui-modals.php',
     'modules/admin/views/ui-kit-samples/ui-modals.php',

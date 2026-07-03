@@ -371,33 +371,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body-fill">
-                            <section class="card admin-list-card admin-list-form">
-                                <div class="card-header">
-                                    <h4 class="card-title"><?php echo sr_e((string) $version['title_snapshot']); ?></h4>
-                                    <span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span>
+                            <div class="admin-setting-source-line">
+                                <h4 class="modal-title"><?php echo sr_e((string) $version['title_snapshot']); ?></h4>
+                                <span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span>
+                            </div>
+                            <dl class="card-description-list btn-space-before">
+                                <div>
+                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></dt>
+                                    <dd><?php echo sr_e((string) ($version['document_key'] ?? '')); ?></dd>
                                 </div>
-                                <dl class="card-description-list">
-                                    <div>
-                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></dt>
-                                        <dd><?php echo sr_e((string) ($version['document_key'] ?? '')); ?></dd>
-                                    </div>
-                                    <div>
-                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></dt>
-                                        <dd><?php echo sr_e((string) $version['version_key']); ?></dd>
-                                    </div>
-                                    <div>
-                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></dt>
-                                        <dd><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></dd>
-                                    </div>
-                                    <div>
-                                        <dt><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></dt>
-                                        <dd><?php echo sr_e((string) $version['body_hash']); ?></dd>
-                                    </div>
-                                </dl>
-                                <div class="admin-help-modal-body">
-                                    <?php echo $policyDocumentVersionBodyHtml !== '' ? $policyDocumentVersionBodyHtml : '<p>' . sr_e(sr_t('policy_documents::ui.version.body_empty')) . '</p>'; ?>
+                                <div>
+                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></dt>
+                                    <dd><?php echo sr_e((string) $version['version_key']); ?></dd>
                                 </div>
-                            </section>
+                                <div>
+                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></dt>
+                                    <dd><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></dd>
+                                </div>
+                                <div>
+                                    <dt><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></dt>
+                                    <dd><?php echo sr_e((string) $version['body_hash']); ?></dd>
+                                </div>
+                            </dl>
+                            <div class="admin-help-modal-body btn-space-before">
+                                <?php echo $policyDocumentVersionBodyHtml !== '' ? $policyDocumentVersionBodyHtml : '<p>' . sr_e(sr_t('policy_documents::ui.version.body_empty')) . '</p>'; ?>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($policyDocumentVersionDetailModalId); ?>"><?php echo sr_e('닫기'); ?></button>
