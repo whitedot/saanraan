@@ -886,6 +886,23 @@ sr_skin_theme_check_contains(['assets/ui-kit.css', 'modules/admin/assets/common.
     'background-image:url("data:image/svg+xml',
 ], 'Checkbox checked indicator');
 
+sr_skin_theme_check_contains([
+    'assets/ui-kit.css',
+    'modules/admin/assets/common.css',
+    'modules/content/theme/basic/assets/ui-kit.css',
+    'modules/content/theme/sample/assets/ui-kit.css',
+    'modules/community/theme/basic/assets/ui-kit.css',
+    'modules/community/theme/sample/assets/ui-kit.css',
+    'modules/quiz/theme/basic/assets/ui-kit.css',
+    'modules/quiz/theme/sample/assets/ui-kit.css',
+    'modules/survey/theme/basic/assets/ui-kit.css',
+    'modules/survey/theme/sample/assets/ui-kit.css',
+], [
+    '--modal-viewport-gap:clamp(',
+    'width:calc(100% - var(--modal-viewport-gap) - var(--modal-viewport-gap))',
+    'height:calc(100% - var(--modal-viewport-gap) - var(--modal-viewport-gap))',
+], 'Fluid modal viewport margins');
+
 if ($errors !== []) {
     fwrite(STDERR, "skin/layout UI checks failed:\n");
     foreach ($errors as $error) {
