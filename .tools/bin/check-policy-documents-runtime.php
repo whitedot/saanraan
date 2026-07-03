@@ -58,8 +58,10 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'badge badge-soft-secondary badge-pill')
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.version.body_view')
             && str_contains($policyDocumentViewSource, 'sr_policy_document_sanitize_body((string) ($version[\'body_html\'] ?? \'\'))')
+            && str_contains($policyDocumentViewSource, 'modal-dialog-fluid')
+            && str_contains($policyDocumentViewSource, 'modal-content-fullscreen')
             && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"'),
-        'policy document admin view should show the latest existing version key badge and provide read-only body viewing for each version.'
+        'policy document admin view should show the latest existing version key badge and provide fullscreen read-only body viewing for each version.'
     );
 }
 
