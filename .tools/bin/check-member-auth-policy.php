@@ -1264,6 +1264,14 @@ if ($adminSettingsAction !== '') {
             && strpos($adminSettingsAction, 'sr_member_clamp_int((int) $rawValue') === false,
         'Member settings action should reject out-of-range integer settings instead of truncating or clamping submitted values.'
     );
+    sr_member_auth_policy_assert(
+        strpos($adminSettingsAction, "\$memberIdentityVerificationAvailable = sr_module_enabled(\$pdo, 'identity_verification')") !== false
+            && strpos($adminSettingsAction, '본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.') !== false
+            && strpos($adminSettingsAction, "\$settings['identity_registration_mode'] = 'disabled';") !== false
+            && strpos($adminSettingsAction, "\$settings['identity_withdrawal_required'] = false;") !== false
+            && strpos($adminSettingsAction, "\$settings['identity_account_security_required'] = false;") !== false,
+        'Member settings action should reject and normalize identity settings when the identity verification module is unavailable.'
+    );
 }
 
 foreach (glob(SR_ROOT . '/modules/member/updates/*.sql') ?: [] as $memberUpdateSqlPath) {
@@ -1299,6 +1307,13 @@ if ($adminSettingsView !== '') {
             && strpos($adminSettingsView, 'data-member-profile-original-extra-field-keys-json') !== false
             && strpos($adminSettingsView, 'data-member-profile-removed-field-values-confirmed') !== false,
         'Member settings view should expose avatar visibility/required settings, dynamic profile field builder, and removed field value cleanup confirmation.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminSettingsView, '$memberIdentityVerificationAvailable') !== false
+            && strpos($adminSettingsView, 'member-settings-identity-unavailable') !== false
+            && strpos($adminSettingsView, '본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 회원 본인확인 설정을 사용할 수 없습니다.') !== false
+            && strpos($adminSettingsView, 'disabled aria-describedby="member-settings-identity-unavailable"') !== false,
+        'Member settings view should disable identity verification controls and show an unavailable notice when the module is not installed or active.'
     );
 }
 

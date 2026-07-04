@@ -111,6 +111,12 @@ $memberMfaProviderDefinitions = isset($memberMfaProviderDefinitions) && is_array
     : sr_member_mfa_provider_definitions($pdo);
 $memberMfaLoginMode = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
 $memberMfaLoginProviderKeys = sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]');
+$memberIdentityVerificationAvailable = isset($memberIdentityVerificationAvailable)
+    ? (bool) $memberIdentityVerificationAvailable
+    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
+$memberIdentityVerificationInputAttributes = $memberIdentityVerificationAvailable
+    ? ''
+    : ' disabled aria-describedby="member-settings-identity-unavailable"';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -159,20 +165,25 @@ $memberSettingsSectionNavItems = [
             <div class="form-row">
                 <label class="form-label" for="modules_member_admin_settings_identity_registration_mode"><?php echo sr_e('회원가입 전 본인확인'); ?> <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
-                    <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_identity_registration_mode', 'identity_registration_mode', sr_member_identity_registration_mode_options(), (string) ($settings['identity_registration_mode'] ?? 'disabled'), true); ?>
+                    <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_identity_registration_mode', 'identity_registration_mode', sr_member_identity_registration_mode_options(), $memberIdentityVerificationAvailable ? (string) ($settings['identity_registration_mode'] ?? 'disabled') : 'disabled', true, $memberIdentityVerificationInputAttributes); ?>
                     <small class="form-help">필수는 가입 전 본인확인을 완료해야 가입할 수 있고, 선택은 가입 화면에 본인확인 버튼만 표시합니다.</small>
+                    <?php if (!$memberIdentityVerificationAvailable) { ?>
+                        <div id="member-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                            본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 회원 본인확인 설정을 사용할 수 없습니다.
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="modules_member_admin_settings_identity_withdrawal_required"><?php echo sr_e('회원탈퇴 본인확인'); ?></label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_withdrawal_required', 'identity_withdrawal_required', '1', !empty($settings['identity_withdrawal_required']), '사용'); ?>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_withdrawal_required', 'identity_withdrawal_required', '1', $memberIdentityVerificationAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $memberIdentityVerificationInputAttributes); ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="modules_member_admin_settings_identity_account_security_required"><?php echo sr_e('계정보안작업 본인확인'); ?></label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', !empty($settings['identity_account_security_required']), '사용'); ?>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', $memberIdentityVerificationAvailable && !empty($settings['identity_account_security_required']), '사용', '', $memberIdentityVerificationInputAttributes); ?>
                     <small class="form-help">비밀번호 변경, 2차 인증 설정/해제 같은 보안 작업을 실행할 때마다 본인확인을 요구합니다.</small>
                 </div>
             </div>
