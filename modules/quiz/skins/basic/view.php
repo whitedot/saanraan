@@ -176,7 +176,13 @@ $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
         'reaction' => '/modules/reaction/assets/module.css',
     ]),
+    'output_slots' => [
+        ['module_key' => 'quiz', 'point_key' => 'quiz.view', 'slot_key' => 'screen'],
+    ],
 ]);
+if ($pdo instanceof PDO) {
+    $quizLayoutContext = sr_public_layout_context_with_output_slot_assets($pdo, $quizLayoutContext, (array) ($quizLayoutContext['output_slots'] ?? []));
+}
 
 if ($quizEmbedded) {
     $quizEmbedStylesheets = is_array($quizLayoutContext['stylesheets'] ?? null) ? $quizLayoutContext['stylesheets'] : [];

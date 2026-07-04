@@ -15,6 +15,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         '/assets/theme/sample.css',
         '/modules/banner/assets/module.css',
     ],
+    'output_slots' => [
+        ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content'],
+        ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content'],
+    ],
 ]);
 ?>
 

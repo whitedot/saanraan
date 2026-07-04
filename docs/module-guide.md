@@ -1355,7 +1355,7 @@ return [
 | `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 메뉴 항목에 연결할 수 있는 링크 자산 |
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
 | `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
-| `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출 시 | 저장된 출력 규칙 렌더링 |
+| `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출하거나 layout context의 `output_slots` asset을 선조회할 때 | 저장된 출력 규칙 렌더링과 필요한 public asset 선언 |
 | `privacy-export.php` | `privacy` 모듈 | 개인정보 사본 생성 | 모듈별 회원 귀속 데이터 수집 |
 | `privacy-cleanup.php` | `member` 모듈 | 회원 탈퇴/익명화 트랜잭션 | 설치된 모듈별 회원 재식별 개인정보 정리. 계약 로드 또는 실행 실패 시 탈퇴 처리를 중단 |
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
@@ -1434,7 +1434,7 @@ return [
 
 - 실제 파일을 제공하면 `contracts.provides`에 반드시 선언한다.
 - 다른 모듈의 계약 파일을 직접 읽으면 `contracts.consumes`에 기록한다.
-- `sr_render_output_slot()`처럼 코어 helper를 호출해 출력 renderer를 실행하는 경우, 화면 소유 모듈은 어떤 point/slot을 호출하는지 view에서 명시한다. `output-slots.php` 파일 탐색 자체는 core helper가 담당한다.
+- `sr_render_output_slot()`처럼 코어 helper를 호출해 출력 renderer를 실행하는 경우, 화면 소유 모듈은 어떤 point/slot을 호출하는지 view에서 명시한다. 본문 slot은 `sr_public_layout_begin()` layout context의 `output_slots`에도 같은 point/slot을 선언해 slot provider의 public asset을 head 렌더링 전에 합류시킨다. `output-slots.php` 파일 탐색 자체는 core helper가 담당한다.
 - 계약 파일을 읽는 모듈은 반환 구조를 다시 검증하고, 깨진 계약 파일 하나 때문에 전체 화면이 500으로 죽지 않게 안전 로더를 사용한다.
 - 계약 파일 소비 관계가 새로 생기면 이 표와 `module.php`의 `contracts.consumes`를 함께 갱신한다.
 
@@ -1475,9 +1475,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
-return static function (PDO $pdo, array $context): string {
-    return sr_example_banner_render($pdo, $context);
-};
+return [
+    'stylesheets' => ['/modules/example/assets/module.css'],
+    'scripts' => ['/modules/example/assets/module.js'],
+    'renderer' => static function (PDO $pdo, array $context): string {
+        return sr_example_banner_render($pdo, $context);
+    },
+];
 ```
 
 renderer 규칙:
@@ -1485,6 +1489,9 @@ renderer 규칙:
 - 출력할 HTML 문자열을 반환한다.
 - 아무것도 출력하지 않으면 빈 문자열을 반환한다.
 - 화면 소유 모듈은 `slot_key`를 명시해서 호출한다.
+- provider가 slot HTML에 필요한 public CSS/JS를 갖고 있으면 `stylesheets`와 `scripts` metadata로 선언한다. 기존 callable-only 계약은 계속 허용하지만 asset 선언은 할 수 없다.
+- 화면 소유 view, skin, embedded 화면은 본문 중 호출하는 slot을 layout context의 `output_slots`에 선선언한다. 공통 layout slot은 core public layout helper가 `site.header`, `site.layout`, `{module}.layout` 기준으로 자동 선조회한다.
+- slot renderer가 `<script>`나 `<link>`를 본문 뒤에 직접 덧붙이는 방식은 CSP, 중복 제어, head 정합성 때문에 사용하지 않는다.
 - context 값을 검증한다.
 - 사용자 입력과 DB 값은 escape 후 출력한다.
 - DB 조회가 필요하면 인덱스가 있는 저장 규칙 테이블을 사용한다.

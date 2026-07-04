@@ -38,6 +38,12 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
         'popup_layer' => '/modules/popup_layer/assets/module.css',
         'reaction' => '/modules/reaction/assets/module.css',
     ]), sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null)),
+    'output_slots' => [
+        ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'before_content'],
+        ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'after_content'],
+        ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'before_comments'],
+        ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'after_comments'],
+    ],
 ]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;

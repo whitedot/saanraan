@@ -45,6 +45,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
     ]),
+    'output_slots' => [
+        ['module_key' => 'content', 'point_key' => 'content.home', 'slot_key' => 'screen'],
+    ],
 ]));
 ?>
 

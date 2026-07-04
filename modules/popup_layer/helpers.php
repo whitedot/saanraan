@@ -684,7 +684,7 @@ function sr_popup_layer_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('popup_layer');
 }
 
-function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic'): string
+function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic', bool $includeScript = true): string
 {
     if ($popups === []) {
         return '';
@@ -701,7 +701,7 @@ function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic'): 
     return (string) ob_get_clean();
 }
 
-function sr_popup_layer_render_basic_stack(array $popups): string
+function sr_popup_layer_render_basic_stack(array $popups, bool $includeScript = true): string
 {
     $cookiePath = sr_base_path();
     $cookiePath = $cookiePath === '' ? '/' : $cookiePath;
@@ -724,7 +724,9 @@ function sr_popup_layer_render_basic_stack(array $popups): string
         $html[] = '</section>';
     }
     $html[] = '</div>';
-    $html[] = sr_popup_layer_close_script();
+    if ($includeScript) {
+        $html[] = sr_popup_layer_close_script();
+    }
     return implode("\n", $html);
 }
 
@@ -779,7 +781,7 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
     return sr_popup_layer_render_stack([$popup], $skinKey);
 }
 
-function sr_popup_layer_render(PDO $pdo, array $context): string
+function sr_popup_layer_render(PDO $pdo, array $context, bool $includeScript = true): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');
     $pointKey = (string) ($context['point_key'] ?? '');
@@ -849,7 +851,7 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
         $popupsBySkin[(string) $popup['skin_key']][] = $popup;
     }
     foreach ($popupsBySkin as $skinKey => $skinPopups) {
-        $html .= sr_popup_layer_render_stack($skinPopups, $skinKey);
+        $html .= sr_popup_layer_render_stack($skinPopups, $skinKey, $includeScript);
     }
 
     return $html;

@@ -8,7 +8,12 @@ $seo = [
 $identifierLabel = sr_t('member::ui.email.95b727cb');
 $loginSiteName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey, [
+    'output_slots' => [
+        ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form'],
+        ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'after_form'],
+    ],
+]));
 ?>
     <main class="member-skin-basic-page member-skin-basic-page-narrow">
         <?php echo sr_member_feedback_toasts($notice, $errors); ?>

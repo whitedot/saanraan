@@ -7,7 +7,12 @@ $seo = [
 ];
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
 $memberRegisterIdentityBirthDateLocked = !empty($registrationIdentityFieldsLocked) && !empty($registrationIdentityUseBirthDate);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey, [
+    'output_slots' => [
+        ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'before_form'],
+        ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'after_form'],
+    ],
+]));
 ?>
     <main class="member-skin-basic-page">
         <?php echo sr_member_feedback_toasts('', $errors); ?>

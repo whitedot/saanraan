@@ -15,6 +15,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
     ]),
+    'output_slots' => [
+        ['module_key' => 'survey', 'point_key' => 'survey.home', 'slot_key' => 'screen'],
+    ],
 ]));
 ?>
 <?php echo sr_render_output_slot($pdo, [

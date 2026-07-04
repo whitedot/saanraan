@@ -31,6 +31,10 @@ $communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_
 $seo = ['title' => $pageTitle, 'canonical' => $formAction, 'robots' => 'noindex, nofollow'];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.form',
+    'output_slots' => [
+        ['module_key' => 'community', 'point_key' => 'community.post.form', 'slot_key' => 'before_form'],
+        ['module_key' => 'community', 'point_key' => 'community.post.form', 'slot_key' => 'after_form'],
+    ],
 ]));
 ?>
 

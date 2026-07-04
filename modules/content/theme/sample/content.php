@@ -27,6 +27,10 @@ $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_sty
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
     'stylesheets' => $contentStylesheets,
+    'output_slots' => [
+        ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'before_content'],
+        ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'after_content'],
+    ],
 ]));
 ?>
 
