@@ -61,104 +61,184 @@ function sr_community_board_is_restricted_for_identity(PDO $pdo, array $board, ?
     return $policy !== 'public' || $minLevel > 0 || $groupKeys !== [];
 }
 
-function sr_community_board_requires_adult_identity(PDO $pdo, array $board): bool
+function sr_community_identity_verification_action_options(): array
 {
-    if ((string) ($board['status'] ?? '') !== 'enabled') {
-        return false;
-    }
-
-    return in_array(sr_community_effective_board_setting($pdo, $board, 'adult_required', '0'), ['1', 'true', 'yes', 'on'], true);
+    return [
+        'enter' => '게시판 접근',
+        'read' => '글 읽기',
+        'write' => '글쓰기',
+        'comment' => '댓글 쓰기',
+        'download' => '첨부 다운로드',
+    ];
 }
 
-function sr_community_board_requires_identity(PDO $pdo, array $board): bool
+function sr_community_identity_verification_purpose_options(): array
 {
-    if ((string) ($board['status'] ?? '') !== 'enabled') {
-        return false;
-    }
-
-    return in_array(sr_community_effective_board_setting($pdo, $board, 'identity_required', '0'), ['1', 'true', 'yes', 'on'], true);
+    return [
+        'real_name' => '본인확인',
+        'adult' => '성인 본인확인',
+        'recent_recheck' => '최근 재확인',
+    ];
 }
 
-function sr_community_board_requires_verification_login(PDO $pdo, array $board, ?array $settings = null): bool
+function sr_community_identity_verification_purpose(string $purpose): string
 {
-    if ((string) ($board['status'] ?? '') !== 'enabled') {
-        return false;
-    }
-
-    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
-    if (sr_community_board_requires_identity($pdo, $board) || sr_community_board_requires_adult_identity($pdo, $board)) {
-        return true;
-    }
-
-    return !empty($settings['identity_restricted_board_required'])
-        && sr_community_board_is_restricted_for_identity($pdo, $board, $settings);
+    $purpose = strtolower(trim($purpose));
+    return array_key_exists($purpose, sr_community_identity_verification_purpose_options()) ? $purpose : 'real_name';
 }
 
-function sr_community_identity_restricted_board_policy(PDO $pdo, array $board, ?array $account, string $returnUrl, ?array $settings = null): array
+function sr_community_identity_verification_required_actions_from_value(mixed $value): array
 {
-    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
-    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
-    $boardIdentityRequired = sr_community_board_requires_identity($pdo, $board);
-    $restrictedBoardIdentityRequired = !empty($settings['identity_restricted_board_required'])
-        && sr_community_board_is_restricted_for_identity($pdo, $board, $settings);
-    $enabled = $accountId > 0 && ($boardIdentityRequired || $restrictedBoardIdentityRequired);
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    }
+    if (!is_array($value)) {
+        return [];
+    }
 
+    $allowed = sr_community_identity_verification_action_options();
+    $actions = [];
+    foreach ($value as $action) {
+        $action = is_scalar($action) ? strtolower(trim((string) $action)) : '';
+        if ($action !== '' && isset($allowed[$action])) {
+            $actions[$action] = true;
+        }
+    }
+
+    return array_keys($actions);
+}
+
+function sr_community_identity_verification_required_actions_input(mixed $value): array
+{
+    return sr_community_identity_verification_required_actions_from_value($value);
+}
+
+function sr_community_identity_verification_actions_setting_value(array $actions): string
+{
+    $actions = sr_community_identity_verification_required_actions_from_value($actions);
+    return json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
+}
+
+function sr_community_identity_verification_purpose_to_identity_purpose(string $purpose): string
+{
+    $purpose = sr_community_identity_verification_purpose($purpose);
+    return $purpose === 'adult' ? 'community.adult_board' : 'community.restricted_board';
+}
+
+function sr_community_board_identity_verification_config(PDO $pdo, array $board, ?array $settings = null): array
+{
+    $enabled = in_array(sr_community_effective_board_setting($pdo, $board, 'identity_verification_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
+    $purpose = sr_community_identity_verification_purpose(sr_community_effective_board_setting($pdo, $board, 'identity_verification_purpose', 'real_name'));
+    $actions = sr_community_identity_verification_required_actions_from_value(sr_community_effective_board_setting($pdo, $board, 'identity_verification_required_actions', '[]'));
+    $maxAgeDays = max(0, min(3650, (int) sr_community_effective_board_setting($pdo, $board, 'identity_verification_max_age_days', '0')));
+    $restrictedBoardIdentityRequired = false;
     if (!$enabled) {
+        try {
+            $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+            $restrictedBoardIdentityRequired = !empty($settings['identity_restricted_board_required'])
+                && sr_community_board_is_restricted_for_identity($pdo, $board, $settings);
+        } catch (Throwable $exception) {
+            $restrictedBoardIdentityRequired = false;
+        }
+    }
+
+    if (!$enabled && $restrictedBoardIdentityRequired) {
+        $enabled = true;
+        $purpose = 'real_name';
+        $actions = ['enter', 'read'];
+    } elseif ($enabled && $actions === []) {
+        $actions = ['enter', 'read'];
+    }
+
+    return [
+        'enabled' => $enabled,
+        'purpose' => $purpose,
+        'identity_purpose' => sr_community_identity_verification_purpose_to_identity_purpose($purpose),
+        'actions' => $actions,
+        'max_age_days' => $maxAgeDays,
+    ];
+}
+
+function sr_community_board_identity_action_required(PDO $pdo, array $board, string $action, ?array $settings = null): bool
+{
+    $action = strtolower(trim($action));
+    $config = sr_community_board_identity_verification_config($pdo, $board, $settings);
+    return !empty($config['enabled']) && in_array($action, (array) ($config['actions'] ?? []), true);
+}
+
+function sr_community_identity_action_policy(PDO $pdo, array $board, ?array $account, string $action, string $returnUrl, ?array $settings = null): array
+{
+    $action = strtolower(trim($action));
+    $config = sr_community_board_identity_verification_config($pdo, $board, $settings);
+    if (empty($config['enabled']) || !in_array($action, (array) ($config['actions'] ?? []), true)) {
         return [
             'required' => false,
             'satisfied' => true,
             'available' => false,
             'start_url' => '',
+            'purpose' => (string) ($config['purpose'] ?? 'real_name'),
+            'identity_purpose' => (string) ($config['identity_purpose'] ?? ''),
         ];
     }
 
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
     if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
         return [
             'required' => true,
             'satisfied' => false,
             'available' => false,
             'start_url' => '',
+            'purpose' => (string) $config['purpose'],
+            'identity_purpose' => (string) $config['identity_purpose'],
         ];
     }
 
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 
-    return sr_identity_verification_requirement_policy($pdo, $accountId, 'community.restricted_board', 'required', $returnUrl);
-}
-
-function sr_community_identity_adult_board_policy(PDO $pdo, array $board, ?array $account, string $returnUrl): array
-{
-    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
-    $enabled = $accountId > 0 && sr_community_board_requires_adult_identity($pdo, $board);
-    if (!$enabled) {
-        return [
-            'required' => false,
-            'satisfied' => true,
-            'available' => false,
-            'start_url' => '',
-        ];
+    $identityPurpose = (string) $config['identity_purpose'];
+    $maxAgeDays = (int) ($config['max_age_days'] ?? 0);
+    $maxAge = $maxAgeDays > 0 ? $maxAgeDays : null;
+    $available = sr_identity_verification_available($pdo, $identityPurpose);
+    $satisfied = false;
+    if ($accountId > 0) {
+        $satisfied = (string) $config['purpose'] === 'adult'
+            ? sr_identity_verification_account_satisfies_adult($pdo, $accountId, $identityPurpose, $maxAge)
+            : sr_identity_verification_account_satisfies($pdo, $accountId, $identityPurpose, $maxAge);
     }
 
-    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
-        return [
-            'required' => true,
-            'satisfied' => false,
-            'available' => false,
-            'start_url' => '',
-        ];
-    }
-
-    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
-
-    $purpose = 'community.adult_board';
-    $available = sr_identity_verification_available($pdo, $purpose);
     return [
         'required' => true,
-        'satisfied' => sr_identity_verification_account_satisfies_adult($pdo, $accountId, $purpose),
+        'satisfied' => $satisfied,
         'available' => $available,
-        'purpose' => $purpose,
-        'start_url' => $available ? sr_identity_verification_start_url($purpose, $returnUrl) : '',
+        'start_url' => $available ? sr_identity_verification_start_url($identityPurpose, $returnUrl) : '',
+        'purpose' => (string) $config['purpose'],
+        'identity_purpose' => $identityPurpose,
+        'max_age_days' => $maxAgeDays,
     ];
+}
+
+function sr_community_identity_action_error_message(string $action, string $purpose): string
+{
+    $purpose = sr_community_identity_verification_purpose($purpose);
+    $label = $purpose === 'adult' ? '성인 본인확인' : '본인확인';
+    return match ($action) {
+        'enter' => '이 게시판을 보려면 ' . $label . '이 필요합니다. ' . $label . '을 완료한 뒤 다시 열어 주세요.',
+        'read' => '이 게시글을 보려면 ' . $label . '이 필요합니다. ' . $label . '을 완료한 뒤 다시 열어 주세요.',
+        'write' => '이 게시판에 글을 쓰려면 ' . $label . '이 필요합니다. ' . $label . '을 완료한 뒤 다시 시도해 주세요.',
+        'comment' => '이 게시글에 댓글을 쓰려면 ' . $label . '이 필요합니다. ' . $label . '을 완료한 뒤 다시 시도해 주세요.',
+        'download' => '이 첨부파일을 받으려면 ' . $label . '이 필요합니다. ' . $label . '을 완료한 뒤 다시 시도해 주세요.',
+        default => $label . '이 필요합니다.',
+    };
+}
+
+function sr_community_board_requires_verification_login(PDO $pdo, array $board, ?array $settings = null, string $action = 'enter'): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    return sr_community_board_identity_action_required($pdo, $board, $action, $settings);
 }
 
 function sr_community_board_requires_login(array $board): bool

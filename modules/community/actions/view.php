@@ -28,7 +28,7 @@ if (!is_array($post)) {
     if (is_array($rawPost)) {
         $board = sr_community_board_by_id($pdo, (int) $rawPost['board_id']);
         $boardRequiresVerificationLogin = is_array($board)
-            && sr_community_board_requires_verification_login($pdo, $board);
+            && sr_community_board_requires_verification_login($pdo, $board, null, 'read');
         if (is_array($board) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin) && !is_array($account)) {
             $account = sr_member_require_login($pdo);
             $post = sr_community_post_for_read($pdo, $postId, $account);
@@ -93,24 +93,19 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'remove_o
 $postBoard = sr_community_board_by_id($pdo, (int) $post['board_id']);
 $settings = sr_community_settings($pdo);
 if (!$communityAdminPreview && is_array($postBoard)) {
-    $communityPostIdentityPolicy = sr_community_identity_restricted_board_policy(
+    if (!is_array($account) && sr_community_board_identity_action_required($pdo, $postBoard, 'read', $settings)) {
+        $account = sr_member_require_login($pdo);
+    }
+    $communityPostIdentityPolicy = sr_community_identity_action_policy(
         $pdo,
         $postBoard,
         is_array($account) ? $account : null,
+        'read',
         '/community/post?id=' . rawurlencode((string) $post['id']),
         $settings
     );
     if (!empty($communityPostIdentityPolicy['required']) && empty($communityPostIdentityPolicy['satisfied'])) {
-        sr_render_error(403, '이 게시글을 보려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
-    }
-    $communityPostAdultIdentityPolicy = sr_community_identity_adult_board_policy(
-        $pdo,
-        $postBoard,
-        is_array($account) ? $account : null,
-        '/community/post?id=' . rawurlencode((string) $post['id'])
-    );
-    if (!empty($communityPostAdultIdentityPolicy['required']) && empty($communityPostAdultIdentityPolicy['satisfied'])) {
-        sr_render_error(403, '이 게시글을 보려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+        sr_render_error(403, sr_community_identity_action_error_message('read', (string) ($communityPostIdentityPolicy['purpose'] ?? 'real_name')));
     }
 }
 if (is_array($postBoard)) {

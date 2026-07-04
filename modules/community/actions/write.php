@@ -17,12 +17,20 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 
+$writeReturnUrl = '/community/write?key=' . rawurlencode($boardKey);
+if (!is_array($account) && sr_community_board_identity_action_required($pdo, $board, 'write')) {
+    $account = sr_member_require_login($pdo);
+}
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 if (!sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)) {
     if (!is_array($account) && sr_community_effective_board_policy($pdo, $board, 'write_policy') !== 'guest') {
         $account = sr_member_require_login($pdo);
     }
     sr_render_error(403, sr_t('community::action.error.board_write_forbidden'));
+}
+$communityWriteIdentityPolicy = sr_community_identity_action_policy($pdo, $board, is_array($account) ? $account : null, 'write', $writeReturnUrl);
+if (!empty($communityWriteIdentityPolicy['required']) && empty($communityWriteIdentityPolicy['satisfied'])) {
+    sr_render_error(403, sr_community_identity_action_error_message('write', (string) ($communityWriteIdentityPolicy['purpose'] ?? 'real_name')));
 }
 $isGuestAuthor = !is_array($account);
 $antispamPostContext = ['account' => is_array($account) ? $account : null];

@@ -161,6 +161,48 @@ function sr_check_community_board_settings_runtime(): void
             status TEXT NOT NULL
         )"
     );
+    $pdo->exec(
+        "CREATE TABLE sr_modules (
+            id INTEGER PRIMARY KEY,
+            module_key TEXT NOT NULL,
+            version TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_module_settings (
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT 'string',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (module_id, setting_key)
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_identity_verification_results (
+            id INTEGER PRIMARY KEY,
+            attempt_id INTEGER NOT NULL,
+            account_id INTEGER NULL,
+            provider_key TEXT NOT NULL,
+            age_over_19 INTEGER NULL,
+            verified_at TEXT NOT NULL,
+            expires_at TEXT NULL,
+            created_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_identity_verification_links (
+            id INTEGER PRIMARY KEY,
+            account_id INTEGER NOT NULL,
+            result_id INTEGER NOT NULL,
+            purpose TEXT NOT NULL,
+            linked_at TEXT NOT NULL,
+            revoked_at TEXT NULL,
+            created_at TEXT NOT NULL
+        )"
+    );
 
     $now = '2026-06-14 12:00:00';
     $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title, status) VALUES (10, 20, 'fixture', 'Fixture Board', 'enabled')");
@@ -299,36 +341,84 @@ function sr_check_community_board_settings_runtime(): void
         'read_policy' => 'public',
     ];
     $boardSettingStmt->execute([
-        'setting_key' => 'identity_required',
+        'setting_key' => 'identity_verification_enabled',
         'setting_value' => '1',
         'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $boardSettingStmt->execute([
+        'setting_key' => 'identity_verification_required_actions',
+        'setting_value' => '["enter","read","write","comment","download"]',
+        'value_type' => 'json',
         'created_at' => $now,
         'updated_at' => $now,
     ]);
     if (!sr_community_board_requires_verification_login($pdo, $identityBoard, ['identity_restricted_board_required' => false])) {
         sr_check_community_board_settings_error('community board identity setting must require login before policy evaluation.');
     }
-    $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title, status) VALUES (12, 0, 'restricted_fixture', 'Restricted Fixture Board', 'enabled')");
+    foreach (['enter', 'read', 'write', 'comment', 'download'] as $identityAction) {
+        if (!sr_community_board_identity_action_required($pdo, $identityBoard, $identityAction)) {
+            sr_check_community_board_settings_error('community board identity action setting failed for ' . $identityAction . '.');
+        }
+    }
     $pdo->prepare(
-        'INSERT INTO sr_community_board_settings
-            (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+        "UPDATE sr_community_board_settings
+            SET setting_value = :setting_value
+          WHERE board_id = 10
+            AND setting_key = 'identity_verification_required_actions'"
+    )->execute(['setting_value' => '["read"]']);
+    if (sr_community_board_requires_verification_login($pdo, $identityBoard, ['identity_restricted_board_required' => false], 'enter')) {
+        sr_check_community_board_settings_error('community board read-only identity action must not require board entry login.');
+    }
+    if (!sr_community_board_requires_verification_login($pdo, $identityBoard, ['identity_restricted_board_required' => false], 'read')) {
+        sr_check_community_board_settings_error('community board read identity action must require post read login.');
+    }
+    $missingIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 1], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
+    if (empty($missingIdentityPolicy['required']) || !empty($missingIdentityPolicy['satisfied']) || !empty($missingIdentityPolicy['available'])) {
+        sr_check_community_board_settings_error('community identity policy must fail closed without identity verification module.');
+    }
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (1, 'identity_verification', '1.0.0', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (2, 'identity_kcp', '1.0.0', 'enabled')");
+    $moduleSettingStmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
          VALUES
-            (12, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
-    )->execute([
-        'setting_key' => 'read_min_level',
-        'setting_value' => '1',
-        'value_type' => 'int',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
-    $restrictedBoard = [
-        'id' => 12,
-        'board_group_id' => 0,
-        'status' => 'enabled',
-        'read_policy' => 'public',
-    ];
-    if (!sr_community_board_requires_verification_login($pdo, $restrictedBoard, ['identity_restricted_board_required' => true])) {
-        sr_check_community_board_settings_error('community restricted board identity setting must require login before policy evaluation.');
+            (1, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['setting_key' => 'enabled', 'setting_value' => '1', 'value_type' => 'bool'],
+        ['setting_key' => 'default_provider_key', 'setting_value' => 'kcp', 'value_type' => 'string'],
+        ['setting_key' => 'provider_kcp_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
+    ] as $setting) {
+        $moduleSettingStmt->execute([
+            'setting_key' => $setting['setting_key'],
+            'setting_value' => $setting['setting_value'],
+            'value_type' => $setting['value_type'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $pdo->exec(
+        "INSERT INTO sr_identity_verification_results
+            (id, attempt_id, account_id, provider_key, age_over_19, verified_at, expires_at, created_at)
+         VALUES
+            (1, 1, 1, 'kcp', 1, '2026-06-14 11:30:00', NULL, '2026-06-14 11:30:00')"
+    );
+    $pdo->exec(
+        "INSERT INTO sr_identity_verification_links
+            (id, account_id, result_id, purpose, linked_at, revoked_at, created_at)
+         VALUES
+            (1, 1, 1, 'community.restricted_board', '2026-06-14 11:30:00', NULL, '2026-06-14 11:30:00')"
+    );
+    sr_clear_module_settings_cache('identity_verification');
+    $passedIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 1], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
+    if (empty($passedIdentityPolicy['required']) || empty($passedIdentityPolicy['available']) || empty($passedIdentityPolicy['satisfied'])) {
+        sr_check_community_board_settings_error('community identity policy must pass accounts with a valid identity verification link.');
+    }
+    $failedIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 2], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
+    if (empty($failedIdentityPolicy['required']) || empty($failedIdentityPolicy['available']) || !empty($failedIdentityPolicy['satisfied'])) {
+        sr_check_community_board_settings_error('community identity policy must block accounts without a valid identity verification link.');
     }
     if (!sr_community_post_locked_by_comments($pdo, $board, 1, 'edit')) {
         sr_check_community_board_settings_error('community edit lock threshold runtime check failed.');
@@ -379,8 +469,10 @@ function sr_check_community_board_settings_runtime(): void
 }
 
 $settingKeys = [
-    'identity_required',
-    'adult_required',
+    'identity_verification_enabled',
+    'identity_verification_purpose',
+    'identity_verification_required_actions',
+    'identity_verification_max_age_days',
     'post_edit_lock_comment_count',
     'post_delete_lock_comment_count',
     'post_body_min_length',

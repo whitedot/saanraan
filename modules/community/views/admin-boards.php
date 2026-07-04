@@ -230,6 +230,9 @@ $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     : '';
 $communityBoardManagerPermissions = sr_community_board_manager_permission_options();
 $communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
+$communityBoardIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+$communityBoardIdentityDisabledAttributes = $communityBoardIdentityVerificationAvailable ? '' : ' disabled aria-describedby="community-board-identity-unavailable"';
 $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
     'community-board-section-extra-fields' => '추가 입력 항목',
@@ -609,19 +612,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_identity_required">본인확인 게시판</label>
+                <label class="form-label" for="community_admin_boards_identity_verification_enabled">본인확인</label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('community_admin_boards_identity_required', 'identity_required', '1', $boardField($formBoard, 'identity_required', '0') === '1', '사용'); ?>
-                    <?php echo $settingSourceRadioHtml('source_identity_required', $boardSettingSource($formBoard, 'identity_required')); ?>
-                    <p class="form-help">사용하면 본인확인을 마친 회원만 게시판 목록과 게시글을 볼 수 있습니다.</p>
+                    <?php echo sr_admin_switch_html('community_admin_boards_identity_verification_enabled', 'identity_verification_enabled', '1', $communityBoardIdentityVerificationAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1', '사용', '', $communityBoardIdentityDisabledAttributes); ?>
+                    <?php echo $settingSourceRadioHtml('source_identity_verification_enabled', $boardSettingSource($formBoard, 'identity_verification_enabled')); ?>
+                    <?php if (!$communityBoardIdentityVerificationAvailable) { ?>
+                        <div id="community-board-identity-unavailable" class="alert alert-warning" role="alert">
+                            본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 게시판 본인확인 정책을 사용할 수 없습니다.
+                        </div>
+                    <?php } ?>
+                    <p class="form-help">사용하면 선택한 행위에서 본인확인 통과 여부를 서버에서 확인합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_adult_required">성인 게시판</label>
+                <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 목적 <span class="sr-required-label">(사용 시 필수)</span></label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('community_admin_boards_adult_required', 'adult_required', '1', $boardField($formBoard, 'adult_required', '0') === '1', '사용'); ?>
-                    <?php echo $settingSourceRadioHtml('source_adult_required', $boardSettingSource($formBoard, 'adult_required')); ?>
-                    <p class="form-help">사용하면 성인 본인확인을 마친 회원만 게시판 목록과 게시글을 볼 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                    <select id="community_admin_boards_identity_verification_purpose" name="identity_verification_purpose" class="form-select"<?php echo $communityBoardIdentityDisabledAttributes; ?> required>
+                        <?php foreach (sr_community_identity_verification_purpose_options() as $purposeKey => $purposeLabel) { ?>
+                            <option value="<?php echo sr_e($purposeKey); ?>"<?php echo $boardField($formBoard, 'identity_verification_purpose', 'real_name') === $purposeKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e($purposeLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <?php echo $settingSourceRadioHtml('source_identity_verification_purpose', $boardSettingSource($formBoard, 'identity_verification_purpose')); ?>
+                    <p class="form-help">성인 본인확인은 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">본인확인 행위 <span class="sr-required-label">(사용 시 필수)</span></span>
+                <div class="form-field">
+                    <?php $selectedIdentityActions = sr_community_identity_verification_required_actions_from_value($boardField($formBoard, 'identity_verification_required_actions', '[]')); ?>
+                    <div class="form-check-group">
+                        <?php foreach (sr_community_identity_verification_action_options() as $actionKey => $actionLabel) { ?>
+                            <?php $actionId = 'community_admin_boards_identity_action_' . $actionKey; ?>
+                            <label class="form-check form-label" for="<?php echo sr_e($actionId); ?>">
+                                <input id="<?php echo sr_e($actionId); ?>" type="checkbox" name="identity_verification_required_actions[]" value="<?php echo sr_e($actionKey); ?>" class="form-checkbox form-checkbox-light"<?php echo in_array($actionKey, $selectedIdentityActions, true) ? ' checked' : ''; ?><?php echo $communityBoardIdentityDisabledAttributes; ?>>
+                                <?php echo sr_admin_choice_label_html($actionLabel); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                    <?php echo $settingSourceRadioHtml('source_identity_verification_required_actions', $boardSettingSource($formBoard, 'identity_verification_required_actions')); ?>
+                    <p class="form-help">선택한 행위는 본인확인을 통과한 회원만 진행할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_identity_verification_max_age_days">본인확인 유효 기간 <span class="sr-required-label">(사용 시 필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_boards_identity_verification_max_age_days" type="number" name="identity_verification_max_age_days" min="0" max="3650" value="<?php echo sr_e($boardField($formBoard, 'identity_verification_max_age_days', '0')); ?>" required class="form-input"<?php echo $communityBoardIdentityDisabledAttributes; ?>>
+                    <?php echo $settingSourceRadioHtml('source_identity_verification_max_age_days', $boardSettingSource($formBoard, 'identity_verification_max_age_days')); ?>
+                    <p class="form-help">0이면 본인확인 결과의 만료 시각만 따르고, 1 이상이면 해당 일수 안의 확인만 인정합니다.</p>
                 </div>
             </div>
             <div class="form-row">

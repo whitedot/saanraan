@@ -57,8 +57,10 @@ function sr_community_board_group_setting_keys(): array
         'read_policy',
         'write_policy',
         'comment_policy',
-        'identity_required',
-        'adult_required',
+        'identity_verification_enabled',
+        'identity_verification_purpose',
+        'identity_verification_required_actions',
+        'identity_verification_max_age_days',
         'read_group_keys',
         'write_group_keys',
         'comment_group_keys',
@@ -181,8 +183,10 @@ function sr_community_board_group_default_settings(array $settings): array
         'read_policy' => 'public',
         'write_policy' => 'member',
         'comment_policy' => 'member',
-        'identity_required' => '0',
-        'adult_required' => '0',
+        'identity_verification_enabled' => '0',
+        'identity_verification_purpose' => 'real_name',
+        'identity_verification_required_actions' => '[]',
+        'identity_verification_max_age_days' => '0',
         'read_group_keys' => '[]',
         'write_group_keys' => '[]',
         'comment_group_keys' => '[]',
@@ -386,6 +390,7 @@ function sr_community_board_setting_value_type(string $settingKey): string
         'comment_body_max_length',
         'list_excerpt_length',
         'list_per_page',
+        'identity_verification_max_age_days',
         'banner_before_list_id',
         'banner_after_list_id',
         'banner_before_view_id',
@@ -399,11 +404,11 @@ function sr_community_board_setting_value_type(string $settingKey): string
         return 'int';
     }
 
-    if (in_array($settingKey, ['identity_required', 'adult_required', 'file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled') || str_starts_with($settingKey, 'privacy_consent_require_')) {
+    if (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled') || str_starts_with($settingKey, 'privacy_consent_require_')) {
         return 'bool';
     }
 
-    if (in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys'], true) || str_ends_with($settingKey, '_amounts_json')) {
+    if (in_array($settingKey, ['read_group_keys', 'write_group_keys', 'comment_group_keys', 'identity_verification_required_actions'], true) || str_ends_with($settingKey, '_amounts_json')) {
         return 'json';
     }
 

@@ -29,17 +29,29 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $readPolicy = sr_post_string('read_policy', 30);
         $writePolicy = sr_post_string('write_policy', 30);
         $commentPolicy = sr_post_string('comment_policy', 30);
-        $identityRequired = ($_POST['identity_required'] ?? '') === '1';
-        $adultRequired = ($_POST['adult_required'] ?? '') === '1';
-        if ($adultRequired) {
-            if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
-                require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+        $identityVerificationEnabled = ($_POST['identity_verification_enabled'] ?? '') === '1';
+        $identityVerificationPurpose = sr_community_identity_verification_purpose(sr_post_string('identity_verification_purpose', 30));
+        $identityVerificationRequiredActions = sr_community_identity_verification_required_actions_input($_POST['identity_verification_required_actions'] ?? []);
+        $identityVerificationMaxAgeDays = sr_admin_post_int_in_range('identity_verification_max_age_days', 0, 3650);
+        $identityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+        if ($identityVerificationEnabled) {
+            if ($identityVerificationRequiredActions === []) {
+                $errors[] = '본인확인을 사용할 행위를 1개 이상 선택하세요.';
             }
-            if (function_exists('sr_identity_verification_adult_setting_errors')) {
-                $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, true, '성인 게시판'));
+            if (!$identityVerificationAvailable) {
+                $errors[] = '게시판 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
             } else {
-                $errors[] = '성인 게시판을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
+                require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+                if ($identityVerificationPurpose === 'adult' && function_exists('sr_identity_verification_adult_setting_errors')) {
+                    $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, true, '성인 본인확인 정책'));
+                }
             }
+        }
+        if ($identityVerificationMaxAgeDays === null) {
+            if ($identityVerificationEnabled) {
+                $errors[] = '본인확인 유효 기간이 올바르지 않습니다.';
+            }
+            $identityVerificationMaxAgeDays = 0;
         }
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
@@ -545,8 +557,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,
-                'identity_required' => $identityRequired ? '1' : '0',
-                'adult_required' => $adultRequired ? '1' : '0',
+                'identity_verification_enabled' => $identityVerificationEnabled ? '1' : '0',
+                'identity_verification_purpose' => $identityVerificationPurpose,
+                'identity_verification_required_actions' => sr_community_identity_verification_actions_setting_value($identityVerificationRequiredActions),
+                'identity_verification_max_age_days' => (string) $identityVerificationMaxAgeDays,
                 'read_group_keys' => sr_community_board_group_keys_setting_value($readGroupKeys),
                 'write_group_keys' => sr_community_board_group_keys_setting_value($writeGroupKeys),
                 'comment_group_keys' => sr_community_board_group_keys_setting_value($commentGroupKeys),
@@ -645,8 +659,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'write_group_keys' => $writeGroupKeys,
                     'comment_group_keys' => $commentGroupKeys,
                     'read_min_level' => $readMinLevel,
-                    'identity_required' => $identityRequired,
-                    'adult_required' => $adultRequired,
+                    'identity_verification_enabled' => $identityVerificationEnabled,
+                    'identity_verification_purpose' => $identityVerificationPurpose,
+                    'identity_verification_required_actions' => $identityVerificationRequiredActions,
+                    'identity_verification_max_age_days' => $identityVerificationMaxAgeDays,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
                     'category_enabled' => $categoryEnabled,

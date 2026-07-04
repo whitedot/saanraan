@@ -23,6 +23,17 @@ foreach (sr_community_enabled_boards($pdo) as $board) {
         continue;
     }
 
+    $boardIdentityPolicy = sr_community_identity_action_policy(
+        $pdo,
+        $board,
+        is_array($account) ? $account : null,
+        'enter',
+        sr_community_board_group_path($groupKey)
+    );
+    if (!empty($boardIdentityPolicy['required']) && empty($boardIdentityPolicy['satisfied'])) {
+        continue;
+    }
+
     $groupBoards[] = $board;
 }
 

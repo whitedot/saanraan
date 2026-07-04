@@ -13,31 +13,23 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
 }
 $account = sr_member_current_account($pdo);
 $settings = sr_community_settings($pdo);
-$boardRequiresVerificationLogin = sr_community_board_requires_verification_login($pdo, $board, $settings);
+$boardRequiresVerificationLogin = sr_community_board_requires_verification_login($pdo, $board, $settings, 'enter');
 if (!is_array($account) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin)) {
     $account = sr_member_require_login($pdo);
 }
 if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
     sr_render_error(403, sr_t('community::action.error.board_view_forbidden'));
 }
-$communityBoardIdentityPolicy = sr_community_identity_restricted_board_policy(
+$communityBoardIdentityPolicy = sr_community_identity_action_policy(
     $pdo,
     $board,
     is_array($account) ? $account : null,
+    'enter',
     '/community/board?key=' . rawurlencode($boardKey),
     $settings
 );
 if (!empty($communityBoardIdentityPolicy['required']) && empty($communityBoardIdentityPolicy['satisfied'])) {
-    sr_render_error(403, '이 게시판을 보려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
-}
-$communityBoardAdultIdentityPolicy = sr_community_identity_adult_board_policy(
-    $pdo,
-    $board,
-    is_array($account) ? $account : null,
-    '/community/board?key=' . rawurlencode($boardKey)
-);
-if (!empty($communityBoardAdultIdentityPolicy['required']) && empty($communityBoardAdultIdentityPolicy['satisfied'])) {
-    sr_render_error(403, '이 게시판을 보려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+    sr_render_error(403, sr_community_identity_action_error_message('enter', (string) ($communityBoardIdentityPolicy['purpose'] ?? 'real_name')));
 }
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);

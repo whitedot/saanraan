@@ -28,6 +28,21 @@ $isGuestAuthor = !is_array($account);
 
 $settings = sr_community_settings($pdo);
 $board = sr_community_board_by_id($pdo, (int) $post['board_id']);
+if (is_array($board)) {
+    if (!is_array($account) && sr_community_board_identity_action_required($pdo, $board, 'comment')) {
+        $account = sr_member_require_login($pdo);
+    }
+    $commentIdentityPolicy = sr_community_identity_action_policy(
+        $pdo,
+        $board,
+        is_array($account) ? $account : null,
+        'comment',
+        '/community/post?id=' . (string) $postId . '#comments'
+    );
+    if (!empty($commentIdentityPolicy['required']) && empty($commentIdentityPolicy['satisfied'])) {
+        sr_render_error(403, sr_community_identity_action_error_message('comment', (string) ($commentIdentityPolicy['purpose'] ?? 'real_name')));
+    }
+}
 $commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
 $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
 $values = sr_community_comment_input_values();

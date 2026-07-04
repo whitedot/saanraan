@@ -71,6 +71,21 @@ if ($driver === 's3') {
 $post = is_array($attachment['post'] ?? null) ? $attachment['post'] : [];
 $postPath = '/community/post?id=' . rawurlencode((string) (int) ($post['id'] ?? 0));
 $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+if (is_array($board)) {
+    if (!is_array($account) && sr_community_board_identity_action_required($pdo, $board, 'download')) {
+        $account = sr_member_require_login($pdo);
+    }
+    $downloadIdentityPolicy = sr_community_identity_action_policy(
+        $pdo,
+        $board,
+        is_array($account) ? $account : null,
+        'download',
+        $postPath
+    );
+    if (!empty($downloadIdentityPolicy['required']) && empty($downloadIdentityPolicy['satisfied'])) {
+        sr_render_error(403, sr_community_identity_action_error_message('download', (string) ($downloadIdentityPolicy['purpose'] ?? 'real_name')));
+    }
+}
 $isUploader = is_array($account) && (int) ($attachment['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 $isAttachmentAdmin = is_array($account)
