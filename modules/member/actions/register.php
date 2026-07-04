@@ -47,6 +47,12 @@ if ($registrationIdentityReturnToken !== '' && function_exists('sr_identity_veri
 }
 $registrationIdentitySatisfied = is_array($registrationIdentityResult);
 $registrationIdentitySnapshot = [];
+if ($registrationIdentitySatisfied
+    && $registrationIdentityReturnToken !== ''
+    && function_exists('sr_identity_verification_take_registration_snapshot')
+) {
+    $registrationIdentitySnapshot = sr_identity_verification_take_registration_snapshot($config, $registrationIdentityReturnToken);
+}
 $registrationIdentityRequired = $registrationIdentityMode === 'required';
 $registrationIdentityFieldsLocked = $registrationIdentitySatisfied;
 $registrationIdentityStartUrl = $registrationIdentityAvailable && function_exists('sr_identity_verification_start_url')
@@ -72,12 +78,15 @@ if (array_key_exists('age_over_19', is_array($registrationIdentityResult) ? $reg
     $profileValues['is_adult'] = (int) $registrationIdentityResult['age_over_19'] === 1 ? '1' : '0';
 }
 $profileExtraValues = [];
+$registrationIdentityLockedProfileExtraKeys = [];
 foreach ($profileExtraFieldDefinitions as $profileExtraFieldDefinition) {
     $profileExtraKey = (string) ($profileExtraFieldDefinition['key'] ?? '');
     if (in_array($profileExtraKey, ['phone', 'mobile', 'mobile_phone', 'phone_number'], true) && !empty($registrationIdentitySnapshot['phone'])) {
         $profileExtraValues[$profileExtraKey] = (string) $registrationIdentitySnapshot['phone'];
+        $registrationIdentityLockedProfileExtraKeys[] = $profileExtraKey;
     }
 }
+$registrationIdentityLockedProfileExtraKeys = array_values(array_unique($registrationIdentityLockedProfileExtraKeys));
 $antispamRegisterContext = ['account' => null];
 
 if (sr_request_method() === 'POST') {
@@ -154,8 +163,13 @@ if (sr_request_method() === 'POST') {
             ) {
                 $errors[] = '본인확인 휴대폰 번호와 가입 휴대폰 번호가 일치하지 않습니다.';
             }
+            if ((string) ($profileExtraValues[$profileExtraKey] ?? '') !== '') {
+                $registrationIdentityLockedProfileExtraKeys[] = $profileExtraKey;
+            }
         }
     }
+
+    $registrationIdentityLockedProfileExtraKeys = array_values(array_unique($registrationIdentityLockedProfileExtraKeys));
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = sr_t('member::action.register.email_invalid');

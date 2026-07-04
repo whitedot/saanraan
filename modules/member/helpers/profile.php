@@ -775,7 +775,7 @@ function sr_member_profile_extra_field_value_count_by_keys(PDO $pdo, array $fiel
     return (int) $stmt->fetchColumn();
 }
 
-function sr_member_profile_extra_field_form_html(array $definition, array $values = [], string $idPrefix = 'modules_member_profile_extra'): string
+function sr_member_profile_extra_field_form_html(array $definition, array $values = [], string $idPrefix = 'modules_member_profile_extra', array $options = []): string
 {
     $key = (string) ($definition['key'] ?? '');
     if ($key === '') {
@@ -789,11 +789,17 @@ function sr_member_profile_extra_field_form_html(array $definition, array $value
     $name = 'member_profile_fields[' . $key . ']';
     $rawValue = $values[$key] ?? '';
     $value = is_array($rawValue) ? '' : (string) $rawValue;
+    $lockedKeys = isset($options['locked_keys']) && is_array($options['locked_keys']) ? $options['locked_keys'] : [];
+    $locked = in_array($key, array_map('strval', $lockedKeys), true);
+    $lockedFieldAttribute = $locked ? ' data-member-identity-locked-field="' . sr_e($key) . '"' : '';
     $html = '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : '') . '</span>';
     if ($type === 'textarea') {
-        $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000" class="form-textarea"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
+        $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000" class="form-textarea"' . ($required ? ' required' : '') . ($locked ? ' readonly' : '') . $lockedFieldAttribute . '>' . sr_e($value) . '</textarea>';
     } elseif ($type === 'select') {
-        $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '" class="form-select"' . ($required ? ' required' : '') . '>';
+        if ($locked) {
+            $html .= '<input type="hidden" name="' . sr_e($name) . '" value="' . sr_e($value) . '">';
+        }
+        $html .= '<select id="' . sr_e($id) . '"' . ($locked ? '' : ' name="' . sr_e($name) . '"') . ' class="form-select"' . ($required ? ' required' : '') . ($locked ? ' disabled' : '') . $lockedFieldAttribute . '>';
         $html .= '<option value="">' . sr_e('선택') . '</option>';
         foreach ((array) ($definition['options'] ?? []) as $option) {
             $option = (string) $option;
@@ -801,16 +807,19 @@ function sr_member_profile_extra_field_form_html(array $definition, array $value
         }
         $html .= '</select>';
     } elseif ($type === 'checkbox') {
-        $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
+        if ($locked) {
+            $html .= '<input type="hidden" name="' . sr_e($name) . '" value="' . ($value === '1' ? '1' : '0') . '">';
+        }
+        $html .= '<input id="' . sr_e($id) . '" type="checkbox"' . ($locked ? '' : ' name="' . sr_e($name) . '"') . ' value="1" class="form-checkbox"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . ($locked ? ' disabled' : '') . $lockedFieldAttribute . '>';
     } else {
-        $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input"' . ($required ? ' required' : '') . '>';
+        $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '" class="form-input"' . ($required ? ' required' : '') . ($locked ? ' readonly' : '') . $lockedFieldAttribute . '>';
     }
     $html .= '</label></p>';
 
     return $html;
 }
 
-function sr_member_profile_extra_fields_form_html(array $definitions, array $values = [], string $idPrefix = 'modules_member_profile_extra', bool $wrap = true): string
+function sr_member_profile_extra_fields_form_html(array $definitions, array $values = [], string $idPrefix = 'modules_member_profile_extra', bool $wrap = true, array $options = []): string
 {
     if ($definitions === []) {
         return '';
@@ -818,7 +827,7 @@ function sr_member_profile_extra_fields_form_html(array $definitions, array $val
 
     $html = $wrap ? '<fieldset class="member-profile-extra-fields"><legend>' . sr_e('추가 프로필') . '</legend>' : '';
     foreach ($definitions as $definition) {
-        $html .= sr_member_profile_extra_field_form_html($definition, $values, $idPrefix);
+        $html .= sr_member_profile_extra_field_form_html($definition, $values, $idPrefix, $options);
     }
     $html .= $wrap ? '</fieldset>' : '';
 

@@ -42,6 +42,28 @@ if (!sr_identity_verification_provider_supports_purpose($simpleProvider, 'member
     $errors[] = 'simple auth provider should remain available for one-time withdrawal purpose.';
 }
 
+$registrationSnapshotConfig = ['app_key' => 'identity-runtime-check-app-key'];
+$registrationSnapshotToken = 'runtime-registration-state-token';
+unset($_SESSION[sr_identity_verification_registration_snapshot_session_key()]);
+sr_identity_verification_remember_registration_snapshot($registrationSnapshotConfig, $registrationSnapshotToken, [
+    'name' => '홍길동',
+    'phone' => '010-1234-5678',
+    'birth_date' => '19830722',
+    'age_over_19' => true,
+]);
+$registrationSnapshot = sr_identity_verification_take_registration_snapshot($registrationSnapshotConfig, $registrationSnapshotToken);
+if (($registrationSnapshot['name'] ?? '') !== '홍길동'
+    || ($registrationSnapshot['phone'] ?? '') !== '01012345678'
+    || ($registrationSnapshot['birth_date'] ?? '') !== '1983-07-22'
+    || ($registrationSnapshot['age_over_19'] ?? '') !== '1'
+) {
+    $errors[] = 'registration identity snapshot must preserve normalized plain values for the first registration render only.';
+}
+$registrationSnapshotAgain = sr_identity_verification_take_registration_snapshot($registrationSnapshotConfig, $registrationSnapshotToken);
+if ($registrationSnapshotAgain !== []) {
+    $errors[] = 'registration identity snapshot must be consumed after one read.';
+}
+
 $kcpTestProvider = ['environment' => 'test', 'settings' => []];
 $kcpProductionProvider = ['environment' => 'production', 'settings' => []];
 if (sr_identity_kcp_site_cd($kcpTestProvider) !== SR_IDENTITY_KCP_TEST_SITE_CD) {
@@ -106,6 +128,8 @@ if (!is_string($identityHelpers)) {
     || !str_contains($identityHelpers, "sr_request_contract_mark('csrf_checked');")
     || !str_contains($identityHelpers, 'function sr_identity_verification_identity_snapshot(array $identity): array')
     || !str_contains($identityHelpers, 'function sr_identity_verification_session_identity_snapshot(')
+    || !str_contains($identityHelpers, 'function sr_identity_verification_remember_registration_snapshot(')
+    || !str_contains($identityHelpers, 'function sr_identity_verification_take_registration_snapshot(')
     || !str_contains($identityHelpers, 'function sr_identity_verification_attempt_expired(array $attempt, ?int $now = null): bool')
     || !str_contains($identityHelpers, "new DateTimeZone('UTC')")
     || !str_contains($identityHelpers, 'function sr_identity_verification_result_for_return_token(')
@@ -122,6 +146,7 @@ if (!is_string($returnAction)) {
     || !str_contains($returnAction, 'sr_identity_verification_attempt_expired($attempt)')
     || !str_contains($returnAction, 'identity_verification_token=')
     || !str_contains($returnAction, "(string) (\$attempt['purpose'] ?? '') !== 'member.registration'")
+    || !str_contains($returnAction, 'sr_identity_verification_remember_registration_snapshot($config, $stateToken, $identitySnapshot)')
     || !str_contains($returnAction, "sr_log_exception(\$exception, 'identity_verification_provider_verify_failed')")
 ) {
     $errors[] = 'identity verification return action must handle external provider POST and render popup finish view.';
@@ -136,6 +161,8 @@ if (!is_string($registerAction)) {
     || !str_contains($registerAction, 'sr_identity_verification_result_for_return_token(')
     || str_contains($registerAction, 'sr_identity_verification_claim_return_token(')
     || !str_contains($registerAction, '$registrationIdentityFieldsLocked = $registrationIdentitySatisfied;')
+    || !str_contains($registerAction, 'sr_identity_verification_take_registration_snapshot($config, $registrationIdentityReturnToken)')
+    || !str_contains($registerAction, '$registrationIdentityLockedProfileExtraKeys')
     || !str_contains($registerAction, "sr_identity_verification_hmac_field(\$config, 'name'")
 ) {
     $errors[] = 'member registration must validate one-form identity verification return tokens and enforce locked identity fields.';
@@ -152,6 +179,8 @@ if (!is_string($registerView)) {
     || !str_contains($registerView, "window.addEventListener('pagehide'")
     || !str_contains($registerView, "window.location.replace('/register')")
     || !str_contains($registerView, "sessionStorage.getItem('sr_identity_verification_result')")
+    || !str_contains($registerView, 'var serverIdentity = <?php echo sr_js_json_encode')
+    || !str_contains($registerView, "'locked_keys' => !empty(\$registrationIdentityFieldsLocked)")
 ) {
     $errors[] = 'member registration view must clearly show identity verification states and lock matched fields.';
 }

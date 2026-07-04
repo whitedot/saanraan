@@ -57,6 +57,8 @@ try {
             : [];
         if ((string) ($attempt['purpose'] ?? '') !== 'member.registration') {
             sr_identity_verification_remember_session_result($attempt, $resultId, $identitySnapshot);
+        } else {
+            sr_identity_verification_remember_registration_snapshot($config, $stateToken, $identitySnapshot);
         }
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($attempt['account_id'] ?? 0),

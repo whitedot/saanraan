@@ -125,7 +125,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
                         </p>
                     <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'extra') { ?>
-                        <?php echo sr_member_profile_extra_fields_form_html([$memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileOrderItem['key'] ?? '')] ?? []], is_array($profileExtraValues ?? null) ? $profileExtraValues : [], 'modules_member_register_profile_extra', false); ?>
+                        <?php echo sr_member_profile_extra_fields_form_html(
+                            [$memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileOrderItem['key'] ?? '')] ?? []],
+                            is_array($profileExtraValues ?? null) ? $profileExtraValues : [],
+                            'modules_member_register_profile_extra',
+                            false,
+                            ['locked_keys' => !empty($registrationIdentityFieldsLocked) && is_array($registrationIdentityLockedProfileExtraKeys ?? null) ? $registrationIdentityLockedProfileExtraKeys : []]
+                        ); ?>
                     <?php } ?>
                 <?php } ?>
                 <p>
@@ -200,11 +206,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             }
             if (identityLocked) {
                 try {
+                    var serverIdentity = <?php echo sr_js_json_encode(is_array($registrationIdentitySnapshot ?? null) ? $registrationIdentitySnapshot : []); ?>;
                     var rawIdentity = window.sessionStorage.getItem('sr_identity_verification_result');
                     var identityPayload = rawIdentity ? JSON.parse(rawIdentity) : null;
                     var identity = identityPayload && identityPayload.result === 'success' && identityPayload.purpose === 'member.registration'
                         ? identityPayload.identity || {}
-                        : {};
+                        : serverIdentity || {};
                     var displayName = document.getElementById('modules_member_register_display_name');
                     var birthDate = document.getElementById('modules_member_register_birth_date');
                     var isAdult = document.getElementById('modules_member_register_is_adult');

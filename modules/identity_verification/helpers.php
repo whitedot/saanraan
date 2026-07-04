@@ -501,6 +501,11 @@ function sr_identity_verification_session_key(): string
     return 'sr_identity_verification_results';
 }
 
+function sr_identity_verification_registration_snapshot_session_key(): string
+{
+    return 'sr_identity_verification_registration_snapshots';
+}
+
 function sr_identity_verification_identity_snapshot(array $identity): array
 {
     $name = trim((string) ($identity['name'] ?? ''));
@@ -517,6 +522,65 @@ function sr_identity_verification_identity_snapshot(array $identity): array
         'age_over_14' => $ageOver14 === null || $ageOver14 === '' ? '' : (sr_truthy($ageOver14) ? '1' : '0'),
         'age_over_19' => $ageOver19 === null || $ageOver19 === '' ? '' : (sr_truthy($ageOver19) ? '1' : '0'),
     ];
+}
+
+function sr_identity_verification_purge_registration_snapshots(int $maxAgeSeconds = 300): void
+{
+    $sessionKey = sr_identity_verification_registration_snapshot_session_key();
+    if (!isset($_SESSION[$sessionKey]) || !is_array($_SESSION[$sessionKey])) {
+        return;
+    }
+
+    $minCreatedAt = time() - max(30, $maxAgeSeconds);
+    foreach ($_SESSION[$sessionKey] as $key => $snapshot) {
+        if (!is_array($snapshot) || (int) ($snapshot['created_at'] ?? 0) < $minCreatedAt) {
+            unset($_SESSION[$sessionKey][$key]);
+        }
+    }
+}
+
+function sr_identity_verification_remember_registration_snapshot(array $config, string $stateToken, array $identitySnapshot): void
+{
+    $stateToken = trim($stateToken);
+    if ($stateToken === '') {
+        return;
+    }
+
+    sr_identity_verification_purge_registration_snapshots();
+    $sessionKey = sr_identity_verification_registration_snapshot_session_key();
+    if (!isset($_SESSION[$sessionKey]) || !is_array($_SESSION[$sessionKey])) {
+        $_SESSION[$sessionKey] = [];
+    }
+
+    $_SESSION[$sessionKey][sr_identity_verification_hash_token($stateToken, $config)] = [
+        'identity' => sr_identity_verification_identity_snapshot($identitySnapshot),
+        'created_at' => time(),
+    ];
+}
+
+function sr_identity_verification_take_registration_snapshot(array $config, string $stateToken, ?int $maxAgeSeconds = 300): array
+{
+    $stateToken = trim($stateToken);
+    if ($stateToken === '') {
+        return [];
+    }
+
+    sr_identity_verification_purge_registration_snapshots($maxAgeSeconds ?? 300);
+    $sessionKey = sr_identity_verification_registration_snapshot_session_key();
+    $snapshotKey = sr_identity_verification_hash_token($stateToken, $config);
+    $snapshot = isset($_SESSION[$sessionKey][$snapshotKey]) && is_array($_SESSION[$sessionKey][$snapshotKey])
+        ? $_SESSION[$sessionKey][$snapshotKey]
+        : null;
+    unset($_SESSION[$sessionKey][$snapshotKey]);
+    if (!is_array($snapshot)) {
+        return [];
+    }
+    if ($maxAgeSeconds !== null && $maxAgeSeconds > 0 && (int) ($snapshot['created_at'] ?? 0) < time() - $maxAgeSeconds) {
+        return [];
+    }
+
+    $identity = isset($snapshot['identity']) && is_array($snapshot['identity']) ? $snapshot['identity'] : [];
+    return sr_identity_verification_identity_snapshot($identity);
 }
 
 function sr_identity_verification_remember_session_result(array $attempt, int $resultId, array $identitySnapshot = []): void
