@@ -79,6 +79,7 @@ function sr_send_security_headers(?array $config = null): void
         return;
     }
 
+    $formActionSources = sr_content_security_policy_form_action_sources();
     $contentSecurityPolicy = [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' https://cdn.ckeditor.com",
@@ -89,7 +90,7 @@ function sr_send_security_headers(?array $config = null): void
         "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
         "base-uri 'self'",
         "frame-ancestors 'self'",
-        "form-action 'self'",
+        'form-action ' . implode(' ', $formActionSources),
     ];
 
     header('X-Content-Type-Options: nosniff');
@@ -103,6 +104,19 @@ function sr_send_security_headers(?array $config = null): void
     if ((sr_is_https_request($config) || !empty($security['force_https'])) && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
+}
+
+function sr_content_security_policy_form_action_sources(): array
+{
+    $sources = ["'self'"];
+    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    if ($requestPath === '/identity/verify/start') {
+        $sources[] = 'https://testcert.kcp.co.kr';
+        $sources[] = 'https://cert.kcp.co.kr';
+        $sources[] = 'https://sa.inicis.com';
+    }
+
+    return array_values(array_unique($sources));
 }
 
 function sr_is_https_request(?array $config = null): bool

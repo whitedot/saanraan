@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/identity_verification/helpers.php';
 
+const SR_IDENTITY_KCP_TEST_SITE_CD = 'AO7F3';
+const SR_IDENTITY_KCP_TEST_ENC_KEY = 'c2a22fa3ebe4698075bcac6b433d52e351c881b02fb83488d4283a43385b1f8e';
+
 function sr_identity_kcp_prepare(PDO $pdo, array $config, array $site, array $provider, array $attempt): array
 {
-    $siteCd = sr_identity_verification_provider_setting($provider, 'site_cd');
-    $encKey = sr_identity_verification_provider_setting($provider, 'enc_key');
+    $siteCd = sr_identity_kcp_site_cd($provider);
+    $encKey = sr_identity_kcp_enc_key($provider);
     if ($siteCd === '' || $encKey === '') {
         throw new RuntimeException('KCP site_cd and ENC_KEY are required.');
     }
@@ -75,8 +78,8 @@ function sr_identity_kcp_verify_return(PDO $pdo, array $config, array $site, arr
         ];
     }
 
-    $siteCd = sr_identity_verification_provider_setting($provider, 'site_cd');
-    $encKey = sr_identity_verification_provider_setting($provider, 'enc_key');
+    $siteCd = sr_identity_kcp_site_cd($provider);
+    $encKey = sr_identity_kcp_enc_key($provider);
     if ($siteCd === '' || $encKey === '') {
         throw new RuntimeException('KCP site_cd and ENC_KEY are required.');
     }
@@ -134,6 +137,26 @@ function sr_identity_kcp_result_endpoint(array $provider): string
         : 'https://testcert.kcp.co.kr/api/query/getCertData.do';
 }
 
+function sr_identity_kcp_site_cd(array $provider): string
+{
+    $siteCd = sr_identity_verification_provider_setting($provider, 'site_cd');
+    if ($siteCd !== '') {
+        return $siteCd;
+    }
+
+    return (string) ($provider['environment'] ?? 'test') === 'production' ? '' : SR_IDENTITY_KCP_TEST_SITE_CD;
+}
+
+function sr_identity_kcp_enc_key(array $provider): string
+{
+    $encKey = sr_identity_verification_provider_setting($provider, 'enc_key');
+    if ($encKey !== '') {
+        return $encKey;
+    }
+
+    return (string) ($provider['environment'] ?? 'test') === 'production' ? '' : SR_IDENTITY_KCP_TEST_ENC_KEY;
+}
+
 function sr_identity_kcp_load_library(array $provider): void
 {
     $path = sr_identity_verification_provider_setting($provider, 'library_path');
@@ -162,17 +185,17 @@ function sr_identity_kcp_encrypt_json(array $provider, array $payload, string $e
     if (!is_callable($function) && is_callable('encrypJson')) {
         $function = 'encrypJson';
     }
-    if (!is_callable($function)) {
-        throw new RuntimeException('KCP encryptJson function is not available.');
-    }
     $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if (!is_string($json)) {
         throw new RuntimeException('KCP payload encoding failed.');
     }
+    if (!is_callable($function)) {
+        return sr_identity_kcp_v2_encrypt_json($json, $encKey, $siteCd);
+    }
     $rv = '';
     $result = $function($json, $encKey, $siteCd, $rv);
     if (is_array($result)) {
-        $encData = (string) ($result['enc_data'] ?? $result[0] ?? '');
+        $encData = (string) ($result['enc_data'] ?? $result['encData'] ?? $result[0] ?? '');
         $rvValue = (string) ($result['rv'] ?? $result[1] ?? $rv);
     } else {
         $encData = (string) $result;
@@ -188,19 +211,57 @@ function sr_identity_kcp_encrypt_json(array $provider, array $payload, string $e
 function sr_identity_kcp_decrypt_json(array $provider, string $encCertData, string $rv, string $encKey, string $siteCd): array
 {
     $function = sr_identity_kcp_crypto_function($provider, 'decrypt_function', 'decryptJson');
-    if (!is_callable($function)) {
-        throw new RuntimeException('KCP decryptJson function is not available.');
-    }
     if ($encCertData === '' || $rv === '') {
         throw new RuntimeException('KCP encrypted result is missing.');
     }
-    $result = $function($encCertData, $rv, $encKey, $siteCd);
+    $result = is_callable($function)
+        ? $function($encCertData, $rv, $encKey, $siteCd)
+        : sr_identity_kcp_v2_decrypt_json($encCertData, $rv, $encKey, $siteCd);
     $decoded = is_array($result) ? $result : json_decode((string) $result, true);
     if (!is_array($decoded)) {
         throw new RuntimeException('KCP decrypted result is invalid.');
     }
 
     return $decoded;
+}
+
+function sr_identity_kcp_v2_encrypt_json(string $json, string $encKey, string $siteCd): array
+{
+    if (!function_exists('hash_pbkdf2') || !function_exists('openssl_encrypt')) {
+        throw new RuntimeException('KCP V2 crypto support is not available.');
+    }
+    $salt = random_bytes(16);
+    $key = hash_pbkdf2('sha256', $encKey, $salt, 10000, 32, true);
+    $ivSeed = hash_pbkdf2('sha256', $siteCd, $salt, 10000, 32, true);
+    $encrypted = openssl_encrypt($json, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, substr($ivSeed, 0, 16));
+    if (!is_string($encrypted) || $encrypted === '') {
+        throw new RuntimeException('KCP encryption result is invalid.');
+    }
+
+    return [
+        'enc_data' => base64_encode($encrypted),
+        'rv' => base64_encode($salt),
+    ];
+}
+
+function sr_identity_kcp_v2_decrypt_json(string $encCertData, string $rv, string $encKey, string $siteCd): string
+{
+    if (!function_exists('hash_pbkdf2') || !function_exists('openssl_decrypt')) {
+        throw new RuntimeException('KCP V2 crypto support is not available.');
+    }
+    $salt = base64_decode($rv, true);
+    $encrypted = base64_decode($encCertData, true);
+    if (!is_string($salt) || $salt === '' || !is_string($encrypted) || $encrypted === '') {
+        throw new RuntimeException('KCP encrypted result is invalid.');
+    }
+    $key = hash_pbkdf2('sha256', $encKey, $salt, 10000, 32, true);
+    $ivSeed = hash_pbkdf2('sha256', $siteCd, $salt, 10000, 32, true);
+    $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, substr($ivSeed, 0, 16));
+    if (!is_string($decrypted) || $decrypted === '') {
+        throw new RuntimeException('KCP decrypted result is invalid.');
+    }
+
+    return $decrypted;
 }
 
 function sr_identity_kcp_identity(array $decoded): array

@@ -34,24 +34,50 @@ $registrationIdentityMode = sr_member_identity_requirement_mode($memberSettings[
 $registrationIdentityPurpose = 'member.registration';
 $registrationIdentityAvailable = function_exists('sr_identity_verification_available')
     && sr_identity_verification_available($pdo, $registrationIdentityPurpose);
-$registrationIdentitySatisfied = function_exists('sr_identity_verification_session_result')
-    && sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0) !== null;
+$registrationIdentityReturnStatus = function_exists('sr_get_string') ? sr_get_string('identity_verification', 30) : '';
+if (!in_array($registrationIdentityReturnStatus, ['success', 'expired', 'failed', 'canceled', 'duplicate'], true)) {
+    $registrationIdentityReturnStatus = '';
+}
+$registrationIdentityReturnToken = sr_request_method() === 'POST'
+    ? sr_post_string('identity_verification_token', 160)
+    : sr_get_string('identity_verification_token', 160);
+$registrationIdentityResult = null;
+if ($registrationIdentityReturnToken !== '' && function_exists('sr_identity_verification_result_for_return_token')) {
+    $registrationIdentityResult = sr_identity_verification_result_for_return_token($pdo, $config, $registrationIdentityReturnToken, $registrationIdentityPurpose, 0);
+}
+$registrationIdentitySatisfied = is_array($registrationIdentityResult);
+$registrationIdentitySnapshot = [];
 $registrationIdentityRequired = $registrationIdentityMode === 'required';
+$registrationIdentityFieldsLocked = $registrationIdentityRequired && $registrationIdentitySatisfied;
 $registrationIdentityStartUrl = $registrationIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($registrationIdentityPurpose, '/register')
     : '';
+if ($registrationIdentityStartUrl !== '') {
+    $registrationIdentityStartUrl .= (str_contains($registrationIdentityStartUrl, '?') ? '&' : '?') . 'popup=1';
+}
 $errors = [];
-$registrationIdentityResult = null;
 $registrationConsentValues = [];
 $values = [
     'email' => '',
     'login_id' => '',
-    'display_name' => '',
+    'display_name' => !empty($registrationIdentitySnapshot['name']) ? (string) $registrationIdentitySnapshot['name'] : '',
     'nickname' => '',
 ];
 $registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
+if (!empty($registrationIdentityResult['birth_date'])) {
+    $profileValues['birth_date'] = (string) $registrationIdentityResult['birth_date'];
+}
+if (array_key_exists('age_over_19', is_array($registrationIdentityResult) ? $registrationIdentityResult : []) && $registrationIdentityResult['age_over_19'] !== null) {
+    $profileValues['is_adult'] = (int) $registrationIdentityResult['age_over_19'] === 1 ? '1' : '0';
+}
 $profileExtraValues = [];
+foreach ($profileExtraFieldDefinitions as $profileExtraFieldDefinition) {
+    $profileExtraKey = (string) ($profileExtraFieldDefinition['key'] ?? '');
+    if (in_array($profileExtraKey, ['phone', 'mobile', 'mobile_phone', 'phone_number'], true) && !empty($registrationIdentitySnapshot['phone'])) {
+        $profileExtraValues[$profileExtraKey] = (string) $registrationIdentitySnapshot['phone'];
+    }
+}
 $antispamRegisterContext = ['account' => null];
 
 if (sr_request_method() === 'POST') {
@@ -98,6 +124,37 @@ if (sr_request_method() === 'POST') {
     if ($profileFieldsEnabled) {
         $profileValues = sr_member_profile_values_from_post($profilePolicies, sr_member_empty_profile());
         $profileExtraValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
+    }
+    if ($registrationIdentityFieldsLocked && is_array($registrationIdentityResult)) {
+        if (!empty($registrationIdentitySnapshot['name'])) {
+            $values['display_name'] = (string) $registrationIdentitySnapshot['name'];
+        } elseif ((string) ($registrationIdentityResult['name_hash'] ?? '') !== ''
+            && function_exists('sr_identity_verification_hmac_field')
+            && sr_identity_verification_hmac_field($config, 'name', (string) $values['display_name']) !== (string) $registrationIdentityResult['name_hash']
+        ) {
+            $errors[] = '본인확인 이름과 가입 이름이 일치하지 않습니다.';
+        }
+        if (!empty($registrationIdentityResult['birth_date'])) {
+            $profileValues['birth_date'] = (string) $registrationIdentityResult['birth_date'];
+        }
+        if (array_key_exists('age_over_19', $registrationIdentityResult) && $registrationIdentityResult['age_over_19'] !== null) {
+            $profileValues['is_adult'] = (int) $registrationIdentityResult['age_over_19'] === 1 ? '1' : '0';
+        }
+        foreach ($profileExtraFieldDefinitions as $profileExtraFieldDefinition) {
+            $profileExtraKey = (string) ($profileExtraFieldDefinition['key'] ?? '');
+            if (!in_array($profileExtraKey, ['phone', 'mobile', 'mobile_phone', 'phone_number'], true)) {
+                continue;
+            }
+            if (!empty($registrationIdentitySnapshot['phone'])) {
+                $profileExtraValues[$profileExtraKey] = (string) $registrationIdentitySnapshot['phone'];
+            } elseif ((string) ($registrationIdentityResult['phone_hash'] ?? '') !== ''
+                && function_exists('sr_identity_verification_hmac_field')
+                && function_exists('sr_identity_verification_digits')
+                && sr_identity_verification_hmac_field($config, 'phone', sr_identity_verification_digits((string) ($profileExtraValues[$profileExtraKey] ?? ''))) !== (string) $registrationIdentityResult['phone_hash']
+            ) {
+                $errors[] = '본인확인 휴대폰 번호와 가입 휴대폰 번호가 일치하지 않습니다.';
+            }
+        }
     }
 
     if (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
@@ -170,17 +227,16 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    if ($errors === [] && $registrationIdentitySatisfied && function_exists('sr_identity_verification_session_result')) {
-        $registrationIdentityResult = sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0);
+    if ($errors === [] && $registrationIdentitySatisfied) {
         if (
             is_array($registrationIdentityResult)
             && function_exists('sr_identity_verification_result_duplicate_account')
             && sr_identity_verification_result_duplicate_account($pdo, (int) $registrationIdentityResult['id']) !== null
         ) {
-            if (function_exists('sr_identity_verification_consume_session_result')) {
-                sr_identity_verification_consume_session_result($pdo, $registrationIdentityPurpose, 0);
-            }
             $registrationIdentitySatisfied = false;
+            $registrationIdentityResult = null;
+            $registrationIdentityReturnToken = '';
+            $registrationIdentityFieldsLocked = false;
             $errors[] = function_exists('sr_identity_verification_duplicate_identity_message')
                 ? sr_identity_verification_duplicate_identity_message()
                 : '이미 다른 계정에 연결된 본인확인 정보입니다.';
@@ -251,9 +307,6 @@ if (sr_request_method() === 'POST') {
             if (!empty($memberSettings['nickname_enabled']) && (string) $values['nickname'] !== '') {
                 sr_member_set_nickname($pdo, $accountId, (string) $values['nickname']);
             }
-            if ($registrationIdentityResult === null && function_exists('sr_identity_verification_session_result')) {
-                $registrationIdentityResult = sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0);
-            }
             if (is_array($registrationIdentityResult) && function_exists('sr_identity_verification_link_result_to_account')) {
                 sr_identity_verification_link_result_to_account($pdo, (int) $registrationIdentityResult['id'], (int) $accountId, $registrationIdentityPurpose);
             }
@@ -282,9 +335,6 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && $accountId !== null) {
-            if (is_array($registrationIdentityResult) && function_exists('sr_identity_verification_consume_session_result')) {
-                sr_identity_verification_consume_session_result($pdo, $registrationIdentityPurpose, 0);
-            }
             if ($emailVerificationEnabled) {
                 $verificationMailSent = sr_send_mail(
                     $site,

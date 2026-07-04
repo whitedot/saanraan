@@ -1786,4 +1786,62 @@
 
     hideTimeTooltip(true);
   });
+
+  function identityStartUrl(anchor) {
+    var raw = anchor && anchor.getAttribute ? anchor.getAttribute('href') : '';
+    if (!raw || raw.charAt(0) === '#') {
+      return null;
+    }
+
+    var url;
+    try {
+      url = new URL(raw, window.location.href);
+    } catch (error) {
+      return null;
+    }
+
+    if (url.origin !== window.location.origin || url.pathname !== '/identity/verify/start') {
+      return null;
+    }
+
+    url.searchParams.set('popup', '1');
+    return url.toString();
+  }
+
+  function identityPopupFeatures() {
+    var width = Math.min(520, Math.max(360, Math.floor(window.screen.availWidth * 0.9)));
+    var height = Math.min(760, Math.max(560, Math.floor(window.screen.availHeight * 0.9)));
+    var left = Math.max(0, Math.floor((window.screen.availWidth - width) / 2));
+    var top = Math.max(0, Math.floor((window.screen.availHeight - height) / 2));
+
+    return [
+      'popup=yes',
+      'width=' + width,
+      'height=' + height,
+      'left=' + left,
+      'top=' + top,
+      'resizable=yes',
+      'scrollbars=yes'
+    ].join(',');
+  }
+
+  document.addEventListener('click', function (event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    var anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+    var url = identityStartUrl(anchor);
+    if (!url) {
+      return;
+    }
+
+    var popup = window.open(url, 'saanraan_identity_verification', identityPopupFeatures());
+    if (!popup) {
+      return;
+    }
+
+    event.preventDefault();
+    popup.focus();
+  });
 })();

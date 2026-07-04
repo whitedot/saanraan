@@ -356,6 +356,35 @@ function sr_identity_verification_duplicate_identity_message(): string
     return '이미 다른 계정에 연결된 본인확인 정보입니다.';
 }
 
+function sr_identity_verification_require_provider_response(): void
+{
+    sr_request_contract_mark('csrf_checked');
+}
+
+function sr_identity_verification_utc_timestamp(string $dateTime): ?int
+{
+    $dateTime = trim($dateTime);
+    if ($dateTime === '') {
+        return null;
+    }
+
+    try {
+        return (new DateTimeImmutable($dateTime, new DateTimeZone('UTC')))->getTimestamp();
+    } catch (Throwable $exception) {
+        return null;
+    }
+}
+
+function sr_identity_verification_attempt_expired(array $attempt, ?int $now = null): bool
+{
+    $expiresAt = sr_identity_verification_utc_timestamp((string) ($attempt['expires_at'] ?? ''));
+    if ($expiresAt === null) {
+        return false;
+    }
+
+    return $expiresAt < ($now ?? time());
+}
+
 function sr_identity_verification_result_identity_hashes(PDO $pdo, int $resultId): ?array
 {
     if ($resultId < 1) {
@@ -472,7 +501,25 @@ function sr_identity_verification_session_key(): string
     return 'sr_identity_verification_results';
 }
 
-function sr_identity_verification_remember_session_result(array $attempt, int $resultId): void
+function sr_identity_verification_identity_snapshot(array $identity): array
+{
+    $name = trim((string) ($identity['name'] ?? ''));
+    $phone = sr_identity_verification_digits((string) ($identity['phone'] ?? ''));
+    $birthDate = sr_identity_verification_birth_date((string) ($identity['birth_date'] ?? ''));
+
+    $ageOver14 = $identity['age_over_14'] ?? null;
+    $ageOver19 = $identity['age_over_19'] ?? null;
+
+    return [
+        'name' => $name !== '' ? substr($name, 0, 120) : '',
+        'phone' => $phone !== '' ? substr($phone, 0, 30) : '',
+        'birth_date' => $birthDate ?? '',
+        'age_over_14' => $ageOver14 === null || $ageOver14 === '' ? '' : (sr_truthy($ageOver14) ? '1' : '0'),
+        'age_over_19' => $ageOver19 === null || $ageOver19 === '' ? '' : (sr_truthy($ageOver19) ? '1' : '0'),
+    ];
+}
+
+function sr_identity_verification_remember_session_result(array $attempt, int $resultId, array $identitySnapshot = []): void
 {
     if ($resultId < 1) {
         return;
@@ -492,7 +539,32 @@ function sr_identity_verification_remember_session_result(array $attempt, int $r
         'account_id' => (int) ($attempt['account_id'] ?? 0),
         'purpose' => $purpose,
         'verified_at' => time(),
+        'identity' => sr_identity_verification_identity_snapshot($identitySnapshot),
     ];
+}
+
+function sr_identity_verification_session_identity_snapshot(string $purpose, int $accountId, ?int $maxAgeSeconds = 900): array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($purpose === '') {
+        return [];
+    }
+
+    $sessionKey = sr_identity_verification_session_key();
+    $sessionResults = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $sessionResult = isset($sessionResults[$purpose]) && is_array($sessionResults[$purpose]) ? $sessionResults[$purpose] : null;
+    if (!is_array($sessionResult)) {
+        return [];
+    }
+    if ($maxAgeSeconds !== null && $maxAgeSeconds > 0 && (int) ($sessionResult['verified_at'] ?? 0) < time() - $maxAgeSeconds) {
+        return [];
+    }
+    if ((int) ($sessionResult['account_id'] ?? 0) !== $accountId) {
+        return [];
+    }
+
+    $identity = isset($sessionResult['identity']) && is_array($sessionResult['identity']) ? $sessionResult['identity'] : [];
+    return sr_identity_verification_identity_snapshot($identity);
 }
 
 function sr_identity_verification_session_result(PDO $pdo, string $purpose, int $accountId, ?int $maxAgeSeconds = 900): ?array
@@ -550,6 +622,66 @@ function sr_identity_verification_consume_session_result(PDO $pdo, string $purpo
     if ($purpose !== '') {
         unset($_SESSION[sr_identity_verification_session_key()][$purpose]);
     }
+
+    return $result;
+}
+
+function sr_identity_verification_result_for_return_token(PDO $pdo, array $config, string $stateToken, string $purpose, int $accountId, ?int $maxAgeSeconds = 900): ?array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($purpose === '') {
+        return null;
+    }
+
+    $attempt = sr_identity_verification_attempt_by_state($pdo, $config, $stateToken);
+    if (!is_array($attempt)
+        || (string) ($attempt['status'] ?? '') !== 'verified'
+        || (string) ($attempt['purpose'] ?? '') !== $purpose
+        || (int) ($attempt['account_id'] ?? 0) !== $accountId
+    ) {
+        return null;
+    }
+
+    $completedAt = sr_identity_verification_utc_timestamp((string) ($attempt['completed_at'] ?? ''));
+    if ($maxAgeSeconds !== null && $maxAgeSeconds > 0 && ($completedAt === null || $completedAt < time() - $maxAgeSeconds)) {
+        return null;
+    }
+
+    $result = sr_identity_verification_result_by_attempt($pdo, (int) ($attempt['id'] ?? 0));
+    if (!is_array($result) || (int) ($result['id'] ?? 0) < 1) {
+        return null;
+    }
+    if ((string) ($result['expires_at'] ?? '') !== '') {
+        $resultExpiresAt = sr_identity_verification_utc_timestamp((string) $result['expires_at']);
+        if ($resultExpiresAt !== null && $resultExpiresAt < time()) {
+            return null;
+        }
+    }
+
+    $result['purpose'] = $purpose;
+    $result['attempt_status'] = 'verified';
+
+    return $result;
+}
+
+function sr_identity_verification_claim_return_token(PDO $pdo, array $config, string $stateToken, string $purpose, int $accountId, ?int $maxAgeSeconds = 900): ?array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($purpose === '') {
+        return null;
+    }
+
+    $attempt = sr_identity_verification_attempt_by_state($pdo, $config, $stateToken);
+    $result = sr_identity_verification_result_for_return_token($pdo, $config, $stateToken, $purpose, $accountId, $maxAgeSeconds);
+    if (!is_array($attempt) || !is_array($result)) {
+        return null;
+    }
+
+    sr_identity_verification_remember_session_result($attempt, (int) $result['id'], [
+        'birth_date' => (string) ($result['birth_date'] ?? ''),
+        'age_over_14' => array_key_exists('age_over_14', $result) ? (string) $result['age_over_14'] : '',
+        'age_over_19' => array_key_exists('age_over_19', $result) ? (string) $result['age_over_19'] : '',
+    ]);
 
     return $result;
 }

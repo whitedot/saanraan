@@ -582,7 +582,7 @@ action 파일에서 피한다:
 
 action에서 응답을 끝내야 하면 `sr_redirect()`, `sr_redirect_external()`, `sr_redirect_trusted_external()`, `sr_render_error()`, `sr_finish_response()` 중 하나를 사용한다. 이 helper들은 dispatch contract 검사를 거친 뒤 종료한다. `header('Content-Type: ...')` 같은 응답 메타 제어는 허용하지만, redirect는 반드시 공통 redirect helper를 통과해야 한다. 내부 URL은 `sr_redirect()`, 사용자/관리자 입력 외부 URL은 public network 검증을 수행하는 `sr_redirect_external()`, S3 public URL이나 presigned URL처럼 서버가 생성한 저장소 URL은 런타임 저장소 origin allowlist를 통과하는 `sr_redirect_trusted_external()`을 사용한다. OAuth authorization endpoint처럼 저장소가 아닌 서버 생성 외부 URL은 호출부에서 provider endpoint origin을 명시 allowlist로 넘긴다.
 
-`sr_request_contract_mark()`와 `sr_request_contract_guard_blocked()`는 action 파일에서 직접 호출하지 않는다. action은 `sr_require_csrf()`, `sr_member_require_login()`, `sr_admin_require_permission()`, `sr_admin_require_owner()` 같은 공개 helper를 호출해 contract mark가 자연스럽게 기록되게 둔다.
+`sr_request_contract_mark()`와 `sr_request_contract_guard_blocked()`는 action 파일에서 직접 호출하지 않는다. action은 `sr_require_csrf()`, `sr_member_require_login()`, `sr_admin_require_permission()`, `sr_admin_require_owner()` 같은 공개 helper를 호출해 contract mark가 자연스럽게 기록되게 둔다. 외부 provider가 POST로 되돌아오는 본인확인 return/callback처럼 사이트 CSRF 토큰을 쓸 수 없는 경로는 모듈의 공개 guard helper인 `sr_identity_verification_require_provider_response()`를 통과한 뒤 state와 provider 응답 검증을 수행한다.
 
 ## 8. view 작성
 

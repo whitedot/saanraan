@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 
+sr_identity_verification_require_provider_response();
+
 $request = sr_identity_verification_request_data();
 $stateToken = sr_identity_verification_extract_state($request);
 $attempt = sr_identity_verification_attempt_by_state($pdo, $config, $stateToken);

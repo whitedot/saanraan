@@ -26,6 +26,7 @@ $purpose = sr_identity_verification_purpose((string) ($source['purpose'] ?? ''))
 if ($purpose === '') {
     sr_render_error(400, '본인확인 목적이 올바르지 않습니다.');
 }
+$popupMode = (string) ($source['popup'] ?? '') === '1';
 
 $account = function_exists('sr_member_current_account') ? sr_member_current_account($pdo) : null;
 $guestAllowed = in_array($purpose, ['member.registration'], true);
@@ -47,7 +48,9 @@ if ($provider === null) {
     sr_render_error(503, '사용 가능한 본인확인 제공자가 없습니다.');
 }
 
-$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, is_array($account) ? (int) $account['id'] : 0, $purpose, $returnUrl);
+$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, is_array($account) ? (int) $account['id'] : 0, $purpose, $returnUrl, [
+    'confirm_path' => $popupMode ? 'popup' : '',
+]);
 
 try {
     $prepared = sr_identity_verification_call_provider($provider, 'prepare', [$pdo, $config, $site, $provider, $attempt]);
@@ -63,7 +66,8 @@ try {
         'failure_code' => 'provider_prepare_failed',
         'failure_message' => 'Provider prepare failed.',
     ]);
-    throw $exception;
+    sr_log_exception($exception, 'identity_verification_provider_prepare_failed');
+    sr_render_error(503, '본인확인 제공자 요청을 준비하지 못했습니다. 관리자에게 본인확인 제공자 설정 확인을 요청해 주세요.');
 }
 
 sr_identity_verification_render_provider_form($prepared);

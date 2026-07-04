@@ -14,13 +14,14 @@ return [
             'required' => true,
             'required_environments' => ['production'],
             'secret' => false,
-            'help' => '테스트는 KCP 개발자센터 본인확인 가이드의 테스트 site_cd를 사용할 수 있습니다.',
+            'help' => '테스트 환경에서 비워두면 KCP V2 테스트 사이트 코드가 자동 적용됩니다.',
         ],
         'enc_key' => [
             'label' => 'ENC_KEY',
             'required' => true,
             'required_environments' => ['production'],
             'secret' => true,
+            'help' => '테스트 환경에서 비워두면 KCP V2 테스트 ENC_KEY가 자동 적용됩니다.',
         ],
         'web_siteid' => [
             'label' => '웹사이트 식별코드',
