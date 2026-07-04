@@ -6,6 +6,76 @@
     font-weight: var(--font-weight-normal);
 }
 
+.identity-verification-detail-dialog {
+    max-width: min(58rem, calc(100vw - 2rem));
+}
+
+.identity-verification-modal-subtitle {
+    color: var(--sr-muted, var(--color-default-600));
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    margin: calc(var(--spacing) * 1) 0 0;
+}
+
+.identity-verification-detail-modal-body {
+    max-height: min(72vh, 48rem);
+    overflow: auto;
+}
+
+.identity-verification-detail-summary {
+    margin-bottom: calc(var(--spacing) * 4);
+}
+
+.identity-verification-detail-summary .badge,
+.identity-verification-detail-summary .admin-status {
+    font-size: var(--type-meta-size);
+    padding-block: .35rem;
+    padding-inline: .65rem;
+}
+
+.identity-verification-admin-verifications .modal-body .admin-status {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-semibold);
+    justify-content: center;
+    line-height: 1;
+    padding-block: .35rem;
+    padding-inline: .7rem;
+    white-space: nowrap;
+}
+
+.identity-verification-admin-verifications .modal-body .admin-status.is-normal {
+    background: color-mix(in oklab, var(--color-success) 14%, var(--color-card));
+    color: var(--color-success-hover);
+}
+
+.identity-verification-admin-verifications .modal-body .admin-status.is-warning,
+.identity-verification-admin-verifications .modal-body .admin-status.is-blocked {
+    background: color-mix(in oklab, var(--color-warning) 14%, var(--color-card));
+    color: var(--color-warning-hover);
+}
+
+.identity-verification-admin-verifications .modal-body .admin-status.is-danger,
+.identity-verification-admin-verifications .modal-body .admin-status.is-left {
+    background: color-mix(in oklab, var(--color-danger) 12%, var(--color-card));
+    color: var(--color-danger-hover);
+}
+
+.identity-verification-detail-note,
+.identity-verification-detail-links {
+    margin-top: calc(var(--spacing) * 5);
+}
+
+.identity-verification-detail-rows .form-field {
+    overflow-wrap: anywhere;
+}
+
+.identity-verification-modal-empty {
+    margin: calc(var(--spacing) * 2) 0 0;
+}
+
 .identity-verification-transfer {
     width: min(100% - 48px, 520px);
     margin: 20vh auto 0;

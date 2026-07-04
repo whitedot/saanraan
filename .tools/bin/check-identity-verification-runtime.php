@@ -185,6 +185,34 @@ if (!is_string($providerFormView)) {
     $errors[] = 'identity verification provider transfer view must support reliable popup form submission.';
 }
 
+$adminVerificationsAction = file_get_contents($root . '/modules/identity_verification/actions/admin-verifications.php');
+$adminVerificationsView = file_get_contents($root . '/modules/identity_verification/views/admin-verifications.php');
+$adminVerificationsCss = file_get_contents($root . '/modules/identity_verification/assets/admin.css');
+if (!is_string($adminVerificationsAction) || !is_string($adminVerificationsView) || !is_string($adminVerificationsCss)) {
+    $errors[] = 'identity verification admin verification files must be readable.';
+} elseif (!str_contains($adminVerificationsAction, '$openDetailId')
+    || !str_contains($adminVerificationsAction, '$attemptDetailsById')
+    || !str_contains($adminVerificationsAction, 'WHERE attempt_id IN (')
+    || !str_contains($adminVerificationsView, 'data-overlay="#<?php echo sr_e($attemptDetailModalId); ?>"')
+    || !str_contains($adminVerificationsView, 'modal-dialog modal-dialog-lg identity-verification-detail-dialog')
+    || !str_contains($adminVerificationsView, 'identity-verification-detail-modal-body')
+    || !str_contains($adminVerificationsView, 'admin-summary-stats identity-verification-detail-summary')
+    || !str_contains($adminVerificationsView, 'badge badge-pill badge-soft-secondary')
+    || !str_contains($adminVerificationsView, 'admin-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>')
+    || !str_contains($adminVerificationsView, 'identity-verification-detail-rows')
+    || !str_contains($adminVerificationsView, 'class="form-row-label"')
+    || !str_contains($adminVerificationsView, 'class="form-field"')
+    || str_contains($adminVerificationsView, '$detail !== null')
+    || !str_contains($adminVerificationsCss, '.identity-verification-detail-dialog')
+    || !str_contains($adminVerificationsCss, '.identity-verification-detail-summary .badge')
+    || !str_contains($adminVerificationsCss, '.identity-verification-detail-summary .admin-status')
+    || !str_contains($adminVerificationsCss, '.identity-verification-admin-verifications .modal-body .admin-status.is-normal')
+    || !str_contains($adminVerificationsCss, '.identity-verification-admin-verifications .modal-body .admin-status.is-left')
+    || str_contains($adminVerificationsCss, '.identity-verification-detail-section')
+) {
+    $errors[] = 'identity verification admin history detail must render as an admin-styled modal from the list.';
+}
+
 $commonUi = file_get_contents($root . '/assets/common-ui.js');
 if (!is_string($commonUi)) {
     $errors[] = 'common UI script must be readable.';

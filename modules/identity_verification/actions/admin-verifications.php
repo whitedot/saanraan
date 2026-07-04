@@ -16,34 +16,21 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 
 $path = sr_request_path();
-$detailId = 0;
+$openDetailId = 0;
 if (preg_match('#\A/admin/identity-verifications/([0-9]+)\z#', $path, $matches) === 1) {
-    $detailId = (int) $matches[1];
-}
-
-$detail = null;
-$detailResult = null;
-$detailLinks = [];
-if ($detailId > 0) {
+    $openDetailId = (int) $matches[1];
     $stmt = $pdo->prepare('SELECT * FROM sr_identity_verification_attempts WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $detailId]);
-    $detail = $stmt->fetch();
-    if (!is_array($detail)) {
+    $stmt->execute(['id' => $openDetailId]);
+    if (!is_array($stmt->fetch())) {
         sr_render_error(404, '본인확인 이력을 찾을 수 없습니다.');
-    }
-    $stmt = $pdo->prepare('SELECT * FROM sr_identity_verification_results WHERE attempt_id = :attempt_id LIMIT 1');
-    $stmt->execute(['attempt_id' => $detailId]);
-    $result = $stmt->fetch();
-    $detailResult = is_array($result) ? $result : null;
-    if ($detailResult !== null) {
-        $stmt = $pdo->prepare('SELECT * FROM sr_identity_verification_links WHERE result_id = :result_id ORDER BY id ASC');
-        $stmt->execute(['result_id' => (int) $detailResult['id']]);
-        $detailLinks = $stmt->fetchAll();
     }
 }
 
 $providers = sr_identity_verification_providers($pdo);
 $filters = sr_identity_verification_admin_attempt_filters_from_request($pdo);
+if ($openDetailId > 0 && (string) ($filters['q'] ?? '') === '') {
+    $filters['q'] = (string) $openDetailId;
+}
 $attemptSortOptions = sr_identity_verification_admin_attempt_sort_options();
 $attemptDefaultSort = sr_identity_verification_admin_attempt_default_sort();
 $attemptSort = sr_admin_sort_from_request($attemptSortOptions, $attemptDefaultSort);
@@ -55,5 +42,53 @@ $attempts = sr_identity_verification_admin_attempts(
     sr_admin_pagination_offset($attemptPagination),
     $attemptSort
 );
+$attemptDetailsById = [];
+$attemptIds = [];
+foreach ($attempts as $attempt) {
+    $attemptId = (int) ($attempt['id'] ?? 0);
+    if ($attemptId > 0) {
+        $attemptIds[] = $attemptId;
+        $attemptDetailsById[$attemptId] = [
+            'result' => null,
+            'links' => [],
+        ];
+    }
+}
+
+if ($attemptIds !== []) {
+    $placeholders = implode(', ', array_fill(0, count($attemptIds), '?'));
+    $stmt = $pdo->prepare('SELECT * FROM sr_identity_verification_results WHERE attempt_id IN (' . $placeholders . ') ORDER BY id ASC');
+    $stmt->execute($attemptIds);
+    $resultIds = [];
+    foreach ($stmt->fetchAll() as $result) {
+        if (!is_array($result)) {
+            continue;
+        }
+        $attemptId = (int) ($result['attempt_id'] ?? 0);
+        $resultId = (int) ($result['id'] ?? 0);
+        if ($attemptId > 0 && isset($attemptDetailsById[$attemptId])) {
+            $attemptDetailsById[$attemptId]['result'] = $result;
+        }
+        if ($resultId > 0) {
+            $resultIds[$resultId] = $attemptId;
+        }
+    }
+
+    if ($resultIds !== []) {
+        $placeholders = implode(', ', array_fill(0, count($resultIds), '?'));
+        $stmt = $pdo->prepare('SELECT * FROM sr_identity_verification_links WHERE result_id IN (' . $placeholders . ') ORDER BY result_id ASC, id ASC');
+        $stmt->execute(array_keys($resultIds));
+        foreach ($stmt->fetchAll() as $link) {
+            if (!is_array($link)) {
+                continue;
+            }
+            $resultId = (int) ($link['result_id'] ?? 0);
+            $attemptId = (int) ($resultIds[$resultId] ?? 0);
+            if ($attemptId > 0 && isset($attemptDetailsById[$attemptId])) {
+                $attemptDetailsById[$attemptId]['links'][] = $link;
+            }
+        }
+    }
+}
 
 include SR_ROOT . '/modules/identity_verification/views/admin-verifications.php';
