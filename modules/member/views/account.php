@@ -243,6 +243,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         </form>
                     </section>
                 <?php } elseif ($memberAccountPage === 'security') { ?>
+                    <?php if (!empty($memberSecurityIdentityRequired)) { ?>
+                        <section class="card member-skin-basic-stack member-skin-basic-padded-card">
+                            <div class="alert <?php echo !empty($memberSecurityIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
+                                <p><?php echo !empty($memberSecurityIdentitySatisfied) ? sr_e('계정보안작업 본인확인이 완료되었습니다. 현재 세션 동안 적용됩니다.') : sr_e('비밀번호 변경과 2차 인증 관리에는 본인확인이 필요합니다.'); ?></p>
+                                <?php if (empty($memberSecurityIdentitySatisfied) && !empty($memberSecurityIdentityStartUrl)) { ?>
+                                    <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $memberSecurityIdentityStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                                <?php } ?>
+                            </div>
+                        </section>
+                    <?php } ?>
                     <section class="card member-skin-basic-stack member-skin-basic-padded-card">
                         <h1 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.password.bf1d4719')); ?></h1>
                         <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>

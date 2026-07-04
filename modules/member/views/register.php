@@ -27,6 +27,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 $memberRegisterProfileExtraByKey[(string) ($memberRegisterProfileExtraDefinition['key'] ?? '')] = $memberRegisterProfileExtraDefinition;
             }
             ?>
+            <?php if (($registrationIdentityMode ?? 'disabled') !== 'disabled') { ?>
+                <div class="alert <?php echo !empty($registrationIdentitySatisfied) ? 'alert-success' : (!empty($registrationIdentityRequired) ? 'alert-warning' : 'alert-info'); ?>">
+                    <p><?php echo !empty($registrationIdentitySatisfied) ? sr_e('가입 전 본인확인이 완료되었습니다.') : sr_e(!empty($registrationIdentityRequired) ? '회원가입 전 본인확인이 필요합니다.' : '회원가입 전 본인확인을 선택할 수 있습니다.'); ?></p>
+                    <?php if (empty($registrationIdentitySatisfied) && !empty($registrationIdentityStartUrl)) { ?>
+                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $registrationIdentityStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                 <?php echo sr_csrf_field(); ?>
                 <p>

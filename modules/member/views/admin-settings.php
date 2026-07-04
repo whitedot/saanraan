@@ -156,6 +156,26 @@ $memberSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="modules_member_admin_settings_identity_registration_mode"><?php echo sr_e('회원가입 전 본인확인'); ?> <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_identity_registration_mode', 'identity_registration_mode', sr_member_identity_registration_mode_options(), (string) ($settings['identity_registration_mode'] ?? 'disabled'), true); ?>
+                    <small class="form-help">필수는 가입 전 본인확인을 완료해야 가입할 수 있고, 선택은 가입 화면에 본인확인 버튼만 표시합니다.</small>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="modules_member_admin_settings_identity_withdrawal_required"><?php echo sr_e('회원탈퇴 본인확인'); ?></label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_withdrawal_required', 'identity_withdrawal_required', '1', !empty($settings['identity_withdrawal_required']), '사용'); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="modules_member_admin_settings_identity_account_security_required"><?php echo sr_e('계정보안작업 본인확인'); ?></label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', !empty($settings['identity_account_security_required']), '사용'); ?>
+                    <small class="form-help">비밀번호 변경, 2차 인증 설정/해제 같은 보안 작업을 실행할 때마다 본인확인을 요구합니다.</small>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="modules_member_admin_settings_nickname_enabled"><?php echo sr_e(sr_t('member::ui.nickname')); ?></label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_nickname_enabled', 'nickname_enabled', '1', !empty($settings['nickname_enabled']), '사용'); ?>

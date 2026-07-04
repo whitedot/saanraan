@@ -3,10 +3,17 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $errors = [];
 $memberSettings = sr_member_settings($pdo);
+$withdrawIdentityPurpose = 'member.withdrawal';
+$withdrawIdentityPolicy = function_exists('sr_identity_verification_requirement_policy')
+    ? sr_identity_verification_requirement_policy($pdo, (int) $account['id'], $withdrawIdentityPurpose, !empty($memberSettings['identity_withdrawal_required']) ? 'required' : 'off', '/account/withdraw')
+    : ['required' => !empty($memberSettings['identity_withdrawal_required']), 'satisfied' => false, 'available' => false, 'start_url' => ''];
 $withdrawalAssets = sr_member_withdrawal_asset_balances($pdo, (int) $account['id']);
 $refundAccount = [
     'bank' => '',
@@ -32,6 +39,11 @@ if (sr_request_method() === 'POST') {
 
     if ($confirmText !== sr_t('member::action.withdraw.confirm_text')) {
         $errors[] = sr_t('member::action.withdraw.confirm_required');
+    }
+    if (!empty($withdrawIdentityPolicy['required']) && empty($withdrawIdentityPolicy['satisfied'])) {
+        $errors[] = !empty($withdrawIdentityPolicy['available'])
+            ? '회원탈퇴 전 본인확인을 완료해 주세요.'
+            : '본인확인 기능이 준비되지 않아 회원탈퇴를 진행할 수 없습니다.';
     }
 
     if (isset($withdrawalAssets['deposit'])) {

@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_member_group_evaluate_account($pdo, (int) $account['id']);
@@ -20,6 +23,14 @@ $memberMfaLoginProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $m
 $memberMfaTotpLoginAllowed = in_array('totp', $memberMfaLoginProviderKeys, true);
 $memberMfaTotpSetupAllowed = $memberMfaLoginMode !== 'disabled' && $memberMfaTotpLoginAllowed;
 $memberMfaDisableAllowed = $memberMfaLoginMode !== 'required';
+$memberSecurityIdentityPurpose = 'member.account_security';
+$memberSecurityIdentityRequired = !empty($memberSettings['identity_account_security_required']);
+$memberSecurityIdentitySatisfied = $memberSecurityIdentityRequired
+    && function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $memberSecurityIdentityPurpose, (int) $account['id'], null) !== null;
+$memberSecurityIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($memberSecurityIdentityPurpose, '/mypage/security')
+    : '';
 $memberAccountBasePath = '/mypage';
 $memberAccountPage = 'overview';
 $memberAccountRoutePages = [
@@ -95,6 +106,16 @@ if (sr_request_method() === 'POST') {
 
     if (!in_array($intent, ['basics', 'profile', 'password', 'mfa_totp_prepare', 'mfa_totp_activate', 'mfa_recovery_rotate', 'mfa_disable'], true)) {
         $errors[] = sr_t('member::action.account.intent_invalid');
+    }
+    if (
+        $errors === []
+        && $memberSecurityIdentityRequired
+        && in_array($intent, ['password', 'mfa_totp_prepare', 'mfa_recovery_rotate', 'mfa_disable'], true)
+        && !$memberSecurityIdentitySatisfied
+    ) {
+        $errors[] = $memberSecurityIdentityStartUrl !== ''
+            ? '계정보안작업 전 본인확인을 완료해 주세요.'
+            : '본인확인 기능이 준비되지 않아 계정보안작업을 진행할 수 없습니다.';
     }
 
     if ($errors === [] && $intent === 'basics') {

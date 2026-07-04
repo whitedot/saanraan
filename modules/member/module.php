@@ -46,6 +46,9 @@ return [
     'settings' => [
         'allow_registration' => true,
         'email_verification_enabled' => true,
+        'identity_registration_mode' => 'disabled',
+        'identity_withdrawal_required' => false,
+        'identity_account_security_required' => false,
         'login_identifier' => 'both',
         'mfa_login_mode' => 'disabled',
         'mfa_login_enabled' => false,

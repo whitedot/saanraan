@@ -6,6 +6,9 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
     require_once SR_ROOT . '/modules/antispam/helpers.php';
 }
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
@@ -27,7 +30,17 @@ $registrationPolicyDocumentState = $registrationAllowed ? sr_member_registration
 $registrationPolicyDocuments = $registrationPolicyDocumentState['documents'];
 $registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
 $registrationReady = $registrationAllowed && $registrationPolicyErrors === [];
+$registrationIdentityMode = sr_member_identity_requirement_mode($memberSettings['identity_registration_mode'] ?? 'disabled');
+$registrationIdentityPurpose = 'member.registration';
+$registrationIdentityAvailable = function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo);
+$registrationIdentitySatisfied = function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0) !== null;
+$registrationIdentityRequired = $registrationIdentityMode === 'required';
+$registrationIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($registrationIdentityPurpose, '/register')
+    : '';
 $errors = [];
+$registrationIdentityResult = null;
 $registrationConsentValues = [];
 $values = [
     'email' => '',
@@ -48,6 +61,11 @@ if (sr_request_method() === 'POST') {
     }
     if ($registrationPolicyErrors !== []) {
         $errors = array_merge($errors, $registrationPolicyErrors);
+    }
+    if ($registrationIdentityRequired && !$registrationIdentitySatisfied) {
+        $errors[] = $registrationIdentityAvailable
+            ? '회원가입 전 본인확인을 완료해 주세요.'
+            : '본인확인 기능이 준비되지 않아 회원가입을 진행할 수 없습니다.';
     }
     if (function_exists('sr_antispam_verify')) {
         $antispamResult = sr_antispam_verify($pdo, 'member.register', 'member_register', $_POST, $antispamRegisterContext);
@@ -151,6 +169,23 @@ if (sr_request_method() === 'POST') {
         }
     }
 
+    if ($errors === [] && $registrationIdentitySatisfied && function_exists('sr_identity_verification_session_result')) {
+        $registrationIdentityResult = sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0);
+        if (
+            is_array($registrationIdentityResult)
+            && function_exists('sr_identity_verification_result_duplicate_account')
+            && sr_identity_verification_result_duplicate_account($pdo, (int) $registrationIdentityResult['id']) !== null
+        ) {
+            if (function_exists('sr_identity_verification_consume_session_result')) {
+                sr_identity_verification_consume_session_result($pdo, $registrationIdentityPurpose, 0);
+            }
+            $registrationIdentitySatisfied = false;
+            $errors[] = function_exists('sr_identity_verification_duplicate_identity_message')
+                ? sr_identity_verification_duplicate_identity_message()
+                : '이미 다른 계정에 연결된 본인확인 정보입니다.';
+        }
+    }
+
     if ($errors === []) {
         $uploadedAvatarReference = '';
 
@@ -215,6 +250,12 @@ if (sr_request_method() === 'POST') {
             if (!empty($memberSettings['nickname_enabled']) && (string) $values['nickname'] !== '') {
                 sr_member_set_nickname($pdo, $accountId, (string) $values['nickname']);
             }
+            if ($registrationIdentityResult === null && function_exists('sr_identity_verification_session_result')) {
+                $registrationIdentityResult = sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0);
+            }
+            if (is_array($registrationIdentityResult) && function_exists('sr_identity_verification_link_result_to_account')) {
+                sr_identity_verification_link_result_to_account($pdo, (int) $registrationIdentityResult['id'], (int) $accountId, $registrationIdentityPurpose);
+            }
             $registrationExtensionMetadata = sr_member_registration_extension_save($pdo, $registrationExtensionContracts, $accountId, $registrationExtensionValues, [
                 'site' => $site,
                 'values' => $values,
@@ -232,10 +273,17 @@ if (sr_request_method() === 'POST') {
                 $profileValues['avatar_path'] = '';
             }
             $extensionError = sr_member_registration_extension_exception_message($registrationExtensionContracts, $exception);
-            $errors[] = $extensionError !== '' ? $extensionError : sr_t('member::action.register.create_failed');
+            if ($exception instanceof SrIdentityVerificationDuplicateException) {
+                $errors[] = $exception->getMessage();
+            } else {
+                $errors[] = $extensionError !== '' ? $extensionError : sr_t('member::action.register.create_failed');
+            }
         }
 
         if ($errors === [] && $accountId !== null) {
+            if (is_array($registrationIdentityResult) && function_exists('sr_identity_verification_consume_session_result')) {
+                sr_identity_verification_consume_session_result($pdo, $registrationIdentityPurpose, 0);
+            }
             if ($emailVerificationEnabled) {
                 $verificationMailSent = sr_send_mail(
                     $site,

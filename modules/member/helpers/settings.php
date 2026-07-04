@@ -22,6 +22,9 @@ function sr_member_default_settings(): array
     return [
         'allow_registration' => (bool) ($settings['allow_registration'] ?? true),
         'email_verification_enabled' => (bool) ($settings['email_verification_enabled'] ?? true),
+        'identity_registration_mode' => sr_member_identity_requirement_mode($settings['identity_registration_mode'] ?? 'disabled'),
+        'identity_withdrawal_required' => (bool) ($settings['identity_withdrawal_required'] ?? false),
+        'identity_account_security_required' => (bool) ($settings['identity_account_security_required'] ?? false),
         'login_identifier' => sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both'),
         'mfa_login_mode' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null),
         'mfa_login_enabled' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null) !== 'disabled',
@@ -60,6 +63,9 @@ function sr_member_settings(PDO $pdo): array
 
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
+    $settings['identity_registration_mode'] = sr_member_identity_requirement_mode($settings['identity_registration_mode'] ?? 'disabled');
+    $settings['identity_withdrawal_required'] = (bool) ($settings['identity_withdrawal_required'] ?? false);
+    $settings['identity_account_security_required'] = (bool) ($settings['identity_account_security_required'] ?? false);
     $settings['mfa_login_mode'] = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
     $settings['mfa_login_enabled'] = $settings['mfa_login_mode'] !== 'disabled';
     $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json(sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]'));
@@ -98,6 +104,21 @@ function sr_member_settings(PDO $pdo): array
     }
 
     return $settings;
+}
+
+function sr_member_identity_requirement_mode(mixed $value): string
+{
+    $mode = is_scalar($value) ? strtolower(trim((string) $value)) : '';
+    return in_array($mode, ['required', 'optional', 'disabled'], true) ? $mode : 'disabled';
+}
+
+function sr_member_identity_registration_mode_options(): array
+{
+    return [
+        'required' => '필수',
+        'optional' => '선택',
+        'disabled' => '사용안함',
+    ];
 }
 
 function sr_member_login_identifier_options(): array

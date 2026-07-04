@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
@@ -40,6 +43,40 @@ if ($availableProviderKeys === []) {
     sr_member_mfa_clear_challenge();
     $errors[] = sr_t('member::action.login_mfa.factor_unavailable');
     sr_member_log_auth($pdo, $accountId, 'mfa_challenge_expired', 'failure');
+}
+
+$identityMfaPurpose = 'member.mfa.login';
+$identityMfaStartUrl = in_array('identity', $availableProviderKeys, true) && function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($identityMfaPurpose, '/login/mfa')
+    : '';
+if (
+    $errors === []
+    && in_array('identity', $availableProviderKeys, true)
+    && function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $identityMfaPurpose, $accountId) !== null
+) {
+    sr_identity_verification_consume_session_result($pdo, $identityMfaPurpose, $accountId);
+    $loginSucceeded = sr_member_login($pdo, $challengeAccount);
+    if ($loginSucceeded) {
+        sr_member_log_auth($pdo, $accountId, 'mfa_identity_success', 'success');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'member',
+            'event_type' => 'member.mfa.login.completed',
+            'target_type' => 'member_account',
+            'target_id' => (string) $accountId,
+            'result' => 'success',
+            'message' => 'Member MFA challenge completed.',
+            'metadata' => [
+                'method' => 'identity',
+                'primary_method' => (string) ($challenge['primary_method'] ?? ''),
+                'next_path' => $next,
+            ],
+        ]);
+        sr_redirect(sr_member_safe_next_path($next));
+    }
+    sr_member_log_auth($pdo, $accountId, 'login_session_failed', 'failure');
+    $errors[] = sr_t('member::action.login.session_failed');
 }
 
 if ($errors === [] && in_array('email', $availableProviderKeys, true)) {

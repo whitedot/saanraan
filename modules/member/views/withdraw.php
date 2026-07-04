@@ -18,6 +18,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
 
         <form method="post" action="<?php echo sr_e(sr_url('/account/withdraw')); ?>" class="member-skin-basic-form" data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
+            <?php if (!empty($withdrawIdentityPolicy['required'])) { ?>
+                <div class="alert <?php echo !empty($withdrawIdentityPolicy['satisfied']) ? 'alert-success' : 'alert-warning'; ?>">
+                    <p><?php echo !empty($withdrawIdentityPolicy['satisfied']) ? sr_e('회원탈퇴 본인확인이 완료되었습니다.') : sr_e('회원탈퇴 전 본인확인이 필요합니다.'); ?></p>
+                    <?php if (empty($withdrawIdentityPolicy['satisfied']) && !empty($withdrawIdentityPolicy['start_url'])) { ?>
+                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $withdrawIdentityPolicy['start_url']); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             <?php if (($withdrawalAssets ?? []) !== []) { ?>
                 <section>
                     <h2><?php echo sr_e(sr_t('member::ui.text.8a351546')); ?></h2>

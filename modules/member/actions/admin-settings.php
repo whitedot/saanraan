@@ -34,6 +34,9 @@ if (sr_request_method() === 'POST') {
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
+    $settings['identity_registration_mode'] = sr_member_identity_requirement_mode($_POST['identity_registration_mode'] ?? null);
+    $settings['identity_withdrawal_required'] = ($_POST['identity_withdrawal_required'] ?? '') === '1';
+    $settings['identity_account_security_required'] = ($_POST['identity_account_security_required'] ?? '') === '1';
     $settings['mfa_login_mode'] = sr_member_mfa_login_mode($_POST['mfa_login_mode'] ?? null);
     $settings['mfa_login_enabled'] = $settings['mfa_login_mode'] !== 'disabled';
     $postedMfaProviderKeys = isset($_POST['mfa_login_providers']) && is_array($_POST['mfa_login_providers'])
@@ -55,7 +58,7 @@ if (sr_request_method() === 'POST') {
             if (!empty($memberMfaProviderDefinitions[$providerKey]['account_setup_supported'])) {
                 $mfaSetupProviderKeys[] = $providerKey;
             }
-            if ((string) ($memberMfaProviderDefinitions[$providerKey]['method'] ?? '') === 'email') {
+            if (in_array((string) ($memberMfaProviderDefinitions[$providerKey]['method'] ?? ''), ['email', 'identity'], true)) {
                 $mfaNoSetupProviderKeys[] = $providerKey;
             }
         }
@@ -182,6 +185,9 @@ if (sr_request_method() === 'POST') {
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
+            ['identity_registration_mode', (string) $settings['identity_registration_mode'], 'string'],
+            ['identity_withdrawal_required', $settings['identity_withdrawal_required'] ? '1' : '0', 'bool'],
+            ['identity_account_security_required', $settings['identity_account_security_required'] ? '1' : '0', 'bool'],
             ['mfa_login_mode', (string) $settings['mfa_login_mode'], 'string'],
             ['mfa_login_enabled', $settings['mfa_login_enabled'] ? '1' : '0', 'bool'],
             ['mfa_login_providers_json', (string) $settings['mfa_login_providers_json'], 'json'],
@@ -231,6 +237,9 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
+                'identity_registration_mode' => (string) $settings['identity_registration_mode'],
+                'identity_withdrawal_required' => (bool) $settings['identity_withdrawal_required'],
+                'identity_account_security_required' => (bool) $settings['identity_account_security_required'],
                 'mfa_login_mode' => (string) $settings['mfa_login_mode'],
                 'mfa_login_enabled' => (bool) $settings['mfa_login_enabled'],
                 'mfa_login_providers' => sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '[]'),

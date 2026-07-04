@@ -119,6 +119,12 @@ function sr_member_active_login_mfa_provider_keys(PDO $pdo, int $accountId): arr
     if (in_array('email', $allowedProviderKeys, true) && sr_member_mfa_email_provider_available($pdo, $accountId)) {
         $activeKeys['email'] = true;
     }
+    if (in_array('identity', $allowedProviderKeys, true) && sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+        if (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo)) {
+            $activeKeys['identity'] = true;
+        }
+    }
 
     $orderedKeys = [];
     foreach ($allowedProviderKeys as $providerKey) {
@@ -311,7 +317,7 @@ function sr_member_mfa_normalize_provider_definition(array $provider, string $mo
         return [];
     }
 
-    if (!in_array($method, ['totp', 'email', 'sms', 'otp', 'backup'], true)) {
+    if (!in_array($method, ['totp', 'email', 'sms', 'otp', 'backup', 'identity'], true)) {
         return [];
     }
 
