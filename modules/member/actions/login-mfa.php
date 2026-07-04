@@ -73,6 +73,9 @@ if (
                 'next_path' => $next,
             ],
         ]);
+        if (sr_member_mfa_login_setup_required($pdo, $challengeAccount)) {
+            sr_member_redirect_mfa_setup_required();
+        }
         sr_redirect(sr_member_safe_next_path($next));
     }
     sr_member_log_auth($pdo, $accountId, 'login_session_failed', 'failure');

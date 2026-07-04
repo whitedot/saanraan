@@ -488,6 +488,13 @@ sr_member_auth_policy_assert(
 
 $loginMfaAction = sr_member_auth_policy_read('modules/member/actions/login-mfa.php');
 if ($loginMfaAction !== '') {
+    $identitySuccessPosition = strpos($loginMfaAction, "sr_member_log_auth(\$pdo, \$accountId, 'mfa_identity_success', 'success')");
+    $identityRedirectPosition = $identitySuccessPosition === false
+        ? false
+        : strpos($loginMfaAction, 'sr_redirect(sr_member_safe_next_path($next))', $identitySuccessPosition);
+    $identitySetupPosition = $identitySuccessPosition === false
+        ? false
+        : strpos($loginMfaAction, 'sr_member_mfa_login_setup_required($pdo, $challengeAccount)', $identitySuccessPosition);
     sr_member_auth_policy_assert(
         strpos($loginMfaAction, 'sr_member_mfa_throttle_status($pdo, $accountId)') !== false
             && strpos($loginMfaAction, 'sr_member_mfa_verify_totp_code($pdo, $accountId, $normalizedCode)') !== false
@@ -497,6 +504,13 @@ if ($loginMfaAction !== '') {
             && strpos($loginMfaAction, 'sr_member_redirect_mfa_setup_required()') !== false
             && strpos($loginMfaAction, 'sr_redirect(sr_member_safe_next_path($next))') !== false,
         'MFA login action should throttle MFA attempts, verify available factors, complete member login, send required setup members to security, and re-check next path before redirect.'
+    );
+    sr_member_auth_policy_assert(
+        $identitySuccessPosition !== false
+            && $identityRedirectPosition !== false
+            && $identitySetupPosition !== false
+            && $identitySetupPosition < $identityRedirectPosition,
+        'Identity MFA success should send members without a required setup MFA factor to the security setup screen before the final next-path redirect.'
     );
     sr_member_auth_policy_assert(
         strpos($loginMfaAction, 'mfa_totp_success') !== false
