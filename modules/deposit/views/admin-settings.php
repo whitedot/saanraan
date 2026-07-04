@@ -9,6 +9,12 @@ $notificationChannelOptions = isset($notificationChannelOptions) && is_array($no
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $depositDisplayName = (string) ($settings['display_name'] ?? '예치금');
 $depositUnitLabel = (string) ($settings['unit_label'] ?? '원');
+$depositIdentityVerificationAvailable = isset($depositIdentityVerificationAvailable)
+    ? (bool) $depositIdentityVerificationAvailable
+    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
+$depositIdentityVerificationInputAttributes = $depositIdentityVerificationAvailable
+    ? ''
+    : ' disabled aria-describedby="deposit-settings-identity-unavailable"';
 $allNotificationCasesEnabled = $notificationCases !== [];
 foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
     $notificationCaseKey = (string) $notificationCaseKey;
@@ -113,8 +119,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <label class="form-label" for="deposit_identity_refund_required">환불 신청 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', !empty($settings['identity_refund_required']), '사용'); ?>
+                <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', $depositIdentityVerificationAvailable && !empty($settings['identity_refund_required']), '사용', '', $depositIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+                <?php if (!$depositIdentityVerificationAvailable) { ?>
+                    <div id="deposit-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 환불 신청 본인확인 설정을 사용할 수 없습니다.
+                    </div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">

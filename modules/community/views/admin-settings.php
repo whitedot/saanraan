@@ -4,6 +4,18 @@ $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySett
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
 $communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 $communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$communityIdentityVerificationAvailable = isset($communityIdentityVerificationAvailable)
+    ? (bool) $communityIdentityVerificationAvailable
+    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
+$communityIdentityVerificationInputAttributes = $communityIdentityVerificationAvailable
+    ? ''
+    : ' disabled aria-describedby="community-settings-identity-unavailable"';
+$communityReactionAvailable = isset($communityReactionAvailable)
+    ? (bool) $communityReactionAvailable
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+$communityReactionInputAttributes = $communityReactionAvailable
+    ? ''
+    : ' disabled aria-describedby="community-settings-reaction-unavailable"';
 $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communitySiteMenuOptions): void {
     ?>
     <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
@@ -316,8 +328,13 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_identity_restricted_board_required">제한 게시판 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', !empty($settings['identity_restricted_board_required']), '사용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', $communityIdentityVerificationAvailable && !empty($settings['identity_restricted_board_required']), '사용', '', $communityIdentityVerificationInputAttributes); ?>
                 <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
+                <?php if (!$communityIdentityVerificationAvailable) { ?>
+                    <div id="community-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 제한 게시판 본인확인 설정을 사용할 수 없습니다.
+                    </div>
+                <?php } ?>
             </div>
         </div>
     </section>
@@ -602,14 +619,17 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">리액션 사용</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '사용'); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', $communityReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $communityReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
+                <?php if (!$communityReactionAvailable) { ?>
+                    <div id="community-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_reaction_post_preset_key">게시글 리액션 프리셋</label>
             <div class="form-field">
-                <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">
+                <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select"<?php echo $communityReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_post_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                     <?php } ?>
@@ -619,7 +639,7 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
             <div class="form-field">
-                <select id="community_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                <select id="community_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $communityReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                     <?php } ?>

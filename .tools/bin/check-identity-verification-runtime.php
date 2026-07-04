@@ -329,6 +329,53 @@ if (!is_string($surveyHelpers) || !is_string($surveySettingsView) || !is_string(
     $errors[] = 'survey settings and view screens must support identity and adult identity participation policies.';
 }
 
+$identityConsumerFiles = [
+    'community' => [
+        'action' => file_get_contents($root . '/modules/community/actions/admin-settings.php'),
+        'view' => file_get_contents($root . '/modules/community/views/admin-settings.php'),
+        'available_marker' => '$communityIdentityVerificationAvailable',
+        'notice_marker' => 'community-settings-identity-unavailable',
+        'error_marker' => '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+    ],
+    'reward' => [
+        'action' => file_get_contents($root . '/modules/reward/actions/admin-rewards-settings.php'),
+        'view' => file_get_contents($root . '/modules/reward/views/admin-settings.php'),
+        'available_marker' => '$rewardIdentityVerificationAvailable',
+        'notice_marker' => 'reward-settings-identity-unavailable',
+        'error_marker' => '출금 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+    ],
+    'deposit' => [
+        'action' => file_get_contents($root . '/modules/deposit/actions/admin-deposits-settings.php'),
+        'view' => file_get_contents($root . '/modules/deposit/views/admin-settings.php'),
+        'available_marker' => '$depositIdentityVerificationAvailable',
+        'notice_marker' => 'deposit-settings-identity-unavailable',
+        'error_marker' => '환불 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+    ],
+    'asset_exchange' => [
+        'action' => file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange-settings.php'),
+        'view' => file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php'),
+        'available_marker' => '$assetExchangeIdentityVerificationAvailable',
+        'notice_marker' => 'asset-exchange-settings-identity-unavailable',
+        'error_marker' => '환전 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+    ],
+];
+foreach ($identityConsumerFiles as $identityConsumerKey => $identityConsumerFile) {
+    $identityConsumerAction = $identityConsumerFile['action'];
+    $identityConsumerView = $identityConsumerFile['view'];
+    if (!is_string($identityConsumerAction) || !is_string($identityConsumerView)) {
+        $errors[] = $identityConsumerKey . ' identity consumer settings files must be readable.';
+        continue;
+    }
+    if (!str_contains($identityConsumerAction, (string) $identityConsumerFile['available_marker'])
+        || !str_contains($identityConsumerAction, (string) $identityConsumerFile['error_marker'])
+        || !str_contains($identityConsumerView, (string) $identityConsumerFile['available_marker'])
+        || !str_contains($identityConsumerView, (string) $identityConsumerFile['notice_marker'])
+        || !str_contains($identityConsumerView, 'disabled aria-describedby=')
+    ) {
+        $errors[] = $identityConsumerKey . ' settings must disable identity verification controls when the identity module is unavailable.';
+    }
+}
+
 $commonUi = file_get_contents($root . '/assets/common-ui.js');
 if (!is_string($commonUi)) {
     $errors[] = 'common UI script must be readable.';

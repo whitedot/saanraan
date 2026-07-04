@@ -20,6 +20,12 @@ $surveyIdentityVerificationAvailable = isset($surveyIdentityVerificationAvailabl
 $surveyIdentityVerificationInputAttributes = $surveyIdentityVerificationAvailable
     ? ''
     : ' disabled aria-describedby="survey-settings-identity-unavailable"';
+$surveyReactionAvailable = isset($surveyReactionAvailable)
+    ? (bool) $surveyReactionAvailable
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+$surveyReactionInputAttributes = $surveyReactionAvailable
+    ? ''
+    : ' disabled aria-describedby="survey-settings-reaction-unavailable"';
 $surveyLayoutExtraMenuRows = static function (array $menuItems, bool $template = false) use ($surveySiteMenuSelectOptions): void {
     foreach ($template ? [['area_key' => '', 'label' => '', 'menu_key' => '']] : $menuItems as $menuItem) {
         $areaKey = is_array($menuItem) ? (string) ($menuItem['area_key'] ?? '') : '';
@@ -289,18 +295,21 @@ $surveySettingsHelp = [
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
-                    <select id="survey_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                    <select id="survey_settings_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo $surveyReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
                     <p class="form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
+                    <?php if (!$surveyReactionAvailable) { ?>
+                        <div id="survey-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_comment_preset_key', '댓글 리액션 프리셋', $surveySettingsHelp['reaction_comment_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
-                    <select id="survey_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <select id="survey_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $surveyReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>

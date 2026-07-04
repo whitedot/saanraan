@@ -5,9 +5,13 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+$communityReactionAvailable = sr_module_enabled($pdo, 'reaction')
+    && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+if ($communityReactionAvailable) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+$communityIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
 
 $account = sr_member_require_login($pdo);
 
@@ -25,7 +29,7 @@ $communityLayoutOptions = sr_community_layout_options($pdo);
 $communityThemeOptions = sr_community_theme_options();
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
-$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = $communityReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
 foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)] ?? ''));
@@ -71,6 +75,10 @@ if (sr_request_method() === 'POST') {
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $identityRestrictedBoardRequired = ($_POST['identity_restricted_board_required'] ?? '') === '1';
+        if (!$communityIdentityVerificationAvailable && $identityRestrictedBoardRequired) {
+            $errors[] = '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+            $identityRestrictedBoardRequired = false;
+        }
         $reportAutoActionEnabled = ($_POST['report_auto_action_enabled'] ?? '') === '1';
         $reportAutoActionThreshold = sr_admin_post_int_in_range('report_auto_action_threshold', 2, 100);
         $reportAutoActionWindowDays = sr_admin_post_int_in_range('report_auto_action_window_days', 0, 365);
@@ -117,9 +125,12 @@ if (sr_request_method() === 'POST') {
         $privacyConsentRequirePost = !empty($privacyConsentRequires['post']);
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);
-        $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
-        $reactionPostPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
-        $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+        $reactionEnabledInput = ($_POST['reaction_enabled'] ?? '') === '1';
+        $reactionPostPresetInput = sr_post_string('reaction_post_preset_key', 80);
+        $reactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
+        $reactionEnabled = $communityReactionAvailable && $reactionEnabledInput;
+        $reactionPostPresetKey = $communityReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $reactionPostPresetInput) : '';
+        $reactionCommentPresetKey = $communityReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $reactionCommentPresetInput) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = $messageEnabled
             ? sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput)
@@ -320,10 +331,16 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.once_history_policy_invalid');
             $onceHistoryPolicy = (string) ($settings['once_history_policy'] ?? 'all_access');
         }
-        foreach (['reaction_post_preset_key' => $reactionPostPresetKey, 'reaction_comment_preset_key' => $reactionCommentPresetKey] as $reactionSettingKey => $reactionPresetKey) {
-            if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
-                $errors[] = '커뮤니티 리액션 프리셋 값이 올바르지 않습니다.';
-                break;
+        if (!$communityReactionAvailable) {
+            if ($reactionEnabledInput || $reactionPostPresetInput !== '' || $reactionCommentPresetInput !== '') {
+                $errors[] = '커뮤니티 리액션 설정을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
+            }
+        } else {
+            foreach (['reaction_post_preset_key' => $reactionPostPresetKey, 'reaction_comment_preset_key' => $reactionCommentPresetKey] as $reactionSettingKey => $reactionPresetKey) {
+                if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+                    $errors[] = '커뮤니티 리액션 프리셋 값이 올바르지 않습니다.';
+                    break;
+                }
             }
         }
 

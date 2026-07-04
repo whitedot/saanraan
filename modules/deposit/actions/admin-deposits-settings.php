@@ -17,6 +17,8 @@ $settings = sr_deposit_settings($pdo);
 $memberGroups = sr_member_groups($pdo);
 $notificationCases = sr_deposit_notification_cases();
 $notificationChannelOptions = sr_deposit_notification_channel_options($pdo);
+$depositIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -27,6 +29,10 @@ if (sr_request_method() === 'POST') {
     $unitLabel = sr_deposit_clean_text(sr_post_string('unit_label', 40), 20);
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
     $identityRefundRequired = sr_post_string('identity_refund_required', 1) === '1';
+    if (!$depositIdentityVerificationAvailable && $identityRefundRequired) {
+        $errors[] = '환불 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+        $identityRefundRequired = false;
+    }
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
     $postedCases = $_POST['notification_cases'] ?? [];

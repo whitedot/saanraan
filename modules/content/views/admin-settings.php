@@ -29,6 +29,12 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
 $contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
+$contentReactionAvailable = isset($contentReactionAvailable)
+    ? (bool) $contentReactionAvailable
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+$contentReactionInputAttributes = $contentReactionAvailable
+    ? ''
+    : ' disabled aria-describedby="content-settings-reaction-unavailable"';
 $contentIdentityVerificationAvailable = isset($contentIdentityVerificationAvailable)
     ? (bool) $contentIdentityVerificationAvailable
     : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
@@ -176,14 +182,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">리액션 사용 여부</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', !empty($settings['reaction_enabled']), '사용'); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', $contentReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $contentReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠와 댓글의 리액션 위젯을 표시하지 않습니다.</p>
+                <?php if (!$contentReactionAvailable) { ?>
+                    <div id="content-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
             <label class="form-label" for="content_admin_settings_reaction_preset_key">콘텐츠 리액션 프리셋</label>
             <div class="form-field">
-                <select id="content_admin_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                <select id="content_admin_settings_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo $contentReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $presetLabel); ?>
@@ -196,7 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <label class="form-label" for="content_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
             <div class="form-field">
-                <select id="content_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                <select id="content_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $contentReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $presetLabel); ?>

@@ -21,6 +21,12 @@ $quizIdentityVerificationAvailable = isset($quizIdentityVerificationAvailable)
 $quizIdentityVerificationInputAttributes = $quizIdentityVerificationAvailable
     ? ''
     : ' disabled aria-describedby="quiz-settings-identity-unavailable"';
+$quizReactionAvailable = isset($quizReactionAvailable)
+    ? (bool) $quizReactionAvailable
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+$quizReactionInputAttributes = $quizReactionAvailable
+    ? ''
+    : ' disabled aria-describedby="quiz-settings-reaction-unavailable"';
 $quizSettingsHelpOpenLabel = '설명 보기';
 $quizSettingsHelpBodyHtml = static function (array $items): string {
     $html = '';
@@ -386,18 +392,21 @@ $quizSettingsSectionNavItems = [
             <div class="form-row">
                 <label class="form-label" for="quiz_settings_reaction_preset_key">퀴즈 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="quiz_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                    <select id="quiz_settings_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo $quizReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
                     <p class="form-help">개별 퀴즈에서 값을 비워두면 이 값을 사용합니다.</p>
+                    <?php if (!$quizReactionAvailable) { ?>
+                        <div id="quiz-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="quiz_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="quiz_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <select id="quiz_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $quizReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>

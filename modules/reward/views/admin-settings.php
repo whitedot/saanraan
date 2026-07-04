@@ -10,6 +10,12 @@ $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_en
 $rewardDisplayName = (string) ($settings['display_name'] ?? '적립금');
 $rewardUnitLabel = (string) ($settings['unit_label'] ?? '원');
 $rewardDefaultExpirationDays = (string) sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
+$rewardIdentityVerificationAvailable = isset($rewardIdentityVerificationAvailable)
+    ? (bool) $rewardIdentityVerificationAvailable
+    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
+$rewardIdentityVerificationInputAttributes = $rewardIdentityVerificationAvailable
+    ? ''
+    : ' disabled aria-describedby="reward-settings-identity-unavailable"';
 $allNotificationCasesEnabled = $notificationCases !== [];
 foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
     $notificationCaseKey = (string) $notificationCaseKey;
@@ -124,8 +130,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <label class="form-label" for="reward_identity_withdrawal_required">출금 신청 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', !empty($settings['identity_withdrawal_required']), '사용'); ?>
+                <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityVerificationAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+                <?php if (!$rewardIdentityVerificationAvailable) { ?>
+                    <div id="reward-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 출금 신청 본인확인 설정을 사용할 수 없습니다.
+                    </div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">

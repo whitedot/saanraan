@@ -518,7 +518,11 @@ foreach ($reactionConsumerFiles as $file) {
         $context = implode("\n", array_slice($lines, max(0, $lineNumber - 3), 7));
         $hasReactionEnabledGuard = str_contains($context, 'sr_module_enabled($pdo, \'reaction\')')
             || str_contains($context, 'sr_module_enabled($GLOBALS[\'pdo\'], \'reaction\')')
-            || str_contains($context, '$reactionModuleEnabled');
+            || str_contains($context, '$reactionModuleEnabled')
+            || str_contains($context, '$contentReactionAvailable')
+            || str_contains($context, '$communityReactionAvailable')
+            || str_contains($context, '$quizReactionAvailable')
+            || str_contains($context, '$surveyReactionAvailable');
 
         if (str_contains($line, '/modules/reaction/helpers.php')) {
             $assert($hasReactionEnabledGuard, $lineLabel . ' should only load reaction helpers when the reaction module is enabled.');

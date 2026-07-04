@@ -737,6 +737,11 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     } elseif (!empty($settings['identity_view_adult_required'])) {
         $errors[] = '퀴즈 성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
     }
+    $reactionAvailable = sr_module_enabled($pdo, 'reaction')
+        && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+    if (!$reactionAvailable && ((string) ($settings['reaction_preset_key'] ?? '') !== '' || (string) ($settings['reaction_comment_preset_key'] ?? '') !== '')) {
+        $errors[] = '퀴즈 리액션 기본값을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
+    }
     $provider = (string) ($settings['default_reward_provider'] ?? '');
     if ($provider === 'none') {
         return array_values(array_unique($errors));
