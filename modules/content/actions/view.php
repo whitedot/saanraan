@@ -47,6 +47,29 @@ if (!is_array($page)) {
     sr_render_error(404, sr_t('content::action.error.content_not_found'));
 }
 
+$contentSettings = sr_content_settings($pdo);
+$contentSecretCommentsEnabled = !empty($contentSettings['secret_comments_enabled']);
+if (!$contentAdminPreview && (!empty($contentSettings['identity_content_view_required']) || !empty($contentSettings['identity_content_view_adult_required']))) {
+    $account = sr_member_require_login($pdo);
+    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        sr_render_error(403, '이 콘텐츠를 보려면 본인확인이 필요합니다. 본인확인 기능을 사용할 수 없어 열람할 수 없습니다.');
+    }
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+    $contentIdentityReturnUrl = sr_content_path((string) $page['slug']);
+    if (!empty($contentSettings['identity_content_view_required'])) {
+        $contentIdentityPolicy = sr_identity_verification_requirement_policy($pdo, (int) $account['id'], 'content.view', 'required', $contentIdentityReturnUrl);
+        if (empty($contentIdentityPolicy['satisfied'])) {
+            sr_render_error(403, '이 콘텐츠를 보려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
+    if (!empty($contentSettings['identity_content_view_adult_required'])) {
+        $contentAdultAvailable = sr_identity_verification_available($pdo, 'content.view.adult');
+        if (!$contentAdultAvailable || !sr_identity_verification_account_satisfies_adult($pdo, (int) $account['id'], 'content.view.adult')) {
+            sr_render_error(403, '이 콘텐츠를 보려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
+}
+
 $pageAccess = ['allowed' => true, 'charged' => false, 'message' => ''];
 if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
     $account = sr_member_require_login($pdo);
@@ -72,8 +95,6 @@ if (!$contentAdminPreview && !empty($pageAccess['allowed']) && sr_content_should
 }
 
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
-$contentSettings = sr_content_settings($pdo);
-$contentSecretCommentsEnabled = !empty($contentSettings['secret_comments_enabled']);
 $contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
 $contentComments = !empty($pageAccess['allowed']) ? sr_content_comments($pdo, (int) $page['id']) : [];
 $contentCommentNotice = $_SESSION['sr_content_comment_notice'] ?? '';

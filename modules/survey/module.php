@@ -33,6 +33,8 @@ return [
         'default_response_limit_policy' => 'per_survey_once',
         'default_response_limit_period_seconds' => 0,
         'embed_enabled' => true,
+        'identity_view_required' => false,
+        'identity_view_adult_required' => false,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,

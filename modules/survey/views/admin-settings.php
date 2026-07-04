@@ -250,6 +250,20 @@ $surveySettingsHelp = [
                 </div>
             </div>
             <div class="form-row">
+                <span class="form-label">설문 참여 본인확인</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('survey_settings_identity_view_required', 'identity_view_required', '1', !empty($settings['identity_view_required']), '사용'); ?>
+                    <p class="form-help">사용하면 설문 상세와 응답 전에 본인확인을 요구합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">설문 참여 성인 본인확인</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('survey_settings_identity_view_adult_required', 'identity_view_adult_required', '1', !empty($settings['identity_view_adult_required']), '사용'); ?>
+                    <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 설문에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_login_required', '로그인 필요', $surveySettingsHelp['default_login_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_login_required', 'default_login_required', '1', (int) ($settings['default_login_required'] ?? 1) === 1, '적용'); ?>

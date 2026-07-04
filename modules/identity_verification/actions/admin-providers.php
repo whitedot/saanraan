@@ -31,6 +31,7 @@ if (sr_request_method() === 'POST') {
         'attempt_ttl_seconds' => $attemptTtl ?? (int) $settings['attempt_ttl_seconds'],
         'result_valid_days' => $resultValidDays ?? (int) $settings['result_valid_days'],
         'require_https' => ($_POST['require_https'] ?? '') === '1',
+        'use_birth_date' => ($_POST['use_birth_date'] ?? '') === '1',
     ];
     if ($attemptTtl === null || $resultValidDays === null) {
         $errors[] = '본인확인 유효 시간 설정을 확인해 주세요.';

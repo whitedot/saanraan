@@ -37,6 +37,8 @@ return [
         'layout_extra_menu_keys_json' => [],
         'series_enabled' => true,
         'member_submission_enabled' => false,
+        'identity_content_view_required' => false,
+        'identity_content_view_adult_required' => false,
         'identity_author_application_required' => false,
         'identity_author_application_adult_required' => false,
         'member_submission_default_review_required' => false,

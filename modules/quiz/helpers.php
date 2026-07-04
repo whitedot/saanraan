@@ -301,6 +301,8 @@ function sr_quiz_default_settings(): array
         'default_reward_dedupe_scope' => 'per_quiz',
         'default_cta_label' => '퀴즈 풀기',
         'embed_enabled' => true,
+        'identity_view_required' => false,
+        'identity_view_adult_required' => false,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
@@ -628,6 +630,8 @@ function sr_quiz_normalize_settings(array $settings): array
         $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
     }
     $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
+    $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
+    $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
@@ -677,6 +681,8 @@ function sr_quiz_settings_from_post(): array
         'default_reward_dedupe_scope' => $rewardDedupeScope,
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
         'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
+        'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
+        'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
@@ -716,6 +722,14 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     }
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+    }
+    if (function_exists('sr_identity_verification_adult_setting_errors')) {
+        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($settings['identity_view_adult_required']), '퀴즈 성인 본인확인'));
+    } elseif (!empty($settings['identity_view_adult_required'])) {
+        $errors[] = '퀴즈 성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
     }
     $provider = (string) ($settings['default_reward_provider'] ?? '');
     if ($provider === 'none') {
@@ -819,6 +833,34 @@ function sr_quiz_display_settings_for_quiz(array $settings, array $quiz): array
     }
 
     return $settings;
+}
+
+function sr_quiz_enforce_identity_view_policy(PDO $pdo, array $quiz, array $settings, ?array &$currentAccount, bool $canPreviewAsAdmin): void
+{
+    if ($canPreviewAsAdmin || (empty($settings['identity_view_required']) && empty($settings['identity_view_adult_required']))) {
+        return;
+    }
+
+    $currentAccount = sr_member_require_login($pdo);
+    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        sr_render_error(403, '이 퀴즈에 참여하려면 본인확인이 필요합니다. 본인확인 기능을 사용할 수 없어 참여할 수 없습니다.');
+    }
+
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+    $returnUrl = '/quiz/' . (string) ($quiz['quiz_key'] ?? '');
+    $accountId = (int) ($currentAccount['id'] ?? 0);
+    if (!empty($settings['identity_view_required'])) {
+        $policy = sr_identity_verification_requirement_policy($pdo, $accountId, 'quiz.view', 'required', $returnUrl);
+        if (empty($policy['satisfied'])) {
+            sr_render_error(403, '이 퀴즈에 참여하려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
+    if (!empty($settings['identity_view_adult_required'])) {
+        $available = sr_identity_verification_available($pdo, 'quiz.view.adult');
+        if (!$available || !sr_identity_verification_account_satisfies_adult($pdo, $accountId, 'quiz.view.adult')) {
+            sr_render_error(403, '이 퀴즈에 참여하려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
 }
 
 function sr_quiz_skin_view_file(array $settings, string $view): string

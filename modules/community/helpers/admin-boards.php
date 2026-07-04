@@ -31,6 +31,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $commentPolicy = sr_post_string('comment_policy', 30);
         $identityRequired = ($_POST['identity_required'] ?? '') === '1';
         $adultRequired = ($_POST['adult_required'] ?? '') === '1';
+        if ($adultRequired) {
+            if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+                require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+            }
+            if (function_exists('sr_identity_verification_adult_setting_errors')) {
+                $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, true, '성인 게시판'));
+            } else {
+                $errors[] = '성인 게시판을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
+            }
+        }
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);

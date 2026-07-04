@@ -34,6 +34,8 @@ $registrationIdentityMode = sr_member_identity_requirement_mode($memberSettings[
 $registrationIdentityPurpose = 'member.registration';
 $registrationIdentityAvailable = function_exists('sr_identity_verification_available')
     && sr_identity_verification_available($pdo, $registrationIdentityPurpose);
+$registrationIdentityUseBirthDate = function_exists('sr_identity_verification_birth_date_enabled')
+    && sr_identity_verification_birth_date_enabled($pdo);
 $registrationIdentityReturnStatus = function_exists('sr_get_string') ? sr_get_string('identity_verification', 30) : '';
 if (!in_array($registrationIdentityReturnStatus, ['success', 'expired', 'failed', 'canceled', 'duplicate'], true)) {
     $registrationIdentityReturnStatus = '';
@@ -71,10 +73,10 @@ $values = [
 ];
 $registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
-if (!empty($registrationIdentityResult['birth_date'])) {
+if ($registrationIdentityUseBirthDate && !empty($registrationIdentityResult['birth_date'])) {
     $profileValues['birth_date'] = (string) $registrationIdentityResult['birth_date'];
 }
-if (array_key_exists('age_over_19', is_array($registrationIdentityResult) ? $registrationIdentityResult : []) && $registrationIdentityResult['age_over_19'] !== null) {
+if ($registrationIdentityUseBirthDate && array_key_exists('age_over_19', is_array($registrationIdentityResult) ? $registrationIdentityResult : []) && $registrationIdentityResult['age_over_19'] !== null) {
     $profileValues['is_adult'] = (int) $registrationIdentityResult['age_over_19'] === 1 ? '1' : '0';
 }
 $profileExtraValues = [];
@@ -143,10 +145,10 @@ if (sr_request_method() === 'POST') {
         ) {
             $errors[] = '본인확인 이름과 가입 이름이 일치하지 않습니다.';
         }
-        if (!empty($registrationIdentityResult['birth_date'])) {
+        if ($registrationIdentityUseBirthDate && !empty($registrationIdentityResult['birth_date'])) {
             $profileValues['birth_date'] = (string) $registrationIdentityResult['birth_date'];
         }
-        if (array_key_exists('age_over_19', $registrationIdentityResult) && $registrationIdentityResult['age_over_19'] !== null) {
+        if ($registrationIdentityUseBirthDate && array_key_exists('age_over_19', $registrationIdentityResult) && $registrationIdentityResult['age_over_19'] !== null) {
             $profileValues['is_adult'] = (int) $registrationIdentityResult['age_over_19'] === 1 ? '1' : '0';
         }
         foreach ($profileExtraFieldDefinitions as $profileExtraFieldDefinition) {

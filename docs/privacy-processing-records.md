@@ -75,11 +75,11 @@
 
 ## 특별범주·연령·고유식별자성 데이터 기준
 
-기본 번들 모듈은 특별범주 개인정보, 주민등록번호 같은 고유식별자 원문, CI/DI 원문, 성인 인증 원문 결과를 저장하지 않는다. 회원 선택 프로필의 `birth_date`와 `is_adult`는 연령성 개인정보로 분류하고 사본 제공에 포함하되, 성인 인증이나 본인확인 원문 결과로 쓰지 않는다. 회원 추가 프로필 항목은 export 정책과 cleanup 정책을 갖는 운영자 정의 입력 표면이므로 민감정보 수집을 권장하지 않는다. 퀴즈와 설문은 운영자가 민감한 답변을 수집할 수 있는 자유 입력 표면을 제공하므로, 기본 정책은 운영자 안내와 export/cleanup 계약으로 관리하고 원문 민감정보 수집을 권장하지 않는다.
+기본 번들 모듈은 특별범주 개인정보, 주민등록번호 같은 고유식별자 원문, CI/DI 원문, 성인 인증 원문 결과를 저장하지 않는다. 회원 선택 프로필의 `birth_date`와 `is_adult`는 연령성 개인정보로 분류하고 사본 제공에 포함한다. 기본값은 본인확인 결과의 생년월일을 회원 프로필로 사용하지 않는 것이며, 운영자가 본인확인 환경설정에서 생년월일 사용을 켠 경우에만 회원가입 본인확인 결과가 `birth_date`와 `is_adult` 입력을 채우고 잠근다. 회원 추가 프로필 항목은 export 정책과 cleanup 정책을 갖는 운영자 정의 입력 표면이므로 민감정보 수집을 권장하지 않는다. 퀴즈와 설문은 운영자가 민감한 답변을 수집할 수 있는 자유 입력 표면을 제공하므로, 기본 정책은 운영자 안내와 export/cleanup 계약으로 관리하고 원문 민감정보 수집을 권장하지 않는다.
 
 | 표면 | 기본 기준 | 후속 구현 기준 |
 | --- | --- | --- |
-| 회원 선택 프로필 | `member`의 `birth_date`와 `is_adult`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. 추가 프로필 항목은 `sr_member_profile_field_values`에 snapshot과 값으로 저장하고 `export_policy=include`인 항목만 사본 제공에 포함한다. 운영자가 추가 프로필 항목을 삭제하면 저장 전 경고 확인을 요구하고, 저장 시 해당 `field_key`의 전체 회원 저장값을 함께 삭제한다. | 성인 인증이나 법정대리인 확인이 필요하면 birth date 또는 adult flag 원문 재사용이 아니라 별도 선택 플러그인의 최소 결과 snapshot 기준을 따른다. |
+| 회원 선택 프로필 | `member`의 `birth_date`와 `is_adult`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. 추가 프로필 항목은 `sr_member_profile_field_values`에 snapshot과 값으로 저장하고 `export_policy=include`인 항목만 사본 제공에 포함한다. 운영자가 추가 프로필 항목을 삭제하면 저장 전 경고 확인을 요구하고, 저장 시 해당 `field_key`의 전체 회원 저장값을 함께 삭제한다. | 성인 인증이나 법정대리인 확인이 필요하면 기본 birth date 또는 adult flag 원문 재사용이 아니라 본인확인 선택 플러그인의 최소 결과 snapshot 기준을 따른다. 본인확인 생년월일 사용은 운영자 opt-in이어야 한다. |
 | 본인확인/성인 인증 | `identity_verification`은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문을 저장하지 않고 attempt/result/link 요약과 HMAC hash만 저장한다. 계정 연결은 `sr_member_accounts` 확장이 아니라 `sr_identity_verification_links`가 소유한다. | KCP/KG이니시스 provider 실인증 smoke는 테스트/운영 상점 정보와 provider 암복호화 라이브러리가 있는 로컬 또는 staging에서 별도로 기록한다. |
 | OAuth/OIDC profile | `member_oauth`는 provider subject 원문이 아니라 HMAC hash와 최소 email snapshot만 보관한다. 화면·export용 subject 표시값도 원문 `sub`가 아니라 HMAC hash prefix로 저장한다. OAuth 로그인/연결 때 verified email과 이름은 회원 기본 필드에 갱신할 수 있고, 추가 claim은 운영자가 매핑한 회원 선택 프로필 항목에만 저장한다. 빈 값, 배열 값, 선택지 밖 값, 현재 정의되지 않은 선택 프로필 항목은 기존 저장값을 삭제하지 않고 건너뛴다. | scope를 추가하거나 claim 매핑을 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
 | CAPTCHA 검증 | `antispam`은 기본 DB 개인정보를 저장하지 않는다. | remote IP 전달을 켜거나 외부 provider script를 로딩하면 processor/국외이전 후보와 쿠키 동의 inventory에 포함한다. |

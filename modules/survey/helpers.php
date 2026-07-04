@@ -389,6 +389,8 @@ function sr_survey_default_settings(): array
         'default_response_limit_policy' => 'per_survey_once',
         'default_response_limit_period_seconds' => 0,
         'embed_enabled' => true,
+        'identity_view_required' => false,
+        'identity_view_adult_required' => false,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
@@ -669,6 +671,8 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['default_response_limit_policy'] = in_array((string) $normalized['default_response_limit_policy'], sr_survey_response_limit_policies(), true) ? (string) $normalized['default_response_limit_policy'] : (string) $defaults['default_response_limit_policy'];
     $normalized['default_response_limit_period_seconds'] = max(0, (int) $normalized['default_response_limit_period_seconds']);
     $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
+    $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
+    $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
@@ -706,6 +710,8 @@ function sr_survey_settings_from_post(): array
         'default_response_limit_policy' => sr_survey_clean_key(sr_post_string('default_response_limit_policy', 30), 30),
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
         'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
+        'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
+        'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
@@ -741,6 +747,14 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
     }
     if ((string) ($settings['default_response_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_response_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응답 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+    }
+    if (function_exists('sr_identity_verification_adult_setting_errors')) {
+        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($settings['identity_view_adult_required']), '설문 성인 본인확인'));
+    } elseif (!empty($settings['identity_view_adult_required'])) {
+        $errors[] = '설문 성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
     }
 
     return $errors;
@@ -819,6 +833,34 @@ function sr_survey_display_settings_for_survey(array $settings, array $survey): 
     }
 
     return $settings;
+}
+
+function sr_survey_enforce_identity_view_policy(PDO $pdo, array $survey, array $settings, ?array &$currentAccount, bool $canPreviewAsAdmin): void
+{
+    if ($canPreviewAsAdmin || (empty($settings['identity_view_required']) && empty($settings['identity_view_adult_required']))) {
+        return;
+    }
+
+    $currentAccount = sr_member_require_login($pdo);
+    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        sr_render_error(403, '이 설문에 참여하려면 본인확인이 필요합니다. 본인확인 기능을 사용할 수 없어 참여할 수 없습니다.');
+    }
+
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+    $returnUrl = '/survey/' . (string) ($survey['survey_key'] ?? '');
+    $accountId = (int) ($currentAccount['id'] ?? 0);
+    if (!empty($settings['identity_view_required'])) {
+        $policy = sr_identity_verification_requirement_policy($pdo, $accountId, 'survey.view', 'required', $returnUrl);
+        if (empty($policy['satisfied'])) {
+            sr_render_error(403, '이 설문에 참여하려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
+    if (!empty($settings['identity_view_adult_required'])) {
+        $available = sr_identity_verification_available($pdo, 'survey.view.adult');
+        if (!$available || !sr_identity_verification_account_satisfies_adult($pdo, $accountId, 'survey.view.adult')) {
+            sr_render_error(403, '이 설문에 참여하려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+        }
+    }
 }
 
 function sr_survey_skin_view_file(array $settings, string $view): string

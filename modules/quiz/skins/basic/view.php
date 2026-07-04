@@ -31,12 +31,13 @@ $previewMode = $canPreviewAsAdmin;
 if (!is_array($quiz) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '퀴즈를 찾을 수 없습니다.');
 }
+$quizSettings = sr_quiz_settings($pdo);
+sr_quiz_enforce_identity_view_policy($pdo, $quiz, $quizSettings, $currentAccount, $canPreviewAsAdmin);
 if (!$canPreviewAsAdmin && sr_quiz_should_count_view((int) ($quiz['id'] ?? 0))) {
     sr_quiz_increment_view_count($pdo, (int) ($quiz['id'] ?? 0));
     $quiz['view_count'] = (int) ($quiz['view_count'] ?? 0) + 1;
 }
 $questions = sr_quiz_questions_with_choices($pdo, (int) ($quiz['id'] ?? 0));
-$quizSettings = sr_quiz_settings($pdo);
 $quizSettings = sr_quiz_display_settings_for_quiz($quizSettings, $quiz);
 $attemptAccess = $canPreviewAsAdmin
     ? ['allowed' => false, 'message' => '관리자 미리보기에서는 제출할 수 없습니다.']

@@ -196,6 +196,7 @@ $quizLayoutExtraMenuRows = static function (array $menuItems, bool $template = f
 $quizSettingsSectionNavItems = [
     'quiz-settings-section-display' => '공개 화면',
     'quiz-settings-section-defaults' => '새 퀴즈',
+    'quiz-settings-section-identity' => '본인확인',
     'quiz-settings-section-reaction' => '리액션',
     'quiz-settings-section-reward' => '기본 보상',
     'quiz-settings-section-links' => '목록/연결',
@@ -498,6 +499,26 @@ $quizSettingsSectionNavItems = [
                 <div class="form-field">
                     <input id="quiz_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" step="1" required>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quiz-settings-section-identity" class="card" data-admin-section-anchor>
+        <div class="card-header">
+            <h2 class="card-title">본인확인</h2>
+        </div>
+        <div class="form-row">
+            <span class="form-label">퀴즈 참여 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('quiz_settings_identity_view_required', 'identity_view_required', '1', !empty($settings['identity_view_required']), '사용'); ?>
+                <p class="form-help">사용하면 퀴즈 상세와 응시 전에 본인확인을 요구합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label">퀴즈 참여 성인 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('quiz_settings_identity_view_adult_required', 'identity_view_adult_required', '1', !empty($settings['identity_view_adult_required']), '사용'); ?>
+                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 퀴즈에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
             </div>
         </div>
     </section>

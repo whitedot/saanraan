@@ -8,6 +8,9 @@ require_once SR_ROOT . '/modules/content/helpers.php';
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'view');
@@ -55,6 +58,8 @@ if (sr_request_method() === 'POST') {
         'layout_extra_menu_keys_json' => sr_content_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
         'series_enabled' => sr_post_string('series_enabled', 1) === '1',
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
+        'identity_content_view_required' => sr_post_string('identity_content_view_required', 1) === '1',
+        'identity_content_view_adult_required' => sr_post_string('identity_content_view_adult_required', 1) === '1',
         'identity_author_application_required' => sr_post_string('identity_author_application_required', 1) === '1',
         'identity_author_application_adult_required' => sr_post_string('identity_author_application_adult_required', 1) === '1',
         'member_submission_default_review_required' => sr_post_string('member_submission_default_review_required', 1) === '1',
@@ -105,6 +110,12 @@ if (sr_request_method() === 'POST') {
         }
     } elseif (!empty($postedSettings['member_submission_author_reward_enabled'])) {
         $errors[] = '작성자 리워드 포인트/금액 항목을 선택하세요.';
+    }
+    if (function_exists('sr_identity_verification_adult_setting_errors')) {
+        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인'));
+        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_author_application_adult_required']), '작성자 신청 성인 본인확인'));
+    } elseif (!empty($postedSettings['identity_content_view_adult_required']) || !empty($postedSettings['identity_author_application_adult_required'])) {
+        $errors[] = '성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
     }
 
     if ($errors === []) {

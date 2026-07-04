@@ -27,13 +27,13 @@ $canPreviewAsAdmin = $adminHasSurveyViewPermission && ($previewMode || !$isPubli
 if (!is_array($survey) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '설문을 찾을 수 없습니다.');
 }
+$settings = isset($settings) && is_array($settings) ? $settings : sr_survey_settings($pdo);
+$settings = sr_survey_display_settings_for_survey($settings, $survey);
+sr_survey_enforce_identity_view_policy($pdo, $survey, $settings, $currentAccount, $canPreviewAsAdmin);
 if (!$canPreviewAsAdmin && sr_survey_should_count_view((int) ($survey['id'] ?? 0))) {
     sr_survey_increment_view_count($pdo, (int) ($survey['id'] ?? 0));
     $survey['view_count'] = (int) ($survey['view_count'] ?? 0) + 1;
 }
-
-$settings = isset($settings) && is_array($settings) ? $settings : sr_survey_settings($pdo);
-$settings = sr_survey_display_settings_for_survey($settings, $survey);
 $questions = sr_survey_questions_with_choices($pdo, (int) $survey['id']);
 $currentAccountId = is_array($currentAccount) ? (int) ($currentAccount['id'] ?? 0) : 0;
 $access = $canPreviewAsAdmin ? ['allowed' => true, 'message' => ''] : sr_survey_account_can_respond($pdo, $survey, $currentAccountId);

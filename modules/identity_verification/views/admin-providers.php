@@ -60,6 +60,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
+        <div class="form-row">
+            <label class="form-label" for="identity_verification_use_birth_date"><?php echo sr_e('생년월일 사용'); ?></label>
+            <div class="form-field">
+                <label class="form-check form-label" for="identity_verification_use_birth_date">
+                    <input id="identity_verification_use_birth_date" type="checkbox" name="use_birth_date" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['use_birth_date']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('사용'); ?>
+                </label>
+                <p class="form-help">사용하면 회원가입 본인확인 결과의 생년월일과 성인 여부를 회원 프로필 생년월일처럼 서버에서 반영하고 잠급니다. 성인확인 정책은 이 설정이 켜져 있을 때만 저장할 수 있습니다.</p>
+            </div>
+        </div>
     </section>
 
     <?php $identityProviderCount = 0; ?>

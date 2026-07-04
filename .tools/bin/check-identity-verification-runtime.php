@@ -129,6 +129,13 @@ $identityHelpers = file_get_contents($root . '/modules/identity_verification/hel
 if (!is_string($identityHelpers)) {
     $errors[] = 'identity verification helper file must be readable.';
 } elseif (!str_contains($identityHelpers, 'function sr_identity_verification_require_provider_response(): void')
+    || !str_contains($identityHelpers, "'use_birth_date' => false")
+    || !str_contains($identityHelpers, 'function sr_identity_verification_birth_date_enabled(PDO $pdo): bool')
+    || !str_contains($identityHelpers, 'function sr_identity_verification_adult_setting_errors(PDO $pdo, bool $adultRequired')
+    || !str_contains($identityHelpers, "str_ends_with(\$purpose, '.adult')")
+    || !str_contains($identityHelpers, "'content.view.adult'")
+    || !str_contains($identityHelpers, "'quiz.view.adult'")
+    || !str_contains($identityHelpers, "'survey.view.adult'")
     || !str_contains($identityHelpers, "sr_request_contract_mark('csrf_checked');")
     || !str_contains($identityHelpers, 'function sr_identity_verification_identity_snapshot(array $identity): array')
     || !str_contains($identityHelpers, 'function sr_identity_verification_session_identity_snapshot(')
@@ -165,6 +172,9 @@ if (!is_string($registerAction)) {
     || !str_contains($registerAction, 'sr_identity_verification_result_for_return_token(')
     || str_contains($registerAction, 'sr_identity_verification_claim_return_token(')
     || !str_contains($registerAction, '$registrationIdentityFieldsLocked = $registrationIdentitySatisfied;')
+    || !str_contains($registerAction, '$registrationIdentityUseBirthDate = function_exists')
+    || !str_contains($registerAction, 'sr_identity_verification_birth_date_enabled($pdo)')
+    || !str_contains($registerAction, 'if ($registrationIdentityUseBirthDate && !empty($registrationIdentityResult[\'birth_date\']))')
     || !str_contains($registerAction, 'sr_identity_verification_take_registration_snapshot($config, $registrationIdentityReturnToken)')
     || !str_contains($registerAction, '$registrationIdentityLockedProfileExtraKeys')
     || !str_contains($registerAction, "sr_identity_verification_hmac_field(\$config, 'name'")
@@ -183,6 +193,9 @@ if (!is_string($registerView)) {
     || !str_contains($registerView, "window.addEventListener('pagehide'")
     || !str_contains($registerView, "window.location.replace('/register')")
     || !str_contains($registerView, "sessionStorage.getItem('sr_identity_verification_result')")
+    || !str_contains($registerView, '$memberRegisterIdentityBirthDateLocked = !empty($registrationIdentityFieldsLocked) && !empty($registrationIdentityUseBirthDate);')
+    || !str_contains($registerView, 'var identityBirthDateLocked = <?php echo !empty($memberRegisterIdentityBirthDateLocked)')
+    || !str_contains($registerView, 'if (identityBirthDateLocked && birthDate && identity.birth_date)')
     || !str_contains($registerView, 'var serverIdentity = <?php echo sr_js_json_encode')
     || !str_contains($registerView, "'locked_keys' => !empty(\$registrationIdentityFieldsLocked)")
 ) {
@@ -246,6 +259,64 @@ if (!is_string($adminVerificationsAction) || !is_string($adminVerificationsView)
     || str_contains($adminVerificationsCss, '.identity-verification-detail-section')
 ) {
     $errors[] = 'identity verification admin history detail must render as an admin-styled modal from the list.';
+}
+
+$adminProvidersAction = file_get_contents($root . '/modules/identity_verification/actions/admin-providers.php');
+$adminProvidersView = file_get_contents($root . '/modules/identity_verification/views/admin-providers.php');
+if (!is_string($adminProvidersAction) || !is_string($adminProvidersView)) {
+    $errors[] = 'identity verification admin provider settings files must be readable.';
+} elseif (!str_contains($adminProvidersAction, "'use_birth_date' => (\$_POST['use_birth_date'] ?? '') === '1'")
+    || !str_contains($adminProvidersView, 'name="use_birth_date"')
+    || !str_contains($adminProvidersView, '성인확인 정책은 이 설정이 켜져 있을 때만 저장할 수 있습니다')
+) {
+    $errors[] = 'identity verification settings must expose birth date opt-in for registration and adult policies.';
+}
+
+$contentSettingsAction = file_get_contents($root . '/modules/content/actions/admin-settings.php');
+$contentSettingsView = file_get_contents($root . '/modules/content/views/admin-settings.php');
+$contentViewAction = file_get_contents($root . '/modules/content/actions/view.php');
+if (!is_string($contentSettingsAction) || !is_string($contentSettingsView) || !is_string($contentViewAction)) {
+    $errors[] = 'content identity access files must be readable.';
+} elseif (!str_contains($contentSettingsAction, "'identity_content_view_required' => sr_post_string('identity_content_view_required', 1) === '1'")
+    || !str_contains($contentSettingsAction, "sr_identity_verification_adult_setting_errors(\$pdo, !empty(\$postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인')")
+    || !str_contains($contentSettingsView, "'identity_content_view_required', '1'")
+    || !str_contains($contentSettingsView, "'identity_content_view_adult_required', '1'")
+    || !str_contains($contentViewAction, "sr_identity_verification_requirement_policy(\$pdo, (int) \$account['id'], 'content.view'")
+    || !str_contains($contentViewAction, "sr_identity_verification_account_satisfies_adult(\$pdo, (int) \$account['id'], 'content.view.adult')")
+) {
+    $errors[] = 'content settings and view action must support identity and adult identity access policies.';
+}
+
+$quizHelpers = file_get_contents($root . '/modules/quiz/helpers.php');
+$quizSettingsView = file_get_contents($root . '/modules/quiz/views/admin-settings.php');
+$quizSkinView = file_get_contents($root . '/modules/quiz/skins/basic/view.php');
+if (!is_string($quizHelpers) || !is_string($quizSettingsView) || !is_string($quizSkinView)) {
+    $errors[] = 'quiz identity access files must be readable.';
+} elseif (!str_contains($quizHelpers, "'identity_view_required' => false")
+    || !str_contains($quizHelpers, 'function sr_quiz_enforce_identity_view_policy(')
+    || !str_contains($quizHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'quiz.view'")
+    || !str_contains($quizHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'quiz.view.adult')")
+    || !str_contains($quizSettingsView, "'identity_view_required', '1'")
+    || !str_contains($quizSettingsView, "'identity_view_adult_required', '1'")
+    || !str_contains($quizSkinView, 'sr_quiz_enforce_identity_view_policy($pdo, $quiz, $quizSettings, $currentAccount, $canPreviewAsAdmin);')
+) {
+    $errors[] = 'quiz settings and view screens must support identity and adult identity participation policies.';
+}
+
+$surveyHelpers = file_get_contents($root . '/modules/survey/helpers.php');
+$surveySettingsView = file_get_contents($root . '/modules/survey/views/admin-settings.php');
+$surveySkinView = file_get_contents($root . '/modules/survey/skins/basic/view.php');
+if (!is_string($surveyHelpers) || !is_string($surveySettingsView) || !is_string($surveySkinView)) {
+    $errors[] = 'survey identity access files must be readable.';
+} elseif (!str_contains($surveyHelpers, "'identity_view_required' => false")
+    || !str_contains($surveyHelpers, 'function sr_survey_enforce_identity_view_policy(')
+    || !str_contains($surveyHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'survey.view'")
+    || !str_contains($surveyHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'survey.view.adult')")
+    || !str_contains($surveySettingsView, "'identity_view_required', '1'")
+    || !str_contains($surveySettingsView, "'identity_view_adult_required', '1'")
+    || !str_contains($surveySkinView, 'sr_survey_enforce_identity_view_policy($pdo, $survey, $settings, $currentAccount, $canPreviewAsAdmin);')
+) {
+    $errors[] = 'survey settings and view screens must support identity and adult identity participation policies.';
 }
 
 $commonUi = file_get_contents($root . '/assets/common-ui.js');

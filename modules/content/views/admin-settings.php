@@ -204,6 +204,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>이용/과금 기준</h2>
         <div class="form-row">
+            <span class="form-label">콘텐츠 열람 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_required', 'identity_content_view_required', '1', !empty($settings['identity_content_view_required']), '사용'); ?>
+                <p class="form-help">사용하면 공개 콘텐츠를 보려는 회원에게 본인확인을 요구합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label">콘텐츠 열람 성인 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_adult_required', 'identity_content_view_adult_required', '1', !empty($settings['identity_content_view_adult_required']), '사용'); ?>
+                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 공개 콘텐츠를 볼 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <span class="form-label">복합 자산 결제</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>

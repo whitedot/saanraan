@@ -106,6 +106,8 @@
 
 현재 공유 도메인 패턴은 코어 primitive와 공식 선택 모듈을 구분한다. `asset_ledger`는 자산 원장 primitive를 소유하는 공식 선택 모듈이고, `payment_ledger`는 여러 도메인의 결제 증빙을 묶는 공식 선택 모듈이다. 본문 URL 임베드는 별도 관리 모듈 없이 `core/helpers/url-embed.php`의 좁은 helper가 맡는다.
 
+본인확인은 `identity_verification` 선택 모듈이 provider 설정, 시도, 결과, purpose별 계정 연결을 소유한다. 생년월일 사용은 별도 opt-in 설정이며, 켜진 경우에만 회원가입 본인확인 결과의 생년월일과 성인 여부를 회원 프로필에 반영하고 잠근다. 성인확인 정책은 생년월일 사용이 켜져 있을 때만 저장할 수 있고, 콘텐츠/퀴즈/설문 같은 소비 모듈은 공개 열람 또는 참여 접근 정책을 자기 설정으로 저장한다.
+
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 일반 거래 insert는 `asset_ledger` 공식 선택 모듈의 helper로 줄이되, 만료 잔여량처럼 모듈 소유 정책 필드가 함께 바뀌는 경우에는 해당 자산 모듈이 같은 트랜잭션 안에서 자체 insert helper를 둘 수 있다. 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 
 결제내역은 도메인 주문내역과 분리한다. `payment_ledger`는 `sr_payment_records`와 `sr_payment_record_items`에 결제 전 금액, 실제 settlement 금액, 통화, 쿠폰 사용, 자산 거래, 외부 PG 승인, 접근권 부여 같은 구성 item을 저장하지만 상품, 주문, 배송, 콘텐츠 접근 정책, 커뮤니티 열람 정책을 소유하지 않는다. 커머스 모듈이 추가되면 `sr_commerce_orders` 같은 주문/주문상품/배송/환불 정책 테이블은 커머스가 소유하고, 주문 결제 확정 트랜잭션 안에서 `payment_ledger`에 결제 record와 item만 기록한다. 콘텐츠와 커뮤니티도 같은 원칙으로 유료 열람/다운로드 접근권과 자산 로그를 자기 테이블에 남기고, 공통 결제 record는 증빙 묶음으로만 쓴다. 도메인 모듈은 `payment-ledger-targets.php` 계약으로 subject module/type 설명을 제공한다.

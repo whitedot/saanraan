@@ -6,6 +6,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
+$memberRegisterIdentityBirthDateLocked = !empty($registrationIdentityFieldsLocked) && !empty($registrationIdentityUseBirthDate);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
 ?>
     <main class="member-skin-basic-page">
@@ -99,17 +100,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <p>
                             <label for="modules_member_register_birth_date">
                         <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?><?php echo !empty($registrationIdentityFieldsLocked) ? ' readonly data-member-identity-locked-field="birth_date"' : ''; ?>>
+                                <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' readonly data-member-identity-locked-field="birth_date"' : ''; ?>>
                             </label>
                         </p>
                     <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'is_adult' && !empty($profilePolicies['is_adult']['visible'])) { ?>
                         <p>
                             <label for="modules_member_register_is_adult">
                         <span><?php echo sr_e(sr_t('member::ui.is_adult')); ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                <?php if (!empty($registrationIdentityFieldsLocked)) { ?>
+                                <?php if (!empty($memberRegisterIdentityBirthDateLocked)) { ?>
                                     <input type="hidden" name="is_adult" value="<?php echo sr_e((string) ($profileValues['is_adult'] ?? '')); ?>" data-member-identity-locked-hidden="is_adult">
                                 <?php } ?>
-                                <select class="form-select" id="modules_member_register_is_adult"<?php echo !empty($registrationIdentityFieldsLocked) ? '' : ' name="is_adult"'; ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?><?php echo !empty($registrationIdentityFieldsLocked) ? ' disabled data-member-identity-locked-field="is_adult"' : ''; ?>>
+                                <select class="form-select" id="modules_member_register_is_adult"<?php echo !empty($memberRegisterIdentityBirthDateLocked) ? '' : ' name="is_adult"'; ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' disabled data-member-identity-locked-field="is_adult"' : ''; ?>>
                                     <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
                                     <option value="1"<?php echo (string) ($profileValues['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
                                     <option value="0"<?php echo (string) ($profileValues['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
@@ -168,6 +169,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
     <script>
         (function () {
             var identityLocked = <?php echo !empty($registrationIdentityFieldsLocked) ? 'true' : 'false'; ?>;
+            var identityBirthDateLocked = <?php echo !empty($memberRegisterIdentityBirthDateLocked) ? 'true' : 'false'; ?>;
             var identityTokenPresent = <?php echo !empty($registrationIdentityReturnToken) ? 'true' : 'false'; ?>;
             if (identityTokenPresent && window.history && typeof window.history.replaceState === 'function') {
                 try {
@@ -219,10 +221,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     if (displayName && !displayName.value && identity.name) {
                         displayName.value = identity.name;
                     }
-                    if (birthDate && identity.birth_date) {
+                    if (identityBirthDateLocked && birthDate && identity.birth_date) {
                         birthDate.value = identity.birth_date;
                     }
-                    if (isAdult && identity.age_over_19 !== '') {
+                    if (identityBirthDateLocked && isAdult && identity.age_over_19 !== '') {
                         isAdult.value = identity.age_over_19 === '1' ? '1' : '0';
                     }
                     if (isAdultHidden && isAdult) {

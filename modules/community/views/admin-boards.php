@@ -621,7 +621,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_boards_adult_required', 'adult_required', '1', $boardField($formBoard, 'adult_required', '0') === '1', '사용'); ?>
                     <?php echo $settingSourceRadioHtml('source_adult_required', $boardSettingSource($formBoard, 'adult_required')); ?>
-                    <p class="form-help">사용하면 성인 본인확인을 마친 회원만 게시판 목록과 게시글을 볼 수 있습니다.</p>
+                    <p class="form-help">사용하면 성인 본인확인을 마친 회원만 게시판 목록과 게시글을 볼 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row">

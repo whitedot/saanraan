@@ -114,6 +114,8 @@ function sr_content_default_settings(): array
         'layout_extra_menu_keys_json' => [],
         'series_enabled' => true,
         'member_submission_enabled' => false,
+        'identity_content_view_required' => false,
+        'identity_content_view_adult_required' => false,
         'identity_author_application_required' => false,
         'identity_author_application_adult_required' => false,
         'member_submission_default_review_required' => false,
@@ -349,6 +351,8 @@ function sr_content_settings(PDO $pdo): array
     $settings['layout_extra_menu_keys_json'] = sr_content_layout_extra_menu_items_from_settings($settings);
     $settings['series_enabled'] = sr_content_bool_setting($settings['series_enabled'] ?? true);
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
+    $settings['identity_content_view_required'] = sr_content_bool_setting($settings['identity_content_view_required'] ?? false);
+    $settings['identity_content_view_adult_required'] = sr_content_bool_setting($settings['identity_content_view_adult_required'] ?? false);
     $settings['identity_author_application_required'] = sr_content_bool_setting($settings['identity_author_application_required'] ?? false);
     $settings['identity_author_application_adult_required'] = sr_content_bool_setting($settings['identity_author_application_adult_required'] ?? false);
     $settings['member_submission_default_review_required'] = sr_content_bool_setting($settings['member_submission_default_review_required'] ?? false);
@@ -580,6 +584,8 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['layout_extra_menu_keys_json', sr_content_layout_extra_menu_keys_json($settings['layout_extra_menu_keys_json'] ?? []), 'json'],
         ['series_enabled', !empty($settings['series_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],
+        ['identity_content_view_required', !empty($settings['identity_content_view_required']) ? '1' : '0', 'bool'],
+        ['identity_content_view_adult_required', !empty($settings['identity_content_view_adult_required']) ? '1' : '0', 'bool'],
         ['identity_author_application_required', !empty($settings['identity_author_application_required']) ? '1' : '0', 'bool'],
         ['identity_author_application_adult_required', !empty($settings['identity_author_application_adult_required']) ? '1' : '0', 'bool'],
         ['member_submission_default_review_required', !empty($settings['member_submission_default_review_required']) ? '1' : '0', 'bool'],

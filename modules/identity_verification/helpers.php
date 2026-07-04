@@ -18,6 +18,7 @@ function sr_identity_verification_default_settings(): array
         'attempt_ttl_seconds' => 600,
         'result_valid_days' => 365,
         'require_https' => true,
+        'use_birth_date' => false,
     ];
 }
 
@@ -29,8 +30,28 @@ function sr_identity_verification_settings(PDO $pdo): array
     $settings['attempt_ttl_seconds'] = min(3600, max(60, (int) ($settings['attempt_ttl_seconds'] ?? 600)));
     $settings['result_valid_days'] = min(3650, max(0, (int) ($settings['result_valid_days'] ?? 365)));
     $settings['require_https'] = sr_truthy($settings['require_https'] ?? true);
+    $settings['use_birth_date'] = sr_truthy($settings['use_birth_date'] ?? false);
 
     return $settings;
+}
+
+function sr_identity_verification_birth_date_enabled(PDO $pdo): bool
+{
+    return !empty(sr_identity_verification_settings($pdo)['use_birth_date']);
+}
+
+function sr_identity_verification_adult_verification_available(PDO $pdo): bool
+{
+    return sr_identity_verification_birth_date_enabled($pdo);
+}
+
+function sr_identity_verification_adult_setting_errors(PDO $pdo, bool $adultRequired, string $label = '성인 본인확인'): array
+{
+    if (!$adultRequired || sr_identity_verification_adult_verification_available($pdo)) {
+        return [];
+    }
+
+    return [$label . '을 사용하려면 본인확인 환경설정에서 생년월일 사용을 먼저 켜야 합니다.'];
 }
 
 function sr_identity_verification_save_settings(PDO $pdo, array $settings): void
@@ -118,6 +139,8 @@ function sr_identity_verification_purpose_labels(): array
         'asset.exchange' => '자산 환전 신청',
         'community.adult_board' => '커뮤니티 성인 게시판',
         'community.restricted_board' => '커뮤니티 제한 게시판',
+        'content.view' => '콘텐츠 열람 본인확인',
+        'content.view.adult' => '콘텐츠 열람 성인 확인',
         'content.author_application' => '콘텐츠 작성자 신청',
         'content.author_application.adult' => '콘텐츠 작성자 성인 확인',
         'deposit.refund_request' => '예치금 환불 신청',
@@ -125,7 +148,11 @@ function sr_identity_verification_purpose_labels(): array
         'member.mfa.login' => '로그인 2차 인증',
         'member.registration' => '회원가입',
         'member.withdrawal' => '회원탈퇴',
+        'quiz.view' => '퀴즈 참여 본인확인',
+        'quiz.view.adult' => '퀴즈 참여 성인 확인',
         'reward.withdrawal_request' => '적립금 출금 신청',
+        'survey.view' => '설문 참여 본인확인',
+        'survey.view.adult' => '설문 참여 성인 확인',
     ];
 }
 
@@ -222,8 +249,15 @@ function sr_identity_verification_setting_key(string $providerKey, string $setti
 
 function sr_identity_verification_available(PDO $pdo, string $purpose = ''): bool
 {
+    $purpose = sr_identity_verification_purpose($purpose);
     $settings = sr_identity_verification_settings($pdo);
     if (empty($settings['enabled'])) {
+        return false;
+    }
+    if ($purpose !== '' && str_ends_with($purpose, '.adult') && empty($settings['use_birth_date'])) {
+        return false;
+    }
+    if ($purpose === 'community.adult_board' && empty($settings['use_birth_date'])) {
         return false;
     }
 
@@ -259,7 +293,10 @@ function sr_identity_verification_identity_provider_required_purposes(): array
         'community.adult_board',
         'community.restricted_board',
         'content.author_application.adult',
+        'content.view.adult',
         'member.registration',
+        'quiz.view.adult',
+        'survey.view.adult',
     ];
 }
 
@@ -321,6 +358,9 @@ function sr_identity_verification_account_satisfies_adult(PDO $pdo, int $account
 {
     $purpose = sr_identity_verification_purpose($purpose);
     if ($accountId <= 0 || $purpose === '') {
+        return false;
+    }
+    if (!sr_identity_verification_adult_verification_available($pdo)) {
         return false;
     }
 
