@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return array (
-  'community_asset_pending_logs' => 
+  'community_asset_pending_logs' =>
   array (
     'enabled' => true,
     'auto_scope' => 'admin',
@@ -12,7 +12,7 @@ return array (
              FROM sr_community_asset_logs
              WHERE log_status = \'pending\'
                AND created_at < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'sessions',
     ),
@@ -24,11 +24,11 @@ return array (
                AND created_at < :cutoff
              ORDER BY id ASC
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'sessions',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT log_status FROM sr_community_asset_logs LIMIT 1',
     ),

@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 return array (
-  'notifications' => 
+  'notifications' =>
   array (
     'enabled' => true,
     'auto_scope' => 'public',
     'cutoff_key' => 'notifications',
     'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_notifications WHERE created_at < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'notifications',
     ),
@@ -24,18 +24,18 @@ return array (
                )
              ORDER BY id ASC
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'notifications',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT 1 FROM sr_notifications LIMIT 1',
       1 => 'SELECT 1 FROM sr_notification_deliveries LIMIT 1',
       2 => 'SELECT 1 FROM sr_notification_reads LIMIT 1',
     ),
   ),
-  'notification_deliveries' => 
+  'notification_deliveries' =>
   array (
     'enabled' => true,
     'auto_scope' => 'public',
@@ -44,7 +44,7 @@ return array (
              FROM sr_notification_deliveries d
              INNER JOIN sr_notifications n ON n.id = d.notification_id
              WHERE n.created_at < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'notifications',
     ),
@@ -57,18 +57,18 @@ return array (
                 SELECT id FROM sr_notifications WHERE created_at < :cutoff
              )
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'notifications',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT 1 FROM sr_notifications LIMIT 1',
       1 => 'SELECT 1 FROM sr_notification_deliveries LIMIT 1',
       2 => 'SELECT 1 FROM sr_notification_reads LIMIT 1',
     ),
   ),
-  'notification_reads' => 
+  'notification_reads' =>
   array (
     'enabled' => true,
     'auto_scope' => 'public',
@@ -77,7 +77,7 @@ return array (
              FROM sr_notification_reads r
              INNER JOIN sr_notifications n ON n.id = r.notification_id
              WHERE n.created_at < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'notifications',
     ),
@@ -90,18 +90,18 @@ return array (
                 SELECT id FROM sr_notifications WHERE created_at < :cutoff
              )
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'notifications',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT 1 FROM sr_notifications LIMIT 1',
       1 => 'SELECT 1 FROM sr_notification_deliveries LIMIT 1',
       2 => 'SELECT 1 FROM sr_notification_reads LIMIT 1',
     ),
   ),
-  'admin_notification_reads' => 
+  'admin_notification_reads' =>
   array (
     'enabled' => true,
     'auto_scope' => 'admin',
@@ -111,7 +111,7 @@ return array (
              INNER JOIN sr_admin_notifications n ON n.id = r.notification_id
              WHERE n.status <> \'open\'
                AND COALESCE(n.archived_at, n.processed_at, n.updated_at, n.created_at) < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'notifications',
     ),
@@ -127,17 +127,17 @@ return array (
                   AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff
              )
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'notifications',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT 1 FROM sr_admin_notifications LIMIT 1',
       1 => 'SELECT 1 FROM sr_admin_notification_reads LIMIT 1',
     ),
   ),
-  'admin_notifications' => 
+  'admin_notifications' =>
   array (
     'enabled' => true,
     'auto_scope' => 'admin',
@@ -146,7 +146,7 @@ return array (
              FROM sr_admin_notifications
              WHERE status <> \'open\'
                AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff',
-    'count_params' => 
+    'count_params' =>
     array (
       'cutoff' => 'notifications',
     ),
@@ -161,11 +161,11 @@ return array (
                )
              ORDER BY id ASC
              LIMIT {limit}',
-    'delete_params' => 
+    'delete_params' =>
     array (
       'cutoff' => 'notifications',
     ),
-    'table_checks' => 
+    'table_checks' =>
     array (
       0 => 'SELECT 1 FROM sr_admin_notifications LIMIT 1',
       1 => 'SELECT 1 FROM sr_admin_notification_reads LIMIT 1',
