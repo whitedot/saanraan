@@ -52,7 +52,7 @@ if (sr_request_method() === 'POST') {
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $postedThemeKey,
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
-        'layout_extra_menu_keys_json' => sr_content_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []),
+        'layout_extra_menu_keys_json' => sr_content_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
         'series_enabled' => sr_post_string('series_enabled', 1) === '1',
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
         'identity_author_application_required' => sr_post_string('identity_author_application_required', 1) === '1',

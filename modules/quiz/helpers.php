@@ -419,7 +419,37 @@ function sr_quiz_clean_layout_menu_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
-function sr_quiz_layout_extra_menu_keys_from_value(mixed $value): array
+function sr_quiz_clean_layout_extra_menu_area_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return preg_match('/\A(?:[a-f0-9]{12}|[a-z][a-z0-9_]{0,59})\z/', $value) === 1 ? $value : '';
+}
+
+function sr_quiz_layout_extra_menu_label(string $value): string
+{
+    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
+    return function_exists('mb_substr') ? mb_substr($value, 0, 80) : substr($value, 0, 80);
+}
+
+function sr_quiz_layout_extra_menu_hash_key(array $usedKeys = [], string $seed = ''): string
+{
+    $used = array_fill_keys(array_map('strval', $usedKeys), true);
+    if ($seed !== '') {
+        for ($attempt = 0; $attempt < 20; $attempt++) {
+            $key = substr(hash('sha256', 'quiz.layout_extra_menu|' . $seed . '|' . (string) $attempt), 0, 12);
+            if (!isset($used[$key])) {
+                return $key;
+            }
+        }
+    }
+    do {
+        $key = bin2hex(random_bytes(6));
+    } while (isset($used[$key]));
+
+    return $key;
+}
+
+function sr_quiz_layout_extra_menu_items_from_value(mixed $value): array
 {
     if (is_string($value)) {
         $decoded = json_decode($value, true);
@@ -429,35 +459,96 @@ function sr_quiz_layout_extra_menu_keys_from_value(mixed $value): array
         return [];
     }
 
-    $keys = [];
-    foreach ($value as $item) {
-        $menuKey = is_array($item)
-            ? sr_quiz_clean_layout_menu_key((string) ($item['menu_key'] ?? ''))
-            : sr_quiz_clean_layout_menu_key((string) $item);
-        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
-            $keys[] = $menuKey;
+    $items = [];
+    foreach (array_values($value) as $itemIndex => $item) {
+        $areaKey = '';
+        $menuKey = '';
+        if (is_array($item)) {
+            $areaKey = sr_quiz_clean_layout_extra_menu_area_key((string) ($item['area_key'] ?? ($item['key'] ?? ($item['slot_key'] ?? ''))));
+            $label = sr_quiz_layout_extra_menu_label((string) ($item['label'] ?? ($item['name'] ?? '')));
+            $menuKey = sr_quiz_clean_layout_menu_key((string) ($item['menu_key'] ?? ''));
+        } else {
+            $label = '';
+            $menuKey = sr_quiz_clean_layout_menu_key((string) $item);
+        }
+        if ($menuKey === '') {
+            continue;
+        }
+        if ($areaKey === '' || isset($items[$areaKey])) {
+            $areaKey = sr_quiz_layout_extra_menu_hash_key(array_keys($items), (string) $itemIndex . '|' . $menuKey);
+        }
+        $items[$areaKey] = [
+            'area_key' => $areaKey,
+            'label' => $label,
+            'menu_key' => $menuKey,
+        ];
+    }
+
+    return array_values($items);
+}
+
+function sr_quiz_layout_extra_menu_items_from_pair_values(mixed $areaKeys, mixed $labels, mixed $menuKeys): array
+{
+    $areaKeys = is_array($areaKeys) ? array_values($areaKeys) : [];
+    $labels = is_array($labels) ? array_values($labels) : [];
+    $menuKeys = is_array($menuKeys) ? array_values($menuKeys) : [];
+    $items = [];
+    foreach ($menuKeys as $index => $menuKeyValue) {
+        $menuKey = sr_quiz_clean_layout_menu_key((string) $menuKeyValue);
+        if ($menuKey === '') {
+            continue;
+        }
+        $areaKey = sr_quiz_clean_layout_extra_menu_area_key((string) ($areaKeys[$index] ?? ''));
+        if ($areaKey === '' || isset($items[$areaKey])) {
+            $areaKey = sr_quiz_layout_extra_menu_hash_key(array_keys($items));
+        }
+        $label = sr_quiz_layout_extra_menu_label((string) ($labels[$index] ?? ''));
+        if (!isset($items[$areaKey])) {
+            $items[$areaKey] = [
+                'area_key' => $areaKey,
+                'label' => $label,
+                'menu_key' => $menuKey,
+            ];
         }
     }
 
-    return $keys;
+    return array_values($items);
+}
+
+function sr_quiz_layout_extra_menu_keys_from_value(mixed $value): array
+{
+    return array_values(array_map(static fn (array $item): string => (string) $item['menu_key'], sr_quiz_layout_extra_menu_items_from_value($value)));
+}
+
+function sr_quiz_layout_extra_menu_items_from_settings(array $settings): array
+{
+    $items = [];
+    foreach (sr_quiz_layout_extra_menu_items_from_value($settings['layout_extra_menu_keys_json'] ?? []) as $item) {
+        $items[(string) $item['area_key']] = $item;
+    }
+    foreach (['layout_secondary_menu_key', 'layout_tertiary_menu_key', 'layout_quaternary_menu_key', 'layout_quinary_menu_key'] as $legacySettingKey) {
+        $menuKey = sr_quiz_clean_layout_menu_key((string) ($settings[$legacySettingKey] ?? ''));
+        $areaKey = str_replace('layout_', '', str_replace('_menu_key', '', $legacySettingKey));
+        if ($menuKey !== '' && !isset($items[$areaKey])) {
+            $items[$areaKey] = [
+                'area_key' => $areaKey,
+                'label' => '',
+                'menu_key' => $menuKey,
+            ];
+        }
+    }
+
+    return array_values($items);
 }
 
 function sr_quiz_layout_extra_menu_keys_from_settings(array $settings): array
 {
-    $keys = sr_quiz_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? []);
-    foreach (['layout_secondary_menu_key', 'layout_tertiary_menu_key', 'layout_quaternary_menu_key', 'layout_quinary_menu_key'] as $legacySettingKey) {
-        $menuKey = sr_quiz_clean_layout_menu_key((string) ($settings[$legacySettingKey] ?? ''));
-        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
-            $keys[] = $menuKey;
-        }
-    }
-
-    return $keys;
+    return array_values(array_map(static fn (array $item): string => (string) $item['menu_key'], sr_quiz_layout_extra_menu_items_from_settings($settings)));
 }
 
 function sr_quiz_layout_extra_menu_keys_json(mixed $value): string
 {
-    $json = json_encode(sr_quiz_layout_extra_menu_keys_from_value($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $json = json_encode(sr_quiz_layout_extra_menu_items_from_value($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return is_string($json) ? $json : '[]';
 }
 
@@ -492,7 +583,7 @@ function sr_quiz_normalize_settings(array $settings): array
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
     }
-    $normalized['layout_extra_menu_keys_json'] = sr_quiz_layout_extra_menu_keys_from_settings($normalized);
+    $normalized['layout_extra_menu_keys_json'] = sr_quiz_layout_extra_menu_items_from_settings($normalized);
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_quiz_statuses(), true)
         ? (string) $normalized['default_status']
         : (string) $defaults['default_status'];
@@ -569,7 +660,7 @@ function sr_quiz_settings_from_post(): array
         'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
-        'layout_extra_menu_keys_json' => sr_quiz_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []),
+        'layout_extra_menu_keys_json' => sr_quiz_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
         'default_status' => sr_post_string('default_status', 20),
         'default_quiz_mode' => sr_post_string('default_quiz_mode', 30),
         'default_scoring_model' => sr_post_string('default_scoring_model', 40),
@@ -702,7 +793,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
 
     $siteMenus = ['primary' => sr_quiz_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'))];
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
-    $context['site_extra_menus'] = sr_quiz_layout_extra_menu_keys_from_settings($settings);
+    $context['site_extra_menus'] = sr_quiz_layout_extra_menu_items_from_settings($settings);
 
     return $context;
 }

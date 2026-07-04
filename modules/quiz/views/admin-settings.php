@@ -14,7 +14,7 @@ $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($qui
     <?php } ?>
     <?php
 };
-$quizLayoutExtraMenuKeys = function_exists('sr_quiz_layout_extra_menu_keys_from_settings') ? sr_quiz_layout_extra_menu_keys_from_settings($settings) : [];
+$quizLayoutExtraMenuItems = function_exists('sr_quiz_layout_extra_menu_items_from_settings') ? sr_quiz_layout_extra_menu_items_from_settings($settings) : [];
 $quizSettingsHelpOpenLabel = '설명 보기';
 $quizSettingsHelpBodyHtml = static function (array $items): string {
     $html = '';
@@ -172,14 +172,19 @@ $quizSettingsHelp = [
         ]),
     ],
 ];
-$quizLayoutExtraMenuRows = static function (array $menuKeys, bool $template = false) use ($quizSiteMenuSelectOptions): void {
-    foreach ($template ? [''] : $menuKeys as $selectedMenuKey) {
+$quizLayoutExtraMenuRows = static function (array $menuItems, bool $template = false) use ($quizSiteMenuSelectOptions): void {
+    foreach ($template ? [['area_key' => '', 'label' => '', 'menu_key' => '']] : $menuItems as $menuItem) {
+        $areaKey = is_array($menuItem) ? (string) ($menuItem['area_key'] ?? '') : '';
+        $menuLabel = is_array($menuItem) ? (string) ($menuItem['label'] ?? '') : '';
+        $selectedMenuKey = is_array($menuItem) ? (string) ($menuItem['menu_key'] ?? '') : (string) $menuItem;
         ?>
         <div class="admin-layout-menu-row"<?php echo $template ? ' hidden data-admin-layout-menu-template' : ''; ?> data-admin-layout-menu-row>
-            <select name="layout_extra_menu_keys[]" class="form-select" data-admin-layout-menu-select<?php echo $template ? ' disabled' : ''; ?>>
+            <input type="text" name="layout_extra_menu_area_keys[]" value="<?php echo sr_e($areaKey); ?>" class="form-input admin-layout-menu-key-input" maxlength="60" pattern="(?:[a-f0-9]{12}|[a-z][a-z0-9_]{0,59})" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="자동 key" aria-label="추가 메뉴 자동 key" readonly data-admin-layout-menu-key data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
+            <input type="text" name="layout_extra_menu_labels[]" value="<?php echo sr_e($menuLabel); ?>" class="form-input" maxlength="80" placeholder="이름" aria-label="추가 메뉴 이름" data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
+            <select name="layout_extra_menu_keys[]" class="form-select" data-admin-layout-menu-select data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
                 <?php $quizSiteMenuSelectOptions((string) $selectedMenuKey); ?>
             </select>
-            <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" data-admin-layout-menu-remove aria-label="추가 메뉴 제거" title="제거"><?php echo sr_material_icon_html('delete'); ?></button>
+            <button type="button" class="btn btn-sm btn-icon btn-outline-danger admin-layout-menu-remove" data-admin-layout-menu-remove aria-label="추가 메뉴 제거" title="제거"><?php echo sr_material_icon_html('delete'); ?></button>
         </div>
         <?php
     }
@@ -264,13 +269,18 @@ $quizSettingsSectionNavItems = [
                 <span class="form-label">추가 메뉴</span>
                 <div class="form-field">
                     <div class="admin-layout-menu-list" data-admin-layout-menu-list>
-                        <?php $quizLayoutExtraMenuRows($quizLayoutExtraMenuKeys); ?>
+                        <div class="admin-layout-menu-header"<?php echo $quizLayoutExtraMenuItems === [] ? ' hidden' : ''; ?> aria-hidden="true" data-admin-layout-menu-header>
+                            <span>Key</span>
+                            <span>이름</span>
+                            <span>메뉴</span>
+                            <span>동작</span>
+                        </div>
+                        <?php $quizLayoutExtraMenuRows($quizLayoutExtraMenuItems); ?>
                         <?php $quizLayoutExtraMenuRows([], true); ?>
                         <div class="admin-layout-menu-actions" data-admin-layout-menu-actions>
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
                         </div>
                     </div>
-                    <p class="form-help">필요한 만큼 추가할 수 있으며 선택한 순서대로 레이아웃 하단 메뉴 영역에 출력합니다.</p>
                 </div>
             </div>
         </div>

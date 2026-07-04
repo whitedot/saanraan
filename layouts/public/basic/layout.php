@@ -23,38 +23,6 @@ $layoutCleanMenuKey = static function (string $value): string {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 };
 $layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : 'header';
-$layoutExtraMenuKeysFromValue = static function ($value) use ($layoutCleanMenuKey): array {
-    if (is_string($value)) {
-        $decoded = json_decode($value, true);
-        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
-    }
-    if (!is_array($value)) {
-        return [];
-    }
-
-    $keys = [];
-    foreach ($value as $item) {
-        $menuKey = is_array($item)
-            ? $layoutCleanMenuKey((string) ($item['menu_key'] ?? ''))
-            : $layoutCleanMenuKey((string) $item);
-        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
-            $keys[] = $menuKey;
-        }
-    }
-
-    return $keys;
-};
-$layoutFooterMenuKeys = $layoutExtraMenuKeysFromValue($layoutContext['site_extra_menus'] ?? []);
-if ($layoutFooterMenuKeys === []) {
-    foreach (['secondary', 'tertiary', 'quaternary', 'quinary'] as $layoutLegacyMenuContextKey) {
-        $layoutLegacyMenuKey = array_key_exists($layoutLegacyMenuContextKey, $layoutSiteMenus)
-            ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutLegacyMenuContextKey])
-            : '';
-        if ($layoutLegacyMenuKey !== '' && !in_array($layoutLegacyMenuKey, $layoutFooterMenuKeys, true)) {
-            $layoutFooterMenuKeys[] = $layoutLegacyMenuKey;
-        }
-    }
-}
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutColorScheme = sr_color_scheme($layoutSite);
 $layoutColorSchemeOptions = sr_color_scheme_options();
@@ -67,7 +35,6 @@ $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
-$layoutFooterNavigationHtml = [];
 $layoutBeforeLayoutHtml = '';
 $layoutAfterLayoutHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
@@ -138,18 +105,6 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_
     require_once SR_ROOT . '/modules/privacy/helpers.php';
     $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
-}
-if ($layoutPdo instanceof PDO) {
-    foreach ($layoutFooterMenuKeys as $layoutFooterMenuIndex => $layoutFooterMenuKey) {
-        $layoutFooterMenuSlotKey = 'navigation';
-        $layoutFooterMenuHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
-        if ($layoutFooterMenuHtml !== '') {
-            $layoutFooterNavigationHtml['extra_' . (string) $layoutFooterMenuIndex] = [
-                'html' => $layoutFooterMenuHtml,
-                'label' => '하단 메뉴',
-            ];
-        }
-    }
 }
 if ($layoutPdo instanceof PDO) {
     if (sr_module_enabled($layoutPdo, 'banner')) {
@@ -394,11 +349,6 @@ if (
         <?php echo $layoutContent; ?>
     </div>
     <footer class="public-layout-footer">
-        <?php foreach ($layoutFooterNavigationHtml as $layoutFooterNavigationSlotKey => $layoutFooterNavigation) { ?>
-            <nav class="public-layout-footer-nav public-layout-footer-nav-<?php echo sr_e($layoutFooterNavigationSlotKey); ?>" aria-label="<?php echo sr_e((string) ($layoutFooterNavigation['label'] ?? '하단 메뉴')); ?>">
-                <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
-            </nav>
-        <?php } ?>
         <div class="public-layout-footer-row">
             <?php if ($layoutFooterBrandLogoHtml !== '' || $layoutFooterMobileBrandLogoHtml !== '') { ?>
                 <a class="public-layout-footer-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">

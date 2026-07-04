@@ -56,7 +56,34 @@ window.AdminShell = {
 
         const layoutMenuRows = list => Array.prototype.slice.call(list.querySelectorAll('[data-admin-layout-menu-row]:not([data-admin-layout-menu-template])'));
 
+        const layoutMenuRowFields = row => row ? Array.prototype.slice.call(row.querySelectorAll('[data-admin-layout-menu-field]')) : [];
+
+        const layoutMenuRowKeyInput = row => row ? row.querySelector('[data-admin-layout-menu-key]') : null;
+
         const layoutMenuRowSelect = row => row ? row.querySelector('[data-admin-layout-menu-select]') : null;
+
+        const randomLayoutMenuKey = () => {
+            const bytes = new Uint8Array(6);
+            if (window.crypto && window.crypto.getRandomValues) {
+                window.crypto.getRandomValues(bytes);
+            } else {
+                for (let index = 0; index < bytes.length; index++) {
+                    bytes[index] = Math.floor(Math.random() * 256);
+                }
+            }
+
+            return Array.prototype.map.call(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+        };
+
+        const createLayoutMenuKey = usedKeys => {
+            let key = '';
+            do {
+                key = randomLayoutMenuKey();
+            } while (usedKeys.has(key));
+            usedKeys.add(key);
+
+            return key;
+        };
 
         const syncLayoutMenuList = list => {
             if (!list) {
@@ -66,18 +93,30 @@ window.AdminShell = {
             const rows = layoutMenuRows(list);
             const addButton = list.querySelector('[data-admin-layout-menu-add]');
             const template = list.querySelector('[data-admin-layout-menu-template]');
+            const header = list.querySelector('[data-admin-layout-menu-header]');
+            const usedKeys = new Set();
+            if (header) {
+                header.hidden = rows.length === 0;
+            }
             rows.forEach(row => {
-                const select = layoutMenuRowSelect(row);
-                if (select) {
-                    select.disabled = row.hidden;
+                const keyInput = layoutMenuRowKeyInput(row);
+                if (keyInput) {
+                    const keyValue = (keyInput.value || '').trim();
+                    if (keyValue === '' || usedKeys.has(keyValue)) {
+                        keyInput.value = createLayoutMenuKey(usedKeys);
+                    } else {
+                        usedKeys.add(keyValue);
+                    }
                 }
+                layoutMenuRowFields(row).forEach(field => {
+                    field.disabled = row.hidden;
+                });
             });
             if (template) {
-                const templateSelect = layoutMenuRowSelect(template);
                 template.hidden = true;
-                if (templateSelect) {
-                    templateSelect.disabled = true;
-                }
+                layoutMenuRowFields(template).forEach(field => {
+                    field.disabled = true;
+                });
             }
             if (addButton) {
                 addButton.disabled = !template;
@@ -93,15 +132,24 @@ window.AdminShell = {
             const row = template.cloneNode(true);
             row.removeAttribute('data-admin-layout-menu-template');
             row.hidden = false;
-            const select = layoutMenuRowSelect(row);
-            if (select) {
-                select.disabled = false;
-                select.value = '';
+            layoutMenuRowFields(row).forEach(field => {
+                field.disabled = false;
+                field.value = '';
+            });
+            const usedKeys = new Set(layoutMenuRows(list).map(existingRow => {
+                const keyInput = layoutMenuRowKeyInput(existingRow);
+                return keyInput ? (keyInput.value || '').trim() : '';
+            }).filter(Boolean));
+            const keyInput = layoutMenuRowKeyInput(row);
+            if (keyInput) {
+                keyInput.value = createLayoutMenuKey(usedKeys);
             }
+            const select = layoutMenuRowSelect(row);
             const actions = list.querySelector('[data-admin-layout-menu-actions]');
             list.insertBefore(row, actions || template);
-            if (select && options.focus) {
-                select.focus();
+            const firstField = layoutMenuRowFields(row)[0] || select;
+            if (firstField && options.focus) {
+                firstField.focus();
             }
         };
 
@@ -111,12 +159,21 @@ window.AdminShell = {
             }
 
             row.hidden = false;
-            const select = layoutMenuRowSelect(row);
-            if (select) {
-                select.disabled = false;
-                if (options.focus) {
-                    select.focus();
-                }
+            layoutMenuRowFields(row).forEach(field => {
+                field.disabled = false;
+            });
+            const keyInput = layoutMenuRowKeyInput(row);
+            if (keyInput && !keyInput.value) {
+                const list = row.closest('[data-admin-layout-menu-list]');
+                const usedKeys = new Set(layoutMenuRows(list).filter(existingRow => existingRow !== row).map(existingRow => {
+                    const existingKeyInput = layoutMenuRowKeyInput(existingRow);
+                    return existingKeyInput ? (existingKeyInput.value || '').trim() : '';
+                }).filter(Boolean));
+                keyInput.value = createLayoutMenuKey(usedKeys);
+            }
+            const firstField = layoutMenuRowFields(row)[0] || layoutMenuRowSelect(row);
+            if (firstField && options.focus) {
+                firstField.focus();
             }
         };
 
@@ -125,11 +182,10 @@ window.AdminShell = {
                 return;
             }
 
-            const select = layoutMenuRowSelect(row);
-            if (select) {
-                select.value = '';
-                select.disabled = true;
-            }
+            layoutMenuRowFields(row).forEach(field => {
+                field.value = '';
+                field.disabled = true;
+            });
             if (row.hasAttribute('data-admin-layout-menu-template')) {
                 row.hidden = true;
             } else {
@@ -3349,10 +3405,9 @@ window.AdminShell = {
             const template = list.querySelector('[data-admin-layout-menu-template]');
             if (template) {
                 template.hidden = true;
-                const templateSelect = layoutMenuRowSelect(template);
-                if (templateSelect) {
-                    templateSelect.disabled = true;
-                }
+                layoutMenuRowFields(template).forEach(field => {
+                    field.disabled = true;
+                });
             }
             layoutMenuRows(list).forEach(row => {
                 const select = layoutMenuRowSelect(row);
