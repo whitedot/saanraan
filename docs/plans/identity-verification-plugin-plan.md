@@ -261,6 +261,26 @@ return [
 
 회원 테이블에 `identity_verified_at` 같은 컬럼을 바로 추가하지 않는다. 필요한 조회 helper를 `identity_verification` 모듈이 제공한다.
 
+### `sr_identity_verification_identity_locks`
+
+동일 CI가 여러 활성 계정에 연결되는 것을 막는 내부 락을 저장한다.
+
+예상 컬럼:
+
+- id
+- ci_hash
+- account_id
+- result_id
+- first_linked_at
+- updated_at
+
+저장 원칙:
+
+- CI 원문은 저장하지 않고 `app_key` 기반 HMAC hash만 저장한다.
+- `ci_hash`는 unique key로 관리해 동시 가입/인증에서도 하나의 활성 계정만 점유하게 한다.
+- 회원 탈퇴 또는 익명화 cleanup이 실행되면 해당 계정의 락을 삭제하고 기존 link는 revoke한다.
+- 관리자 화면과 개인정보 export에는 CI/DI/이름/휴대폰 hash 값을 그대로 표시하지 않고 기록 여부만 표시한다.
+
 ### `sr_identity_verification_provider_settings`
 
 provider별 설정을 저장한다.
@@ -376,7 +396,11 @@ member 가입 후 본인확인 성공
 - 본인확인 시도 목록
 - provider, 상태, 기간, purpose 필터
 - 본인확인 상세와 상태 전이 기록
-- provider 설정: 기본 설정과 provider별 카드 섹션을 나누고, 본인확인을 켤 때는 기본 provider를 명시 선택하게 하며, 기본 provider로 선택한 항목은 자동으로 사용 활성화한다. provider 사용 토글을 켠 경우에만 해당 provider의 필수 값을 HTML/server-side에서 필수 처리한다.
+- provider 설정: 기본 설정과 provider별 카드 섹션을 나누고, 본인확인을 켤 때는 기본 provider를 명시 선택하게 하며, 기본 provider로 선택한 항목은 자동으로 사용 활성화한다. provider 사용 토글을 켠 경우에만 해당 provider의 필수 값을 HTML/server-side에서 필수 처리하고, 상점 정보는 운영 환경에서만 필수로 본다.
+- 적용 정책: 본인확인 요구 여부는 각 소비 모듈이 자기 환경설정에서 저장한다. 소비 모듈은 자기 purpose와 모드를 `sr_identity_verification_requirement_policy()` 또는 세션 결과 helper에 넘겨 차단 또는 안내 여부를 결정하고, 본인확인 모듈은 provider 설정·시도·결과·계정 purpose 연결만 공통으로 처리한다.
+- 현재 소비 케이스: 회원가입 전 본인확인(`필수`/`선택`/`사용 안 함`), 회원탈퇴 1회성 본인확인, 계정보안작업 세션 단위 본인확인, 로그인 2차 인증 수단 본인확인, 커뮤니티 제한 게시판 1회성 본인확인, 커뮤니티 게시판별 본인확인, 커뮤니티 성인 게시판 성인 본인확인, 적립금 출금 신청/예치금 환불 신청/자산 환전 신청별 1회성 세션 본인확인, 콘텐츠 작성자 신청 1회성 본인확인과 성인 본인확인.
+- provider 선택: KG이니시스 통합인증 provider는 본인확인(`reqSvcCd=03`)과 간편인증(`reqSvcCd=01`)을 별도 provider key로 노출한다. 간편인증 provider가 활성화되어 있으면 계정보안작업, 로그인 2차 인증, 회원탈퇴, 적립금 출금, 예치금 환불, 자산 환전, 콘텐츠 작성자 신청처럼 1회성 확인 성격이 강한 purpose에서 기본 provider보다 먼저 선택한다. 간편인증 provider가 꺼져 있으면 기존 기본 provider를 사용한다.
+- 중복 방지: 본인확인 결과를 계정에 연결할 때 CI HMAC unique 락을 점유하고, 같은 CI가 이미 다른 활성 계정에 연결되어 있으면 회원가입과 추가 인증을 실패 처리한다.
 - 시도 유효 시간과 결과 기본 유효 기간은 단위가 붙은 숫자 입력으로 표시
 - 테스트/운영 모드 설정은 provider별 라디오 토글 그룹으로 표시
 - 보관 기간 설정

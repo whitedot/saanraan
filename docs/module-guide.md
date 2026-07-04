@@ -987,7 +987,7 @@ return [
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `antispam-targets.php`: 자동등록방지 적용 대상 후보. 화면과 제출 정책을 소유한 모듈이 대상 key, label, 기본 적용 모드를 선언하고, `antispam` 모듈은 설정 UI와 정책 조회에 사용한다.
 - `antispam-providers.php`: 자동등록방지 외부 CAPTCHA provider 후보. provider endpoint와 widget script URL은 HTTPS 공개 URL이어야 하며, `antispam` 모듈은 provider 검증 POST 직전에 endpoint가 공개망 host로 해석되는지 다시 확인한다.
-- `identity-provider.php`: 외부 본인확인 provider 후보. provider 설정 schema와 prepare/verify handler를 선언하고, `identity_verification` 모듈은 state/nonce, attempt/result/link 저장과 개인정보 최소화 정책을 소유한다.
+- `identity-provider.php`: 외부 본인확인 provider 후보. 하나의 provider 배열 또는 여러 provider 배열 목록을 반환할 수 있다. provider 설정 schema와 prepare/verify handler를 선언하고, `identity_verification` 모듈은 state/nonce, attempt/result/link 저장, purpose별 결과 조회 helper, 개인정보 최소화 정책을 소유한다. 본인확인을 언제 필수 또는 선택으로 요구할지는 해당 화면과 업무 정책을 소유한 소비 모듈이 자기 설정에서 결정한다.
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 - `url-embed-targets.php`: URL 기반 임베딩 resolver와 renderer 후보. 공개 렌더링은 이 계약으로 canonical URL, target allowlist, snapshot, 모듈별 표시 HTML, 대상 모듈 전용 `embed_stylesheet`, fragment cache schema를 결정한다.
 
@@ -1383,7 +1383,7 @@ return [
 | `retention-targets.php` | `admin` 모듈 | `/admin/retention` preview, 수동 정리, 자동 정리 실행 | 모듈별 보존 기간 정리 대상과 table 존재 확인 기준 |
 | `antispam-targets.php` | `antispam` 모듈 | 자동등록방지 관리자 설정 렌더링과 제출별 정책 조회 | 화면 소유 모듈이 선언한 적용 대상 key, label, 기본 적용 모드 |
 | `antispam-providers.php` | `antispam` 모듈 | 자동등록방지 외부 provider 설정 렌더링과 CAPTCHA 응답 검증 | CAPTCHA provider key, label, site/secret 설정 key, 응답 field, HTTPS 공개 endpoint, HTTPS 공개 widget script URL, widget class |
-| `identity-provider.php` | `identity_verification` 모듈 | 본인확인 외부 provider 설정 렌더링, 시작 요청 생성, return/callback 검증 | provider key, 표시명, 설정 schema, prepare/verify handler |
+| `identity-provider.php` | `identity_verification` 모듈 | 본인확인 외부 provider 설정 렌더링, 시작 요청 생성, return/callback 검증, purpose별 결과 조회 | provider key, 표시명, 설정 schema, prepare/verify handler. 한 파일에서 provider 목록을 반환할 수 있음 |
 
 읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.
 
