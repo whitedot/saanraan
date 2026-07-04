@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/deposit/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $depositDisplayName = sr_deposit_display_name($pdo);
@@ -13,12 +16,26 @@ $depositAmountLabel = static function (int $amount) use ($depositUnitLabel): str
 };
 $errors = [];
 $notice = '';
+$depositSettings = sr_deposit_settings($pdo);
+$depositIdentityPurpose = 'deposit.refund_request';
+$depositIdentityRequired = !empty($depositSettings['identity_refund_required']);
+$depositIdentitySatisfied = $depositIdentityRequired
+    && function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $depositIdentityPurpose, (int) $account['id']) !== null;
+$depositIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($depositIdentityPurpose, '/account/deposits#deposit-refund-request')
+    : '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
 
     if ($intent === 'refund_request') {
+        if ($depositIdentityRequired && !$depositIdentitySatisfied) {
+            $errors[] = $depositIdentityStartUrl !== ''
+                ? $depositDisplayName . ' 환불 신청 전 본인확인을 완료해 주세요.'
+                : '본인확인 기능이 준비되지 않아 환불 신청을 진행할 수 없습니다.';
+        }
         $amountInput = sr_post_string('amount', 30);
         if (preg_match('/\A\d+\z/', $amountInput) !== 1) {
             $errors[] = '환불 신청 금액은 양의 정수로 입력하세요.';
@@ -50,6 +67,9 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Deposit refund request created.',
                     'metadata' => ['amount' => $amount],
                 ]);
+                if (function_exists('sr_identity_verification_consume_session_result')) {
+                    sr_identity_verification_consume_session_result($pdo, $depositIdentityPurpose, (int) $account['id']);
+                }
                 $_SESSION['sr_deposit_flash'] = ['notice' => $depositDisplayName . ' 환불 신청을 접수했습니다.', 'errors' => []];
                 sr_redirect('/account/deposits');
             } catch (Throwable $exception) {

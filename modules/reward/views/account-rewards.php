@@ -34,6 +34,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         </div></section>
         <section id="reward-withdrawal-request" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">출금 신청</h2>
+            <?php if (!empty($rewardIdentityRequired)) { ?>
+                <div class="alert <?php echo !empty($rewardIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
+                    <p><?php echo !empty($rewardIdentitySatisfied) ? sr_e('출금 신청 본인확인이 완료되었습니다.') : sr_e('출금 신청 전 본인확인이 필요합니다.'); ?></p>
+                    <?php if (empty($rewardIdentitySatisfied) && !empty($rewardIdentityStartUrl)) { ?>
+                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $rewardIdentityStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             <?php if (empty($withdrawalRequestsEnabled)) { ?>
                 <p>현재 <?php echo sr_e($rewardDisplayName); ?> 출금 신청을 받지 않습니다.</p>
             <?php } elseif (!$canRequestWithdrawal) { ?>

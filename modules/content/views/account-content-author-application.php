@@ -27,6 +27,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 <p>검토 메모: <?php echo sr_e((string) $authorApplication['review_note']); ?></p>
             <?php } ?>
         <?php } ?>
+        <?php if (!empty($contentAuthorIdentityPolicy['required'])) { ?>
+            <div class="alert <?php echo !empty($contentAuthorIdentityPolicy['satisfied']) ? 'alert-success' : 'alert-warning'; ?>">
+                <p><?php echo !empty($contentAuthorIdentityPolicy['satisfied']) ? sr_e('콘텐츠 작성자 신청 본인확인이 완료되었습니다.') : sr_e('콘텐츠 작성자 신청 전 본인확인이 필요합니다.'); ?></p>
+                <?php if (empty($contentAuthorIdentityPolicy['satisfied']) && !empty($contentAuthorIdentityPolicy['start_url'])) { ?>
+                    <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $contentAuthorIdentityPolicy['start_url']); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                <?php } ?>
+            </div>
+        <?php } ?>
+        <?php if (!empty($contentAuthorAdultIdentityPolicy['required'])) { ?>
+            <div class="alert <?php echo !empty($contentAuthorAdultIdentityPolicy['satisfied']) ? 'alert-success' : 'alert-warning'; ?>">
+                <p><?php echo !empty($contentAuthorAdultIdentityPolicy['satisfied']) ? sr_e('콘텐츠 작성자 신청 성인 본인확인이 완료되었습니다.') : sr_e('콘텐츠 작성자 신청 전 성인 본인확인이 필요합니다.'); ?></p>
+                <?php if (empty($contentAuthorAdultIdentityPolicy['satisfied']) && !empty($contentAuthorAdultIdentityPolicy['start_url'])) { ?>
+                    <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $contentAuthorAdultIdentityPolicy['start_url']); ?>"><?php echo sr_e('성인 본인확인'); ?></a></p>
+                <?php } ?>
+            </div>
+        <?php } ?>
         <section class="card">
             <div class="card-body">
                 <form method="post" action="<?php echo sr_e(sr_url('/account/content/author-application')); ?>" class="ui-card-body-stack">

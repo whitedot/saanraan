@@ -43,6 +43,7 @@ return [
         'display_name' => '예치금',
         'unit_label' => '원',
         'refund_requests_enabled' => false,
+        'identity_refund_required' => false,
         'refund_allowed_group_keys_json' => '[]',
         'notification_cases' => [
             'transaction_deposit' => ['event_key' => 'transaction.deposit', 'enabled' => true, 'channels' => ['site']],

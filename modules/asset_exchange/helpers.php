@@ -377,6 +377,7 @@ function sr_asset_exchange_default_settings(): array
 {
     return [
         'exchange_enabled' => '1',
+        'identity_exchange_required' => '0',
         'policy_default_status' => 'disabled',
         'relative_value_point' => '1',
         'relative_value_reward' => '1',
@@ -408,6 +409,7 @@ function sr_asset_exchange_normalize_settings(array $settings): array
     $normalized = array_merge($defaults, $settings);
 
     $normalized['exchange_enabled'] = sr_truthy($normalized['exchange_enabled'] ?? false) ? '1' : '0';
+    $normalized['identity_exchange_required'] = sr_truthy($normalized['identity_exchange_required'] ?? false) ? '1' : '0';
 
     $status = (string) ($normalized['policy_default_status'] ?? 'disabled');
     $normalized['policy_default_status'] = in_array($status, ['enabled', 'disabled'], true) ? $status : 'disabled';

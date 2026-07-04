@@ -21,6 +21,7 @@ if (sr_request_method() === 'POST') {
 
     $postedSettings = $settings;
     $postedSettings['exchange_enabled'] = sr_post_string('exchange_enabled', 1) === '1' ? '1' : '0';
+    $postedSettings['identity_exchange_required'] = sr_post_string('identity_exchange_required', 1) === '1' ? '1' : '0';
     $settings = $postedSettings;
 
     $postedNotificationCases = $_POST['notification_cases'] ?? [];
@@ -94,9 +95,11 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'before' => [
                         'exchange_enabled' => (string) ($beforeSettings['exchange_enabled'] ?? '1'),
+                        'identity_exchange_required' => (string) ($beforeSettings['identity_exchange_required'] ?? '0'),
                     ],
                     'after' => [
                         'exchange_enabled' => (string) ($settings['exchange_enabled'] ?? '1'),
+                        'identity_exchange_required' => (string) ($settings['identity_exchange_required'] ?? '0'),
                     ],
                     'notification_cases' => $notificationSettingsByModule,
                 ],

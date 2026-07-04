@@ -28,6 +28,7 @@ if (sr_request_method() === 'POST') {
     $defaultExpirationDaysInput = sr_post_string('default_expiration_days', 20);
     $defaultExpirationDays = sr_reward_normalize_expiration_days($defaultExpirationDaysInput);
     $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
+    $identityWithdrawalRequired = sr_post_string('identity_withdrawal_required', 1) === '1';
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_reward_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
     $postedCases = $_POST['notification_cases'] ?? [];
@@ -85,6 +86,7 @@ if (sr_request_method() === 'POST') {
                 'unit_label' => $unitLabel,
                 'default_expiration_days' => $defaultExpirationDays,
                 'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
+                'identity_withdrawal_required' => $identityWithdrawalRequired,
                 'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                 'notification_cases' => $caseSettings,
             ]);
@@ -105,6 +107,7 @@ if (sr_request_method() === 'POST') {
                     'unit_label' => (string) ($settings['unit_label'] ?? $unitLabel),
                     'default_expiration_days' => (string) ($settings['default_expiration_days'] ?? $defaultExpirationDays),
                     'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
+                    'identity_withdrawal_required' => $identityWithdrawalRequired,
                     'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                 ],

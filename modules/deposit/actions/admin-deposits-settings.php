@@ -26,6 +26,7 @@ if (sr_request_method() === 'POST') {
     $displayName = sr_deposit_clean_text(sr_post_string('display_name', 80), 40);
     $unitLabel = sr_deposit_clean_text(sr_post_string('unit_label', 40), 20);
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
+    $identityRefundRequired = sr_post_string('identity_refund_required', 1) === '1';
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
     $postedCases = $_POST['notification_cases'] ?? [];
@@ -79,6 +80,7 @@ if (sr_request_method() === 'POST') {
                 'display_name' => $displayName,
                 'unit_label' => $unitLabel,
                 'refund_requests_enabled' => $refundRequestsEnabled,
+                'identity_refund_required' => $identityRefundRequired,
                 'refund_allowed_group_keys' => $allowedGroupKeys,
                 'notification_cases' => $caseSettings,
             ]);
@@ -98,6 +100,7 @@ if (sr_request_method() === 'POST') {
                     'display_name' => (string) ($settings['display_name'] ?? $displayName),
                     'unit_label' => (string) ($settings['unit_label'] ?? $unitLabel),
                     'refund_requests_enabled' => $refundRequestsEnabled,
+                    'identity_refund_required' => $identityRefundRequired,
                     'refund_allowed_group_keys' => $allowedGroupKeys,
                     'notification_cases' => (array) ($settings['notification_cases'] ?? []),
                 ],

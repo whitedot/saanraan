@@ -53,6 +53,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <h2 class="card-title">환전 신청</h2>
                 </div>
                 <div class="card-body ui-card-body-stack">
+                    <?php if (!empty($assetExchangeIdentityRequired)) { ?>
+                        <div class="alert <?php echo !empty($assetExchangeIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
+                            <p><?php echo !empty($assetExchangeIdentitySatisfied) ? sr_e('환전 신청 본인확인이 완료되었습니다.') : sr_e('환전 신청 전 본인확인이 필요합니다.'); ?></p>
+                            <?php if (empty($assetExchangeIdentitySatisfied) && !empty($assetExchangeIdentityStartUrl)) { ?>
+                                <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $assetExchangeIdentityStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
                     <?php if (empty($exchangeEnabled)) { ?>
                         <p class="ui-feedback type-small">현재 환전 신청이 중지되어 있습니다.</p>
                     <?php } elseif ($availablePolicies === []) { ?>

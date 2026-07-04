@@ -224,6 +224,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php $memberSubmissionEnabled = !empty($settings['member_submission_enabled']); ?>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
+            <span class="form-label">작성자 신청 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_required', 'identity_author_application_required', '1', !empty($settings['identity_author_application_required']), '사용'); ?>
+                <p class="form-help">사용하면 콘텐츠 작성자 신청 전에 본인확인을 요구합니다.</p>
+            </div>
+        </div>
+        <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
+            <span class="form-label">작성자 신청 성인 본인확인</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_adult_required', 'identity_author_application_adult_required', '1', !empty($settings['identity_author_application_adult_required']), '사용'); ?>
+                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 콘텐츠 작성자 신청을 받을 수 있습니다.</p>
+            </div>
+        </div>
+        <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">기본 검수</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_member_submission_default_review_required', 'member_submission_default_review_required', '1', !empty($settings['member_submission_default_review_required']), '필수'); ?>

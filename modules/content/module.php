@@ -40,6 +40,8 @@ return [
         'layout_quinary_menu_key' => '',
         'series_enabled' => true,
         'member_submission_enabled' => false,
+        'identity_author_application_required' => false,
+        'identity_author_application_adult_required' => false,
         'member_submission_default_review_required' => false,
         'member_submission_author_reward_enabled' => false,
         'member_submission_author_reward_asset_module' => '',

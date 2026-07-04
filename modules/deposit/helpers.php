@@ -257,6 +257,7 @@ function sr_deposit_settings(PDO $pdo): array
         $settings['unit_label'] = '원';
     }
     $settings['refund_requests_enabled'] = sr_deposit_truthy($settings['refund_requests_enabled'] ?? false);
+    $settings['identity_refund_required'] = sr_deposit_truthy($settings['identity_refund_required'] ?? false);
     $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
         sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
     );
@@ -287,6 +288,7 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         $unitLabel = '원';
     }
     $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
+    $identityRefundRequired = sr_deposit_truthy($settings['identity_refund_required'] ?? false);
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_deposit_refund_all_members_key()) {
             continue;
@@ -350,6 +352,14 @@ function sr_deposit_save_settings(PDO $pdo, array $settings): void
         'module_id' => (int) $module['id'],
         'setting_key' => 'refund_requests_enabled',
         'setting_value' => $refundRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'identity_refund_required',
+        'setting_value' => $identityRefundRequired ? '1' : '0',
         'value_type' => 'bool',
         'created_at' => $now,
         'updated_at' => $now,

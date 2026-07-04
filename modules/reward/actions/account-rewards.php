@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/reward/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_member_group_evaluate_account($pdo, (int) $account['id']);
@@ -17,6 +20,15 @@ $rewardAmountLabel = static function (int $amount) use ($rewardUnitLabel): strin
 };
 $errors = [];
 $notice = '';
+$rewardSettings = sr_reward_settings($pdo);
+$rewardIdentityPurpose = 'reward.withdrawal_request';
+$rewardIdentityRequired = !empty($rewardSettings['identity_withdrawal_required']);
+$rewardIdentitySatisfied = $rewardIdentityRequired
+    && function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $rewardIdentityPurpose, (int) $account['id']) !== null;
+$rewardIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($rewardIdentityPurpose, '/account/rewards#reward-withdrawal-request')
+    : '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -27,6 +39,11 @@ if (sr_request_method() === 'POST') {
             $errors[] = '현재 ' . $rewardDisplayName . ' 출금 신청을 받지 않습니다.';
         } elseif (!sr_reward_account_can_request_withdrawal($pdo, (int) $account['id'])) {
             $errors[] = $rewardDisplayName . ' 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
+        }
+        if ($rewardIdentityRequired && !$rewardIdentitySatisfied) {
+            $errors[] = $rewardIdentityStartUrl !== ''
+                ? $rewardDisplayName . ' 출금 신청 전 본인확인을 완료해 주세요.'
+                : '본인확인 기능이 준비되지 않아 출금 신청을 진행할 수 없습니다.';
         }
         $amountInput = sr_post_string('amount', 30);
         if (preg_match('/\A\d+\z/', $amountInput) !== 1) {
@@ -59,6 +76,9 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Reward withdrawal request created.',
                     'metadata' => ['amount' => $amount],
                 ]);
+                if (function_exists('sr_identity_verification_consume_session_result')) {
+                    sr_identity_verification_consume_session_result($pdo, $rewardIdentityPurpose, (int) $account['id']);
+                }
                 $_SESSION['sr_reward_flash'] = ['notice' => $rewardDisplayName . ' 출금 신청을 접수했습니다.', 'errors' => []];
                 sr_redirect('/account/rewards');
             } catch (Throwable $exception) {

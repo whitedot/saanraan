@@ -34,6 +34,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         </div></section>
         <section id="deposit-refund-request" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">환불 신청</h2>
+            <?php if (!empty($depositIdentityRequired)) { ?>
+                <div class="alert <?php echo !empty($depositIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
+                    <p><?php echo !empty($depositIdentitySatisfied) ? sr_e('환불 신청 본인확인이 완료되었습니다.') : sr_e('환불 신청 전 본인확인이 필요합니다.'); ?></p>
+                    <?php if (empty($depositIdentitySatisfied) && !empty($depositIdentityStartUrl)) { ?>
+                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $depositIdentityStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             <?php if (empty($refundRequestsEnabled)) { ?>
                 <p>현재 <?php echo sr_e($depositDisplayName); ?> 환불 신청을 받지 않습니다.</p>
             <?php } elseif (empty($canRequestRefund)) { ?>

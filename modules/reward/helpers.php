@@ -277,6 +277,7 @@ function sr_reward_settings(PDO $pdo): array
     $settings['withdrawal_requests_enabled'] = array_key_exists('withdrawal_requests_enabled', $storedSettings)
         ? sr_reward_truthy($settings['withdrawal_requests_enabled'] ?? false)
         : $settings['withdrawal_allowed_group_keys'] !== [];
+    $settings['identity_withdrawal_required'] = sr_reward_truthy($settings['identity_withdrawal_required'] ?? false);
     $settings['notification_cases'] = sr_reward_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 
     return $settings;
@@ -312,6 +313,7 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
             ? sr_reward_truthy($storedSettings['withdrawal_requests_enabled'])
             : $allowedGroupKeys !== [];
     }
+    $identityWithdrawalRequired = sr_reward_truthy($settings['identity_withdrawal_required'] ?? false);
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_reward_withdrawal_all_members_key()) {
             continue;
@@ -383,6 +385,14 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
         'module_id' => (int) $module['id'],
         'setting_key' => 'withdrawal_requests_enabled',
         'setting_value' => $withdrawalRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'identity_withdrawal_required',
+        'setting_value' => $identityWithdrawalRequired ? '1' : '0',
         'value_type' => 'bool',
         'created_at' => $now,
         'updated_at' => $now,

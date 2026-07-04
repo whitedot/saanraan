@@ -122,6 +122,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
+            <label class="form-label" for="reward_identity_withdrawal_required">출금 신청 본인확인</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', !empty($settings['identity_withdrawal_required']), '사용'); ?>
+                <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <div class="form-label form-label-help">
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e('출금 신청 허용 ' . $rewardSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e((string) $rewardSettingsHelp['withdrawal_allowed_group_keys']['id']); ?>" data-overlay="#<?php echo sr_e((string) $rewardSettingsHelp['withdrawal_allowed_group_keys']['id']); ?>">
                     <?php echo sr_material_icon_html('help'); ?>

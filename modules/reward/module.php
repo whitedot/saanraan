@@ -45,6 +45,7 @@ return [
         'unit_label' => '원',
         'default_expiration_days' => '0',
         'withdrawal_requests_enabled' => false,
+        'identity_withdrawal_required' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
         'notification_cases' => [
             'transaction_grant' => ['event_key' => 'transaction.grant', 'enabled' => true, 'channels' => ['site']],

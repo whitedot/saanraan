@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/asset_exchange/helpers.php';
+if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $flash = isset($_SESSION['sr_asset_exchange_flash']) && is_array($_SESSION['sr_asset_exchange_flash'])
@@ -13,6 +16,15 @@ unset($_SESSION['sr_asset_exchange_flash']);
 $errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
 $notice = (string) ($flash['notice'] ?? '');
 $assets = sr_asset_exchange_assets($pdo);
+$assetExchangeSettings = sr_asset_exchange_settings($pdo);
+$assetExchangeIdentityPurpose = 'asset.exchange';
+$assetExchangeIdentityRequired = (string) ($assetExchangeSettings['identity_exchange_required'] ?? '0') === '1';
+$assetExchangeIdentitySatisfied = $assetExchangeIdentityRequired
+    && function_exists('sr_identity_verification_session_result')
+    && sr_identity_verification_session_result($pdo, $assetExchangeIdentityPurpose, (int) $account['id']) !== null;
+$assetExchangeIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($assetExchangeIdentityPurpose, '/account/asset-exchange')
+    : '';
 $exchangeEnabled = sr_asset_exchange_enabled($pdo);
 $policies = sr_asset_exchange_policies($pdo, true);
 $availablePolicies = $exchangeEnabled ? sr_asset_exchange_available_policies($policies, $assets) : [];
@@ -26,6 +38,11 @@ if (sr_request_method() === 'POST') {
     $submitToken = sr_post_string_without_truncation('exchange_submit_token', 32) ?? '';
     if (!$exchangeEnabled) {
         $errors[] = '환전 기능이 현재 사용 중지되어 있습니다.';
+    }
+    if ($assetExchangeIdentityRequired && !$assetExchangeIdentitySatisfied) {
+        $errors[] = $assetExchangeIdentityStartUrl !== ''
+            ? '환전 신청 전 본인확인을 완료해 주세요.'
+            : '본인확인 기능이 준비되지 않아 환전을 진행할 수 없습니다.';
     }
     if ($errors === []) {
         $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
@@ -59,6 +76,9 @@ if (sr_request_method() === 'POST') {
                     'errors' => [],
                     'log_id' => $logId,
                 ];
+                if (function_exists('sr_identity_verification_consume_session_result')) {
+                    sr_identity_verification_consume_session_result($pdo, $assetExchangeIdentityPurpose, (int) $account['id']);
+                }
                 sr_redirect('/account/asset-exchange');
             } catch (Throwable $exception) {
                 $message = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException

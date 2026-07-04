@@ -117,6 +117,8 @@ function sr_content_default_settings(): array
         'layout_quinary_menu_key' => '',
         'series_enabled' => true,
         'member_submission_enabled' => false,
+        'identity_author_application_required' => false,
+        'identity_author_application_adult_required' => false,
         'member_submission_default_review_required' => false,
         'member_submission_author_reward_enabled' => false,
         'member_submission_author_reward_asset_module' => '',
@@ -220,6 +222,8 @@ function sr_content_settings(PDO $pdo): array
     }
     $settings['series_enabled'] = sr_content_bool_setting($settings['series_enabled'] ?? true);
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
+    $settings['identity_author_application_required'] = sr_content_bool_setting($settings['identity_author_application_required'] ?? false);
+    $settings['identity_author_application_adult_required'] = sr_content_bool_setting($settings['identity_author_application_adult_required'] ?? false);
     $settings['member_submission_default_review_required'] = sr_content_bool_setting($settings['member_submission_default_review_required'] ?? false);
     $rewardAssetModule = sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? ''));
     $settings['member_submission_author_reward_asset_module'] = isset(sr_content_asset_modules($pdo)[$rewardAssetModule]) ? $rewardAssetModule : '';
@@ -453,6 +457,8 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['layout_quinary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_quinary_menu_key'] ?? '')), 'string'],
         ['series_enabled', !empty($settings['series_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],
+        ['identity_author_application_required', !empty($settings['identity_author_application_required']) ? '1' : '0', 'bool'],
+        ['identity_author_application_adult_required', !empty($settings['identity_author_application_adult_required']) ? '1' : '0', 'bool'],
         ['member_submission_default_review_required', !empty($settings['member_submission_default_review_required']) ? '1' : '0', 'bool'],
         ['member_submission_author_reward_enabled', !empty($settings['member_submission_author_reward_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_author_reward_asset_module', sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? '')), 'string'],

@@ -37,6 +37,7 @@ return [
     ],
     'settings' => [
         'exchange_enabled' => '1',
+        'identity_exchange_required' => '0',
         'policy_default_status' => 'disabled',
         'relative_value_point' => '1',
         'relative_value_reward' => '1',

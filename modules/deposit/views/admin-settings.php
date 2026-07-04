@@ -111,6 +111,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
+            <label class="form-label" for="deposit_identity_refund_required">환불 신청 본인확인</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', !empty($settings['identity_refund_required']), '사용'); ?>
+                <p class="form-help">사용하면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <div class="form-label form-label-help">
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e('환불 신청 허용 ' . $depositSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e((string) $depositSettingsHelp['refund_allowed_group_keys']['id']); ?>" data-overlay="#<?php echo sr_e((string) $depositSettingsHelp['refund_allowed_group_keys']['id']); ?>">
                     <?php echo sr_material_icon_html('help'); ?>

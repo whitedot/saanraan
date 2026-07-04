@@ -35,6 +35,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="form-help">끄면 환전 정책이 사용 상태여도 회원 환전 신청, 예상 금액 계산, 확정 실행을 모두 막습니다. 기존 환전 로그 조회와 정정은 유지됩니다.</p>
             </div>
         </div>
+        <div class="form-row">
+            <label class="form-label" for="asset_exchange_settings_identity_exchange_required">환전 신청 본인확인</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('asset_exchange_settings_identity_exchange_required', 'identity_exchange_required', '1', (string) ($settings['identity_exchange_required'] ?? '0') === '1', '사용'); ?>
+                <p class="form-help">사용하면 회원이 환전을 실행할 때마다 본인확인을 요구합니다.</p>
+            </div>
+        </div>
     </section>
 
     <?php if ($notificationGroups !== []) { ?>
