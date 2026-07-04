@@ -124,8 +124,8 @@ try {
 sr_install_reset_print_preview([
     'version' => 1,
     'surface' => 'cli-preview',
-    'state' => 'preview',
-    'message' => 'Read-only install reset preview completed. Destructive execution is not implemented yet.',
+    'state' => $execute && is_array($execution) ? (string) ($execution['state'] ?? 'execution') : 'preview',
+    'message' => $execute ? 'Install reset execution result is included.' : 'Read-only install reset preview completed.',
     'install_state_files' => sr_install_reset_state_file_preview($configPath, $lockPath),
     'environment_warnings' => $environmentWarnings,
     'database' => $tablePreview,

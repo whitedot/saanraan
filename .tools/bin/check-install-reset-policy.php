@@ -245,6 +245,10 @@ sr_install_reset_check_contains('.tools/bin/install-reset.php', [
     'sr_install_reset_environment_warnings',
     'sr_install_reset_execute',
 ]);
+$installResetCli = file_get_contents('.tools/bin/install-reset.php');
+if (is_string($installResetCli) && str_contains($installResetCli, 'Destructive execution is not implemented yet')) {
+    sr_install_reset_check_error('Install reset CLI must not claim destructive execution is unimplemented after --execute support exists.');
+}
 
 sr_install_reset_check_contains('docs/install-reset.md', [
     '설치 초기화',
