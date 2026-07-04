@@ -265,7 +265,11 @@ foreach (sr_admin_action_security_module_dirs($root) as $moduleDir) {
         }
         $effectiveContent = sr_admin_action_security_effective_content($root, $content);
 
-        if ($method === 'POST' && strpos($effectiveContent, 'sr_require_csrf(') === false) {
+        $providerCallbackWithoutCsrf = str_starts_with($path, '/identity/verify/')
+            && strpos($effectiveContent, 'sr_identity_verification_extract_state(') !== false
+            && strpos($effectiveContent, 'sr_identity_verification_attempt_by_state(') !== false;
+
+        if ($method === 'POST' && strpos($effectiveContent, 'sr_require_csrf(') === false && !$providerCallbackWithoutCsrf) {
             $errors[] = 'POST action must require CSRF: ' . $route . ' -> ' . $actionFile;
         }
 

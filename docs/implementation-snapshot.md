@@ -27,6 +27,9 @@
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
 | 회원 | `member_oauth` | OAuth/OIDC provider state, generic provider adapter, mock provider, 계정 연결/해제, completion 기반 |
 | 플러그인 | `member_oauth_providers` | 회원 OAuth용 Google, Kakao, Naver, GitHub, Apple ID provider 계약 |
+| 회원 | `identity_verification` | 외부 본인확인 attempt/result/link, provider 설정, privacy/cleanup/retention 계약 |
+| 플러그인 | `identity_kcp` | NHN KCP 휴대폰 본인확인 provider 계약 |
+| 플러그인 | `identity_inicis` | KG이니시스 통합인증 본인확인 provider 계약 |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
@@ -57,8 +60,8 @@
 | --- | --- |
 | 설치 | 미설치 상태의 모든 요청은 설치 흐름으로 진입 |
 | 공개 홈 | `/`, `/ui-kit` |
-| 회원 | `/login`, `/login/mfa`, `/register`, `/mypage`, `/mypage/account`, `/mypage/profile`, `/mypage/security`, `/mypage/privacy`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout`, `/oauth/start`, `/oauth/callback`, `/oauth/complete`, `/account/oauth/unlink` |
-| 관리자 공통 | `/admin`, `/admin/settings`, `/admin/settings/currency`, `/admin/homepage`, `/admin/menu`, `/admin/modules`, `/admin/updates`, `/admin/roles`, `/admin/audit-logs`, `/admin/retention` |
+| 회원 | `/login`, `/login/mfa`, `/register`, `/mypage`, `/mypage/account`, `/mypage/profile`, `/mypage/security`, `/mypage/privacy`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout`, `/oauth/start`, `/oauth/callback`, `/oauth/complete`, `/account/oauth/unlink`, `/identity/verify/start`, `/identity/verify/return`, `/identity/verify/callback` |
+| 관리자 공통 | `/admin`, `/admin/settings`, `/admin/settings/currency`, `/admin/homepage`, `/admin/menu`, `/admin/modules`, `/admin/updates`, `/admin/roles`, `/admin/audit-logs`, `/admin/retention`, `/admin/identity-verifications`, `/admin/identity-providers` |
 | 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content/embed-cache`, `/admin/content/submissions`, `/admin/content/author-rewards`, `/admin/content/file-downloads`, `/admin/content/payments`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-copy-jobs`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports`, `/admin/community/attachments`, `/admin/community/attachment-downloads`, `/admin/community/payments`, `/admin/community/feed-cache`, `/admin/community/embed-cache` |
@@ -80,6 +83,7 @@
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_profile_field_values`, `sr_member_nicknames`, `sr_member_follows`, `sr_member_sessions`, `sr_member_mfa_factors`, `sr_member_mfa_recovery_codes`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 회원 OAuth | `sr_member_oauth_accounts`, `sr_member_oauth_states` |
+| 본인확인 | `sr_identity_verification_attempts`, `sr_identity_verification_results`, `sr_identity_verification_links` |
 | 정책 문서 | `sr_policy_documents`, `sr_policy_document_versions`, `sr_policy_document_mail_jobs`, `sr_policy_document_mail_deliveries` |
 | 개인정보 | `sr_privacy_requests` |
 | 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_view_payment_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs`, `sr_content_author_applications`, `sr_content_author_permissions`, `sr_content_submissions`, `sr_content_author_reward_logs`, `sr_content_storage_cleanup_failures` |

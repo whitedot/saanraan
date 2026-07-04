@@ -47,6 +47,9 @@
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |
 | `member_oauth_providers` | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약 | 자기 DB 데이터는 없지만 provider endpoint, scope, 중첩 profile claim 계약을 `member_oauth` 처리활동의 외부 processor 후보와 함께 기록한다. |
+| `identity_verification` | 본인확인 attempt/result/link, provider 설정, 계정 purpose 연결 | provider 원문 응답과 CI/DI 원문을 저장하지 않고 HMAC hash 또는 최소 결과 snapshot만 남긴다. privacy export/cleanup과 보관 정리 기준을 함께 기록한다. |
+| `identity_kcp` | NHN KCP 휴대폰 본인확인 provider 계약 | 자기 DB 데이터는 없지만 KCP provider endpoint, 암복호화 라이브러리, 테스트/운영 상점 정보, 외부 processor 후보를 `identity_verification` 처리활동과 함께 기록한다. |
+| `identity_inicis` | KG이니시스 통합인증 본인확인 provider 계약 | 자기 DB 데이터는 없지만 KG이니시스 provider endpoint, 복호화 라이브러리, 계약 MID/apikey, 외부 processor 후보를 `identity_verification` 처리활동과 함께 기록한다. |
 | `notification` | 사이트 알림, read, delivery, push endpoint, 운영 알림 | site/email/push/external recipient와 ciphertext, 재발송 가능 기간, 탈퇴 후 tombstone 기준을 기록한다. |
 | `point` | 포인트 잔액, 원장, 만료 소비 매핑 | 금액성 증빙으로 보존하고 만료 source/consume 연결과 탈퇴 후 식별자 노출 최소화를 기록한다. |
 | `policy_documents` | 약관/방침 버전, 동의 문서, 변경 안내메일 delivery | 정책 문서 version snapshot과 안내메일 delivery의 export/cleanup, 수신자 보존 기준을 기록한다. |
@@ -66,7 +69,7 @@
 | 이메일 발송 provider | `member`, `notification`, `policy_documents`, `privacy` | 인증/정책 안내/알림/개인정보 요청 회신에 쓰일 수 있으므로 recipient, delivery status, 재발송 기간을 기록한다. |
 | CAPTCHA provider | `antispam`, `antispam_captcha_providers` | provider script 로딩과 remote IP 전달 옵션은 쿠키 동의와 국외 처리 검토 대상이다. |
 | OAuth/OIDC provider | `member_oauth`, `member_oauth_providers` | provider subject, email/profile snapshot, scopes, 국외 처리 가능성을 기록한다. |
-| 결제/본인확인 provider | 선택 플러그인 | 원문 고유식별자 저장 금지, 결과 token/hash/snapshot 최소화, export 제외 근거를 플러그인 계약에 요구한다. |
+| 결제/본인확인 provider | `identity_kcp`, `identity_inicis`, 향후 결제 선택 플러그인 | 원문 고유식별자 저장 금지, 결과 token/hash/snapshot 최소화, export 제외 근거를 플러그인 계약에 요구한다. |
 | S3 호환 storage | `ckeditor`, `content`, `community`, `logo_manager`, 향후 파일 소유 모듈 | 파일 원문 저장 위치와 signed URL 접근 범위, 삭제 실패 재시도 기준을 기록한다. |
 | 외부 알림 채널 | `notification` | Slack/Discord/Telegram 등 운영 채널 recipient와 endpoint는 회원 알림과 분리해 기록한다. |
 
@@ -77,7 +80,7 @@
 | 표면 | 기본 기준 | 후속 구현 기준 |
 | --- | --- | --- |
 | 회원 선택 프로필 | `member`의 `birth_date`와 `is_adult`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. 추가 프로필 항목은 `sr_member_profile_field_values`에 snapshot과 값으로 저장하고 `export_policy=include`인 항목만 사본 제공에 포함한다. 운영자가 추가 프로필 항목을 삭제하면 저장 전 경고 확인을 요구하고, 저장 시 해당 `field_key`의 전체 회원 저장값을 함께 삭제한다. | 성인 인증이나 법정대리인 확인이 필요하면 birth date 또는 adult flag 원문 재사용이 아니라 별도 선택 플러그인의 최소 결과 snapshot 기준을 따른다. |
-| 본인확인/성인 인증 | 번들 기본 모듈은 원문 신원정보를 저장하지 않는다. | 선택 플러그인은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문 저장을 금지하고 HMAC hash 또는 최소 결과 snapshot만 저장한다. |
+| 본인확인/성인 인증 | `identity_verification`은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문을 저장하지 않고 attempt/result/link 요약과 HMAC hash만 저장한다. 계정 연결은 `sr_member_accounts` 확장이 아니라 `sr_identity_verification_links`가 소유한다. | KCP/KG이니시스 provider 실인증 smoke는 테스트/운영 상점 정보와 provider 암복호화 라이브러리가 있는 로컬 또는 staging에서 별도로 기록한다. |
 | OAuth/OIDC profile | `member_oauth`는 provider subject 원문이 아니라 HMAC hash와 최소 email snapshot만 보관한다. 화면·export용 subject 표시값도 원문 `sub`가 아니라 HMAC hash prefix로 저장한다. OAuth 로그인/연결 때 verified email과 이름은 회원 기본 필드에 갱신할 수 있고, 추가 claim은 운영자가 매핑한 회원 선택 프로필 항목에만 저장한다. 빈 값, 배열 값, 선택지 밖 값, 현재 정의되지 않은 선택 프로필 항목은 기존 저장값을 삭제하지 않고 건너뛴다. | scope를 추가하거나 claim 매핑을 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
 | CAPTCHA 검증 | `antispam`은 기본 DB 개인정보를 저장하지 않는다. | remote IP 전달을 켜거나 외부 provider script를 로딩하면 processor/국외이전 후보와 쿠키 동의 inventory에 포함한다. |
 | 퀴즈/설문 답변 | 답안/응답 snapshot은 사본 제공과 cleanup 대상이다. | 건강, 정치, 종교, 아동/연령, 고유식별자성 질문을 운영자가 추가하는 경우 별도 동의 문구와 보존/삭제 기준을 문서화해야 한다. |
@@ -109,7 +112,7 @@
 
 | 요청 유형 | 기본 처리 기준 | 모듈별 전파 기준 |
 | --- | --- | --- |
-| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `policy_documents`, `notification`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
+| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `identity_verification`, `policy_documents`, `notification`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
 | `rectification` 정정 | 계정 원천 데이터는 `member` 관리자/회원 화면에서 정정하고, 원문 신원정보는 재검증을 유도한다. | 게시글/댓글/응답/원장은 과거 작성 시점 snapshot을 임의 수정하지 않는다. 표시명 snapshot 정정은 운영자가 공개 오표시와 증빙 보존을 비교해 판단한다. 정정 전후 원문 전체를 메모에 붙이지 않고 처리 위치와 결과만 남긴다. |
 | `erasure` 삭제 | 회원 탈퇴/익명화 cleanup 계약을 우선 사용한다. | 운영 증빙, 금액성 원장, 정책문서 delivery, 감사 로그처럼 보존 사유가 있는 row는 account 연결 제거, tombstone, 마스킹, 보존기간 만료 후 정리 중 하나로 처리한다. 삭제하지 못한 범위와 보존 사유를 메모한다. |
 | `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. 제한 기간과 해제 조건을 메모한다. |
@@ -198,7 +201,7 @@
 | 점검 | 역할 |
 | --- | --- |
 | `check-retention-targets.php` | 감사 로그, 알림, 배너 클릭 hash 같은 보존/정리 대상과 삭제 SQL 안전 경계를 확인한다. |
-| `check-privacy-contract-matrix.php` | 27개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
+| `check-privacy-contract-matrix.php` | 30개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터, 결제 기록, 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
 | `check-privacy-export-status.php` | 테스트용 모듈 export 실패를 시뮬레이션해 `partial_export`, `module_export_status`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 결제 record account 연결과 item account 참조를 익명화하며, 보존 원장은 유지하는지 확인한다. |

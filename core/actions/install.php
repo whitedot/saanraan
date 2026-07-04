@@ -129,6 +129,24 @@ $optionalModules = [
         'label' => '회원 OAuth 제공자',
         'description' => '회원 OAuth 모듈에 Google, Kakao, Naver, GitHub, Apple ID provider 계약을 설치합니다.',
     ],
+    'identity_verification' => [
+        'name' => '본인확인',
+        'version' => '2026.07.001',
+        'label' => '본인확인',
+        'description' => '외부 본인확인 요청, 결과, 계정 연결과 개인정보 보관 경계를 설치합니다.',
+    ],
+    'identity_kcp' => [
+        'name' => 'NHN KCP 본인확인 제공자',
+        'version' => '2026.07.001',
+        'label' => 'NHN KCP 본인확인 제공자',
+        'description' => '본인확인 모듈에 NHN KCP 휴대폰 본인확인 provider 계약을 설치합니다.',
+    ],
+    'identity_inicis' => [
+        'name' => 'KG이니시스 통합인증 제공자',
+        'version' => '2026.07.001',
+        'label' => 'KG이니시스 통합인증 제공자',
+        'description' => '본인확인 모듈에 KG이니시스 통합인증 본인확인 provider 계약을 설치합니다.',
+    ],
     'point' => [
         'name' => '포인트',
         'version' => '2026.06.002',

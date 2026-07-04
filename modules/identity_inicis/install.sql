@@ -1,0 +1,2 @@
+-- This plugin provides the KG Inicis identity-provider.php contract only.
+-- Attempts, results, links, and provider settings are stored by identity_verification.

@@ -114,6 +114,7 @@ modules/{module_key}/
 - antispam-targets.php (optional)
 - antispam-providers.php (optional)
 - oauth-providers.php (optional)
+- identity-provider.php (optional)
 - url-embed-targets.php (optional)
 - reaction-targets.php (optional)
 - operational-status.php (optional)
@@ -986,6 +987,7 @@ return [
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `antispam-targets.php`: 자동등록방지 적용 대상 후보. 화면과 제출 정책을 소유한 모듈이 대상 key, label, 기본 적용 모드를 선언하고, `antispam` 모듈은 설정 UI와 정책 조회에 사용한다.
 - `antispam-providers.php`: 자동등록방지 외부 CAPTCHA provider 후보. provider endpoint와 widget script URL은 HTTPS 공개 URL이어야 하며, `antispam` 모듈은 provider 검증 POST 직전에 endpoint가 공개망 host로 해석되는지 다시 확인한다.
+- `identity-provider.php`: 외부 본인확인 provider 후보. provider 설정 schema와 prepare/verify handler를 선언하고, `identity_verification` 모듈은 state/nonce, attempt/result/link 저장과 개인정보 최소화 정책을 소유한다.
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 - `url-embed-targets.php`: URL 기반 임베딩 resolver와 renderer 후보. 공개 렌더링은 이 계약으로 canonical URL, target allowlist, snapshot, 모듈별 표시 HTML, 대상 모듈 전용 `embed_stylesheet`, fragment cache schema를 결정한다.
 
@@ -1290,6 +1292,14 @@ return [
 - provider별 client id/secret 저장 key와 활성 여부는 member_oauth 모듈 설정이 소유한다.
 - OAuth callback은 계약의 endpoint와 claim mapping을 사용하되 계정 연결/가입 정책은 member_oauth 모듈이 다시 검증한다.
 
+`identity-provider.php`:
+
+- 단일 provider 배열 또는 provider key별 배열을 반환한다.
+- 각 provider는 `provider_key`, `display_name`, `supported_methods`, `settings_schema`, `handlers`를 가진다.
+- `settings_schema`는 관리자 화면에 표시할 설정 key, label, 필수 여부, secret 여부를 선언한다.
+- `handlers`는 `prepare`, `verify_return`, 선택 `verify_callback`에 대해 `helpers/provider.php:function_name` 형식의 callable 위치를 제공한다.
+- provider handler는 회원 상태나 도메인 정책을 직접 바꾸지 않고, 공통 result 배열만 반환한다.
+
 `url-embed-targets.php`:
 
 - 배열을 반환한다.
@@ -1373,6 +1383,7 @@ return [
 | `retention-targets.php` | `admin` 모듈 | `/admin/retention` preview, 수동 정리, 자동 정리 실행 | 모듈별 보존 기간 정리 대상과 table 존재 확인 기준 |
 | `antispam-targets.php` | `antispam` 모듈 | 자동등록방지 관리자 설정 렌더링과 제출별 정책 조회 | 화면 소유 모듈이 선언한 적용 대상 key, label, 기본 적용 모드 |
 | `antispam-providers.php` | `antispam` 모듈 | 자동등록방지 외부 provider 설정 렌더링과 CAPTCHA 응답 검증 | CAPTCHA provider key, label, site/secret 설정 key, 응답 field, HTTPS 공개 endpoint, HTTPS 공개 widget script URL, widget class |
+| `identity-provider.php` | `identity_verification` 모듈 | 본인확인 외부 provider 설정 렌더링, 시작 요청 생성, return/callback 검증 | provider key, 표시명, 설정 schema, prepare/verify handler |
 
 읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.
 
@@ -1384,6 +1395,9 @@ return [
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
+| `identity_verification` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `operational-status.php` | `identity-provider.php` |
+| `identity_kcp` | `identity-provider.php` | 없음 |
+| `identity_inicis` | `identity-provider.php` | 없음 |
 | `privacy` | `paths.php`, `admin-menu.php` | `privacy-export.php`, `admin-notification-events.php` |
 | `policy_documents` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |
 | `asset_ledger` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |

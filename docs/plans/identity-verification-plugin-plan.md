@@ -1,6 +1,13 @@
 # 본인확인 플러그인 연동 계획
 
-이 문서는 산란에서 외부 본인확인 서비스를 선택 모듈과 플러그인으로 연동하기 위한 구현 계획이다.
+이 문서는 산란에서 외부 본인확인 서비스를 선택 모듈과 플러그인으로 연동하기 위한 구현 계획과 남은 검증 항목이다.
+
+상태:
+
+- 2026-07-04에 `identity_verification`, `identity_kcp`, `identity_inicis`의 초기 구현을 추가했다.
+- 공통 attempt/result/link 저장, provider 설정, return/callback 처리, privacy export/cleanup, retention/operational-status 계약은 코드에 있다.
+- KCP와 KG이니시스 provider adapter는 공개 문서 기준으로 구현했지만, 실제 provider 성공 인증 smoke는 테스트/운영 상점 정보와 provider 암복호화 라이브러리가 있는 로컬 또는 staging에서 별도로 검증해야 한다.
+- 이 문서는 실인증 smoke와 #324 소비 정책 연결이 끝날 때까지 삭제하지 않는다.
 
 대상 서비스:
 
@@ -9,9 +16,9 @@
 
 문서 수명:
 
-- 본인확인 모듈과 첫 provider 플러그인을 구현하기 전까지 계획 문서로 보관한다.
-- 실제 구현과 검증이 완료되면 이 문서는 삭제한다.
-- 구현 후 계속 유지해야 하는 기준은 `docs/module-guide.md`, `docs/core-decisions.md`, `docs/security-model.md`, 본인확인 모듈 README 중 필요한 곳으로만 옮긴다.
+- 실제 provider smoke와 소비 모듈 정책 연결 전까지 남은 검증 항목으로 보관한다.
+- 구현과 검증이 모두 완료되면 이 문서는 삭제한다.
+- 계속 유지해야 하는 기준은 `docs/module-guide.md`, `docs/core-decisions.md`, `docs/security-model.md`, 본인확인 모듈 README 중 필요한 곳으로만 옮긴다.
 
 ## 공식 문서 확인 기준
 

@@ -23,6 +23,7 @@
 | 시스템 | `payment_ledger` | `stable-candidate` | 숨김 기반 모듈 정책 문서, 결제 대상 계약, `check-payment-ledger-runtime.php`, 콘텐츠/커뮤니티 쿠폰+자산 복합 결제 payment record fixture | 설치 DB 콘텐츠/커뮤니티 결제 mutation smoke와 결제 record/item 확인 |
 | 회원 | `member` | `stable-candidate` | 인증 런타임 점검, 회원 auth policy 점검, 기본 HTTP smoke 기준 | 인증 smoke와 관리자 회원 화면 수동 기록 |
 | 회원 | `member_oauth` | `beta` | `sr_member_oauth_accounts`/`sr_member_oauth_states` 스키마, state/nonce/PKCE hash 저장과 1회 사용 helper, provider 계약 정규화, provider 설정 저장/secret 마스킹, 항목 단위 scope override, OAuth profile 기본 필드/선택 프로필 동기화, generic OAuth2/OIDC authorization/token/userinfo adapter, mock provider callback, 기존 계정 로그인, OAuth 신규 가입 completion 동의 gate, 계정 연결/해제 UI, 개인정보 export·cleanup 계약, `check-member-oauth-runtime.php` | mock provider 기반 설치 DB HTTP smoke, 외부 provider staging 계정 smoke |
+| 회원 | `identity_verification` | `beta` | `sr_identity_verification_attempts`/`sr_identity_verification_results`/`sr_identity_verification_links` 스키마, state/nonce HMAC 저장, provider 계약 로딩, provider 설정 저장/secret 마스킹, return/callback 상태 전이, 계정 purpose 연결 helper, 개인정보 export·cleanup·retention·operational-status 계약 | KCP 테스트 상점과 KG이니시스 계약/샘플 기반 외부 provider smoke, #324 커뮤니티 소비 정책 fixture |
 | 회원 | `point` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준, read-only reconciliation CLI, 포인트 만료 dry-run fixture | `release-installed-gate-status.php --run-readonly` 원장 reconciliation 실행 기록, 설치 DB 만료 dry-run, 환불/동시성 smoke |
 | 회원 | `reward` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준과 회수/출금 상한 runtime fixture, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 출금/회수/동시성 smoke |
 | 회원 | `deposit` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, 환불 신청 상한 runtime fixture, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 환불/출금/동시성 smoke |
@@ -44,12 +45,14 @@
 | 플러그인 | `ckeditor` | `beta` | `check-rich-text-sanitizer.php`, `check-htmlpurifier-runtime.php`, `check-ckeditor-assets.php`, `check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`, `smoke-ckeditor-upload-save.php`, HTML Purifier 배치/캐시 경로, rich text sanitizer fixture, 브라우저 asset 로딩/fallback smoke, upload adapter request contract smoke, 공개/draft 본문 이미지 접근 smoke 하니스 | `release-installed-gate-status.php --run-ckeditor-upload-save-smoke` CKEditor upload/save browser smoke 실행 기록, 유료 본문 이미지 접근 smoke |
 | 플러그인 | `antispam_captcha_providers` | `beta` | `check-antispam-runtime.php`, `antispam-providers.php` 계약 반환 fixture, Turnstile/hCaptcha/reCAPTCHA provider mock fixture, HTTPS 공개 endpoint/script URL 제한, provider 검증 POST 직전 공개망 endpoint gate, widget class/endpoint/script 설정, provider action/hostname 검증 토글 점검 | 실제 provider staging key 또는 provider mock endpoint 기반 브라우저 수동 smoke와 timeout/fallback 정책 smoke |
 | 플러그인 | `member_oauth_providers` | `beta` | `check-member-oauth-runtime.php`, `oauth-providers.php` 계약 반환 fixture, Google/Kakao/Naver/GitHub/Apple ID authorization/token/userinfo/id_token endpoint와 중첩 claim path fixture | 실제 provider staging 계정 기반 로그인/가입/연결 브라우저 smoke |
+| 플러그인 | `identity_kcp` | `beta` | `identity-provider.php` 계약, KCP V2 거래등록/결과조회 endpoint 설정, 암복호화 callable 설정, provider 원문 비저장 mapping | KCP 테스트 site_cd/ENC_KEY와 KCP PHP 암복호화 라이브러리 기반 성공/실패/취소 smoke |
+| 플러그인 | `identity_inicis` | `beta` | `identity-provider.php` 계약, KG이니시스 통합인증 `reqSvcCd=03`, `authHash`, 결과조회 URL 검증, 선택 복호화 callable 설정, provider 원문 비저장 mapping | KG이니시스 계약 MID/apikey와 샘플 복호화 라이브러리 기반 성공/실패 smoke |
 
 ## 1.0 제외 계획
 
 | 계획 | 상태 | 기준 문서 |
 | --- | --- | --- |
-| 본인확인 선택 모듈과 provider 플러그인 | `planned` | [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md) |
+| 본인확인 provider 실인증 smoke와 커뮤니티 정책 연결 | `planned` | [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md) |
 | 회원 마이그레이션 선택 모듈 | `planned` | [회원 마이그레이션 계획](plans/member-migration-plan.md) |
 | 결제 선택 모듈과 PG 플러그인 | `planned` | [결제 플러그인 계획](plans/payment-plugin-plan.md) |
 
