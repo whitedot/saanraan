@@ -11,9 +11,19 @@ $account = sr_member_require_login($pdo);
 $errors = [];
 $memberSettings = sr_member_settings($pdo);
 $withdrawIdentityPurpose = 'member.withdrawal';
-$withdrawIdentityPolicy = function_exists('sr_identity_verification_requirement_policy')
-    ? sr_identity_verification_requirement_policy($pdo, (int) $account['id'], $withdrawIdentityPurpose, !empty($memberSettings['identity_withdrawal_required']) ? 'required' : 'off', '/account/withdraw')
-    : ['required' => !empty($memberSettings['identity_withdrawal_required']), 'satisfied' => false, 'available' => false, 'start_url' => ''];
+$withdrawIdentityRequired = !empty($memberSettings['identity_withdrawal_required']);
+$withdrawIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $withdrawIdentityPurpose);
+$withdrawIdentityPolicy = [
+    'required' => $withdrawIdentityRequired,
+    'satisfied' => $withdrawIdentityRequired
+        && function_exists('sr_identity_verification_session_result')
+        && sr_identity_verification_session_result($pdo, $withdrawIdentityPurpose, (int) $account['id']) !== null,
+    'available' => $withdrawIdentityAvailable,
+    'start_url' => $withdrawIdentityAvailable && function_exists('sr_identity_verification_start_url')
+        ? sr_identity_verification_start_url($withdrawIdentityPurpose, '/account/withdraw')
+        : '',
+];
 $withdrawalAssets = sr_member_withdrawal_asset_balances($pdo, (int) $account['id']);
 $refundAccount = [
     'bank' => '',

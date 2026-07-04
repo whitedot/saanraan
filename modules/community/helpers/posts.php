@@ -79,6 +79,21 @@ function sr_community_board_requires_identity(PDO $pdo, array $board): bool
     return in_array(sr_community_effective_board_setting($pdo, $board, 'identity_required', '0'), ['1', 'true', 'yes', 'on'], true);
 }
 
+function sr_community_board_requires_verification_login(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    if (sr_community_board_requires_identity($pdo, $board) || sr_community_board_requires_adult_identity($pdo, $board)) {
+        return true;
+    }
+
+    return !empty($settings['identity_restricted_board_required'])
+        && sr_community_board_is_restricted_for_identity($pdo, $board, $settings);
+}
+
 function sr_community_identity_restricted_board_policy(PDO $pdo, array $board, ?array $account, string $returnUrl, ?array $settings = null): array
 {
     $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
@@ -136,7 +151,7 @@ function sr_community_identity_adult_board_policy(PDO $pdo, array $board, ?array
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 
     $purpose = 'community.adult_board';
-    $available = sr_identity_verification_available($pdo);
+    $available = sr_identity_verification_available($pdo, $purpose);
     return [
         'required' => true,
         'satisfied' => sr_identity_verification_account_satisfies_adult($pdo, $accountId, $purpose),

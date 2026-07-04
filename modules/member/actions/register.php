@@ -32,11 +32,12 @@ $registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
 $registrationReady = $registrationAllowed && $registrationPolicyErrors === [];
 $registrationIdentityMode = sr_member_identity_requirement_mode($memberSettings['identity_registration_mode'] ?? 'disabled');
 $registrationIdentityPurpose = 'member.registration';
-$registrationIdentityAvailable = function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo);
+$registrationIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $registrationIdentityPurpose);
 $registrationIdentitySatisfied = function_exists('sr_identity_verification_session_result')
     && sr_identity_verification_session_result($pdo, $registrationIdentityPurpose, 0) !== null;
 $registrationIdentityRequired = $registrationIdentityMode === 'required';
-$registrationIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+$registrationIdentityStartUrl = $registrationIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($registrationIdentityPurpose, '/register')
     : '';
 $errors = [];

@@ -26,7 +26,9 @@ $rewardIdentityRequired = !empty($rewardSettings['identity_withdrawal_required']
 $rewardIdentitySatisfied = $rewardIdentityRequired
     && function_exists('sr_identity_verification_session_result')
     && sr_identity_verification_session_result($pdo, $rewardIdentityPurpose, (int) $account['id']) !== null;
-$rewardIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+$rewardIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $rewardIdentityPurpose);
+$rewardIdentityStartUrl = $rewardIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($rewardIdentityPurpose, '/account/rewards#reward-withdrawal-request')
     : '';
 

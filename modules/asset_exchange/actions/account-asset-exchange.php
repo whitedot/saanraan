@@ -22,7 +22,9 @@ $assetExchangeIdentityRequired = (string) ($assetExchangeSettings['identity_exch
 $assetExchangeIdentitySatisfied = $assetExchangeIdentityRequired
     && function_exists('sr_identity_verification_session_result')
     && sr_identity_verification_session_result($pdo, $assetExchangeIdentityPurpose, (int) $account['id']) !== null;
-$assetExchangeIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+$assetExchangeIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $assetExchangeIdentityPurpose);
+$assetExchangeIdentityStartUrl = $assetExchangeIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($assetExchangeIdentityPurpose, '/account/asset-exchange')
     : '';
 $exchangeEnabled = sr_asset_exchange_enabled($pdo);

@@ -22,7 +22,9 @@ $depositIdentityRequired = !empty($depositSettings['identity_refund_required']);
 $depositIdentitySatisfied = $depositIdentityRequired
     && function_exists('sr_identity_verification_session_result')
     && sr_identity_verification_session_result($pdo, $depositIdentityPurpose, (int) $account['id']) !== null;
-$depositIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+$depositIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $depositIdentityPurpose);
+$depositIdentityStartUrl = $depositIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($depositIdentityPurpose, '/account/deposits#deposit-refund-request')
     : '';
 

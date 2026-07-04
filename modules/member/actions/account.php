@@ -28,7 +28,9 @@ $memberSecurityIdentityRequired = !empty($memberSettings['identity_account_secur
 $memberSecurityIdentitySatisfied = $memberSecurityIdentityRequired
     && function_exists('sr_identity_verification_session_result')
     && sr_identity_verification_session_result($pdo, $memberSecurityIdentityPurpose, (int) $account['id'], null) !== null;
-$memberSecurityIdentityStartUrl = function_exists('sr_identity_verification_start_url')
+$memberSecurityIdentityAvailable = function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, $memberSecurityIdentityPurpose);
+$memberSecurityIdentityStartUrl = $memberSecurityIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($memberSecurityIdentityPurpose, '/mypage/security')
     : '';
 $memberAccountBasePath = '/mypage';

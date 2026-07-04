@@ -28,7 +28,7 @@ if (!is_array($post)) {
     if (is_array($rawPost)) {
         $board = sr_community_board_by_id($pdo, (int) $rawPost['board_id']);
         $boardRequiresVerificationLogin = is_array($board)
-            && (sr_community_board_requires_identity($pdo, $board) || sr_community_board_requires_adult_identity($pdo, $board));
+            && sr_community_board_requires_verification_login($pdo, $board);
         if (is_array($board) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin) && !is_array($account)) {
             $account = sr_member_require_login($pdo);
             $post = sr_community_post_for_read($pdo, $postId, $account);

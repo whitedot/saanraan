@@ -121,7 +121,7 @@ function sr_member_active_login_mfa_provider_keys(PDO $pdo, int $accountId): arr
     }
     if (in_array('identity', $allowedProviderKeys, true) && sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
         require_once SR_ROOT . '/modules/identity_verification/helpers.php';
-        if (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo)) {
+        if (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'member.mfa.login')) {
             $activeKeys['identity'] = true;
         }
     }

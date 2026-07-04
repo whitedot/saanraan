@@ -108,14 +108,14 @@ function sr_identity_verification_setting_key(string $providerKey, string $setti
     return 'provider_' . $providerKey . '_' . $settingKey;
 }
 
-function sr_identity_verification_available(PDO $pdo): bool
+function sr_identity_verification_available(PDO $pdo, string $purpose = ''): bool
 {
     $settings = sr_identity_verification_settings($pdo);
     if (empty($settings['enabled'])) {
         return false;
     }
 
-    return sr_identity_verification_select_provider($pdo) !== null;
+    return sr_identity_verification_select_provider($pdo, '', $purpose) !== null;
 }
 
 function sr_identity_verification_simple_auth_preferred_purposes(): array
@@ -139,6 +139,37 @@ function sr_identity_verification_preferred_provider_keys_for_purpose(string $pu
     }
 
     return ['inicis_simple_auth'];
+}
+
+function sr_identity_verification_identity_provider_required_purposes(): array
+{
+    return [
+        'community.adult_board',
+        'community.restricted_board',
+        'content.author_application.adult',
+        'member.registration',
+    ];
+}
+
+function sr_identity_verification_purpose_requires_identity_provider(string $purpose): bool
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    return $purpose !== '' && in_array($purpose, sr_identity_verification_identity_provider_required_purposes(), true);
+}
+
+function sr_identity_verification_provider_supports_purpose(array $provider, string $purpose): bool
+{
+    if (!sr_identity_verification_purpose_requires_identity_provider($purpose)) {
+        return true;
+    }
+
+    foreach ((array) ($provider['supported_methods'] ?? []) as $method) {
+        if (in_array((string) $method, ['identity', 'integrated_identity', 'mobile_identity'], true)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function sr_identity_verification_account_satisfies(PDO $pdo, int $accountId, string $purpose, ?int $maxAgeDays = null): bool
@@ -419,17 +450,19 @@ function sr_identity_verification_link_result_to_account(PDO $pdo, int $resultId
     }
 
     $stmt = $pdo->prepare(
-        'SELECT r.id, r.attempt_id, a.purpose, a.status
+        'SELECT r.id, r.attempt_id, r.account_id, a.purpose, a.status
          FROM sr_identity_verification_results r
          INNER JOIN sr_identity_verification_attempts a ON a.id = r.attempt_id
          WHERE r.id = :id
            AND a.purpose = :purpose
            AND a.status = :status
+           AND (r.account_id IS NULL OR r.account_id = :account_id)
            AND (r.expires_at IS NULL OR r.expires_at > :now)
          LIMIT 1'
     );
     $stmt->execute([
         'id' => $resultId,
+        'account_id' => $accountId,
         'purpose' => $purpose,
         'status' => 'verified',
         'now' => sr_now(),
@@ -670,21 +703,38 @@ function sr_identity_verification_select_provider(PDO $pdo, string $providerKey 
     $providers = sr_identity_verification_providers($pdo);
     $settings = sr_identity_verification_settings($pdo);
     $providerKey = sr_identity_verification_provider_key($providerKey);
-    if ($providerKey !== '' && isset($providers[$providerKey]) && !empty($providers[$providerKey]['enabled'])) {
+    if ($providerKey !== ''
+        && isset($providers[$providerKey])
+        && !empty($providers[$providerKey]['enabled'])
+        && sr_identity_verification_provider_supports_purpose($providers[$providerKey], $purpose)
+    ) {
         return $providers[$providerKey];
     }
 
     if ($providerKey === '') {
         foreach (sr_identity_verification_preferred_provider_keys_for_purpose($purpose) as $preferredProviderKey) {
-            if (isset($providers[$preferredProviderKey]) && !empty($providers[$preferredProviderKey]['enabled'])) {
+            if (isset($providers[$preferredProviderKey])
+                && !empty($providers[$preferredProviderKey]['enabled'])
+                && sr_identity_verification_provider_supports_purpose($providers[$preferredProviderKey], $purpose)
+            ) {
                 return $providers[$preferredProviderKey];
             }
         }
     }
 
     $defaultProviderKey = (string) ($settings['default_provider_key'] ?? '');
-    if ($defaultProviderKey !== '' && isset($providers[$defaultProviderKey]) && !empty($providers[$defaultProviderKey]['enabled'])) {
+    if ($defaultProviderKey !== ''
+        && isset($providers[$defaultProviderKey])
+        && !empty($providers[$defaultProviderKey]['enabled'])
+        && sr_identity_verification_provider_supports_purpose($providers[$defaultProviderKey], $purpose)
+    ) {
         return $providers[$defaultProviderKey];
+    }
+
+    foreach ($providers as $provider) {
+        if (!empty($provider['enabled']) && sr_identity_verification_provider_supports_purpose($provider, $purpose)) {
+            return $provider;
+        }
     }
 
     return null;

@@ -12,15 +12,14 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 $account = sr_member_current_account($pdo);
-$boardRequiresVerificationLogin = sr_community_board_requires_identity($pdo, $board)
-    || sr_community_board_requires_adult_identity($pdo, $board);
+$settings = sr_community_settings($pdo);
+$boardRequiresVerificationLogin = sr_community_board_requires_verification_login($pdo, $board, $settings);
 if (!is_array($account) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin)) {
     $account = sr_member_require_login($pdo);
 }
 if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
     sr_render_error(403, sr_t('community::action.error.board_view_forbidden'));
 }
-$settings = sr_community_settings($pdo);
 $communityBoardIdentityPolicy = sr_community_identity_restricted_board_policy(
     $pdo,
     $board,

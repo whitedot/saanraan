@@ -28,7 +28,7 @@ $contentAuthorAdultIdentityPolicy = [
     'start_url' => '',
 ];
 if (!empty($settings['identity_author_application_adult_required']) && function_exists('sr_identity_verification_available') && function_exists('sr_identity_verification_account_satisfies_adult')) {
-    $contentAuthorAdultIdentityAvailable = sr_identity_verification_available($pdo);
+    $contentAuthorAdultIdentityAvailable = sr_identity_verification_available($pdo, $contentAuthorAdultIdentityPurpose);
     $contentAuthorAdultIdentityPolicy = [
         'required' => true,
         'satisfied' => sr_identity_verification_account_satisfies_adult($pdo, (int) $account['id'], $contentAuthorAdultIdentityPurpose),

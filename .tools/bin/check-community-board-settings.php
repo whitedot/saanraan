@@ -292,6 +292,44 @@ function sr_check_community_board_settings_runtime(): void
     if ($viewSortedIds !== [2, 3]) {
         sr_check_community_board_settings_error('community views sort and limit runtime order failed.');
     }
+    $identityBoard = [
+        'id' => 10,
+        'board_group_id' => 20,
+        'status' => 'enabled',
+        'read_policy' => 'public',
+    ];
+    $boardSettingStmt->execute([
+        'setting_key' => 'identity_required',
+        'setting_value' => '1',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    if (!sr_community_board_requires_verification_login($pdo, $identityBoard, ['identity_restricted_board_required' => false])) {
+        sr_check_community_board_settings_error('community board identity setting must require login before policy evaluation.');
+    }
+    $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title, status) VALUES (12, 0, 'restricted_fixture', 'Restricted Fixture Board', 'enabled')");
+    $pdo->prepare(
+        'INSERT INTO sr_community_board_settings
+            (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (12, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
+    )->execute([
+        'setting_key' => 'read_min_level',
+        'setting_value' => '1',
+        'value_type' => 'int',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $restrictedBoard = [
+        'id' => 12,
+        'board_group_id' => 0,
+        'status' => 'enabled',
+        'read_policy' => 'public',
+    ];
+    if (!sr_community_board_requires_verification_login($pdo, $restrictedBoard, ['identity_restricted_board_required' => true])) {
+        sr_check_community_board_settings_error('community restricted board identity setting must require login before policy evaluation.');
+    }
     if (!sr_community_post_locked_by_comments($pdo, $board, 1, 'edit')) {
         sr_check_community_board_settings_error('community edit lock threshold runtime check failed.');
     }
@@ -341,6 +379,8 @@ function sr_check_community_board_settings_runtime(): void
 }
 
 $settingKeys = [
+    'identity_required',
+    'adult_required',
     'post_edit_lock_comment_count',
     'post_delete_lock_comment_count',
     'post_body_min_length',
