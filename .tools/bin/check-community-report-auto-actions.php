@@ -112,9 +112,14 @@ sr_community_report_auto_action_check_contains('modules/community/actions/admin-
     "sr_post_string('auto_action_status', 30)",
     'sr_community_report_active_auto_action($pdo, (string) $report[\'target_type\'], (int) $report[\'target_id\'], true)',
     'sr_community_release_report_auto_action_target($pdo, $activeAutoAction)',
+    'sr_community_report_auto_action_lock_suffix($pdo)',
     "'event_type' => 'community.report.auto_action_reviewed'",
     'sr_community_report_auto_actions_by_targets($pdo, $reports)',
 ]);
+$adminReportsAction = file_get_contents('modules/community/actions/admin-reports.php');
+if (is_string($adminReportsAction) && str_contains($adminReportsAction, 'WHERE id = :id FOR UPDATE')) {
+    sr_community_report_auto_action_check_error('admin report single review lock must use the driver-aware lock suffix helper.');
+}
 
 sr_community_report_auto_action_check_contains('modules/community/views/admin-reports.php', [
     '자동조치',

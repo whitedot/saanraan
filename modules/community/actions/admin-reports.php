@@ -392,7 +392,12 @@ if (sr_request_method() === 'POST') {
         if ($errors === []) {
             try {
                 $pdo->beginTransaction();
-                $singleLockStmt = $pdo->prepare('SELECT status FROM sr_community_reports WHERE id = :id FOR UPDATE');
+                $singleLockStmt = $pdo->prepare(
+                    'SELECT status
+                     FROM sr_community_reports
+                     WHERE id = :id
+                     LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
+                );
                 $singleLockStmt->execute(['id' => $reportId]);
                 $currentReport = $singleLockStmt->fetch();
                 if (!is_array($currentReport) || (string) ($currentReport['status'] ?? '') !== (string) $report['status']) {
