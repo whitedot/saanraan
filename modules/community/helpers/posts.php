@@ -75,9 +75,8 @@ function sr_community_identity_verification_action_options(): array
 function sr_community_identity_verification_purpose_options(): array
 {
     return [
-        'real_name' => '본인확인',
-        'adult' => '성인 본인확인',
-        'recent_recheck' => '최근 재확인',
+        'real_name' => '본인확인된 회원',
+        'adult' => '성인확인된 회원',
     ];
 }
 
@@ -131,7 +130,6 @@ function sr_community_board_identity_verification_config(PDO $pdo, array $board,
     $enabled = in_array(sr_community_effective_board_setting($pdo, $board, 'identity_verification_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
     $purpose = sr_community_identity_verification_purpose(sr_community_effective_board_setting($pdo, $board, 'identity_verification_purpose', 'real_name'));
     $actions = sr_community_identity_verification_required_actions_from_value(sr_community_effective_board_setting($pdo, $board, 'identity_verification_required_actions', '[]'));
-    $maxAgeDays = max(0, min(3650, (int) sr_community_effective_board_setting($pdo, $board, 'identity_verification_max_age_days', '0')));
     $restrictedBoardIdentityRequired = false;
     if (!$enabled) {
         try {
@@ -156,7 +154,6 @@ function sr_community_board_identity_verification_config(PDO $pdo, array $board,
         'purpose' => $purpose,
         'identity_purpose' => sr_community_identity_verification_purpose_to_identity_purpose($purpose),
         'actions' => $actions,
-        'max_age_days' => $maxAgeDays,
     ];
 }
 
@@ -197,14 +194,12 @@ function sr_community_identity_action_policy(PDO $pdo, array $board, ?array $acc
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 
     $identityPurpose = (string) $config['identity_purpose'];
-    $maxAgeDays = (int) ($config['max_age_days'] ?? 0);
-    $maxAge = $maxAgeDays > 0 ? $maxAgeDays : null;
     $available = sr_identity_verification_available($pdo, $identityPurpose);
     $satisfied = false;
     if ($accountId > 0) {
-        $satisfied = (string) $config['purpose'] === 'adult'
-            ? sr_identity_verification_account_satisfies_adult($pdo, $accountId, $identityPurpose, $maxAge)
-            : sr_identity_verification_account_satisfies($pdo, $accountId, $identityPurpose, $maxAge);
+        $sessionResult = sr_identity_verification_session_result($pdo, $identityPurpose, $accountId, null);
+        $satisfied = is_array($sessionResult)
+            && ((string) $config['purpose'] !== 'adult' || (int) ($sessionResult['age_over_19'] ?? 0) === 1);
     }
 
     return [
@@ -214,7 +209,6 @@ function sr_community_identity_action_policy(PDO $pdo, array $board, ?array $acc
         'start_url' => $available ? sr_identity_verification_start_url($identityPurpose, $returnUrl) : '',
         'purpose' => (string) $config['purpose'],
         'identity_purpose' => $identityPurpose,
-        'max_age_days' => $maxAgeDays,
     ];
 }
 
@@ -1204,16 +1198,12 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
 
 function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool
 {
-    if (!sr_module_enabled($pdo, 'ckeditor') || !is_file(SR_ROOT . '/modules/ckeditor/helpers.php')) {
-        return false;
-    }
-
     if (is_array($board)) {
-        return sr_community_effective_post_editor($pdo, $board, $settings) === 'ckeditor';
+        return in_array(sr_community_effective_post_editor($pdo, $board, $settings), ['html', 'ckeditor'], true);
     }
 
     $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
-    return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')) === 'ckeditor';
+    return in_array(sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')), ['html', 'ckeditor'], true);
 }
 
 function sr_community_markdown_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool

@@ -181,6 +181,13 @@ function sr_check_community_board_settings_runtime(): void
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_identity_verification_attempts (
+            id INTEGER PRIMARY KEY,
+            purpose TEXT NOT NULL,
+            status TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_identity_verification_results (
             id INTEGER PRIMARY KEY,
             attempt_id INTEGER NOT NULL,
@@ -400,6 +407,12 @@ function sr_check_community_board_settings_runtime(): void
         ]);
     }
     $pdo->exec(
+        "INSERT INTO sr_identity_verification_attempts
+            (id, purpose, status)
+         VALUES
+            (1, 'community.restricted_board', 'verified')"
+    );
+    $pdo->exec(
         "INSERT INTO sr_identity_verification_results
             (id, attempt_id, account_id, provider_key, age_over_19, verified_at, expires_at, created_at)
          VALUES
@@ -412,9 +425,22 @@ function sr_check_community_board_settings_runtime(): void
             (1, 1, 1, 'community.restricted_board', '2026-06-14 11:30:00', NULL, '2026-06-14 11:30:00')"
     );
     sr_clear_module_settings_cache('identity_verification');
+    $linkedWithoutSessionIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 1], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
+    if (empty($linkedWithoutSessionIdentityPolicy['required']) || empty($linkedWithoutSessionIdentityPolicy['available']) || !empty($linkedWithoutSessionIdentityPolicy['satisfied'])) {
+        sr_check_community_board_settings_error('community identity policy must block valid identity links outside the current login session.');
+    }
+    $_SESSION['sr_identity_verification_results'] = [
+        'community.restricted_board' => [
+            'result_id' => 1,
+            'account_id' => 1,
+            'purpose' => 'community.restricted_board',
+            'verified_at' => time() - 3600,
+            'identity' => [],
+        ],
+    ];
     $passedIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 1], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
     if (empty($passedIdentityPolicy['required']) || empty($passedIdentityPolicy['available']) || empty($passedIdentityPolicy['satisfied'])) {
-        sr_check_community_board_settings_error('community identity policy must pass accounts with a valid identity verification link.');
+        sr_check_community_board_settings_error('community identity policy must pass accounts with a current-session identity verification result.');
     }
     $failedIdentityPolicy = sr_community_identity_action_policy($pdo, $identityBoard, ['id' => 2], 'read', '/community/post?id=1', ['identity_restricted_board_required' => false]);
     if (empty($failedIdentityPolicy['required']) || empty($failedIdentityPolicy['available']) || !empty($failedIdentityPolicy['satisfied'])) {
@@ -472,7 +498,6 @@ $settingKeys = [
     'identity_verification_enabled',
     'identity_verification_purpose',
     'identity_verification_required_actions',
-    'identity_verification_max_age_days',
     'post_edit_lock_comment_count',
     'post_delete_lock_comment_count',
     'post_body_min_length',

@@ -625,7 +625,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 목적 <span class="sr-required-label">(사용 시 필수)</span></label>
+                <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 기준 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <select id="community_admin_boards_identity_verification_purpose" name="identity_verification_purpose" class="form-select"<?php echo $communityBoardIdentityDisabledAttributes; ?> required>
                         <?php foreach (sr_community_identity_verification_purpose_options() as $purposeKey => $purposeLabel) { ?>
@@ -635,32 +635,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $settingSourceRadioHtml('source_identity_verification_purpose', $boardSettingSource($formBoard, 'identity_verification_purpose')); ?>
-                    <p class="form-help">성인 본인확인은 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                    <p class="form-help">본인확인을 사용하면 선택한 기준을 현재 로그인 세션에서 통과한 회원만 허용합니다. 성인확인된 회원 기준은 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <span class="form-label">본인확인 행위 <span class="sr-required-label">(사용 시 필수)</span></span>
+                <span class="form-label">본인확인 범위 <span class="sr-required-label">(필수)</span></span>
                 <div class="form-field">
                     <?php $selectedIdentityActions = sr_community_identity_verification_required_actions_from_value($boardField($formBoard, 'identity_verification_required_actions', '[]')); ?>
-                    <div class="form-check-group">
-                        <?php foreach (sr_community_identity_verification_action_options() as $actionKey => $actionLabel) { ?>
-                            <?php $actionId = 'community_admin_boards_identity_action_' . $actionKey; ?>
-                            <label class="form-check form-label" for="<?php echo sr_e($actionId); ?>">
-                                <input id="<?php echo sr_e($actionId); ?>" type="checkbox" name="identity_verification_required_actions[]" value="<?php echo sr_e($actionKey); ?>" class="form-checkbox form-checkbox-light"<?php echo in_array($actionKey, $selectedIdentityActions, true) ? ' checked' : ''; ?><?php echo $communityBoardIdentityDisabledAttributes; ?>>
-                                <?php echo sr_admin_choice_label_html($actionLabel); ?>
-                            </label>
+                    <?php $identityActionOptions = sr_community_identity_verification_action_options(); ?>
+                    <div class="filtering-toggle-group admin-checkbox-toggle-group admin-community-identity-action-group" role="group" aria-label="본인확인 범위">
+                        <?php $identityActionIndex = 0; ?>
+                        <?php $identityActionLastIndex = max(0, count($identityActionOptions) - 1); ?>
+                        <?php foreach ($identityActionOptions as $actionKey => $actionLabel) { ?>
+                            <?php
+                            $actionId = 'community_admin_boards_identity_action_' . $actionKey;
+                            $identityActionButtonGroupClass = $identityActionIndex === 0 ? 'btn-group-start' : ($identityActionIndex === $identityActionLastIndex ? 'btn-group-end' : 'btn-group-middle');
+                            ?>
+                            <span class="filtering-toggle-item">
+                                <input id="<?php echo sr_e($actionId); ?>" type="checkbox" name="identity_verification_required_actions[]" value="<?php echo sr_e($actionKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($actionKey, $selectedIdentityActions, true) ? ' checked' : ''; ?><?php echo $communityBoardIdentityDisabledAttributes; ?>>
+                                <label for="<?php echo sr_e($actionId); ?>" class="btn btn-choice-light <?php echo sr_e($identityActionButtonGroupClass); ?>"><?php echo sr_admin_choice_label_html($actionLabel); ?></label>
+                            </span>
+                            <?php $identityActionIndex++; ?>
                         <?php } ?>
                     </div>
                     <?php echo $settingSourceRadioHtml('source_identity_verification_required_actions', $boardSettingSource($formBoard, 'identity_verification_required_actions')); ?>
-                    <p class="form-help">선택한 행위는 본인확인을 통과한 회원만 진행할 수 있습니다.</p>
-                </div>
-            </div>
-            <div class="form-row">
-                <label class="form-label" for="community_admin_boards_identity_verification_max_age_days">본인확인 유효 기간 <span class="sr-required-label">(사용 시 필수)</span></label>
-                <div class="form-field">
-                    <input id="community_admin_boards_identity_verification_max_age_days" type="number" name="identity_verification_max_age_days" min="0" max="3650" value="<?php echo sr_e($boardField($formBoard, 'identity_verification_max_age_days', '0')); ?>" required class="form-input"<?php echo $communityBoardIdentityDisabledAttributes; ?>>
-                    <?php echo $settingSourceRadioHtml('source_identity_verification_max_age_days', $boardSettingSource($formBoard, 'identity_verification_max_age_days')); ?>
-                    <p class="form-help">0이면 본인확인 결과의 만료 시각만 따르고, 1 이상이면 해당 일수 안의 확인만 인정합니다.</p>
+                    <p class="form-help">선택한 범위는 본인확인 기준을 통과한 회원만 진행할 수 있습니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -2164,6 +2163,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function syncBoardGroupDefaults() {
+        var groupSelect = document.querySelector('[data-community-board-group-select]');
+        if (!groupSelect) {
+            return;
+        }
+        var selectedOption = groupSelect.options[groupSelect.selectedIndex] || null;
+        var scoreFields = {
+            post: selectedOption ? selectedOption.getAttribute('data-level-post-score') : '',
+            comment: selectedOption ? selectedOption.getAttribute('data-level-comment-score') : ''
+        };
+        Object.keys(scoreFields).forEach(function (kind) {
+            var field = document.querySelector('[data-community-level-score="' + kind + '"]');
+            if (!field || scoreFields[kind] === null || scoreFields[kind] === '') {
+                return;
+            }
+            field.value = scoreFields[kind];
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
+
     function syncPolicy(kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
@@ -2453,6 +2472,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (groupSelect) {
         groupSelect.addEventListener('change', function () {
             syncBoardGroupRequired();
+            syncBoardGroupDefaults();
         });
     }
     var count = document.getElementById('community_admin_boards_file_attachment_max_count');

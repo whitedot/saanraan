@@ -429,7 +429,14 @@ function sr_community_account_can_write_board(PDO $pdo, array $board, ?array $ac
 function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, ?array $settings = null): array
 {
     $bodyFormat = 'plain';
-    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) {
+    $postEditorKey = 'textarea';
+    if ($pdo instanceof PDO && is_array($board)) {
+        $postEditorKey = sr_community_effective_post_editor($pdo, $board, $settings);
+    } elseif ($pdo instanceof PDO) {
+        $normalizedSettings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
+        $postEditorKey = sr_editor_effective_key($pdo, (string) ($normalizedSettings['post_editor'] ?? 'textarea'));
+    }
+    if ($pdo instanceof PDO && ((sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) || $postEditorKey === 'html')) {
         $bodyFormat = 'html';
     } elseif ($pdo instanceof PDO && (sr_post_string('body_format', 20) === 'markdown' || sr_community_markdown_post_body_enabled($pdo, $board, $settings))) {
         $bodyFormat = 'markdown';

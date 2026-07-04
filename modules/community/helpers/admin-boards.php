@@ -32,7 +32,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $identityVerificationEnabled = ($_POST['identity_verification_enabled'] ?? '') === '1';
         $identityVerificationPurpose = sr_community_identity_verification_purpose(sr_post_string('identity_verification_purpose', 30));
         $identityVerificationRequiredActions = sr_community_identity_verification_required_actions_input($_POST['identity_verification_required_actions'] ?? []);
-        $identityVerificationMaxAgeDays = sr_admin_post_int_in_range('identity_verification_max_age_days', 0, 3650);
         $identityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
         if ($identityVerificationEnabled) {
             if ($identityVerificationRequiredActions === []) {
@@ -46,12 +45,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, true, '성인 본인확인 정책'));
                 }
             }
-        }
-        if ($identityVerificationMaxAgeDays === null) {
-            if ($identityVerificationEnabled) {
-                $errors[] = '본인확인 유효 기간이 올바르지 않습니다.';
-            }
-            $identityVerificationMaxAgeDays = 0;
         }
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
@@ -155,6 +148,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
         $boardGroupId = is_int($boardGroupId) ? $boardGroupId : 0;
+        $boardGroup = $boardGroupId > 0 ? sr_community_board_group_by_id($pdo, $boardGroupId) : null;
         $readGroupKeysInput = $_POST['read_group_keys'] ?? [];
         $writeGroupKeysInput = $_POST['write_group_keys'] ?? [];
         $commentGroupKeysInput = $_POST['comment_group_keys'] ?? [];
@@ -274,6 +268,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if (!isset($communitySkinOptions[$skinKey])) {
             $errors[] = sr_t('community::action.admin.board_skin_invalid');
             $skinKey = 'basic';
+        }
+
+        if ($boardGroupId > 0 && !is_array($boardGroup)) {
+            $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
 
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
@@ -435,10 +433,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             $errors[] = '게시판 OG 이미지는 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
         }
 
-        if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
-            $errors[] = sr_t('community::action.admin.board_group_invalid');
-        }
-
         foreach ($settingSources as $settingKey => $source) {
             if ($source === 'group' && $boardGroupId < 1) {
                 $errors[] = sr_t('community::action.admin.setting_group_source_requires_group', ['setting' => $settingKey]);
@@ -560,7 +554,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'identity_verification_enabled' => $identityVerificationEnabled ? '1' : '0',
                 'identity_verification_purpose' => $identityVerificationPurpose,
                 'identity_verification_required_actions' => sr_community_identity_verification_actions_setting_value($identityVerificationRequiredActions),
-                'identity_verification_max_age_days' => (string) $identityVerificationMaxAgeDays,
                 'read_group_keys' => sr_community_board_group_keys_setting_value($readGroupKeys),
                 'write_group_keys' => sr_community_board_group_keys_setting_value($writeGroupKeys),
                 'comment_group_keys' => sr_community_board_group_keys_setting_value($commentGroupKeys),
@@ -662,7 +655,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'identity_verification_enabled' => $identityVerificationEnabled,
                     'identity_verification_purpose' => $identityVerificationPurpose,
                     'identity_verification_required_actions' => $identityVerificationRequiredActions,
-                    'identity_verification_max_age_days' => $identityVerificationMaxAgeDays,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
                     'category_enabled' => $categoryEnabled,
