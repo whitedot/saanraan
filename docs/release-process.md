@@ -9,7 +9,7 @@
 - 릴리스 태그를 만들었다면 태그가 배포할 commit SHA를 가리키는지 확인한다.
 - 배포할 모듈이 있다면 saanraan.git 안의 `modules/{module_key}` 폴더에 포함되어 있는지 확인한다.
 - 각 모듈의 `module.php` version, `saanraan.min_version`, `saanraan.module_contract`, `contracts.provides`를 확인한다. `saanraan.min_version`은 현재 본체 버전이 충족해야 하고, `saanraan.module_contract`는 현재 `SR_MODULE_CONTRACT_VERSION`과 같아야 하며, 실제 계약 파일과 `contracts.provides` 선언이 일치해야 한다.
-- 1.0 릴리스 후보라면 [1.0 범위 잠금 기준](1.0-scope.md)의 포함/제외 범위를 확인하고, 계획 문서 단계의 본인확인, 회원 마이그레이션, 결제 플러그인이 안정화 범위에 섞이지 않았는지 확인한다.
+- 1.0 릴리스 후보라면 [1.0 범위 잠금 기준](1.0-scope.md)의 포함/제외 범위를 확인하고, 본인확인은 beta 구현과 provider 실인증 smoke 보강 기준으로, 회원 마이그레이션과 결제 플러그인은 계획 단계 기능으로 구분되어 있는지 확인한다.
 - 릴리스 설명이 [산란 포지셔닝 기준](positioning.md)에 맞는지 확인하고, 대형 CMS 생태계를 대체한다는 식의 과장 문구를 피한다.
 - [1.0 전 구현 스냅샷](implementation-snapshot.md)이 현재 번들 모듈, 대표 경로, 주요 DB 테이블과 맞는지 확인한다. 1.0 배포 전에는 GitHub Wiki가 아니라 저장소 `docs/`를 운영 문서 기준으로 사용한다.
 - 외부 라이브러리나 vendored asset이 포함되면 [외부 의존성 배치 기준](dependency-policy.md)에 따라 버전, 출처, 라이선스, cache 쓰기 경로를 확인한다. HTML Purifier 포함 릴리스는 `modules/htmlpurifier/`에서 `composer install --no-dev --prefer-dist`로 `composer.lock` 기준 vendor를 재현하고, 버전 변경 때만 `composer update ezyang/htmlpurifier --no-dev --prefer-dist`를 사용한다.
