@@ -94,13 +94,7 @@ function sr_identity_verification_available(PDO $pdo): bool
         return false;
     }
 
-    foreach (sr_identity_verification_providers($pdo) as $provider) {
-        if (!empty($provider['enabled'])) {
-            return true;
-        }
-    }
-
-    return false;
+    return sr_identity_verification_select_provider($pdo) !== null;
 }
 
 function sr_identity_verification_account_satisfies(PDO $pdo, int $accountId, string $purpose, ?int $maxAgeDays = null): bool
@@ -196,16 +190,12 @@ function sr_identity_verification_apply_provider_settings(array $provider, array
 
     $enabledKey = sr_identity_verification_setting_key($providerKey, 'enabled');
     $environmentKey = sr_identity_verification_setting_key($providerKey, 'environment');
-    $sortOrderKey = sr_identity_verification_setting_key($providerKey, 'sort_order');
     if ($enabledKey !== '' && array_key_exists($enabledKey, $settings)) {
         $provider['enabled'] = sr_truthy($settings[$enabledKey]);
     }
     if ($environmentKey !== '' && array_key_exists($environmentKey, $settings)) {
         $environment = (string) $settings[$environmentKey];
         $provider['environment'] = in_array($environment, ['test', 'production'], true) ? $environment : 'test';
-    }
-    if ($sortOrderKey !== '' && array_key_exists($sortOrderKey, $settings)) {
-        $provider['sort_order'] = (int) $settings[$sortOrderKey];
     }
 
     foreach ((array) ($provider['settings_schema'] ?? []) as $settingKey => $definition) {
@@ -257,12 +247,6 @@ function sr_identity_verification_select_provider(PDO $pdo, string $providerKey 
     $defaultProviderKey = (string) ($settings['default_provider_key'] ?? '');
     if ($defaultProviderKey !== '' && isset($providers[$defaultProviderKey]) && !empty($providers[$defaultProviderKey]['enabled'])) {
         return $providers[$defaultProviderKey];
-    }
-
-    foreach ($providers as $provider) {
-        if (!empty($provider['enabled'])) {
-            return $provider;
-        }
     }
 
     return null;

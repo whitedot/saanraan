@@ -5,13 +5,13 @@ return [
     'order' => 12,
     'items' => [
         [
-            'label' => '본인확인 이력',
-            'path' => '/admin/identity-verifications',
+            'label' => '환경설정',
+            'path' => '/admin/identity-providers',
             'order' => 10,
         ],
         [
-            'label' => '제공자 설정',
-            'path' => '/admin/identity-providers',
+            'label' => '본인확인 이력',
+            'path' => '/admin/identity-verifications',
             'order' => 20,
         ],
     ],

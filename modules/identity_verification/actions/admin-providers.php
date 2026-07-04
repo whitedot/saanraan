@@ -37,7 +37,11 @@ if (sr_request_method() === 'POST') {
     }
     if ($defaultProviderKey !== '' && !isset($providers[$defaultProviderKey])) {
         $errors[] = '기본 제공자를 확인해 주세요.';
+        $defaultProviderKey = '';
         $postedSettings['default_provider_key'] = '';
+    }
+    if ($enabled && $defaultProviderKey === '') {
+        $errors[] = '본인확인을 사용하려면 기본 제공자를 선택해 주세요.';
     }
 
     $enabledProviders = [];
@@ -45,17 +49,11 @@ if (sr_request_method() === 'POST') {
         $providerLabel = (string) ($provider['display_name'] ?? $providerKey);
         $enabledKey = sr_identity_verification_setting_key((string) $providerKey, 'enabled');
         $environmentKey = sr_identity_verification_setting_key((string) $providerKey, 'environment');
-        $sortOrderKey = sr_identity_verification_setting_key((string) $providerKey, 'sort_order');
-        $providerEnabled = ($_POST[$enabledKey] ?? '') === '1';
+        $providerEnabled = ($_POST[$enabledKey] ?? '') === '1' || (string) $providerKey === $defaultProviderKey;
         $environment = sr_post_string($environmentKey, 20);
-        $sortOrder = sr_admin_post_int_in_range($sortOrderKey, -9999, 9999, 6);
 
         $postedSettings[$enabledKey] = $providerEnabled;
         $postedSettings[$environmentKey] = in_array($environment, ['test', 'production'], true) ? $environment : 'test';
-        $postedSettings[$sortOrderKey] = $sortOrder ?? (int) ($provider['sort_order'] ?? 0);
-        if ($sortOrder === null) {
-            $errors[] = $providerLabel . ' 정렬값을 확인해 주세요.';
-        }
         if ($providerEnabled) {
             $enabledProviders[] = (string) $providerKey;
         }
@@ -109,7 +107,7 @@ if (sr_request_method() === 'POST') {
                 'default_provider_key' => $postedSettings['default_provider_key'],
             ],
         ]);
-        $notice = '본인확인 제공자 설정을 저장했습니다.';
+        $notice = '본인확인 환경설정을 저장했습니다.';
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/identity-providers');

@@ -72,7 +72,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="card">
     <div class="card-header">
         <h2 class="card-title">최근 시도</h2>
-        <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>">제공자 설정</a>
+        <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>">환경설정</a>
     </div>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/identity-verifications')); ?>" class="admin-filter-form">
         <select name="status" class="form-select">
