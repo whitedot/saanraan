@@ -515,7 +515,7 @@ $layoutPdo = new SrOutputHelperCheckPdo('sqlite::memory:');
 $layoutPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $layoutPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
-$layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community', 'enabled'), ('site_menu', 'enabled'), ('content', 'enabled')");
+$layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('banner', 'enabled'), ('community', 'enabled'), ('content', 'enabled'), ('popup_layer', 'enabled'), ('site_menu', 'enabled')");
 sr_output_helper_assert(
     sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/theme/basic/home.php',
     'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
@@ -553,6 +553,17 @@ sr_output_helper_assert(
         && $outputSlotContracts[0]['contract_version'] === SR_MODULE_CONTRACT_VERSION
         && !isset($outputSlotContracts[0]['html'], $outputSlotContracts[0]['callable']),
     'Output slot renderer cache should store serializable contract metadata only.'
+);
+$outputSlotAssets = sr_output_slot_asset_paths($layoutPdo, [
+    'module_key' => 'content',
+    'point_key' => 'content.view',
+    'slot_key' => 'before_content',
+]);
+sr_output_helper_assert(
+    in_array('/modules/banner/assets/module.css', $outputSlotAssets['stylesheets'] ?? [], true)
+        && in_array('/modules/popup_layer/assets/module.css', $outputSlotAssets['stylesheets'] ?? [], true)
+        && in_array('/modules/popup_layer/assets/saanraan-popup-layer.js', $outputSlotAssets['scripts'] ?? [], true),
+    'Output slot asset lookup should collect declared public stylesheets and scripts from enabled slot providers.'
 );
 $siteMetaPdo = new PDO('sqlite::memory:');
 $siteMetaPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
