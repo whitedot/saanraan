@@ -91,6 +91,7 @@ $memberProfileFieldOrderItems = sr_member_profile_field_order_items($settings, $
 $memberProfileFieldOrderJson = sr_js_json_encode(array_map(static function (array $item): string {
     return (string) ($item['kind'] ?? '') . ':' . (string) ($item['key'] ?? '');
 }, $memberProfileFieldOrderItems));
+$memberProfileExtraFieldsJson = sr_js_json_encode($memberProfileExtraFieldDefinitions);
 $memberRegistrationPolicyDocumentOptions = [];
 foreach (['registration_terms_document_key', 'registration_privacy_document_key', 'registration_marketing_document_key'] as $memberRegistrationPolicyDocumentSettingKey) {
     $memberRegistrationPolicyDocumentOptions += sr_member_registration_policy_document_options($pdo, (string) ($settings[$memberRegistrationPolicyDocumentSettingKey] ?? ''));
@@ -238,7 +239,7 @@ $memberSettingsSectionNavItems = [
             기본 항목은 삭제할 수 없습니다. 사용 여부와 순서만 바꿀 수 있습니다.
         </p>
         <p class="admin-empty-state" data-member-profile-extra-field-empty hidden>추가 프로필 항목이 없습니다.</p>
-        <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e((string) ($settings['profile_fields_json'] ?? '[]')); ?></textarea>
+        <textarea id="member_admin_settings_profile_fields_json" name="profile_fields_json" hidden data-member-profile-extra-fields-json><?php echo sr_e($memberProfileExtraFieldsJson); ?></textarea>
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
         <input type="hidden" name="profile_removed_field_values_confirmed" value="0" data-member-profile-removed-field-values-confirmed>
         <div data-member-profile-fixed-field-inputs></div>
@@ -900,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(labelCell);
 
             var typeCell = document.createElement('td');
-            typeCell.textContent = item.kind === 'fixed' ? '기본 항목' : memberProfileExtraFieldTypeLabel(field.type);
+            typeCell.textContent = item.kind === 'fixed' || field.key === 'phone' ? '기본 항목' : memberProfileExtraFieldTypeLabel(field.type);
             row.appendChild(typeCell);
 
             var displayCell = document.createElement('td');
@@ -939,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.setAttribute('title', action[1]);
                 button.setAttribute('data-member-profile-extra-field-action', action[0]);
                 button.setAttribute('data-member-profile-extra-field-index-value', String(index));
-                if (item.kind === 'fixed' && action[0] === 'remove') {
+                if ((item.kind === 'fixed' || field.key === 'phone') && action[0] === 'remove') {
                     button.disabled = true;
                     button.setAttribute('aria-disabled', 'true');
                 }
@@ -1013,9 +1014,13 @@ document.addEventListener('DOMContentLoaded', function () {
         memberProfileExtraFieldSetModalMode(modal, kind === 'fixed');
         memberProfileExtraFieldInput(modal, 'key').value = field.key || '';
         memberProfileExtraFieldInput(modal, 'label').value = field.label || '';
-        memberProfileExtraFieldInput(modal, 'label').readOnly = kind === 'fixed';
+        memberProfileExtraFieldInput(modal, 'key').readOnly = kind === 'extra' && field.key === 'phone';
+        memberProfileExtraFieldInput(modal, 'label').readOnly = kind === 'fixed' || (kind === 'extra' && field.key === 'phone');
         memberProfileExtraFieldInput(modal, 'enabled').checked = Object.prototype.hasOwnProperty.call(field, 'enabled') ? !!field.enabled : true;
         memberProfileExtraFieldInput(modal, 'type').value = memberProfileExtraFieldAllowedType(field.type || 'text');
+        if (kind === 'extra') {
+            memberProfileExtraFieldInput(modal, 'type').disabled = field.key === 'phone';
+        }
         memberProfileExtraFieldInput(modal, 'options').value = Array.isArray(field.options) ? field.options.join("\n") : '';
         memberProfileExtraFieldInput(modal, 'required').checked = !!field.required;
         memberProfileExtraFieldInput(modal, 'visibility').value = field.visibility === 'admin' ? 'admin' : 'public';

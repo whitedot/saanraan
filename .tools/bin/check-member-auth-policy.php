@@ -669,7 +669,29 @@ if ($profileHelper !== '') {
             && strpos($profileHelper, 'profile_text') === false,
         'Member profile helper should not keep legacy fixed phone or introduction fields.'
     );
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, 'function sr_member_default_profile_extra_field_definitions') !== false
+            && strpos($profileHelper, "'key' => 'phone'") !== false
+            && strpos($profileHelper, "'label' => '휴대폰 번호'") !== false
+            && strpos($profileHelper, 'sr_member_merge_default_profile_extra_field_definitions') !== false,
+        'Member profile helper should expose phone as a default dynamic profile field.'
+    );
 }
+
+$memberModule = sr_member_auth_policy_read('modules/member/module.php');
+sr_member_auth_policy_assert(
+    strpos($memberModule, '"key":"phone"') !== false
+        && strpos($memberModule, '"label":"휴대폰 번호"') !== false,
+    'Member module default settings should include phone in optional profile fields.'
+);
+
+$memberMfaProviders = sr_member_auth_policy_read('modules/member/member-mfa-providers.php');
+$loginMfaView = sr_member_auth_policy_read('modules/member/views/login-mfa.php');
+sr_member_auth_policy_assert(
+    strpos($memberMfaProviders, "'label' => '본인인증'") !== false
+        && strpos($loginMfaView, '본인인증으로 2차 인증을 완료할 수 있습니다.') !== false,
+    'Member MFA identity provider should be labeled as 본인인증 in 2FA UI.'
+);
 
 $memberInstallSql = sr_member_auth_policy_read('modules/member/install.sql');
 sr_member_auth_policy_assert(

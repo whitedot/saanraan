@@ -18,8 +18,8 @@ return [
         'built_in' => true,
     ],
     'identity' => [
-        'label' => '본인확인',
-        'description' => '연동된 외부 본인확인 provider로 로그인 2차 인증을 처리합니다.',
+        'label' => '본인인증',
+        'description' => '연동된 외부 본인확인 provider로 로그인 2차 본인인증을 처리합니다.',
         'method' => 'identity',
         'login_supported' => true,
         'account_setup_supported' => false,

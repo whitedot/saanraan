@@ -18,8 +18,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <p class="member-skin-basic-muted type-small"><?php echo sr_e(sr_t('member::ui.login_mfa.pending_help')); ?></p>
                 <?php if (!empty($identityMfaStartUrl)) { ?>
                     <div class="alert alert-info">
-                        <p><?php echo sr_e('본인확인으로 2차 인증을 완료할 수 있습니다.'); ?></p>
-                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $identityMfaStartUrl); ?>"><?php echo sr_e('본인확인'); ?></a></p>
+                        <p><?php echo sr_e('본인인증으로 2차 인증을 완료할 수 있습니다.'); ?></p>
+                        <p><a class="btn btn-sm btn-solid-primary" href="<?php echo sr_e((string) $identityMfaStartUrl); ?>"><?php echo sr_e('본인인증'); ?></a></p>
                     </div>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/login/mfa')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>

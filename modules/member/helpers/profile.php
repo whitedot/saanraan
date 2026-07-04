@@ -363,6 +363,45 @@ function sr_member_profile_extra_field_definitions_from_json(string $json): arra
     return sr_member_normalize_profile_extra_field_definitions($decoded);
 }
 
+function sr_member_default_profile_extra_field_definitions(): array
+{
+    return [
+        [
+            'key' => 'phone',
+            'label' => '휴대폰 번호',
+            'type' => 'text',
+            'required' => false,
+            'options' => [],
+            'visibility' => 'public',
+            'show_on_profile' => false,
+            'show_in_admin' => true,
+            'privacy_purpose' => '회원 본인확인 및 연락처 관리',
+            'export_policy' => 'include',
+            'cleanup_policy' => 'anonymize',
+        ],
+    ];
+}
+
+function sr_member_merge_default_profile_extra_field_definitions(array $definitions): array
+{
+    $seenKeys = [];
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key !== '') {
+            $seenKeys[$key] = true;
+        }
+    }
+
+    foreach (sr_member_default_profile_extra_field_definitions() as $defaultDefinition) {
+        $defaultKey = (string) ($defaultDefinition['key'] ?? '');
+        if ($defaultKey !== '' && !isset($seenKeys[$defaultKey])) {
+            $definitions[] = $defaultDefinition;
+        }
+    }
+
+    return sr_member_normalize_profile_extra_field_definitions($definitions);
+}
+
 function sr_member_profile_extra_field_definitions_input_errors(?string $json): array
 {
     if (!is_string($json)) {
@@ -399,7 +438,9 @@ function sr_member_profile_extra_field_definitions_json_from_input(string $json)
 
 function sr_member_profile_extra_field_definitions(array $settings): array
 {
-    return sr_member_profile_extra_field_definitions_from_json((string) ($settings['profile_fields_json'] ?? '[]'));
+    return sr_member_merge_default_profile_extra_field_definitions(
+        sr_member_profile_extra_field_definitions_from_json((string) ($settings['profile_fields_json'] ?? '[]'))
+    );
 }
 
 function sr_member_profile_extra_field_input_values(array $definitions): array

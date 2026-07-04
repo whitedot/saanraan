@@ -135,6 +135,7 @@ if (!is_string($registerAction)) {
     || !str_contains($registerAction, "sr_post_string('identity_verification_token', 160)")
     || !str_contains($registerAction, 'sr_identity_verification_result_for_return_token(')
     || str_contains($registerAction, 'sr_identity_verification_claim_return_token(')
+    || !str_contains($registerAction, '$registrationIdentityFieldsLocked = $registrationIdentitySatisfied;')
     || !str_contains($registerAction, "sr_identity_verification_hmac_field(\$config, 'name'")
 ) {
     $errors[] = 'member registration must validate one-form identity verification return tokens and enforce locked identity fields.';

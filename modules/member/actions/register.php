@@ -48,7 +48,7 @@ if ($registrationIdentityReturnToken !== '' && function_exists('sr_identity_veri
 $registrationIdentitySatisfied = is_array($registrationIdentityResult);
 $registrationIdentitySnapshot = [];
 $registrationIdentityRequired = $registrationIdentityMode === 'required';
-$registrationIdentityFieldsLocked = $registrationIdentityRequired && $registrationIdentitySatisfied;
+$registrationIdentityFieldsLocked = $registrationIdentitySatisfied;
 $registrationIdentityStartUrl = $registrationIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($registrationIdentityPurpose, '/register')
     : '';
