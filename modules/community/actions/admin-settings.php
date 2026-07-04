@@ -70,6 +70,7 @@ if (sr_request_method() === 'POST') {
         $messageWritePolicy = $messageEnabled && in_array($messageWritePolicyInput, ['member', 'group'], true) ? $messageWritePolicyInput : 'disabled';
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
+        $identityRestrictedBoardRequired = ($_POST['identity_restricted_board_required'] ?? '') === '1';
         $reportAutoActionEnabled = ($_POST['report_auto_action_enabled'] ?? '') === '1';
         $reportAutoActionThreshold = sr_admin_post_int_in_range('report_auto_action_threshold', 2, 100);
         $reportAutoActionWindowDays = sr_admin_post_int_in_range('report_auto_action_window_days', 0, 365);
@@ -400,6 +401,7 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
+                ['identity_restricted_board_required', $identityRestrictedBoardRequired ? '1' : '0', 'bool'],
                 ['report_auto_action_enabled', $reportAutoActionEnabled ? '1' : '0', 'bool'],
                 ['report_auto_action_threshold', (string) $reportAutoActionThreshold, 'int'],
                 ['report_auto_action_window_days', (string) $reportAutoActionWindowDays, 'int'],
@@ -540,6 +542,7 @@ if (sr_request_method() === 'POST') {
                         'level_auto_recalculate' => $levelAutoRecalculate,
                         'message_write_policy' => $messageWritePolicy,
                         'message_write_min_level' => $messageWriteMinLevel,
+                        'identity_restricted_board_required' => $identityRestrictedBoardRequired,
                         'report_auto_action_enabled' => $reportAutoActionEnabled,
                         'report_auto_action_threshold' => $reportAutoActionThreshold,
                         'report_auto_action_window_days' => $reportAutoActionWindowDays,

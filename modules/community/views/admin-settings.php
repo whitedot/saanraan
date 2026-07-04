@@ -153,6 +153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 $communitySettingsSectionNavItems = [
     'community-settings-section-level' => '레벨 기본값',
     'community-settings-section-message' => '쪽지 정책',
+    'community-settings-section-identity' => '본인확인',
     'community-settings-section-report-auto-action' => '신고 자동조치',
     'community-settings-section-privacy-consent' => '개인정보 동의',
     'community-settings-section-assets' => '자산/과금',
@@ -295,6 +296,17 @@ $communitySettingsSectionNavItems = [
                                         </option>
                                     <?php } ?>
                                 </select>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-identity" class="card" data-admin-section-anchor>
+        <h2>본인확인</h2>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_identity_restricted_board_required">제한 게시판 본인확인</label>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', !empty($settings['identity_restricted_board_required']), '사용'); ?>
+                <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
             </div>
         </div>
     </section>

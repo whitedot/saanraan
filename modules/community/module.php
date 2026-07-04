@@ -100,6 +100,7 @@ return [
         'message_write_policy' => 'member',
         'message_write_group_keys' => [],
         'message_write_min_level' => 0,
+        'identity_restricted_board_required' => false,
         'series_enabled' => true,
         'layout_key' => 'community.basic',
         'theme_key' => 'basic',

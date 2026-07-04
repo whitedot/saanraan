@@ -27,7 +27,9 @@ if (!is_array($post)) {
     $rawPost = sr_community_admin_post_by_id($pdo, $postId);
     if (is_array($rawPost)) {
         $board = sr_community_board_by_id($pdo, (int) $rawPost['board_id']);
-        if (is_array($board) && sr_community_board_requires_login($board) && !is_array($account)) {
+        $boardRequiresVerificationLogin = is_array($board)
+            && (sr_community_board_requires_identity($pdo, $board) || sr_community_board_requires_adult_identity($pdo, $board));
+        if (is_array($board) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin) && !is_array($account)) {
             $account = sr_member_require_login($pdo);
             $post = sr_community_post_for_read($pdo, $postId, $account);
         }
@@ -89,6 +91,28 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'remove_o
     sr_redirect('/community/post?id=' . rawurlencode((string) $post['id']));
 }
 $postBoard = sr_community_board_by_id($pdo, (int) $post['board_id']);
+$settings = sr_community_settings($pdo);
+if (!$communityAdminPreview && is_array($postBoard)) {
+    $communityPostIdentityPolicy = sr_community_identity_restricted_board_policy(
+        $pdo,
+        $postBoard,
+        is_array($account) ? $account : null,
+        '/community/post?id=' . rawurlencode((string) $post['id']),
+        $settings
+    );
+    if (!empty($communityPostIdentityPolicy['required']) && empty($communityPostIdentityPolicy['satisfied'])) {
+        sr_render_error(403, '이 게시글을 보려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
+    }
+    $communityPostAdultIdentityPolicy = sr_community_identity_adult_board_policy(
+        $pdo,
+        $postBoard,
+        is_array($account) ? $account : null,
+        '/community/post?id=' . rawurlencode((string) $post['id'])
+    );
+    if (!empty($communityPostAdultIdentityPolicy['required']) && empty($communityPostAdultIdentityPolicy['satisfied'])) {
+        sr_render_error(403, '이 게시글을 보려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+    }
+}
 if (is_array($postBoard)) {
     foreach ([
         'banner_before_view_id',
@@ -98,7 +122,6 @@ if (is_array($postBoard)) {
         $post[$displaySettingKey] = (int) ($postBoard[$displaySettingKey] ?? 0);
     }
 }
-$settings = sr_community_settings($pdo);
 $categoryEnabled = is_array($postBoard) && sr_community_board_category_enabled($pdo, (int) $postBoard['id']);
 $canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null);
 $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;

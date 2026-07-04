@@ -57,6 +57,8 @@ function sr_community_board_group_setting_keys(): array
         'read_policy',
         'write_policy',
         'comment_policy',
+        'identity_required',
+        'adult_required',
         'read_group_keys',
         'write_group_keys',
         'comment_group_keys',
@@ -179,6 +181,8 @@ function sr_community_board_group_default_settings(array $settings): array
         'read_policy' => 'public',
         'write_policy' => 'member',
         'comment_policy' => 'member',
+        'identity_required' => '0',
+        'adult_required' => '0',
         'read_group_keys' => '[]',
         'write_group_keys' => '[]',
         'comment_group_keys' => '[]',
@@ -395,7 +399,7 @@ function sr_community_board_setting_value_type(string $settingKey): string
         return 'int';
     }
 
-    if (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled') || str_starts_with($settingKey, 'privacy_consent_require_')) {
+    if (in_array($settingKey, ['identity_required', 'adult_required', 'file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled') || str_starts_with($settingKey, 'privacy_consent_require_')) {
         return 'bool';
     }
 

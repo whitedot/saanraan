@@ -47,6 +47,105 @@ function sr_community_account_can_read_board(PDO $pdo, array $board, ?array $acc
     return false;
 }
 
+function sr_community_board_is_restricted_for_identity(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    $policy = sr_community_effective_board_policy($pdo, $board, 'read_policy');
+    $minLevel = sr_community_normalize_level_value(sr_community_effective_board_setting($pdo, $board, 'read_min_level', '0'), $settings);
+    $groupKeys = sr_community_board_group_keys_from_effective_setting($pdo, $board, 'read_group_keys');
+
+    return $policy !== 'public' || $minLevel > 0 || $groupKeys !== [];
+}
+
+function sr_community_board_requires_adult_identity(PDO $pdo, array $board): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'adult_required', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_board_requires_identity(PDO $pdo, array $board): bool
+{
+    if ((string) ($board['status'] ?? '') !== 'enabled') {
+        return false;
+    }
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'identity_required', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_identity_restricted_board_policy(PDO $pdo, array $board, ?array $account, string $returnUrl, ?array $settings = null): array
+{
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $boardIdentityRequired = sr_community_board_requires_identity($pdo, $board);
+    $restrictedBoardIdentityRequired = !empty($settings['identity_restricted_board_required'])
+        && sr_community_board_is_restricted_for_identity($pdo, $board, $settings);
+    $enabled = $accountId > 0 && ($boardIdentityRequired || $restrictedBoardIdentityRequired);
+
+    if (!$enabled) {
+        return [
+            'required' => false,
+            'satisfied' => true,
+            'available' => false,
+            'start_url' => '',
+        ];
+    }
+
+    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        return [
+            'required' => true,
+            'satisfied' => false,
+            'available' => false,
+            'start_url' => '',
+        ];
+    }
+
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+
+    return sr_identity_verification_requirement_policy($pdo, $accountId, 'community.restricted_board', 'required', $returnUrl);
+}
+
+function sr_community_identity_adult_board_policy(PDO $pdo, array $board, ?array $account, string $returnUrl): array
+{
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $enabled = $accountId > 0 && sr_community_board_requires_adult_identity($pdo, $board);
+    if (!$enabled) {
+        return [
+            'required' => false,
+            'satisfied' => true,
+            'available' => false,
+            'start_url' => '',
+        ];
+    }
+
+    if (!sr_module_enabled($pdo, 'identity_verification') || !is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+        return [
+            'required' => true,
+            'satisfied' => false,
+            'available' => false,
+            'start_url' => '',
+        ];
+    }
+
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+
+    $purpose = 'community.adult_board';
+    $available = sr_identity_verification_available($pdo);
+    return [
+        'required' => true,
+        'satisfied' => sr_identity_verification_account_satisfies_adult($pdo, $accountId, $purpose),
+        'available' => $available,
+        'purpose' => $purpose,
+        'start_url' => $available ? sr_identity_verification_start_url($purpose, $returnUrl) : '',
+    ];
+}
+
 function sr_community_board_requires_login(array $board): bool
 {
     return in_array((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? ''), ['member', 'group'], true);

@@ -12,17 +12,37 @@ if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 $account = sr_member_current_account($pdo);
-if (!is_array($account) && sr_community_board_requires_login($board)) {
+$boardRequiresVerificationLogin = sr_community_board_requires_identity($pdo, $board)
+    || sr_community_board_requires_adult_identity($pdo, $board);
+if (!is_array($account) && (sr_community_board_requires_login($board) || $boardRequiresVerificationLogin)) {
     $account = sr_member_require_login($pdo);
 }
 if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
     sr_render_error(403, sr_t('community::action.error.board_view_forbidden'));
 }
+$settings = sr_community_settings($pdo);
+$communityBoardIdentityPolicy = sr_community_identity_restricted_board_policy(
+    $pdo,
+    $board,
+    is_array($account) ? $account : null,
+    '/community/board?key=' . rawurlencode($boardKey),
+    $settings
+);
+if (!empty($communityBoardIdentityPolicy['required']) && empty($communityBoardIdentityPolicy['satisfied'])) {
+    sr_render_error(403, '이 게시판을 보려면 본인확인이 필요합니다. 본인확인을 완료한 뒤 다시 열어 주세요.');
+}
+$communityBoardAdultIdentityPolicy = sr_community_identity_adult_board_policy(
+    $pdo,
+    $board,
+    is_array($account) ? $account : null,
+    '/community/board?key=' . rawurlencode($boardKey)
+);
+if (!empty($communityBoardAdultIdentityPolicy['required']) && empty($communityBoardAdultIdentityPolicy['satisfied'])) {
+    sr_render_error(403, '이 게시판을 보려면 성인 본인확인이 필요합니다. 성인 본인확인을 완료한 뒤 다시 열어 주세요.');
+}
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 $canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
-
-$settings = sr_community_settings($pdo);
 $postsPerPage = sr_community_board_list_per_page($pdo, $board, $settings);
 $listDefaultSort = sr_community_board_list_default_sort($pdo, $board);
 $listExcerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);

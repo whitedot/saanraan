@@ -29,6 +29,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $readPolicy = sr_post_string('read_policy', 30);
         $writePolicy = sr_post_string('write_policy', 30);
         $commentPolicy = sr_post_string('comment_policy', 30);
+        $identityRequired = ($_POST['identity_required'] ?? '') === '1';
+        $adultRequired = ($_POST['adult_required'] ?? '') === '1';
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
@@ -533,6 +535,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,
+                'identity_required' => $identityRequired ? '1' : '0',
+                'adult_required' => $adultRequired ? '1' : '0',
                 'read_group_keys' => sr_community_board_group_keys_setting_value($readGroupKeys),
                 'write_group_keys' => sr_community_board_group_keys_setting_value($writeGroupKeys),
                 'comment_group_keys' => sr_community_board_group_keys_setting_value($commentGroupKeys),
@@ -631,6 +635,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'write_group_keys' => $writeGroupKeys,
                     'comment_group_keys' => $commentGroupKeys,
                     'read_min_level' => $readMinLevel,
+                    'identity_required' => $identityRequired,
+                    'adult_required' => $adultRequired,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
                     'category_enabled' => $categoryEnabled,
