@@ -102,6 +102,14 @@ function sr_public_call_order_check_output_slot_assets(): void
         if (!str_contains($source, "'output_slots'") && !str_contains($source, 'sr_public_layout_context_with_output_slot_assets(')) {
             sr_public_call_order_error('Public view renders output slots without predeclared output_slots assets: ' . sr_public_call_order_relative($file));
         }
+        foreach (sr_public_call_order_rendered_output_slot_keys($source) as $slotKey) {
+            if (sr_public_call_order_output_slot_is_auto_predeclared($slotKey)) {
+                continue;
+            }
+            if (!in_array($slotKey, sr_public_call_order_declared_output_slot_keys($source), true)) {
+                sr_public_call_order_error('Public view renders output slot without matching output_slots context in ' . sr_public_call_order_relative($file) . ': ' . $slotKey);
+            }
+        }
     }
 
     $popupContract = sr_public_call_order_source(SR_ROOT . '/modules/popup_layer/output-slots.php');
@@ -111,6 +119,56 @@ function sr_public_call_order_check_output_slot_assets(): void
     if (!str_contains($popupContract, 'sr_popup_layer_render($pdo, $context, false)')) {
         sr_public_call_order_error('Popup layer output slot renderer must not append late script tags in slot HTML.');
     }
+}
+
+function sr_public_call_order_rendered_output_slot_keys(string $source): array
+{
+    preg_match_all('/sr_render_output_slot\s*\([^;]+?\[([^;]+?)\]\s*\)/s', $source, $matches);
+
+    return sr_public_call_order_output_slot_keys_from_blocks($matches[1] ?? []);
+}
+
+function sr_public_call_order_declared_output_slot_keys(string $source): array
+{
+    preg_match_all('/[\'"]output_slots[\'"]\s*=>\s*\[([\s\S]*?)\n\s*\]/', $source, $matches);
+
+    return sr_public_call_order_output_slot_keys_from_blocks($matches[1] ?? []);
+}
+
+function sr_public_call_order_output_slot_keys_from_blocks(array $blocks): array
+{
+    $keys = [];
+    foreach ($blocks as $block) {
+        if (!is_string($block)) {
+            continue;
+        }
+        preg_match_all(
+            '/[\'"]module_key[\'"]\s*=>\s*[\'"]([^\'"]+)[\'"].*?[\'"]point_key[\'"]\s*=>\s*[\'"]([^\'"]+)[\'"].*?[\'"]slot_key[\'"]\s*=>\s*[\'"]([^\'"]+)[\'"]/s',
+            $block,
+            $matches,
+            PREG_SET_ORDER
+        );
+        foreach ($matches as $match) {
+            $keys[] = $match[1] . '|' . $match[2] . '|' . $match[3];
+        }
+    }
+
+    return array_values(array_unique($keys));
+}
+
+function sr_public_call_order_output_slot_is_auto_predeclared(string $slotKey): bool
+{
+    if (preg_match('/\Acore\|site\.header\|(?:navigation|primary_navigation|secondary_navigation|tertiary_navigation|quaternary_navigation|quinary_navigation)\z/', $slotKey) === 1) {
+        return true;
+    }
+    if (preg_match('/\Acore\|site\.layout\|(?:before_layout|before_footer|after_layout)\z/', $slotKey) === 1) {
+        return true;
+    }
+    if (preg_match('/\A([a-z][a-z0-9_]{1,39})\|\1\.layout\|(?:before_layout|before_footer)\z/', $slotKey) === 1) {
+        return true;
+    }
+
+    return false;
 }
 
 function sr_public_call_order_check_embed_stylesheets(): void
