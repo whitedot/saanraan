@@ -28,8 +28,8 @@ if (preg_match('#\A/admin/identity-verifications/([0-9]+)\z#', $path, $matches) 
 
 $providers = sr_identity_verification_providers($pdo);
 $filters = sr_identity_verification_admin_attempt_filters_from_request($pdo);
-if ($openDetailId > 0 && (string) ($filters['q'] ?? '') === '') {
-    $filters['q'] = (string) $openDetailId;
+if ($openDetailId > 0) {
+    $filters['id'] = $openDetailId;
 }
 $attemptSortOptions = sr_identity_verification_admin_attempt_sort_options();
 $attemptDefaultSort = sr_identity_verification_admin_attempt_default_sort();

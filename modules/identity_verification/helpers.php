@@ -1301,6 +1301,12 @@ function sr_identity_verification_admin_attempt_query_parts(array $filters): arr
     $where = [];
     $params = [];
 
+    $id = (int) ($filters['id'] ?? 0);
+    if ($id > 0) {
+        $where[] = 'a.id = :id';
+        $params['id'] = $id;
+    }
+
     $status = (string) ($filters['status'] ?? '');
     if ($status !== '' && isset(sr_identity_verification_attempt_status_labels()[$status])) {
         $where[] = 'a.status = :status';

@@ -63,6 +63,10 @@ $registrationSnapshotAgain = sr_identity_verification_take_registration_snapshot
 if ($registrationSnapshotAgain !== []) {
     $errors[] = 'registration identity snapshot must be consumed after one read.';
 }
+$detailQueryParts = sr_identity_verification_admin_attempt_query_parts(['id' => 42, 'q' => '']);
+if (!in_array('a.id = :id', $detailQueryParts['where'] ?? [], true) || (int) (($detailQueryParts['params'] ?? [])['id'] ?? 0) !== 42) {
+    $errors[] = 'identity verification direct detail routes must use an exact attempt id filter.';
+}
 
 $kcpTestProvider = ['environment' => 'test', 'settings' => []];
 $kcpProductionProvider = ['environment' => 'production', 'settings' => []];
@@ -221,6 +225,8 @@ if (!is_string($adminVerificationsAction) || !is_string($adminVerificationsView)
     $errors[] = 'identity verification admin verification files must be readable.';
 } elseif (!str_contains($adminVerificationsAction, '$openDetailId')
     || !str_contains($adminVerificationsAction, '$attemptDetailsById')
+    || !str_contains($adminVerificationsAction, "\$filters['id'] = \$openDetailId;")
+    || !str_contains($identityHelpers, 'a.id = :id')
     || !str_contains($adminVerificationsAction, 'WHERE attempt_id IN (')
     || !str_contains($adminVerificationsView, 'data-overlay="#<?php echo sr_e($attemptDetailModalId); ?>"')
     || !str_contains($adminVerificationsView, 'modal-dialog modal-dialog-lg identity-verification-detail-dialog')
