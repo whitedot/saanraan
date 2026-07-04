@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers.php';
 
+if (!class_exists('SrIdentityVerificationDuplicateException')) {
+    class SrIdentityVerificationDuplicateException extends RuntimeException
+    {
+    }
+}
+
 function sr_identity_verification_default_settings(): array
 {
     return [
@@ -77,6 +83,21 @@ function sr_identity_verification_purpose(string $purpose): string
     return preg_match('/\A[a-z][a-z0-9_.]{1,79}\z/', $purpose) === 1 ? $purpose : '';
 }
 
+function sr_identity_verification_requirement_mode(string $mode): string
+{
+    $mode = strtolower(trim($mode));
+    return in_array($mode, ['off', 'optional', 'required'], true) ? $mode : 'off';
+}
+
+function sr_identity_verification_requirement_mode_options(): array
+{
+    return [
+        'off' => '사용 안 함',
+        'optional' => '선택',
+        'required' => '필수',
+    ];
+}
+
 function sr_identity_verification_setting_key(string $providerKey, string $settingKey): string
 {
     $providerKey = sr_identity_verification_provider_key($providerKey);
@@ -95,6 +116,29 @@ function sr_identity_verification_available(PDO $pdo): bool
     }
 
     return sr_identity_verification_select_provider($pdo) !== null;
+}
+
+function sr_identity_verification_simple_auth_preferred_purposes(): array
+{
+    return [
+        'asset.exchange',
+        'content.author_application',
+        'deposit.refund_request',
+        'member.account_security',
+        'member.mfa.login',
+        'member.withdrawal',
+        'reward.withdrawal_request',
+    ];
+}
+
+function sr_identity_verification_preferred_provider_keys_for_purpose(string $purpose): array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($purpose === '' || !in_array($purpose, sr_identity_verification_simple_auth_preferred_purposes(), true)) {
+        return [];
+    }
+
+    return ['inicis_simple_auth'];
 }
 
 function sr_identity_verification_account_satisfies(PDO $pdo, int $accountId, string $purpose, ?int $maxAgeDays = null): bool
@@ -130,6 +174,121 @@ function sr_identity_verification_account_satisfies(PDO $pdo, int $accountId, st
     return (bool) $stmt->fetchColumn();
 }
 
+function sr_identity_verification_account_satisfies_adult(PDO $pdo, int $accountId, string $purpose, ?int $maxAgeDays = null): bool
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($accountId <= 0 || $purpose === '') {
+        return false;
+    }
+
+    $params = [
+        'account_id' => $accountId,
+        'purpose' => $purpose,
+        'now' => sr_now(),
+    ];
+    $ageSql = '';
+    if ($maxAgeDays !== null && $maxAgeDays > 0) {
+        $ageSql = ' AND r.verified_at >= :min_verified_at';
+        $params['min_verified_at'] = gmdate('Y-m-d H:i:s', time() - ($maxAgeDays * 86400));
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT 1
+         FROM sr_identity_verification_links l
+         INNER JOIN sr_identity_verification_results r ON r.id = l.result_id
+         WHERE l.account_id = :account_id
+           AND l.purpose = :purpose
+           AND l.revoked_at IS NULL
+           AND r.age_over_19 = 1
+           AND (r.expires_at IS NULL OR r.expires_at > :now)' . $ageSql . '
+         LIMIT 1'
+    );
+    $stmt->execute($params);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+function sr_identity_verification_duplicate_identity_message(): string
+{
+    return '이미 다른 계정에 연결된 본인확인 정보입니다.';
+}
+
+function sr_identity_verification_result_identity_hashes(PDO $pdo, int $resultId): ?array
+{
+    if ($resultId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT id, ci_hash FROM sr_identity_verification_results WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $resultId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_identity_verification_duplicate_account_by_ci_hash(PDO $pdo, string $ciHash, int $accountId = 0): ?array
+{
+    $ciHash = trim($ciHash);
+    if ($ciHash === '') {
+        return null;
+    }
+
+    $params = ['ci_hash' => $ciHash];
+    $accountSql = '';
+    if ($accountId > 0) {
+        $accountSql = ' AND lock_row.account_id <> :account_id';
+        $params['account_id'] = $accountId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT lock_row.account_id, a.status
+         FROM sr_identity_verification_identity_locks lock_row
+         INNER JOIN sr_member_accounts a ON a.id = lock_row.account_id
+         WHERE lock_row.ci_hash = :ci_hash
+           AND a.status NOT IN (\'withdrawn\', \'anonymized\')' . $accountSql . '
+         LIMIT 1'
+    );
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+    if (is_array($row)) {
+        return $row;
+    }
+
+    $params = [
+        'ci_hash' => $ciHash,
+        'now' => sr_now(),
+    ];
+    $accountSql = '';
+    if ($accountId > 0) {
+        $accountSql = ' AND l.account_id <> :account_id';
+        $params['account_id'] = $accountId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT l.account_id, a.status
+         FROM sr_identity_verification_links l
+         INNER JOIN sr_identity_verification_results r ON r.id = l.result_id
+         INNER JOIN sr_member_accounts a ON a.id = l.account_id
+         WHERE r.ci_hash = :ci_hash
+           AND l.revoked_at IS NULL
+           AND (r.expires_at IS NULL OR r.expires_at > :now)
+           AND a.status NOT IN (\'withdrawn\', \'anonymized\')' . $accountSql . '
+         LIMIT 1'
+    );
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_identity_verification_result_duplicate_account(PDO $pdo, int $resultId, int $accountId = 0): ?array
+{
+    $identity = sr_identity_verification_result_identity_hashes($pdo, $resultId);
+    if (!is_array($identity)) {
+        return null;
+    }
+
+    return sr_identity_verification_duplicate_account_by_ci_hash($pdo, (string) ($identity['ci_hash'] ?? ''), $accountId);
+}
+
 function sr_identity_verification_start_url(string $purpose, string $returnUrl): string
 {
     $purpose = sr_identity_verification_purpose($purpose);
@@ -140,6 +299,256 @@ function sr_identity_verification_start_url(string $purpose, string $returnUrl):
     }
 
     return sr_url('/identity/verify/start?' . http_build_query($query));
+}
+
+function sr_identity_verification_requirement_policy(PDO $pdo, int $accountId, string $purpose, string $mode, string $returnUrl = '', ?int $maxAgeDays = null): array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    $mode = sr_identity_verification_requirement_mode($mode);
+    $settings = sr_identity_verification_settings($pdo);
+    $enabled = $purpose !== '' && $mode !== 'off';
+    $available = $enabled && !empty($settings['enabled']) && sr_identity_verification_select_provider($pdo, '', $purpose) !== null;
+    $satisfied = $enabled && $accountId > 0
+        ? sr_identity_verification_account_satisfies($pdo, $accountId, $purpose, $maxAgeDays)
+        : false;
+
+    return [
+        'mode' => $mode,
+        'enabled' => $enabled,
+        'available' => $available,
+        'required' => $enabled && $mode === 'required',
+        'optional' => $enabled && $mode === 'optional',
+        'satisfied' => $satisfied,
+        'purpose' => $purpose,
+        'start_url' => $available ? sr_identity_verification_start_url($purpose, $returnUrl) : '',
+    ];
+}
+
+function sr_identity_verification_session_key(): string
+{
+    return 'sr_identity_verification_results';
+}
+
+function sr_identity_verification_remember_session_result(array $attempt, int $resultId): void
+{
+    if ($resultId < 1) {
+        return;
+    }
+
+    $purpose = sr_identity_verification_purpose((string) ($attempt['purpose'] ?? ''));
+    if ($purpose === '') {
+        return;
+    }
+
+    $sessionKey = sr_identity_verification_session_key();
+    if (!isset($_SESSION[$sessionKey]) || !is_array($_SESSION[$sessionKey])) {
+        $_SESSION[$sessionKey] = [];
+    }
+    $_SESSION[$sessionKey][$purpose] = [
+        'result_id' => $resultId,
+        'account_id' => (int) ($attempt['account_id'] ?? 0),
+        'purpose' => $purpose,
+        'verified_at' => time(),
+    ];
+}
+
+function sr_identity_verification_session_result(PDO $pdo, string $purpose, int $accountId, ?int $maxAgeSeconds = 900): ?array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($purpose === '') {
+        return null;
+    }
+
+    $sessionKey = sr_identity_verification_session_key();
+    $sessionResults = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $sessionResult = isset($sessionResults[$purpose]) && is_array($sessionResults[$purpose]) ? $sessionResults[$purpose] : null;
+    if (!is_array($sessionResult)) {
+        return null;
+    }
+
+    if ($maxAgeSeconds !== null && $maxAgeSeconds > 0 && (int) ($sessionResult['verified_at'] ?? 0) < time() - $maxAgeSeconds) {
+        unset($_SESSION[$sessionKey][$purpose]);
+        return null;
+    }
+    if ((int) ($sessionResult['account_id'] ?? 0) !== $accountId) {
+        return null;
+    }
+
+    $resultId = (int) ($sessionResult['result_id'] ?? 0);
+    if ($resultId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT r.*, a.purpose, a.status AS attempt_status
+         FROM sr_identity_verification_results r
+         INNER JOIN sr_identity_verification_attempts a ON a.id = r.attempt_id
+         WHERE r.id = :id
+           AND a.purpose = :purpose
+           AND a.status = :status
+           AND (r.expires_at IS NULL OR r.expires_at > :now)
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'id' => $resultId,
+        'purpose' => $purpose,
+        'status' => 'verified',
+        'now' => sr_now(),
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_identity_verification_consume_session_result(PDO $pdo, string $purpose, int $accountId, ?int $maxAgeSeconds = 900): ?array
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    $result = sr_identity_verification_session_result($pdo, $purpose, $accountId, $maxAgeSeconds);
+    if ($purpose !== '') {
+        unset($_SESSION[sr_identity_verification_session_key()][$purpose]);
+    }
+
+    return $result;
+}
+
+function sr_identity_verification_link_result_to_account(PDO $pdo, int $resultId, int $accountId, string $purpose): bool
+{
+    $purpose = sr_identity_verification_purpose($purpose);
+    if ($resultId < 1 || $accountId < 1 || $purpose === '') {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT r.id, r.attempt_id, a.purpose, a.status
+         FROM sr_identity_verification_results r
+         INNER JOIN sr_identity_verification_attempts a ON a.id = r.attempt_id
+         WHERE r.id = :id
+           AND a.purpose = :purpose
+           AND a.status = :status
+           AND (r.expires_at IS NULL OR r.expires_at > :now)
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'id' => $resultId,
+        'purpose' => $purpose,
+        'status' => 'verified',
+        'now' => sr_now(),
+    ]);
+    if (!is_array($stmt->fetch())) {
+        return false;
+    }
+
+    $now = sr_now();
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+    try {
+        sr_identity_verification_claim_identity_lock($pdo, $resultId, $accountId);
+        $updateResult = $pdo->prepare('UPDATE sr_identity_verification_results SET account_id = :account_id WHERE id = :id AND account_id IS NULL');
+        $updateResult->execute([
+            'account_id' => $accountId,
+            'id' => $resultId,
+        ]);
+        $updateAttempt = $pdo->prepare(
+            'UPDATE sr_identity_verification_attempts
+             SET account_id = :account_id, updated_at = :updated_at
+             WHERE id = (SELECT attempt_id FROM sr_identity_verification_results WHERE id = :id)
+               AND account_id IS NULL'
+        );
+        $updateAttempt->execute([
+            'account_id' => $accountId,
+            'updated_at' => $now,
+            'id' => $resultId,
+        ]);
+        $link = $pdo->prepare(
+            'INSERT INTO sr_identity_verification_links
+                (account_id, result_id, purpose, linked_at, created_at)
+             VALUES
+                (:account_id, :result_id, :purpose, :linked_at, :created_at)
+             ON DUPLICATE KEY UPDATE
+                revoked_at = NULL,
+                linked_at = VALUES(linked_at)'
+        );
+        $link->execute([
+            'account_id' => $accountId,
+            'result_id' => $resultId,
+            'purpose' => $purpose,
+            'linked_at' => $now,
+            'created_at' => $now,
+        ]);
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return true;
+}
+
+function sr_identity_verification_claim_identity_lock(PDO $pdo, int $resultId, int $accountId): void
+{
+    if ($resultId < 1 || $accountId < 1) {
+        return;
+    }
+
+    $identity = sr_identity_verification_result_identity_hashes($pdo, $resultId);
+    $ciHash = is_array($identity) ? trim((string) ($identity['ci_hash'] ?? '')) : '';
+    if ($ciHash === '') {
+        return;
+    }
+
+    $duplicate = sr_identity_verification_duplicate_account_by_ci_hash($pdo, $ciHash, $accountId);
+    if ($duplicate !== null) {
+        throw new SrIdentityVerificationDuplicateException(sr_identity_verification_duplicate_identity_message());
+    }
+
+    $now = sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_identity_verification_identity_locks
+                (ci_hash, account_id, result_id, first_linked_at, updated_at)
+             VALUES
+                (:ci_hash, :account_id, :result_id, :first_linked_at, :updated_at)'
+        );
+        $stmt->execute([
+            'ci_hash' => $ciHash,
+            'account_id' => $accountId,
+            'result_id' => $resultId,
+            'first_linked_at' => $now,
+            'updated_at' => $now,
+        ]);
+        return;
+    } catch (PDOException $exception) {
+        if ((string) $exception->getCode() !== '23000') {
+            throw $exception;
+        }
+    }
+
+    $stmt = $pdo->prepare('SELECT account_id FROM sr_identity_verification_identity_locks WHERE ci_hash = :ci_hash LIMIT 1');
+    $stmt->execute(['ci_hash' => $ciHash]);
+    $lock = $stmt->fetch();
+    if (!is_array($lock) || (int) ($lock['account_id'] ?? 0) !== $accountId) {
+        throw new SrIdentityVerificationDuplicateException(sr_identity_verification_duplicate_identity_message());
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_identity_verification_identity_locks
+         SET result_id = :result_id,
+             updated_at = :updated_at
+         WHERE ci_hash = :ci_hash
+           AND account_id = :account_id'
+    );
+    $stmt->execute([
+        'result_id' => $resultId,
+        'updated_at' => $now,
+        'ci_hash' => $ciHash,
+        'account_id' => $accountId,
+    ]);
 }
 
 function sr_identity_verification_safe_return_url(string $returnUrl): string
@@ -217,6 +626,27 @@ function sr_identity_verification_provider_setting(array $provider, string $sett
     return trim((string) ($settings[$settingKey] ?? ''));
 }
 
+function sr_identity_verification_provider_setting_required(array $definition, string $environment): bool
+{
+    if (empty($definition['required'])) {
+        return false;
+    }
+
+    $environments = [];
+    foreach ((array) ($definition['required_environments'] ?? []) as $requiredEnvironment) {
+        $requiredEnvironment = is_scalar($requiredEnvironment) ? strtolower(trim((string) $requiredEnvironment)) : '';
+        if (in_array($requiredEnvironment, ['test', 'production'], true)) {
+            $environments[$requiredEnvironment] = true;
+        }
+    }
+    if ($environments === []) {
+        return true;
+    }
+
+    $environment = in_array($environment, ['test', 'production'], true) ? $environment : 'test';
+    return isset($environments[$environment]);
+}
+
 function sr_identity_verification_public_providers(PDO $pdo): array
 {
     $providers = array_values(array_filter(sr_identity_verification_providers($pdo), static function (array $provider): bool {
@@ -235,13 +665,21 @@ function sr_identity_verification_public_providers(PDO $pdo): array
     return $providers;
 }
 
-function sr_identity_verification_select_provider(PDO $pdo, string $providerKey = ''): ?array
+function sr_identity_verification_select_provider(PDO $pdo, string $providerKey = '', string $purpose = ''): ?array
 {
     $providers = sr_identity_verification_providers($pdo);
     $settings = sr_identity_verification_settings($pdo);
     $providerKey = sr_identity_verification_provider_key($providerKey);
     if ($providerKey !== '' && isset($providers[$providerKey]) && !empty($providers[$providerKey]['enabled'])) {
         return $providers[$providerKey];
+    }
+
+    if ($providerKey === '') {
+        foreach (sr_identity_verification_preferred_provider_keys_for_purpose($purpose) as $preferredProviderKey) {
+            if (isset($providers[$preferredProviderKey]) && !empty($providers[$preferredProviderKey]['enabled'])) {
+                return $providers[$preferredProviderKey];
+            }
+        }
     }
 
     $defaultProviderKey = (string) ($settings['default_provider_key'] ?? '');
@@ -366,6 +804,10 @@ function sr_identity_verification_complete(PDO $pdo, array $config, array $attem
 
     $settings = sr_identity_verification_settings($pdo);
     $identity = isset($verification['identity']) && is_array($verification['identity']) ? $verification['identity'] : [];
+    $ciHash = sr_identity_verification_hmac_field($config, 'ci', (string) ($identity['ci'] ?? ''));
+    if ($ciHash !== '' && sr_identity_verification_duplicate_account_by_ci_hash($pdo, $ciHash, (int) ($attempt['account_id'] ?? 0)) !== null) {
+        throw new SrIdentityVerificationDuplicateException(sr_identity_verification_duplicate_identity_message());
+    }
     $now = sr_now();
     $expiresAt = null;
     $validDays = (int) ($settings['result_valid_days'] ?? 0);
@@ -392,7 +834,7 @@ function sr_identity_verification_complete(PDO $pdo, array $config, array $attem
             'account_id' => $attempt['account_id'] !== null ? (int) $attempt['account_id'] : null,
             'provider_key' => (string) $attempt['provider_key'],
             'provider_transaction_id' => (string) ($verification['provider_transaction_id'] ?? $attempt['provider_transaction_id'] ?? ''),
-            'ci_hash' => sr_identity_verification_hmac_field($config, 'ci', (string) ($identity['ci'] ?? '')),
+            'ci_hash' => $ciHash,
             'di_hash' => sr_identity_verification_hmac_field($config, 'di', (string) ($identity['di'] ?? '')),
             'name_hash' => sr_identity_verification_hmac_field($config, 'name', (string) ($identity['name'] ?? '')),
             'phone_hash' => sr_identity_verification_hmac_field($config, 'phone', sr_identity_verification_digits((string) ($identity['phone'] ?? ''))),
@@ -412,6 +854,7 @@ function sr_identity_verification_complete(PDO $pdo, array $config, array $attem
         ]);
 
         if ((int) ($attempt['account_id'] ?? 0) > 0) {
+            sr_identity_verification_claim_identity_lock($pdo, $resultId, (int) $attempt['account_id']);
             $link = $pdo->prepare(
                 'INSERT INTO sr_identity_verification_links
                     (account_id, result_id, purpose, linked_at, created_at)

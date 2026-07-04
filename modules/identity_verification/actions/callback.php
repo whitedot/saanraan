@@ -31,6 +31,12 @@ try {
         'failure_message' => (string) ($verification['failure_message'] ?? 'Identity provider callback failed.'),
     ]);
     sr_json_response(['ok' => true, 'status' => 'failed']);
+} catch (SrIdentityVerificationDuplicateException $exception) {
+    sr_identity_verification_mark_attempt($pdo, (int) $attempt['id'], 'failed', [
+        'failure_code' => 'duplicate_identity',
+        'failure_message' => 'Identity verification result is already linked to another account.',
+    ]);
+    sr_json_response(['ok' => false, 'message' => 'duplicate_identity'], 409);
 } catch (Throwable $exception) {
     sr_identity_verification_mark_attempt($pdo, (int) $attempt['id'], 'failed', [
         'failure_code' => 'provider_callback_exception',

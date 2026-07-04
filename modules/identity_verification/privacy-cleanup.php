@@ -32,6 +32,12 @@ return static function (PDO $pdo, int $accountId, mixed $context = []): array {
         $links = $stmt->rowCount();
 
         $stmt = $pdo->prepare(
+            'DELETE FROM sr_identity_verification_identity_locks
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+
+        $stmt = $pdo->prepare(
             'UPDATE sr_identity_verification_attempts
              SET account_id = NULL,
                  updated_at = :updated_at

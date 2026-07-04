@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+if (is_file(SR_ROOT . '/modules/member/helpers.php')) {
+    require_once SR_ROOT . '/modules/member/helpers.php';
+}
 
-$account = sr_member_require_login($pdo);
 $settings = sr_identity_verification_settings($pdo);
 if (empty($settings['enabled'])) {
     sr_render_error(503, '본인확인 기능이 비활성화되어 있습니다.');
@@ -26,13 +27,27 @@ if ($purpose === '') {
     sr_render_error(400, '본인확인 목적이 올바르지 않습니다.');
 }
 
+$account = function_exists('sr_member_current_account') ? sr_member_current_account($pdo) : null;
+$guestAllowed = in_array($purpose, ['member.registration'], true);
+if (!is_array($account) && $purpose === 'member.mfa.login' && function_exists('sr_member_mfa_challenge') && function_exists('sr_member_find_by_id')) {
+    $mfaChallenge = sr_member_mfa_challenge();
+    $mfaAccountId = is_array($mfaChallenge) ? (int) ($mfaChallenge['account_id'] ?? 0) : 0;
+    $mfaAccount = $mfaAccountId > 0 ? sr_member_find_by_id($pdo, $mfaAccountId) : null;
+    if (is_array($mfaAccount) && (string) ($mfaAccount['status'] ?? '') === 'active') {
+        $account = $mfaAccount;
+    }
+}
+if (!is_array($account) && !$guestAllowed) {
+    $account = sr_member_require_login($pdo);
+}
+
 $returnUrl = sr_identity_verification_safe_return_url((string) ($source['return_url'] ?? '/mypage/security'));
-$provider = sr_identity_verification_select_provider($pdo, (string) ($source['provider_key'] ?? ''));
+$provider = sr_identity_verification_select_provider($pdo, (string) ($source['provider_key'] ?? ''), $purpose);
 if ($provider === null) {
     sr_render_error(503, '사용 가능한 본인확인 제공자가 없습니다.');
 }
 
-$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, (int) $account['id'], $purpose, $returnUrl);
+$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, is_array($account) ? (int) $account['id'] : 0, $purpose, $returnUrl);
 
 try {
     $prepared = sr_identity_verification_call_provider($provider, 'prepare', [$pdo, $config, $site, $provider, $attempt]);

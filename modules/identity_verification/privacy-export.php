@@ -24,7 +24,11 @@ return static function (PDO $pdo, int $accountId): array {
     $attempts = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, attempt_id, provider_key, provider_transaction_id, ci_hash, di_hash, name_hash, phone_hash,
+        'SELECT id, attempt_id, provider_key, provider_transaction_id,
+                CASE WHEN ci_hash <> \'\' THEN 1 ELSE 0 END AS ci_recorded,
+                CASE WHEN di_hash <> \'\' THEN 1 ELSE 0 END AS di_recorded,
+                CASE WHEN name_hash <> \'\' THEN 1 ELSE 0 END AS name_recorded,
+                CASE WHEN phone_hash <> \'\' THEN 1 ELSE 0 END AS phone_recorded,
                 birth_date, gender, nationality, age_over_14, age_over_19, result_summary_json,
                 verified_at, expires_at, created_at
          FROM sr_identity_verification_results

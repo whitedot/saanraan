@@ -131,7 +131,7 @@ $optionalModules = [
     ],
     'identity_verification' => [
         'name' => '본인확인',
-        'version' => '2026.07.001',
+        'version' => '2026.07.002',
         'label' => '본인확인',
         'description' => '외부 본인확인 요청, 결과, 계정 연결과 개인정보 보관 경계를 설치합니다.',
     ],

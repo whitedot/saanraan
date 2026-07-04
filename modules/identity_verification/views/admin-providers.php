@@ -68,6 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $identityProviderCount++;
         $providerKey = (string) $providerKey;
         $providerLabel = (string) ($provider['display_name'] ?? $providerKey);
+        $providerUsageHelp = trim((string) ($provider['usage_help'] ?? ''));
         $enabledKey = sr_identity_verification_setting_key($providerKey, 'enabled');
         $environmentKey = sr_identity_verification_setting_key($providerKey, 'environment');
         $providerEnabled = !empty($provider['enabled']);
@@ -81,12 +82,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="sr-only"><?php echo sr_e($providerLabel . ' 사용'); ?></span>
                 </label>
             </div>
-            <div class="form-row" data-identity-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('제공자 키'); ?></span>
-                <div class="form-field">
-                    <p class="admin-form-static"><?php echo sr_e($providerKey); ?></p>
-                </div>
-            </div>
+            <?php if ($providerUsageHelp !== '') { ?>
+                <p class="form-help"><?php echo sr_e($providerUsageHelp); ?></p>
+            <?php } ?>
             <div class="form-row" data-identity-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
                 <span class="form-label"><?php echo sr_e('환경'); ?></span>
                 <div class="form-field">
@@ -96,7 +94,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $environmentKey,
                         ['test' => '테스트', 'production' => '운영'],
                         in_array($providerEnvironment, ['test', 'production'], true) ? $providerEnvironment : 'test',
-                        false
+                        false,
+                        ' data-identity-provider-environment="' . sr_e($providerKey) . '"'
                     );
                     ?>
                 </div>
@@ -109,19 +108,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $storedKey = sr_identity_verification_setting_key($providerKey, $settingKey);
                 $isSecret = !empty($definition['secret']);
                 $isRequired = !empty($definition['required']);
+                $isRequiredForEnvironment = sr_identity_verification_provider_setting_required($definition, $providerEnvironment);
+                $requiredEnvironments = [];
+                foreach ((array) ($definition['required_environments'] ?? []) as $requiredEnvironment) {
+                    $requiredEnvironment = is_scalar($requiredEnvironment) ? strtolower(trim((string) $requiredEnvironment)) : '';
+                    if (in_array($requiredEnvironment, ['test', 'production'], true)) {
+                        $requiredEnvironments[] = $requiredEnvironment;
+                    }
+                }
                 $value = sr_identity_verification_provider_setting($provider, $settingKey);
                 $inputId = 'identity_provider_' . $providerKey . '_' . $settingKey;
-                $inputRequired = $providerEnabled && $isRequired && (!$isSecret || $value === '');
+                $inputRequired = $providerEnabled && $isRequiredForEnvironment && (!$isSecret || $value === '');
                 ?>
                 <div class="form-row" data-identity-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
                     <label class="form-label" for="<?php echo sr_e($inputId); ?>">
                         <?php echo sr_e((string) ($definition['label'] ?? $settingKey)); ?>
                         <?php if ($isRequired) { ?>
-                            <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-identity-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span>
+                            <span class="sr-required-label"<?php echo $providerEnabled && $isRequiredForEnvironment ? '' : ' hidden'; ?> data-identity-required-for="<?php echo sr_e($providerKey); ?>" data-identity-required-environments="<?php echo sr_e(implode(' ', array_values(array_unique($requiredEnvironments)))); ?>">(필수)</span>
                         <?php } ?>
                     </label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($inputId); ?>" class="form-input form-control-full" type="<?php echo $isSecret ? 'password' : 'text'; ?>" name="<?php echo sr_e($storedKey); ?>" maxlength="2000" value="<?php echo $isSecret ? '' : sr_e($value); ?>"<?php echo $inputRequired ? ' required' : ''; ?><?php echo $isSecret ? ' autocomplete="new-password"' : ' autocomplete="off"'; ?><?php echo $isRequired ? ' data-identity-required-provider="' . sr_e($providerKey) . '"' : ''; ?><?php echo $isSecret ? ' data-identity-secret-provider="' . sr_e($providerKey) . '" data-identity-has-stored-secret="' . ($value !== '' ? '1' : '0') . '"' : ''; ?>>
+                        <input id="<?php echo sr_e($inputId); ?>" class="form-input form-control-full" type="<?php echo $isSecret ? 'password' : 'text'; ?>" name="<?php echo sr_e($storedKey); ?>" maxlength="2000" value="<?php echo $isSecret ? '' : sr_e($value); ?>"<?php echo $inputRequired ? ' required' : ''; ?><?php echo $isSecret ? ' autocomplete="new-password"' : ' autocomplete="off"'; ?><?php echo $isRequired ? ' data-identity-required-provider="' . sr_e($providerKey) . '" data-identity-required-environments="' . sr_e(implode(' ', array_values(array_unique($requiredEnvironments)))) . '"' : ''; ?><?php echo $isSecret ? ' data-identity-secret-provider="' . sr_e($providerKey) . '" data-identity-has-stored-secret="' . ($value !== '' ? '1' : '0') . '"' : ''; ?>>
                         <?php if ($isSecret && $value !== '') { ?>
                             <p class="form-help">저장된 값이 있습니다. 변경할 때만 새 값을 입력하세요.</p>
                         <?php } elseif (!empty($definition['help'])) { ?>
@@ -167,6 +174,17 @@ if (identityVerificationEnabled) {
 srIdentityVerificationSyncDefaultProviderRequired();
 document.querySelectorAll('[data-identity-provider-toggle]').forEach(function (toggle) {
     var providerKey = toggle.getAttribute('data-identity-provider-toggle') || '';
+    function providerEnvironment() {
+        var checked = document.querySelector('[data-identity-provider-environment="' + providerKey + '"]:checked');
+        return checked ? checked.value : 'test';
+    }
+    function requiredInCurrentEnvironment(element) {
+        var environments = String(element.getAttribute('data-identity-required-environments') || '').trim();
+        if (environments === '') {
+            return true;
+        }
+        return environments.split(/\s+/).indexOf(providerEnvironment()) !== -1;
+    }
     function syncProviderFields() {
         var defaultProviderSelect = document.querySelector('[data-identity-default-provider-select]');
         if (defaultProviderSelect && defaultProviderSelect.value === providerKey && !toggle.checked) {
@@ -178,13 +196,16 @@ document.querySelectorAll('[data-identity-provider-toggle]').forEach(function (t
         document.querySelectorAll('[data-identity-required-provider="' + providerKey + '"]').forEach(function (input) {
             var isSecret = input.hasAttribute('data-identity-secret-provider');
             var hasStoredSecret = input.getAttribute('data-identity-has-stored-secret') === '1';
-            input.required = toggle.checked && (!isSecret || !hasStoredSecret);
+            input.required = toggle.checked && requiredInCurrentEnvironment(input) && (!isSecret || !hasStoredSecret);
         });
         document.querySelectorAll('[data-identity-required-for="' + providerKey + '"]').forEach(function (label) {
-            label.hidden = !toggle.checked;
+            label.hidden = !toggle.checked || !requiredInCurrentEnvironment(label);
         });
     }
     toggle.addEventListener('change', syncProviderFields);
+    document.querySelectorAll('[data-identity-provider-environment="' + providerKey + '"]').forEach(function (environmentInput) {
+        environmentInput.addEventListener('change', syncProviderFields);
+    });
     syncProviderFields();
 });
 if (identityDefaultProviderSelect) {

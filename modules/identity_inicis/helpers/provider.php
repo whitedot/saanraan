@@ -12,12 +12,13 @@ function sr_identity_inicis_prepare(PDO $pdo, array $config, array $site, array 
         throw new RuntimeException('KG Inicis MID and apikey are required.');
     }
 
+    $reqSvcCd = sr_identity_inicis_req_svc_cd($provider);
     $mTxId = sr_identity_inicis_mtx_id((string) $attempt['verification_key']);
     $returnPath = '/identity/verify/return?state=' . rawurlencode((string) $attempt['state_token']);
     $returnUrl = sr_absolute_url($site, $returnPath);
     $fields = [
         'mid' => $mid,
-        'reqSvcCd' => '03',
+        'reqSvcCd' => $reqSvcCd,
         'mTxId' => $mTxId,
         'successUrl' => $returnUrl,
         'failUrl' => $returnUrl,
@@ -86,6 +87,7 @@ function sr_identity_inicis_verify_return(PDO $pdo, array $config, array $site, 
     }
 
     $decoded = sr_identity_inicis_decrypt_response_fields($provider, $queryResponse);
+    $method = (string) ($provider['default_method'] ?? 'integrated_identity');
 
     return [
         'status' => 'verified',
@@ -104,11 +106,17 @@ function sr_identity_inicis_verify_return(PDO $pdo, array $config, array $site, 
         'summary' => [
             'provider_result_code' => (string) ($queryResponse['resultCode'] ?? '0000'),
             'provider_result_message' => rawurldecode((string) ($queryResponse['resultMsg'] ?? '성공')),
-            'method' => 'integrated_identity',
+            'method' => $method,
             'age_over_14' => sr_identity_inicis_age_over((string) ($decoded['userBirthday'] ?? ''), 14) ? '1' : '0',
             'age_over_19' => sr_identity_inicis_age_over((string) ($decoded['userBirthday'] ?? ''), 19) ? '1' : '0',
         ],
     ];
+}
+
+function sr_identity_inicis_req_svc_cd(array $provider): string
+{
+    $reqSvcCd = (string) ($provider['inicis_req_svc_cd'] ?? '');
+    return in_array($reqSvcCd, ['01', '02', '03'], true) ? $reqSvcCd : '03';
 }
 
 function sr_identity_inicis_mtx_id(string $verificationKey): string

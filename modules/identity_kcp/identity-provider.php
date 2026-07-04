@@ -3,6 +3,7 @@
 return [
     'provider_key' => 'kcp',
     'display_name' => 'NHN KCP 휴대폰 본인확인',
+    'usage_help' => '휴대폰 가입정보로 본인 여부를 확인해야 하는 회원가입, 본인확인, 성인확인, 중복 계정 방지 흐름에 사용합니다.',
     'supported_methods' => ['mobile_identity'],
     'default_method' => 'mobile_identity',
     'environment' => 'test',
@@ -11,12 +12,14 @@ return [
         'site_cd' => [
             'label' => '사이트 코드',
             'required' => true,
+            'required_environments' => ['production'],
             'secret' => false,
             'help' => '테스트는 KCP 개발자센터 본인확인 가이드의 테스트 site_cd를 사용할 수 있습니다.',
         ],
         'enc_key' => [
             'label' => 'ENC_KEY',
             'required' => true,
+            'required_environments' => ['production'],
             'secret' => true,
         ],
         'web_siteid' => [

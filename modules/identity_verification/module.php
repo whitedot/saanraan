@@ -2,7 +2,7 @@
 
 return [
     'name' => '본인확인',
-    'version' => '2026.07.001',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '외부 본인확인 provider 요청, 결과, 계정 연결과 개인정보 보관 경계를 소유합니다.',
     'requires' => [

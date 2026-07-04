@@ -4,7 +4,7 @@ return [
     'name' => 'KG이니시스 통합인증 제공자',
     'version' => '2026.07.001',
     'type' => 'plugin',
-    'description' => '본인확인 모듈에 KG이니시스 통합인증 본인확인 provider 계약을 제공합니다.',
+    'description' => '본인확인 모듈에 KG이니시스 통합인증 본인확인/간편인증 provider 계약을 제공합니다.',
     'requires' => [
         'modules' => ['identity_verification'],
     ],

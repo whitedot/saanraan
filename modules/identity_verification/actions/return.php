@@ -33,7 +33,8 @@ try {
     }
     $status = (string) ($verification['status'] ?? 'failed');
     if ($status === 'verified') {
-        sr_identity_verification_complete($pdo, $config, $attempt, $verification);
+        $resultId = sr_identity_verification_complete($pdo, $config, $attempt, $verification);
+        sr_identity_verification_remember_session_result($attempt, $resultId);
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($attempt['account_id'] ?? 0),
             'actor_type' => 'member',
@@ -55,6 +56,12 @@ try {
         'failure_message' => (string) ($verification['failure_message'] ?? 'Identity provider verification failed.'),
     ]);
     sr_redirect($returnUrl . (str_contains($returnUrl, '?') ? '&' : '?') . 'identity_verification=' . ($status === 'canceled' ? 'canceled' : 'failed'));
+} catch (SrIdentityVerificationDuplicateException $exception) {
+    sr_identity_verification_mark_attempt($pdo, (int) $attempt['id'], 'failed', [
+        'failure_code' => 'duplicate_identity',
+        'failure_message' => 'Identity verification result is already linked to another account.',
+    ]);
+    sr_redirect($returnUrl . (str_contains($returnUrl, '?') ? '&' : '?') . 'identity_verification=duplicate');
 } catch (Throwable $exception) {
     sr_identity_verification_mark_attempt($pdo, (int) $attempt['id'], 'failed', [
         'failure_code' => 'provider_verify_failed',

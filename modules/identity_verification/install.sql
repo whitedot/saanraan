@@ -68,3 +68,15 @@ CREATE TABLE IF NOT EXISTS sr_identity_verification_links (
     UNIQUE KEY uq_sr_identity_link_result_purpose (result_id, purpose),
     KEY idx_sr_identity_link_account_purpose (account_id, purpose, revoked_at, linked_at)
 );
+
+CREATE TABLE IF NOT EXISTS sr_identity_verification_identity_locks (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    ci_hash CHAR(64) NOT NULL,
+    account_id BIGINT UNSIGNED NOT NULL,
+    result_id BIGINT UNSIGNED NOT NULL,
+    first_linked_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_identity_lock_ci_hash (ci_hash),
+    KEY idx_sr_identity_lock_account (account_id, updated_at)
+);

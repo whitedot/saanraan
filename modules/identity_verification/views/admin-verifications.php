@@ -29,10 +29,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>검증 결과 요약</h2>
             <table class="table">
                 <tbody>
-                    <?php foreach (['id', 'provider_key', 'provider_transaction_id', 'ci_hash', 'di_hash', 'name_hash', 'phone_hash', 'birth_date', 'gender', 'nationality', 'age_over_14', 'age_over_19', 'verified_at', 'expires_at'] as $field) { ?>
+                    <?php foreach (['id', 'provider_key', 'provider_transaction_id', 'birth_date', 'gender', 'nationality', 'age_over_14', 'age_over_19', 'verified_at', 'expires_at'] as $field) { ?>
                         <tr>
                             <th><?php echo sr_e($field); ?></th>
                             <td><?php echo sr_e((string) ($detailResult[$field] ?? '')); ?></td>
+                        </tr>
+                    <?php } ?>
+                    <?php foreach (['ci_hash' => 'CI', 'di_hash' => 'DI', 'name_hash' => '이름', 'phone_hash' => '휴대폰'] as $field => $label) { ?>
+                        <tr>
+                            <th><?php echo sr_e($label . ' 식별자'); ?></th>
+                            <td><?php echo (string) ($detailResult[$field] ?? '') !== '' ? sr_e('보관됨') : sr_e('없음'); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>

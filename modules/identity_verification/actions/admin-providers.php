@@ -51,9 +51,10 @@ if (sr_request_method() === 'POST') {
         $environmentKey = sr_identity_verification_setting_key((string) $providerKey, 'environment');
         $providerEnabled = ($_POST[$enabledKey] ?? '') === '1' || (string) $providerKey === $defaultProviderKey;
         $environment = sr_post_string($environmentKey, 20);
+        $environment = in_array($environment, ['test', 'production'], true) ? $environment : 'test';
 
         $postedSettings[$enabledKey] = $providerEnabled;
-        $postedSettings[$environmentKey] = in_array($environment, ['test', 'production'], true) ? $environment : 'test';
+        $postedSettings[$environmentKey] = $environment;
         if ($providerEnabled) {
             $enabledProviders[] = (string) $providerKey;
         }
@@ -74,7 +75,7 @@ if (sr_request_method() === 'POST') {
             }
             $postedValue = trim((string) $postedValue);
             $isSecret = !empty($definition['secret']);
-            $required = !empty($definition['required']);
+            $required = sr_identity_verification_provider_setting_required($definition, $environment);
             if ($isSecret && $postedValue === '') {
                 $postedValue = $currentValue;
             }
