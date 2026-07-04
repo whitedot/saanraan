@@ -72,6 +72,9 @@ if (is_string($policyDocumentViewSource)) {
             && str_contains($policyDocumentViewSource, 'modal-content-fullscreen modal-radius-md')
             && str_contains($policyDocumentViewSource, 'policy_documents::ui.mail_status.queued')
             && str_contains($policyDocumentViewSource, '$policyDocumentMailStatusLabels[$mailJobStatus] ?? $mailJobStatus')
+            && str_contains($policyDocumentViewSource, 'name="version_status"')
+            && str_contains($policyDocumentViewSource, 'data-admin-body-editor-mode-group')
+            && str_contains($policyDocumentViewSource, 'data-admin-body-editor-panel="markdown"')
             && !str_contains($policyDocumentViewSource, 'class="modal-content-fullscreen">')
             && !str_contains($policyDocumentViewSource, "modal-body-fill\">\n                            <section class=\"card admin-list-card admin-list-form\">")
             && str_contains($policyDocumentViewSource, 'data-overlay-stack="true"')
@@ -328,6 +331,36 @@ $plainVersion = sr_policy_document_version_by_id($pdo, $plainVersionId);
 sr_policy_documents_check_assert(
     is_array($plainVersion) && str_contains((string) ($plainVersion['body_html'] ?? ''), '<p>첫 줄<br>'),
     'plain policy document bodies should be converted to sanitized HTML.'
+);
+$markdownVersionId = sr_policy_document_create_version($pdo, 1, [
+    'title' => '마크다운 약관',
+    'body_editor_mode' => 'markdown',
+    'body_markdown' => "## 제목\n\n**강조** [링크](/policy-documents)",
+    'summary_text' => '',
+    'status' => 'draft',
+]);
+$markdownVersion = sr_policy_document_version_by_id($pdo, $markdownVersionId);
+sr_policy_documents_check_assert(
+    is_array($markdownVersion)
+        && str_contains((string) ($markdownVersion['body_html'] ?? ''), '<h2>제목</h2>')
+        && str_contains((string) ($markdownVersion['body_html'] ?? ''), '<strong>강조</strong>')
+        && str_contains((string) ($markdownVersion['body_html'] ?? ''), '<a href="/policy-documents" rel="nofollow noopener noreferrer">링크</a>'),
+    'markdown policy document bodies should render through the Markdown parser before sanitizer storage.'
+);
+$htmlVersionId = sr_policy_document_create_version($pdo, 1, [
+    'title' => 'HTML 약관',
+    'body_editor_mode' => 'html',
+    'body_html' => '<p onclick="alert(1)">허용</p><script>alert(1)</script>',
+    'summary_text' => '',
+    'status' => 'draft',
+]);
+$htmlVersion = sr_policy_document_version_by_id($pdo, $htmlVersionId);
+sr_policy_documents_check_assert(
+    is_array($htmlVersion)
+        && str_contains((string) ($htmlVersion['body_html'] ?? ''), '<p>허용</p>')
+        && !str_contains(strtolower((string) ($htmlVersion['body_html'] ?? '')), '<script')
+        && !str_contains(strtolower((string) ($htmlVersion['body_html'] ?? '')), 'onclick'),
+    'html policy document bodies should be sanitized before storage.'
 );
 $termsTemplate = sr_policy_document_standard_template_html($pdo, 'member_terms', ['name' => '테스트몰', 'base_url' => 'https://example.test']);
 sr_policy_documents_check_assert(

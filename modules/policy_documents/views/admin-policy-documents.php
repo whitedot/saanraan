@@ -149,6 +149,60 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </section>
+            <section class="card">
+                <h2><?php echo sr_e(sr_t('policy_documents::ui.version.create')); ?></h2>
+                <p class="form-help">새 약관/방침의 첫 버전을 함께 저장합니다.</p>
+
+                <div class="form-row">
+                    <label class="form-label" for="policy_document_body_html"><?php echo sr_e(sr_t('policy_documents::ui.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <div class="form-field" data-admin-body-editor-mode-group>
+                        <div>
+                            <?php echo sr_admin_radio_toggle_group_html('policy_document_body_editor_mode', 'body_editor_mode', $policyDocumentBodyEditorOptions, $policyDocumentBodyEditorMode, true, ' data-admin-body-editor-mode'); ?>
+                        </div>
+                        <div class="btn-space-before" data-admin-body-editor-panel="plain"<?php echo $policyDocumentBodyEditorMode === 'plain' ? '' : ' hidden'; ?>>
+                            <textarea id="policy_document_body_plain" class="form-textarea form-control-full" name="body_plain" rows="14"></textarea>
+                        </div>
+                        <div class="btn-space-before" data-admin-body-editor-panel="markdown"<?php echo $policyDocumentBodyEditorMode === 'markdown' ? '' : ' hidden'; ?>>
+                            <textarea id="policy_document_body_markdown" class="form-textarea form-control-full" name="body_markdown" rows="14"></textarea>
+                        </div>
+                        <div class="btn-space-before" data-admin-body-editor-panel="html"<?php echo $policyDocumentBodyEditorMode === 'html' ? '' : ' hidden'; ?>>
+                            <textarea id="policy_document_body_html" class="form-textarea form-control-full" name="body_html" rows="14"></textarea>
+                        </div>
+                        <?php if ($policyDocumentCkeditorAvailable) { ?>
+                            <div class="btn-space-before" data-admin-body-editor-panel="ckeditor"<?php echo $policyDocumentBodyEditorMode === 'ckeditor' ? '' : ' hidden'; ?>>
+                                <textarea id="policy_document_body_ckeditor_html" class="form-textarea form-control-full" name="body_ckeditor_html" rows="14"<?php echo $policyDocumentCkeditorAttributes; ?>></textarea>
+                            </div>
+                        <?php } ?>
+                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="policy_document_summary_text"><?php echo sr_e(sr_t('policy_documents::ui.summary')); ?></label>
+                    <div class="form-field">
+                        <textarea id="policy_document_summary_text" class="form-textarea form-control-full" name="summary_text" rows="3" maxlength="1000"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="policy_document_initial_version_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <div class="form-field">
+                        <select id="policy_document_initial_version_status" class="form-select" name="version_status" required>
+                            <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
+                            <option value="published"><?php echo sr_e(sr_t('policy_documents::ui.status.published')); ?></option>
+                            <option value="archived"><?php echo sr_e(sr_t('policy_documents::ui.status.archived')); ?></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
+                    <div class="form-field">
+                        <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from">
+                        <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>
+                    </div>
+                </div>
+            </section>
         <?php } else { ?>
         <section class="card">
             <h2><?php echo sr_e($pageTitle); ?></h2>
@@ -650,7 +704,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 }());
 </script>
 <?php } ?>
-<?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO) { ?>
+<?php if ($policyDocumentAdminPage === 'form' && $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO) { ?>
     <?php echo sr_editor_assets_html($pdo, 'ckeditor', 'admin_basic'); ?>
 <?php } ?>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

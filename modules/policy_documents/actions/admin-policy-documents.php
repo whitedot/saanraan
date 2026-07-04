@@ -23,13 +23,50 @@ if (sr_request_method() === 'POST') {
 
     try {
         if ($action === 'save_document') {
-            $documentId = sr_policy_document_create_document($pdo, [
-                'document_key' => sr_post_string('document_key', 80),
-                'title' => sr_post_string('title', 190),
-                'description' => sr_post_string('description', 2000),
-                'status' => sr_post_string('status', 30),
-                'sort_order' => (int) ($_POST['sort_order'] ?? 100),
-            ]);
+            $documentTitle = sr_post_string('title', 190);
+            $versionStatus = sr_post_string('version_status', 30);
+            $ownsTransaction = !$pdo->inTransaction();
+            if ($ownsTransaction) {
+                $pdo->beginTransaction();
+            }
+            try {
+                $documentId = sr_policy_document_create_document($pdo, [
+                    'document_key' => sr_post_string('document_key', 80),
+                    'title' => $documentTitle,
+                    'description' => sr_post_string('description', 2000),
+                    'status' => sr_post_string('status', 30),
+                    'sort_order' => (int) ($_POST['sort_order'] ?? 100),
+                ]);
+                $versionId = sr_policy_document_create_version($pdo, $documentId, [
+                    'title' => $documentTitle,
+                    'body_editor_mode' => sr_post_string('body_editor_mode', 20),
+                    'body_plain' => sr_post_string_without_truncation('body_plain', 100000) ?? '',
+                    'body_markdown' => sr_post_string_without_truncation('body_markdown', 100000) ?? '',
+                    'body_html' => sr_post_string_without_truncation('body_html', 100000) ?? '',
+                    'body_ckeditor_html' => sr_post_string_without_truncation('body_ckeditor_html', 100000) ?? '',
+                    'summary_text' => sr_post_string('summary_text', 1000),
+                    'append_previous_versions' => 0,
+                    'status' => $versionStatus,
+                    'effective_from' => sr_post_string('effective_from', 30),
+                ]);
+                if ($versionStatus === 'published') {
+                    sr_policy_document_create_notice_job(
+                        $pdo,
+                        $documentId,
+                        $versionId,
+                        sr_t('policy_documents::mail.notice.subject'),
+                        sr_policy_document_notice_mail_body($pdo, $versionId)
+                    );
+                }
+                if ($ownsTransaction) {
+                    $pdo->commit();
+                }
+            } catch (Throwable $exception) {
+                if ($ownsTransaction && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
+            }
             sr_admin_flash_result(sr_admin_action_result([], sr_t('policy_documents::notice.document_created')));
             sr_redirect('/admin/policy-documents?document_id=' . (string) $documentId);
         } elseif ($action === 'save_version') {
