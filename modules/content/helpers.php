@@ -111,10 +111,7 @@ function sr_content_default_settings(): array
         'layout_key' => 'content.basic',
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
-        'layout_secondary_menu_key' => '',
-        'layout_tertiary_menu_key' => '',
-        'layout_quaternary_menu_key' => '',
-        'layout_quinary_menu_key' => '',
+        'layout_extra_menu_keys_json' => [],
         'series_enabled' => true,
         'member_submission_enabled' => false,
         'identity_author_application_required' => false,
@@ -134,10 +131,6 @@ function sr_content_layout_menu_slots(): array
 {
     return [
         'primary' => 'layout_primary_menu_key',
-        'secondary' => 'layout_secondary_menu_key',
-        'tertiary' => 'layout_tertiary_menu_key',
-        'quaternary' => 'layout_quaternary_menu_key',
-        'quinary' => 'layout_quinary_menu_key',
     ];
 }
 
@@ -157,6 +150,48 @@ function sr_content_layout_menu_builtin_options(): array
 function sr_content_layout_menu_key_is_builtin(string $value): bool
 {
     return array_key_exists($value, sr_content_layout_menu_builtin_options());
+}
+
+function sr_content_layout_extra_menu_keys_from_value(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $item) {
+        $menuKey = is_array($item)
+            ? sr_content_clean_layout_menu_key((string) ($item['menu_key'] ?? ''))
+            : sr_content_clean_layout_menu_key((string) $item);
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_content_layout_extra_menu_keys_from_settings(array $settings): array
+{
+    $keys = sr_content_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? []);
+    foreach (['layout_secondary_menu_key', 'layout_tertiary_menu_key', 'layout_quaternary_menu_key', 'layout_quinary_menu_key'] as $legacySettingKey) {
+        $menuKey = sr_content_clean_layout_menu_key((string) ($settings[$legacySettingKey] ?? ''));
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_content_layout_extra_menu_keys_json(mixed $value): string
+{
+    $json = json_encode(sr_content_layout_extra_menu_keys_from_value($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '[]';
 }
 
 function sr_content_bool_setting(mixed $value): bool
@@ -220,6 +255,7 @@ function sr_content_settings(PDO $pdo): array
     foreach (sr_content_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
+    $settings['layout_extra_menu_keys_json'] = sr_content_layout_extra_menu_keys_from_settings($settings);
     $settings['series_enabled'] = sr_content_bool_setting($settings['series_enabled'] ?? true);
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
     $settings['identity_author_application_required'] = sr_content_bool_setting($settings['identity_author_application_required'] ?? false);
@@ -304,11 +340,10 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $context['scripts'] = array_values(array_unique($scripts));
 
     $siteMenus = [];
-    foreach (sr_content_layout_menu_slots() as $slotKey => $settingKey) {
-        $siteMenus[$slotKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
-    }
+    $siteMenus['primary'] = sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+    $context['site_extra_menus'] = sr_content_layout_extra_menu_keys_from_settings($settings);
 
     return $context;
 }
@@ -451,10 +486,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
         ['theme_key', sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
-        ['layout_secondary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')), 'string'],
-        ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],
-        ['layout_quaternary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_quaternary_menu_key'] ?? '')), 'string'],
-        ['layout_quinary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_quinary_menu_key'] ?? '')), 'string'],
+        ['layout_extra_menu_keys_json', sr_content_layout_extra_menu_keys_json($settings['layout_extra_menu_keys_json'] ?? []), 'json'],
         ['series_enabled', !empty($settings['series_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],
         ['identity_author_application_required', !empty($settings['identity_author_application_required']) ? '1' : '0', 'bool'],

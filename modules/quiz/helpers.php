@@ -284,10 +284,7 @@ function sr_quiz_default_settings(): array
         'theme_key' => 'basic',
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
-        'layout_secondary_menu_key' => '',
-        'layout_tertiary_menu_key' => '',
-        'layout_quaternary_menu_key' => '',
-        'layout_quinary_menu_key' => '',
+        'layout_extra_menu_keys_json' => [],
         'default_status' => 'draft',
         'default_quiz_mode' => 'scored',
         'default_scoring_model' => 'correct_answer',
@@ -413,10 +410,6 @@ function sr_quiz_layout_menu_slots(): array
 {
     return [
         'primary' => 'layout_primary_menu_key',
-        'secondary' => 'layout_secondary_menu_key',
-        'tertiary' => 'layout_tertiary_menu_key',
-        'quaternary' => 'layout_quaternary_menu_key',
-        'quinary' => 'layout_quinary_menu_key',
     ];
 }
 
@@ -424,6 +417,48 @@ function sr_quiz_clean_layout_menu_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_quiz_layout_extra_menu_keys_from_value(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $item) {
+        $menuKey = is_array($item)
+            ? sr_quiz_clean_layout_menu_key((string) ($item['menu_key'] ?? ''))
+            : sr_quiz_clean_layout_menu_key((string) $item);
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_quiz_layout_extra_menu_keys_from_settings(array $settings): array
+{
+    $keys = sr_quiz_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? []);
+    foreach (['layout_secondary_menu_key', 'layout_tertiary_menu_key', 'layout_quaternary_menu_key', 'layout_quinary_menu_key'] as $legacySettingKey) {
+        $menuKey = sr_quiz_clean_layout_menu_key((string) ($settings[$legacySettingKey] ?? ''));
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_quiz_layout_extra_menu_keys_json(mixed $value): string
+{
+    $json = json_encode(sr_quiz_layout_extra_menu_keys_from_value($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '[]';
 }
 
 function sr_quiz_theme_options(): array
@@ -457,6 +492,7 @@ function sr_quiz_normalize_settings(array $settings): array
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
     }
+    $normalized['layout_extra_menu_keys_json'] = sr_quiz_layout_extra_menu_keys_from_settings($normalized);
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_quiz_statuses(), true)
         ? (string) $normalized['default_status']
         : (string) $defaults['default_status'];
@@ -533,10 +569,7 @@ function sr_quiz_settings_from_post(): array
         'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
-        'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
-        'layout_tertiary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
-        'layout_quaternary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60)),
-        'layout_quinary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60)),
+        'layout_extra_menu_keys_json' => sr_quiz_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []),
         'default_status' => sr_post_string('default_status', 20),
         'default_quiz_mode' => sr_post_string('default_quiz_mode', 30),
         'default_scoring_model' => sr_post_string('default_scoring_model', 40),
@@ -584,8 +617,7 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
         require_once SR_ROOT . '/modules/site_menu/helpers.php';
         $siteMenuOptions = sr_site_menu_options($pdo);
     }
-    foreach (sr_quiz_layout_menu_slots() as $menuSettingKey) {
-        $menuKey = (string) ($settings[$menuSettingKey] ?? '');
+    foreach (array_merge([(string) ($settings['layout_primary_menu_key'] ?? '')], sr_quiz_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? [])) as $menuKey) {
         if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
             $errors[] = '퀴즈 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;
@@ -668,11 +700,9 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
         $context['body_class'] = trim((string) $context['body_class'] . ' quiz-view-theme-' . $themeKey);
     }
 
-    $siteMenus = [];
-    foreach (sr_quiz_layout_menu_slots() as $slotKey => $settingKey) {
-        $siteMenus[$slotKey] = sr_quiz_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
-    }
+    $siteMenus = ['primary' => sr_quiz_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'))];
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+    $context['site_extra_menus'] = sr_quiz_layout_extra_menu_keys_from_settings($settings);
 
     return $context;
 }
@@ -770,11 +800,14 @@ function sr_quiz_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ($settings as $key => $value) {
-        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
+        $valueType = $key === 'layout_extra_menu_keys_json' ? 'json' : (is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string'));
+        $settingValue = $key === 'layout_extra_menu_keys_json'
+            ? sr_quiz_layout_extra_menu_keys_json($value)
+            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value);
         $save->execute([
             'module_id' => (int) $module['id'],
             'setting_key' => (string) $key,
-            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+            'setting_value' => $settingValue,
             'value_type' => $valueType,
             'created_at' => $now,
             'updated_at' => $now,

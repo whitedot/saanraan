@@ -26,12 +26,38 @@ $layoutCurrentRequestPath = '/' . trim(sr_request_path(), '/');
 $layoutCurrentRequestPath = $layoutCurrentRequestPath === '/' ? '/' : rtrim($layoutCurrentRequestPath, '/');
 $layoutUsesSurveyRoute = $layoutCurrentRequestPath === '/survey' || str_starts_with($layoutCurrentRequestPath, '/survey/');
 $layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : ($layoutUsesSurveyRoute ? '' : 'header');
-$layoutFooterMenuSlots = [
-    'secondary' => ['slot_key' => 'secondary_navigation', 'label' => '보조 메뉴'],
-    'tertiary' => ['slot_key' => 'tertiary_navigation', 'label' => '추가 메뉴 1'],
-    'quaternary' => ['slot_key' => 'quaternary_navigation', 'label' => '추가 메뉴 2'],
-    'quinary' => ['slot_key' => 'quinary_navigation', 'label' => '추가 메뉴 3'],
-];
+$layoutExtraMenuKeysFromValue = static function ($value) use ($layoutCleanMenuKey): array {
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $item) {
+        $menuKey = is_array($item)
+            ? $layoutCleanMenuKey((string) ($item['menu_key'] ?? ''))
+            : $layoutCleanMenuKey((string) $item);
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+};
+$layoutFooterMenuKeys = $layoutExtraMenuKeysFromValue($layoutContext['site_extra_menus'] ?? []);
+if ($layoutFooterMenuKeys === []) {
+    foreach (['secondary', 'tertiary', 'quaternary', 'quinary'] as $layoutLegacyMenuContextKey) {
+        $layoutLegacyMenuKey = array_key_exists($layoutLegacyMenuContextKey, $layoutSiteMenus)
+            ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutLegacyMenuContextKey])
+            : '';
+        if ($layoutLegacyMenuKey !== '' && !in_array($layoutLegacyMenuKey, $layoutFooterMenuKeys, true)) {
+            $layoutFooterMenuKeys[] = $layoutLegacyMenuKey;
+        }
+    }
+}
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutColorScheme = sr_color_scheme($layoutSite);
 $layoutColorSchemeOptions = sr_color_scheme_options();
@@ -106,17 +132,13 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
 }
 if ($layoutPdo instanceof PDO) {
-    foreach ($layoutFooterMenuSlots as $layoutFooterMenuContextKey => $layoutFooterMenuSlot) {
-        $layoutFooterMenuKey = array_key_exists($layoutFooterMenuContextKey, $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutFooterMenuContextKey]) : '';
-        if ($layoutFooterMenuKey === '') {
-            continue;
-        }
-        $layoutFooterMenuSlotKey = (string) ($layoutFooterMenuSlot['slot_key'] ?? '');
+    foreach ($layoutFooterMenuKeys as $layoutFooterMenuIndex => $layoutFooterMenuKey) {
+        $layoutFooterMenuSlotKey = 'navigation';
         $layoutFooterMenuHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
         if ($layoutFooterMenuHtml !== '') {
-            $layoutFooterNavigationHtml[$layoutFooterMenuSlotKey] = [
+            $layoutFooterNavigationHtml['extra_' . (string) $layoutFooterMenuIndex] = [
                 'html' => $layoutFooterMenuHtml,
-                'label' => (string) ($layoutFooterMenuSlot['label'] ?? '하단 메뉴'),
+                'label' => '하단 메뉴',
             ];
         }
     }

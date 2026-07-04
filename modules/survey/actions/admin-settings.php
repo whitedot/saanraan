@@ -17,6 +17,11 @@ $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $surveyLayoutOptions = sr_survey_layout_options($pdo);
 $publicThemeOptions = sr_survey_theme_options();
+$siteMenuOptions = [];
+if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+    require_once SR_ROOT . '/modules/site_menu/helpers.php';
+    $siteMenuOptions = sr_site_menu_options($pdo);
+}
 $settings = sr_survey_settings($pdo);
 
 if (sr_request_method() === 'POST') {

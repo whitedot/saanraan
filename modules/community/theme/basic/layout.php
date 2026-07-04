@@ -26,7 +26,38 @@ $layoutCurrentRequestPath = '/' . trim(sr_request_path(), '/');
 $layoutCurrentRequestPath = $layoutCurrentRequestPath === '/' ? '/' : rtrim($layoutCurrentRequestPath, '/');
 $layoutUsesCommunityRoute = $layoutCurrentRequestPath === '/community' || str_starts_with($layoutCurrentRequestPath, '/community/');
 $layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : ($layoutUsesCommunityRoute ? '' : 'header');
-$layoutFooterMenuSlots = [];
+$layoutExtraMenuKeysFromValue = static function ($value) use ($layoutCleanMenuKey): array {
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $item) {
+        $menuKey = is_array($item)
+            ? $layoutCleanMenuKey((string) ($item['menu_key'] ?? ''))
+            : $layoutCleanMenuKey((string) $item);
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+};
+$layoutFooterMenuKeys = $layoutExtraMenuKeysFromValue($layoutContext['site_extra_menus'] ?? []);
+if ($layoutFooterMenuKeys === []) {
+    foreach (['secondary', 'tertiary', 'quaternary', 'quinary'] as $layoutLegacyMenuContextKey) {
+        $layoutLegacyMenuKey = array_key_exists($layoutLegacyMenuContextKey, $layoutSiteMenus)
+            ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutLegacyMenuContextKey])
+            : '';
+        if ($layoutLegacyMenuKey !== '' && !in_array($layoutLegacyMenuKey, $layoutFooterMenuKeys, true)) {
+            $layoutFooterMenuKeys[] = $layoutLegacyMenuKey;
+        }
+    }
+}
 $layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutColorScheme = sr_color_scheme($layoutSite);
 $layoutColorSchemeOptions = sr_color_scheme_options();
@@ -104,21 +135,16 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_
     $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
 }
-if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_community_layout_menu_html')) {
-    $layoutPrimaryNavigationHtml = sr_community_layout_menu_html($layoutPdo, 'sr_community_board_groups', 'primary');
-}
 if ($layoutPdo instanceof PDO) {
-    foreach ($layoutFooterMenuSlots as $layoutFooterMenuContextKey => $layoutFooterMenuSlot) {
-        $layoutFooterMenuKey = array_key_exists($layoutFooterMenuContextKey, $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutFooterMenuContextKey]) : '';
-        if ($layoutFooterMenuKey === '') {
-            continue;
-        }
-        $layoutFooterMenuSlotKey = (string) ($layoutFooterMenuSlot['slot_key'] ?? '');
-        $layoutFooterMenuHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
+    foreach ($layoutFooterMenuKeys as $layoutFooterMenuIndex => $layoutFooterMenuKey) {
+        $layoutFooterMenuSlotKey = 'navigation';
+        $layoutFooterMenuHtml = $layoutFooterMenuKey === 'sr_community_board_groups' && function_exists('sr_community_layout_menu_html')
+            ? sr_community_layout_menu_html($layoutPdo, $layoutFooterMenuKey, $layoutFooterMenuSlotKey)
+            : sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
         if ($layoutFooterMenuHtml !== '') {
-            $layoutFooterNavigationHtml[$layoutFooterMenuSlotKey] = [
+            $layoutFooterNavigationHtml['extra_' . (string) $layoutFooterMenuIndex] = [
                 'html' => $layoutFooterMenuHtml,
-                'label' => (string) ($layoutFooterMenuSlot['label'] ?? '하단 메뉴'),
+                'label' => '하단 메뉴',
             ];
         }
     }

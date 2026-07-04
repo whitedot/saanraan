@@ -1,6 +1,31 @@
 <?php
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
+$surveySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($surveySiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
+    <?php foreach ($surveySiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+        </option>
+    <?php } ?>
+    <?php
+};
+$surveyLayoutExtraMenuKeys = function_exists('sr_survey_layout_extra_menu_keys_from_settings') ? sr_survey_layout_extra_menu_keys_from_settings($settings) : [];
+$surveyLayoutExtraMenuRows = static function (array $menuKeys, bool $template = false) use ($surveySiteMenuSelectOptions): void {
+    foreach ($template ? [''] : $menuKeys as $selectedMenuKey) {
+        ?>
+        <div class="admin-layout-menu-row"<?php echo $template ? ' hidden data-admin-layout-menu-template' : ''; ?> data-admin-layout-menu-row>
+            <select name="layout_extra_menu_keys[]" class="form-select" data-admin-layout-menu-select<?php echo $template ? ' disabled' : ''; ?>>
+                <?php $surveySiteMenuSelectOptions((string) $selectedMenuKey); ?>
+            </select>
+            <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" data-admin-layout-menu-remove aria-label="추가 메뉴 제거" title="제거"><?php echo sr_material_icon_html('delete'); ?></button>
+        </div>
+        <?php
+    }
+};
 $surveySettingsHelpOpenLabel = '설명 보기';
 $surveySettingsHelpBodyHtml = static function (array $items): string {
     $html = '';
@@ -147,6 +172,27 @@ $surveySettingsHelp = [
                         <?php } ?>
                     </select>
                     <p class="form-help">공개 레이아웃 안쪽의 설문 본문 출력 스킨입니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="survey_settings_layout_primary_menu_key">주 메뉴</label>
+                <div class="form-field">
+                    <select id="survey_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
+                        <?php $surveySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <span class="form-label">추가 메뉴</span>
+                <div class="form-field">
+                    <div class="admin-layout-menu-list" data-admin-layout-menu-list>
+                        <?php $surveyLayoutExtraMenuRows($surveyLayoutExtraMenuKeys); ?>
+                        <?php $surveyLayoutExtraMenuRows([], true); ?>
+                        <div class="admin-layout-menu-actions" data-admin-layout-menu-actions>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
+                        </div>
+                    </div>
+                    <p class="form-help">필요한 만큼 추가할 수 있으며 선택한 순서대로 레이아웃 하단 메뉴 영역에 출력합니다.</p>
                 </div>
             </div>
             <div class="form-row">

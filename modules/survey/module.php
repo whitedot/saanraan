@@ -25,6 +25,8 @@ return [
         'layout_key' => 'survey.basic',
         'theme_key' => 'basic',
         'skin_key' => 'basic',
+        'layout_primary_menu_key' => 'header',
+        'layout_extra_menu_keys_json' => [],
         'default_status' => 'draft',
         'default_login_required' => 1,
         'default_consent_required' => 0,

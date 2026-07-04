@@ -381,6 +381,8 @@ function sr_survey_default_settings(): array
         'layout_key' => 'survey.basic',
         'theme_key' => 'basic',
         'skin_key' => 'basic',
+        'layout_primary_menu_key' => 'header',
+        'layout_extra_menu_keys_json' => [],
         'default_status' => 'draft',
         'default_login_required' => 1,
         'default_consent_required' => 0,
@@ -401,6 +403,61 @@ function sr_survey_layout_required_targets(): array
 function sr_survey_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
 {
     return sr_public_layout_options_for_targets($pdo, sr_survey_layout_required_targets(), $includeInstalledModules);
+}
+
+function sr_survey_layout_menu_slots(): array
+{
+    return [
+        'primary' => 'layout_primary_menu_key',
+    ];
+}
+
+function sr_survey_clean_layout_menu_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_survey_layout_extra_menu_keys_from_value(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        $value = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $item) {
+        $menuKey = is_array($item)
+            ? sr_survey_clean_layout_menu_key((string) ($item['menu_key'] ?? ''))
+            : sr_survey_clean_layout_menu_key((string) $item);
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_survey_layout_extra_menu_keys_from_settings(array $settings): array
+{
+    $keys = sr_survey_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? []);
+    foreach (['layout_secondary_menu_key', 'layout_tertiary_menu_key', 'layout_quaternary_menu_key', 'layout_quinary_menu_key'] as $legacySettingKey) {
+        $menuKey = sr_survey_clean_layout_menu_key((string) ($settings[$legacySettingKey] ?? ''));
+        if ($menuKey !== '' && !in_array($menuKey, $keys, true)) {
+            $keys[] = $menuKey;
+        }
+    }
+
+    return $keys;
+}
+
+function sr_survey_layout_extra_menu_keys_json(mixed $value): string
+{
+    $json = json_encode(sr_survey_layout_extra_menu_keys_from_value($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '[]';
 }
 
 function sr_survey_fallback_layout_key(PDO $pdo, ?array $site = null): string
@@ -511,6 +568,10 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
     $normalized['theme_key'] = sr_survey_theme_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_survey_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
+    foreach (sr_survey_layout_menu_slots() as $settingKey) {
+        $normalized[$settingKey] = sr_survey_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
+    }
+    $normalized['layout_extra_menu_keys_json'] = sr_survey_layout_extra_menu_keys_from_settings($normalized);
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
     $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
@@ -546,6 +607,8 @@ function sr_survey_settings_from_post(): array
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $themeKey,
         'skin_key' => $skinKey,
+        'layout_primary_menu_key' => sr_survey_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
+        'layout_extra_menu_keys_json' => sr_survey_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []),
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
@@ -573,6 +636,17 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
     }
     if (!isset(sr_survey_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '설문 스킨 값이 올바르지 않습니다.';
+    }
+    $siteMenuOptions = [];
+    if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+        require_once SR_ROOT . '/modules/site_menu/helpers.php';
+        $siteMenuOptions = sr_site_menu_options($pdo);
+    }
+    foreach (array_merge([(string) ($settings['layout_primary_menu_key'] ?? '')], sr_survey_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? [])) as $menuKey) {
+        if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
+            $errors[] = '설문 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
+            break;
+        }
     }
     if ((string) ($settings['default_response_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_response_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응답 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
@@ -625,6 +699,10 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     if ($themeKey !== sr_public_theme_default_key()) {
         $context['body_class'] = trim((string) $context['body_class'] . ' survey-view-theme-' . $themeKey);
     }
+
+    $siteMenus = ['primary' => sr_survey_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'))];
+    $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+    $context['site_extra_menus'] = sr_survey_layout_extra_menu_keys_from_settings($settings);
 
     return $context;
 }
@@ -721,11 +799,14 @@ function sr_survey_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ($settings as $key => $value) {
-        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
+        $valueType = $key === 'layout_extra_menu_keys_json' ? 'json' : (is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string'));
+        $settingValue = $key === 'layout_extra_menu_keys_json'
+            ? sr_survey_layout_extra_menu_keys_json($value)
+            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value);
         $save->execute([
             'module_id' => (int) $module['id'],
             'setting_key' => (string) $key,
-            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+            'setting_value' => $settingValue,
             'value_type' => $valueType,
             'created_at' => $now,
             'updated_at' => $now,

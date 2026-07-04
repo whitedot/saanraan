@@ -20,13 +20,19 @@ $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use 
     <?php } ?>
     <?php
 };
-$communityLayoutMenuFields = [
-    'layout_primary_menu_key' => [
-        'label' => '주 메뉴 슬롯',
-        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 메뉴입니다. 게시판 그룹을 선택하면 접근 가능한 게시판 그룹을 표시합니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 접근 가능한 게시판 그룹이 주 메뉴 후보로 표시됩니다.',
-        'default' => 'header',
-    ],
-];
+$communityLayoutExtraMenuKeys = function_exists('sr_community_layout_extra_menu_keys_from_settings') ? sr_community_layout_extra_menu_keys_from_settings($settings) : [];
+$communityLayoutExtraMenuRows = static function (array $menuKeys, bool $template = false) use ($communitySiteMenuSelectOptions): void {
+    foreach ($template ? [''] : $menuKeys as $menuIndex => $selectedMenuKey) {
+        ?>
+        <div class="admin-layout-menu-row"<?php echo $template ? ' hidden data-admin-layout-menu-template' : ''; ?> data-admin-layout-menu-row>
+            <select name="layout_extra_menu_keys[]" class="form-select" data-admin-layout-menu-select<?php echo $template ? ' disabled' : ''; ?>>
+                <?php $communitySiteMenuSelectOptions((string) $selectedMenuKey); ?>
+            </select>
+            <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" data-admin-layout-menu-remove aria-label="추가 메뉴 제거" title="제거"><?php echo sr_material_icon_html('delete'); ?></button>
+        </div>
+        <?php
+    }
+};
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -690,18 +696,27 @@ $communitySettingsSectionNavItems = [
                 <p class="form-help">선택한 테마 아래에서 커뮤니티 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
             </div>
         </div>
-        <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>
-            <?php $communityLayoutMenuInputId = 'community_admin_settings_' . $communityLayoutMenuSettingKey; ?>
-            <div class="form-row">
-                <label class="form-label" for="<?php echo sr_e($communityLayoutMenuInputId); ?>"><?php echo sr_e((string) $communityLayoutMenuField['label']); ?></label>
-                <div class="form-field">
-                    <select id="<?php echo sr_e($communityLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $communityLayoutMenuSettingKey); ?>" class="form-select">
-                        <?php $communitySiteMenuSelectOptions((string) ($settings[$communityLayoutMenuSettingKey] ?? $communityLayoutMenuField['default'])); ?>
-                    </select>
-                    <p class="form-help"><?php echo sr_e((string) $communityLayoutMenuField['help']); ?></p>
-                </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">주 메뉴</label>
+            <div class="form-field">
+                <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
+                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
+                </select>
             </div>
-        <?php } ?>
+        </div>
+        <div class="form-row">
+            <span class="form-label">추가 메뉴</span>
+            <div class="form-field">
+                <div class="admin-layout-menu-list" data-admin-layout-menu-list>
+                    <?php $communityLayoutExtraMenuRows($communityLayoutExtraMenuKeys); ?>
+                    <?php $communityLayoutExtraMenuRows([], true); ?>
+                    <div class="admin-layout-menu-actions" data-admin-layout-menu-actions>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
+                    </div>
+                </div>
+                <p class="form-help">필요한 만큼 추가할 수 있으며 선택한 순서대로 레이아웃 하단 메뉴 영역에 출력합니다.</p>
+            </div>
+        </div>
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">

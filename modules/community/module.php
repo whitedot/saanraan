@@ -105,6 +105,7 @@ return [
         'layout_key' => 'community.basic',
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
+        'layout_extra_menu_keys_json' => [],
         'post_editor' => 'textarea',
         'post_toolbar_preset' => 'community_post_basic',
         'embed_enabled' => true,

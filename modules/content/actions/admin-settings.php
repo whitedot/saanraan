@@ -52,10 +52,7 @@ if (sr_request_method() === 'POST') {
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $postedThemeKey,
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
-        'layout_secondary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
-        'layout_tertiary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
-        'layout_quaternary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60)),
-        'layout_quinary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60)),
+        'layout_extra_menu_keys_json' => sr_content_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []),
         'series_enabled' => sr_post_string('series_enabled', 1) === '1',
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
         'identity_author_application_required' => sr_post_string('identity_author_application_required', 1) === '1',
@@ -93,8 +90,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = $reactionSettingLabel . ' 값이 올바르지 않습니다.';
         }
     }
-    foreach (sr_content_layout_menu_slots() as $menuSettingKey) {
-        $menuKey = (string) $postedSettings[$menuSettingKey];
+    foreach (array_merge([(string) $postedSettings['layout_primary_menu_key']], sr_content_layout_extra_menu_keys_from_value($postedSettings['layout_extra_menu_keys_json'] ?? [])) as $menuKey) {
         if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey]) && !sr_content_layout_menu_key_is_builtin($menuKey)) {
             $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;

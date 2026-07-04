@@ -129,10 +129,7 @@ if (sr_request_method() === 'POST') {
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $themeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
         $layoutPrimaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60));
-        $layoutSecondaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60));
-        $layoutTertiaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60));
-        $layoutQuaternaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60));
-        $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
+        $layoutExtraMenuKeys = sr_community_layout_extra_menu_keys_from_value($_POST['layout_extra_menu_keys'] ?? []);
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $defaultSettlementCurrency = sr_site_default_currency($pdo);
         $assetSettings = [];
@@ -259,7 +256,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '커뮤니티 공개 테마 값이 올바르지 않습니다.';
             $themeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? 'basic'));
         }
-        foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey, $layoutQuaternaryMenuKey, $layoutQuinaryMenuKey] as $layoutMenuKey) {
+        foreach (array_merge([$layoutPrimaryMenuKey], $layoutExtraMenuKeys) as $layoutMenuKey) {
             if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey]) && !sr_community_layout_menu_key_is_builtin($layoutMenuKey)) {
                 $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
                 break;
@@ -417,6 +414,7 @@ if (sr_request_method() === 'POST') {
                 ['layout_key', $layoutKey, 'string'],
                 ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
+                ['layout_extra_menu_keys_json', sr_community_layout_extra_menu_keys_json($layoutExtraMenuKeys), 'json'],
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
@@ -558,6 +556,7 @@ if (sr_request_method() === 'POST') {
                         'layout_key' => $layoutKey,
                         'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
+                        'layout_extra_menu_keys_json' => $layoutExtraMenuKeys,
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,
                         'post_toolbar_preset' => $postToolbarPreset,

@@ -33,6 +33,7 @@ window.AdminShell = {
         const menuResetButton = document.querySelector('[data-admin-menu-reset-confirm]');
         const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
+        const layoutMenuLists = Array.prototype.slice.call(document.querySelectorAll('[data-admin-layout-menu-list]'));
         const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
@@ -51,6 +52,89 @@ window.AdminShell = {
         const formatAssetAmountValue = value => {
             const digits = assetAmountDigits(value);
             return digits === '' ? '' : digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        };
+
+        const layoutMenuRows = list => Array.prototype.slice.call(list.querySelectorAll('[data-admin-layout-menu-row]:not([data-admin-layout-menu-template])'));
+
+        const layoutMenuRowSelect = row => row ? row.querySelector('[data-admin-layout-menu-select]') : null;
+
+        const syncLayoutMenuList = list => {
+            if (!list) {
+                return;
+            }
+
+            const rows = layoutMenuRows(list);
+            const addButton = list.querySelector('[data-admin-layout-menu-add]');
+            const template = list.querySelector('[data-admin-layout-menu-template]');
+            rows.forEach(row => {
+                const select = layoutMenuRowSelect(row);
+                if (select) {
+                    select.disabled = row.hidden;
+                }
+            });
+            if (template) {
+                const templateSelect = layoutMenuRowSelect(template);
+                template.hidden = true;
+                if (templateSelect) {
+                    templateSelect.disabled = true;
+                }
+            }
+            if (addButton) {
+                addButton.disabled = !template;
+            }
+        };
+
+        const addLayoutMenuRow = (list, options = {}) => {
+            const template = list ? list.querySelector('[data-admin-layout-menu-template]') : null;
+            if (!template) {
+                return;
+            }
+
+            const row = template.cloneNode(true);
+            row.removeAttribute('data-admin-layout-menu-template');
+            row.hidden = false;
+            const select = layoutMenuRowSelect(row);
+            if (select) {
+                select.disabled = false;
+                select.value = '';
+            }
+            const actions = list.querySelector('[data-admin-layout-menu-actions]');
+            list.insertBefore(row, actions || template);
+            if (select && options.focus) {
+                select.focus();
+            }
+        };
+
+        const showLayoutMenuRow = (row, options = {}) => {
+            if (!row) {
+                return;
+            }
+
+            row.hidden = false;
+            const select = layoutMenuRowSelect(row);
+            if (select) {
+                select.disabled = false;
+                if (options.focus) {
+                    select.focus();
+                }
+            }
+        };
+
+        const hideLayoutMenuRow = row => {
+            if (!row) {
+                return;
+            }
+
+            const select = layoutMenuRowSelect(row);
+            if (select) {
+                select.value = '';
+                select.disabled = true;
+            }
+            if (row.hasAttribute('data-admin-layout-menu-template')) {
+                row.hidden = true;
+            } else {
+                row.remove();
+            }
         };
 
         const keySuggestionScope = input => {
@@ -3260,6 +3344,47 @@ window.AdminShell = {
                 finishDashboardDrag(true);
             });
         }
+
+        layoutMenuLists.forEach(list => {
+            const template = list.querySelector('[data-admin-layout-menu-template]');
+            if (template) {
+                template.hidden = true;
+                const templateSelect = layoutMenuRowSelect(template);
+                if (templateSelect) {
+                    templateSelect.disabled = true;
+                }
+            }
+            layoutMenuRows(list).forEach(row => {
+                const select = layoutMenuRowSelect(row);
+                if (select && select.value === '' && row.hasAttribute('data-admin-layout-menu-remove-empty')) {
+                    hideLayoutMenuRow(row);
+                } else {
+                    showLayoutMenuRow(row);
+                }
+            });
+            list.addEventListener('click', event => {
+                const eventTarget = event.target instanceof Element ? event.target : event.target.parentElement;
+                if (!eventTarget) {
+                    return;
+                }
+
+                const addButton = eventTarget.closest('[data-admin-layout-menu-add]');
+                if (addButton && list.contains(addButton)) {
+                    event.preventDefault();
+                    addLayoutMenuRow(list, { focus: true });
+                    syncLayoutMenuList(list);
+                    return;
+                }
+
+                const removeButton = eventTarget.closest('[data-admin-layout-menu-remove]');
+                if (removeButton && list.contains(removeButton)) {
+                    event.preventDefault();
+                    hideLayoutMenuRow(removeButton.closest('[data-admin-layout-menu-row]'));
+                    syncLayoutMenuList(list);
+                }
+            });
+            syncLayoutMenuList(list);
+        });
 
         try {
             if (!isMobileViewport() && localStorage.getItem(menuStorageKey) === '1' && gnb) {
