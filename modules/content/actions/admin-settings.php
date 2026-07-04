@@ -11,6 +11,8 @@ if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/
 if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 }
+$contentIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'view');
@@ -111,7 +113,16 @@ if (sr_request_method() === 'POST') {
     } elseif (!empty($postedSettings['member_submission_author_reward_enabled'])) {
         $errors[] = '작성자 리워드 포인트/금액 항목을 선택하세요.';
     }
-    if (function_exists('sr_identity_verification_adult_setting_errors')) {
+    if (!$contentIdentityVerificationAvailable) {
+        if (
+            !empty($postedSettings['identity_content_view_required'])
+            || !empty($postedSettings['identity_content_view_adult_required'])
+            || !empty($postedSettings['identity_author_application_required'])
+            || !empty($postedSettings['identity_author_application_adult_required'])
+        ) {
+            $errors[] = '콘텐츠 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+        }
+    } elseif (function_exists('sr_identity_verification_adult_setting_errors')) {
         $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인'));
         $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_author_application_adult_required']), '작성자 신청 성인 본인확인'));
     } elseif (!empty($postedSettings['identity_content_view_adult_required']) || !empty($postedSettings['identity_author_application_adult_required'])) {

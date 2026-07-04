@@ -723,10 +723,16 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
     }
-    if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+    $identityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+        && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+    if ($identityVerificationAvailable) {
         require_once SR_ROOT . '/modules/identity_verification/helpers.php';
     }
-    if (function_exists('sr_identity_verification_adult_setting_errors')) {
+    if (!$identityVerificationAvailable) {
+        if (!empty($settings['identity_view_required']) || !empty($settings['identity_view_adult_required'])) {
+            $errors[] = '퀴즈 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+        }
+    } elseif (function_exists('sr_identity_verification_adult_setting_errors')) {
         $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($settings['identity_view_adult_required']), '퀴즈 성인 본인확인'));
     } elseif (!empty($settings['identity_view_adult_required'])) {
         $errors[] = '퀴즈 성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';

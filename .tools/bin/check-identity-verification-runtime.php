@@ -278,7 +278,11 @@ $contentViewAction = file_get_contents($root . '/modules/content/actions/view.ph
 if (!is_string($contentSettingsAction) || !is_string($contentSettingsView) || !is_string($contentViewAction)) {
     $errors[] = 'content identity access files must be readable.';
 } elseif (!str_contains($contentSettingsAction, "'identity_content_view_required' => sr_post_string('identity_content_view_required', 1) === '1'")
+    || !str_contains($contentSettingsAction, "\$contentIdentityVerificationAvailable = sr_module_enabled(\$pdo, 'identity_verification')")
+    || !str_contains($contentSettingsAction, '콘텐츠 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
     || !str_contains($contentSettingsAction, "sr_identity_verification_adult_setting_errors(\$pdo, !empty(\$postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인')")
+    || !str_contains($contentSettingsView, '$contentIdentityVerificationAvailable')
+    || !str_contains($contentSettingsView, 'content-settings-identity-unavailable')
     || !str_contains($contentSettingsView, "'identity_content_view_required', '1'")
     || !str_contains($contentSettingsView, "'identity_content_view_adult_required', '1'")
     || !str_contains($contentViewAction, "sr_identity_verification_requirement_policy(\$pdo, (int) \$account['id'], 'content.view'")
@@ -293,9 +297,12 @@ $quizSkinView = file_get_contents($root . '/modules/quiz/skins/basic/view.php');
 if (!is_string($quizHelpers) || !is_string($quizSettingsView) || !is_string($quizSkinView)) {
     $errors[] = 'quiz identity access files must be readable.';
 } elseif (!str_contains($quizHelpers, "'identity_view_required' => false")
+    || !str_contains($quizHelpers, '퀴즈 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
     || !str_contains($quizHelpers, 'function sr_quiz_enforce_identity_view_policy(')
     || !str_contains($quizHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'quiz.view'")
     || !str_contains($quizHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'quiz.view.adult')")
+    || !str_contains($quizSettingsView, '$quizIdentityVerificationAvailable')
+    || !str_contains($quizSettingsView, 'quiz-settings-identity-unavailable')
     || !str_contains($quizSettingsView, "'identity_view_required', '1'")
     || !str_contains($quizSettingsView, "'identity_view_adult_required', '1'")
     || !str_contains($quizSkinView, 'sr_quiz_enforce_identity_view_policy($pdo, $quiz, $quizSettings, $currentAccount, $canPreviewAsAdmin);')
@@ -309,9 +316,12 @@ $surveySkinView = file_get_contents($root . '/modules/survey/skins/basic/view.ph
 if (!is_string($surveyHelpers) || !is_string($surveySettingsView) || !is_string($surveySkinView)) {
     $errors[] = 'survey identity access files must be readable.';
 } elseif (!str_contains($surveyHelpers, "'identity_view_required' => false")
+    || !str_contains($surveyHelpers, '설문 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
     || !str_contains($surveyHelpers, 'function sr_survey_enforce_identity_view_policy(')
     || !str_contains($surveyHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'survey.view'")
     || !str_contains($surveyHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'survey.view.adult')")
+    || !str_contains($surveySettingsView, '$surveyIdentityVerificationAvailable')
+    || !str_contains($surveySettingsView, 'survey-settings-identity-unavailable')
     || !str_contains($surveySettingsView, "'identity_view_required', '1'")
     || !str_contains($surveySettingsView, "'identity_view_adult_required', '1'")
     || !str_contains($surveySkinView, 'sr_survey_enforce_identity_view_policy($pdo, $survey, $settings, $currentAccount, $canPreviewAsAdmin);')

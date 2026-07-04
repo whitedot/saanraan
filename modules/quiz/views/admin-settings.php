@@ -15,6 +15,12 @@ $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($qui
     <?php
 };
 $quizLayoutExtraMenuItems = function_exists('sr_quiz_layout_extra_menu_items_from_settings') ? sr_quiz_layout_extra_menu_items_from_settings($settings) : [];
+$quizIdentityVerificationAvailable = isset($quizIdentityVerificationAvailable)
+    ? (bool) $quizIdentityVerificationAvailable
+    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
+$quizIdentityVerificationInputAttributes = $quizIdentityVerificationAvailable
+    ? ''
+    : ' disabled aria-describedby="quiz-settings-identity-unavailable"';
 $quizSettingsHelpOpenLabel = '설명 보기';
 $quizSettingsHelpBodyHtml = static function (array $items): string {
     $html = '';
@@ -510,14 +516,19 @@ $quizSettingsSectionNavItems = [
         <div class="form-row">
             <span class="form-label">퀴즈 참여 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('quiz_settings_identity_view_required', 'identity_view_required', '1', !empty($settings['identity_view_required']), '사용'); ?>
+                <?php echo sr_admin_switch_html('quiz_settings_identity_view_required', 'identity_view_required', '1', $quizIdentityVerificationAvailable && !empty($settings['identity_view_required']), '사용', '', $quizIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 퀴즈 상세와 응시 전에 본인확인을 요구합니다.</p>
+                <?php if (!$quizIdentityVerificationAvailable) { ?>
+                    <div id="quiz-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 퀴즈 본인확인 설정을 사용할 수 없습니다.
+                    </div>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">퀴즈 참여 성인 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('quiz_settings_identity_view_adult_required', 'identity_view_adult_required', '1', !empty($settings['identity_view_adult_required']), '사용'); ?>
+                <?php echo sr_admin_switch_html('quiz_settings_identity_view_adult_required', 'identity_view_adult_required', '1', $quizIdentityVerificationAvailable && !empty($settings['identity_view_adult_required']), '사용', '', $quizIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 퀴즈에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
             </div>
         </div>
