@@ -28,7 +28,7 @@
 | 영역 | 대표 화면 |
 | --- | --- |
 | 시스템 | `/admin/roles`, `/admin/audit-logs` |
-| 회원 | `/admin/members`, `/admin/member-groups` |
+| 회원 | `/admin/members`, `/admin/member-groups`, `/admin/identity-verifications` |
 | 콘텐츠 | `/admin/content`, `/admin/content-groups`, `/admin/content/series`, `/admin/content/files`, `/admin/content/file-downloads` |
 | 커뮤니티 | `/admin/community/posts`, `/admin/community/comments`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/reports`, `/admin/community/series` |
 | 자산/권리 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/asset-exchange/logs` |

@@ -199,6 +199,7 @@ $paginationPairs = [
     ['modules/admin/actions/audit-logs.php', 'modules/admin/views/audit-logs.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/member/actions/admin-members.php', 'modules/member/views/admin-members.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/member/actions/admin-groups.php', 'modules/member/views/admin-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
+    ['modules/identity_verification/actions/admin-verifications.php', 'modules/identity_verification/views/admin-verifications.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/content/actions/admin-contents.php', 'modules/content/views/admin-contents.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/content/actions/admin-content-groups.php', 'modules/content/views/admin-content-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/content/actions/admin-series.php', 'modules/content/views/admin-series.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
@@ -237,6 +238,7 @@ foreach ($paginationPairs as [$actionFile, $viewFile, $actionMarker, $viewMarker
 $limitedQueryFiles = [
     'modules/member/helpers/admin-members.php',
     'modules/member/helpers/groups.php',
+    'modules/identity_verification/helpers.php',
     'modules/admin/helpers/roles.php',
     'modules/admin/helpers/audit-logs.php',
     'modules/content/helpers.php',

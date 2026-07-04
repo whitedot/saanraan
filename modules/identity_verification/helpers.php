@@ -83,6 +83,118 @@ function sr_identity_verification_purpose(string $purpose): string
     return preg_match('/\A[a-z][a-z0-9_.]{1,79}\z/', $purpose) === 1 ? $purpose : '';
 }
 
+function sr_identity_verification_attempt_status_labels(): array
+{
+    return [
+        'ready' => '요청 준비',
+        'pending' => '인증 진행 중',
+        'verified' => '검증 완료',
+        'failed' => '확인 실패',
+        'expired' => '시간 만료',
+        'canceled' => '사용자 취소',
+    ];
+}
+
+function sr_identity_verification_attempt_status_label(string $status): string
+{
+    $labels = sr_identity_verification_attempt_status_labels();
+
+    return (string) ($labels[$status] ?? $status);
+}
+
+function sr_identity_verification_attempt_status_class(string $status): string
+{
+    return match ($status) {
+        'verified' => 'is-normal',
+        'ready', 'pending' => 'is-warning',
+        'failed', 'expired', 'canceled' => 'is-left',
+        default => 'is-blocked',
+    };
+}
+
+function sr_identity_verification_purpose_labels(): array
+{
+    return [
+        'asset.exchange' => '자산 환전 신청',
+        'community.adult_board' => '커뮤니티 성인 게시판',
+        'community.restricted_board' => '커뮤니티 제한 게시판',
+        'content.author_application' => '콘텐츠 작성자 신청',
+        'content.author_application.adult' => '콘텐츠 작성자 성인 확인',
+        'deposit.refund_request' => '예치금 환불 신청',
+        'member.account_security' => '계정 보안 작업',
+        'member.mfa.login' => '로그인 2차 인증',
+        'member.registration' => '회원가입',
+        'member.withdrawal' => '회원탈퇴',
+        'reward.withdrawal_request' => '적립금 출금 신청',
+    ];
+}
+
+function sr_identity_verification_purpose_label(string $purpose): string
+{
+    $labels = sr_identity_verification_purpose_labels();
+
+    return (string) ($labels[$purpose] ?? $purpose);
+}
+
+function sr_identity_verification_admin_purpose_filter_value(string $input): string
+{
+    $input = trim($input);
+    $purpose = sr_identity_verification_purpose($input);
+    if ($purpose !== '') {
+        return $purpose;
+    }
+
+    foreach (sr_identity_verification_purpose_labels() as $purposeKey => $purposeLabel) {
+        if ($input === (string) $purposeLabel) {
+            return (string) $purposeKey;
+        }
+    }
+
+    return '';
+}
+
+function sr_identity_verification_failure_code_labels(): array
+{
+    return [
+        'attempt_expired' => '시도 유효 시간이 지났습니다.',
+        'duplicate_identity' => '이미 다른 계정에 연결된 본인확인 정보입니다.',
+        'provider_callback_exception' => '제공자 callback 처리 중 예외가 발생했습니다.',
+        'provider_callback_failed' => '제공자 callback 검증에 실패했습니다.',
+        'provider_prepare_failed' => '제공자 인증 요청 준비에 실패했습니다.',
+        'provider_verification_failed' => '제공자 검증 결과가 실패로 돌아왔습니다.',
+        'provider_verify_failed' => '제공자 return 검증 처리에 실패했습니다.',
+        'inicis_mtx_id_mismatch' => 'KG이니시스 거래 식별값이 일치하지 않습니다.',
+        'inicis_query_failed' => 'KG이니시스 결과 조회에 실패했습니다.',
+        'inicis_result_failed' => 'KG이니시스 인증 결과가 실패입니다.',
+        'inicis_result_query_invalid' => 'KG이니시스 결과 조회 응답이 올바르지 않습니다.',
+        'kcp_query_failed' => 'KCP 결과 조회에 실패했습니다.',
+        'kcp_reg_cert_key_mismatch' => 'KCP 인증 등록 키가 일치하지 않습니다.',
+        'kcp_result_failed' => 'KCP 인증 결과가 실패입니다.',
+    ];
+}
+
+function sr_identity_verification_failure_code_label(string $failureCode): string
+{
+    $failureCode = trim($failureCode);
+    if ($failureCode === '') {
+        return '';
+    }
+
+    $labels = sr_identity_verification_failure_code_labels();
+    if (isset($labels[$failureCode])) {
+        return (string) $labels[$failureCode];
+    }
+
+    if (str_starts_with($failureCode, 'kcp_')) {
+        return 'KCP 제공자 오류입니다.';
+    }
+    if (str_starts_with($failureCode, 'inicis_')) {
+        return 'KG이니시스 제공자 오류입니다.';
+    }
+
+    return $failureCode;
+}
+
 function sr_identity_verification_requirement_mode(string $mode): string
 {
     $mode = strtolower(trim($mode));
@@ -941,6 +1053,163 @@ function sr_identity_verification_result_by_attempt(PDO $pdo, int $attemptId): ?
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_identity_verification_admin_attempt_sort_options(): array
+{
+    return [
+        'requested_at' => ['columns' => ['a.requested_at', 'a.id']],
+        'provider_key' => ['columns' => ['a.provider_key', 'a.id']],
+        'purpose' => ['columns' => ['a.purpose', 'a.id']],
+        'account_id' => ['columns' => ['a.account_id', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'verified_at' => ['columns' => ['r.verified_at', 'a.id']],
+    ];
+}
+
+function sr_identity_verification_admin_attempt_default_sort(): array
+{
+    return sr_admin_sort_default('requested_at', 'desc');
+}
+
+function sr_identity_verification_admin_attempt_filters_from_request(PDO $pdo): array
+{
+    $status = sr_get_string('status', 30);
+    if (!isset(sr_identity_verification_attempt_status_labels()[$status])) {
+        $status = '';
+    }
+
+    $dateFrom = sr_get_string('date_from', 10);
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $dateFrom) !== 1) {
+        $dateFrom = '';
+    }
+
+    $dateTo = sr_get_string('date_to', 10);
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $dateTo) !== 1) {
+        $dateTo = '';
+    }
+
+    return [
+        'status' => $status,
+        'provider_key' => sr_identity_verification_provider_key(sr_get_string('provider_key', 60)),
+        'purpose' => sr_identity_verification_admin_purpose_filter_value(sr_get_string('purpose', 80)),
+        'account_id' => sr_admin_member_account_id_from_identifier($pdo, sr_runtime_config(), sr_get_string('account_id', 80)),
+        'date_from' => $dateFrom,
+        'date_to' => $dateTo,
+        'q' => sr_get_string('q', 120),
+    ];
+}
+
+function sr_identity_verification_admin_attempt_query_parts(array $filters): array
+{
+    $where = [];
+    $params = [];
+
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '' && isset(sr_identity_verification_attempt_status_labels()[$status])) {
+        $where[] = 'a.status = :status';
+        $params['status'] = $status;
+    }
+
+    $providerKey = sr_identity_verification_provider_key((string) ($filters['provider_key'] ?? ''));
+    if ($providerKey !== '') {
+        $where[] = 'a.provider_key = :provider_key';
+        $params['provider_key'] = $providerKey;
+    }
+
+    $purpose = sr_identity_verification_purpose((string) ($filters['purpose'] ?? ''));
+    if ($purpose !== '') {
+        $where[] = 'a.purpose = :purpose';
+        $params['purpose'] = $purpose;
+    }
+
+    $accountId = (int) ($filters['account_id'] ?? 0);
+    if ($accountId > 0) {
+        $where[] = 'a.account_id = :account_id';
+        $params['account_id'] = $accountId;
+    }
+
+    $dateFrom = (string) ($filters['date_from'] ?? '');
+    if ($dateFrom !== '') {
+        $where[] = 'a.requested_at >= :date_from';
+        $params['date_from'] = $dateFrom . ' 00:00:00';
+    }
+
+    $dateTo = (string) ($filters['date_to'] ?? '');
+    if ($dateTo !== '') {
+        $where[] = 'a.requested_at <= :date_to';
+        $params['date_to'] = $dateTo . ' 23:59:59';
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $qWhere = [
+            "a.verification_key LIKE :q ESCAPE '\\\\'",
+            "a.provider_transaction_id LIKE :q ESCAPE '\\\\'",
+            "a.provider_reference LIKE :q ESCAPE '\\\\'",
+            "a.purpose LIKE :q ESCAPE '\\\\'",
+            "a.failure_code LIKE :q ESCAPE '\\\\'",
+        ];
+        if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
+            $qWhere[] = 'a.id = :q_id';
+            $params['q_id'] = (int) $q;
+        }
+        $where[] = '(' . implode(' OR ', $qWhere) . ')';
+        $params['q'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_identity_verification_admin_attempt_count(PDO $pdo, array $filters): int
+{
+    $queryParts = sr_identity_verification_admin_attempt_query_parts($filters);
+    $sql = 'SELECT COUNT(*) FROM sr_identity_verification_attempts a';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_identity_verification_admin_attempts(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    $queryParts = sr_identity_verification_admin_attempt_query_parts($filters);
+    $limit = max(1, min(500, $limit));
+    $offset = max(0, $offset);
+
+    $sql = 'SELECT a.*, r.id AS result_id, r.verified_at, r.expires_at AS result_expires_at
+            FROM sr_identity_verification_attempts a
+            LEFT JOIN sr_identity_verification_results r ON r.attempt_id = a.id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $sql .= sr_admin_sort_order_sql(
+        sr_identity_verification_admin_attempt_sort_options(),
+        $sort,
+        sr_identity_verification_admin_attempt_default_sort()
+    );
+    $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $key => $value) {
+        if (is_int($value)) {
+            $stmt->bindValue(':' . $key, $value, PDO::PARAM_INT);
+        } else {
+            $stmt->bindValue(':' . $key, $value);
+        }
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
 }
 
 function sr_identity_verification_call_provider(array $provider, string $handlerKey, array $args): mixed

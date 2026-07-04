@@ -42,29 +42,18 @@ if ($detailId > 0) {
     }
 }
 
-$status = sr_get_string('status', 30);
-$providerKey = sr_identity_verification_provider_key(sr_get_string('provider_key', 60));
-$where = [];
-$params = [];
-if ($status !== '' && in_array($status, ['ready', 'pending', 'verified', 'failed', 'expired', 'canceled'], true)) {
-    $where[] = 'a.status = :status';
-    $params['status'] = $status;
-}
-if ($providerKey !== '') {
-    $where[] = 'a.provider_key = :provider_key';
-    $params['provider_key'] = $providerKey;
-}
-$whereSql = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
-$stmt = $pdo->prepare(
-    'SELECT a.*, r.id AS result_id, r.verified_at, r.expires_at AS result_expires_at
-     FROM sr_identity_verification_attempts a
-     LEFT JOIN sr_identity_verification_results r ON r.attempt_id = a.id
-     ' . $whereSql . '
-     ORDER BY a.id DESC
-     LIMIT 100'
-);
-$stmt->execute($params);
-$attempts = $stmt->fetchAll();
 $providers = sr_identity_verification_providers($pdo);
+$filters = sr_identity_verification_admin_attempt_filters_from_request($pdo);
+$attemptSortOptions = sr_identity_verification_admin_attempt_sort_options();
+$attemptDefaultSort = sr_identity_verification_admin_attempt_default_sort();
+$attemptSort = sr_admin_sort_from_request($attemptSortOptions, $attemptDefaultSort);
+$attemptPagination = sr_admin_pagination_from_total($pdo, sr_identity_verification_admin_attempt_count($pdo, $filters));
+$attempts = sr_identity_verification_admin_attempts(
+    $pdo,
+    $filters,
+    (int) $attemptPagination['per_page'],
+    sr_admin_pagination_offset($attemptPagination),
+    $attemptSort
+);
 
 include SR_ROOT . '/modules/identity_verification/views/admin-verifications.php';

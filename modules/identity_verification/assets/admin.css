@@ -2,6 +2,10 @@
     font-weight: var(--font-weight-normal);
 }
 
+.identity-verification-admin-verifications .filtering-form .form-select {
+    font-weight: var(--font-weight-normal);
+}
+
 .identity-verification-transfer {
     width: min(100% - 48px, 520px);
     margin: 20vh auto 0;
