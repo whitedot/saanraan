@@ -75,7 +75,7 @@ return [
         'profile_avatar_enabled' => true,
         'profile_avatar_required' => false,
         'profile_fields_json' => '[{"key":"phone","label":"휴대폰 번호","type":"text","required":false,"options":[],"visibility":"public","show_on_profile":false,"show_in_admin":true,"privacy_purpose":"회원 본인확인 및 연락처 관리","export_policy":"include","cleanup_policy":"anonymize"}]',
-        'profile_field_order_json' => '[]',
+        'profile_field_order_json' => '["extra:phone"]',
         'nickname_enabled' => true,
         'nickname_required' => true,
     ],

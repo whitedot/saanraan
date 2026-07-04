@@ -684,6 +684,14 @@ sr_member_auth_policy_assert(
         && strpos($memberModule, '"label":"휴대폰 번호"') !== false,
     'Member module default settings should include phone in optional profile fields.'
 );
+sr_member_auth_policy_assert(
+    strpos($memberModule, '\'profile_field_order_json\' => \'["extra:phone"]\'') !== false,
+    'Member module default settings should sort phone first in optional profile fields.'
+);
+sr_member_auth_policy_assert(
+    strpos($memberModule, '\'profile_field_order_json\' => \'["extra:phone"]\'') > strpos($memberModule, '"key":"phone"'),
+    'Member module default profile order should be defined after the default phone field exists.'
+);
 
 $memberMfaProviders = sr_member_auth_policy_read('modules/member/member-mfa-providers.php');
 $loginMfaView = sr_member_auth_policy_read('modules/member/views/login-mfa.php');
