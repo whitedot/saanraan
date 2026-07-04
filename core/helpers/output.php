@@ -994,7 +994,7 @@ function sr_editor_contracts(?PDO $pdo = null): array
 function sr_editor_available(PDO $pdo, string $editorKey): bool
 {
     $editorKey = sr_editor_normalize_key($editorKey);
-    if ($editorKey === 'textarea' || $editorKey === 'markdown') {
+    if ($editorKey === 'textarea' || $editorKey === 'html' || $editorKey === 'markdown') {
         return true;
     }
 
@@ -1011,6 +1011,7 @@ function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
 {
     $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
     $options['textarea'] = '기본 textarea';
+    $options['html'] = 'HTML';
     $options['markdown'] = 'Markdown';
     foreach (sr_editor_contracts($pdo) as $editorKey => $contract) {
         $options[(string) $editorKey] = (string) ($contract['label'] ?? $editorKey);
@@ -1027,6 +1028,9 @@ function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $pres
     }
     if ($editorKey === 'markdown') {
         return ' data-sr-editor="markdown" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="markdown"';
+    }
+    if ($editorKey === 'html') {
+        return ' data-sr-editor="html" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="html"';
     }
 
     return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';

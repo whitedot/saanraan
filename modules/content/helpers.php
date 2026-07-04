@@ -650,7 +650,7 @@ function sr_content_editor_toolbar_preset(PDO $pdo): string
 
 function sr_content_html_body_enabled(PDO $pdo): bool
 {
-    return sr_content_editor_key($pdo) === 'ckeditor';
+    return in_array(sr_content_editor_key($pdo), ['html', 'ckeditor'], true);
 }
 
 function sr_content_markdown_body_enabled(PDO $pdo): bool

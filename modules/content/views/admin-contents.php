@@ -501,7 +501,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
-                    <small><?php echo sr_e($contentEditorKey === 'ckeditor' ? 'CKEditor 제출은 허용된 HTML만 정화해 저장합니다.' : sr_t('content::ui.content.plain.save.723dab58')); ?></small>
+                    <small><?php echo sr_e(in_array($contentEditorKey, ['html', 'ckeditor'], true) ? 'HTML 본문은 허용된 태그와 속성만 정화해 저장합니다.' : ($contentEditorKey === 'markdown' ? 'Markdown 본문은 공개 출력 시 제한된 문법으로 HTML 변환됩니다.' : sr_t('content::ui.content.plain.save.723dab58'))); ?></small>
                 </div>
             </div>
         </section>

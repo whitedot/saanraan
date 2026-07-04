@@ -270,7 +270,7 @@ if (sr_request_method() === 'POST') {
         $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);
         $bodyFormat = 'plain';
-        if ($popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html') {
+        if ($popupLayerEditorKey === 'html' || ($popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html')) {
             $bodyFormat = 'html';
         } elseif ($popupLayerEditorKey === 'markdown') {
             $bodyFormat = 'markdown';

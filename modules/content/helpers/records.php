@@ -11,7 +11,7 @@ function sr_content_input_values(?PDO $pdo = null): array
     $pageGroupId = preg_match('/\A[1-9][0-9]*\z/', $pageGroupIdValue) === 1 ? (int) $pageGroupIdValue : 0;
     $pageGroupIdInvalid = $pageGroupIdValue !== '' && $pageGroupIdValue !== '0' && $pageGroupId === 0;
     $bodyFormat = 'plain';
-    if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) {
+    if ($pdo instanceof PDO && ((sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) || sr_content_editor_key($pdo) === 'html')) {
         $bodyFormat = 'html';
     } elseif ($pdo instanceof PDO && (sr_post_string('body_format', 20) === 'markdown' || sr_content_markdown_body_enabled($pdo))) {
         $bodyFormat = 'markdown';

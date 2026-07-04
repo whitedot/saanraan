@@ -41,7 +41,7 @@ $popupLayerSettingsHelp = [
         'id' => 'popup_layer_admin_settings_help_editor',
         'title' => '팝업 본문 에디터 도움말',
         'body' => '<p>' . sr_e('팝업 등록과 수정 화면의 본문 입력 방식입니다.') . '</p>'
-            . '<p>' . sr_e('CKEditor를 선택하면 팝업 본문은 허용된 HTML만 정화해 저장합니다.') . '</p>',
+            . '<p>' . sr_e('HTML 또는 CKEditor를 선택하면 팝업 본문은 허용된 HTML만 정화해 저장합니다. Markdown은 공개 출력 시 제한된 문법으로 HTML 변환됩니다.') . '</p>',
     ],
 ];
 $popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);

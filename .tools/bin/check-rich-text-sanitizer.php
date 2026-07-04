@@ -256,7 +256,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 '\'<div class="sr-popup-layer-body">\' . sr_body_text_html($popup) . \'</div>\';',
             ],
             'modules/popup_layer/actions/admin-popup-layers.php' => [
-                'if ($popupLayerEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\')',
+                'if ($popupLayerEditorKey === \'html\' || ($popupLayerEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\'))',
                 '} elseif ($popupLayerEditorKey === \'markdown\')',
                 '? sr_sanitize_rich_text_html(sr_popup_layer_clean_text($rawBodyText, 5000))',
                 ': sr_popup_layer_clean_text($rawBodyText, 5000);',
