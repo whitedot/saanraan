@@ -1100,7 +1100,7 @@ return [
 `markdown-renderer.php`:
 
 - callable 또는 renderer 배열을 반환한다.
-- `format_key`는 `markdown`이어야 하며, 선택 `helpers`, `render_function`, `available_function`, `stylesheets_function`을 제공한다.
+- `format_key`는 `markdown`이어야 하며, 선택 `helpers`, `render_function`, `available_function`, `stylesheet_function`을 제공한다.
 - `render_function` callable 형식은 `function (PDO $pdo, string $markdown, string $mode, array $context): array`이다.
 - `mode`는 `full`, `inline`, `plain` 중 하나이며, 결과는 `html`, `plain_text`, `stylesheets`, `profile_hash`를 포함해야 한다.
 - renderer는 raw HTML을 그대로 통과시키지 않고 parser/style profile에 따라 escape 기반 HTML을 만들어야 한다.

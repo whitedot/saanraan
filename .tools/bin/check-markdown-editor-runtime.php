@@ -57,6 +57,11 @@ sr_markdown_editor_check_assert(
     in_array('markdown-renderer.php', sr_module_known_contract_files(), true),
     'markdown-renderer.php should be a known module contract file.'
 );
+$rendererContract = require SR_ROOT . '/modules/markdown_editor/markdown-renderer.php';
+sr_markdown_editor_check_assert(
+    is_array($rendererContract) && (string) ($rendererContract['format_key'] ?? '') === 'markdown',
+    'markdown renderer contract should declare format_key=markdown.'
+);
 
 $metadata = sr_module_metadata('markdown_editor');
 sr_markdown_editor_check_assert(

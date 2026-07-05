@@ -951,6 +951,9 @@ function sr_markdown_renderer_contracts(PDO $pdo): array
         if (!is_array($contract)) {
             continue;
         }
+        if ((string) ($contract['format_key'] ?? '') !== 'markdown') {
+            continue;
+        }
 
         $helpers = (string) ($contract['helpers'] ?? '');
         if ($helpers !== '') {
@@ -968,6 +971,10 @@ function sr_markdown_renderer_contracts(PDO $pdo): array
 
         $renderFunction = (string) ($contract['render_function'] ?? '');
         if ($renderFunction === '' || !function_exists($renderFunction)) {
+            continue;
+        }
+        $availableFunction = (string) ($contract['available_function'] ?? '');
+        if ($availableFunction !== '' && function_exists($availableFunction) && $availableFunction($pdo) !== true) {
             continue;
         }
 
