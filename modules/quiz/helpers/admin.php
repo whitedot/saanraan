@@ -1275,9 +1275,20 @@ function sr_quiz_permanently_delete(PDO $pdo, int $quizId, string $confirmationP
             return ['ok' => false, 'message' => '확인 문구가 퀴즈 Key와 일치하지 않습니다.'];
         }
 
+        $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_quiz_comments WHERE quiz_id = :quiz_id');
+        $commentIdsStmt->execute(['quiz_id' => $quizId]);
+        $commentIds = array_values(array_filter(array_map('intval', array_column($commentIdsStmt->fetchAll(), 'id'))));
         $questionIdsStmt = $pdo->prepare('SELECT id FROM sr_quiz_questions WHERE quiz_id = :quiz_id');
         $questionIdsStmt->execute(['quiz_id' => $quizId]);
         $questionIds = array_values(array_filter(array_map('intval', array_column($questionIdsStmt->fetchAll(), 'id'))));
+        $urlEmbedCacheDeleted = function_exists('sr_url_embed_delete_owner_or_target_url_cache')
+            ? sr_url_embed_delete_owner_or_target_url_cache($pdo, 'quiz', 'quiz_set', $quizId)
+            : 0;
+        $reactionRecordsDeleted = 0;
+        if (function_exists('sr_reaction_delete_target_records')) {
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'quiz', 'quiz_set', [$quizId]);
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'quiz', 'comment', $commentIds);
+        }
         if ($questionIds !== []) {
             $pdo->exec('DELETE FROM sr_quiz_choices WHERE question_id IN (' . implode(',', $questionIds) . ')');
         }
@@ -1304,13 +1315,13 @@ function sr_quiz_permanently_delete(PDO $pdo, int $quizId, string $confirmationP
                 'quiz_key' => $quizKey,
                 'deleted_at' => (string) ($quiz['deleted_at'] ?? ''),
                 'questions_deleted' => count($questionIds),
+                'comments_deleted' => count($commentIds),
+                'url_embed_cache_deleted' => $urlEmbedCacheDeleted,
+                'reaction_records_deleted' => $reactionRecordsDeleted,
             ],
         ]);
 
         $pdo->commit();
-        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
-            sr_url_embed_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
-        }
 
         return ['ok' => true, 'message' => '퀴즈를 영구 삭제했습니다. 응시와 보상 이력은 보존됩니다.'];
     } catch (Throwable $exception) {

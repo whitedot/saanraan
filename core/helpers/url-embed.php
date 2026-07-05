@@ -256,6 +256,41 @@ function sr_url_embed_cache_table_exists(PDO $pdo): bool
     }
 }
 
+function sr_url_embed_delete_owner_or_target_url_cache(PDO $pdo, string $targetModule, string $targetType, int|string $targetId, string $ownerType = ''): int
+{
+    if (!sr_url_embed_cache_table_exists($pdo)) {
+        return 0;
+    }
+
+    $targetModule = sr_url_embed_clean_identifier($targetModule);
+    $targetType = sr_url_embed_clean_identifier($targetType);
+    $ownerType = $ownerType === '' ? $targetType : sr_url_embed_clean_identifier($ownerType);
+    $targetId = sr_url_embed_clean_target_id((string) $targetId);
+    if ($targetModule === '' || $targetType === '' || $ownerType === '' || $targetId === '') {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_url_embed_cache
+         WHERE (target_module = :target_module
+                AND target_type = :target_type
+                AND target_id = :target_id)
+            OR (owner_module = :owner_module
+                AND owner_type = :owner_type
+                AND owner_id = :owner_id)'
+    );
+    $stmt->execute([
+        'target_module' => $targetModule,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'owner_module' => $targetModule,
+        'owner_type' => $ownerType,
+        'owner_id' => (int) $targetId,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function sr_url_embed_clean_cache_status(string $value): string
 {
     $value = trim($value);

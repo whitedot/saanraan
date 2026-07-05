@@ -70,6 +70,46 @@ function sr_reaction_tables_available(PDO $pdo): bool
     return true;
 }
 
+function sr_reaction_delete_target_records(PDO $pdo, string $targetModule, string $targetType, array $targetIds): int
+{
+    $targetKey = sr_reaction_target_key($targetModule, $targetType);
+    if ($targetKey === '' || !sr_reaction_tables_available($pdo)) {
+        return 0;
+    }
+
+    $cleanIds = [];
+    foreach ($targetIds as $targetId) {
+        $cleanId = sr_reaction_target_id((string) $targetId);
+        if ($cleanId !== '') {
+            $cleanIds[$cleanId] = $cleanId;
+        }
+    }
+    if ($cleanIds === []) {
+        return 0;
+    }
+
+    $placeholders = [];
+    $params = [
+        'target_module' => sr_reaction_clean_key($targetModule, 60),
+        'target_type' => sr_reaction_clean_key($targetType, 60),
+    ];
+    foreach (array_values($cleanIds) as $index => $targetId) {
+        $key = 'target_id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $targetId;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_reaction_records
+         WHERE target_module = :target_module
+           AND target_type = :target_type
+           AND target_id IN (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
+
+    return $stmt->rowCount();
+}
+
 function sr_reaction_rate_limits_table_exists(PDO $pdo): bool
 {
     static $exists = null;

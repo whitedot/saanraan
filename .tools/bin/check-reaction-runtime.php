@@ -429,6 +429,18 @@ $assert(!empty($mergeCleanup['ok']) && (int) ($mergeCleanup['merged_count'] ?? 0
 $mergedDisabledCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE reaction_key = 'disabled'")->fetchColumn();
 $mergedLikeCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE reaction_key = 'like' AND account_id IN (11, 12)")->fetchColumn();
 $assert($mergedDisabledCount === 0 && $mergedLikeCount === 2, 'disabled key merge cleanup should remove source key usage.');
+$pdo->exec(
+    "INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES
+        (21, 'content', 'content', '9001', 'like', '$now', '$now'),
+        (22, 'content', 'comment', '9002', 'like', '$now', '$now'),
+        (23, 'content', 'comment', '9003', 'like', '$now', '$now'),
+        (24, 'quiz', 'quiz_set', '9001', 'like', '$now', '$now');"
+);
+$deletedContentReactions = sr_reaction_delete_target_records($pdo, 'content', 'content', [9001]);
+$deletedCommentReactions = sr_reaction_delete_target_records($pdo, 'content', 'comment', [9002, '9002', 'bad', 0]);
+$assert($deletedContentReactions === 1 && $deletedCommentReactions === 1, 'target reaction delete helper should delete valid unique target ids.');
+$assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE target_module = 'content' AND target_type = 'comment' AND target_id = '9003'")->fetchColumn() === 1, 'target reaction delete helper should keep unrelated comment targets.');
+$assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE target_module = 'quiz' AND target_type = 'quiz_set' AND target_id = '9001'")->fetchColumn() === 1, 'target reaction delete helper should keep other module targets.');
 
 $module = include SR_ROOT . '/modules/reaction/module.php';
 $paths = include SR_ROOT . '/modules/reaction/paths.php';

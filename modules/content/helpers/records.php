@@ -1155,6 +1155,18 @@ function sr_content_permanently_delete(PDO $pdo, int $pageId, string $confirmati
             return ['ok' => false, 'message' => '확인 문구가 콘텐츠 주소 이름과 일치하지 않습니다.'];
         }
 
+        $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_content_comments WHERE content_id = :content_id');
+        $commentIdsStmt->execute(['content_id' => $pageId]);
+        $commentIds = array_values(array_filter(array_map('intval', array_column($commentIdsStmt->fetchAll(), 'id'))));
+        $urlEmbedCacheDeleted = function_exists('sr_url_embed_delete_owner_or_target_url_cache')
+            ? sr_url_embed_delete_owner_or_target_url_cache($pdo, 'content', 'content', $pageId)
+            : 0;
+        $reactionRecordsDeleted = 0;
+        if (function_exists('sr_reaction_delete_target_records')) {
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'content', 'content', [$pageId]);
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'content', 'comment', $commentIds);
+        }
+
         $pdo->prepare('DELETE FROM sr_content_setting_sources WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
         $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = :content_id OR active_content_id = :active_content_id')->execute([
             'content_id' => $pageId,
@@ -1182,13 +1194,13 @@ function sr_content_permanently_delete(PDO $pdo, int $pageId, string $confirmati
             'message' => 'Deleted content body rows permanently removed.',
             'metadata' => [
                 'slug' => $slug,
+                'comments_deleted' => count($commentIds),
+                'url_embed_cache_deleted' => $urlEmbedCacheDeleted,
+                'reaction_records_deleted' => $reactionRecordsDeleted,
             ],
         ]);
 
         $pdo->commit();
-        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
-            sr_url_embed_mark_target_url_cache_stale($pdo, 'content', 'content', $pageId);
-        }
 
         return ['ok' => true, 'message' => '콘텐츠를 영구 삭제했습니다. 이용 로그와 정산 이력은 보존됩니다.'];
     } catch (Throwable $exception) {

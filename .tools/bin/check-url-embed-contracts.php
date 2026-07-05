@@ -302,6 +302,16 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert(isset($contractTargets['fixture']['item']), 'URL embed target loading must keep targets owned by the provider module.');
     sr_url_embed_contract_assert(!isset($contractTargets['content']['content']), 'URL embed target loading must ignore targets whose target_module is owned by another provider module.');
 
+    $deletePdo = sr_url_embed_contract_pdo();
+    sr_url_embed_sync_body_url_cache($deletePdo, 'owner', 'doc', 20, 'body', '<p><a href="/fixture/1">/fixture/1</a></p>', 7);
+    sr_url_embed_sync_body_url_cache($deletePdo, 'fixture', 'item', 1, 'body', '<p><a href="/fixture/2">/fixture/2</a></p>', 7);
+    sr_url_embed_sync_body_url_cache($deletePdo, 'owner', 'doc', 21, 'body', '<p><a href="/fixture/2">/fixture/2</a></p>', 7);
+    sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($deletePdo, 'SELECT COUNT(*) FROM sr_url_embed_cache') === 3, 'URL cache delete fixture must start with owner and target rows.');
+    $deletedUrlCacheRows = sr_url_embed_delete_owner_or_target_url_cache($deletePdo, 'fixture', 'item', 1);
+    sr_url_embed_contract_assert($deletedUrlCacheRows === 2, 'URL cache delete helper must delete rows owned by or targeting the deleted item.');
+    sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($deletePdo, 'SELECT COUNT(*) FROM sr_url_embed_cache') === 1, 'URL cache delete helper must leave unrelated target rows.');
+    sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($deletePdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_module = "owner" AND owner_id = 21') === 1, 'URL cache delete helper must keep unrelated owner rows.');
+
     $body = '<p><a href="/fixture/1">/fixture/1</a></p><p>문장 안의 <a href="/fixture/2">/fixture/2</a> 링크</p>';
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 10, 'body', $body, 7);
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache') === 1, 'URL cache sync must create one canonical cache row.');

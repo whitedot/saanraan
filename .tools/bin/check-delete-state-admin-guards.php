@@ -76,6 +76,21 @@ $assertContains(
     'Content permanent delete must remove content comments.'
 );
 $assertContains(
+    $contentRecords,
+    'sr_url_embed_delete_owner_or_target_url_cache($pdo, \'content\', \'content\', $pageId)',
+    'Content permanent delete must remove owner/target URL embed cache rows.'
+);
+$assertContains(
+    $contentRecords,
+    'sr_reaction_delete_target_records($pdo, \'content\', \'comment\', $commentIds)',
+    'Content permanent delete must remove content/comment reaction records.'
+);
+$assertContains(
+    $contentRecords,
+    'sr_reaction_delete_target_records($pdo, \'content\', \'content\', [$pageId])',
+    'Content permanent delete must remove content target reaction records.'
+);
+$assertContains(
     $contentView,
     "\$pageIsDeleted = \$pageStatus === 'deleted';",
     'Content admin list must detect deleted rows.'
@@ -132,6 +147,21 @@ $assertContains(
     'Quiz permanent delete must remove quiz comments.'
 );
 $assertContains(
+    $quizAdminHelpers,
+    'sr_url_embed_delete_owner_or_target_url_cache($pdo, \'quiz\', \'quiz_set\', $quizId)',
+    'Quiz permanent delete must remove owner/target URL embed cache rows.'
+);
+$assertContains(
+    $quizAdminHelpers,
+    'sr_reaction_delete_target_records($pdo, \'quiz\', \'comment\', $commentIds)',
+    'Quiz permanent delete must remove quiz/comment reaction records.'
+);
+$assertContains(
+    $quizAdminHelpers,
+    'sr_reaction_delete_target_records($pdo, \'quiz\', \'quiz_set\', [$quizId])',
+    'Quiz permanent delete must remove quiz target reaction records.'
+);
+$assertContains(
     $quizHelpers,
     'sr_quiz_record_storage_cleanup_pending',
     'Quiz cover image deletion must pre-record storage cleanup attempts.'
@@ -186,6 +216,21 @@ $assertContains(
     $surveyAdminHelpers,
     'DELETE FROM sr_survey_comments WHERE survey_id = :survey_id',
     'Survey permanent delete must remove survey comments.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    'sr_url_embed_delete_owner_or_target_url_cache($pdo, \'survey\', \'survey_form\', $surveyId)',
+    'Survey permanent delete must remove owner/target URL embed cache rows.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    'sr_reaction_delete_target_records($pdo, \'survey\', \'comment\', $commentIds)',
+    'Survey permanent delete must remove survey/comment reaction records.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    'sr_reaction_delete_target_records($pdo, \'survey\', \'survey_form\', [$surveyId])',
+    'Survey permanent delete must remove survey target reaction records.'
 );
 $assertContains(
     $surveyHelpers,

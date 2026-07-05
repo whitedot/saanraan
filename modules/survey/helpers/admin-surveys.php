@@ -759,9 +759,20 @@ function sr_survey_permanently_delete(PDO $pdo, int $surveyId, string $confirmat
             return ['ok' => false, 'message' => '확인 문구가 설문 Key와 일치하지 않습니다.'];
         }
 
+        $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_survey_comments WHERE survey_id = :survey_id');
+        $commentIdsStmt->execute(['survey_id' => $surveyId]);
+        $commentIds = array_values(array_filter(array_map('intval', array_column($commentIdsStmt->fetchAll(), 'id'))));
         $questionIdsStmt = $pdo->prepare('SELECT id FROM sr_survey_questions WHERE survey_id = :survey_id');
         $questionIdsStmt->execute(['survey_id' => $surveyId]);
         $questionIds = array_values(array_filter(array_map('intval', array_column($questionIdsStmt->fetchAll(), 'id'))));
+        $urlEmbedCacheDeleted = function_exists('sr_url_embed_delete_owner_or_target_url_cache')
+            ? sr_url_embed_delete_owner_or_target_url_cache($pdo, 'survey', 'survey_form', $surveyId)
+            : 0;
+        $reactionRecordsDeleted = 0;
+        if (function_exists('sr_reaction_delete_target_records')) {
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'survey', 'survey_form', [$surveyId]);
+            $reactionRecordsDeleted += sr_reaction_delete_target_records($pdo, 'survey', 'comment', $commentIds);
+        }
         if ($questionIds !== []) {
             $pdo->exec('DELETE FROM sr_survey_choices WHERE question_id IN (' . implode(',', $questionIds) . ')');
         }
@@ -785,13 +796,13 @@ function sr_survey_permanently_delete(PDO $pdo, int $surveyId, string $confirmat
                 'survey_key' => $surveyKey,
                 'deleted_at' => (string) ($survey['deleted_at'] ?? ''),
                 'questions_deleted' => count($questionIds),
+                'comments_deleted' => count($commentIds),
+                'url_embed_cache_deleted' => $urlEmbedCacheDeleted,
+                'reaction_records_deleted' => $reactionRecordsDeleted,
             ],
         ]);
 
         $pdo->commit();
-        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
-            sr_url_embed_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
-        }
 
         return ['ok' => true, 'message' => '설문을 영구 삭제했습니다. 응답과 보상 이력은 보존됩니다.'];
     } catch (Throwable $exception) {
