@@ -61,6 +61,11 @@ $assertContains(
     'Content delete action must expose permanent delete intent.'
 );
 $assertContains(
+    $contentDeleteAction,
+    "require_once SR_ROOT . '/modules/reaction/helpers.php'",
+    'Content permanent delete action must load reaction helpers when reaction is enabled.'
+);
+$assertContains(
     $contentRecords,
     'function sr_content_permanently_delete',
     'Content must have a permanent delete helper.'
