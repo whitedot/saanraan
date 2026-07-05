@@ -534,6 +534,29 @@ window.AdminShell = {
             return invalidControls.length === 0;
         };
 
+        const validateConfirmPhraseFields = root => {
+            if (!root || !root.querySelectorAll) {
+                return true;
+            }
+
+            let valid = true;
+            Array.prototype.slice.call(root.querySelectorAll('[data-confirm-phrase]')).forEach(input => {
+                if (!input || typeof input.setCustomValidity !== 'function') {
+                    return;
+                }
+                const expected = input.getAttribute('data-confirm-phrase') || '';
+                const message = input.getAttribute('data-confirm-phrase-message') || '확인 문구가 일치하지 않습니다.';
+                const matches = String(input.value || '').trim() === expected;
+                input.setCustomValidity(matches ? '' : message);
+                if (!matches) {
+                    valid = false;
+                }
+                refreshValidationControl(input);
+            });
+
+            return valid;
+        };
+
         const adminFormShouldValidateRequiredSelection = form => {
             if (!form || !form.matches) {
                 return false;
@@ -1951,6 +1974,13 @@ window.AdminShell = {
                 refreshValidationControl(validationControl);
             }
 
+            const confirmPhraseInput = event.target && event.target.closest
+                ? event.target.closest('[data-confirm-phrase]')
+                : null;
+            if (confirmPhraseInput) {
+                validateConfirmPhraseFields(confirmPhraseInput.closest('form') || confirmPhraseInput);
+            }
+
             const assetAmountInput = event.target && event.target.closest
                 ? event.target.closest('[data-admin-asset-amount-input]')
                 : null;
@@ -2091,6 +2121,7 @@ window.AdminShell = {
                 : null;
             syncBodyEditorValuesBeforeSubmit(event.target);
             syncBodyEditorGroups(event.target);
+            validateConfirmPhraseFields(event.target);
             if (validationForm && (!validationForm.checkValidity() || !validateSrForm(validationForm, true))) {
                 event.preventDefault();
                 event.stopPropagation();

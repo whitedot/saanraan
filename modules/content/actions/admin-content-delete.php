@@ -11,7 +11,23 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'delete');
 sr_require_csrf();
 
+$intent = sr_post_string('intent', 40);
 $pageId = (int) sr_post_string('content_id', 20);
+if ($intent === 'permanent_delete') {
+    $confirmationPhrase = sr_post_string('confirmation_phrase', 160);
+    try {
+        $deleteResult = sr_content_permanently_delete($pdo, $pageId, $confirmationPhrase, (int) $account['id']);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'content_permanent_delete_failed');
+        sr_admin_redirect_with_result(sr_admin_action_result(['콘텐츠 영구 삭제 중 오류가 발생했습니다.'], ''), '/admin/content?status=deleted');
+    }
+    sr_admin_redirect_with_result(
+        !empty($deleteResult['ok'])
+            ? sr_admin_action_result([], (string) ($deleteResult['message'] ?? '콘텐츠를 영구 삭제했습니다.'))
+            : sr_admin_action_result([(string) ($deleteResult['message'] ?? '콘텐츠를 영구 삭제할 수 없습니다.')], ''),
+        '/admin/content?status=deleted'
+    );
+}
 $page = sr_content_by_id($pdo, $pageId);
 if (!is_array($page)) {
     sr_render_error(404, sr_t('content::action.error.content_delete_not_found'));

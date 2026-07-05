@@ -239,7 +239,14 @@ function sr_quiz_delete_cover_image_storage(PDO $pdo, string $url, int $exceptQu
         return ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => $reference];
     }
 
+    $failureId = sr_quiz_record_storage_cleanup_pending($pdo, 'quiz_cover_image', $exceptQuizId, $driver, $key);
     $deleted = sr_storage_delete($driver, $key);
+    sr_quiz_update_storage_cleanup_result(
+        $pdo,
+        $failureId,
+        $deleted,
+        $deleted ? '' : '퀴즈 커버 이미지 저장소 정리에 실패했습니다.'
+    );
 
     return [
         'attempted' => true,
@@ -247,6 +254,63 @@ function sr_quiz_delete_cover_image_storage(PDO $pdo, string $url, int $exceptQu
         'failed' => !$deleted,
         'reference' => $reference,
     ];
+}
+
+function sr_quiz_record_storage_cleanup_pending(PDO $pdo, string $sourceType, int $sourceId, string $driver, string $key): int
+{
+    if ($key === '' || !sr_storage_key_is_safe($key)) {
+        return 0;
+    }
+
+    $driver = in_array($driver, ['local', 's3'], true) ? $driver : 'local';
+    $now = sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_quiz_storage_cleanup_failures
+                (source_type, source_id, storage_driver, storage_key, status, attempt_count, last_error, created_at, updated_at)
+             VALUES
+                (:source_type, :source_id, :storage_driver, :storage_key, 'pending', 0, '', :created_at, :updated_at)"
+        );
+        $stmt->execute([
+            'source_type' => sr_quiz_clean_key($sourceType),
+            'source_id' => max(0, $sourceId),
+            'storage_driver' => $driver,
+            'storage_key' => $key,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return (int) $pdo->lastInsertId();
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'quiz_storage_cleanup_pending_record_failed');
+        return 0;
+    }
+}
+
+function sr_quiz_update_storage_cleanup_result(PDO $pdo, int $failureId, bool $deleted, string $errorMessage): void
+{
+    if ($failureId < 1) {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_quiz_storage_cleanup_failures
+             SET status = :status,
+                 attempt_count = attempt_count + 1,
+                 last_error = :last_error,
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'status' => $deleted ? 'cleaned' : 'pending',
+            'last_error' => $deleted ? '' : sr_quiz_clean_text($errorMessage, 1000),
+            'updated_at' => sr_now(),
+            'id' => $failureId,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'quiz_storage_cleanup_result_update_failed');
+    }
 }
 
 function sr_quiz_statuses(): array

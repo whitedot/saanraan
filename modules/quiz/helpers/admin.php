@@ -1245,6 +1245,82 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     }
 }
 
+function sr_quiz_permanently_delete(PDO $pdo, int $quizId, string $confirmationPhrase, int $accountId): array
+{
+    if ($quizId < 1) {
+        return ['ok' => false, 'message' => '영구 삭제할 퀴즈를 찾을 수 없습니다.'];
+    }
+
+    $driverName = '';
+    try {
+        $driverName = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driverName = '';
+    }
+    $forUpdateSql = $driverName === 'sqlite' ? '' : ' FOR UPDATE';
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT id, quiz_key, title, deleted_at FROM sr_quiz_sets WHERE id = :id AND deleted_at IS NOT NULL LIMIT 1' . $forUpdateSql);
+        $stmt->execute(['id' => $quizId]);
+        $quiz = $stmt->fetch();
+        if (!is_array($quiz)) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '이미 영구 삭제되었거나 삭제 상태가 아닌 퀴즈입니다.'];
+        }
+
+        $quizKey = (string) ($quiz['quiz_key'] ?? '');
+        if (trim($confirmationPhrase) !== $quizKey) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '확인 문구가 퀴즈 Key와 일치하지 않습니다.'];
+        }
+
+        $questionIdsStmt = $pdo->prepare('SELECT id FROM sr_quiz_questions WHERE quiz_id = :quiz_id');
+        $questionIdsStmt->execute(['quiz_id' => $quizId]);
+        $questionIds = array_values(array_filter(array_map('intval', array_column($questionIdsStmt->fetchAll(), 'id'))));
+        if ($questionIds !== []) {
+            $pdo->exec('DELETE FROM sr_quiz_choices WHERE question_id IN (' . implode(',', $questionIds) . ')');
+        }
+        $pdo->prepare('DELETE FROM sr_quiz_result_rules WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $pdo->prepare('DELETE FROM sr_quiz_results WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $pdo->prepare('DELETE FROM sr_quiz_sources WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $pdo->prepare('DELETE FROM sr_quiz_comments WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $pdo->prepare('DELETE FROM sr_quiz_questions WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $deleteStmt = $pdo->prepare('DELETE FROM sr_quiz_sets WHERE id = :id AND deleted_at IS NOT NULL');
+        $deleteStmt->execute(['id' => $quizId]);
+        if ($deleteStmt->rowCount() < 1) {
+            throw new RuntimeException('Quiz permanent delete did not remove row.');
+        }
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'quiz.permanently_deleted',
+            'target_type' => 'quiz',
+            'target_id' => (string) $quizId,
+            'result' => 'success',
+            'message' => 'Deleted quiz body rows permanently removed.',
+            'metadata' => [
+                'quiz_key' => $quizKey,
+                'deleted_at' => (string) ($quiz['deleted_at'] ?? ''),
+                'questions_deleted' => count($questionIds),
+            ],
+        ]);
+
+        $pdo->commit();
+        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
+            sr_url_embed_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
+        }
+
+        return ['ok' => true, 'message' => '퀴즈를 영구 삭제했습니다. 응시와 보상 이력은 보존됩니다.'];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}
+
 function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
 {
     if ($quizId < 1) {

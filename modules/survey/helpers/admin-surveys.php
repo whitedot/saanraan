@@ -728,3 +728,76 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     sr_admin_flash_result(sr_admin_action_result($errors, ''));
     sr_redirect($redirectPath);
 }
+
+function sr_survey_permanently_delete(PDO $pdo, int $surveyId, string $confirmationPhrase, int $accountId): array
+{
+    if ($surveyId < 1) {
+        return ['ok' => false, 'message' => '영구 삭제할 설문을 찾을 수 없습니다.'];
+    }
+
+    $driverName = '';
+    try {
+        $driverName = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driverName = '';
+    }
+    $forUpdateSql = $driverName === 'sqlite' ? '' : ' FOR UPDATE';
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT id, survey_key, title, deleted_at FROM sr_survey_forms WHERE id = :id AND deleted_at IS NOT NULL LIMIT 1' . $forUpdateSql);
+        $stmt->execute(['id' => $surveyId]);
+        $survey = $stmt->fetch();
+        if (!is_array($survey)) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '이미 영구 삭제되었거나 삭제 상태가 아닌 설문입니다.'];
+        }
+
+        $surveyKey = (string) ($survey['survey_key'] ?? '');
+        if (trim($confirmationPhrase) !== $surveyKey) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '확인 문구가 설문 Key와 일치하지 않습니다.'];
+        }
+
+        $questionIdsStmt = $pdo->prepare('SELECT id FROM sr_survey_questions WHERE survey_id = :survey_id');
+        $questionIdsStmt->execute(['survey_id' => $surveyId]);
+        $questionIds = array_values(array_filter(array_map('intval', array_column($questionIdsStmt->fetchAll(), 'id'))));
+        if ($questionIds !== []) {
+            $pdo->exec('DELETE FROM sr_survey_choices WHERE question_id IN (' . implode(',', $questionIds) . ')');
+        }
+        $pdo->prepare('DELETE FROM sr_survey_comments WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
+        $pdo->prepare('DELETE FROM sr_survey_questions WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
+        $deleteStmt = $pdo->prepare('DELETE FROM sr_survey_forms WHERE id = :id AND deleted_at IS NOT NULL');
+        $deleteStmt->execute(['id' => $surveyId]);
+        if ($deleteStmt->rowCount() < 1) {
+            throw new RuntimeException('Survey permanent delete did not remove row.');
+        }
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'survey.form.permanently_deleted',
+            'target_type' => 'survey.form',
+            'target_id' => (string) $surveyId,
+            'result' => 'success',
+            'message' => 'Deleted survey body rows permanently removed.',
+            'metadata' => [
+                'survey_key' => $surveyKey,
+                'deleted_at' => (string) ($survey['deleted_at'] ?? ''),
+                'questions_deleted' => count($questionIds),
+            ],
+        ]);
+
+        $pdo->commit();
+        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
+            sr_url_embed_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
+        }
+
+        return ['ok' => true, 'message' => '설문을 영구 삭제했습니다. 응답과 보상 이력은 보존됩니다.'];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}

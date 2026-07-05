@@ -218,6 +218,7 @@ $contentHelpBodyHtml = static function (array $keys): string {
     return $html;
 };
 $contentCopyModals = '';
+$contentPermanentDeleteModals = '';
 $contentCopyModalHtml = static function (array $content, string $returnTo): string {
     $contentId = (int) ($content['id'] ?? 0);
     if ($contentId < 1) {
@@ -288,6 +289,44 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+    <?php
+    return (string) ob_get_clean();
+};
+$contentPermanentDeleteModalHtml = static function (array $content): string {
+    $contentId = (int) ($content['id'] ?? 0);
+    if ($contentId < 1) {
+        return '';
+    }
+    $modalId = 'content-permanent-delete-modal-' . (string) $contentId;
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form data-confirm-phrase-form>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="permanent_delete">
+                <input type="hidden" name="content_id" value="<?php echo sr_e((string) $contentId); ?>">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title">콘텐츠 영구 삭제</h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <p class="form-help">삭제된 콘텐츠 본문, 리비전, 제출, 댓글, 파일 참조를 물리 삭제합니다. 이용 로그와 정산 이력은 보존됩니다.</p>
+                    <div class="form-row">
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>-phrase">확인 문구 <span class="sr-required-label">(필수)</span></label>
+                        <div class="form-field">
+                            <input id="<?php echo sr_e($modalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($content['slug'] ?? '')); ?>" data-overlay-focus>
+                            <p class="form-help"><code><?php echo sr_e((string) ($content['slug'] ?? '')); ?></code> 를 정확히 입력하세요.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">취소</button>
+                    <button type="submit" class="btn btn-outline-danger modal-action">영구 삭제</button>
+                </div>
+            </form>
         </div>
     </div>
     <?php
@@ -1237,6 +1276,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                                                 <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                             </form>
+                                        <?php } elseif ($pageIsDeleted) { ?>
+                                            <?php
+                                            $contentPermanentDeleteModalId = 'content-permanent-delete-modal-' . (string) (int) $page['id'];
+                                            $contentPermanentDeleteModals .= $contentPermanentDeleteModalHtml($page);
+                                            ?>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 영구 삭제" title="영구 삭제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentPermanentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentPermanentDeleteModalId); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                                         <?php } ?>
                                     </div>
                                 </td>
@@ -1255,6 +1300,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['published', 'draft', 'scheduled', 'hidden'], 'content_status')); ?>
     </section>
     <?php echo $contentCopyModals; ?>
+    <?php echo $contentPermanentDeleteModals; ?>
     <?php echo sr_admin_pagination_html($pagePagination, '콘텐츠 목록 페이지'); ?>
 <?php } ?>
 

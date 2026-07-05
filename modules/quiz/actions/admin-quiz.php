@@ -168,6 +168,22 @@ if (sr_request_method() === 'POST') {
             'metadata' => [],
         ]);
         sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈를 삭제했습니다.'), '/admin/quiz');
+    } elseif ($intent === 'permanent_delete') {
+        sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'delete');
+        $quizId = (int) sr_post_string('quiz_id', 20);
+        $confirmationPhrase = sr_post_string('confirmation_phrase', 80);
+        try {
+            $deleteResult = sr_quiz_permanently_delete($pdo, $quizId, $confirmationPhrase, (int) ($account['id'] ?? 0));
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'quiz_permanent_delete_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['퀴즈 영구 삭제 중 오류가 발생했습니다.'], ''), '/admin/quiz?deleted=1');
+        }
+        sr_admin_redirect_with_result(
+            !empty($deleteResult['ok'])
+                ? sr_admin_action_result([], (string) ($deleteResult['message'] ?? '퀴즈를 영구 삭제했습니다.'))
+                : sr_admin_action_result([(string) ($deleteResult['message'] ?? '퀴즈를 영구 삭제할 수 없습니다.')], ''),
+            '/admin/quiz?deleted=1'
+        );
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result(['지원하지 않는 퀴즈 관리 요청입니다.'], ''), '/admin/quiz');
@@ -335,6 +351,8 @@ if ($mode === 'list') {
                                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="퀴즈 삭제" title="삭제" data-confirm="<?php echo sr_e('퀴즈를 삭제할까요? 기존 기록은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
+                                    <?php } else { ?>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" aria-label="퀴즈 영구 삭제" title="영구 삭제" aria-haspopup="dialog" aria-expanded="false" aria-controls="quiz-permanent-delete-modal-<?php echo sr_e((string) (int) $quiz['id']); ?>" data-overlay="#quiz-permanent-delete-modal-<?php echo sr_e((string) (int) $quiz['id']); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                                     <?php } ?>
                                 </div>
                             </td>
@@ -353,7 +371,37 @@ if ($mode === 'list') {
         <?php echo sr_admin_status_description_list_html('quiz_reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [], '보상 사용 설명'); ?>
     </section>
     <?php foreach ($quizzes as $quiz) { ?>
-        <?php if (!empty($quiz['deleted_at'])) { continue; } ?>
+        <?php if (!empty($quiz['deleted_at'])) { ?>
+            <?php $permanentDeleteModalId = 'quiz-permanent-delete-modal-' . (string) (int) $quiz['id']; ?>
+            <div id="<?php echo sr_e($permanentDeleteModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($permanentDeleteModalId); ?>-label" aria-hidden="true" inert>
+                <div class="modal-dialog">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form data-confirm-phrase-form>
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="permanent_delete">
+                        <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
+                        <div class="modal-header">
+                            <h3 id="<?php echo sr_e($permanentDeleteModalId); ?>-label" class="modal-title">퀴즈 영구 삭제</h3>
+                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($permanentDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="form-help">삭제된 퀴즈 본문, 문제, 선택지, 결과 규칙, 연결 정보를 물리 삭제합니다. 응시와 보상 이력은 보존됩니다.</p>
+                            <div class="form-row">
+                                <label class="form-label" for="<?php echo sr_e($permanentDeleteModalId); ?>-phrase">확인 문구 <span class="sr-required-label">(필수)</span></label>
+                                <div class="form-field">
+                                    <input id="<?php echo sr_e($permanentDeleteModalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?>" data-overlay-focus>
+                                    <p class="form-help"><code><?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?></code> 를 정확히 입력하세요.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($permanentDeleteModalId); ?>">취소</button>
+                            <button type="submit" class="btn btn-outline-danger modal-action">영구 삭제</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <?php continue; ?>
+        <?php } ?>
         <?php
         $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
         $sourceKey = (string) ($quiz['quiz_key'] ?? '');

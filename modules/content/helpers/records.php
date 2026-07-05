@@ -1124,3 +1124,77 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
         throw $exception;
     }
 }
+
+function sr_content_permanently_delete(PDO $pdo, int $pageId, string $confirmationPhrase, int $accountId): array
+{
+    if ($pageId < 1) {
+        return ['ok' => false, 'message' => '영구 삭제할 콘텐츠를 찾을 수 없습니다.'];
+    }
+
+    $driverName = '';
+    try {
+        $driverName = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driverName = '';
+    }
+    $forUpdateSql = $driverName === 'sqlite' ? '' : ' FOR UPDATE';
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("SELECT id, slug, title, status FROM sr_content_items WHERE id = :id AND status = 'deleted' LIMIT 1" . $forUpdateSql);
+        $stmt->execute(['id' => $pageId]);
+        $content = $stmt->fetch();
+        if (!is_array($content)) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '이미 영구 삭제되었거나 삭제 상태가 아닌 콘텐츠입니다.'];
+        }
+
+        $slug = (string) ($content['slug'] ?? '');
+        if (trim($confirmationPhrase) !== $slug) {
+            $pdo->rollBack();
+            return ['ok' => false, 'message' => '확인 문구가 콘텐츠 주소 이름과 일치하지 않습니다.'];
+        }
+
+        $pdo->prepare('DELETE FROM sr_content_setting_sources WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = :content_id OR active_content_id = :active_content_id')->execute([
+            'content_id' => $pageId,
+            'active_content_id' => $pageId,
+        ]);
+        $pdo->prepare('DELETE FROM sr_content_file_links WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare('DELETE FROM sr_content_access_entitlements WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare('DELETE FROM sr_content_revisions WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare('DELETE FROM sr_content_submissions WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare('DELETE FROM sr_content_comments WHERE content_id = :content_id')->execute(['content_id' => $pageId]);
+        $pdo->prepare("DELETE FROM sr_content_files WHERE content_id = :content_id AND status = 'deleted'")->execute(['content_id' => $pageId]);
+        $deleteStmt = $pdo->prepare("DELETE FROM sr_content_items WHERE id = :id AND status = 'deleted'");
+        $deleteStmt->execute(['id' => $pageId]);
+        if ($deleteStmt->rowCount() < 1) {
+            throw new RuntimeException('Content permanent delete did not remove row.');
+        }
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'content.permanently_deleted',
+            'target_type' => 'content',
+            'target_id' => (string) $pageId,
+            'result' => 'success',
+            'message' => 'Deleted content body rows permanently removed.',
+            'metadata' => [
+                'slug' => $slug,
+            ],
+        ]);
+
+        $pdo->commit();
+        if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
+            sr_url_embed_mark_target_url_cache_stale($pdo, 'content', 'content', $pageId);
+        }
+
+        return ['ok' => true, 'message' => '콘텐츠를 영구 삭제했습니다. 이용 로그와 정산 이력은 보존됩니다.'];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+}

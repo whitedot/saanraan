@@ -24,13 +24,20 @@ $assertContains = static function (string $content, string $needle, string $mess
 
 $contentAdmin = $read('modules/content/actions/admin-contents.php');
 $contentCopyAction = $read('modules/content/actions/admin-content-copy.php');
+$contentDeleteAction = $read('modules/content/actions/admin-content-delete.php');
 $contentRecords = $read('modules/content/helpers/records.php');
 $contentView = $read('modules/content/views/admin-contents.php');
 $quizHelpers = $read('modules/quiz/helpers.php');
 $quizAdminHelpers = $read('modules/quiz/helpers/admin.php');
 $quizAction = $read('modules/quiz/actions/admin-quiz.php');
+$quizInstall = $read('modules/quiz/install.sql');
+$quizUpdate = $read('modules/quiz/updates/2026.07.001.sql');
+$adminShell = $read('modules/admin/assets/admin-shell.js');
+$surveyHelpers = $read('modules/survey/helpers.php');
 $surveyAdminHelpers = $read('modules/survey/helpers/admin-surveys.php');
 $surveyAction = $read('modules/survey/actions/admin-surveys.php');
+$surveyInstall = $read('modules/survey/install.sql');
+$surveyUpdate = $read('modules/survey/updates/2026.07.001.sql');
 
 $assertContains(
     $contentAdmin,
@@ -46,6 +53,26 @@ $assertContains(
     $contentRecords,
     "삭제된 콘텐츠는 복사할 수 없습니다.",
     'Content copy helper must reject deleted content.'
+);
+$assertContains(
+    $contentDeleteAction,
+    "\$intent === 'permanent_delete'",
+    'Content delete action must expose permanent delete intent.'
+);
+$assertContains(
+    $contentRecords,
+    'function sr_content_permanently_delete',
+    'Content must have a permanent delete helper.'
+);
+$assertContains(
+    $contentRecords,
+    'DELETE FROM sr_content_access_entitlements WHERE content_id = :content_id',
+    'Content permanent delete must remove live access entitlements.'
+);
+$assertContains(
+    $contentRecords,
+    'DELETE FROM sr_content_comments WHERE content_id = :content_id',
+    'Content permanent delete must remove content comments.'
 );
 $assertContains(
     $contentView,
@@ -88,6 +115,36 @@ $assertContains(
     "if (!\$quizIsDeleted)",
     'Quiz admin list must hide row actions for deleted rows.'
 );
+$assertContains(
+    $quizAction,
+    "name=\"intent\" value=\"permanent_delete\"",
+    'Quiz admin deleted view must expose permanent delete POST intent.'
+);
+$assertContains(
+    $quizAdminHelpers,
+    'function sr_quiz_permanently_delete',
+    'Quiz must have a permanent delete helper.'
+);
+$assertContains(
+    $quizAdminHelpers,
+    'DELETE FROM sr_quiz_comments WHERE quiz_id = :quiz_id',
+    'Quiz permanent delete must remove quiz comments.'
+);
+$assertContains(
+    $quizHelpers,
+    'sr_quiz_record_storage_cleanup_pending',
+    'Quiz cover image deletion must pre-record storage cleanup attempts.'
+);
+$assertContains(
+    $quizInstall,
+    'CREATE TABLE IF NOT EXISTS sr_quiz_storage_cleanup_failures',
+    'Quiz install schema must include storage cleanup failures.'
+);
+$assertContains(
+    $quizUpdate,
+    'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}quiz_storage_cleanup_failures',
+    'Quiz update schema must add storage cleanup failures.'
+);
 
 $assertContains(
     $surveyAdminHelpers,
@@ -108,6 +165,41 @@ $assertContains(
     $surveyAction,
     "if (!\$surveyIsDeleted):",
     'Survey admin list must hide row actions for deleted rows.'
+);
+$assertContains(
+    $surveyAction,
+    "name=\"intent\" value=\"permanent_delete\"",
+    'Survey admin deleted view must expose permanent delete POST intent.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    'function sr_survey_permanently_delete',
+    'Survey must have a permanent delete helper.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    'DELETE FROM sr_survey_comments WHERE survey_id = :survey_id',
+    'Survey permanent delete must remove survey comments.'
+);
+$assertContains(
+    $surveyHelpers,
+    'sr_survey_record_storage_cleanup_pending',
+    'Survey cover image deletion must pre-record storage cleanup attempts.'
+);
+$assertContains(
+    $surveyInstall,
+    'CREATE TABLE IF NOT EXISTS sr_survey_storage_cleanup_failures',
+    'Survey install schema must include storage cleanup failures.'
+);
+$assertContains(
+    $surveyUpdate,
+    'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}survey_storage_cleanup_failures',
+    'Survey update schema must add storage cleanup failures.'
+);
+$assertContains(
+    $adminShell,
+    'validateConfirmPhraseFields',
+    'Admin shell must validate destructive confirmation phrase inputs.'
 );
 
 if ($errors !== []) {

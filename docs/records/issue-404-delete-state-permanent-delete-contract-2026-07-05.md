@@ -77,7 +77,7 @@
 - `sr_quiz_storage_cleanup_failures`
 - `sr_survey_storage_cleanup_failures`
 
-각 row는 본체 JOIN 없이 재시도 가능하도록 `storage_driver`, `storage_key`, `storage_path`, `source_type`, `source_id`, `failure_reason`, `status`, `attempt_count`, `created_at`, `updated_at`, `last_attempted_at`을 자체 보유한다. 관리자 표면은 각 모듈의 삭제됨 보기 또는 저장소 정리 실패 보기에서 접근한다. 본체가 영구 삭제되어도 failure row는 삭제하지 않는다.
+각 row는 본체 JOIN 없이 재시도 가능하도록 `source_type`, `source_id`, `storage_driver`, `storage_key`, `status`, `attempt_count`, `last_error`, `created_at`, `updated_at`을 자체 보유한다. 관리자 표면은 각 모듈의 삭제됨 보기 또는 저장소 정리 실패 보기에서 접근한다. 본체가 영구 삭제되어도 failure row는 삭제하지 않는다.
 
 ## G3. DB/Storage 순서와 멱등성
 
