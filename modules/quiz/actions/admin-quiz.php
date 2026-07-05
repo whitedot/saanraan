@@ -328,6 +328,18 @@ if ($mode === 'list') {
                                     <strong><a href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $quiz['title']); ?></a></strong><br>
                                 <?php } ?>
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_quiz_mode_label((string) ($quiz['quiz_mode'] ?? ''))); ?> · <?php echo sr_e(sr_quiz_scoring_model_label((string) ($quiz['scoring_model'] ?? ''))); ?></span>
+                                <?php if ($quizIsDeleted) { ?>
+                                    <br>
+                                    <span class="admin-summary-meta">
+                                        내부 ID #<?php echo sr_e((string) (int) $quiz['id']); ?>
+                                        · 삭제 판정 deleted_at
+                                        · 삭제 시각 <?php echo sr_quiz_time_html((string) ($quiz['deleted_at'] ?? '')); ?>
+                                        · redaction 완료
+                                        · 보존 로그 <?php echo sr_e(number_format((int) ($quiz['attempt_count'] ?? 0) + (int) ($quiz['reward_grant_count'] ?? 0))); ?>건
+                                        · cleanup 대기 <?php echo sr_e(number_format((int) ($quiz['cleanup_pending_count'] ?? 0))); ?>건
+                                        · 영구 삭제 가능
+                                    </span>
+                                <?php } ?>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($quizIsDeleted ? 'is-left' : sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e($quizIsDeleted ? '삭제됨' : sr_quiz_status_label($quizStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>

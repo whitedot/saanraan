@@ -1391,7 +1391,9 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
                 COUNT(DISTINCT src.id) AS source_count,
                 COALESCE(qa.attempt_count, 0) AS attempt_count,
-                COALESCE(qa.passed_count, 0) AS passed_count
+                COALESCE(qa.passed_count, 0) AS passed_count,
+                COALESCE(qrg.reward_grant_count, 0) AS reward_grant_count,
+                COALESCE(qscf.cleanup_pending_count, 0) AS cleanup_pending_count
          FROM sr_quiz_sets q
          LEFT JOIN sr_quiz_questions qs ON qs.quiz_id = q.id
          LEFT JOIN sr_quiz_result_rules rr ON rr.quiz_id = q.id
@@ -1405,10 +1407,22 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
              WHERE submitted_at IS NOT NULL
              GROUP BY quiz_id
          ) qa ON qa.quiz_id = q.id
+         LEFT JOIN (
+             SELECT quiz_id, COUNT(*) AS reward_grant_count
+             FROM sr_quiz_reward_grants
+             GROUP BY quiz_id
+         ) qrg ON qrg.quiz_id = q.id
+         LEFT JOIN (
+             SELECT source_id, COUNT(*) AS cleanup_pending_count
+             FROM sr_quiz_storage_cleanup_failures
+             WHERE status <> \'cleaned\'
+             GROUP BY source_id
+         ) qscf ON qscf.source_id = q.id
          ' . $whereSql . '
          GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                  q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at, qa.attempt_count, qa.passed_count
+                  q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at,
+                  qa.attempt_count, qa.passed_count, qrg.reward_grant_count, qscf.cleanup_pending_count
          ' . $orderSql . '
          LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
     );

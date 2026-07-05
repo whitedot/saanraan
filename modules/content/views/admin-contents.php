@@ -1232,6 +1232,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } else { ?>
                                         <?php echo sr_e((string) $page['title']); ?>
                                     <?php } ?>
+                                    <?php if ($pageIsDeleted) { ?>
+                                        <br>
+                                        <span class="admin-summary-meta">
+                                            내부 ID #<?php echo sr_e((string) (int) $page['id']); ?>
+                                            · 삭제 판정 status=deleted
+                                            · 삭제 시각 <?php echo sr_content_time_html((string) ($page['updated_at'] ?? '')); ?>
+                                            · redaction 완료
+                                            · 보존 로그 <?php echo sr_e(number_format((int) ($page['preserved_log_count'] ?? 0))); ?>건
+                                            · cleanup 대기 <?php echo sr_e(number_format((int) ($page['cleanup_pending_count'] ?? 0))); ?>건
+                                            · 영구 삭제 가능
+                                        </span>
+                                    <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap">

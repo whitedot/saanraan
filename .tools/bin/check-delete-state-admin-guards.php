@@ -76,6 +76,16 @@ $assertContains(
     'Content permanent delete must remove content comments.'
 );
 $assertContains(
+    $contentView,
+    'preserved_log_count',
+    'Content deleted view must show preserved log count.'
+);
+$assertContains(
+    $contentView,
+    'cleanup_pending_count',
+    'Content deleted view must show cleanup pending count.'
+);
+$assertContains(
     $contentRecords,
     'sr_url_embed_delete_owner_or_target_url_cache($pdo, \'content\', \'content\', $pageId)',
     'Content permanent delete must remove owner/target URL embed cache rows.'
@@ -135,6 +145,16 @@ $assertContains(
     $quizAction,
     "name=\"intent\" value=\"permanent_delete\"",
     'Quiz admin deleted view must expose permanent delete POST intent.'
+);
+$assertContains(
+    $quizAction,
+    'reward_grant_count',
+    'Quiz deleted view must show preserved reward grant count.'
+);
+$assertContains(
+    $quizAction,
+    'cleanup_pending_count',
+    'Quiz deleted view must show cleanup pending count.'
 );
 $assertContains(
     $quizAdminHelpers,
@@ -206,6 +226,16 @@ $assertContains(
     $surveyAction,
     "name=\"intent\" value=\"permanent_delete\"",
     'Survey admin deleted view must expose permanent delete POST intent.'
+);
+$assertContains(
+    $surveyAction,
+    'reward_grant_count',
+    'Survey deleted view must show preserved reward grant count.'
+);
+$assertContains(
+    $surveyAction,
+    'cleanup_pending_count',
+    'Survey deleted view must show cleanup pending count.'
 );
 $assertContains(
     $surveyAdminHelpers,

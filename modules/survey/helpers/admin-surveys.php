@@ -51,11 +51,25 @@ function sr_survey_admin_list_state(PDO $pdo): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at, COUNT(r.id) AS response_count
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at,
+                COUNT(r.id) AS response_count,
+                COALESCE(srg.reward_grant_count, 0) AS reward_grant_count,
+                COALESCE(sscf.cleanup_pending_count, 0) AS cleanup_pending_count
          FROM sr_survey_forms s
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
+         LEFT JOIN (
+             SELECT survey_id, COUNT(*) AS reward_grant_count
+             FROM sr_survey_reward_grants
+             GROUP BY survey_id
+         ) srg ON srg.survey_id = s.id
+         LEFT JOIN (
+             SELECT source_id, COUNT(*) AS cleanup_pending_count
+             FROM sr_survey_storage_cleanup_failures
+             WHERE status <> \'cleaned\'
+             GROUP BY source_id
+         ) sscf ON sscf.source_id = s.id
          WHERE ' . implode(' AND ', $listWhere) . '
-         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at, srg.reward_grant_count, sscf.cleanup_pending_count
          ' . $surveyOrderSql . '
          LIMIT 200'
     );

@@ -1245,7 +1245,13 @@ function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $of
         : '';
     $sql = 'SELECT p.*, g.group_key AS content_group_key, g.title AS content_group_title,
                    ' . $seriesSelectSql . '
-                   creator.display_name AS created_by_name, updater.display_name AS updated_by_name
+                   creator.display_name AS created_by_name, updater.display_name AS updated_by_name,
+                   ((SELECT COUNT(*) FROM sr_content_file_download_logs cfdl WHERE cfdl.content_id = p.id)
+                    + (SELECT COUNT(*) FROM sr_content_view_payment_logs cvpl WHERE cvpl.content_id = p.id)
+                    + (SELECT COUNT(*) FROM sr_content_asset_access_logs caal WHERE caal.content_id = p.id)
+                    + (SELECT COUNT(*) FROM sr_content_asset_action_logs cactl WHERE cactl.content_id = p.id)
+                    + (SELECT COUNT(*) FROM sr_content_author_reward_logs carl WHERE carl.content_id = p.id)) AS preserved_log_count,
+                   (SELECT COUNT(*) FROM sr_content_storage_cleanup_failures cscf WHERE cscf.source_id = p.id AND cscf.status <> \'cleaned\') AS cleanup_pending_count
             FROM sr_content_items p
             LEFT JOIN sr_content_groups g ON g.id = p.content_group_id
             ' . $seriesJoinSql . '

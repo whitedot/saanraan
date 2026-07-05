@@ -202,6 +202,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <strong><a href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $survey['title']); ?></a></strong><br>
                                 <?php endif; ?>
                                 <span class="admin-summary-meta">회원 조건 <?php echo sr_e(number_format(count($listGroupKeys))); ?>개</span>
+                                <?php if ($surveyIsDeleted): ?>
+                                    <br>
+                                    <span class="admin-summary-meta">
+                                        내부 ID #<?php echo sr_e((string) (int) $survey['id']); ?>
+                                        · 삭제 판정 deleted_at
+                                        · 삭제 시각 <?php echo sr_survey_time_html((string) ($survey['deleted_at'] ?? '')); ?>
+                                        · redaction 완료
+                                        · 보존 로그 <?php echo sr_e(number_format((int) ($survey['response_count'] ?? 0) + (int) ($survey['reward_grant_count'] ?? 0))); ?>건
+                                        · cleanup 대기 <?php echo sr_e(number_format((int) ($survey['cleanup_pending_count'] ?? 0))); ?>건
+                                        · 영구 삭제 가능
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($surveyIsDeleted ? 'is-left' : sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e($surveyIsDeleted ? '삭제됨' : sr_survey_status_label($surveyStatus)); ?></span></td>
                             <td class="admin-table-break"><?php echo $periodLabel === '~' || $periodLabel === '' ? '상시' : sr_e($periodLabel); ?></td>
