@@ -17,22 +17,50 @@ function sr_markdown_editor_default_settings(): array
 function sr_markdown_editor_default_style_profile(): array
 {
     return [
+        'max_width' => 980,
         'font_size' => 16,
-        'line_height' => 1.7,
-        'paragraph_margin' => 14,
+        'line_height' => 1.5,
+        'block_gap' => 0,
+        'paragraph_margin' => 16,
+        'heading_line_height' => 1.25,
         'heading_weight' => 700,
-        'heading_margin' => 22,
-        'list_indent' => 24,
+        'heading_margin' => 24,
+        'h1_size' => 32,
+        'h2_size' => 24,
+        'h3_size' => 20,
+        'h4_size' => 16,
+        'h5_size' => 14,
+        'h6_size' => 13,
+        'strong_weight' => 600,
+        'link_weight' => 400,
+        'link_underline_offset' => 2,
+        'link_decoration_thickness' => 1,
+        'list_indent' => 32,
+        'list_item_gap' => 6,
         'quote_border_width' => 4,
+        'quote_padding_block' => 0,
+        'quote_padding_inline' => 16,
         'code_font_size' => 14,
-        'code_block_padding' => 14,
-        'table_cell_padding' => 10,
+        'code_line_height' => 1.45,
+        'inline_code_padding' => 4,
+        'code_block_padding' => 16,
+        'code_block_border_width' => 1,
+        'table_border_width' => 1,
+        'table_cell_padding' => 6,
+        'table_header_weight' => 600,
+        'hr_margin' => 24,
+        'hr_border_width' => 1,
         'border_radius' => 6,
         'text_token' => '--sr-text',
         'muted_token' => '--sr-muted',
         'border_token' => '--sr-border',
         'surface_token' => '--sr-surface-muted',
         'accent_token' => '--sr-info',
+        'heading_token' => '--sr-text',
+        'quote_token' => '--sr-muted',
+        'code_token' => '--sr-text',
+        'code_surface_token' => '--sr-surface-muted',
+        'table_header_surface_token' => '--sr-surface-muted',
     ];
 }
 
@@ -80,14 +108,35 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
             $value = (int) ($profile[$key] ?? $default);
             $limits = [
                 'font_size' => [12, 24],
+                'max_width' => [0, 1200],
+                'block_gap' => [0, 48],
                 'paragraph_margin' => [0, 40],
                 'heading_weight' => [400, 900],
                 'heading_margin' => [0, 48],
+                'h1_size' => [18, 56],
+                'h2_size' => [17, 48],
+                'h3_size' => [16, 40],
+                'h4_size' => [15, 32],
+                'h5_size' => [14, 28],
+                'h6_size' => [13, 24],
+                'strong_weight' => [400, 900],
+                'link_weight' => [400, 900],
+                'link_underline_offset' => [0, 8],
+                'link_decoration_thickness' => [1, 4],
                 'list_indent' => [12, 48],
+                'list_item_gap' => [0, 20],
                 'quote_border_width' => [0, 12],
+                'quote_padding_block' => [0, 32],
+                'quote_padding_inline' => [0, 40],
                 'code_font_size' => [11, 20],
+                'inline_code_padding' => [0, 12],
                 'code_block_padding' => [0, 32],
+                'code_block_border_width' => [0, 4],
+                'table_border_width' => [0, 6],
                 'table_cell_padding' => [4, 24],
+                'table_header_weight' => [400, 900],
+                'hr_margin' => [0, 64],
+                'hr_border_width' => [0, 6],
                 'border_radius' => [0, 16],
             ];
             $limit = $limits[$key] ?? [0, 100];
@@ -97,7 +146,12 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
 
         if (is_float($default)) {
             $value = (float) ($profile[$key] ?? $default);
-            $normalized[$key] = min(2.2, max(1.2, $value));
+            $limits = [
+                'heading_line_height' => [1.0, 1.8],
+                'code_line_height' => [1.0, 2.0],
+            ];
+            $limit = $limits[$key] ?? [1.2, 2.2];
+            $normalized[$key] = min($limit[1], max($limit[0], $value));
             continue;
         }
 
@@ -123,6 +177,10 @@ function sr_markdown_editor_allowed_custom_properties(): array
         'color' => true,
         'background-color' => true,
         'border-color' => true,
+        'text-align' => true,
+        'font-style' => true,
+        'text-decoration' => true,
+        'opacity' => true,
     ];
 }
 
@@ -181,12 +239,27 @@ function sr_markdown_editor_style_selector_options(): array
     return [
         'wrapper' => '전체 본문',
         'paragraph' => '문단',
-        'heading' => '제목',
+        'heading' => '제목 전체',
+        'heading_h1' => '제목 1',
+        'heading_h2' => '제목 2',
+        'heading_h3' => '제목 3',
+        'heading_h4' => '제목 4',
+        'heading_h5' => '제목 5',
+        'heading_h6' => '제목 6',
+        'strong' => '굵은 글자',
+        'emphasis' => '기울임 글자',
         'link' => '링크',
         'list' => '목록',
+        'list_item' => '목록 항목',
+        'task_list' => '작업 목록',
         'blockquote' => '인용',
-        'code' => '코드',
-        'table' => '표',
+        'code' => '코드 전체',
+        'inline_code' => '인라인 코드',
+        'code_block' => '코드 블록',
+        'table' => '표 전체',
+        'table_head' => '표 헤더',
+        'table_cell' => '표 셀',
+        'hr' => '구분선',
     ];
 }
 
@@ -506,26 +579,53 @@ function sr_markdown_editor_css(PDO $pdo, ?array $overrideSettings = null): stri
         'wrapper' => '.markdown-editor-body',
         'paragraph' => '.markdown-editor-body p',
         'heading' => '.markdown-editor-body h1, .markdown-editor-body h2, .markdown-editor-body h3, .markdown-editor-body h4, .markdown-editor-body h5, .markdown-editor-body h6',
+        'heading_h1' => '.markdown-editor-body h1',
+        'heading_h2' => '.markdown-editor-body h2',
+        'heading_h3' => '.markdown-editor-body h3',
+        'heading_h4' => '.markdown-editor-body h4',
+        'heading_h5' => '.markdown-editor-body h5',
+        'heading_h6' => '.markdown-editor-body h6',
+        'strong' => '.markdown-editor-body strong',
+        'emphasis' => '.markdown-editor-body em',
         'link' => '.markdown-editor-body a',
         'list' => '.markdown-editor-body ul, .markdown-editor-body ol',
+        'list_item' => '.markdown-editor-body li',
+        'task_list' => '.markdown-editor-body li input[type="checkbox"]',
         'blockquote' => '.markdown-editor-body blockquote',
         'code' => '.markdown-editor-body code, .markdown-editor-body pre',
+        'inline_code' => '.markdown-editor-body :not(pre)>code',
+        'code_block' => '.markdown-editor-body pre',
         'table' => '.markdown-editor-body table, .markdown-editor-body th, .markdown-editor-body td',
+        'table_head' => '.markdown-editor-body th',
+        'table_cell' => '.markdown-editor-body td',
+        'hr' => '.markdown-editor-body hr',
     ];
 
     $css = [];
-    $css[] = '.markdown-editor-body{color:var(' . $style['text_token'] . ', var(--sr-text));font-size:' . (int) $style['font_size'] . 'px;line-height:' . (string) $style['line_height'] . ';}';
+    $maxWidth = (int) $style['max_width'];
+    $css[] = '.markdown-editor-body{color:var(' . $style['text_token'] . ', var(--sr-text));font-size:' . (int) $style['font_size'] . 'px;line-height:' . (string) $style['line_height'] . ';' . ($maxWidth > 0 ? 'max-width:' . $maxWidth . 'px;margin-inline:auto;' : '') . '}';
     $css[] = '.markdown-editor-body p{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body h1,.markdown-editor-body h2,.markdown-editor-body h3,.markdown-editor-body h4,.markdown-editor-body h5,.markdown-editor-body h6{margin:' . (int) $style['heading_margin'] . 'px 0 ' . (int) max(8, (int) $style['paragraph_margin']) . 'px;font-weight:' . (int) $style['heading_weight'] . ';color:var(' . $style['text_token'] . ', var(--sr-text));}';
-    $css[] = '.markdown-editor-body a{color:var(' . $style['accent_token'] . ', var(--sr-info));text-decoration:underline;}';
+    $css[] = '.markdown-editor-body>*+*{margin-top:' . (int) $style['block_gap'] . 'px;}';
+    $css[] = '.markdown-editor-body h1,.markdown-editor-body h2,.markdown-editor-body h3,.markdown-editor-body h4,.markdown-editor-body h5,.markdown-editor-body h6{margin:' . (int) $style['heading_margin'] . 'px 0 ' . (int) max(8, (int) $style['paragraph_margin']) . 'px;font-weight:' . (int) $style['heading_weight'] . ';line-height:' . (string) $style['heading_line_height'] . ';color:var(' . $style['heading_token'] . ', var(--sr-text));}';
+    $css[] = '.markdown-editor-body h1{font-size:' . (int) $style['h1_size'] . 'px;}';
+    $css[] = '.markdown-editor-body h2{font-size:' . (int) $style['h2_size'] . 'px;}';
+    $css[] = '.markdown-editor-body h3{font-size:' . (int) $style['h3_size'] . 'px;}';
+    $css[] = '.markdown-editor-body h4{font-size:' . (int) $style['h4_size'] . 'px;}';
+    $css[] = '.markdown-editor-body h5{font-size:' . (int) $style['h5_size'] . 'px;}';
+    $css[] = '.markdown-editor-body h6{font-size:' . (int) $style['h6_size'] . 'px;}';
+    $css[] = '.markdown-editor-body strong{font-weight:' . (int) $style['strong_weight'] . ';}';
+    $css[] = '.markdown-editor-body a{color:var(' . $style['accent_token'] . ', var(--sr-info));font-weight:' . (int) $style['link_weight'] . ';text-decoration:underline;text-underline-offset:' . (int) $style['link_underline_offset'] . 'px;text-decoration-thickness:' . (int) $style['link_decoration_thickness'] . 'px;}';
     $css[] = '.markdown-editor-body ul,.markdown-editor-body ol{padding-inline-start:' . (int) $style['list_indent'] . 'px;margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body blockquote{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;padding:8px 12px;border-left:' . (int) $style['quote_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));color:var(' . $style['muted_token'] . ', var(--sr-muted));background:var(' . $style['surface_token'] . ', var(--sr-surface-muted));}';
-    $css[] = '.markdown-editor-body code{font-size:' . (int) $style['code_font_size'] . 'px;background:var(' . $style['surface_token'] . ', var(--sr-surface-muted));border-radius:' . (int) $style['border_radius'] . 'px;padding:0.1em 0.35em;}';
-    $css[] = '.markdown-editor-body pre{overflow:auto;padding:' . (int) $style['code_block_padding'] . 'px;background:var(' . $style['surface_token'] . ', var(--sr-surface-muted));border:1px solid var(' . $style['border_token'] . ', var(--sr-border));border-radius:' . (int) $style['border_radius'] . 'px;}';
+    $css[] = '.markdown-editor-body li+li{margin-top:' . (int) $style['list_item_gap'] . 'px;}';
+    $css[] = '.markdown-editor-body li input[type="checkbox"]{margin-right:6px;}';
+    $css[] = '.markdown-editor-body blockquote{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;padding:' . (int) $style['quote_padding_block'] . 'px ' . (int) $style['quote_padding_inline'] . 'px;border-left:' . (int) $style['quote_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));color:var(' . $style['quote_token'] . ', var(--sr-muted));background:var(' . $style['surface_token'] . ', var(--sr-surface-muted));}';
+    $css[] = '.markdown-editor-body code{font-size:' . (int) $style['code_font_size'] . 'px;color:var(' . $style['code_token'] . ', var(--sr-text));background:var(' . $style['code_surface_token'] . ', var(--sr-surface-muted));border-radius:' . (int) $style['border_radius'] . 'px;padding:0 ' . (int) $style['inline_code_padding'] . 'px;}';
+    $css[] = '.markdown-editor-body pre{overflow:auto;padding:' . (int) $style['code_block_padding'] . 'px;line-height:' . (string) $style['code_line_height'] . ';background:var(' . $style['code_surface_token'] . ', var(--sr-surface-muted));border:' . (int) $style['code_block_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));border-radius:' . (int) $style['border_radius'] . 'px;}';
     $css[] = '.markdown-editor-body pre code{padding:0;background:transparent;border-radius:0;}';
     $css[] = '.markdown-editor-body table{width:100%;border-collapse:collapse;margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body th,.markdown-editor-body td{padding:' . (int) $style['table_cell_padding'] . 'px;border:1px solid var(' . $style['border_token'] . ', var(--sr-border));text-align:left;}';
-    $css[] = '.markdown-editor-body hr{border:0;border-top:1px solid var(' . $style['border_token'] . ', var(--sr-border));margin:' . (int) $style['heading_margin'] . 'px 0;}';
+    $css[] = '.markdown-editor-body th,.markdown-editor-body td{padding:' . (int) $style['table_cell_padding'] . 'px;border:' . (int) $style['table_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));text-align:left;}';
+    $css[] = '.markdown-editor-body th{font-weight:' . (int) $style['table_header_weight'] . ';background:var(' . $style['table_header_surface_token'] . ', var(--sr-surface-muted));}';
+    $css[] = '.markdown-editor-body hr{border:0;border-top:' . (int) $style['hr_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));margin:' . (int) $style['hr_margin'] . 'px 0;}';
     foreach ($custom as $selectorKey => $declaration) {
         if (isset($selectorMap[$selectorKey])) {
             $css[] = $selectorMap[$selectorKey] . '{' . $declaration . ';}';
@@ -537,5 +637,5 @@ function sr_markdown_editor_css(PDO $pdo, ?array $overrideSettings = null): stri
 
 function sr_markdown_editor_sample_markdown(): string
 {
-    return "# 제목\n\n본문 문단과 [링크](https://example.com), `inline code`입니다.\n\n- 목록 항목\n- [x] 완료된 작업\n\n> 인용 문장\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n";
+    return "# 제목 1\n\n## 제목 2\n\n### 제목 3\n\n본문 문단과 [링크](https://example.com), `inline code`입니다.\n\n- 목록 항목\n- [x] 완료된 작업\n\n> 인용 문장\n\n---\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n";
 }

@@ -1,3 +1,7 @@
+.markdown-editor-style-section + .markdown-editor-style-section {
+    margin-top: 12px;
+}
+
 .markdown-editor-preview-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

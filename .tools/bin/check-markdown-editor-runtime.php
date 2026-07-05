@@ -101,6 +101,25 @@ sr_markdown_editor_check_assert(str_contains((string) ($full['html'] ?? ''), '<i
 sr_markdown_editor_check_assert(!str_contains((string) ($full['html'] ?? ''), 'href="javascript:'), 'Unsafe markdown links should not render as anchors.');
 sr_markdown_editor_check_assert((array) ($full['stylesheets'] ?? []) !== [], 'Full mode should return the profile stylesheet.');
 sr_markdown_editor_check_assert((string) ($full['profile_hash'] ?? '') !== '', 'Render result should include a profile hash.');
+$css = sr_markdown_editor_css($enabledPdo);
+sr_markdown_editor_check_assert(
+    str_contains($css, '.markdown-editor-body h1{font-size:')
+        && str_contains($css, '.markdown-editor-body th{font-weight:')
+        && str_contains($css, '.markdown-editor-body li+li{margin-top:')
+        && str_contains($css, 'max-width:980px')
+        && str_contains($css, 'margin-inline:auto')
+        && str_contains($css, 'text-underline-offset:'),
+    'Markdown style profile should emit expanded element controls for headings, lists, and tables.'
+);
+$settingsView = file_get_contents(SR_ROOT . '/modules/markdown_editor/views/admin-settings.php');
+sr_markdown_editor_check_assert(
+    is_string($settingsView)
+        && str_contains($settingsView, "'title' => '제목'")
+        && str_contains($settingsView, "'title' => '코드'")
+        && str_contains($settingsView, "'title' => '표'")
+        && str_contains($settingsView, 'markdown-editor-style-section'),
+    'Markdown settings view should group style controls into element sections.'
+);
 sr_markdown_editor_check_assert(
     sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
     'Content markdown body stylesheets should be returned even when URL embeds are disabled.'
@@ -120,11 +139,21 @@ sr_markdown_editor_check_assert(is_array($plain) && (string) ($plain['plain_text
 require_once $root . '/modules/markdown_editor/helpers.php';
 $declarations = sr_markdown_editor_normalize_custom_declarations([
     'paragraph' => 'color: var(--sr-text); background-image: url(https://example.com/x); margin-bottom: 12px;',
+    'heading_h2' => 'text-align: center; text-decoration: underline;',
+    'code' => 'background-color: var(--sr-surface-muted);',
     'unknown' => 'color: red',
 ]);
 sr_markdown_editor_check_assert(
     ($declarations['paragraph'] ?? '') === 'color: var(--sr-text); margin-bottom: 12px',
     'Custom declarations should keep allowed declarations and drop unsafe url() values.'
+);
+sr_markdown_editor_check_assert(
+    ($declarations['heading_h2'] ?? '') === 'text-align: center; text-decoration: underline',
+    'Custom declarations should support expanded selector-specific declarations.'
+);
+sr_markdown_editor_check_assert(
+    ($declarations['code'] ?? '') === 'background-color: var(--sr-surface-muted)',
+    'Custom declarations should keep the legacy code selector key.'
 );
 sr_markdown_editor_check_assert(!isset($declarations['unknown']), 'Custom declarations should reject unknown selector keys.');
 

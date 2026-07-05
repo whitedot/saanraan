@@ -1105,6 +1105,7 @@ return [
 - `mode`는 `full`, `inline`, `plain` 중 하나이며, 결과는 `html`, `plain_text`, `stylesheets`, `profile_hash`를 포함해야 한다.
 - renderer는 raw HTML을 그대로 통과시키지 않고 parser/style profile에 따라 escape 기반 HTML을 만들어야 한다.
 - 화면 소유 모듈은 새 Markdown 저장 전에 renderer 사용 가능 여부를 서버에서 확인하고, 비활성 상태의 새 저장은 거부하거나 plain fallback으로 처리해야 한다.
+- 번들 `markdown_editor`의 기본 style profile은 GitHub Markdown 계열의 읽기 폭, 제목 계층, 표/코드/인용 밀도를 산란 테마 토큰으로 재구성한 값으로 시작하고, 관리자 설정은 전체/문단, 제목, 링크/강조, 목록, 인용, 코드, 표, 구분선처럼 요소별 섹션에서 조정한다.
 
 `logo-positions.php`:
 

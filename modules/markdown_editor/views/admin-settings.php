@@ -30,49 +30,99 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
-        <h2>스타일 프로파일</h2>
-        <?php
-        $numberControls = [
-            'font_size' => ['label' => '본문 크기', 'min' => 12, 'max' => 24, 'step' => 1],
-            'line_height' => ['label' => '줄 높이', 'min' => 1.2, 'max' => 2.2, 'step' => 0.1],
-            'paragraph_margin' => ['label' => '문단 간격', 'min' => 0, 'max' => 40, 'step' => 1],
-            'heading_weight' => ['label' => '제목 굵기', 'min' => 400, 'max' => 900, 'step' => 100],
-            'heading_margin' => ['label' => '제목 간격', 'min' => 0, 'max' => 48, 'step' => 1],
-            'list_indent' => ['label' => '목록 들여쓰기', 'min' => 12, 'max' => 48, 'step' => 1],
-            'quote_border_width' => ['label' => '인용선 너비', 'min' => 0, 'max' => 12, 'step' => 1],
-            'code_font_size' => ['label' => '코드 크기', 'min' => 11, 'max' => 20, 'step' => 1],
-            'code_block_padding' => ['label' => '코드 블록 여백', 'min' => 0, 'max' => 32, 'step' => 1],
-            'table_cell_padding' => ['label' => '표 셀 여백', 'min' => 4, 'max' => 24, 'step' => 1],
-            'border_radius' => ['label' => '둥근 모서리', 'min' => 0, 'max' => 16, 'step' => 1],
-        ];
-        foreach ($numberControls as $key => $control) {
-            $value = (string) ($styleProfile[$key] ?? sr_markdown_editor_default_style_profile()[$key]);
-        ?>
-            <div class="form-row">
-                <label class="form-label" for="markdown_editor_style_<?php echo sr_e($key); ?>"><?php echo sr_e($control['label']); ?> <span class="sr-required-label">(필수)</span></label>
-                <div class="form-field markdown-editor-control-pair">
-                    <input id="markdown_editor_style_<?php echo sr_e($key); ?>" type="range" name="style_profile[<?php echo sr_e($key); ?>]" min="<?php echo sr_e((string) $control['min']); ?>" max="<?php echo sr_e((string) $control['max']); ?>" step="<?php echo sr_e((string) $control['step']); ?>" value="<?php echo sr_e($value); ?>" required>
-                    <input type="number" name="style_profile[<?php echo sr_e($key); ?>]" min="<?php echo sr_e((string) $control['min']); ?>" max="<?php echo sr_e((string) $control['max']); ?>" step="<?php echo sr_e((string) $control['step']); ?>" value="<?php echo sr_e($value); ?>" required class="form-input">
-                </div>
-            </div>
-        <?php } ?>
-
-        <div class="markdown-editor-token-grid">
-            <?php foreach (['text_token' => '본문 색', 'muted_token' => '보조 색', 'border_token' => '경계선 색', 'surface_token' => '표면 색', 'accent_token' => '강조 색'] as $key => $label) { ?>
+    <?php
+    $numberControls = [
+        'max_width' => ['label' => '최대 폭', 'min' => 0, 'max' => 1200, 'step' => 10],
+        'font_size' => ['label' => '본문 크기', 'min' => 12, 'max' => 24, 'step' => 1],
+        'line_height' => ['label' => '줄 높이', 'min' => 1.2, 'max' => 2.2, 'step' => 0.1],
+        'block_gap' => ['label' => '블록 간격', 'min' => 0, 'max' => 48, 'step' => 1],
+        'paragraph_margin' => ['label' => '문단 간격', 'min' => 0, 'max' => 40, 'step' => 1],
+        'heading_line_height' => ['label' => '제목 줄 높이', 'min' => 1, 'max' => 1.8, 'step' => 0.05],
+        'heading_weight' => ['label' => '제목 굵기', 'min' => 400, 'max' => 900, 'step' => 100],
+        'heading_margin' => ['label' => '제목 간격', 'min' => 0, 'max' => 48, 'step' => 1],
+        'h1_size' => ['label' => '제목 1 크기', 'min' => 18, 'max' => 56, 'step' => 1],
+        'h2_size' => ['label' => '제목 2 크기', 'min' => 17, 'max' => 48, 'step' => 1],
+        'h3_size' => ['label' => '제목 3 크기', 'min' => 16, 'max' => 40, 'step' => 1],
+        'h4_size' => ['label' => '제목 4 크기', 'min' => 15, 'max' => 32, 'step' => 1],
+        'h5_size' => ['label' => '제목 5 크기', 'min' => 14, 'max' => 28, 'step' => 1],
+        'h6_size' => ['label' => '제목 6 크기', 'min' => 13, 'max' => 24, 'step' => 1],
+        'strong_weight' => ['label' => '굵은 글자 굵기', 'min' => 400, 'max' => 900, 'step' => 100],
+        'link_weight' => ['label' => '링크 굵기', 'min' => 400, 'max' => 900, 'step' => 100],
+        'link_underline_offset' => ['label' => '밑줄 간격', 'min' => 0, 'max' => 8, 'step' => 1],
+        'link_decoration_thickness' => ['label' => '밑줄 두께', 'min' => 1, 'max' => 4, 'step' => 1],
+        'list_indent' => ['label' => '목록 들여쓰기', 'min' => 12, 'max' => 48, 'step' => 1],
+        'list_item_gap' => ['label' => '목록 항목 간격', 'min' => 0, 'max' => 20, 'step' => 1],
+        'quote_border_width' => ['label' => '인용선 너비', 'min' => 0, 'max' => 12, 'step' => 1],
+        'quote_padding_block' => ['label' => '인용 상하 여백', 'min' => 0, 'max' => 32, 'step' => 1],
+        'quote_padding_inline' => ['label' => '인용 좌우 여백', 'min' => 0, 'max' => 40, 'step' => 1],
+        'code_font_size' => ['label' => '코드 크기', 'min' => 11, 'max' => 20, 'step' => 1],
+        'code_line_height' => ['label' => '코드 줄 높이', 'min' => 1, 'max' => 2, 'step' => 0.05],
+        'inline_code_padding' => ['label' => '인라인 코드 여백', 'min' => 0, 'max' => 12, 'step' => 1],
+        'code_block_padding' => ['label' => '코드 블록 여백', 'min' => 0, 'max' => 32, 'step' => 1],
+        'code_block_border_width' => ['label' => '코드 블록 선 너비', 'min' => 0, 'max' => 4, 'step' => 1],
+        'table_border_width' => ['label' => '표 경계선 너비', 'min' => 0, 'max' => 6, 'step' => 1],
+        'table_cell_padding' => ['label' => '표 셀 여백', 'min' => 4, 'max' => 24, 'step' => 1],
+        'table_header_weight' => ['label' => '표 헤더 굵기', 'min' => 400, 'max' => 900, 'step' => 100],
+        'hr_margin' => ['label' => '구분선 간격', 'min' => 0, 'max' => 64, 'step' => 1],
+        'hr_border_width' => ['label' => '구분선 두께', 'min' => 0, 'max' => 6, 'step' => 1],
+        'border_radius' => ['label' => '둥근 모서리', 'min' => 0, 'max' => 16, 'step' => 1],
+    ];
+    $tokenControls = [
+        'text_token' => '본문 색',
+        'muted_token' => '보조 색',
+        'border_token' => '경계선 색',
+        'surface_token' => '표면 색',
+        'accent_token' => '강조 색',
+        'heading_token' => '제목 색',
+        'quote_token' => '인용 색',
+        'code_token' => '코드 글자색',
+        'code_surface_token' => '코드 표면색',
+        'table_header_surface_token' => '표 헤더 표면색',
+    ];
+    $styleSections = [
+        ['title' => '전체와 문단', 'controls' => ['max_width', 'font_size', 'line_height', 'block_gap', 'paragraph_margin', 'border_radius'], 'tokens' => ['text_token', 'muted_token', 'surface_token']],
+        ['title' => '제목', 'controls' => ['heading_line_height', 'heading_weight', 'heading_margin', 'h1_size', 'h2_size', 'h3_size', 'h4_size', 'h5_size', 'h6_size'], 'tokens' => ['heading_token']],
+        ['title' => '링크와 강조', 'controls' => ['strong_weight', 'link_weight', 'link_underline_offset', 'link_decoration_thickness'], 'tokens' => ['accent_token']],
+        ['title' => '목록과 작업 목록', 'controls' => ['list_indent', 'list_item_gap'], 'tokens' => []],
+        ['title' => '인용', 'controls' => ['quote_border_width', 'quote_padding_block', 'quote_padding_inline'], 'tokens' => ['quote_token', 'border_token']],
+        ['title' => '코드', 'controls' => ['code_font_size', 'code_line_height', 'inline_code_padding', 'code_block_padding', 'code_block_border_width'], 'tokens' => ['code_token', 'code_surface_token']],
+        ['title' => '표', 'controls' => ['table_border_width', 'table_cell_padding', 'table_header_weight'], 'tokens' => ['table_header_surface_token']],
+        ['title' => '구분선', 'controls' => ['hr_margin', 'hr_border_width'], 'tokens' => []],
+    ];
+    foreach ($styleSections as $styleSection) {
+    ?>
+        <section class="card markdown-editor-style-section">
+            <h2><?php echo sr_e((string) $styleSection['title']); ?></h2>
+            <?php foreach ((array) $styleSection['controls'] as $key) {
+                $control = $numberControls[$key];
+                $value = (string) ($styleProfile[$key] ?? sr_markdown_editor_default_style_profile()[$key]);
+            ?>
                 <div class="form-row">
-                    <label class="form-label" for="markdown_editor_<?php echo sr_e($key); ?>"><?php echo sr_e($label); ?> <span class="sr-required-label">(필수)</span></label>
-                    <div class="form-field">
-                        <select id="markdown_editor_<?php echo sr_e($key); ?>" name="style_profile[<?php echo sr_e($key); ?>]" class="form-select" required>
-                            <?php foreach ($tokenOptions as $token => $tokenLabel) { ?>
-                                <option value="<?php echo sr_e($token); ?>"<?php echo (string) ($styleProfile[$key] ?? '') === (string) $token ? ' selected' : ''; ?>><?php echo sr_e($tokenLabel . ' ' . $token); ?></option>
-                            <?php } ?>
-                        </select>
+                    <label class="form-label" for="markdown_editor_style_<?php echo sr_e($key); ?>"><?php echo sr_e($control['label']); ?> <span class="sr-required-label">(필수)</span></label>
+                    <div class="form-field markdown-editor-control-pair">
+                        <input id="markdown_editor_style_<?php echo sr_e($key); ?>" type="range" name="style_profile[<?php echo sr_e($key); ?>]" min="<?php echo sr_e((string) $control['min']); ?>" max="<?php echo sr_e((string) $control['max']); ?>" step="<?php echo sr_e((string) $control['step']); ?>" value="<?php echo sr_e($value); ?>" required>
+                        <input type="number" name="style_profile[<?php echo sr_e($key); ?>]" min="<?php echo sr_e((string) $control['min']); ?>" max="<?php echo sr_e((string) $control['max']); ?>" step="<?php echo sr_e((string) $control['step']); ?>" value="<?php echo sr_e($value); ?>" required class="form-input">
                     </div>
                 </div>
             <?php } ?>
-        </div>
-    </section>
+            <?php if ((array) $styleSection['tokens'] !== []) { ?>
+                <div class="markdown-editor-token-grid">
+                    <?php foreach ((array) $styleSection['tokens'] as $key) { ?>
+                        <div class="form-row">
+                            <label class="form-label" for="markdown_editor_<?php echo sr_e($key); ?>"><?php echo sr_e($tokenControls[$key]); ?> <span class="sr-required-label">(필수)</span></label>
+                            <div class="form-field">
+                                <select id="markdown_editor_<?php echo sr_e($key); ?>" name="style_profile[<?php echo sr_e($key); ?>]" class="form-select" required>
+                                    <?php foreach ($tokenOptions as $token => $tokenLabel) { ?>
+                                        <option value="<?php echo sr_e($token); ?>"<?php echo (string) ($styleProfile[$key] ?? '') === (string) $token ? ' selected' : ''; ?>><?php echo sr_e($tokenLabel . ' ' . $token); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            <?php } ?>
+        </section>
+    <?php } ?>
 
     <section class="card">
         <h2>고급 선언</h2>
