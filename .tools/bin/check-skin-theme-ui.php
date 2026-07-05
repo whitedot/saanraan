@@ -268,7 +268,7 @@ $targets = [
         ],
         'render_needles' => [
             "\$skinKey = sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) (\$row['skin_key'] ?? 'basic')])",
-            'sr_popup_layer_render_stack($skinPopups, $skinKey, $includeScript)',
+            'sr_popup_layer_render_stack($skinPopups, $skinKey, $includeScript, $pdo)',
         ],
     ],
     [
