@@ -211,7 +211,7 @@ sr_antispam_check_assert(str_contains($communityMetadata, "'antispam-targets.php
 sr_antispam_check_assert(str_contains($communityTargets, "'community.post.guest'"), 'Community module must own guest post antispam target.');
 sr_antispam_check_assert(str_contains($communityTargets, "'community.comment.guest'"), 'Community module must own guest comment antispam target.');
 sr_antispam_check_assert(str_contains($communityWriteAction, "sr_antispam_verify(\$pdo, 'community.post.guest'"), 'Community guest post action must verify antispam challenge server-side.');
-sr_antispam_check_assert(str_contains($communityWriteAction, '$errors = array_merge($errors, sr_community_validate_post_input($values));'), 'Community guest post action must preserve antispam errors when post validation runs.');
+sr_antispam_check_assert(str_contains($communityWriteAction, '$errors = array_merge($errors, sr_community_validate_post_input($values, $pdo));'), 'Community guest post action must preserve antispam errors when post validation runs.');
 sr_antispam_check_assert(str_contains($communityWriteView, "sr_antispam_challenge_render(\$pdo, 'community.post.guest'"), 'Community guest post form must render antispam challenge.');
 sr_antispam_check_assert(str_contains($communityWriteView, '!isset($postIdField) && function_exists(\'sr_antispam_challenge_render\')'), 'Community guest post form must not render antispam challenge on post edit forms.');
 sr_antispam_check_assert(str_contains($communityCommentAction, "sr_antispam_verify(\$pdo, 'community.comment.guest'"), 'Community guest comment action must verify antispam challenge server-side.');

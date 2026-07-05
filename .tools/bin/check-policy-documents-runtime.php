@@ -114,6 +114,25 @@ function sr_policy_documents_check_pdo(): PDO
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $pdo->exec(
+        'CREATE TABLE sr_modules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_key TEXT NOT NULL UNIQUE,
+            version TEXT NOT NULL DEFAULT "fixture",
+            status TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
         'CREATE TABLE sr_policy_documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_key TEXT NOT NULL,
@@ -188,6 +207,10 @@ function sr_policy_documents_check_pdo(): PDO
          VALUES (1, 'member_terms', '이용약관', '', 'enabled', 10, '', '')"
     );
     $pdo->exec(
+        "INSERT INTO sr_modules (module_key, version, status)
+         VALUES ('markdown_editor', '2026.07.001', 'enabled')"
+    );
+    $pdo->exec(
         "INSERT INTO sr_member_accounts (id, email, status)
          VALUES (1, 'active@example.test', 'active'),
                 (2, 'suspended@example.test', 'suspended')"
@@ -203,6 +226,7 @@ function sr_policy_documents_check_pdo(): PDO
 }
 
 $pdo = sr_policy_documents_check_pdo();
+$GLOBALS['pdo'] = $pdo;
 try {
     sr_policy_document_create_version($pdo, 404, [
         'title' => '없는 문서',

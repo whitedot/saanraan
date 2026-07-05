@@ -44,6 +44,7 @@
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 계좌정보 마스킹 시점, 처리자 접근 범위를 기록한다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
+| `markdown_editor` | Markdown parser/style profile과 declaration-only CSS 설정 | 본문 개인정보는 소유 모듈에 귀속하고, 플러그인 설정 자체는 회원 귀속 개인정보를 저장하지 않는다. |
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |
 | `member_oauth_providers` | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약 | 자기 DB 데이터는 없지만 provider endpoint, scope, 중첩 profile claim 계약을 `member_oauth` 처리활동의 외부 processor 후보와 함께 기록한다. |
@@ -201,7 +202,7 @@
 | 점검 | 역할 |
 | --- | --- |
 | `check-retention-targets.php` | 감사 로그, 알림, 배너 클릭 hash 같은 보존/정리 대상과 삭제 SQL 안전 경계를 확인한다. |
-| `check-privacy-contract-matrix.php` | 30개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
+| `check-privacy-contract-matrix.php` | 31개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터, 결제 기록, 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
 | `check-privacy-export-status.php` | 테스트용 모듈 export 실패를 시뮬레이션해 `partial_export`, `module_export_status`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 결제 record account 연결과 item account 참조를 익명화하며, 보존 원장은 유지하는지 확인한다. |

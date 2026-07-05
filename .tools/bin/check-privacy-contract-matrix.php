@@ -225,6 +225,7 @@ $expected = [
     'coupon' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'deposit' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'logo_manager' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
+    'markdown_editor' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'member' => ['status' => 'export_owner', 'export' => true, 'cleanup' => false, 'consumes_cleanup' => true],
     'member_oauth' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'member_oauth_providers' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],

@@ -684,7 +684,7 @@ function sr_popup_layer_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('popup_layer');
 }
 
-function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic', bool $includeScript = true): string
+function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic', bool $includeScript = true, ?PDO $pdo = null): string
 {
     if ($popups === []) {
         return '';
@@ -696,12 +696,13 @@ function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic', b
         return '';
     }
 
+    $popupLayerPdo = $pdo;
     ob_start();
     include $view;
     return (string) ob_get_clean();
 }
 
-function sr_popup_layer_render_basic_stack(array $popups, bool $includeScript = true): string
+function sr_popup_layer_render_basic_stack(array $popups, bool $includeScript = true, ?PDO $pdo = null): string
 {
     $cookiePath = sr_base_path();
     $cookiePath = $cookiePath === '' ? '/' : $cookiePath;
@@ -778,7 +779,7 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ]);
 
-    return sr_popup_layer_render_stack([$popup], $skinKey);
+    return sr_popup_layer_render_stack([$popup], $skinKey, true, $pdo);
 }
 
 function sr_popup_layer_render(PDO $pdo, array $context, bool $includeScript = true): string
@@ -851,7 +852,7 @@ function sr_popup_layer_render(PDO $pdo, array $context, bool $includeScript = t
         $popupsBySkin[(string) $popup['skin_key']][] = $popup;
     }
     foreach ($popupsBySkin as $skinKey => $skinPopups) {
-        $html .= sr_popup_layer_render_stack($skinPopups, $skinKey, $includeScript);
+        $html .= sr_popup_layer_render_stack($skinPopups, $skinKey, $includeScript, $pdo);
     }
 
     return $html;

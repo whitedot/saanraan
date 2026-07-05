@@ -31,6 +31,7 @@
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 없음 | 예치금 잔액, 원장, 환불 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `logo_manager` | `operational_retained` | 없음 | 없음 | 로고 운영 메타데이터의 작성자 계정 연결은 운영 보존 데이터로 분류한다. |
+| `markdown_editor` | `no_member_personal_data` | 없음 | 없음 | Markdown parser/style profile과 declaration-only CSS 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
 | `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 기본/추가 프로필, 동의, 그룹 멤버십, MFA factor/recovery code 저장소를 소유하고 탈퇴/익명화 시 회원 소유 MFA row를 직접 삭제한 뒤 설치 모듈의 cleanup 계약을 실행한다. 추가 프로필 값은 항목별 export 정책에 따라 사본 제공 범위를 정하고, MFA export는 factor 표시 메타데이터와 recovery code 상태별 개수만 제공한다. |
 | `member_oauth` | `export_cleanup` | 제공 | 제공 | OAuth provider 연결 증적과 최소 profile snapshot을 회원 계정에 연결하며, provider subject 원문은 저장하지 않고 HMAC hash와 hash prefix 표시값만 둔다. 탈퇴/익명화 시 연결을 해제하고 snapshot을 제거한다. |
 | `member_oauth_providers` | `no_member_personal_data` | 없음 | 없음 | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약만 제공하며 설정 저장, state, 계정 연결, profile snapshot은 `member_oauth` 모듈이 소유한다. |
@@ -52,7 +53,7 @@
 
 ## 마일스톤 12 재기준화 기준
 
-마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 30개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `payment_ledger`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `policy_documents`, `quiz`, `reaction`, `survey`까지 포함해 개인정보 표면을 판단한다.
+마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 31개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `payment_ledger`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `policy_documents`, `quiz`, `reaction`, `survey`, `markdown_editor`까지 포함해 개인정보 표면을 판단한다.
 
 | 표면 | 현재 포함 모듈 | 주요 개인정보성 필드와 처리 표면 | 마일스톤 12 연결 |
 | --- | --- | --- | --- |
@@ -77,8 +78,8 @@
 | #157 관리자 메모 redaction | `privacy`, `admin` | privacy 요청의 `admin_note`는 입력 가이드로 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, token 저장을 금지하고 저장/export 단계에서 명백한 이메일·휴대폰·주민등록번호·secret류를 redaction한다. 감사 metadata는 `sr_audit_metadata_sanitize()`와 관리자 화면 표시 redaction을 따른다. |
 | #158 권리 요청 전파 | `member`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction`, `notification`, 금액성 모듈 | 정정권, 처리 제한, 동의 철회가 공개 노출, 알림, 리액션, 보상, 금액성 원장에 미치는 범위를 모듈별로 나눈다. |
 | #159 특별범주/연령/고유식별자성 | `member`, `member_oauth`, `identity_verification`, `identity_kcp`, `identity_inicis`, `antispam_captcha_providers`, `quiz`, `survey` | 회원 선택 프로필의 생년월일과 성인여부는 연령성 개인정보로 export에 포함하고, 회원 추가 프로필 항목, 외부 provider profile, 연령/성인 인증, 설문/퀴즈 응답에서 민감정보가 생길 수 있는 경우 원문 저장 금지와 export 제외 기준을 둔다. |
-| #160 ROPA 확장 | 전체 30개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
-| #161 conformance 자동화 | 전체 30개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
+| #160 ROPA 확장 | 전체 31개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
+| #161 conformance 자동화 | 전체 31개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
 
 ## 보강 기준
 

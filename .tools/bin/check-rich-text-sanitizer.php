@@ -217,7 +217,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
         'content rich text flow' => [
             'modules/content/helpers.php' => [
                 'function sr_content_body_html(',
-                'sr_body_text_html($page, $linkPlainUrls)',
+                'sr_body_text_html($page, $linkPlainUrls, $pdo)',
                 'sr_url_embed_render_body_html($pdo, $html, \'content\', \'content\'',
             ],
             'modules/content/helpers/records.php' => [
@@ -253,11 +253,11 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
         ],
         'popup layer rich text flow' => [
             'modules/popup_layer/helpers.php' => [
-                '\'<div class="sr-popup-layer-body">\' . sr_body_text_html($popup) . \'</div>\';',
+                '\'<div class="sr-popup-layer-body">\' . sr_body_text_html($popup, false, $pdo) . \'</div>\';',
             ],
             'modules/popup_layer/actions/admin-popup-layers.php' => [
                 'if ($popupLayerEditorKey === \'html\' || ($popupLayerEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\'))',
-                '} elseif ($popupLayerEditorKey === \'markdown\')',
+                '} elseif ($popupLayerEditorKey === \'markdown\' && sr_markdown_renderer_available($pdo))',
                 '? sr_sanitize_rich_text_html(sr_popup_layer_clean_text($rawBodyText, 5000))',
                 ': sr_popup_layer_clean_text($rawBodyText, 5000);',
             ],
@@ -270,7 +270,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
         'notification rich text flow' => [
             'modules/notification/helpers.php' => [
                 'function sr_notification_body_html(array $notification): string',
-                'return sr_body_text_html($notification);',
+                'return sr_body_text_html($notification, false, $globalPdo instanceof PDO ? $globalPdo : null, \'plain\');',
                 '$bodyFormat = sr_notification_body_format((string) ($data[\'body_format\'] ?? \'plain\'));',
                 '? sr_sanitize_rich_text_html(sr_notification_clean_text((string) ($data[\'body_text\'] ?? \'\'), 5000))',
                 ': sr_notification_clean_text((string) ($data[\'body_text\'] ?? \'\'), 5000);',
