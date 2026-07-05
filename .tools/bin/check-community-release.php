@@ -405,11 +405,6 @@ $requiredRoutes = [
     'POST /community/report',
     'GET /community/scraps',
     'POST /community/scrap',
-    'GET /community/messages',
-    'GET /community/message',
-    'GET /community/message/write',
-    'POST /community/message/write',
-    'POST /community/message/delete',
     'GET /admin/community/settings',
     'POST /admin/community/settings',
     'GET /admin/community/boards',
@@ -548,12 +543,10 @@ sr_community_release_file_contains('modules/community/privacy-export.php', [
     "'comments' => []",
     "'attachments' => []",
     "'reports' => []",
-    "'messages' => []",
     "'scraps' => []",
     'WHERE author_account_id = :account_id',
     'WHERE uploader_account_id = :account_id',
     'WHERE reporter_account_id = :account_id',
-    'WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id',
     'WHERE account_id = :account_id',
     'SELECT id, board_id, title, body_text, status, created_at, updated_at',
     'SELECT id, post_id, body_text, status, created_at, updated_at',
@@ -612,7 +605,6 @@ $requiredTables = [
     'sr_community_attachments',
     'sr_community_reports',
     'sr_community_report_auto_actions',
-    'sr_community_messages',
     'sr_community_scraps',
     'sr_community_levels',
     'sr_community_account_levels',
@@ -677,10 +669,6 @@ $requiredInstallFragments = [
         'threshold_value INT UNSIGNED NOT NULL DEFAULT 0',
         'UNIQUE KEY uq_sr_community_report_auto_actions_active_target (active_target_uid)',
         'KEY idx_sr_community_report_auto_actions_target_status (target_type, target_id, status)',
-    ],
-    'sr_community_messages' => [
-        'sender_deleted_at DATETIME NULL',
-        'recipient_deleted_at DATETIME NULL',
     ],
     'sr_community_scraps' => [
         'UNIQUE KEY uq_sr_community_scraps_account_post (account_id, post_id)',
@@ -822,18 +810,6 @@ sr_community_release_file_contains('modules/community/helpers/notifications.php'
     "p.action_key = 'view'",
 ], 'Community optional notification integration');
 
-sr_community_release_file_contains('modules/community/actions/message-write.php', [
-    "sr_get_string('to_account', 40)",
-    'sr_community_public_account_summary_by_hash($pdo, $config,',
-    "'recipient_identifier' => ''",
-    'sr_community_create_account_notification(',
-], 'Community hashed message recipient flow');
-sr_community_release_file_contains('modules/community/views/message-write.php', [
-    'name="recipient_account_hash"',
-], 'Community message write view');
-sr_community_release_file_contains('modules/community/views/message-view.php', [
-    'rawurlencode($replyAccountHash)',
-], 'Community message reply link');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
     'sr_community_create_account_event_notification(',
     "'comment.created'",
@@ -847,7 +823,6 @@ sr_community_release_file_contains('modules/community/privacy-export.php', [
     "'comments' => []",
     "'attachments' => []",
     "'reports' => []",
-    "'messages' => []",
     "'scraps' => []",
 ], 'Community privacy export coverage');
 
@@ -888,7 +863,6 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'edit')",
     'sr_require_csrf()',
-    'sr_community_message_write_policy(sr_post_string(\'message_write_policy\', 40))',
     'sr_community_update_level_min_scores($pdo, $minScoresById',
     "'event_type' => 'community.settings.updated'",
 ], 'Community admin settings policy');
@@ -996,8 +970,6 @@ $stateChangingActions = [
     'modules/community/actions/report.php',
     'modules/community/actions/scrap-toggle.php',
     'modules/community/actions/skin-action.php',
-    'modules/community/actions/message-write.php',
-    'modules/community/actions/message-delete.php',
     'modules/community/actions/admin-settings.php',
     'modules/community/actions/admin-boards.php',
     'modules/community/actions/admin-board-groups.php',

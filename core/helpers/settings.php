@@ -875,6 +875,7 @@ function sr_module_known_contract_files(): array
         'identity-provider.php',
         'url-embed-targets.php',
         'reaction-targets.php',
+        'report-targets.php',
         'operational-status.php',
         'retention-targets.php',
     ];

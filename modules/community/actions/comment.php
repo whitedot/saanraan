@@ -152,15 +152,11 @@ if ($isGuestAuthor) {
     $parentAuthorNotificationCreated = false;
     $commentMentionNotificationResult = ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []];
 } else {
-    $commentAuthorLabel = sr_community_message_account_label(
-        (string) ($account['display_name'] ?? ''),
-        (int) $account['id'],
-        false,
-        null,
-        (string) ($account['status'] ?? ''),
-        sr_community_member_nickname($pdo, (int) $account['id']),
-        sr_member_settings($pdo)
-    );
+    $commentAuthorLabel = sr_community_public_display_name([
+        'display_name' => (string) ($account['display_name'] ?? ''),
+        'community_nickname' => sr_community_member_nickname($pdo, (int) $account['id']),
+        'status' => (string) ($account['status'] ?? ''),
+    ], sr_member_settings($pdo));
     if ((int) $post['author_account_id'] > 0 && (int) $post['author_account_id'] !== (int) $account['id']) {
         $postAuthorNotificationCreated = sr_community_create_account_event_notification(
             $pdo,

@@ -111,6 +111,12 @@ $optionalModules = [
         'label' => 'Markdown Editor',
         'description' => 'Markdown 입력, 렌더링, 스타일 프로파일 선택지를 설치합니다.',
     ],
+    'message' => [
+        'name' => '쪽지',
+        'version' => '2026.07.001',
+        'label' => '쪽지',
+        'description' => '회원 간 쪽지 수발신과 수신 설정을 설치합니다.',
+    ],
     'antispam' => [
         'name' => '자동등록방지',
         'version' => '2026.06.001',

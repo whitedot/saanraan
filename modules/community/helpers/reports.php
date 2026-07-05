@@ -855,26 +855,78 @@ function sr_community_report_target(PDO $pdo, string $targetType, int $targetId,
         ];
     }
 
-    if ($targetType === 'message' && $actorAccountId !== null) {
-        $message = sr_community_message_participants_for_account($pdo, $targetId, $actorAccountId);
-        if (!is_array($message)) {
-            return null;
-        }
-
-        $reportedAccountId = (int) $message['sender_account_id'] === $actorAccountId
-            ? (int) $message['recipient_account_id']
-            : (int) $message['sender_account_id'];
-
-        return [
-            'target_type' => 'message',
-            'target_id' => (int) $message['id'],
-            'reported_account_id' => $reportedAccountId,
-            'message_id' => (int) $message['id'],
-            'redirect_path' => '/community/message?id=' . (string) $message['id'],
-        ];
+    if ($actorAccountId !== null) {
+        return sr_community_report_contract_target($pdo, $targetType, $targetId, $actorAccountId);
     }
 
     return null;
+}
+
+function sr_community_report_target_contract_helper_path(string $moduleKey, array $target): string
+{
+    $helpers = (string) ($target['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $path = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+    return is_file($path) ? $path : '';
+}
+
+function sr_community_report_target_contracts(PDO $pdo): array
+{
+    $contracts = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'report-targets.php', ['community']) as $moduleKey => $file) {
+        $contractTargets = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contractTargets)) {
+            continue;
+        }
+
+        foreach ($contractTargets as $target) {
+            if (!is_array($target)) {
+                continue;
+            }
+
+            $targetType = (string) ($target['target_type'] ?? '');
+            $resolverFunction = (string) ($target['resolver_function'] ?? '');
+            if (
+                preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetType) !== 1
+                || preg_match('/\A[a-z][a-z0-9_]{1,80}\z/', $resolverFunction) !== 1
+                || isset($contracts[$targetType])
+            ) {
+                continue;
+            }
+
+            $helperPath = sr_community_report_target_contract_helper_path((string) $moduleKey, $target);
+            if ($helperPath !== '') {
+                require_once $helperPath;
+            }
+            if (!function_exists($resolverFunction)) {
+                continue;
+            }
+
+            $target['module_key'] = (string) $moduleKey;
+            $contracts[$targetType] = $target;
+        }
+    }
+
+    return $contracts;
+}
+
+function sr_community_report_contract_target(PDO $pdo, string $targetType, int $targetId, int $actorAccountId): ?array
+{
+    $contracts = sr_community_report_target_contracts($pdo);
+    if (!isset($contracts[$targetType])) {
+        return null;
+    }
+
+    $resolverFunction = (string) ($contracts[$targetType]['resolver_function'] ?? '');
+    if ($resolverFunction === '' || !function_exists($resolverFunction)) {
+        return null;
+    }
+
+    $target = $resolverFunction($pdo, $targetId, $actorAccountId);
+    return is_array($target) ? $target : null;
 }
 
 function sr_community_comment_for_read(PDO $pdo, int $commentId, ?array $account): ?array

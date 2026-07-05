@@ -303,7 +303,7 @@ try {
     sr_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
     $runToken = date('YmdHis') . '-' . bin2hex(random_bytes(4));
 
-    $messages = sr_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $cookies);
+    $messages = sr_auth_smoke_request($baseUrl, 'GET', '/messages', [], $cookies);
     sr_auth_smoke_assert_status($errors, 'message box', $messages, [200]);
 
     $writeForm = sr_auth_smoke_request($baseUrl, 'GET', '/community/write?key=' . rawurlencode($boardKey), [], $cookies);
@@ -379,47 +379,47 @@ try {
     }
 
     if ($recipientIdentifier !== '') {
-        $messageForm = sr_auth_smoke_request($baseUrl, 'GET', '/community/message/write', [], $cookies);
+        $messageForm = sr_auth_smoke_request($baseUrl, 'GET', '/message/write', [], $cookies);
         sr_auth_smoke_assert_status($errors, 'message write form', $messageForm, [200]);
         sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, 'name="recipient_account_id"');
-        sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, '/community/message/write?to=');
+        sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, '/message/write?to=');
         $messageCsrf = sr_auth_smoke_csrf($messageForm, 'message write form');
         $messageBody = 'Saanraan authenticated community message smoke ' . $runToken . '.';
-        $messageResponse = sr_auth_smoke_request($baseUrl, 'POST', '/community/message/write', [
+        $messageResponse = sr_auth_smoke_request($baseUrl, 'POST', '/message/write', [
             'csrf_token' => $messageCsrf,
             'recipient_identifier' => $recipientIdentifier,
             'body_text' => $messageBody,
         ], $cookies);
         sr_auth_smoke_assert_status($errors, 'message write submit', $messageResponse, [302]);
-        $sentMessages = sr_auth_smoke_request($baseUrl, 'GET', '/community/messages?box=sent', [], $cookies);
+        $sentMessages = sr_auth_smoke_request($baseUrl, 'GET', '/messages?box=sent', [], $cookies);
         sr_auth_smoke_assert_status($errors, 'sent message box', $sentMessages, [200]);
         $sentMessagePath = sr_auth_smoke_first_message_path($sentMessages);
         $sentMessageId = sr_auth_smoke_message_id_from_path($sentMessagePath);
         $sentMessageView = sr_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);
         sr_auth_smoke_assert_status($errors, 'sent message view', $sentMessageView, [200]);
         sr_auth_smoke_assert_body_contains($errors, 'sent message view', $sentMessageView, $messageBody);
-        sr_auth_smoke_assert_body_matches($errors, 'sent message view reply link', $sentMessageView, '#/community/message/write\?to_account=[a-f0-9]{32}#');
-        sr_auth_smoke_assert_body_not_contains($errors, 'sent message view', $sentMessageView, '/community/message/write?to=');
+        sr_auth_smoke_assert_body_matches($errors, 'sent message view reply link', $sentMessageView, '#/message/write\?to_account=[a-f0-9]{32}#');
+        sr_auth_smoke_assert_body_not_contains($errors, 'sent message view', $sentMessageView, '/message/write?to=');
         if ($recipientPassword !== '') {
             $recipientCookies = [];
             sr_auth_smoke_login($baseUrl, $recipientIdentifier, $recipientPassword, $recipientCookies, $errors, 'message recipient account');
-            $inboxMessages = sr_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $recipientCookies);
+            $inboxMessages = sr_auth_smoke_request($baseUrl, 'GET', '/messages', [], $recipientCookies);
             sr_auth_smoke_assert_status($errors, 'recipient message box', $inboxMessages, [200]);
             $inboxMessageView = sr_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $recipientCookies);
             sr_auth_smoke_assert_status($errors, 'recipient message view', $inboxMessageView, [200]);
             sr_auth_smoke_assert_body_contains($errors, 'recipient message view', $inboxMessageView, $messageBody);
-            sr_auth_smoke_assert_body_matches($errors, 'recipient message view reply link', $inboxMessageView, '#/community/message/write\?to_account=[a-f0-9]{32}#');
-            sr_auth_smoke_assert_body_not_contains($errors, 'recipient message view', $inboxMessageView, '/community/message/write?to=');
+            sr_auth_smoke_assert_body_matches($errors, 'recipient message view reply link', $inboxMessageView, '#/message/write\?to_account=[a-f0-9]{32}#');
+            sr_auth_smoke_assert_body_not_contains($errors, 'recipient message view', $inboxMessageView, '/message/write?to=');
         } else {
             echo "[skip] message receive requires recipient_password\n";
         }
         $messageDeleteCsrf = sr_auth_smoke_csrf($sentMessageView, 'sent message view');
-        $messageDeleteResponse = sr_auth_smoke_request($baseUrl, 'POST', '/community/message/delete', [
+        $messageDeleteResponse = sr_auth_smoke_request($baseUrl, 'POST', '/message/delete', [
             'csrf_token' => $messageDeleteCsrf,
             'message_id' => $sentMessageId,
         ], $cookies);
         sr_auth_smoke_assert_status($errors, 'sent message delete', $messageDeleteResponse, [302]);
-        $sentMessagesAfterDelete = sr_auth_smoke_request($baseUrl, 'GET', '/community/messages?box=sent', [], $cookies);
+        $sentMessagesAfterDelete = sr_auth_smoke_request($baseUrl, 'GET', '/messages?box=sent', [], $cookies);
         sr_auth_smoke_assert_status($errors, 'sent message box after delete', $sentMessagesAfterDelete, [200]);
         sr_auth_smoke_assert_body_not_contains($errors, 'sent message box after delete', $sentMessagesAfterDelete, $sentMessagePath);
         $deletedSentMessageView = sr_auth_smoke_request($baseUrl, 'GET', $sentMessagePath, [], $cookies);

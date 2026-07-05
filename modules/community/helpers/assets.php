@@ -94,7 +94,7 @@ function sr_community_asset_module_key_or_empty(string $value): string
 
 function sr_community_asset_composite_prefixes(): array
 {
-    return ['write_charge', 'comment_charge', 'message_charge', 'paid_read', 'paid_attachment_download'];
+    return ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
 }
 
 function sr_community_asset_prefix_uses_composite(string $prefix): bool
@@ -1045,10 +1045,7 @@ function sr_community_asset_bool_value_for_audit(mixed $value): bool
 function sr_community_asset_settings_for_audit(array $settings, bool $includeReversalSettings = false): array
 {
     $auditSettings = [];
-    $prefixes = array_key_exists('message_charge_enabled', $settings)
-        ? sr_community_module_asset_setting_prefixes()
-        : sr_community_asset_setting_prefixes();
-    foreach ($prefixes as $assetPrefix) {
+    foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
         $moduleValue = (string) ($settings[$assetPrefix . '_asset_module'] ?? '');
         $auditSettings[$assetPrefix . '_enabled'] = sr_community_asset_bool_value_for_audit($settings[$assetPrefix . '_enabled'] ?? false);
         $auditSettings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)

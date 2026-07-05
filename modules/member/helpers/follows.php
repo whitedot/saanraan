@@ -167,7 +167,7 @@ function sr_member_public_name_menu_html(PDO $pdo, ?array $viewerAccount, int $t
 
     $items = [];
     if (function_exists('sr_module_enabled') && sr_module_enabled($pdo, 'community')) {
-        $items[] = '<a class="member-profile-menu-item" href="' . sr_e(sr_url('/community/message/write?to_account=' . rawurlencode($targetHash))) . '">쪽지보내기</a>';
+        $items[] = '<a class="member-profile-menu-item" href="' . sr_e(sr_url('/message/write?to_account=' . rawurlencode($targetHash))) . '">쪽지보내기</a>';
     }
 
     $communityBoardKey = trim((string) ($options['community_board_key'] ?? ''));

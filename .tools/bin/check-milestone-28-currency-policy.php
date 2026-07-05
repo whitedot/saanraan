@@ -120,7 +120,6 @@ sr_milestone_28_check_contains('modules/content/updates/2026.06.025.sql', [
 
 sr_milestone_28_check_contains('modules/community/updates/2026.06.043.sql', [
     "setting_key = 'site.default_currency'",
-    'message_charge_settlement_currency',
     's.setting_value = @sr_community_asset_settlement_default_currency',
     'purchase_power_snapshot_json = CONCAT(',
     "SET version = '2026.06.043'",

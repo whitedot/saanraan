@@ -39,12 +39,13 @@
 | `payment_ledger` | 결제 record와 결제 구성 item 증빙 | account 연결, subject module/type/id, payable/settlement 금액, 쿠폰·자산·외부 결제·접근권 item snapshot을 보관한다. 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
 | `ckeditor` | 에디터 asset, 업로드 adapter, sanitizer | 본문 개인정보는 소유 모듈에 귀속하고, 업로드/임시 파일 접근 정책은 소유 모듈 처리활동에 연결한다. |
-| `community` | 게시글, 댓글, 쪽지, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/상대방/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
+| `community` | 게시글, 댓글, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
 | `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. |
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 계좌정보 마스킹 시점, 처리자 접근 범위를 기록한다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
 | `markdown_editor` | Markdown parser/style profile과 declaration-only CSS 설정 | 본문 개인정보는 소유 모듈에 귀속하고, 플러그인 설정 자체는 회원 귀속 개인정보를 저장하지 않는다. |
+| `message` | 회원 간 쪽지, 수신 설정, 신고 대상 resolver | 쪽지 본문과 발신/수신 방향은 message 모듈이 소유하고, 상대 계정 ID는 export에서 마스킹한다. |
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |
 | `member_oauth_providers` | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약 | 자기 DB 데이터는 없지만 provider endpoint, scope, 중첩 profile claim 계약을 `member_oauth` 처리활동의 외부 processor 후보와 함께 기록한다. |
@@ -113,7 +114,7 @@
 
 | 요청 유형 | 기본 처리 기준 | 모듈별 전파 기준 |
 | --- | --- | --- |
-| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `identity_verification`, `policy_documents`, `notification`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
+| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `identity_verification`, `policy_documents`, `notification`, `message`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
 | `rectification` 정정 | 계정 원천 데이터는 `member` 관리자/회원 화면에서 정정하고, 원문 신원정보는 재검증을 유도한다. | 게시글/댓글/응답/원장은 과거 작성 시점 snapshot을 임의 수정하지 않는다. 표시명 snapshot 정정은 운영자가 공개 오표시와 증빙 보존을 비교해 판단한다. 정정 전후 원문 전체를 메모에 붙이지 않고 처리 위치와 결과만 남긴다. |
 | `erasure` 삭제 | 회원 탈퇴/익명화 cleanup 계약을 우선 사용한다. | 운영 증빙, 금액성 원장, 정책문서 delivery, 감사 로그처럼 보존 사유가 있는 row는 account 연결 제거, tombstone, 마스킹, 보존기간 만료 후 정리 중 하나로 처리한다. 삭제하지 못한 범위와 보존 사유를 메모한다. |
 | `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. 제한 기간과 해제 조건을 메모한다. |
@@ -150,16 +151,16 @@
 | retention | 일반 알림, delivery, read 기록은 `/admin/retention`의 알림 보관일(`notifications_days`)을 따른다. 재발송 가능 기간이 끝난 delivery는 오래 보존하지 않는다. |
 | 관리자 화면 | `/admin/notification-deliveries`는 recipient를 masked 표시하고, 검색/필터는 권한 있는 관리자에게만 제공한다. |
 
-## 커뮤니티 쪽지 상대방 식별자 기준
+## 쪽지 상대방 식별자 기준
 
-커뮤니티 쪽지는 대상 회원의 대화 내역이지만 항상 상대방 회원 식별자가 함께 걸린다. 사본 제공은 대상 회원의 본문과 상태 확인권을 우선하고, 제3자 account id는 기본 export에서 제외한다.
+쪽지는 대상 회원의 대화 내역이지만 항상 상대방 회원 식별자가 함께 걸린다. 사본 제공은 대상 회원의 본문과 상태 확인권을 우선하고, 제3자 account id는 기본 export에서 제외한다.
 
 | 항목 | 기준 |
 | --- | --- |
 | export 포함 | 대상 회원이 보낸 쪽지와 받은 쪽지를 모두 포함한다. 본문, 상태, 읽음/삭제 시각, 생성/수정 시각은 대상 회원의 대화 내역으로 제공한다. |
 | 방향 표시 | `message_direction`은 대상 회원 기준 `sent` 또는 `received`로 제공한다. |
 | 상대방 표시 | 상대방은 원 account id나 표시명 snapshot 대신 `counterparty_role`의 `masked_sender` 또는 `masked_recipient` 역할값으로만 제공한다. |
-| 원 식별자 제외 | `sender_account_id`와 `recipient_account_id`는 `community` export 결과에 포함하지 않는다. |
+| 원 식별자 제외 | `sender_account_id`와 `recipient_account_id`는 `message` export 결과에 포함하지 않는다. |
 | cleanup | 탈퇴/익명화는 쪽지 원문 보존과 양쪽 삭제 상태를 별도 정책으로 다루되, export 계약에서는 상대방 raw 식별자를 다시 노출하지 않는다. |
 | verification | `.tools/bin/check-privacy-export-runtime.php`는 보낸 쪽지와 받은 쪽지 fixture를 함께 만들고 방향값, 상대방 역할값, raw account id 제외를 확인한다. |
 
@@ -202,7 +203,7 @@
 | 점검 | 역할 |
 | --- | --- |
 | `check-retention-targets.php` | 감사 로그, 알림, 배너 클릭 hash 같은 보존/정리 대상과 삭제 SQL 안전 경계를 확인한다. |
-| `check-privacy-contract-matrix.php` | 31개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
+| `check-privacy-contract-matrix.php` | 32개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터, 결제 기록, 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
 | `check-privacy-export-status.php` | 테스트용 모듈 export 실패를 시뮬레이션해 `partial_export`, `module_export_status`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 결제 record account 연결과 item account 참조를 익명화하며, 보존 원장은 유지하는지 확인한다. |

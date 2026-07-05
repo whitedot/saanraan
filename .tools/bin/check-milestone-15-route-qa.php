@@ -203,7 +203,7 @@ $issueRoutes = [
     '193' => ['/account', '/account/withdraw', '/account/privacy-requests'],
     '194' => ['/content/example', '/content/group?key=example', '/content/download?id=1'],
     '195' => ['/community', '/community/board?key=free', '/community/post?id=1', '/community/write?key=free', '/community/edit?id=1', '/community/attachment?id=1'],
-    '196' => ['/community/series', '/community/scraps', '/community/messages', '/community/message?id=1', '/community/message/write'],
+    '196' => ['/community/series', '/community/scraps', '/messages', '/message?id=1', '/message/write'],
     '197' => ['/account/points', '/account/rewards', '/account/deposits', '/account/asset-exchange'],
     '198' => ['/account/coupons', '/content/example', '/community/post?id=1'],
     '199' => ['/account/notifications'],
@@ -215,7 +215,7 @@ $issueRoutes = [
 foreach ($issueRoutes as $issue => $paths) {
     foreach ($paths as $path) {
         $issue = (string) $issue;
-        $cookies = str_starts_with($path, '/admin') || str_starts_with($path, '/account') || str_starts_with($path, '/community/write') || str_starts_with($path, '/community/edit') || str_starts_with($path, '/community/series') || str_starts_with($path, '/community/scraps') || str_starts_with($path, '/community/message')
+        $cookies = str_starts_with($path, '/admin') || str_starts_with($path, '/account') || str_starts_with($path, '/community/write') || str_starts_with($path, '/community/edit') || str_starts_with($path, '/community/series') || str_starts_with($path, '/community/scraps') || str_starts_with($path, '/message')
             ? $adminCookies
             : $guestCookies;
 
@@ -271,7 +271,7 @@ $postGuardPaths = [
     '193' => ['/account', '/account/withdraw'],
     '194' => ['/content/comment', '/content/action', '/content/download'],
     '195' => ['/community/write?key=free', '/community/edit', '/community/delete', '/community/comment', '/community/report', '/community/skin-action'],
-    '196' => ['/community/series', '/community/scrap', '/community/message/write', '/community/message/delete'],
+    '196' => ['/community/series', '/community/scrap', '/message/write', '/message/delete'],
     '197' => ['/account/rewards', '/account/deposits', '/account/asset-exchange'],
     '199' => ['/account/notifications'],
     '202' => ['/register', '/community/report', '/admin/privacy-requests/export'],

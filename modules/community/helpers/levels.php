@@ -29,8 +29,6 @@ function sr_community_default_settings(): array
         'account_guard_confirmed_hold_threshold' => (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3),
         'account_guard_confirmed_hold_window_days' => (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30),
         'account_guard_confirmed_hold_duration_minutes' => (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440),
-        'message_create_window_seconds' => (int) ($settings['message_create_window_seconds'] ?? 300),
-        'message_create_limit' => (int) ($settings['message_create_limit'] ?? 20),
         'attachment_max_bytes' => (int) ($settings['attachment_max_bytes'] ?? $settings['image_upload_max_bytes'] ?? 2097152),
         'image_uploads_enabled' => (bool) ($settings['image_uploads_enabled'] ?? true),
         'thumbnail_enabled' => (bool) ($settings['thumbnail_enabled'] ?? true),
@@ -50,9 +48,6 @@ function sr_community_default_settings(): array
         'level_auto_recalculate' => (bool) ($settings['level_auto_recalculate'] ?? false),
         'level_post_score' => (int) ($settings['level_post_score'] ?? 10),
         'level_comment_score' => (int) ($settings['level_comment_score'] ?? 2),
-        'message_write_policy' => is_string($settings['message_write_policy'] ?? null) ? (string) $settings['message_write_policy'] : 'member',
-        'message_write_group_keys' => $settings['message_write_group_keys'] ?? [],
-        'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'identity_restricted_board_required' => (bool) ($settings['identity_restricted_board_required'] ?? false),
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
@@ -103,13 +98,6 @@ function sr_community_default_settings(): array
         'write_charge_amounts_json' => is_string($settings['write_charge_amounts_json'] ?? null) ? (string) $settings['write_charge_amounts_json'] : '',
         'write_charge_group_policies_json' => is_string($settings['write_charge_group_policies_json'] ?? null) ? (string) $settings['write_charge_group_policies_json'] : '',
         'write_charge_policy_set_id' => (int) ($settings['write_charge_policy_set_id'] ?? 0),
-        'message_charge_enabled' => (bool) ($settings['message_charge_enabled'] ?? false),
-        'message_charge_asset_module' => is_string($settings['message_charge_asset_module'] ?? null) ? (string) $settings['message_charge_asset_module'] : '',
-        'message_charge_amount' => (int) ($settings['message_charge_amount'] ?? 0),
-        'message_charge_settlement_currency' => is_string($settings['message_charge_settlement_currency'] ?? null) ? (string) $settings['message_charge_settlement_currency'] : 'KRW',
-        'message_charge_amounts_json' => is_string($settings['message_charge_amounts_json'] ?? null) ? (string) $settings['message_charge_amounts_json'] : '',
-        'message_charge_group_policies_json' => is_string($settings['message_charge_group_policies_json'] ?? null) ? (string) $settings['message_charge_group_policies_json'] : '',
-        'message_charge_policy_set_id' => (int) ($settings['message_charge_policy_set_id'] ?? 0),
         'comment_charge_enabled' => (bool) ($settings['comment_charge_enabled'] ?? false),
         'comment_charge_asset_module' => is_string($settings['comment_charge_asset_module'] ?? null) ? (string) $settings['comment_charge_asset_module'] : '',
         'comment_charge_amount' => (int) ($settings['comment_charge_amount'] ?? 0),
@@ -229,8 +217,6 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['account_guard_confirmed_hold_threshold'] = min(20, max(2, (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3)));
     $settings['account_guard_confirmed_hold_window_days'] = min(365, max(1, (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30)));
     $settings['account_guard_confirmed_hold_duration_minutes'] = min(10080, max(10, (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440)));
-    $settings['message_create_window_seconds'] = min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300)));
-    $settings['message_create_limit'] = min(200, max(1, (int) ($settings['message_create_limit'] ?? 20)));
     $settings['attachment_max_bytes'] = min(10485760, max(1024, (int) ($settings['attachment_max_bytes'] ?? 2097152)));
     $settings['image_uploads_enabled'] = sr_community_bool_setting($settings['image_uploads_enabled'] ?? true);
     $settings['thumbnail_enabled'] = sr_community_bool_setting($settings['thumbnail_enabled'] ?? true);
@@ -251,9 +237,6 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['level_auto_recalculate'] = sr_community_bool_setting($settings['level_auto_recalculate'] ?? false);
     $settings['level_post_score'] = min(10000, max(0, (int) ($settings['level_post_score'] ?? 10)));
     $settings['level_comment_score'] = min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2)));
-    $settings['message_write_policy'] = sr_community_message_write_policy((string) ($settings['message_write_policy'] ?? ''));
-    $settings['message_write_group_keys'] = sr_community_group_keys_from_setting($settings['message_write_group_keys'] ?? []);
-    $settings['message_write_min_level'] = sr_community_normalize_level_value($settings['message_write_min_level'] ?? 0, $settings);
     $settings['identity_restricted_board_required'] = sr_community_bool_setting($settings['identity_restricted_board_required'] ?? false);
     $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
@@ -697,16 +680,6 @@ function sr_community_post_toolbar_preset(PDO $pdo, ?array $settings = null): st
     $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
     sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
     return sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
-}
-
-function sr_community_message_write_policy_values(): array
-{
-    return ['member', 'group', 'disabled'];
-}
-
-function sr_community_message_write_policy(string $value): string
-{
-    return in_array($value, sr_community_message_write_policy_values(), true) ? $value : 'member';
 }
 
 function sr_community_group_keys_from_setting(mixed $value): array

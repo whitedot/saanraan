@@ -40,7 +40,7 @@ const issueRoutes = {
   193: ['/account', '/account/withdraw', '/account/privacy-requests'],
   194: ['/content/example', '/content/group?key=example', '/content/download?id=1'],
   195: ['/community', '/community/board?key=free', '/community/post?id=1', '/community/write?key=free', '/community/edit?id=1', '/community/attachment?id=1'],
-  196: ['/community/series', '/community/scraps', '/community/messages', '/community/message?id=1', '/community/message/write'],
+  196: ['/community/series', '/community/scraps', '/messages', '/message?id=1', '/message/write'],
   197: ['/account/points', '/account/rewards', '/account/deposits', '/account/asset-exchange'],
   198: ['/account/coupons', '/content/example', '/community/post?id=1'],
   199: ['/account/notifications'],
@@ -75,7 +75,7 @@ function isProtectedMemberPath(route) {
     || route.startsWith('/community/edit')
     || route.startsWith('/community/series')
     || route.startsWith('/community/scraps')
-    || route.startsWith('/community/message');
+    || route.startsWith('/message');
 }
 
 async function login(page) {

@@ -134,7 +134,7 @@ function sr_community_asset_setting_prefixes(): array
 
 function sr_community_module_asset_setting_prefixes(): array
 {
-    return ['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'message_charge', 'paid_read', 'paid_attachment_download'];
+    return ['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'];
 }
 
 function sr_community_board_group_asset_setting_keys(): array
@@ -312,7 +312,6 @@ function sr_community_asset_setting_label(string $assetPrefix): string
         'comment_reward' => sr_t('community::asset_setting.comment_reward'),
         'write_charge' => sr_t('community::asset_setting.write_charge'),
         'comment_charge' => sr_t('community::asset_setting.comment_charge'),
-        'message_charge' => sr_t('community::asset_setting.message_charge'),
         'paid_read' => sr_t('community::asset_setting.paid_read'),
         'paid_attachment_download' => sr_t('community::asset_setting.paid_attachment_download'),
     ];

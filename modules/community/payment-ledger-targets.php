@@ -25,10 +25,4 @@ return [
         'label' => '커뮤니티 댓글 작성',
         'helpers' => 'helpers.php',
     ],
-    [
-        'subject_module' => 'community',
-        'subject_type' => 'community.message_send_charge',
-        'label' => '커뮤니티 쪽지 발송',
-        'helpers' => 'helpers.php',
-    ],
 ];

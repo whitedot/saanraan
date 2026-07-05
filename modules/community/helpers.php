@@ -20,7 +20,6 @@ require_once SR_ROOT . '/modules/community/helpers/presentation.php';
 require_once SR_ROOT . '/modules/community/helpers/levels.php';
 require_once SR_ROOT . '/modules/community/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/community/helpers/notifications.php';
-require_once SR_ROOT . '/modules/community/helpers/messages.php';
 require_once SR_ROOT . '/modules/community/helpers/board-copy.php';
 require_once SR_ROOT . '/modules/community/helpers/board-copy-jobs.php';
 require_once SR_ROOT . '/modules/community/helpers/admin-boards.php';
@@ -488,22 +487,6 @@ function sr_community_member_group_reference_rows(PDO $pdo, array $target, array
     $rows = [];
     $plainLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $groupKey) . '%';
     $jsonLike = '%"group_key":"' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $groupKey) . '"%';
-
-    $settings = sr_community_settings($pdo);
-    $messageGroups = $settings['message_write_group_keys'] ?? [];
-    if (is_array($messageGroups) && in_array($groupKey, array_map('strval', $messageGroups), true)) {
-        $rows[] = [
-            'consumer_module_key' => 'community',
-            'reference_type' => 'community_message_group_policy',
-            'reference_id' => 'community_settings:message_write_group_keys',
-            'title' => '커뮤니티 쪽지 작성 대상 그룹',
-            'target_type' => 'member_group',
-            'target_id' => (string) (int) ($target['target_id'] ?? 0),
-            'target_key' => $groupKey,
-            'policy_status' => (string) ($settings['message_write_policy'] ?? ''),
-            'admin_url' => '/admin/community/settings',
-        ];
-    }
 
     $stmt = $pdo->prepare(
         'SELECT b.id, b.title, b.status, s.setting_key, s.updated_at

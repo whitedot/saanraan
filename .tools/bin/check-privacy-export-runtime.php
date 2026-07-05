@@ -867,7 +867,6 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL, field_key TEXT NOT NULL, label_snapshot TEXT NOT NULL, field_type_snapshot TEXT NOT NULL, visibility_snapshot TEXT NOT NULL, show_on_view_snapshot INTEGER NOT NULL, show_in_admin_snapshot INTEGER NOT NULL, privacy_purpose_snapshot TEXT NOT NULL, export_policy_snapshot TEXT NOT NULL, cleanup_policy_snapshot TEXT NOT NULL, value_text TEXT NULL, value_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_reports (id INTEGER PRIMARY KEY, reporter_account_id INTEGER NOT NULL, reported_account_id INTEGER NULL, target_type TEXT NOT NULL, target_id INTEGER NOT NULL, reason_key TEXT NOT NULL, memo_text TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_report_auto_actions (id INTEGER PRIMARY KEY, target_type TEXT NOT NULL, target_id INTEGER NOT NULL, active_target_uid TEXT NULL, source_report_id INTEGER NULL, action_key TEXT NOT NULL, status TEXT NOT NULL, target_before_status TEXT NOT NULL, target_hidden_at_snapshot TEXT NULL, target_hidden_reason TEXT NOT NULL, target_hidden_by_account_id INTEGER NULL, threshold_value INTEGER NOT NULL, total_reporter_count INTEGER NOT NULL, eligible_reporter_count INTEGER NOT NULL, excluded_reporter_count INTEGER NOT NULL, excluded_report_count INTEGER NOT NULL, abuse_guard_summary_json TEXT NULL, settings_snapshot_json TEXT NULL, failure_reason TEXT NOT NULL, metadata_json TEXT NULL, applied_at TEXT NULL, released_at TEXT NULL, reviewed_at TEXT NULL, reviewer_account_id INTEGER NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_community_messages (id INTEGER PRIMARY KEY, sender_account_id INTEGER NOT NULL, recipient_account_id INTEGER NOT NULL, body_text TEXT NOT NULL, status TEXT NOT NULL, read_at TEXT NULL, sender_deleted_at TEXT NULL, recipient_deleted_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_scraps (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, post_id INTEGER NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, series_id INTEGER NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL, owner_account_id INTEGER NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, status TEXT NOT NULL, visibility TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
@@ -889,7 +888,6 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_post_field_values (id, post_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_view_snapshot, show_in_admin_snapshot, privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at) VALUES (1, 10, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Acme', '{\"value\":\"Acme\"}', '', ''), (2, 10, 'internal_note', 'Internal', 'text', 'admin', 0, 1, '', 'exclude', 'retain', 'hidden', '{\"value\":\"hidden\"}', '', ''), (3, 20, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Other', '{\"value\":\"Other\"}', '', '')");
     $pdo->exec("INSERT INTO sr_community_reports (id, reporter_account_id, reported_account_id, target_type, target_id, reason_key, memo_text, status, created_at, updated_at) VALUES (1, 7, 8, 'post', 20, 'spam', 'memo', 'open', '', ''), (2, 8, 7, 'post', 10, 'spam', 'memo', 'open', '', '')");
     $pdo->exec("INSERT INTO sr_community_report_auto_actions (id, target_type, target_id, active_target_uid, source_report_id, action_key, status, target_before_status, target_hidden_at_snapshot, target_hidden_reason, target_hidden_by_account_id, threshold_value, total_reporter_count, eligible_reporter_count, excluded_reporter_count, excluded_report_count, abuse_guard_summary_json, settings_snapshot_json, failure_reason, metadata_json, applied_at, released_at, reviewed_at, reviewer_account_id, created_at, updated_at) VALUES (1, 'post', 10, 'post:10', 2, 'hide_target', 'active', 'published', '', 'report_threshold', NULL, 5, 5, 5, 0, 0, '{}', '{\"enabled\":true}', '', '{}', '', NULL, NULL, NULL, '', ''), (2, 'post', 20, 'post:20', 1, 'hide_target', 'confirmed', 'published', '', 'report_threshold', 8, 5, 5, 5, 0, 0, '{}', '{\"enabled\":true}', '', '{}', '', NULL, '', 7, '', ''), (3, 'comment', 200, 'comment:200', NULL, 'hide_target', 'active', 'published', '', 'report_threshold', 8, 5, 5, 5, 0, 0, '{}', '{}', '', '{}', '', NULL, NULL, 8, '', '')");
-    $pdo->exec("INSERT INTO sr_community_messages (id, sender_account_id, recipient_account_id, body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at) VALUES (1, 7, 8, 'sent', 'sent', NULL, NULL, NULL, '', ''), (2, 8, 7, 'received', 'sent', NULL, NULL, NULL, '', '')");
     $pdo->exec("INSERT INTO sr_community_scraps (id, account_id, post_id, created_at) VALUES (1, 7, 10, ''), (2, 8, 20, '')");
     $pdo->exec("INSERT INTO sr_community_series_scraps (id, account_id, series_id, created_at) VALUES (1, 7, 1, ''), (2, 8, 2, '')");
     $pdo->exec("INSERT INTO sr_community_series (id, board_id, owner_account_id, title, description, status, visibility, created_at, updated_at) VALUES (1, 1, 7, 'Series 7', '', 'active', 'public', '', ''), (2, 1, 8, 'Series 8', '', 'active', 'public', '', '')");
@@ -908,7 +906,7 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_submission_consents (id, board_id, subject_type, subject_id, action_key, account_id, consent_title_snapshot, consent_body_snapshot, consent_version_snapshot, consent_required, consent_accepted, ip_hash, user_agent_hash, created_at) VALUES (1, 1, 'post', 10, 'write', 7, 'Privacy', 'Body', 'v1', 1, 1, 'ip7', 'ua7', ''), (2, 1, 'post', 20, 'write', 8, 'Privacy', 'Body', 'v1', 1, 1, 'ip8', 'ua8', '')");
 
     $invalid = $export($pdo, 0);
-    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'attachment_download_logs', 'post_read_payment_logs', 'reports', 'report_auto_actions', 'messages', 'scraps', 'series_scraps', 'series', 'series_items', 'level', 'level_logs', 'access_entitlements', 'asset_logs', 'asset_recovery_failures', 'publisher_reward_logs', 'submission_consents'] as $key) {
+    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'attachment_download_logs', 'post_read_payment_logs', 'reports', 'report_auto_actions', 'scraps', 'series_scraps', 'series', 'series_items', 'level', 'level_logs', 'access_entitlements', 'asset_logs', 'asset_recovery_failures', 'publisher_reward_logs', 'submission_consents'] as $key) {
         sr_privacy_export_runtime_assert(isset($invalid[$key]) && $invalid[$key] === [], 'community export invalid account result must include empty key: ' . $key);
     }
 
@@ -920,29 +918,7 @@ function sr_privacy_export_runtime_check_community(): void
     sr_privacy_export_runtime_assert(count($result['level_logs'] ?? []) === 1000, 'community export must cap a section at the documented row limit.');
     sr_privacy_export_runtime_assert(($result['_limits']['level_logs']['has_more'] ?? null) === true, 'community export must report when a section has more rows than the returned limit.');
     sr_privacy_export_runtime_assert(($result['_limits']['level_logs']['limit'] ?? null) === 1000, 'community export must report the per-section row limit.');
-    sr_privacy_export_runtime_assert(($result['_limits']['messages']['has_more'] ?? null) === false, 'community export must report complete sections when they fit under the row limit.');
-    sr_privacy_export_runtime_assert(count($result['messages'] ?? []) === 2, 'community export must include sent and received messages for target account.');
     sr_privacy_export_runtime_assert(count($result['report_auto_actions'] ?? []) === 2, 'community export must include target-owned and reviewer-linked report auto actions.');
-    $messageDirections = [];
-    $messageCounterpartyRoles = [];
-    $messageRolesByBody = [];
-    foreach ($result['messages'] as $message) {
-        sr_privacy_export_runtime_assert(!array_key_exists('sender_account_id', $message), 'community message export must not expose raw sender account id.');
-        sr_privacy_export_runtime_assert(!array_key_exists('recipient_account_id', $message), 'community message export must not expose raw recipient account id.');
-        foreach (array_keys($message) as $messageKey) {
-            sr_privacy_export_runtime_assert(!str_contains((string) $messageKey, 'account_id'), 'community message export must not expose account id fields: ' . (string) $messageKey);
-        }
-        $messageDirections[(string) ($message['message_direction'] ?? '')] = true;
-        $messageCounterpartyRoles[(string) ($message['counterparty_role'] ?? '')] = true;
-        $messageRolesByBody[(string) ($message['body_text'] ?? '')] = [
-            'message_direction' => (string) ($message['message_direction'] ?? ''),
-            'counterparty_role' => (string) ($message['counterparty_role'] ?? ''),
-        ];
-    }
-    sr_privacy_export_runtime_assert(isset($messageDirections['sent'], $messageDirections['received']), 'community message export must expose sent and received directions.');
-    sr_privacy_export_runtime_assert(isset($messageCounterpartyRoles['masked_recipient'], $messageCounterpartyRoles['masked_sender']), 'community message export must expose masked counterparty roles.');
-    sr_privacy_export_runtime_assert(($messageRolesByBody['sent']['message_direction'] ?? '') === 'sent' && ($messageRolesByBody['sent']['counterparty_role'] ?? '') === 'masked_recipient', 'community sent message export must map the counterparty to masked_recipient.');
-    sr_privacy_export_runtime_assert(($messageRolesByBody['received']['message_direction'] ?? '') === 'received' && ($messageRolesByBody['received']['counterparty_role'] ?? '') === 'masked_sender', 'community received message export must map the counterparty to masked_sender.');
     sr_privacy_export_runtime_assert(count($result['publisher_reward_logs'] ?? []) === 2, 'community export must include downloader and publisher reward rows for target account.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['author_public_name_snapshot'] ?? '') === 'post-name7', 'community export must include post author public name snapshot.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['category_key'] ?? '') === 'cat', 'community export must include post category metadata.');
@@ -967,6 +943,51 @@ function sr_privacy_export_runtime_check_community(): void
     sr_privacy_export_runtime_assert(($result['post_read_payment_logs'][0]['refund_policy_version'] ?? '') === 'community_post_read_refund_v1', 'community export must include post read payment refund policy version.');
     sr_privacy_export_runtime_assert((int) ($result['asset_recovery_failures'][0]['unrecovered_amount'] ?? 0) === 60, 'community export must include target asset recovery failure amount.');
     sr_privacy_export_runtime_assert(($result['submission_consents'][0]['ip_hash'] ?? '') === 'ip7', 'community export must include target submission consent hashes.');
+}
+
+function sr_privacy_export_runtime_check_message(): void
+{
+    $export = include 'modules/message/privacy-export.php';
+    if (!is_callable($export)) {
+        sr_privacy_export_runtime_error('message privacy export contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_export_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_messages (id INTEGER PRIMARY KEY, sender_account_id INTEGER NOT NULL, recipient_account_id INTEGER NOT NULL, body_text TEXT NOT NULL, status TEXT NOT NULL, read_at TEXT NULL, sender_deleted_at TEXT NULL, recipient_deleted_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_message_member_settings (account_id INTEGER PRIMARY KEY, receive_enabled INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_messages (id, sender_account_id, recipient_account_id, body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at) VALUES (1, 7, 8, 'sent', 'sent', NULL, NULL, NULL, '', ''), (2, 8, 7, 'received', 'sent', NULL, NULL, NULL, '', '')");
+    $pdo->exec("INSERT INTO sr_message_member_settings (account_id, receive_enabled, created_at, updated_at) VALUES (7, 1, '', '')");
+
+    $invalid = $export($pdo, 0);
+    foreach (['messages', 'member_settings'] as $key) {
+        sr_privacy_export_runtime_assert(isset($invalid[$key]) && $invalid[$key] === [], 'message export invalid account result must include empty key: ' . $key);
+    }
+
+    $result = $export($pdo, 7);
+    sr_privacy_export_runtime_assert(($result['_limits']['messages']['has_more'] ?? null) === false, 'message export must report complete sections when they fit under the row limit.');
+    sr_privacy_export_runtime_assert(count($result['messages'] ?? []) === 2, 'message export must include sent and received messages for target account.');
+    sr_privacy_export_runtime_assert(count($result['member_settings'] ?? []) === 1, 'message export must include member receive settings.');
+    $messageDirections = [];
+    $messageCounterpartyRoles = [];
+    $messageRolesByBody = [];
+    foreach ($result['messages'] as $message) {
+        sr_privacy_export_runtime_assert(!array_key_exists('sender_account_id', $message), 'message export must not expose raw sender account id.');
+        sr_privacy_export_runtime_assert(!array_key_exists('recipient_account_id', $message), 'message export must not expose raw recipient account id.');
+        foreach (array_keys($message) as $messageKey) {
+            sr_privacy_export_runtime_assert(!str_contains((string) $messageKey, 'account_id'), 'message export must not expose account id fields: ' . (string) $messageKey);
+        }
+        $messageDirections[(string) ($message['message_direction'] ?? '')] = true;
+        $messageCounterpartyRoles[(string) ($message['counterparty_role'] ?? '')] = true;
+        $messageRolesByBody[(string) ($message['body_text'] ?? '')] = [
+            'message_direction' => (string) ($message['message_direction'] ?? ''),
+            'counterparty_role' => (string) ($message['counterparty_role'] ?? ''),
+        ];
+    }
+    sr_privacy_export_runtime_assert(isset($messageDirections['sent'], $messageDirections['received']), 'message export must expose sent and received directions.');
+    sr_privacy_export_runtime_assert(isset($messageCounterpartyRoles['masked_recipient'], $messageCounterpartyRoles['masked_sender']), 'message export must expose masked counterparty roles.');
+    sr_privacy_export_runtime_assert(($messageRolesByBody['sent']['message_direction'] ?? '') === 'sent' && ($messageRolesByBody['sent']['counterparty_role'] ?? '') === 'masked_recipient', 'message sent export must map the counterparty to masked_recipient.');
+    sr_privacy_export_runtime_assert(($messageRolesByBody['received']['message_direction'] ?? '') === 'received' && ($messageRolesByBody['received']['counterparty_role'] ?? '') === 'masked_sender', 'message received export must map the counterparty to masked_sender.');
 }
 
 function sr_privacy_export_runtime_check_retained_modules(): void
@@ -1121,6 +1142,7 @@ sr_privacy_export_runtime_check_quiz();
 sr_privacy_export_runtime_check_survey();
 sr_privacy_export_runtime_check_content();
 sr_privacy_export_runtime_check_community();
+sr_privacy_export_runtime_check_message();
 sr_privacy_export_runtime_check_retained_modules();
 
 if ($errors !== []) {

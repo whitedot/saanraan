@@ -443,23 +443,6 @@ CREATE TABLE IF NOT EXISTS sr_community_submission_consents (
     KEY idx_sr_community_submission_consents_board (board_id, created_at)
 );
 
-CREATE TABLE IF NOT EXISTS sr_community_messages (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    sender_account_id BIGINT UNSIGNED NOT NULL,
-    recipient_account_id BIGINT UNSIGNED NOT NULL,
-    body_text TEXT NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'sent',
-    read_at DATETIME NULL,
-    sender_deleted_at DATETIME NULL,
-    recipient_deleted_at DATETIME NULL,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    KEY idx_sr_community_messages_recipient_deleted_id (recipient_account_id, recipient_deleted_at, id),
-    KEY idx_sr_community_messages_sender_deleted_id (sender_account_id, sender_deleted_at, id),
-    KEY idx_sr_community_messages_status_created (status, created_at)
-);
-
 CREATE TABLE IF NOT EXISTS sr_community_scraps (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,

@@ -99,7 +99,7 @@ function sr_asset_settlement_check_runtime_fixture(): void
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'USD', 'string')");
     sr_clear_site_settings_cache();
     $communityDefaults = sr_community_normalize_settings([], null, $pdo);
-    foreach (['write_charge', 'message_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $communityChargePrefix) {
+    foreach (['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $communityChargePrefix) {
         sr_asset_settlement_check_assert(
             (string) ($communityDefaults[$communityChargePrefix . '_settlement_currency'] ?? '') === 'USD',
             'community unset settlement currency default should follow site.default_currency for ' . $communityChargePrefix . '.'
@@ -783,7 +783,6 @@ sr_asset_settlement_check_contains('modules/community/helpers/asset-events.php',
     '$purchasePowerSnapshotJson = $direction === \'use\' ? sr_community_asset_purchase_power_snapshot_json',
     "'post_write_charge' => '글을 작성할 수 없습니다.',",
     "'comment_write_charge' => '댓글을 작성할 수 없습니다.',",
-    "'message_send_charge' => '쪽지를 보낼 수 없습니다.',",
     'Community asset event is still processing.',
     "sr_community_asset_settlement_config_error_message(\$pdo, \$assetModules, \$accountId, 0, \$settlementCurrency, \$zeroAmountSuffix)",
     "'error_key' => 'asset_settlement_config_error'",
@@ -812,10 +811,6 @@ foreach ([
     'modules/community/actions/comment.php' => [
         "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'comment_charge', 'every_action')",
         "sr_community_run_asset_event(\$pdo, \$commentChargeConfig, \$authorAccountId, 'comment_write_charge'",
-    ],
-    'modules/community/actions/message-write.php' => [
-        "sr_community_asset_event_config(\$pdo, [], \$settings, 'message_charge', 'every_action')",
-        "sr_community_run_asset_event(\$pdo, \$messageChargeConfig, (int) \$account['id'], 'message_send_charge'",
     ],
     'modules/community/actions/view.php' => [
         "sr_community_asset_event_config(\$pdo, \$postBoard, \$settings, 'paid_read', 'once')",
@@ -907,7 +902,6 @@ sr_asset_settlement_check_contains('modules/community/actions/admin-settings.php
     "\$assetSettings[\$assetPrefix . '_settlement_currency'] = sr_community_asset_settlement_currency",
     "\$settings[\$assetPrefix . '_settlement_currency'] ?? \$defaultSettlementCurrency",
     "['write_charge_settlement_currency', (string) \$assetSettings['write_charge_settlement_currency'], 'string']",
-    "['message_charge_settlement_currency', (string) \$assetSettings['message_charge_settlement_currency'], 'string']",
     "['comment_charge_settlement_currency', (string) \$assetSettings['comment_charge_settlement_currency'], 'string']",
     "['paid_read_settlement_currency', (string) \$assetSettings['paid_read_settlement_currency'], 'string']",
     "['paid_attachment_download_settlement_currency', (string) \$assetSettings['paid_attachment_download_settlement_currency'], 'string']",
@@ -1002,7 +996,6 @@ sr_asset_settlement_check_contains('modules/content/updates/2026.06.026.sql', [
 sr_asset_settlement_check_contains('modules/community/updates/2026.06.043.sql', [
     "WHERE setting_key = 'site.default_currency'",
     "IN ('KRW', 'USD')",
-    'message_charge_settlement_currency',
     's.setting_value = @sr_community_asset_settlement_default_currency',
     'settlement_currency = @sr_community_asset_settlement_default_currency',
     '"snapshot_schema_version":"asset_settlement_snapshot_v1"',

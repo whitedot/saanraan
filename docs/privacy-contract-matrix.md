@@ -26,12 +26,13 @@
 | `asset_ledger` | `export_cleanup` | 제공 | 제공 | 공통 원장 점검 helper와 보상 회수 실패 큐를 제공한다. `sr_asset_recovery_failures`는 실패한 회수 작업의 account/actor 연결과 금액을 저장하며, 사본 제공과 탈퇴/익명화 cleanup 계약은 `asset_ledger`가 소유한다. |
 | `banner` | `no_member_personal_data` | 없음 | 없음 | 배너 설정은 회원 귀속 데이터가 아니다. 클릭 dedupe hash는 account/session/IP/UA에서 파생될 수 있는 가명성 운영 데이터로 분리해 보관일 정책에 따른다. |
 | `ckeditor` | `no_member_personal_data` | 없음 | 없음 | 에디터 asset과 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
-| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 쪽지, 신고, 신고 자동 임시 조치 이력, 계정 guard 이력/현재 상태, 동의 증적, 접근권, 보상 로그 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 운영 기준은 `asset_ledger` 공통 큐가 소유하며, community export/cleanup은 호환 기간의 legacy `sr_community_asset_recovery_failures` row만 정리한다. |
+| `community` | `export_cleanup` | 제공 | 제공 | 게시글, 댓글, 스크랩, 신고, 신고 자동 임시 조치 이력, 계정 guard 이력/현재 상태, 동의 증적, 접근권, 보상 로그 등 회원 활동 데이터와 IP/UA hash를 가진다. 보상 미회수 운영 기준은 `asset_ledger` 공통 큐가 소유하며, community export/cleanup은 호환 기간의 legacy `sr_community_asset_recovery_failures` row만 정리한다. |
 | `content` | `export_cleanup` | 제공 | 제공 | 작성자, 신청자, 댓글, 유료 접근권, 다운로드 로그, 자산 처리 로그 등 회원 활동 데이터를 가진다. |
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 없음 | 예치금 잔액, 원장, 환불 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `logo_manager` | `operational_retained` | 없음 | 없음 | 로고 운영 메타데이터의 작성자 계정 연결은 운영 보존 데이터로 분류한다. |
 | `markdown_editor` | `no_member_personal_data` | 없음 | 없음 | Markdown parser/style profile과 declaration-only CSS 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
+| `message` | `export_cleanup` | 제공 | 제공 | 회원 간 쪽지 본문과 발신/수신 방향, 회원별 수신 설정을 소유한다. export에서는 상대 계정 ID를 노출하지 않고 `message_direction`과 masked counterparty role로 제공한다. cleanup은 회원별 수신 설정을 삭제하고 양쪽 사본이 모두 삭제된 자기 자신 대상 row만 물리 정리한다. |
 | `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 기본/추가 프로필, 동의, 그룹 멤버십, MFA factor/recovery code 저장소를 소유하고 탈퇴/익명화 시 회원 소유 MFA row를 직접 삭제한 뒤 설치 모듈의 cleanup 계약을 실행한다. 추가 프로필 값은 항목별 export 정책에 따라 사본 제공 범위를 정하고, MFA export는 factor 표시 메타데이터와 recovery code 상태별 개수만 제공한다. |
 | `member_oauth` | `export_cleanup` | 제공 | 제공 | OAuth provider 연결 증적과 최소 profile snapshot을 회원 계정에 연결하며, provider subject 원문은 저장하지 않고 HMAC hash와 hash prefix 표시값만 둔다. 탈퇴/익명화 시 연결을 해제하고 snapshot을 제거한다. |
 | `member_oauth_providers` | `no_member_personal_data` | 없음 | 없음 | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약만 제공하며 설정 저장, state, 계정 연결, profile snapshot은 `member_oauth` 모듈이 소유한다. |
@@ -53,16 +54,16 @@
 
 ## 마일스톤 12 재기준화 기준
 
-마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 31개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `payment_ledger`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `policy_documents`, `quiz`, `reaction`, `survey`, `markdown_editor`까지 포함해 개인정보 표면을 판단한다.
+마일스톤 12의 기존 GDPR 후속 이슈(#151-#161)는 2026-06-02 생성 당시 번들 모듈 17개를 전제로 분리되었다. 현재 번들 모듈은 32개이며, 이후 추가된 `antispam`, `antispam_captcha_providers`, `asset_ledger`, `payment_ledger`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `policy_documents`, `quiz`, `reaction`, `survey`, `markdown_editor`, `message`까지 포함해 개인정보 표면을 판단한다.
 
 | 표면 | 현재 포함 모듈 | 주요 개인정보성 필드와 처리 표면 | 마일스톤 12 연결 |
 | --- | --- | --- | --- |
 | 쿠키와 브라우저 저장소 | `member`, `popup_layer`, `admin`, `antispam`, `antispam_captcha_providers`, `banner` | 세션 쿠키, 팝업 닫기 쿠키, 관리자 UI `localStorage`, CAPTCHA provider script와 remote IP 전달 옵션, 배너 클릭 dedupe hash | #151, #152, #160 |
-| 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis` | 계정 식별자/email hash, 세션/token hash, MFA factor secret ciphertext/fingerprint/recovery code hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 본인확인 CI/DI/이름/휴대폰 HMAC hash, 가입 동의 snapshot, OAuth/본인확인 provider 계약 | #158, #159, #160, #161 |
+| 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `message` | 계정 식별자/email hash, 세션/token hash, MFA factor secret ciphertext/fingerprint/recovery code hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 본인확인 CI/DI/이름/휴대폰 HMAC hash, 가입 동의 snapshot, 쪽지 수신 설정, OAuth/본인확인 provider 계약 | #158, #159, #160, #161 |
 | 정책 문서와 동의 | `member`, `policy_documents`, `community`, `survey` | 회원 동의 증적, 정책 문서 버전 snapshot, 안내메일 delivery account 연결, 제출/응답 동의 snapshot | #151, #158, #160, #161 |
 | 사용자 제출과 활동 | `community`, `content`, `quiz`, `survey`, `reaction` | 작성자/응답자/시도자 account 연결, 댓글/쪽지/스크랩/리액션, answer/metadata snapshot, IP/UA hash, 제3자 식별자 | #155, #158, #159, #161 |
 | 금액성 원장과 권리 | `asset_ledger`, `payment_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 잔액/거래/환불/출금/쿠폰/결제 기록/유료 접근권/보상 grant/보상 미회수 기록, account 연결과 created/processed/refunded actor | #156, #158, #160, #161 |
-| 알림과 외부 발송 | `notification`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction` | site/email delivery recipient, push endpoint ciphertext와 masked recipient, 정책문서 안내메일, 멘션/댓글/리액션 알림 | #154, #158, #160, #161 |
+| 알림과 외부 발송 | `notification`, `policy_documents`, `member_oauth`, `message`, `community`, `content`, `quiz`, `survey`, `reaction` | site/email delivery recipient, push endpoint ciphertext와 masked recipient, 정책문서 안내메일, 쪽지 도착 알림, 멘션/댓글/리액션 알림 | #154, #158, #160, #161 |
 | 운영 보존과 감사 | `admin`, `privacy`, `logo_manager`, `notification` | 관리자 권한, 감사 로그 actor/metadata, 개인정보 요청 requester/admin note/handler, 로고 변경 작성자, 운영 알림 처리자 | #153, #157, #158, #160 |
 
 ### 이슈별 추가 모듈 영향
@@ -72,14 +73,14 @@
 | #151 쿠키 동의 관리 | `antispam`, `antispam_captcha_providers`, `popup_layer`, `admin`, `banner`, `member`, `community`, `privacy` | 로그인 세션 쿠키와 CSRF/session state는 필수 보안 저장소로 두고, `privacy`의 공개 쿠키 설정 배너가 `sr_cookie_consent`로 기능성 저장소 항목별 허용 여부를 기록한다. 현재 기능성 항목은 `popup_dismissal`이며, 팝업 닫기 쿠키는 이 항목 동의가 있을 때만 저장한다. CAPTCHA provider script와 remote IP 전달은 보안 목적 외부 처리자 표면으로 기록하고, 마케팅/분석 script를 추가하려면 사전 동의 gate와 항목별 설정을 먼저 구현한다. |
 | #152 배너 클릭 hash | `banner`, `member` | `click_key_hash`가 account, session hash, IP/UA hash에서 파생될 수 있으므로 가명성 dedupe 데이터로 분류한다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 조정하고, 배너별 총 클릭 수는 유지하되 오래된 dedupe hash는 정리한다. 배너 복사에서는 집계 클릭 수만 선택 복사하고 dedupe hash row는 복제하지 않는다. |
 | #153 전역 감사 로그 | `admin`, `privacy`, `logo_manager`, 전체 관리자 action | 감사 로그는 본인 export 기본 범위에서 제외하고 운영 보존 데이터로 둔다. actor account, IP/UA, metadata는 저장 전 sanitize와 표시 전 redaction을 적용하며, `/admin/retention`의 관리자 작업 로그 보관일로 정리한다. |
-| #154 알림 delivery recipient | `notification`, `policy_documents`, `member_oauth`, `reaction`, `community`, `content`, `quiz`, `survey` | site delivery와 대상 회원 email delivery는 export에 포함하고 다른 회원 email recipient는 제외한다. push endpoint delivery는 masked recipient로만 제공한다. 탈퇴/익명화 시 push endpoint ciphertext는 제거하고, 정책문서 안내메일 delivery는 account 연결을 제거한다. 일반 delivery retention은 알림 보관일을 따른다. |
-| #155 커뮤니티 쪽지 상대방 식별자 | `community`, `member` | 쪽지 export는 본문과 상태, 발신/수신 방향(`sent`/`received`)만 제공하고 raw `sender_account_id`/`recipient_account_id`는 제외한다. 상대방은 `masked_sender`/`masked_recipient` 역할값으로만 표시하며 runtime fixture가 이 계약을 검증한다. |
+| #154 알림 delivery recipient | `notification`, `policy_documents`, `member_oauth`, `message`, `reaction`, `community`, `content`, `quiz`, `survey` | site delivery와 대상 회원 email delivery는 export에 포함하고 다른 회원 email recipient는 제외한다. push endpoint delivery는 masked recipient로만 제공한다. 탈퇴/익명화 시 push endpoint ciphertext는 제거하고, 정책문서 안내메일 delivery는 account 연결을 제거한다. 일반 delivery retention은 알림 보관일을 따른다. |
+| #155 쪽지 상대방 식별자 | `message`, `member` | 쪽지 export는 본문과 상태, 발신/수신 방향(`sent`/`received`)만 제공하고 raw `sender_account_id`/`recipient_account_id`는 제외한다. 상대방은 `masked_sender`/`masked_recipient` 역할값으로만 표시하며 runtime fixture가 이 계약을 검증한다. |
 | #156 자산 로그 account_id 보존 | `asset_ledger`, `payment_ledger`, `asset_exchange`, `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` | 금액성 증빙 row는 모듈별 보존 계약에 따라 처리한다. 콘텐츠/커뮤니티 접근권과 다운로드 이력처럼 서비스 접근 상태를 나타내는 row는 연결 제거 대상이고, 자산 차감/지급/환불/정정 원장은 환불·정산·분쟁 대응을 위해 account id와 실행 snapshot을 보존한다. `payment_ledger`는 공통 결제 묶음의 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | #157 관리자 메모 redaction | `privacy`, `admin` | privacy 요청의 `admin_note`는 입력 가이드로 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, token 저장을 금지하고 저장/export 단계에서 명백한 이메일·휴대폰·주민등록번호·secret류를 redaction한다. 감사 metadata는 `sr_audit_metadata_sanitize()`와 관리자 화면 표시 redaction을 따른다. |
-| #158 권리 요청 전파 | `member`, `policy_documents`, `member_oauth`, `community`, `content`, `quiz`, `survey`, `reaction`, `notification`, 금액성 모듈 | 정정권, 처리 제한, 동의 철회가 공개 노출, 알림, 리액션, 보상, 금액성 원장에 미치는 범위를 모듈별로 나눈다. |
+| #158 권리 요청 전파 | `member`, `policy_documents`, `member_oauth`, `message`, `community`, `content`, `quiz`, `survey`, `reaction`, `notification`, 금액성 모듈 | 정정권, 처리 제한, 동의 철회가 쪽지 수신, 공개 노출, 알림, 리액션, 보상, 금액성 원장에 미치는 범위를 모듈별로 나눈다. |
 | #159 특별범주/연령/고유식별자성 | `member`, `member_oauth`, `identity_verification`, `identity_kcp`, `identity_inicis`, `antispam_captcha_providers`, `quiz`, `survey` | 회원 선택 프로필의 생년월일과 성인여부는 연령성 개인정보로 export에 포함하고, 회원 추가 프로필 항목, 외부 provider profile, 연령/성인 인증, 설문/퀴즈 응답에서 민감정보가 생길 수 있는 경우 원문 저장 금지와 export 제외 기준을 둔다. |
-| #160 ROPA 확장 | 전체 31개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
-| #161 conformance 자동화 | 전체 31개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
+| #160 ROPA 확장 | 전체 32개 번들 모듈 | processor/수탁사, 국외이전, 처리 위치, 처리 목적, 보존 기간 컬럼을 현재 모듈 표면에 맞춰 확장한다. |
+| #161 conformance 자동화 | 전체 32개 번들 모듈 | 이 문서, 설치/update SQL, 계약 선언, export/cleanup/runtime fixture, smoke readiness를 한 경로에서 실패로 보고한다. |
 
 ## 보강 기준
 
@@ -92,6 +93,10 @@
 - `export_retained` 모듈은 `privacy-export.php`를 제공해야 한다. cleanup이 없거나 일부 secret/부가 데이터만 정리하는 이유는 보존 정책, 회원 자산 정리 계약, 운영 증빙 중 하나로 설명한다.
 - `operational_retained` 모듈은 사본 제공 제외가 확정됐다는 뜻이 아니다. 1.0 전 보존 정책 검토와 운영자 안내 대상이다.
 - `privacy` 모듈은 `privacy-export.php`를 제공하지 않고 소비한다. 자기 요청 이력은 `sr_privacy_export_data()`에서 직접 포함한다.
+
+## 쪽지 상대방 식별자 기준
+
+대상 회원이 보낸 쪽지와 받은 쪽지는 `message_direction`으로 방향을 구분하고, 상대방은 `counterparty_role` 및 `masked_sender` 또는 `masked_recipient` 역할값으로만 표시한다. `sender_account_id`와 `recipient_account_id` 같은 raw account id 제외 기준은 `message` 모듈의 export runtime fixture로 검증한다.
 
 ## 운영 보존 세부 기준
 

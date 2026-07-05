@@ -301,7 +301,6 @@ function sr_community_payment_description(string $eventKey): string
         'attachment_download' => '커뮤니티 첨부 다운로드 결제',
         'post_write_charge' => '커뮤니티 글쓰기 결제',
         'comment_write_charge' => '커뮤니티 댓글 작성 결제',
-        'message_send_charge' => '커뮤니티 쪽지 발송 결제',
         default => '커뮤니티 자산 결제',
     };
 }
@@ -1405,7 +1404,6 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
                 'attachment_download' => '첨부 파일을 다운로드할 수 없습니다.',
                 'post_write_charge' => '글을 작성할 수 없습니다.',
                 'comment_write_charge' => '댓글을 작성할 수 없습니다.',
-                'message_send_charge' => '쪽지를 보낼 수 없습니다.',
                 default => '처리할 수 없습니다.',
             };
             $configErrorMessage = sr_community_asset_settlement_config_error_message($pdo, $assetModules, $accountId, 0, $settlementCurrency, $zeroAmountSuffix);
@@ -1557,7 +1555,6 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'attachment_download' => '첨부 파일을 다운로드할 수 없습니다.',
             'post_write_charge' => '글을 작성할 수 없습니다.',
             'comment_write_charge' => '댓글을 작성할 수 없습니다.',
-            'message_send_charge' => '쪽지를 보낼 수 없습니다.',
             default => '처리할 수 없습니다.',
         };
         if ($assetExchangeSuggestion === []) {

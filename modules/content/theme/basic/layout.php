@@ -144,11 +144,11 @@ if (
         $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
         $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
         $layoutMemberAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash($layoutRuntimeConfig, $layoutCurrentAccountId));
-        if (sr_module_enabled($layoutPdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers/messages.php')) {
-            require_once SR_ROOT . '/modules/community/helpers/messages.php';
+        if (sr_module_enabled($layoutPdo, 'message') && is_file(SR_ROOT . '/modules/message/helpers.php')) {
+            require_once SR_ROOT . '/modules/message/helpers.php';
             $layoutCommunityMemberMenuEnabled = true;
             try {
-                $layoutUnreadCommunityMessageCount = function_exists('sr_community_unread_message_count') ? sr_community_unread_message_count($layoutPdo, $layoutCurrentAccountId) : 0;
+                $layoutUnreadCommunityMessageCount = function_exists('sr_message_unread_count') ? sr_message_unread_count($layoutPdo, $layoutCurrentAccountId) : 0;
             } catch (Throwable) {
                 $layoutUnreadCommunityMessageCount = 0;
             }
@@ -305,7 +305,7 @@ if (
                             </a>
                             <?php if ($layoutCommunityMemberMenuEnabled) { ?>
                                 <hr class="content-layout-member-divider dropdown-profile-divider">
-                                <a class="content-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/community/messages')); ?>" role="menuitem">
+                                <a class="content-layout-member-dropdown-link dropdown-profile-item" href="<?php echo sr_e(sr_url('/messages')); ?>" role="menuitem">
                                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mail</span>
                                     <span><?php echo sr_e('쪽지'); ?></span>
                                     <strong><?php echo sr_e(number_format($layoutUnreadCommunityMessageCount) . '개'); ?></strong>

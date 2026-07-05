@@ -1010,16 +1010,20 @@ if (!is_string($adminDashboardHelper)) {
 }
 
 $communityReportsHelper = file_get_contents($root . '/modules/community/helpers/reports.php');
-$communityMessageDeleteAction = file_get_contents($root . '/modules/community/actions/message-delete.php');
+$messageDeleteAction = file_get_contents($root . '/modules/message/actions/message-delete.php');
+$messageHelpers = file_get_contents($root . '/modules/message/helpers.php');
+$messageReportTargets = file_get_contents($root . '/modules/message/report-targets.php');
 $communityPostsHelper = file_get_contents($root . '/modules/community/helpers/posts.php');
 $communityAdminPostsView = file_get_contents($root . '/modules/community/views/admin-posts.php');
-if (!is_string($communityReportsHelper) || !is_string($communityMessageDeleteAction)) {
-    $errors[] = 'Community message report/delete files cannot be read.';
+if (!is_string($communityReportsHelper) || !is_string($messageDeleteAction) || !is_string($messageHelpers) || !is_string($messageReportTargets)) {
+    $errors[] = 'Message report/delete files cannot be read.';
 } elseif (
-    strpos($communityReportsHelper, 'sr_community_message_participants_for_account($pdo, $targetId, $actorAccountId)') === false
-    || strpos($communityMessageDeleteAction, 'sr_community_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])') === false
+    strpos($communityReportsHelper, "sr_enabled_module_contract_files(\$pdo, 'report-targets.php', ['community'])") === false
+    || strpos($messageReportTargets, "'resolver_function' => 'sr_message_report_target'") === false
+    || strpos($messageHelpers, 'sr_message_participants_for_account($pdo, $messageId, $actorAccountId)') === false
+    || strpos($messageDeleteAction, 'sr_message_participants_for_account($pdo, $messageId, (int) $account[\'id\'])') === false
 ) {
-    $errors[] = 'Community message report and delete flows must avoid loading message bodies.';
+    $errors[] = 'Message report and delete flows must avoid loading message bodies.';
 }
 if (!is_string($communityReportsHelper) || !is_string($communityPostsHelper) || !is_string($communityAdminPostsView)) {
     $errors[] = 'Community account label files cannot be read.';
@@ -1032,22 +1036,22 @@ if (!is_string($communityReportsHelper) || !is_string($communityPostsHelper) || 
 }
 
 $communityNotificationsHelper = file_get_contents($root . '/modules/community/helpers/notifications.php');
-$communityMessagesHelper = file_get_contents($root . '/modules/community/helpers/messages.php');
+$messageHelper = file_get_contents($root . '/modules/message/helpers.php');
 $memberAccountsHelper = file_get_contents($root . '/modules/member/helpers/accounts.php');
-$communityMessageWriteAction = file_get_contents($root . '/modules/community/actions/message-write.php');
-$communityMessageViewAction = file_get_contents($root . '/modules/community/actions/message-view.php');
-$communityMessageWriteView = file_get_contents($root . '/modules/community/views/message-write.php');
-$communityMessageViewView = file_get_contents($root . '/modules/community/views/message-view.php');
+$messageWriteAction = file_get_contents($root . '/modules/message/actions/message-write.php');
+$messageViewAction = file_get_contents($root . '/modules/message/actions/message-view.php');
+$messageWriteView = file_get_contents($root . '/modules/message/views/message-write.php');
+$messageViewView = file_get_contents($root . '/modules/message/views/message-view.php');
 $communityCommentAction = file_get_contents($root . '/modules/community/actions/comment.php');
 $communityReportAction = file_get_contents($root . '/modules/community/actions/report.php');
 if (
     !is_string($communityNotificationsHelper)
-    || !is_string($communityMessagesHelper)
+    || !is_string($messageHelper)
     || !is_string($memberAccountsHelper)
-    || !is_string($communityMessageWriteAction)
-    || !is_string($communityMessageViewAction)
-    || !is_string($communityMessageWriteView)
-    || !is_string($communityMessageViewView)
+    || !is_string($messageWriteAction)
+    || !is_string($messageViewAction)
+    || !is_string($messageWriteView)
+    || !is_string($messageViewView)
     || !is_string($communityCommentAction)
     || !is_string($communityReportAction)
 ) {
@@ -1063,20 +1067,19 @@ if (
         && strpos($memberAccountsHelper, 'function sr_member_public_account_summary_by_hash') === false
     )
     || strpos($memberAccountsHelper, 'static $cachedMaps = [];') === false
-    || strpos($communityMessagesHelper, 'recipient_account_hash') === false
-    || strpos($communityMessagesHelper, "return \$label;") === false
-    || strpos($communityMessageWriteAction, 'sr_community_create_account_notification(') === false
+    || strpos($messageHelper, 'recipient_account_hash') === false
+    || strpos($messageHelper, "return \$label;") === false
+    || strpos($messageWriteAction, "'policy_bypass'") === false
     || (
-        strpos($communityMessageWriteAction, 'sr_member_public_account_summary_by_hash($pdo, $config,') === false
-        && strpos($communityMessageWriteAction, 'sr_community_public_account_summary_by_hash($pdo, $config,') === false
+        strpos($messageWriteAction, 'sr_member_public_account_summary_by_hash($pdo, $config,') === false
     )
-    || strpos($communityMessageWriteAction, "sr_get_string('to',") !== false
-    || strpos($communityMessageWriteAction, "'recipient_identifier' => ''") === false
-    || strpos($communityMessageViewAction, 'sr_member_public_account_hash($config, $replyAccountId)') === false
-    || strpos($communityMessageWriteView, 'name="recipient_account_id"') !== false
-    || strpos($communityMessageWriteView, 'name="recipient_account_hash"') === false
-    || strpos($communityMessageViewView, "'/community/message/write?to_account=' . (string) \$replyAccountId") !== false
-    || strpos($communityMessageViewView, 'rawurlencode($replyAccountHash)') === false
+    || strpos($messageWriteAction, "sr_get_string('to',") !== false
+    || strpos($messageWriteAction, "'recipient_identifier' => ''") === false
+    || strpos($messageViewAction, 'sr_member_public_account_hash($config, $replyAccountId)') === false
+    || strpos($messageWriteView, 'name="recipient_account_id"') !== false
+    || strpos($messageWriteView, 'name="recipient_account_hash"') === false
+    || strpos($messageViewView, "'/message/write?to_account=' . (string) \$replyAccountId") !== false
+    || strpos($messageViewView, 'rawurlencode($replyAccountHash)') === false
     || strpos($communityCommentAction, 'sr_community_create_account_event_notification(') === false
     || strpos($communityCommentAction, "'comment.created'") === false
     || strpos($communityCommentAction, "(int) \$post['author_account_id'] !== (int) \$account['id']") === false

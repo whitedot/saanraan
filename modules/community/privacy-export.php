@@ -295,7 +295,6 @@ return static function (PDO $pdo, int $accountId): array {
         'report_auto_actions' => [],
         'account_guard_events' => [],
         'account_guards' => [],
-        'messages' => [],
         'scraps' => [],
         'series_scraps' => [],
         'series' => [],
@@ -555,23 +554,6 @@ return static function (PDO $pdo, int $accountId): array {
     } catch (Throwable $exception) {
         $empty['account_guards'] = [];
     }
-
-    $stmt = $pdo->prepare(
-        'SELECT id,
-                CASE WHEN sender_account_id = :sender_direction_account_id THEN \'sent\' ELSE \'received\' END AS message_direction,
-                CASE WHEN sender_account_id = :sender_counterparty_account_id THEN \'masked_recipient\' ELSE \'masked_sender\' END AS counterparty_role,
-                body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at
-         FROM sr_community_messages
-         WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id
-         ORDER BY id ASC
-         LIMIT 1001'
-    );
-    $empty['messages'] = sr_community_privacy_fetch_limited($stmt, [
-        'sender_direction_account_id' => $accountId,
-        'sender_counterparty_account_id' => $accountId,
-        'sender_account_id' => $accountId,
-        'recipient_account_id' => $accountId,
-    ], 'messages', $sectionLimits);
 
     $stmt = $pdo->prepare(
         'SELECT id, post_id, created_at

@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-require_once SR_ROOT . '/modules/community/helpers.php';
+require_once SR_ROOT . '/modules/community/helpers/reports.php';
+require_once SR_ROOT . '/modules/message/helpers.php';
 
 $account = sr_member_require_login($pdo);
-$communitySettings = sr_community_settings($pdo);
-if (!sr_community_messages_enabled($pdo, $communitySettings)) {
-    sr_render_error(403, sr_t('community::action.error.message_disabled'));
+$settings = sr_message_settings($pdo);
+if (!sr_message_enabled($pdo, $settings)) {
+    sr_render_error(403, '쪽지 기능을 사용할 수 없습니다.');
 }
-$memberSettings = sr_member_settings($pdo);
-$canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
+$canViewMemberIdentifiers = function_exists('sr_admin_has_permission')
+    && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/members', 'view');
 $messageIdValue = sr_get_string('id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;
-$message = sr_community_message_by_id_for_account($pdo, $messageId, (int) $account['id']);
+$message = sr_message_by_id_for_account($pdo, $messageId, (int) $account['id']);
 if (!is_array($message)) {
-    sr_render_error(404, sr_t('community::action.error.message_not_found'));
+    sr_render_error(404, '쪽지를 찾을 수 없습니다.');
 }
 
-sr_community_mark_message_read($pdo, $message, (int) $account['id']);
+sr_message_mark_read($pdo, $message, (int) $account['id']);
 if ((int) $message['recipient_account_id'] === (int) $account['id'] && (string) ($message['read_at'] ?? '') === '') {
     $message['read_at'] = sr_now();
 }
@@ -44,4 +45,4 @@ if (isset($_SESSION['sr_community_report_notice']) && is_string($_SESSION['sr_co
 }
 unset($_SESSION['sr_community_report_errors'], $_SESSION['sr_community_report_notice']);
 
-include SR_ROOT . '/modules/community/views/message-view.php';
+include SR_ROOT . '/modules/message/views/message-view.php';

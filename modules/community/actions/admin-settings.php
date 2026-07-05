@@ -69,11 +69,7 @@ if (sr_request_method() === 'POST') {
         $levelAutoRecalculate = ($_POST['level_auto_recalculate'] ?? '') === '1';
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
-        $messageEnabled = ($_POST['message_enabled'] ?? '') === '1';
-        $messageWritePolicyInput = sr_community_message_write_policy(sr_post_string('message_write_policy', 40));
-        $messageWritePolicy = $messageEnabled && in_array($messageWritePolicyInput, ['member', 'group'], true) ? $messageWritePolicyInput : 'disabled';
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
-        $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $identityRestrictedBoardRequired = ($_POST['identity_restricted_board_required'] ?? '') === '1';
         if (!$communityIdentityVerificationAvailable && $identityRestrictedBoardRequired) {
             $errors[] = '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
@@ -131,10 +127,6 @@ if (sr_request_method() === 'POST') {
         $reactionEnabled = $communityReactionAvailable && $reactionEnabledInput;
         $reactionPostPresetKey = $communityReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $reactionPostPresetInput) : '';
         $reactionCommentPresetKey = $communityReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $reactionCommentPresetInput) : '';
-        $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
-        $messageWriteGroupKeys = $messageEnabled
-            ? sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput)
-            : (is_array($settings['message_write_group_keys'] ?? null) ? $settings['message_write_group_keys'] : []);
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
@@ -217,12 +209,6 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.level_max_change_confirmation_required');
         }
 
-        if (!$messageEnabled) {
-            $messageWriteMinLevel = (int) $settings['message_write_min_level'];
-        } elseif ($messageWriteMinLevel === null) {
-            $errors[] = sr_t('community::action.admin.message_min_level_invalid', ['max' => (string) $levelMaxForValidation]);
-            $messageWriteMinLevel = (int) $settings['message_write_min_level'];
-        }
         if ($reportAutoActionThreshold === null) {
             $errors[] = '신고 자동 임시 조치 임계값은 2 이상 100 이하로 입력하세요.';
             $reportAutoActionThreshold = (int) ($settings['report_auto_action_threshold'] ?? 5);
@@ -413,9 +399,6 @@ if (sr_request_method() === 'POST') {
                 ['level_auto_recalculate', $levelAutoRecalculate ? '1' : '0', 'bool'],
                 ['level_post_score', (string) $levelPostScore, 'int'],
                 ['level_comment_score', (string) $levelCommentScore, 'int'],
-                ['message_write_policy', $messageWritePolicy, 'string'],
-                ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
-                ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
                 ['identity_restricted_board_required', $identityRestrictedBoardRequired ? '1' : '0', 'bool'],
                 ['report_auto_action_enabled', $reportAutoActionEnabled ? '1' : '0', 'bool'],
                 ['report_auto_action_threshold', (string) $reportAutoActionThreshold, 'int'],
@@ -480,13 +463,6 @@ if (sr_request_method() === 'POST') {
                 ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
                 ['write_charge_group_policies_json', (string) $assetSettings['write_charge_group_policies_json'], 'json'],
                 ['write_charge_policy_set_id', (string) $assetSettings['write_charge_policy_set_id'], 'int'],
-                ['message_charge_enabled', $assetSettings['message_charge_enabled'] ? '1' : '0', 'bool'],
-                ['message_charge_asset_module', (string) $assetSettings['message_charge_asset_module'], 'string'],
-                ['message_charge_amount', (string) $assetSettings['message_charge_amount'], 'int'],
-                ['message_charge_settlement_currency', (string) $assetSettings['message_charge_settlement_currency'], 'string'],
-                ['message_charge_amounts_json', (string) $assetSettings['message_charge_amounts_json'], 'json'],
-                ['message_charge_group_policies_json', (string) $assetSettings['message_charge_group_policies_json'], 'json'],
-                ['message_charge_policy_set_id', (string) $assetSettings['message_charge_policy_set_id'], 'int'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
@@ -556,8 +532,6 @@ if (sr_request_method() === 'POST') {
                         'level_max_value' => $levelMaxValue,
                         'created_level_count' => $createdLevelCount,
                         'level_auto_recalculate' => $levelAutoRecalculate,
-                        'message_write_policy' => $messageWritePolicy,
-                        'message_write_min_level' => $messageWriteMinLevel,
                         'identity_restricted_board_required' => $identityRestrictedBoardRequired,
                         'report_auto_action_enabled' => $reportAutoActionEnabled,
                         'report_auto_action_threshold' => $reportAutoActionThreshold,

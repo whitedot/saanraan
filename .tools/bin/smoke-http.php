@@ -205,7 +205,7 @@ $checks = [
     ],
     [
         'label' => 'community message write entry',
-        'path' => '/community/message/write',
+        'path' => '/message/write',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -306,14 +306,14 @@ $checks = [
     ],
     [
         'label' => 'community messages auth guard',
-        'path' => '/community/messages',
+        'path' => '/messages',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
         'label' => 'community message view auth guard',
-        'path' => '/community/message?id=1',
+        'path' => '/message?id=1',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -321,7 +321,7 @@ $checks = [
     [
         'label' => 'community message write action auth guard',
         'method' => 'POST',
-        'path' => '/community/message/write',
+        'path' => '/message/write',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -329,7 +329,7 @@ $checks = [
     [
         'label' => 'community message delete action auth guard',
         'method' => 'POST',
-        'path' => '/community/message/delete',
+        'path' => '/message/delete',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -786,12 +786,12 @@ if ($expectMemberOnly) {
         '/community' => true,
         '/community/board?key=free' => true,
         '/community/group?key=general' => true,
-        '/community/message/write' => true,
+        '/message/write' => true,
         '/community/write?key=free' => true,
         '/community/edit?id=1' => true,
         '/community/scraps' => true,
-        '/community/messages' => true,
-        '/community/message?id=1' => true,
+        '/messages' => true,
+        '/message?id=1' => true,
     ];
     $memberOnlyForbiddenPosts = [
         'POST /community/edit' => true,
@@ -802,8 +802,8 @@ if ($expectMemberOnly) {
         'POST /community/comment/edit' => true,
         'POST /community/comment/delete' => true,
         'POST /community/scrap' => true,
-        'POST /community/message/write' => true,
-        'POST /community/message/delete' => true,
+        'POST /message/write' => true,
+        'POST /message/delete' => true,
     ];
 
     foreach ($checks as &$check) {
