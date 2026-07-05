@@ -1219,6 +1219,7 @@ function sr_quiz_admin_quiz_filters_from_request(): array
         'status' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('status'), sr_quiz_statuses()),
         'quiz_mode' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('quiz_mode'), sr_quiz_modes()),
         'reward_enabled' => $rewardEnabled,
+        'deleted' => sr_get_string('deleted', 1) === '1',
     ];
 }
 
@@ -1245,7 +1246,7 @@ function sr_quiz_admin_quiz_default_sort(): array
 
 function sr_quiz_admin_quiz_where_sql(array $filters, array &$params): string
 {
-    $where = ['q.deleted_at IS NULL'];
+    $where = !empty($filters['deleted']) ? ['q.deleted_at IS NOT NULL'] : ['q.deleted_at IS NULL'];
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
         $keywordColumns = ['q.quiz_key', 'q.title', 'q.description'];
@@ -1318,7 +1319,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
     $stmt = $pdo->prepare(
         'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                 q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at,
+                q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at,
                 COUNT(DISTINCT qs.id) AS question_count,
                 COUNT(DISTINCT rr.id) AS result_rule_count,
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
@@ -1341,7 +1342,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
          ' . $whereSql . '
          GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                  q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, qa.attempt_count, qa.passed_count
+                  q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at, qa.attempt_count, qa.passed_count
          ' . $orderSql . '
          LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
     );

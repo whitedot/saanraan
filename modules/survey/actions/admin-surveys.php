@@ -89,6 +89,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($mode === 'list'): ?>
     <?php
     $surveyListState = sr_survey_admin_list_state($pdo);
+    $surveyDeletedView = !empty($surveyListState['deleted_view']);
     $listStatus = (string) $surveyListState['list_status'];
     $listAvailability = (string) $surveyListState['list_availability'];
     $listKeyword = (string) $surveyListState['list_keyword'];
@@ -101,6 +102,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $surveyCanDelete = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="filtering-form admin-survey-filter ui-form-theme">
+        <?php if ($surveyDeletedView): ?>
+            <input type="hidden" name="deleted" value="1">
+        <?php endif; ?>
         <div class="filtering filtering-card<?php echo $surveyListFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
             <div class="filtering-fields">
                 <div class="filtering-field filtering-field-fill admin-survey-filter-keyword">
@@ -127,9 +131,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">설문 목록</h2>
+            <h2 class="card-title"><?php echo $surveyDeletedView ? '삭제한 설문' : '설문 목록'; ?></h2>
             <div class="card-actions">
-                <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=new')); ?>">새 설문</a>
+                <a class="btn btn-sm <?php echo $surveyDeletedView ? 'btn-outline-secondary' : 'btn-solid-light'; ?>" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">사용 중</a>
+                <a class="btn btn-sm <?php echo $surveyDeletedView ? 'btn-solid-light' : 'btn-outline-secondary'; ?>" href="<?php echo sr_e(sr_url('/admin/surveys?deleted=1')); ?>">삭제함</a>
+                <?php if (!$surveyDeletedView): ?>
+                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=new')); ?>">새 설문</a>
+                <?php endif; ?>
             </div>
         </div>
         <?php if (empty($surveySort['is_default'])) { ?>
@@ -156,11 +164,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </thead>
                 <tbody>
                     <?php if ($surveys === []): ?>
-                        <tr><td colspan="11" class="admin-empty-state">등록된 설문이 없습니다.</td></tr>
+                        <tr><td colspan="11" class="admin-empty-state"><?php echo $surveyDeletedView ? '삭제한 설문이 없습니다.' : '등록된 설문이 없습니다.'; ?></td></tr>
                     <?php endif; ?>
                     <?php foreach ($surveys as $survey): ?>
                         <?php
                         $surveyStatus = (string) ($survey['status'] ?? '');
+                        $surveyIsDeleted = !empty($survey['deleted_at']);
                         $surveyQaStatus = (string) ($survey['qa_status'] ?? 'unchecked');
                         $listGroupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]');
                         $rewardEnabled = (int) ($survey['reward_enabled'] ?? 0) === 1;
@@ -170,10 +179,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $survey['survey_key']); ?></code></td>
                             <td class="admin-table-break">
-                                <strong><a href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $survey['title']); ?></a></strong><br>
+                                <?php if ($surveyIsDeleted): ?>
+                                    <strong><?php echo sr_e((string) $survey['title']); ?></strong><br>
+                                <?php else: ?>
+                                    <strong><a href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $survey['title']); ?></a></strong><br>
+                                <?php endif; ?>
                                 <span class="admin-summary-meta">회원 조건 <?php echo sr_e(number_format(count($listGroupKeys))); ?>개</span>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e(sr_survey_status_label($surveyStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($surveyIsDeleted ? 'is-left' : sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e($surveyIsDeleted ? '삭제됨' : sr_survey_status_label($surveyStatus)); ?></span></td>
                             <td class="admin-table-break"><?php echo $periodLabel === '~' || $periodLabel === '' ? '상시' : sr_e($periodLabel); ?></td>
                             <td class="admin-table-break"><?php echo $listGroupKeys === [] ? '전체' : sr_e(implode(', ', $listGroupKeys)); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyQaStatus)); ?>"><?php echo sr_e(sr_survey_qa_status_label($surveyQaStatus)); ?></span></td>
@@ -183,16 +196,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><?php echo sr_survey_time_html((string) $survey['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a class="btn btn-sm btn-icon btn-solid-light" href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="사용자 화면 미리보기" title="사용자 화면 미리보기"><?php echo sr_material_icon_html('visibility'); ?></a>
-                                    <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=copy&id=' . (string) (int) $survey['id'])); ?>" aria-label="설문 복사" title="복사"><?php echo sr_material_icon_html('content_copy'); ?></a>
-                                    <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=edit&id=' . (string) (int) $survey['id'])); ?>" aria-label="설문 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
-                                    <?php if ($surveyCanDelete): ?>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-inline-form">
-                                            <?php echo sr_csrf_field(); ?>
-                                            <input type="hidden" name="intent" value="delete">
-                                            <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) $survey['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="설문 삭제" title="삭제" data-confirm="<?php echo sr_e('설문을 삭제할까요? 기존 응답과 보상 이력은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
-                                        </form>
+                                    <?php if (!$surveyIsDeleted): ?>
+                                        <a class="btn btn-sm btn-icon btn-solid-light" href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="사용자 화면 미리보기" title="사용자 화면 미리보기"><?php echo sr_material_icon_html('visibility'); ?></a>
+                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=copy&id=' . (string) (int) $survey['id'])); ?>" aria-label="설문 복사" title="복사"><?php echo sr_material_icon_html('content_copy'); ?></a>
+                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=edit&id=' . (string) (int) $survey['id'])); ?>" aria-label="설문 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <?php if ($surveyCanDelete): ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-inline-form">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="intent" value="delete">
+                                                <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) $survey['id']); ?>">
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="설문 삭제" title="삭제" data-confirm="<?php echo sr_e('설문을 삭제할까요? 기존 응답과 보상 이력은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
+                                            </form>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </td>

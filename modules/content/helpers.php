@@ -961,7 +961,7 @@ function sr_content_admin_single_filter_values(string $key, array $allowedValues
 
 function sr_content_admin_filters(): array
 {
-    $statuses = sr_content_admin_multi_filter_values('status', sr_content_allowed_statuses());
+    $statuses = sr_content_admin_multi_filter_values('status', array_merge(sr_content_allowed_statuses(), ['deleted']));
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'title', 'slug'], true)) {
@@ -976,6 +976,11 @@ function sr_content_admin_filters(): array
     ];
 }
 
+function sr_content_admin_status_filter_options(): array
+{
+    return sr_admin_code_label_options(array_merge(sr_content_allowed_statuses(), ['deleted']), 'content_status');
+}
+
 function sr_content_admin_status_counts(PDO $pdo): array
 {
     sr_content_publish_due_scheduled($pdo);
@@ -985,6 +990,7 @@ function sr_content_admin_status_counts(PDO $pdo): array
         'scheduled' => 0,
         'published' => 0,
         'hidden' => 0,
+        'deleted' => 0,
     ];
 
     $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_content_items GROUP BY status');

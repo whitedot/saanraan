@@ -606,6 +606,12 @@ function sr_quiz_copy_validation_errors(PDO $pdo, array $options): array
     $sourceQuizId = (int) ($options['source_quiz_id'] ?? 0);
     if ($sourceQuizId < 1) {
         $errors[] = '복사할 원본 퀴즈를 선택하세요.';
+    } else {
+        $sourceStmt = $pdo->prepare('SELECT id FROM sr_quiz_sets WHERE id = :id AND deleted_at IS NULL LIMIT 1');
+        $sourceStmt->execute(['id' => $sourceQuizId]);
+        if (!is_array($sourceStmt->fetch())) {
+            $errors[] = '삭제되었거나 찾을 수 없는 퀴즈는 복사할 수 없습니다.';
+        }
     }
     $quizKey = (string) ($options['quiz_key'] ?? '');
     if (!sr_quiz_key_is_valid($quizKey)) {

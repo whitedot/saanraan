@@ -18,6 +18,9 @@ $sourceContent = sr_content_by_id($pdo, $sourceContentId);
 if (!is_array($sourceContent)) {
     sr_admin_redirect_with_result(sr_admin_action_result(['복사할 콘텐츠를 찾을 수 없습니다.'], ''), $returnTo);
 }
+if ((string) ($sourceContent['status'] ?? '') === 'deleted') {
+    sr_admin_redirect_with_result(sr_admin_action_result(['삭제된 콘텐츠는 복사할 수 없습니다.'], ''), $returnTo);
+}
 
 $values = [
     'title' => sr_post_string('title', 160),

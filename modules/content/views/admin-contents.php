@@ -1061,6 +1061,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/content?status=scheduled')); ?>" class="admin-summary-meta">예약 <?php echo sr_e((string) ($pageStatusCounts['scheduled'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
 	            <a href="<?php echo sr_e(sr_url('/admin/content?status=draft')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.145b2413')); ?> <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
             <a href="<?php echo sr_e(sr_url('/admin/content?status=hidden')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?> <?php echo sr_e((string) ($pageStatusCounts['hidden'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/content?status=deleted')); ?>" class="admin-summary-meta">삭제함 <?php echo sr_e((string) ($pageStatusCounts['deleted'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
         </div>
     </div>
 
@@ -1090,7 +1091,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div id="modules_content_admin_contents_detail_filters" class="filtering-body" data-filtering-body<?php echo $contentDetailFilterOpen ? '' : ' hidden'; ?>>
                     <div class="filtering-field admin-content-filter-status">
                         <span class="filtering-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></span>
-                        <?php echo sr_admin_filter_toggle_group_html('modules_content_admin_contents_status', 'status', sr_admin_code_label_options(sr_content_allowed_statuses(), 'content_status'), $selectedContentStatuses, sr_t('content::ui.all.a4b69faf')); ?>
+                        <?php echo sr_admin_filter_toggle_group_html('modules_content_admin_contents_status', 'status', sr_content_admin_status_filter_options(), $selectedContentStatuses, sr_t('content::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-content-filter-group">
                         <span class="filtering-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></span>
@@ -1128,7 +1129,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (empty($contentSort['is_default'])) { ?>
                 <a href="<?php echo sr_e(sr_content_admin_sort_url()); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-content-sort-reset" aria-label="콘텐츠 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
-            <form id="content-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="content-bulk-form" data-content-bulk-form>
+            <form id="content-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="content-bulk-form"<?php echo in_array('deleted', $selectedContentStatuses, true) ? ' hidden' : ''; ?> data-content-bulk-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="batch_status">
                 <input type="hidden" name="operation_key" value="content.set_status">
@@ -1174,6 +1175,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($pages as $page) { ?>
                             <?php
                             $pageStatus = (string) $page['status'];
+                            $pageIsDeleted = $pageStatus === 'deleted';
                             $statusClass = match ($pageStatus) {
                                 'published' => 'is-normal',
                                 'draft' => 'is-blocked',
@@ -1183,10 +1185,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <tr>
                                 <td class="admin-table-checkbox-cell content-select-cell">
                                     <label class="sr-only" for="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>"><?php echo sr_e((string) $page['title']); ?> 선택</label>
-                                    <input id="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>" type="checkbox" name="selected_content_ids[]" value="<?php echo sr_e((string) (int) $page['id']); ?>" class="form-checkbox" form="content-bulk-status-form" data-content-row-select>
+                                    <input id="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>" type="checkbox" name="selected_content_ids[]" value="<?php echo sr_e((string) (int) $page['id']); ?>" class="form-checkbox" form="content-bulk-status-form" data-content-row-select<?php echo $pageIsDeleted ? ' disabled' : ''; ?>>
                                 </td>
                                 <td class="admin-table-break admin-content-title-cell">
-                                    <?php if (sr_content_slug_is_valid((string) ($page['slug'] ?? ''))) { ?>
+                                    <?php if (!$pageIsDeleted && sr_content_slug_is_valid((string) ($page['slug'] ?? ''))) { ?>
                                         <a href="<?php echo sr_e($contentAdminViewUrl((string) $page['slug'], (string) ($page['status'] ?? ''))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $page['title']); ?></a>
                                     <?php } else { ?>
                                         <?php echo sr_e((string) $page['title']); ?>
@@ -1218,15 +1220,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_content_time_html((string) ($page['published_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
-                                        <?php if (in_array((string) $page['status'], ['published', 'draft', 'scheduled'], true)) { ?>
+                                        <?php if (!$pageIsDeleted && in_array((string) $page['status'], ['published', 'draft', 'scheduled'], true)) { ?>
                                             <a href="<?php echo sr_e($contentAdminViewUrl((string) $page['slug'], (string) ($page['status'] ?? ''))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
-                                        <?php
-                                        $contentCopyModalId = 'content-copy-modal-' . (string) (int) $page['id'];
-                                        $contentCopyModals .= $contentCopyModalHtml($page, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/content'));
-                                        ?>
-                                        <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
-                                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCopyModalId); ?>" data-overlay="#<?php echo sr_e($contentCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                                        <?php if (!$pageIsDeleted) { ?>
+                                            <?php
+                                            $contentCopyModalId = 'content-copy-modal-' . (string) (int) $page['id'];
+                                            $contentCopyModals .= $contentCopyModalHtml($page, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/content'));
+                                            ?>
+                                            <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                            <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCopyModalId); ?>" data-overlay="#<?php echo sr_e($contentCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                                        <?php } ?>
                                         <?php if (!in_array((string) $page['status'], ['hidden', 'deleted'], true)) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>

@@ -586,6 +586,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
     if (!is_array($source)) {
         throw new RuntimeException('복사할 콘텐츠를 찾을 수 없습니다.');
     }
+    if ((string) ($source['status'] ?? '') === 'deleted') {
+        throw new InvalidArgumentException('삭제된 콘텐츠는 복사할 수 없습니다.');
+    }
 
     $newTitle = sr_content_clean_single_line((string) ($values['title'] ?? ''), 160);
     $newSlug = sr_content_clean_slug((string) ($values['slug'] ?? ''));

@@ -203,6 +203,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 if ($mode === 'list') {
     $quizFilters = sr_quiz_admin_quiz_filters_from_request();
+    $quizDeletedView = !empty($quizFilters['deleted']);
     $quizSortOptions = sr_quiz_admin_quiz_sort_options();
     $quizDefaultSort = sr_quiz_admin_quiz_default_sort();
     $quizSort = sr_admin_sort_from_request($quizSortOptions, $quizDefaultSort);
@@ -222,6 +223,9 @@ if ($mode === 'list') {
     <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="filtering-form admin-quiz-filter ui-form-theme">
+        <?php if ($quizDeletedView) { ?>
+            <input type="hidden" name="deleted" value="1">
+        <?php } ?>
         <div class="filtering filtering-card<?php echo $quizDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
             <div class="filtering-fields">
                 <div class="filtering-field filtering-field-fill admin-quiz-filter-keyword">
@@ -253,9 +257,13 @@ if ($mode === 'list') {
 
     <section class="card admin-list-card admin-list-form">
         <div class="card-header">
-            <h2 class="card-title">퀴즈 목록</h2>
+            <h2 class="card-title"><?php echo $quizDeletedView ? '삭제한 퀴즈' : '퀴즈 목록'; ?></h2>
             <div class="card-actions">
-                <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=new')); ?>">새 퀴즈</a>
+                <a class="btn btn-sm <?php echo $quizDeletedView ? 'btn-outline-secondary' : 'btn-solid-light'; ?>" href="<?php echo sr_e(sr_url('/admin/quiz')); ?>">사용 중</a>
+                <a class="btn btn-sm <?php echo $quizDeletedView ? 'btn-solid-light' : 'btn-outline-secondary'; ?>" href="<?php echo sr_e(sr_url('/admin/quiz?deleted=1')); ?>">삭제함</a>
+                <?php if (!$quizDeletedView) { ?>
+                    <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=new')); ?>">새 퀴즈</a>
+                <?php } ?>
             </div>
         </div>
         <div class="admin-list-summary-row">
@@ -283,12 +291,13 @@ if ($mode === 'list') {
                 <tbody>
                     <?php if ($quizzes === []) { ?>
                         <tr>
-                            <td colspan="10" class="admin-empty-state">조건에 맞는 퀴즈가 없습니다.</td>
+                            <td colspan="10" class="admin-empty-state"><?php echo $quizDeletedView ? '삭제한 퀴즈가 없습니다.' : '조건에 맞는 퀴즈가 없습니다.'; ?></td>
                         </tr>
                     <?php } ?>
                     <?php foreach ($quizzes as $quiz) { ?>
                         <?php
                         $quizStatus = (string) ($quiz['status'] ?? '');
+                        $quizIsDeleted = !empty($quiz['deleted_at']);
                         $memberGroupCount = count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''));
                         $rewardEnabled = (int) ($quiz['reward_enabled'] ?? 0) === 1;
                         $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
@@ -297,10 +306,14 @@ if ($mode === 'list') {
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
                             <td class="admin-table-break">
-                                <strong><a href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $quiz['title']); ?></a></strong><br>
+                                <?php if ($quizIsDeleted) { ?>
+                                    <strong><?php echo sr_e((string) $quiz['title']); ?></strong><br>
+                                <?php } else { ?>
+                                    <strong><a href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $quiz['title']); ?></a></strong><br>
+                                <?php } ?>
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_quiz_mode_label((string) ($quiz['quiz_mode'] ?? ''))); ?> · <?php echo sr_e(sr_quiz_scoring_model_label((string) ($quiz['scoring_model'] ?? ''))); ?></span>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e(sr_quiz_status_label($quizStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($quizIsDeleted ? 'is-left' : sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e($quizIsDeleted ? '삭제됨' : sr_quiz_status_label($quizStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?></td>
                             <td class="admin-table-break">
@@ -312,15 +325,17 @@ if ($mode === 'list') {
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a class="btn btn-sm btn-icon btn-solid-light" href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="사용자 화면 미리보기" title="사용자 화면 미리보기"><?php echo sr_material_icon_html('visibility'); ?></a>
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="퀴즈 복사" title="복사" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($copyModalId); ?>" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
-                                    <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="intent" value="delete">
-                                        <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="퀴즈 삭제" title="삭제" data-confirm="<?php echo sr_e('퀴즈를 삭제할까요? 기존 기록은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
-                                    </form>
+                                    <?php if (!$quizIsDeleted) { ?>
+                                        <a class="btn btn-sm btn-icon btn-solid-light" href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="사용자 화면 미리보기" title="사용자 화면 미리보기"><?php echo sr_material_icon_html('visibility'); ?></a>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="퀴즈 복사" title="복사" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($copyModalId); ?>" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="intent" value="delete">
+                                            <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="퀴즈 삭제" title="삭제" data-confirm="<?php echo sr_e('퀴즈를 삭제할까요? 기존 기록은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
+                                        </form>
+                                    <?php } ?>
                                 </div>
                             </td>
                         </tr>
@@ -338,6 +353,7 @@ if ($mode === 'list') {
         <?php echo sr_admin_status_description_list_html('quiz_reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [], '보상 사용 설명'); ?>
     </section>
     <?php foreach ($quizzes as $quiz) { ?>
+        <?php if (!empty($quiz['deleted_at'])) { continue; } ?>
         <?php
         $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
         $sourceKey = (string) ($quiz['quiz_key'] ?? '');

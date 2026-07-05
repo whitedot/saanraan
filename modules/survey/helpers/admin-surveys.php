@@ -13,7 +13,8 @@ function sr_survey_admin_list_state(PDO $pdo): array
         $listAvailability = '';
     }
     $listKeyword = sr_survey_clean_single_line(sr_get_string('q', 120), 120);
-    $listWhere = ['s.deleted_at IS NULL'];
+    $deletedView = sr_get_string('deleted', 1) === '1';
+    $listWhere = [$deletedView ? 's.deleted_at IS NOT NULL' : 's.deleted_at IS NULL'];
     $listParams = [];
     if ($listStatus !== '') {
         $listWhere[] = 's.status = :status';
@@ -50,11 +51,11 @@ function sr_survey_admin_list_state(PDO $pdo): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at, COUNT(r.id) AS response_count
          FROM sr_survey_forms s
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
          WHERE ' . implode(' AND ', $listWhere) . '
-         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at
          ' . $surveyOrderSql . '
          LIMIT 200'
     );
@@ -64,6 +65,7 @@ function sr_survey_admin_list_state(PDO $pdo): array
         'list_status' => $listStatus,
         'list_availability' => $listAvailability,
         'list_keyword' => $listKeyword,
+        'deleted_view' => $deletedView,
         'filter_open' => $listStatus !== '' || $listAvailability !== '',
         'status_options' => $surveyStatusOptions,
         'sort_options' => $surveySortOptions,

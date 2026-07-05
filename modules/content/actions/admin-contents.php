@@ -215,7 +215,7 @@ if ($pageAdminPage === 'form') {
     $pageId = (int) sr_get_string('id', 20);
     if ($pageId > 0) {
         $editPage = sr_content_by_id($pdo, $pageId);
-        if (!is_array($editPage)) {
+        if (!is_array($editPage) || (string) ($editPage['status'] ?? '') === 'deleted') {
             sr_render_error(404, sr_t('content::action.error.content_edit_not_found'));
         }
         $editPage['setting_sources'] = sr_content_setting_sources($pdo, $pageId);
