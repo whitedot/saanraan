@@ -525,3 +525,14 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 - `/admin/community/recovery-failures` legacy route는 공통 미회수 큐로 redirect되는지 확인
 - 재회수 전액 성공은 기존 open row를 `recovered`로 닫고, 부분 성공은 recovered/unrecovered 금액을 갱신한 뒤 open 상태를 유지하는지 확인
 - 수동 `manually_resolved`/`cancelled`는 확인 문구와 관리자 사유를 서버에서 검증하고 원장 거래를 만들지 않는지 확인
+
+## 콘텐츠·퀴즈·설문 삭제 상태와 영구 삭제 스모크
+
+#404 기준의 자동 검사 또는 설치 DB smoke는 일반 삭제와 영구 물리 삭제를 구분해 확인한다. 일반 삭제는 원문 redaction과 소유 저장소 파일 삭제 시도, cleanup failure 기록을 확인하고, 영구 삭제는 삭제됨 전용 보기에서만 본체와 삭제 배정 하위 row를 제거하는지 확인한다.
+
+- 콘텐츠 deleted 상태에서 edit GET, save POST, copy POST, batch status POST가 모두 fail-closed 되는지 확인
+- 퀴즈 `status = archived`이지만 `deleted_at IS NULL`인 정상 보관 항목이 영구 삭제 후보에 포함되지 않는지 확인
+- 콘텐츠·퀴즈·설문 삭제됨 보기에서 삭제 판정값, 보존 로그 카운트, cleanup failure/pending 카운트가 보이는지 확인
+- 영구 삭제 후 본체 row와 삭제 배정 하위 row가 사라지고, 보존 배정 로그가 snapshot 기준으로 조회되는지 확인
+- 일반 삭제 저장소 삭제 실패를 주입해 cleanup failure/pending row가 본체 JOIN 없이 재시도 가능한지 확인
+- `sr_content_files.content_id = 0` 미연결 파일 row가 영구 삭제 고아 검사에서 오탐되지 않는지 확인

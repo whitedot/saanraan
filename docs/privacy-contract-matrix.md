@@ -93,6 +93,7 @@
 - `export_retained` 모듈은 `privacy-export.php`를 제공해야 한다. cleanup이 없거나 일부 secret/부가 데이터만 정리하는 이유는 보존 정책, 회원 자산 정리 계약, 운영 증빙 중 하나로 설명한다.
 - `operational_retained` 모듈은 사본 제공 제외가 확정됐다는 뜻이 아니다. 1.0 전 보존 정책 검토와 운영자 안내 대상이다.
 - `privacy` 모듈은 `privacy-export.php`를 제공하지 않고 소비한다. 자기 요청 이력은 `sr_privacy_export_data()`에서 직접 포함한다.
+- 콘텐츠·퀴즈·설문 영구 삭제는 개인정보 cleanup을 대체하지 않는다. 삭제/보존/익명화 후 보존 테이블 배정과 본체 row 부재 상태의 export 안정성 기준은 [이슈 #404 삭제 상태와 영구 삭제 계약](records/issue-404-delete-state-permanent-delete-contract-2026-07-05.md)을 따른다.
 
 ## 쪽지 상대방 식별자 기준
 
