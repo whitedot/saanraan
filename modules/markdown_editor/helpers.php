@@ -36,6 +36,12 @@ function sr_markdown_editor_default_style_profile(): array
     ];
 }
 
+function sr_markdown_editor_json_encode(mixed $value): string
+{
+    $json = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return is_string($json) ? $json : '{}';
+}
+
 function sr_markdown_editor_token_options(): array
 {
     return [
@@ -225,8 +231,8 @@ function sr_markdown_editor_save_settings(PDO $pdo, array $settings): void
         ['task_lists_enabled', !empty($settings['task_lists_enabled']) ? '1' : '0', 'bool'],
         ['code_blocks_enabled', !empty($settings['code_blocks_enabled']) ? '1' : '0', 'bool'],
         ['raw_html_enabled', '0', 'bool'],
-        ['style_profile_json', sr_json_encode(sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? [])), 'json'],
-        ['custom_declarations_json', sr_json_encode(sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? [])), 'json'],
+        ['style_profile_json', sr_markdown_editor_json_encode(sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? [])), 'json'],
+        ['custom_declarations_json', sr_markdown_editor_json_encode(sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? [])), 'json'],
     ];
     $now = sr_now();
     $save = $pdo->prepare(
@@ -256,7 +262,7 @@ function sr_markdown_editor_save_settings(PDO $pdo, array $settings): void
 function sr_markdown_editor_profile_hash(PDO $pdo, ?array $overrideSettings = null): string
 {
     $settings = sr_markdown_editor_settings($pdo, $overrideSettings);
-    $payload = sr_json_encode([
+    $payload = sr_markdown_editor_json_encode([
         'parser' => [
             'tables' => $settings['tables_enabled'],
             'tasks' => $settings['task_lists_enabled'],
