@@ -6,6 +6,81 @@
   min-height: 22rem;
 }
 
+.sr-ckeditor .ck-content {
+  box-sizing: border-box;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sr-ckeditor .ck-content *,
+.sr-ckeditor .ck-content *::before,
+.sr-ckeditor .ck-content *::after {
+  box-sizing: border-box;
+}
+
+.sr-ckeditor .ck-content :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+  padding: 0;
+}
+
+.sr-ckeditor .ck-content :where(h1, h2, h3, h4, h5, h6) {
+  font-family: inherit;
+}
+
+.sr-ckeditor .ck-content :where(a) {
+  text-decoration: underline;
+}
+
+.sr-ckeditor .ck-content :where(ul) {
+  list-style: disc outside;
+  padding-inline-start: 1.5em;
+}
+
+.sr-ckeditor .ck-content :where(ol) {
+  list-style: decimal outside;
+  padding-inline-start: 1.5em;
+}
+
+.sr-ckeditor .ck-content :where(ul ul, ol ul) {
+  list-style-type: circle;
+}
+
+.sr-ckeditor .ck-content :where(ul ul ul, ol ul ul) {
+  list-style-type: square;
+}
+
+.sr-ckeditor .ck-content :where(table) {
+  border-collapse: collapse;
+  display: table;
+  text-indent: 0;
+}
+
+.sr-ckeditor .ck-content :where(thead) {
+  display: table-header-group;
+}
+
+.sr-ckeditor .ck-content :where(tbody) {
+  display: table-row-group;
+}
+
+.sr-ckeditor .ck-content :where(tr) {
+  display: table-row;
+}
+
+.sr-ckeditor .ck-content :where(th, td) {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.sr-ckeditor .ck-content :where(img, svg, video, canvas) {
+  height: auto;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.sr-ckeditor .ck-content :where(pre) {
+  white-space: pre-wrap;
+}
+
 .sr-ckeditor .ck-source-editing-area textarea {
   min-height: 22rem;
 }

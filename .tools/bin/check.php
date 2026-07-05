@@ -1190,6 +1190,8 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         sr_check_add_error('Admin common stylesheet is missing: modules/admin/assets/common.css');
     } elseif (!str_contains($adminCommonCss, 'url("../../../assets/fonts/material-symbols-outlined.ttf")')) {
         sr_check_add_error('Admin common stylesheet must use bundled Material Symbols fallback font path: modules/admin/assets/common.css');
+    } elseif (preg_match('/(?:h1,h2,h3,h4,h5,h6|\)\.type-[^{]+)\{[^}]*line-height:[^}]*!important/', $adminCommonCss) === 1) {
+        sr_check_add_error('Admin common stylesheet must not force heading line-height with !important.');
     }
 
     $publicModuleCss = is_file('assets/module.css') ? file_get_contents('assets/module.css') : false;

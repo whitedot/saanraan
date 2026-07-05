@@ -20,7 +20,7 @@ table{text-indent:0;border-color:inherit;border-collapse:collapse}
 ol,ul,menu{list-style:none}
 img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}
 img,video{max-width:100%;height:auto}
-h1,h2,h3,h4,h5,h6{font-size:inherit;font-family:var(--font-secondary);font-weight:var(--font-weight-medium);line-height:1.5!important}
+h1,h2,h3,h4,h5,h6{font-size:inherit;font-family:var(--font-secondary);font-weight:var(--font-weight-medium);line-height:1.5}
 b,strong,label{font-weight:var(--font-weight-semibold)}
 label{display:block}
 small{font-size:.85em}
@@ -36,10 +36,10 @@ code{color:var(--color-rose-400)}
 .type-page-title-fluid{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:clamp(var(--type-page-title-size),4vw,var(--type-page-title-fluid-max-size));line-height:var(--type-page-title-line-height);font-weight:var(--font-weight-bold)}
 .type-section-title{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-section-title-size);line-height:var(--type-section-title-line-height);font-weight:var(--font-weight-semibold)}
 .type-card-title{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-card-title-size);line-height:var(--type-card-title-line-height);font-weight:var(--font-weight-semibold)}
-:is(h1,h2,h3,h4,h5,h6).type-display,:is(h1,h2,h3,h4,h5,h6).type-display-fluid{line-height:var(--type-display-line-height)!important}
-:is(h1,h2,h3,h4,h5,h6).type-page-title,:is(h1,h2,h3,h4,h5,h6).type-page-title-fluid{line-height:var(--type-page-title-line-height)!important}
-:is(h1,h2,h3,h4,h5,h6).type-section-title{line-height:var(--type-section-title-line-height)!important}
-:is(h1,h2,h3,h4,h5,h6).type-card-title{line-height:var(--type-card-title-line-height)!important}
+:is(h1,h2,h3,h4,h5,h6).type-display,:is(h1,h2,h3,h4,h5,h6).type-display-fluid{line-height:var(--type-display-line-height)}
+:is(h1,h2,h3,h4,h5,h6).type-page-title,:is(h1,h2,h3,h4,h5,h6).type-page-title-fluid{line-height:var(--type-page-title-line-height)}
+:is(h1,h2,h3,h4,h5,h6).type-section-title{line-height:var(--type-section-title-line-height)}
+:is(h1,h2,h3,h4,h5,h6).type-card-title{line-height:var(--type-card-title-line-height)}
 .type-body{font-size:var(--type-body-size);line-height:var(--type-body-line-height)}
 .type-small{font-size:var(--type-small-size);line-height:var(--type-small-line-height)}
 .type-meta{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height)}

@@ -959,11 +959,68 @@ a.community-post-title:focus,
 }
 
 .community-post-body {
+    box-sizing: border-box;
     color: var(--sr-text, var(--text-strong, #242424));
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
     word-break: normal;
+}
+
+.community-post-body *,
+.community-post-body *::before,
+.community-post-body *::after {
+    box-sizing: border-box;
+}
+
+.community-post-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+    padding: 0;
+}
+
+.community-post-body :where(a) {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.community-post-body :where(ul) {
+    list-style: disc outside;
+    padding-inline-start: 1.5em;
+}
+
+.community-post-body :where(ol) {
+    list-style: decimal outside;
+    padding-inline-start: 1.5em;
+}
+
+.community-post-body :where(ul ul, ol ul) {
+    list-style-type: circle;
+}
+
+.community-post-body :where(ul ul ul, ol ul ul) {
+    list-style-type: square;
+}
+
+.community-post-body :where(table) {
+    border-collapse: collapse;
+    display: table;
+    text-indent: 0;
+}
+
+.community-post-body :where(thead) {
+    display: table-header-group;
+}
+
+.community-post-body :where(tbody) {
+    display: table-row-group;
+}
+
+.community-post-body :where(tr) {
+    display: table-row;
+}
+
+.community-post-body :where(th, td) {
+    display: table-cell;
+    vertical-align: top;
 }
 
 .community-post-image-thumbnails {

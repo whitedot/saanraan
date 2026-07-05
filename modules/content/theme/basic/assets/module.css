@@ -155,6 +155,7 @@
 .content-body {
     background: #fff;
     border-radius: 8px;
+    box-sizing: border-box;
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-body);
     font-size: var(--type-body-size);
@@ -162,6 +163,62 @@
     overflow-wrap: anywhere;
     padding: 18px;
     word-break: normal;
+}
+
+.content-body *,
+.content-body *::before,
+.content-body *::after {
+    box-sizing: border-box;
+}
+
+.content-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+    padding: 0;
+}
+
+.content-body :where(a) {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.content-body :where(ul) {
+    list-style: disc outside;
+    padding-inline-start: 1.5em;
+}
+
+.content-body :where(ol) {
+    list-style: decimal outside;
+    padding-inline-start: 1.5em;
+}
+
+.content-body :where(ul ul, ol ul) {
+    list-style-type: circle;
+}
+
+.content-body :where(ul ul ul, ol ul ul) {
+    list-style-type: square;
+}
+
+.content-body :where(table) {
+    border-collapse: collapse;
+    display: table;
+    text-indent: 0;
+}
+
+.content-body :where(thead) {
+    display: table-header-group;
+}
+
+.content-body :where(tbody) {
+    display: table-row-group;
+}
+
+.content-body :where(tr) {
+    display: table-row;
+}
+
+.content-body :where(th, td) {
+    display: table-cell;
+    vertical-align: top;
 }
 
 .content-cover-figure {

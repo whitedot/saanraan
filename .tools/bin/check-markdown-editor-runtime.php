@@ -111,6 +111,13 @@ sr_markdown_editor_check_assert(
         && str_contains($css, 'text-underline-offset:'),
     'Markdown style profile should emit expanded element controls for headings, lists, and tables.'
 );
+sr_markdown_editor_check_assert(
+    str_contains($css, '.markdown-editor-body :where(ul){list-style:disc outside;}')
+        && str_contains($css, '.markdown-editor-body :where(table){display:table;text-indent:0;}')
+        && str_contains($css, '-webkit-appearance:auto;appearance:auto')
+        && str_contains($css, 'line-height:1.25;color:var('),
+    'Markdown style profile should include a scoped body reset that counters admin/public common CSS.'
+);
 $settingsView = file_get_contents(SR_ROOT . '/modules/markdown_editor/views/admin-settings.php');
 sr_markdown_editor_check_assert(
     is_string($settingsView)
@@ -124,9 +131,19 @@ sr_markdown_editor_check_assert(
     sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
     'Content markdown body stylesheets should be returned even when URL embeds are disabled.'
 );
+$contentMarkdownStylesheets = sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
+sr_markdown_editor_check_assert(
+    count(array_filter($contentMarkdownStylesheets, static fn (string $stylesheet): bool => str_contains($stylesheet, '/markdown-editor/style.css?v='))) === 1,
+    'Content public markdown bodies should include the markdown editor stylesheet URL.'
+);
 sr_markdown_editor_check_assert(
     sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
     'Community markdown body stylesheets should be returned even when URL embeds are disabled.'
+);
+$communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
+sr_markdown_editor_check_assert(
+    count(array_filter($communityMarkdownStylesheets, static fn (string $stylesheet): bool => str_contains($stylesheet, '/markdown-editor/style.css?v='))) === 1,
+    'Community public markdown bodies should include the markdown editor stylesheet URL.'
 );
 
 $inline = sr_markdown_render($enabledPdo, "# Title\n\nSecond", 'inline');

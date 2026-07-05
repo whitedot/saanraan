@@ -358,7 +358,25 @@ sr_ckeditor_assets_check_popup_layer_tmp_cleanup_fixture();
 sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.css', [
     '.sr-ckeditor',
     '.ck-editor__editable_inline',
+    '.sr-ckeditor .ck-content :where(ul)',
+    'list-style: disc outside',
+    '.sr-ckeditor .ck-content :where(table)',
+    'display: table',
 ]);
+
+foreach ([
+    'modules/content/theme/basic/assets/module.css' => '.content-body',
+    'modules/content/theme/sample/assets/module.css' => '.content-body',
+    'modules/community/theme/basic/assets/module.css' => '.community-post-body',
+    'modules/community/theme/sample/assets/module.css' => '.community-post-body',
+] as $bodyStylesheet => $bodySelector) {
+    sr_ckeditor_assets_require_markers($bodyStylesheet, [
+        $bodySelector . ' :where(ul)',
+        'list-style: disc outside',
+        $bodySelector . ' :where(table)',
+        'display: table',
+    ]);
+}
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/module.php', [
     "'asset_mode' => 'self_hosted'",
