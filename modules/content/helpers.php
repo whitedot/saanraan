@@ -672,7 +672,7 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
 
 function sr_content_body_embed_stylesheets(array $page, ?array $settings = null, ?PDO $pdo = null): array
 {
-    if (!$pdo instanceof PDO || !sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
+    if (!$pdo instanceof PDO) {
         return [];
     }
 
@@ -681,9 +681,13 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     $markdownStylesheets = (string) ($page['body_format'] ?? 'plain') === 'markdown'
         ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
         : [];
+    $embedStylesheets = sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)
+        ? sr_url_embed_stylesheets_for_body($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public'])
+        : [];
+
     return array_values(array_unique(array_merge(
         $markdownStylesheets,
-        sr_url_embed_stylesheets_for_body($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public'])
+        $embedStylesheets
     )));
 }
 

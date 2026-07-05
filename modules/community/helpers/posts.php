@@ -1183,7 +1183,7 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
 
 function sr_community_post_body_embed_stylesheets(array $post, ?array $settings = null, ?PDO $pdo = null): array
 {
-    if (!$pdo instanceof PDO || !sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)) {
+    if (!$pdo instanceof PDO) {
         return [];
     }
 
@@ -1201,9 +1201,13 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     $markdownStylesheets = (string) ($post['body_format'] ?? 'plain') === 'markdown'
         ? sr_markdown_stylesheets($pdo, $bodyText, 'full')
         : [];
+    $embedStylesheets = sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)
+        ? sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public'])
+        : [];
+
     return array_values(array_unique(array_merge(
         $markdownStylesheets,
-        sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public'])
+        $embedStylesheets
     )));
 }
 

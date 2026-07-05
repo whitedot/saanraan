@@ -13,6 +13,9 @@ require_once $root . '/core/helpers/common.php';
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
+require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/community/helpers/levels.php';
+require_once $root . '/modules/community/helpers/posts.php';
 
 $errors = [];
 
@@ -98,6 +101,14 @@ sr_markdown_editor_check_assert(str_contains((string) ($full['html'] ?? ''), '<i
 sr_markdown_editor_check_assert(!str_contains((string) ($full['html'] ?? ''), 'href="javascript:'), 'Unsafe markdown links should not render as anchors.');
 sr_markdown_editor_check_assert((array) ($full['stylesheets'] ?? []) !== [], 'Full mode should return the profile stylesheet.');
 sr_markdown_editor_check_assert((string) ($full['profile_hash'] ?? '') !== '', 'Render result should include a profile hash.');
+sr_markdown_editor_check_assert(
+    sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
+    'Content markdown body stylesheets should be returned even when URL embeds are disabled.'
+);
+sr_markdown_editor_check_assert(
+    sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
+    'Community markdown body stylesheets should be returned even when URL embeds are disabled.'
+);
 
 $inline = sr_markdown_render($enabledPdo, "# Title\n\nSecond", 'inline');
 sr_markdown_editor_check_assert(is_array($inline) && !str_contains((string) ($inline['html'] ?? ''), '<h1>'), 'Inline mode should not emit block tags.');
