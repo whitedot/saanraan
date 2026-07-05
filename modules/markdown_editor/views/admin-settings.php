@@ -106,4 +106,5 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<script src="<?php echo sr_e(sr_asset_url('/modules/markdown_editor/assets/admin.js')); ?>" defer></script>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

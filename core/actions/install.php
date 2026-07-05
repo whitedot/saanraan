@@ -105,6 +105,12 @@ $optionalModules = [
         'label' => 'CKEditor',
         'description' => '관리자와 모듈 입력 화면에 CKEditor 5 편집기 선택지를 설치합니다.',
     ],
+    'markdown_editor' => [
+        'name' => 'Markdown Editor',
+        'version' => '2026.07.001',
+        'label' => 'Markdown Editor',
+        'description' => 'Markdown 입력, 렌더링, 스타일 프로파일 선택지를 설치합니다.',
+    ],
     'antispam' => [
         'name' => '자동등록방지',
         'version' => '2026.06.001',
