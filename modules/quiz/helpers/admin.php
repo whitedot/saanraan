@@ -1270,9 +1270,10 @@ function sr_quiz_permanently_delete(PDO $pdo, int $quizId, string $confirmationP
         }
 
         $quizKey = (string) ($quiz['quiz_key'] ?? '');
-        if (trim($confirmationPhrase) !== $quizKey) {
+        $confirmationPhrase = trim($confirmationPhrase);
+        if ($confirmationPhrase !== $quizKey && $confirmationPhrase !== (string) $quizId) {
             $pdo->rollBack();
-            return ['ok' => false, 'message' => '확인 문구가 퀴즈 Key와 일치하지 않습니다.'];
+            return ['ok' => false, 'message' => '확인 문구가 퀴즈 ID 또는 Key와 일치하지 않습니다.'];
         }
 
         $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_quiz_comments WHERE quiz_id = :quiz_id');

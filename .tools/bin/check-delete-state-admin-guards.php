@@ -86,6 +86,16 @@ $assertContains(
     'Content deleted view must show cleanup pending count.'
 );
 $assertContains(
+    $contentView,
+    'data-confirm-phrase-alt',
+    'Content permanent delete modal must allow ID confirmation as an alternate phrase.'
+);
+$assertContains(
+    $contentRecords,
+    '$confirmationPhrase !== $slug && $confirmationPhrase !== (string) $pageId',
+    'Content permanent delete server validation must accept content ID or slug.'
+);
+$assertContains(
     $contentRecords,
     'sr_url_embed_delete_owner_or_target_url_cache($pdo, \'content\', \'content\', $pageId)',
     'Content permanent delete must remove owner/target URL embed cache rows.'
@@ -157,9 +167,19 @@ $assertContains(
     'Quiz deleted view must show cleanup pending count.'
 );
 $assertContains(
+    $quizAction,
+    'data-confirm-phrase-alt',
+    'Quiz permanent delete modal must allow ID confirmation as an alternate phrase.'
+);
+$assertContains(
     $quizAdminHelpers,
     'function sr_quiz_permanently_delete',
     'Quiz must have a permanent delete helper.'
+);
+$assertContains(
+    $quizAdminHelpers,
+    '$confirmationPhrase !== $quizKey && $confirmationPhrase !== (string) $quizId',
+    'Quiz permanent delete server validation must accept quiz ID or key.'
 );
 $assertContains(
     $quizAdminHelpers,
@@ -238,9 +258,19 @@ $assertContains(
     'Survey deleted view must show cleanup pending count.'
 );
 $assertContains(
+    $surveyAction,
+    'data-confirm-phrase-alt',
+    'Survey permanent delete modal must allow ID confirmation as an alternate phrase.'
+);
+$assertContains(
     $surveyAdminHelpers,
     'function sr_survey_permanently_delete',
     'Survey must have a permanent delete helper.'
+);
+$assertContains(
+    $surveyAdminHelpers,
+    '$confirmationPhrase !== $surveyKey && $confirmationPhrase !== (string) $surveyId',
+    'Survey permanent delete server validation must accept survey ID or key.'
 );
 $assertContains(
     $surveyAdminHelpers,
@@ -286,6 +316,11 @@ $assertContains(
     $adminShell,
     'validateConfirmPhraseFields',
     'Admin shell must validate destructive confirmation phrase inputs.'
+);
+$assertContains(
+    $adminShell,
+    'data-confirm-phrase-alt',
+    'Admin shell must validate alternate destructive confirmation phrases.'
 );
 
 if ($errors !== []) {

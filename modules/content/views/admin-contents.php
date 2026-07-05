@@ -317,8 +317,8 @@ $contentPermanentDeleteModalHtml = static function (array $content): string {
                     <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>-phrase">확인 문구 <span class="sr-required-label">(필수)</span></label>
                         <div class="form-field">
-                            <input id="<?php echo sr_e($modalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($content['slug'] ?? '')); ?>" data-overlay-focus>
-                            <p class="form-help"><code><?php echo sr_e((string) ($content['slug'] ?? '')); ?></code> 를 정확히 입력하세요.</p>
+                            <input id="<?php echo sr_e($modalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($content['slug'] ?? '')); ?>" data-confirm-phrase-alt="<?php echo sr_e((string) $contentId); ?>" data-overlay-focus>
+                            <p class="form-help"><code><?php echo sr_e((string) ($content['slug'] ?? '')); ?></code> 또는 <code><?php echo sr_e((string) $contentId); ?></code> 를 정확히 입력하세요.</p>
                         </div>
                     </div>
                 </div>

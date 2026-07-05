@@ -400,8 +400,8 @@ if ($mode === 'list') {
                             <div class="form-row">
                                 <label class="form-label" for="<?php echo sr_e($permanentDeleteModalId); ?>-phrase">확인 문구 <span class="sr-required-label">(필수)</span></label>
                                 <div class="form-field">
-                                    <input id="<?php echo sr_e($permanentDeleteModalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?>" data-overlay-focus>
-                                    <p class="form-help"><code><?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?></code> 를 정확히 입력하세요.</p>
+                                    <input id="<?php echo sr_e($permanentDeleteModalId); ?>-phrase" type="text" name="confirmation_phrase" class="form-input form-control-full" required data-confirm-phrase="<?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?>" data-confirm-phrase-alt="<?php echo sr_e((string) (int) $quiz['id']); ?>" data-overlay-focus>
+                                    <p class="form-help"><code><?php echo sr_e((string) ($quiz['quiz_key'] ?? '')); ?></code> 또는 <code><?php echo sr_e((string) (int) $quiz['id']); ?></code> 를 정확히 입력하세요.</p>
                                 </div>
                             </div>
                         </div>

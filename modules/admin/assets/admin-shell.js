@@ -545,8 +545,11 @@ window.AdminShell = {
                     return;
                 }
                 const expected = input.getAttribute('data-confirm-phrase') || '';
+                const expectedValues = [expected].concat(String(input.getAttribute('data-confirm-phrase-alt') || '').split('|'))
+                    .map(value => String(value || '').trim())
+                    .filter(value => value !== '');
                 const message = input.getAttribute('data-confirm-phrase-message') || '확인 문구가 일치하지 않습니다.';
-                const matches = String(input.value || '').trim() === expected;
+                const matches = expectedValues.indexOf(String(input.value || '').trim()) !== -1;
                 input.setCustomValidity(matches ? '' : message);
                 if (!matches) {
                     valid = false;

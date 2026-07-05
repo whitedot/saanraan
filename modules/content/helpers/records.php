@@ -1150,9 +1150,10 @@ function sr_content_permanently_delete(PDO $pdo, int $pageId, string $confirmati
         }
 
         $slug = (string) ($content['slug'] ?? '');
-        if (trim($confirmationPhrase) !== $slug) {
+        $confirmationPhrase = trim($confirmationPhrase);
+        if ($confirmationPhrase !== $slug && $confirmationPhrase !== (string) $pageId) {
             $pdo->rollBack();
-            return ['ok' => false, 'message' => '확인 문구가 콘텐츠 주소 이름과 일치하지 않습니다.'];
+            return ['ok' => false, 'message' => '확인 문구가 콘텐츠 ID 또는 주소 이름과 일치하지 않습니다.'];
         }
 
         $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_content_comments WHERE content_id = :content_id');

@@ -768,9 +768,10 @@ function sr_survey_permanently_delete(PDO $pdo, int $surveyId, string $confirmat
         }
 
         $surveyKey = (string) ($survey['survey_key'] ?? '');
-        if (trim($confirmationPhrase) !== $surveyKey) {
+        $confirmationPhrase = trim($confirmationPhrase);
+        if ($confirmationPhrase !== $surveyKey && $confirmationPhrase !== (string) $surveyId) {
             $pdo->rollBack();
-            return ['ok' => false, 'message' => '확인 문구가 설문 Key와 일치하지 않습니다.'];
+            return ['ok' => false, 'message' => '확인 문구가 설문 ID 또는 Key와 일치하지 않습니다.'];
         }
 
         $commentIdsStmt = $pdo->prepare('SELECT id FROM sr_survey_comments WHERE survey_id = :survey_id');
