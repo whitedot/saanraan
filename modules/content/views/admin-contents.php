@@ -914,6 +914,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var form = document.querySelector('.admin-content-form form');
         var textarea = document.getElementById('content_admin_contents_body_text');
         var help = document.querySelector('[data-content-editor-help]');
+        var editorTransitionToken = 0;
 
         if (configElement) {
             try {
@@ -984,42 +985,55 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         function applyEditorConfig() {
             var key = selectedEditorKey();
             var config = configs[key] || configs.textarea || { editor: 'textarea', format: 'plain' };
+            var transitionToken;
+            var destroyPromise = {
+                then: function (callback) {
+                    callback();
+                }
+            };
 
             if (!form || !textarea) {
                 return;
             }
 
+            transitionToken = ++editorTransitionToken;
             setBodyFormat(config.format || 'plain');
             if (help && config.help) {
                 help.textContent = config.help;
             }
 
             if (textarea._srCkeditorInstance && config.editor !== 'ckeditor' && window.srCkeditorDestroyTextarea) {
-                window.srCkeditorDestroyTextarea(textarea);
+                destroyPromise = window.srCkeditorDestroyTextarea(textarea);
             }
 
-            clearEditorDataset();
-            textarea.dataset.srEditorReady = '0';
-
-            if (config.editor && config.editor !== 'textarea') {
-                textarea.dataset.srEditor = config.editor;
-                textarea.dataset.srEditorPreset = config.preset || 'content_basic';
-                textarea.dataset.srEditorFormatName = 'body_format';
-                textarea.dataset.srEditorFormatValue = config.format || 'plain';
-            }
-
-            if (config.editor === 'ckeditor') {
-                textarea.dataset.srEditorBodyTheme = config.bodyTheme || '';
-                textarea.dataset.srEditorUploadUrl = config.uploadUrl || '';
-                textarea.dataset.srEditorUploadField = config.uploadField || 'upload';
-                textarea.dataset.srEditorUploadCsrf = config.uploadCsrf || '';
-                textarea.dataset.srEditorUploadToken = config.uploadToken || '';
-                if (window.srCkeditorEnhance) {
-                    window.srCkeditorEnhance();
+            destroyPromise.then(function () {
+                if (transitionToken !== editorTransitionToken) {
+                    return;
                 }
-            } else if (config.editor === 'markdown' && window.srMarkdownEditorEnhance) {
-                window.srMarkdownEditorEnhance(form);
-            }
+
+                clearEditorDataset();
+                textarea.dataset.srEditorReady = '0';
+
+                if (config.editor && config.editor !== 'textarea') {
+                    textarea.dataset.srEditor = config.editor;
+                    textarea.dataset.srEditorPreset = config.preset || 'content_basic';
+                    textarea.dataset.srEditorFormatName = 'body_format';
+                    textarea.dataset.srEditorFormatValue = config.format || 'plain';
+                }
+
+                if (config.editor === 'ckeditor') {
+                    textarea.dataset.srEditorBodyTheme = config.bodyTheme || '';
+                    textarea.dataset.srEditorUploadUrl = config.uploadUrl || '';
+                    textarea.dataset.srEditorUploadField = config.uploadField || 'upload';
+                    textarea.dataset.srEditorUploadCsrf = config.uploadCsrf || '';
+                    textarea.dataset.srEditorUploadToken = config.uploadToken || '';
+                    if (window.srCkeditorEnhance) {
+                        window.srCkeditorEnhance();
+                    }
+                } else if (config.editor === 'markdown' && window.srMarkdownEditorEnhance) {
+                    window.srMarkdownEditorEnhance(form);
+                }
+            });
         }
 
         if (form && textarea) {
