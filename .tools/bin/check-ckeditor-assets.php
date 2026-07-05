@@ -278,6 +278,7 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.js
     "textarea.dataset.srEditorInitializing === '1'",
     "editorForTextarea(textarea)",
     "textarea.dataset.srEditorInitializing = '1'",
+    "textarea.dataset.srEditor !== 'ckeditor'",
     "textarea.dataset.srEditorBodyTheme",
     "editorElement.style.setProperty(item[1], value)",
     "existing = form.querySelector('input[type=\"hidden\"][name=\"' + formatName + '\"]')",

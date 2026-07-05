@@ -310,6 +310,16 @@
 
       textarea.dataset.srEditorInitializing = '1';
       ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor, textarea)).then(function (editor) {
+        if (textarea.dataset.srEditor !== 'ckeditor') {
+          syncTextareaValue(textarea, editor, true);
+          textarea.dataset.srEditorReady = '0';
+          textarea.dataset.srEditorInitializing = '0';
+          if (typeof editor.destroy === 'function') {
+            editor.destroy().catch(function () {});
+          }
+          return;
+        }
+
         if (editor.ui && editor.ui.view && editor.ui.view.element) {
           editor.ui.view.element.classList.add('sr-ckeditor');
           applyBodyTheme(textarea, editor.ui.view.element);
