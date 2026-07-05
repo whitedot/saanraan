@@ -248,6 +248,39 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
     <?php
     return (string) ob_get_clean();
 };
+$contentDeleteModalHtml = static function (array $content): string {
+    $contentId = (int) ($content['id'] ?? 0);
+    if ($contentId < 1) {
+        return '';
+    }
+    $modalId = 'content-delete-modal-' . (string) $contentId;
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="modal-content admin-form ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('콘텐츠 삭제'); ?></h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="content_id" value="<?php echo sr_e((string) $contentId); ?>">
+                    <p class="form-help">
+                        <?php echo sr_e((string) ($content['title'] ?? '')); ?>
+                        <?php echo sr_e(' 콘텐츠를 삭제합니다. 본문 원문과 일부 파일 참조가 정리되며, 현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.'); ?>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>
+                    <button type="submit" class="btn btn-outline-danger modal-action"><?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php
+    return (string) ob_get_clean();
+};
 $contentHelp = [
     'title' => [
         'id' => 'content_admin_help_title',
@@ -810,15 +843,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <?php if ($editing) { ?>
+            <?php $contentDeleteModalId = 'content-delete-modal-' . (string) (int) $editPage['id']; ?>
+        <?php } ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
-                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_e('복사'); ?></button>
+                <a href="<?php echo sr_e($contentAdminViewUrl((string) $editPage['slug'], (string) ($editPage['status'] ?? ''))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('사용자 화면 바로가기'); ?>" title="<?php echo sr_e('사용자 화면 바로가기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                <button type="button" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentDeleteModalId); ?>" aria-label="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
     <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
+    <?php echo $editing ? $contentDeleteModalHtml($editPage) : ''; ?>
     <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, $contentEditorToolbarPreset) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
