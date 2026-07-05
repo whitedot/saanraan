@@ -62,7 +62,7 @@ if (sr_request_method() === 'POST') {
     $postedDefaultMatchType = sr_post_string('popup_layer_default_match_type', 20);
     $postedDefaultDismissCookieDays = max(0, min(365, (int) sr_post_string('popup_layer_default_dismiss_cookie_days', 5)));
     $postedEditorInput = sr_post_string('popup_layer_editor', 30);
-    $postedEditorKey = sr_editor_normalize_key($postedEditorInput);
+    $postedEditorKey = sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput));
     if ($errors === []) {
         if (!isset($popupLayerSkinOptions[$postedSkinKey])) {
             $errors[] = '팝업레이어 스킨 값이 올바르지 않습니다.';

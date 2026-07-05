@@ -1,0 +1,1 @@
+-- Markdown editor plugin does not create database tables.

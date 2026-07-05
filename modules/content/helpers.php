@@ -572,7 +572,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
     }
 
     $rows = [
-        ['editor', sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea')), 'string'],
+        ['editor', sr_editor_effective_key($pdo, (string) ($settings['editor'] ?? 'textarea')), 'string'],
         ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic')), 'string'],
         ['embed_enabled', !empty($settings['embed_enabled']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
@@ -662,7 +662,7 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
 {
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
 
-    $html = sr_body_text_html($page, $linkPlainUrls);
+    $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
     if ($pdo instanceof PDO && sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
         $html = sr_url_embed_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
     }
@@ -677,7 +677,14 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     }
 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
-    return sr_url_embed_stylesheets_for_body($pdo, sr_body_text_html($page, $linkPlainUrls), 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
+    $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
+    $markdownStylesheets = (string) ($page['body_format'] ?? 'plain') === 'markdown'
+        ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
+        : [];
+    return array_values(array_unique(array_merge(
+        $markdownStylesheets,
+        sr_url_embed_stylesheets_for_body($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public'])
+    )));
 }
 
 function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array $groupSettings = []): array

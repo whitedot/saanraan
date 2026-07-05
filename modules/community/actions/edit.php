@@ -164,7 +164,7 @@ if ($isPostRequest) {
             $seriesValues['series_mode'] = 'none';
         }
     }
-    $errors = sr_community_validate_post_input($values);
+    $errors = sr_community_validate_post_input($values, $pdo);
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values, $settings));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));

@@ -438,7 +438,7 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
     }
     if ($pdo instanceof PDO && ((sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) || $postEditorKey === 'html')) {
         $bodyFormat = 'html';
-    } elseif ($pdo instanceof PDO && (sr_post_string('body_format', 20) === 'markdown' || sr_community_markdown_post_body_enabled($pdo, $board, $settings))) {
+    } elseif ($pdo instanceof PDO && sr_markdown_renderer_available($pdo) && (sr_post_string('body_format', 20) === 'markdown' || sr_community_markdown_post_body_enabled($pdo, $board, $settings))) {
         $bodyFormat = 'markdown';
     }
 
@@ -465,7 +465,7 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
     ];
 }
 
-function sr_community_validate_post_input(array $values): array
+function sr_community_validate_post_input(array $values, ?PDO $pdo = null): array
 {
     $errors = [];
     $title = $values['title'];
@@ -481,6 +481,9 @@ function sr_community_validate_post_input(array $values): array
         $errors[] = sr_t('community::action.error.post_body_too_long');
     } elseif (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         $errors[] = sr_t('community::action.error.post_body_required');
+    }
+    if ((string) ($values['body_format'] ?? 'plain') === 'markdown' && $pdo instanceof PDO && !sr_markdown_renderer_available($pdo)) {
+        $errors[] = 'Markdown 본문을 저장하려면 Markdown Editor 플러그인을 활성화하세요.';
     }
 
     return $errors;

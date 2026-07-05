@@ -48,7 +48,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         }
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
-        $postEditor = sr_community_post_editor_key($postEditorInput);
+        $postEditor = sr_editor_effective_key($pdo, sr_community_post_editor_key($postEditorInput));
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
         $attachmentMaxBytes = sr_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('attachment_max_count', 0, 10);

@@ -52,12 +52,15 @@ $policyDocumentBodyTextValue = static function (string $bodyHtml): string {
     return html_entity_decode($bodyHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 };
 $policyDocumentCkeditorAvailable = isset($pdo) && $pdo instanceof PDO && sr_editor_available($pdo, 'ckeditor');
+$policyDocumentMarkdownAvailable = isset($pdo) && $pdo instanceof PDO && sr_markdown_renderer_available($pdo);
 $policyDocumentBodyEditorMode = $policyDocumentCkeditorAvailable ? 'ckeditor' : 'html';
 $policyDocumentBodyEditorOptions = [
     'plain' => sr_t('policy_documents::ui.body_mode.plain'),
-    'markdown' => sr_t('policy_documents::ui.body_mode.markdown'),
     'html' => sr_t('policy_documents::ui.body_mode.html'),
 ];
+if ($policyDocumentMarkdownAvailable) {
+    $policyDocumentBodyEditorOptions['markdown'] = sr_t('policy_documents::ui.body_mode.markdown');
+}
 if ($policyDocumentCkeditorAvailable) {
     $policyDocumentBodyEditorOptions['ckeditor'] = sr_t('policy_documents::ui.body_mode.ckeditor');
 }

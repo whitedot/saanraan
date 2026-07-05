@@ -23,7 +23,8 @@ function sr_notification_body_format(string $value): string
 
 function sr_notification_body_html(array $notification): string
 {
-    return sr_body_text_html($notification);
+    $globalPdo = $GLOBALS['pdo'] ?? null;
+    return sr_body_text_html($notification, false, $globalPdo instanceof PDO ? $globalPdo : null, 'plain');
 }
 
 function sr_notification_table_has_column(PDO $pdo, string $table, string $column): bool

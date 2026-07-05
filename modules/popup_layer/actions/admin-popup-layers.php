@@ -272,7 +272,7 @@ if (sr_request_method() === 'POST') {
         $bodyFormat = 'plain';
         if ($popupLayerEditorKey === 'html' || ($popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html')) {
             $bodyFormat = 'html';
-        } elseif ($popupLayerEditorKey === 'markdown') {
+        } elseif ($popupLayerEditorKey === 'markdown' && sr_markdown_renderer_available($pdo)) {
             $bodyFormat = 'markdown';
         }
         $rawBodyText = sr_post_string('body_text', 5000);

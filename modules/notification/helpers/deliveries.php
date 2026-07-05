@@ -788,6 +788,8 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
     $body = (string) ($delivery['body_text'] ?? '');
     if ((string) ($delivery['body_format'] ?? 'plain') === 'html') {
         $body = trim(strip_tags($body));
+    } elseif ((string) ($delivery['body_format'] ?? 'plain') === 'markdown') {
+        $body = sr_markdown_plain_text_for_body($pdo, $body);
     }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
     if ($linkUrl !== '') {
@@ -940,7 +942,12 @@ function sr_notification_external_push_text(array $delivery, array $site): strin
 {
     $siteName = sr_notification_clean_single_line((string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'), 80);
     $title = sr_notification_clean_single_line((string) ($delivery['title'] ?? '운영 알림'), 160);
-    $body = trim(strip_tags((string) ($delivery['body_text'] ?? '')));
+    $body = (string) ($delivery['body_text'] ?? '');
+    if ((string) ($delivery['body_format'] ?? 'plain') === 'markdown' && ($GLOBALS['pdo'] ?? null) instanceof PDO) {
+        $body = sr_markdown_plain_text_for_body($GLOBALS['pdo'], $body);
+    } else {
+        $body = trim(strip_tags($body));
+    }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
     $lines = ['[' . $siteName . '] ' . $title];
     if ($body !== '') {

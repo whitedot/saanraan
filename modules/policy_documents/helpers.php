@@ -342,7 +342,18 @@ function sr_policy_document_body_html_from_editor_data(array $data): string
     }
 
     if ($mode === 'markdown') {
-        return sr_policy_document_sanitize_body(sr_markdown_text_html((string) ($data['body_markdown'] ?? '')));
+        $markdown = (string) ($data['body_markdown'] ?? '');
+        $globalPdo = $GLOBALS['pdo'] ?? null;
+        if (!$globalPdo instanceof PDO || !sr_markdown_renderer_available($globalPdo)) {
+            throw new InvalidArgumentException('Markdown 문서를 저장하려면 Markdown Editor 플러그인을 활성화하세요.');
+        }
+
+        $rendered = sr_markdown_render($globalPdo, $markdown, 'full');
+        if (is_array($rendered)) {
+            return sr_policy_document_sanitize_body((string) ($rendered['html'] ?? ''));
+        }
+
+        return sr_policy_document_sanitize_body(sr_markdown_text_html($markdown));
     }
 
     if ($mode === 'ckeditor') {

@@ -858,6 +858,7 @@ function sr_module_known_contract_files(): array
         'member-mfa-providers.php',
         'homepage-candidates.php',
         'editor-options.php',
+        'markdown-renderer.php',
         'coupon-targets.php',
         'coupon-references.php',
         'payment-ledger-targets.php',

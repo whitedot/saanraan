@@ -365,7 +365,10 @@ function sr_community_body_plain_text(string $bodyText, string $bodyFormat = 'pl
         $bodyText = str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText);
         $bodyText = html_entity_decode(strip_tags($bodyText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     } elseif ($bodyFormat === 'markdown') {
-        $bodyText = sr_markdown_plain_text($bodyText);
+        $globalPdo = $GLOBALS['pdo'] ?? null;
+        $bodyText = $globalPdo instanceof PDO
+            ? sr_markdown_plain_text_for_body($globalPdo, $bodyText)
+            : sr_markdown_plain_text($bodyText);
     }
 
     return trim(preg_replace('/\s+/', ' ', $bodyText) ?? '');
@@ -1164,7 +1167,8 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
     } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
-        $html = sr_markdown_text_html($bodyText);
+        $rendered = $pdo instanceof PDO ? sr_markdown_render($pdo, $bodyText, 'full') : null;
+        $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
@@ -1187,13 +1191,20 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
     } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
-        $html = sr_markdown_text_html($bodyText);
+        $rendered = sr_markdown_render($pdo, $bodyText, 'full');
+        $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
     }
 
-    return sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
+    $markdownStylesheets = (string) ($post['body_format'] ?? 'plain') === 'markdown'
+        ? sr_markdown_stylesheets($pdo, $bodyText, 'full')
+        : [];
+    return array_values(array_unique(array_merge(
+        $markdownStylesheets,
+        sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public'])
+    )));
 }
 
 function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool

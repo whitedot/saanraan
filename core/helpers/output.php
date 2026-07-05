@@ -798,7 +798,7 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
     return $attributes;
 }
 
-function sr_body_text_html(array $record, bool $linkPlainUrls = false): string
+function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo = null, string $markdownMode = 'full'): string
 {
     $bodyText = (string) ($record['body_text'] ?? '');
     $bodyFormat = sr_body_format((string) ($record['body_format'] ?? 'plain'));
@@ -806,7 +806,14 @@ function sr_body_text_html(array $record, bool $linkPlainUrls = false): string
         return sr_sanitize_rich_text_html($bodyText);
     }
     if ($bodyFormat === 'markdown') {
-        return sr_markdown_text_html($bodyText);
+        if ($pdo instanceof PDO) {
+            $result = sr_markdown_render($pdo, $bodyText, $markdownMode);
+            if ($result !== null) {
+                return (string) ($result['html'] ?? '');
+            }
+        }
+
+        return $markdownMode === 'plain' ? sr_e(sr_markdown_plain_text($bodyText)) : sr_markdown_text_html($bodyText);
     }
 
     return sr_plain_text_html($bodyText, $linkPlainUrls);
@@ -930,6 +937,115 @@ function sr_markdown_plain_text(string $markdown): string
     return trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(sr_markdown_text_html($markdown)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')) ?? '');
 }
 
+function sr_markdown_renderer_contracts(PDO $pdo): array
+{
+    static $cache = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    $contracts = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'markdown-renderer.php') as $moduleKey => $file) {
+        $contract = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        $helpers = (string) ($contract['helpers'] ?? '');
+        if ($helpers !== '') {
+            if (preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+                continue;
+            }
+
+            $helperPath = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+            if (!is_file($helperPath)) {
+                continue;
+            }
+
+            require_once $helperPath;
+        }
+
+        $renderFunction = (string) ($contract['render_function'] ?? '');
+        if ($renderFunction === '' || !function_exists($renderFunction)) {
+            continue;
+        }
+
+        $contracts[$moduleKey] = [
+            'module_key' => $moduleKey,
+            'render_function' => $renderFunction,
+            'stylesheet_function' => (string) ($contract['stylesheet_function'] ?? ''),
+            'profile_hash_function' => (string) ($contract['profile_hash_function'] ?? ''),
+        ];
+    }
+
+    $cache[$cacheKey] = $contracts;
+    return $contracts;
+}
+
+function sr_markdown_renderer_available(PDO $pdo): bool
+{
+    return sr_markdown_renderer_contracts($pdo) !== [];
+}
+
+function sr_markdown_render(PDO $pdo, string $markdown, string $mode = 'full', array $context = []): ?array
+{
+    $mode = in_array($mode, ['full', 'inline', 'plain'], true) ? $mode : 'full';
+    foreach (sr_markdown_renderer_contracts($pdo) as $contract) {
+        $renderFunction = (string) ($contract['render_function'] ?? '');
+        if ($renderFunction === '' || !function_exists($renderFunction)) {
+            continue;
+        }
+
+        try {
+            $result = $renderFunction($pdo, $markdown, $mode, $context);
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'markdown_renderer_failed_' . (string) ($contract['module_key'] ?? 'unknown'));
+            }
+            continue;
+        }
+
+        if (is_array($result)) {
+            return $result;
+        }
+    }
+
+    return null;
+}
+
+function sr_markdown_plain_text_for_body(PDO $pdo, string $markdown): string
+{
+    $result = sr_markdown_render($pdo, $markdown, 'plain');
+    if (is_array($result)) {
+        return trim((string) ($result['plain_text'] ?? strip_tags((string) ($result['html'] ?? ''))));
+    }
+
+    return sr_markdown_plain_text($markdown);
+}
+
+function sr_markdown_stylesheets(PDO $pdo, string $markdown = '', string $mode = 'full', array $context = []): array
+{
+    $result = sr_markdown_render($pdo, $markdown, $mode, $context);
+    if (!is_array($result)) {
+        return [];
+    }
+
+    $stylesheets = $result['stylesheets'] ?? [];
+    if (!is_array($stylesheets)) {
+        return [];
+    }
+
+    $clean = [];
+    foreach ($stylesheets as $stylesheet) {
+        if (is_string($stylesheet) && $stylesheet !== '') {
+            $clean[] = $stylesheet;
+        }
+    }
+
+    return array_values(array_unique($clean));
+}
+
 function sr_editor_normalize_key(string $editorKey, bool $allowInherit = false): string
 {
     $editorKey = strtolower(trim($editorKey));
@@ -985,6 +1101,7 @@ function sr_editor_contracts(?PDO $pdo = null): array
             'module_key' => $moduleKey,
             'label' => (string) ($contract['label'] ?? $editorKey),
             'assets_function' => (string) ($contract['assets_function'] ?? ''),
+            'format_value' => sr_body_format((string) ($contract['format_value'] ?? 'plain')),
         ];
     }
 
@@ -994,7 +1111,7 @@ function sr_editor_contracts(?PDO $pdo = null): array
 function sr_editor_available(PDO $pdo, string $editorKey): bool
 {
     $editorKey = sr_editor_normalize_key($editorKey);
-    if ($editorKey === 'textarea' || $editorKey === 'html' || $editorKey === 'markdown') {
+    if ($editorKey === 'textarea' || $editorKey === 'html') {
         return true;
     }
 
@@ -1012,7 +1129,6 @@ function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
     $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
     $options['textarea'] = '기본 textarea';
     $options['html'] = 'HTML';
-    $options['markdown'] = 'Markdown';
     foreach (sr_editor_contracts($pdo) as $editorKey => $contract) {
         $options[(string) $editorKey] = (string) ($contract['label'] ?? $editorKey);
     }
@@ -1026,20 +1142,19 @@ function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $pres
     if ($editorKey === 'textarea') {
         return '';
     }
-    if ($editorKey === 'markdown') {
-        return ' data-sr-editor="markdown" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="markdown"';
-    }
     if ($editorKey === 'html') {
         return ' data-sr-editor="html" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="html"';
     }
 
-    return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '"';
+    $contract = sr_editor_contracts($pdo)[$editorKey] ?? [];
+    $formatValue = sr_body_format((string) ($contract['format_value'] ?? 'plain'));
+    return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="' . sr_e($formatValue) . '"';
 }
 
 function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 'default'): string
 {
     $editorKey = sr_editor_effective_key($pdo, $editorKey);
-    if ($editorKey === 'textarea' || $editorKey === 'markdown') {
+    if ($editorKey === 'textarea') {
         return '';
     }
 

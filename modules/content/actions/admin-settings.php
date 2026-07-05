@@ -53,7 +53,7 @@ if (sr_request_method() === 'POST') {
     $postedReactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
     $postedThemeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
     $postedSettings = [
-        'editor' => sr_editor_normalize_key($postedEditorInput),
+        'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
         'editor_toolbar_preset' => $postedToolbarPreset,
         'embed_enabled' => sr_post_string('embed_enabled', 1) === '1',
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
@@ -95,6 +95,9 @@ if (sr_request_method() === 'POST') {
     if (!isset($publicThemeOptions[(string) $postedSettings['theme_key']])) {
         $errors[] = '기본 콘텐츠 테마 값이 올바르지 않습니다.';
         $postedSettings['theme_key'] = sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic'));
+    }
+    if ($postedEditorInput !== '' && sr_editor_normalize_key($postedEditorInput) !== (string) $postedSettings['editor']) {
+        $errors[] = '콘텐츠 본문 에디터 값이 올바르지 않습니다.';
     }
     if (!$contentReactionAvailable) {
         if ($postedReactionEnabled || $postedReactionPresetInput !== '' || $postedReactionCommentPresetInput !== '') {

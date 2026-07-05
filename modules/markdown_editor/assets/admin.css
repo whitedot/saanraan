@@ -1,0 +1,25 @@
+.markdown-editor-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.markdown-editor-preview-card {
+    border: 1px solid var(--sr-border, var(--color-default-200));
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--sr-surface, #fff);
+}
+
+.markdown-editor-control-pair {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) 92px;
+    gap: 10px;
+    align-items: center;
+}
+
+.markdown-editor-token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}

@@ -127,7 +127,7 @@ if ($isPostRequest) {
     if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
         $seriesValues['series_mode'] = 'none';
     }
-    $errors = array_merge($errors, sr_community_validate_post_input($values));
+    $errors = array_merge($errors, sr_community_validate_post_input($values, $pdo));
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values, $settings));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
     if ($isGuestAuthor) {

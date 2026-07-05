@@ -569,6 +569,11 @@ function sr_community_feed_cache_card_snapshot(array $post): array
 {
     $postId = (int) ($post['post_id'] ?? $post['id'] ?? 0);
     $boardId = (int) ($post['board_id'] ?? 0);
+    $bodyProfileHash = '';
+    if (($GLOBALS['pdo'] ?? null) instanceof PDO && (string) ($post['body_format'] ?? 'plain') === 'markdown') {
+        $markdownResult = sr_markdown_render($GLOBALS['pdo'], (string) ($post['body_text'] ?? ''), 'plain');
+        $bodyProfileHash = is_array($markdownResult) ? (string) ($markdownResult['profile_hash'] ?? '') : '';
+    }
 
     return [
         'snapshot_schema_version' => 'community_feed_card_snapshot_v1',
@@ -581,6 +586,7 @@ function sr_community_feed_cache_card_snapshot(array $post): array
         'thumbnail_source' => sr_community_feed_cache_thumbnail_source_marker($post),
         'is_secret' => !empty($post['is_secret']) ? 1 : 0,
         'excerpt' => !empty($post['is_secret']) ? '' : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160),
+        'body_profile_hash' => $bodyProfileHash,
         'created_at' => sr_clean_single_line((string) ($post['created_at'] ?? ''), 40),
         'updated_at' => sr_clean_single_line((string) ($post['updated_at'] ?? ''), 40),
         'source_updated_at' => sr_clean_single_line((string) ($post['source_updated_at'] ?? $post['updated_at'] ?? ''), 40),

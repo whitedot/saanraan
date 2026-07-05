@@ -95,7 +95,7 @@ if (sr_request_method() === 'POST') {
         $accountGuardConfirmedHoldWindowDays = sr_admin_post_int_in_range('account_guard_confirmed_hold_window_days', 1, 365);
         $accountGuardConfirmedHoldDurationMinutes = sr_admin_post_int_in_range('account_guard_confirmed_hold_duration_minutes', 10, 10080);
         $postEditorInput = sr_post_string('post_editor', 30);
-        $postEditor = sr_community_post_editor_key($postEditorInput);
+        $postEditor = sr_editor_effective_key($pdo, sr_community_post_editor_key($postEditorInput));
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
         $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
