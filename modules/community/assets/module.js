@@ -22,7 +22,8 @@
 
   function initImageLayer() {
     var triggers = Array.prototype.slice.call(document.querySelectorAll('[data-community-image-layer-trigger]'));
-    if (triggers.length < 1) {
+    var bodyImages = Array.prototype.slice.call(document.querySelectorAll('[data-community-image-layer-body][data-sr-original-src]'));
+    if (triggers.length < 1 && bodyImages.length < 1) {
       return;
     }
 
@@ -78,18 +79,18 @@
       return Math.min(1, widthRatio, heightRatio);
     }
 
-    function openLayer(trigger) {
-      var url = trigger.getAttribute('href') || '';
+    function openLayer(source, url) {
       if (url === '') {
         return;
       }
 
-      activeTrigger = trigger;
+      activeTrigger = source;
       naturalWidth = 0;
       naturalHeight = 0;
       scale = 1;
       image.removeAttribute('style');
-      image.alt = trigger.querySelector('img') ? (trigger.querySelector('img').getAttribute('alt') || '') : '';
+      var sourceImage = source.querySelector ? source.querySelector('img') : null;
+      image.alt = sourceImage ? (sourceImage.getAttribute('alt') || '') : (source.getAttribute('alt') || '');
       image.src = url;
       layer.hidden = false;
       document.documentElement.classList.add('community-image-layer-open');
@@ -120,7 +121,24 @@
           return;
         }
         event.preventDefault();
-        openLayer(trigger);
+        openLayer(trigger, trigger.getAttribute('href') || '');
+      });
+    });
+
+    bodyImages.forEach(function (bodyImage) {
+      bodyImage.addEventListener('click', function (event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+          return;
+        }
+        event.preventDefault();
+        openLayer(bodyImage, bodyImage.getAttribute('data-sr-original-src') || '');
+      });
+      bodyImage.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return;
+        }
+        event.preventDefault();
+        openLayer(bodyImage, bodyImage.getAttribute('data-sr-original-src') || '');
       });
     });
 

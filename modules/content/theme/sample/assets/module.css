@@ -237,6 +237,15 @@
     overflow-wrap: anywhere;
 }
 
+.content-body img[data-content-image-layer-body] {
+    cursor: zoom-in;
+}
+
+.content-body img[data-content-image-layer-body]:focus-visible {
+    outline: 3px solid var(--color-primary-ring, rgba(59, 130, 246, .18));
+    outline-offset: 3px;
+}
+
 .content-image-layer-open {
     overflow: hidden;
 }

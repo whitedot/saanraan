@@ -703,7 +703,7 @@ modules/board/
 
 공개 목록, 카드, 커버 이미지처럼 여러 크기의 공개 이미지가 필요한 모듈은 직접 경로와 파일명을 조립하지 말고 `sr_thumbnail_public_url()`을 사용한다. 이 helper는 로컬 원본과 S3 원본을 같은 입력 구조로 받고, 실제 이미지 MIME과 크기를 다시 확인한 뒤 `storage/cache/thumbnails/{module_key}/{hash-prefix}/` 아래에 파생 파일을 만든다. 모듈이 checksum/source version과 MIME을 넘기면 기존 캐시 파일을 원본 열기보다 먼저 확인하므로, 목록/홈처럼 반복 노출되는 화면에서는 가능한 한 이 metadata를 함께 제공한다.
 
-본문 에디터 이미지처럼 원본 접근에 권한 검사가 필요한 이미지는 공개 캐시 URL을 만들지 않는다. 같은 PHP endpoint에서 원본과 동일한 권한 검사를 먼저 통과한 뒤 `sr_thumbnail_protected_file()`로 `storage/cache/private-thumbnails/{module_key}/{hash-prefix}/` 아래 private cache 파일을 만들고 스트리밍한다. 이 경로는 정적 파일 공개 예외에 포함하지 않는다.
+본문 에디터 이미지처럼 원본 접근에 권한 검사가 필요한 이미지는 공개 캐시 URL을 만들지 않는다. 같은 PHP endpoint에서 원본과 동일한 권한 검사를 먼저 통과한 뒤 `sr_thumbnail_protected_file()`로 `storage/cache/private-thumbnails/{module_key}/{hash-prefix}/` 아래 private cache 파일을 만들고 스트리밍한다. 확대 보기 같은 클라이언트 UI는 같은 권한 프록시의 원본 URL을 보존해 사용하며, 링크 안의 본문 이미지는 기존 링크 의미를 우선한다. 이 경로는 정적 파일 공개 예외에 포함하지 않는다.
 
 모듈이 넘기는 source 배열에는 가능한 한 다음 값을 포함한다.
 

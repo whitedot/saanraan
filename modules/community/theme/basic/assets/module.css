@@ -1039,6 +1039,15 @@ a.community-post-title:focus,
     overflow-wrap: anywhere;
 }
 
+.community-post-body img[data-community-image-layer-body] {
+    cursor: zoom-in;
+}
+
+.community-post-body img[data-community-image-layer-body]:focus-visible {
+    outline: 3px solid var(--color-primary-ring, rgba(59, 130, 246, .18));
+    outline-offset: 3px;
+}
+
 .community-image-layer-open {
     overflow: hidden;
 }

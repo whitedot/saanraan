@@ -134,7 +134,23 @@ function sr_content_body_file_thumbnail_html(string $html): string
             continue;
         }
 
+        $hasLinkAncestor = false;
+        for ($parent = $image->parentNode; $parent instanceof DOMElement; $parent = $parent->parentNode) {
+            if (strtolower($parent->tagName) === 'a') {
+                $hasLinkAncestor = true;
+                break;
+            }
+        }
+
         $image->setAttribute('data-sr-original-src', $originalSrc);
+        if (!$hasLinkAncestor) {
+            $image->setAttribute('data-content-image-layer-body', '1');
+            $image->setAttribute('role', 'button');
+            $image->setAttribute('aria-label', '이미지 확대 보기');
+            if (!$image->hasAttribute('tabindex')) {
+                $image->setAttribute('tabindex', '0');
+            }
+        }
         $image->setAttribute('src', $thumbnailUrl);
         if (!$image->hasAttribute('loading')) {
             $image->setAttribute('loading', 'lazy');
