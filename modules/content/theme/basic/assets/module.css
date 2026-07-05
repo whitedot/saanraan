@@ -250,12 +250,22 @@
     white-space: pre-wrap;
 }
 
-.content-body :is(h2, h3) {
+.content-body :is(h1, h2, h3, h4, h5, h6) {
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-secondary);
     letter-spacing: 0;
     line-height: var(--type-section-title-line-height);
     margin: 2em 0 .65em;
+    overflow-wrap: anywhere;
+}
+
+.content-body :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
+}
+
+.content-body h1 {
+    font-size: var(--type-page-title-size);
+    font-weight: var(--font-weight-bold);
 }
 
 .content-body h2 {
@@ -265,6 +275,11 @@
 
 .content-body h3 {
     font-size: var(--type-card-title-size);
+    font-weight: var(--font-weight-semibold);
+}
+
+.content-body :is(h4, h5, h6) {
+    font-size: var(--type-body-size);
     font-weight: var(--font-weight-semibold);
 }
 
@@ -1499,7 +1514,7 @@
 
 .content-header h1,
 .content-body,
-.content-body :is(h2, h3),
+.content-body :is(h1, h2, h3, h4, h5, h6),
 .content-series-nav,
 .content-downloads,
 .content-comments,

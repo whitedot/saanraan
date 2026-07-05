@@ -496,6 +496,7 @@ function sr_rich_text_allowed_html_tags(): array
         'ol' => [],
         'li' => [],
         'a' => ['href'],
+        'h1' => [],
         'h2' => [],
         'h3' => [],
         'img' => ['src', 'alt', 'width', 'height'],
@@ -588,7 +589,7 @@ function sr_rich_text_purifier_config(): HTMLPurifier_Config
     $config = HTMLPurifier_Config::createDefault();
     $config->set('Core.Encoding', 'UTF-8');
     $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
-    $config->set('HTML.Allowed', 'p,br,strong,em,u,s,blockquote,ul,ol,li,a[href|rel],h2,h3,img[src|alt|width|height]');
+    $config->set('HTML.Allowed', 'p,br,strong,em,u,s,blockquote,ul,ol,li,a[href|rel],h1,h2,h3,img[src|alt|width|height]');
     $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
     $config->set('HTML.Nofollow', true);
     $config->set('HTML.TargetBlank', false);

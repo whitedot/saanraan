@@ -1179,6 +1179,39 @@ a.community-post-title:focus,
     white-space: pre-wrap;
 }
 
+.community-post-body :is(h1, h2, h3, h4, h5, h6) {
+    color: var(--sr-text, var(--text-strong, #242424));
+    font-family: var(--font-secondary);
+    letter-spacing: 0;
+    line-height: var(--type-section-title-line-height);
+    margin: 1.8em 0 .65em;
+    overflow-wrap: anywhere;
+}
+
+.community-post-body :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
+}
+
+.community-post-body h1 {
+    font-size: var(--type-page-title-size);
+    font-weight: var(--font-weight-bold);
+}
+
+.community-post-body h2 {
+    font-size: var(--type-section-title-size);
+    font-weight: var(--font-weight-semibold);
+}
+
+.community-post-body h3 {
+    font-size: var(--type-card-title-size);
+    font-weight: var(--font-weight-semibold);
+}
+
+.community-post-body :is(h4, h5, h6) {
+    font-size: var(--type-body-size);
+    font-weight: var(--font-weight-semibold);
+}
+
 .community-post-body img {
     display: block;
     height: auto;
@@ -1425,6 +1458,7 @@ a.community-post-title:focus,
 .community-screen h1,
 .community-comments-panel-header h2,
 .community-post-body,
+.community-post-body :is(h1, h2, h3, h4, h5, h6),
 .community-screen legend,
 .community-screen th {
     color: var(--community-text);

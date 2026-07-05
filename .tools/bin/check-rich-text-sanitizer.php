@@ -117,7 +117,8 @@ function sr_sanitizer_check_case(callable $sanitize, string $label): void
 
 function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): void
 {
-    $ckeditorHtml = '<h2 class="ck-heading_heading2">제목</h2>'
+    $ckeditorHtml = '<h1 class="ck-heading_heading1">큰 제목</h1>'
+        . '<h2 class="ck-heading_heading2">제목</h2>'
         . '<p class="ck-paragraph"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s></p>'
         . '<blockquote class="ck-blockquote"><p>인용</p></blockquote>'
         . '<ul class="ck-list"><li data-list-item-id="a">하나</li><li>둘</li></ul>'
@@ -126,7 +127,8 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
         . '<p><img class="image" src="https://example.com/body.png" alt="이미지" width="640" height="480" style="width:100%"></p>';
 
     $output = $sanitize($ckeditorHtml);
-    $expected = '<h2>제목</h2>'
+    $expected = '<h1>큰 제목</h1>'
+        . '<h2>제목</h2>'
         . '<p><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s></p>'
         . '<blockquote><p>인용</p></blockquote>'
         . '<ul><li>하나</li><li>둘</li></ul>'
@@ -136,6 +138,7 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
 
     sr_sanitizer_check_assert($output === $expected, $label . ' CKEditor fixture output mismatch: ' . $output);
     sr_sanitizer_check_not_contains($output, [
+        'ck-heading_heading1',
         'ck-heading_heading2',
         'ck-paragraph',
         'ck-blockquote',

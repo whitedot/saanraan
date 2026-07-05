@@ -88,7 +88,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 </section>
             <?php } else { ?>
                 <?php echo sr_public_feedback_toasts('content', (string) ($pageActionNotice ?? ''), is_array($pageActionErrors ?? null) ? $pageActionErrors : []); ?>
-                <div class="example-content-body">
+                <div class="example-content-body content-body">
                     <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
                 </div>
 

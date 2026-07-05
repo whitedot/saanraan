@@ -84,7 +84,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } elseif (!empty($paidReadBlocked)) { ?>
                 <section class="example-community-panel"><p><?php echo sr_e((string) ($paidReadBlockedMessage ?? sr_t('community::action.error.paid_read_post_failed'))); ?></p></section>
             <?php } else { ?>
-                <div class="example-community-body">
+                <div class="example-community-body community-post-body">
                     <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
                     <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
                 </div>

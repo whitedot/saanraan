@@ -371,12 +371,23 @@ foreach ([
     'modules/community/theme/sample/assets/module.css' => '.community-post-body',
 ] as $bodyStylesheet => $bodySelector) {
     sr_ckeditor_assets_require_markers($bodyStylesheet, [
+        $bodySelector . ' :is(h1, h2, h3, h4, h5, h6)',
+        $bodySelector . ' h1',
+        'font-size: var(--type-page-title-size)',
         $bodySelector . ' :where(ul)',
         'list-style: disc outside',
         $bodySelector . ' :where(table)',
         'display: table',
     ]);
 }
+
+sr_ckeditor_assets_require_markers('modules/content/theme/sample/content.php', [
+    'class="example-content-body content-body"',
+]);
+
+sr_ckeditor_assets_require_markers('modules/community/theme/sample/post.php', [
+    'class="example-community-body community-post-body"',
+]);
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/module.php', [
     "'asset_mode' => 'self_hosted'",
