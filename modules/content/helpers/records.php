@@ -11,8 +11,8 @@ function sr_content_input_values(?PDO $pdo = null): array
     $pageGroupId = preg_match('/\A[1-9][0-9]*\z/', $pageGroupIdValue) === 1 ? (int) $pageGroupIdValue : 0;
     $pageGroupIdInvalid = $pageGroupIdValue !== '' && $pageGroupIdValue !== '0' && $pageGroupId === 0;
     $rawEditorKey = sr_post_string('editor_key', 40);
-    $editorKey = sr_content_item_editor_key($rawEditorKey, true);
-    $effectiveEditorKey = $pdo instanceof PDO ? sr_content_effective_editor_key($pdo, ['editor_key' => $editorKey]) : 'textarea';
+    $editorKey = sr_content_item_editor_key($rawEditorKey);
+    $effectiveEditorKey = $pdo instanceof PDO ? sr_editor_effective_key($pdo, $editorKey) : 'textarea';
     $bodyFormat = $pdo instanceof PDO ? sr_content_body_format_for_editor($pdo, $effectiveEditorKey, sr_post_string('body_format', 20)) : 'plain';
     $bodyText = sr_post_string_without_truncation('body_text', 100000);
     if (!is_string($bodyText)) {
@@ -189,10 +189,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = 'Markdown 본문을 저장하려면 Markdown Editor 플러그인을 활성화하세요.';
     }
     $rawEditorKey = strtolower(trim((string) ($values['raw_editor_key'] ?? $values['editor_key'] ?? '')));
-    $editorKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? ''), true);
+    $editorKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? ''));
     if ($rawEditorKey !== '' && $rawEditorKey !== $editorKey) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
-    } elseif (!isset(sr_editor_options($pdo, true)[$editorKey])) {
+    } elseif (!isset(sr_editor_options($pdo)[$editorKey])) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
     }
 
@@ -351,7 +351,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
-                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
+                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -398,7 +398,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
-                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
+                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -497,7 +497,7 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
         'body_text' => (string) $values['body_text'],
         'body_format' => (string) ($values['body_format'] ?? 'plain'),
-        'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
+        'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
         'status' => (string) $values['status'],
         'layout_key' => (string) ($values['layout_key'] ?? ''),
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -635,7 +635,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'cover_image_url' => (string) ($copy['cover_image_url'] ?? ''),
             'body_text' => (string) ($copy['body_text'] ?? ''),
             'body_format' => (string) ($copy['body_format'] ?? 'plain'),
-            'editor_key' => sr_content_item_editor_key((string) ($copy['editor_key'] ?? 'inherit'), true),
+            'editor_key' => sr_content_item_editor_key((string) ($copy['editor_key'] ?? 'textarea')),
             'status' => 'draft',
             'layout_key' => (string) ($copy['layout_key'] ?? ''),
             'asset_access_enabled' => (int) ($copy['asset_access_enabled'] ?? 0),
@@ -1013,7 +1013,7 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                  cover_image_url = '',
                  body_text = :body_text,
                  body_format = 'plain',
-                 editor_key = 'inherit',
+                 editor_key = 'textarea',
                  status = 'deleted'
              WHERE content_id = :content_id"
         );
@@ -1066,7 +1066,7 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                  cover_image_url = '',
                  body_text = :body_text,
                  body_format = 'plain',
-                 editor_key = 'inherit',
+                 editor_key = 'textarea',
                  status = 'deleted',
                  asset_access_enabled = 0,
                  asset_module = '',

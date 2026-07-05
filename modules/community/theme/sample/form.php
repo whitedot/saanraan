@@ -21,7 +21,8 @@ $communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
 $communityEditorAttributes = !$isGuestAuthorForm && $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $communityEditorKey, $communityEditorToolbarPreset) : '';
 if ($ckeditorEnabled) {
-    $communityEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"';
+    $communityThemeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? 'basic'));
+    $communityEditorAttributes .= ' data-sr-editor-body-theme="community.' . sr_e($communityThemeKey) . '" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"';
 }
 $communityPrivacyConsentDisplayTargets = ['post'];
 if (($ckeditorEnabled || (!isset($postIdField) && ($imageUploadEnabled || $fileUploadEnabled))) && sr_community_privacy_consent_required_for($pdo, $board, 'attachment_upload')) {

@@ -8,7 +8,7 @@ SET @sr_content_items_editor_key_exists = (
 
 SET @sr_content_items_editor_key_sql = IF(
     @sr_content_items_editor_key_exists = 0,
-    'ALTER TABLE {{SR_TABLE_PREFIX}}content_items ADD COLUMN editor_key VARCHAR(40) NOT NULL DEFAULT ''inherit'' AFTER body_format',
+    'ALTER TABLE {{SR_TABLE_PREFIX}}content_items ADD COLUMN editor_key VARCHAR(40) NOT NULL DEFAULT ''textarea'' AFTER body_format',
     'DO 0'
 );
 PREPARE sr_content_items_editor_key_stmt FROM @sr_content_items_editor_key_sql;
@@ -25,7 +25,7 @@ SET @sr_content_revisions_editor_key_exists = (
 
 SET @sr_content_revisions_editor_key_sql = IF(
     @sr_content_revisions_editor_key_exists = 0,
-    'ALTER TABLE {{SR_TABLE_PREFIX}}content_revisions ADD COLUMN editor_key VARCHAR(40) NOT NULL DEFAULT ''inherit'' AFTER body_format',
+    'ALTER TABLE {{SR_TABLE_PREFIX}}content_revisions ADD COLUMN editor_key VARCHAR(40) NOT NULL DEFAULT ''textarea'' AFTER body_format',
     'DO 0'
 );
 PREPARE sr_content_revisions_editor_key_stmt FROM @sr_content_revisions_editor_key_sql;

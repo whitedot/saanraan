@@ -641,24 +641,19 @@ function sr_content_editor_key(PDO $pdo): string
     return sr_editor_effective_key($pdo, (string) $settings['editor']);
 }
 
-function sr_content_item_editor_key(string $editorKey, bool $allowInherit = false): string
+function sr_content_item_editor_key(string $editorKey): string
 {
     $editorKey = strtolower(trim($editorKey));
-    if ($allowInherit && ($editorKey === '' || $editorKey === 'inherit')) {
-        return 'inherit';
+    if ($editorKey === '' || $editorKey === 'inherit') {
+        return 'textarea';
     }
 
-    return sr_editor_normalize_key($editorKey, $allowInherit);
+    return sr_editor_normalize_key($editorKey);
 }
 
 function sr_content_effective_editor_key(PDO $pdo, array $content): string
 {
-    $editorKey = sr_content_item_editor_key((string) ($content['editor_key'] ?? 'inherit'), true);
-    if ($editorKey === 'inherit') {
-        return sr_content_editor_key($pdo);
-    }
-
-    return sr_editor_effective_key($pdo, $editorKey);
+    return sr_editor_effective_key($pdo, sr_content_item_editor_key((string) ($content['editor_key'] ?? 'textarea')));
 }
 
 function sr_content_editor_toolbar_preset(PDO $pdo): string
@@ -682,10 +677,7 @@ function sr_content_body_format_for_editor(PDO $pdo, string $editorKey, string $
 {
     $editorKey = sr_editor_effective_key($pdo, $editorKey);
     $postedBodyFormat = sr_body_format($postedBodyFormat);
-    if ($editorKey === 'html') {
-        return 'html';
-    }
-    if ($editorKey === 'ckeditor' && $postedBodyFormat === 'html') {
+    if ($editorKey === 'html' || $editorKey === 'ckeditor') {
         return 'html';
     }
     if (($editorKey === 'markdown' || $postedBodyFormat === 'markdown') && sr_markdown_renderer_available($pdo)) {
@@ -695,10 +687,28 @@ function sr_content_body_format_for_editor(PDO $pdo, string $editorKey, string $
     return 'plain';
 }
 
+function sr_content_effective_body_format(PDO $pdo, array $page): string
+{
+    $bodyFormat = sr_body_format((string) ($page['body_format'] ?? 'plain'));
+    if ($bodyFormat !== 'plain') {
+        return $bodyFormat;
+    }
+
+    $editorKey = sr_content_effective_editor_key($pdo, $page);
+    if ($editorKey === 'html' || $editorKey === 'ckeditor') {
+        return 'html';
+    }
+
+    return 'plain';
+}
+
 function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
 {
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
 
+    if ($pdo instanceof PDO) {
+        $page['body_format'] = sr_content_effective_body_format($pdo, $page);
+    }
     $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
     if ($pdo instanceof PDO && sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
         $html = sr_url_embed_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
@@ -714,12 +724,14 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     }
 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
+    $effectiveBodyFormat = sr_content_effective_body_format($pdo, $page);
+    $page['body_format'] = $effectiveBodyFormat;
     $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
     $editorStylesheets = sr_body_editor_stylesheets(
-        (string) ($page['body_format'] ?? 'plain'),
+        $effectiveBodyFormat,
         sr_content_effective_editor_key($pdo, $page)
     );
-    $markdownStylesheets = (string) ($page['body_format'] ?? 'plain') === 'markdown'
+    $markdownStylesheets = $effectiveBodyFormat === 'markdown'
         ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
         : [];
     $embedStylesheets = sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)
@@ -745,7 +757,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'summary' => '',
         'cover_image_url' => '',
         'body_text' => '',
-        'editor_key' => 'inherit',
+        'editor_key' => 'textarea',
         'status' => (string) ($defaults['status'] ?? 'draft'),
         'layout_key' => (string) ($defaults['layout_key'] ?? ($pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : '')),
         'asset_access_enabled' => (int) ($defaults['asset_access_enabled'] ?? 0),

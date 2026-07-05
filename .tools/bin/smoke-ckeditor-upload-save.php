@@ -405,19 +405,6 @@ function sr_ckeditor_smoke_content_id(PDO $pdo, string $slug): int
     return is_array($page) ? (int) ($page['id'] ?? 0) : 0;
 }
 
-function sr_ckeditor_smoke_prepare_content_editor(?array $runtimeContext): void
-{
-    if (!is_array($runtimeContext) || !isset($runtimeContext['pdo']) || !$runtimeContext['pdo'] instanceof PDO || !function_exists('sr_content_save_settings')) {
-        return;
-    }
-
-    $pdo = $runtimeContext['pdo'];
-    $settings = function_exists('sr_content_settings') ? sr_content_settings($pdo) : [];
-    $settings['editor'] = 'ckeditor';
-    $settings['editor_toolbar_preset'] = (string) ($settings['editor_toolbar_preset'] ?? 'content_basic');
-    sr_content_save_settings($pdo, $settings);
-}
-
 $baseUrl = rtrim(sr_ckeditor_smoke_env('SR_SMOKE_BASE_URL'), '/');
 $adminIdentifier = sr_ckeditor_smoke_env('SR_SMOKE_ADMIN_IDENTIFIER');
 $adminPassword = sr_ckeditor_smoke_env('SR_SMOKE_ADMIN_PASSWORD');
@@ -440,9 +427,8 @@ if (sr_ckeditor_smoke_requires_public_mutation_override($baseUrl) && getenv('SR_
 $cookies = [];
 sr_ckeditor_smoke_admin_login($baseUrl, $adminIdentifier, $adminPassword, $cookies);
 $runtimeContext = sr_ckeditor_smoke_runtime_context($adminIdentifier);
-sr_ckeditor_smoke_prepare_content_editor($runtimeContext);
 
-$form = sr_ckeditor_smoke_request($baseUrl, 'GET', '/admin/content/new', [], $cookies);
+$form = sr_ckeditor_smoke_request($baseUrl, 'GET', '/admin/content/new?editor_key=ckeditor', [], $cookies);
 if ((int) $form['status'] !== 200) {
     sr_ckeditor_smoke_fail('Content creation form returned HTTP ' . (string) $form['status'] . '.', 2);
 }

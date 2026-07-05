@@ -231,6 +231,10 @@ if ($pageAdminPage === 'form') {
 
         $values = sr_content_default_values($pdo, $site ?? null);
         $values['content_group_id'] = $newContentGroupId;
+        $newContentEditorKey = sr_content_item_editor_key(sr_get_string('editor_key', 40));
+        if (isset(sr_editor_options($pdo)[$newContentEditorKey])) {
+            $values['editor_key'] = $newContentEditorKey;
+        }
     }
 } else {
     $filters = sr_content_admin_filters();

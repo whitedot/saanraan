@@ -57,16 +57,56 @@ $newContentFileAssetSettings = [
 ];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
-$contentEditorOptions = $pdo instanceof PDO ? sr_editor_options($pdo, true) : ['inherit' => '상위 설정 사용', 'textarea' => '기본 textarea', 'html' => 'HTML'];
-$contentEditorStoredKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true);
+$contentEditorFallbackKey = 'textarea';
+$contentEditorOptions = $pdo instanceof PDO ? sr_editor_options($pdo) : ['textarea' => '기본 textarea', 'html' => 'HTML'];
+$contentEditorStoredKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? $contentEditorFallbackKey));
 if (!isset($contentEditorOptions[$contentEditorStoredKey])) {
-    $contentEditorStoredKey = 'inherit';
+    $contentEditorStoredKey = $contentEditorFallbackKey;
 }
-$contentEditorKey = $pdo instanceof PDO ? sr_content_effective_editor_key($pdo, ['editor_key' => $contentEditorStoredKey]) : 'textarea';
+$contentEditorKey = $pdo instanceof PDO ? sr_editor_effective_key($pdo, $contentEditorStoredKey) : 'textarea';
 $contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'content_basic';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, $contentEditorToolbarPreset) : '';
+$contentThemeKey = $pdo instanceof PDO ? sr_content_theme_key((string) (sr_content_settings($pdo)['theme_key'] ?? 'basic')) : 'basic';
 if ($contentEditorAttributes !== '' && $contentEditorKey === 'ckeditor') {
-    $contentEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_content_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_content_body_file_upload_token()) . '"';
+    $contentEditorAttributes .= ' data-sr-editor-body-theme="content.' . sr_e($contentThemeKey) . '" data-sr-editor-upload-url="' . sr_e(sr_content_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_content_body_file_upload_token()) . '"';
+}
+$contentEditorHelpText = '기본 textarea가 기본 선택됩니다. 저장 후 이 콘텐츠를 다시 열면 선택한 에디터로 본문을 편집합니다.';
+$contentEditorModeHelpTexts = [
+    'textarea' => sr_t('content::ui.content.plain.save.723dab58'),
+    'html' => 'HTML 본문은 허용된 태그와 속성만 정화해 저장합니다.',
+    'ckeditor' => 'HTML 본문은 허용된 태그와 속성만 정화해 저장합니다.',
+    'markdown' => 'Markdown 본문은 공개 출력 시 제한된 문법으로 HTML 변환됩니다.',
+];
+$contentEditorClientConfigs = [];
+$contentEditorAssetHtml = '';
+$contentEditorAssetKeys = [];
+if ($pdo instanceof PDO) {
+    foreach ($contentEditorOptions as $optionEditorKey => $optionEditorLabel) {
+        $optionEditorKey = sr_content_item_editor_key((string) $optionEditorKey);
+        $effectiveOptionEditorKey = sr_editor_effective_key($pdo, $optionEditorKey);
+        $formatSeed = $effectiveOptionEditorKey === 'ckeditor' ? 'html' : '';
+        $formatValue = sr_content_body_format_for_editor($pdo, $effectiveOptionEditorKey, $formatSeed);
+        $config = [
+            'editor' => $effectiveOptionEditorKey,
+            'format' => $formatValue,
+            'preset' => $contentEditorToolbarPreset,
+            'help' => $contentEditorModeHelpTexts[$effectiveOptionEditorKey] ?? $contentEditorModeHelpTexts['textarea'],
+        ];
+
+        if ($effectiveOptionEditorKey === 'ckeditor') {
+            $config['bodyTheme'] = 'content.' . $contentThemeKey;
+            $config['uploadUrl'] = sr_content_body_file_upload_url();
+            $config['uploadField'] = 'upload';
+            $config['uploadCsrf'] = sr_csrf_token();
+            $config['uploadToken'] = sr_content_body_file_upload_token();
+        }
+
+        $contentEditorClientConfigs[$optionEditorKey] = $config;
+        if ($effectiveOptionEditorKey !== 'textarea' && !isset($contentEditorAssetKeys[$effectiveOptionEditorKey])) {
+            $contentEditorAssetKeys[$effectiveOptionEditorKey] = true;
+            $contentEditorAssetHtml .= sr_editor_assets_html($pdo, $effectiveOptionEditorKey, $contentEditorToolbarPreset);
+        }
+    }
 }
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
@@ -538,10 +578,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('content_admin_contents_editor_key', 'editor_key', $contentEditorOptions, $contentEditorStoredKey, true); ?>
-                    <p class="form-help"><?php echo sr_e('기본값 사용은 콘텐츠 환경설정의 본문 에디터를 따릅니다. 저장 후 이 콘텐츠를 다시 열면 선택한 에디터로 본문을 편집합니다.'); ?></p>
+                    <p class="form-help"><?php echo sr_e($contentEditorHelpText); ?></p>
+                    <input type="hidden" name="body_format" value="<?php echo sr_e(sr_content_body_format_for_editor($pdo, $contentEditorKey, $contentEditorKey === 'ckeditor' ? 'html' : '')); ?>" data-content-body-format-input>
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
-                    <small><?php echo sr_e(in_array($contentEditorKey, ['html', 'ckeditor'], true) ? 'HTML 본문은 허용된 태그와 속성만 정화해 저장합니다.' : ($contentEditorKey === 'markdown' ? 'Markdown 본문은 공개 출력 시 제한된 문법으로 HTML 변환됩니다.' : sr_t('content::ui.content.plain.save.723dab58'))); ?></small>
+                    <small data-content-editor-help><?php echo sr_e($contentEditorModeHelpTexts[$contentEditorKey] ?? $contentEditorModeHelpTexts['textarea']); ?></small>
                 </div>
             </div>
         </section>
@@ -865,7 +906,139 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
     <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
     <?php echo $editing ? $contentDeleteModalHtml($editPage) : ''; ?>
-    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, $contentEditorToolbarPreset) : ''; ?>
+    <script type="application/json" id="content-admin-editor-config"><?php echo sr_js_json_encode($contentEditorClientConfigs); ?></script>
+    <script>
+    (function () {
+        var configElement = document.getElementById('content-admin-editor-config');
+        var configs = {};
+        var form = document.querySelector('.admin-content-form form');
+        var textarea = document.getElementById('content_admin_contents_body_text');
+        var help = document.querySelector('[data-content-editor-help]');
+
+        if (configElement) {
+            try {
+                configs = JSON.parse(configElement.textContent || '{}');
+            } catch (error) {
+                configs = {};
+            }
+        }
+
+        function selectedEditorKey() {
+            var checked = form ? form.querySelector('input[name="editor_key"]:checked') : null;
+            return checked ? checked.value : 'textarea';
+        }
+
+        function bodyFormatInput() {
+            var input = form ? form.querySelector('input[name="body_format"]') : null;
+            if (!form) {
+                return null;
+            }
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'body_format';
+                form.appendChild(input);
+            }
+            input.setAttribute('data-content-body-format-input', '');
+            return input;
+        }
+
+        function clearEditorDataset() {
+            [
+                'srEditor',
+                'srEditorPreset',
+                'srEditorFormatName',
+                'srEditorFormatValue',
+                'srEditorBodyTheme',
+                'srEditorUploadUrl',
+                'srEditorUploadField',
+                'srEditorUploadCsrf',
+                'srEditorUploadToken'
+            ].forEach(function (key) {
+                delete textarea.dataset[key];
+            });
+            [
+                'data-sr-editor',
+                'data-sr-editor-preset',
+                'data-sr-editor-format-name',
+                'data-sr-editor-format-value',
+                'data-sr-editor-body-theme',
+                'data-sr-editor-upload-url',
+                'data-sr-editor-upload-field',
+                'data-sr-editor-upload-csrf',
+                'data-sr-editor-upload-token'
+            ].forEach(function (attribute) {
+                textarea.removeAttribute(attribute);
+            });
+            textarea.classList.remove('sr-markdown-editor-textarea');
+        }
+
+        function setBodyFormat(format) {
+            var input = bodyFormatInput();
+            if (input) {
+                input.value = format || 'plain';
+                input.setAttribute('data-sr-editor-format', 'content');
+            }
+        }
+
+        function applyEditorConfig() {
+            var key = selectedEditorKey();
+            var config = configs[key] || configs.textarea || { editor: 'textarea', format: 'plain' };
+
+            if (!form || !textarea) {
+                return;
+            }
+
+            setBodyFormat(config.format || 'plain');
+            if (help && config.help) {
+                help.textContent = config.help;
+            }
+
+            if (textarea._srCkeditorInstance && config.editor !== 'ckeditor' && window.srCkeditorDestroyTextarea) {
+                window.srCkeditorDestroyTextarea(textarea);
+            }
+
+            clearEditorDataset();
+            textarea.dataset.srEditorReady = '0';
+
+            if (config.editor && config.editor !== 'textarea') {
+                textarea.dataset.srEditor = config.editor;
+                textarea.dataset.srEditorPreset = config.preset || 'content_basic';
+                textarea.dataset.srEditorFormatName = 'body_format';
+                textarea.dataset.srEditorFormatValue = config.format || 'plain';
+            }
+
+            if (config.editor === 'ckeditor') {
+                textarea.dataset.srEditorBodyTheme = config.bodyTheme || '';
+                textarea.dataset.srEditorUploadUrl = config.uploadUrl || '';
+                textarea.dataset.srEditorUploadField = config.uploadField || 'upload';
+                textarea.dataset.srEditorUploadCsrf = config.uploadCsrf || '';
+                textarea.dataset.srEditorUploadToken = config.uploadToken || '';
+                if (window.srCkeditorEnhance) {
+                    window.srCkeditorEnhance();
+                }
+            } else if (config.editor === 'markdown' && window.srMarkdownEditorEnhance) {
+                window.srMarkdownEditorEnhance(form);
+            }
+        }
+
+        if (form && textarea) {
+            form.addEventListener('change', function (event) {
+                if (event.target && event.target.name === 'editor_key') {
+                    applyEditorConfig();
+                }
+            });
+            form.addEventListener('submit', applyEditorConfig, true);
+            document.addEventListener('sr:ckeditor-ready', function () {
+                if ((configs[selectedEditorKey()] || {}).editor === 'ckeditor') {
+                    window.srCkeditorEnhance();
+                }
+            });
+            applyEditorConfig();
+        }
+    }());
+    </script>
+    <?php echo $contentEditorAssetHtml; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-summary-stats">

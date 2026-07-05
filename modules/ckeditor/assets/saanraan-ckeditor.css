@@ -1,13 +1,151 @@
 .sr-ckeditor {
+  --sr-ckeditor-ui-surface: var(--sr-surface, var(--color-card, #fff));
+  --sr-ckeditor-ui-surface-muted: var(--sr-surface-muted, var(--color-default-100, #f6f7fb));
+  --sr-ckeditor-ui-surface-soft: var(--sr-surface-soft, var(--color-default-50, #fafbfd));
+  --sr-ckeditor-ui-text: var(--sr-text, var(--color-body-color, #20242a));
+  --sr-ckeditor-ui-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #47505c)));
+  --sr-ckeditor-ui-border: var(--sr-border, var(--color-default-300, #edf2f9));
+  --sr-ckeditor-ui-border-soft: var(--sr-border-soft, var(--color-default-200, #eef2f7));
+  --sr-ckeditor-body-surface: var(--sr-editor-body-surface, var(--sr-ckeditor-ui-surface));
+  --sr-ckeditor-body-text: var(--sr-editor-body-text, var(--sr-ckeditor-ui-text));
+  --sr-ckeditor-body-muted: var(--sr-editor-body-muted, var(--sr-ckeditor-ui-muted));
+  --sr-ckeditor-body-border: var(--sr-editor-body-border, var(--sr-ckeditor-ui-border));
+  --sr-ckeditor-hover: color-mix(in oklab, var(--sr-ckeditor-ui-text) 8%, var(--sr-ckeditor-ui-surface));
+  --sr-ckeditor-active: color-mix(in oklab, var(--color-primary, #0a74ff) 16%, var(--sr-ckeditor-ui-surface));
+  --ck-color-base-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-base-foreground: var(--sr-ckeditor-ui-surface-muted);
+  --ck-color-base-border: var(--sr-ckeditor-ui-border);
+  --ck-color-base-action: var(--color-primary, #0a74ff);
+  --ck-color-base-focus: var(--color-primary, #0a74ff);
+  --ck-color-base-text: var(--sr-ckeditor-ui-text);
+  --ck-color-focus-border: var(--color-primary, #0a74ff);
+  --ck-color-focus-outer-shadow: var(--color-primary-ring, #0a74ff33);
+  --ck-color-button-default-background: transparent;
+  --ck-color-button-default-hover-background: var(--sr-ckeditor-hover);
+  --ck-color-button-default-active-background: var(--sr-ckeditor-active);
+  --ck-color-button-default-disabled-background: transparent;
+  --ck-color-button-on-background: var(--sr-ckeditor-active);
+  --ck-color-button-on-hover-background: color-mix(in oklab, var(--color-primary, #0a74ff) 22%, var(--sr-ckeditor-ui-surface));
+  --ck-color-button-on-active-background: color-mix(in oklab, var(--color-primary, #0a74ff) 28%, var(--sr-ckeditor-ui-surface));
+  --ck-color-button-on-color: var(--sr-ckeditor-ui-text);
+  --ck-color-dropdown-panel-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-dropdown-panel-border: var(--sr-ckeditor-ui-border);
+  --ck-color-list-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-list-button-hover-background: var(--sr-ckeditor-hover);
+  --ck-color-list-button-on-background: var(--sr-ckeditor-active);
+  --ck-color-input-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-input-border: var(--sr-ckeditor-ui-border);
+  --ck-color-input-text: var(--sr-ckeditor-ui-text);
+  --ck-color-input-disabled-background: var(--sr-ckeditor-ui-surface-muted);
+  --ck-color-input-disabled-border: var(--sr-ckeditor-ui-border-soft);
+  --ck-color-input-disabled-text: var(--sr-ckeditor-ui-muted);
+  --ck-color-split-button-hover-background: var(--sr-ckeditor-hover);
   max-width: 100%;
+}
+
+.sr-ckeditor[data-sr-editor-body-theme="content.basic"],
+.sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+  --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #242424)))));
+  --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #6b7280)))));
+  --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6))));
+}
+
+.sr-ckeditor[data-sr-editor-body-theme="content.sample"] {
+  --sr-editor-body-surface: #fff200;
+  --sr-editor-body-text: #101010;
+  --sr-editor-body-muted: #4a205e;
+  --sr-editor-body-border: #111111;
+}
+
+.sr-ckeditor[data-sr-editor-body-theme="community.sample"] {
+  --sr-editor-body-surface: #f0fff3;
+  --sr-editor-body-text: #102016;
+  --sr-editor-body-muted: #3b6e4d;
+  --sr-editor-body-border: #0f8f3d;
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
+:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="community.basic"],
+[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
+[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #171a21));
+  --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #f4f4f5)))));
+  --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #b7beca)))));
+  --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #343b47))));
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="content.sample"],
+[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.sample"] {
+  --sr-editor-body-surface: #1a0028;
+  --sr-editor-body-text: #f7ff00;
+  --sr-editor-body-muted: #00f0ff;
+  --sr-editor-body-border: #f7ff00;
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="community.sample"],
+[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.sample"] {
+  --sr-editor-body-surface: #07160f;
+  --sr-editor-body-text: #eaffda;
+  --sr-editor-body-muted: #a3c8a0;
+  --sr-editor-body-border: #2cf25a;
+}
+
+@media (prefers-color-scheme: light) {
+  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
+  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+    --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+    --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #242424)))));
+    --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #6b7280)))));
+    --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6))));
+  }
+
+  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.sample"] {
+    --sr-editor-body-surface: #fff200;
+    --sr-editor-body-text: #101010;
+    --sr-editor-body-muted: #4a205e;
+    --sr-editor-body-border: #111111;
+  }
+
+  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.sample"] {
+    --sr-editor-body-surface: #f0fff3;
+    --sr-editor-body-text: #102016;
+    --sr-editor-body-muted: #3b6e4d;
+    --sr-editor-body-border: #0f8f3d;
+  }
 }
 
 .sr-ckeditor .ck-editor__editable_inline {
   min-height: 22rem;
 }
 
+.sr-ckeditor :is(.ck-toolbar, .ck-editor__top .ck-sticky-panel .ck-sticky-panel__content, .ck-dropdown__panel, .ck-list) {
+  background: var(--sr-ckeditor-ui-surface);
+  border-color: var(--sr-ckeditor-ui-border);
+  color: var(--sr-ckeditor-ui-text);
+}
+
+.sr-ckeditor :is(.ck-button, .ck-dropdown__button, .ck-toolbar__separator, .ck-label) {
+  color: var(--sr-ckeditor-ui-text);
+}
+
+.sr-ckeditor :is(.ck-button.ck-disabled, .ck-button:disabled, .ck-label) {
+  color: var(--sr-ckeditor-ui-muted);
+}
+
+.sr-ckeditor :is(.ck-button:not(.ck-disabled):hover, .ck-button:not(.ck-disabled):focus, .ck-list__item .ck-button:hover) {
+  background: var(--sr-ckeditor-hover);
+}
+
+.sr-ckeditor :is(.ck-button.ck-on, .ck-list__item .ck-button.ck-on) {
+  background: var(--sr-ckeditor-active);
+  color: var(--sr-ckeditor-ui-text);
+}
+
 .sr-ckeditor .ck-content {
+  background: var(--sr-ckeditor-body-surface);
   box-sizing: border-box;
+  color: var(--sr-ckeditor-body-text);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -23,10 +161,12 @@
 }
 
 .sr-ckeditor .ck-content :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--sr-ckeditor-body-text);
   font-family: inherit;
 }
 
 .sr-ckeditor .ck-content :where(a) {
+  color: inherit;
   text-decoration: underline;
 }
 
@@ -81,6 +221,28 @@
   white-space: pre-wrap;
 }
 
+.sr-ckeditor .ck-content :where(blockquote, figcaption) {
+  color: var(--sr-ckeditor-body-muted);
+}
+
+.sr-ckeditor .ck-content :where(hr, th, td) {
+  border-color: var(--sr-ckeditor-body-border);
+}
+
 .sr-ckeditor .ck-source-editing-area textarea {
+  background: var(--sr-ckeditor-body-surface);
+  color: var(--sr-ckeditor-body-text);
   min-height: 22rem;
+}
+
+.sr-ckeditor .ck-powered-by {
+  background: var(--sr-ckeditor-ui-surface-soft);
+  border-color: var(--sr-ckeditor-ui-border);
+  color: var(--sr-ckeditor-ui-muted);
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor {
+  --sr-ckeditor-hover: color-mix(in oklab, var(--sr-ckeditor-ui-text) 12%, var(--sr-ckeditor-ui-surface));
+  --sr-ckeditor-active: color-mix(in oklab, var(--color-primary, #0a74ff) 24%, var(--sr-ckeditor-ui-surface));
+  --ck-color-focus-outer-shadow: var(--color-primary-ring, #0a74ff4d);
 }

@@ -199,7 +199,15 @@
   function markHtmlFormat(textarea) {
     var form = textarea.form;
     var formatName = textarea.dataset.srEditorFormatName || 'body_format';
-    if (!form || form.querySelector('input[name="' + formatName + '"][data-sr-editor-format="ckeditor"]')) {
+    var existing;
+    if (!form) {
+      return;
+    }
+
+    existing = form.querySelector('input[name="' + formatName + '"]');
+    if (existing) {
+      existing.value = 'html';
+      existing.setAttribute('data-sr-editor-format', 'ckeditor');
       return;
     }
 
@@ -209,6 +217,30 @@
     input.value = 'html';
     input.setAttribute('data-sr-editor-format', 'ckeditor');
     form.appendChild(input);
+  }
+
+  function applyBodyTheme(textarea, editorElement) {
+    var cssVars = [
+      ['srEditorBodySurface', '--sr-editor-body-surface'],
+      ['srEditorBodyText', '--sr-editor-body-text'],
+      ['srEditorBodyMuted', '--sr-editor-body-muted'],
+      ['srEditorBodyBorder', '--sr-editor-body-border']
+    ];
+
+    if (!textarea || !editorElement) {
+      return;
+    }
+
+    if (textarea.dataset.srEditorBodyTheme) {
+      editorElement.setAttribute('data-sr-editor-body-theme', textarea.dataset.srEditorBodyTheme);
+    }
+
+    cssVars.forEach(function (item) {
+      var value = textarea.dataset[item[0]] || '';
+      if (value) {
+        editorElement.style.setProperty(item[1], value);
+      }
+    });
   }
 
   function editorForTextarea(textarea) {
@@ -260,19 +292,22 @@
     }
 
     document.querySelectorAll('textarea[data-sr-editor="ckeditor"]').forEach(function (textarea) {
-      if (textarea.dataset.srEditorReady === '1') {
+      if (textarea.dataset.srEditorReady === '1' || textarea.dataset.srEditorInitializing === '1' || editorForTextarea(textarea)) {
         return;
       }
 
+      textarea.dataset.srEditorInitializing = '1';
       ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor, textarea)).then(function (editor) {
         if (editor.ui && editor.ui.view && editor.ui.view.element) {
           editor.ui.view.element.classList.add('sr-ckeditor');
+          applyBodyTheme(textarea, editor.ui.view.element);
         }
         textarea._srCkeditorInstance = editor;
         if (textarea.id) {
           window.srCkeditorInstances[textarea.id] = editor;
         }
         textarea.dataset.srEditorReady = '1';
+        textarea.dataset.srEditorInitializing = '0';
         markHtmlFormat(textarea);
         syncTextareaValue(textarea, editor, false);
         if (editor.model && editor.model.document && typeof editor.model.document.on === 'function') {
@@ -282,9 +317,36 @@
         }
       }).catch(function () {
         textarea.dataset.srEditorReady = '0';
+        textarea.dataset.srEditorInitializing = '0';
       });
     });
   }
+
+  window.srCkeditorEnhance = function () {
+    enhance(window.CKEDITOR);
+  };
+
+  window.srCkeditorDestroyTextarea = function (textarea) {
+    var editor = editorForTextarea(textarea);
+
+    if (!textarea || !editor) {
+      return Promise.resolve();
+    }
+
+    syncTextareaValue(textarea, editor, true);
+    textarea._srCkeditorInstance = null;
+    if (textarea.id && window.srCkeditorInstances) {
+      delete window.srCkeditorInstances[textarea.id];
+    }
+    textarea.dataset.srEditorReady = '0';
+    textarea.dataset.srEditorInitializing = '0';
+
+    if (typeof editor.destroy === 'function') {
+      return editor.destroy().catch(function () {});
+    }
+
+    return Promise.resolve();
+  };
 
   document.addEventListener('DOMContentLoaded', function () {
     var scriptUrl = config.assetMode === 'self_hosted' ? config.selfHostedScriptUrl : config.cdnScriptUrl;
@@ -292,7 +354,10 @@
 
     loadStylesheet(stylesheetUrl);
     loadStylesheet(config.pluginStylesheetUrl);
-    loadScript(scriptUrl).then(enhance).catch(function () {
+    loadScript(scriptUrl).then(function (ckeditor) {
+      enhance(ckeditor);
+      document.dispatchEvent(new CustomEvent('sr:ckeditor-ready'));
+    }).catch(function () {
       document.documentElement.classList.add('sr-ckeditor-unavailable');
     });
   });

@@ -71,7 +71,7 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
-        editor_key TEXT NOT NULL DEFAULT "inherit",
+        editor_key TEXT NOT NULL DEFAULT "textarea",
         status TEXT NOT NULL,
         content_group_id INTEGER,
         layout_key TEXT NOT NULL DEFAULT "",
@@ -112,7 +112,7 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
-        editor_key TEXT NOT NULL DEFAULT "inherit",
+        editor_key TEXT NOT NULL DEFAULT "textarea",
         status TEXT NOT NULL,
         layout_key TEXT NOT NULL DEFAULT "",
         asset_access_enabled INTEGER NOT NULL DEFAULT 0,
@@ -391,7 +391,7 @@ $content = sr_content_file_cleanup_row($pdo, 'SELECT title, summary, body_text, 
 sr_content_file_cleanup_assert((string) ($content['status'] ?? '') === 'deleted', 'content file cleanup fixture should mark content deleted.');
 sr_content_file_cleanup_assert((string) ($content['summary'] ?? 'x') === '', 'content file cleanup fixture should clear content summary.');
 sr_content_file_cleanup_assert((string) ($content['body_format'] ?? '') === 'plain', 'content file cleanup fixture should downgrade redacted body to plain.');
-sr_content_file_cleanup_assert((string) ($content['editor_key'] ?? '') === 'inherit', 'content file cleanup fixture should reset redacted content editor key to inherit.');
+sr_content_file_cleanup_assert((string) ($content['editor_key'] ?? '') === 'textarea', 'content file cleanup fixture should reset redacted content editor key to textarea.');
 sr_content_file_cleanup_assert((int) ($content['asset_access_enabled'] ?? -1) === 0 && (string) ($content['asset_module'] ?? 'x') === '' && (int) ($content['asset_access_amount'] ?? -1) === 0, 'content file cleanup fixture should disable paid content settings.');
 
 $file = sr_content_file_cleanup_row($pdo, 'SELECT title, original_name, storage_key, storage_path, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount FROM sr_content_files WHERE id = :id', ['id' => $downloadFileId]);
