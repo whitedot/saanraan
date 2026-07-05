@@ -330,7 +330,7 @@ function sr_policy_document_plain_text_to_html(string $bodyText): string
     return implode("\n", $html);
 }
 
-function sr_policy_document_body_html_from_editor_data(array $data): string
+function sr_policy_document_body_html_from_editor_data(array $data, ?PDO $pdo = null): string
 {
     $mode = (string) ($data['body_editor_mode'] ?? 'html');
     if (!in_array($mode, ['plain', 'html', 'markdown', 'ckeditor'], true)) {
@@ -343,12 +343,12 @@ function sr_policy_document_body_html_from_editor_data(array $data): string
 
     if ($mode === 'markdown') {
         $markdown = (string) ($data['body_markdown'] ?? '');
-        $globalPdo = $GLOBALS['pdo'] ?? null;
-        if (!$globalPdo instanceof PDO || !sr_markdown_renderer_available($globalPdo)) {
+        $rendererPdo = $pdo instanceof PDO ? $pdo : ($GLOBALS['pdo'] ?? null);
+        if (!$rendererPdo instanceof PDO || !sr_markdown_renderer_available($rendererPdo)) {
             throw new InvalidArgumentException('Markdown 문서를 저장하려면 Markdown Editor 플러그인을 활성화하세요.');
         }
 
-        $rendered = sr_markdown_render($globalPdo, $markdown, 'full');
+        $rendered = sr_markdown_render($rendererPdo, $markdown, 'full');
         if (is_array($rendered)) {
             return sr_policy_document_sanitize_body((string) ($rendered['html'] ?? ''));
         }
@@ -765,7 +765,7 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
     }
 
     $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
-    $bodyHtml = sr_policy_document_body_html_from_editor_data($data);
+    $bodyHtml = sr_policy_document_body_html_from_editor_data($data, $pdo);
     $bodyHash = sr_policy_document_body_hash($bodyHtml);
     $summaryText = sr_clean_text((string) ($data['summary_text'] ?? ''), 1000);
     $appendPreviousVersions = !empty($data['append_previous_versions']) ? 1 : 0;
@@ -851,7 +851,7 @@ function sr_policy_document_update_draft_version(PDO $pdo, int $versionId, array
     }
 
     $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
-    $bodyHtml = sr_policy_document_body_html_from_editor_data($data);
+    $bodyHtml = sr_policy_document_body_html_from_editor_data($data, $pdo);
     $summaryText = sr_clean_text((string) ($data['summary_text'] ?? ''), 1000);
     $appendPreviousVersions = !empty($data['append_previous_versions']) ? 1 : 0;
     $effectiveFrom = sr_clean_admin_datetime((string) ($data['effective_from'] ?? ''));
