@@ -315,7 +315,9 @@
           textarea.dataset.srEditorReady = '0';
           textarea.dataset.srEditorInitializing = '0';
           if (typeof editor.destroy === 'function') {
-            editor.destroy().catch(function () {});
+            textarea._srCkeditorDestroyPromise = editor.destroy().catch(function () {}).then(function () {
+              textarea._srCkeditorDestroyPromise = null;
+            });
           }
           return;
         }
