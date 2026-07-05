@@ -1,0 +1,90 @@
+.markdown-editor-body {
+    box-sizing: border-box;
+    font-family: inherit;
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+
+.markdown-editor-body *,
+.markdown-editor-body *::before,
+.markdown-editor-body *::after {
+    box-sizing: border-box;
+}
+
+.markdown-editor-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+    padding: 0;
+}
+
+.markdown-editor-body :where(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+}
+
+.markdown-editor-body :where(a) {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.markdown-editor-body :where(ul) {
+    list-style: disc outside;
+}
+
+.markdown-editor-body :where(ol) {
+    list-style: decimal outside;
+}
+
+.markdown-editor-body :where(ul ul, ol ul) {
+    list-style-type: circle;
+}
+
+.markdown-editor-body :where(ul ul ul, ol ul ul) {
+    list-style-type: square;
+}
+
+.markdown-editor-body :where(table) {
+    display: table;
+    text-indent: 0;
+}
+
+.markdown-editor-body :where(thead) {
+    display: table-header-group;
+}
+
+.markdown-editor-body :where(tbody) {
+    display: table-row-group;
+}
+
+.markdown-editor-body :where(tr) {
+    display: table-row;
+}
+
+.markdown-editor-body :where(th, td) {
+    display: table-cell;
+    vertical-align: top;
+}
+
+.markdown-editor-body :where(img, svg, video, canvas) {
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.markdown-editor-body :where(img, svg, canvas) {
+    display: inline-block;
+}
+
+.markdown-editor-body :where(pre) {
+    white-space: pre;
+}
+
+.markdown-editor-body :where(input[type="checkbox"]) {
+    -webkit-appearance: auto;
+    appearance: auto;
+    background: initial;
+    border: initial;
+    border-radius: initial;
+    display: inline-block;
+    height: auto;
+    padding: 0;
+    vertical-align: middle;
+    width: auto;
+}

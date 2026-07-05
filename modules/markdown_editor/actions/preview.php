@@ -34,6 +34,6 @@ $result = sr_markdown_editor_render($pdo, $markdown, 'full', ['settings_override
 sr_json_response([
     'ok' => true,
     'html' => (string) ($result['html'] ?? ''),
-    'css' => sr_markdown_editor_css($pdo, $postedSettings),
+    'css' => sr_markdown_editor_preview_css($pdo, $postedSettings),
     'profile_hash' => (string) ($result['profile_hash'] ?? ''),
 ], 200, ['Cache-Control: no-store']);

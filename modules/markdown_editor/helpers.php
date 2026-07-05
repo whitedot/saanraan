@@ -360,6 +360,21 @@ function sr_markdown_editor_assets_html(PDO $pdo, string $presetKey = 'default')
         . '<script src="' . sr_e(sr_asset_url('/modules/markdown_editor/assets/editor.js')) . '" defer></script>';
 }
 
+function sr_markdown_editor_reset_css(): string
+{
+    if (!is_file(SR_ROOT . '/assets/editor-md.css')) {
+        return '';
+    }
+
+    $resetCss = file_get_contents(SR_ROOT . '/assets/editor-md.css');
+    return is_string($resetCss) ? trim($resetCss) . "\n" : '';
+}
+
+function sr_markdown_editor_preview_css(PDO $pdo, ?array $overrideSettings = null): string
+{
+    return sr_markdown_editor_reset_css() . sr_markdown_editor_css($pdo, $overrideSettings);
+}
+
 function sr_markdown_editor_render(PDO $pdo, string $markdown, string $mode = 'full', array $context = []): array
 {
     static $memo = [];
@@ -603,24 +618,7 @@ function sr_markdown_editor_css(PDO $pdo, ?array $overrideSettings = null): stri
 
     $css = [];
     $maxWidth = (int) $style['max_width'];
-    $css[] = '.markdown-editor-body{box-sizing:border-box;min-width:0;overflow-wrap:break-word;font-family:inherit;color:var(' . $style['text_token'] . ', var(--sr-text));font-size:' . (int) $style['font_size'] . 'px;line-height:' . (string) $style['line_height'] . ';' . ($maxWidth > 0 ? 'max-width:' . $maxWidth . 'px;margin-inline:auto;' : '') . '}';
-    $css[] = '.markdown-editor-body *,.markdown-editor-body *::before,.markdown-editor-body *::after{box-sizing:border-box;}';
-    $css[] = '.markdown-editor-body :where(h1,h2,h3,h4,h5,h6,p,blockquote,ul,ol,li,pre,table,thead,tbody,tr,th,td,hr,figure,figcaption){padding:0;}';
-    $css[] = '.markdown-editor-body :where(h1,h2,h3,h4,h5,h6){font-family:inherit;}';
-    $css[] = '.markdown-editor-body :where(a){color:inherit;text-decoration:underline;}';
-    $css[] = '.markdown-editor-body :where(ul){list-style:disc outside;}';
-    $css[] = '.markdown-editor-body :where(ol){list-style:decimal outside;}';
-    $css[] = '.markdown-editor-body :where(ul ul,ol ul){list-style-type:circle;}';
-    $css[] = '.markdown-editor-body :where(ul ul ul,ol ul ul){list-style-type:square;}';
-    $css[] = '.markdown-editor-body :where(table){display:table;text-indent:0;}';
-    $css[] = '.markdown-editor-body :where(thead){display:table-header-group;}';
-    $css[] = '.markdown-editor-body :where(tbody){display:table-row-group;}';
-    $css[] = '.markdown-editor-body :where(tr){display:table-row;}';
-    $css[] = '.markdown-editor-body :where(th,td){display:table-cell;vertical-align:top;}';
-    $css[] = '.markdown-editor-body :where(img,svg,video,canvas){max-width:100%;height:auto;vertical-align:middle;}';
-    $css[] = '.markdown-editor-body :where(img,svg,canvas){display:inline-block;}';
-    $css[] = '.markdown-editor-body :where(pre){white-space:pre;}';
-    $css[] = '.markdown-editor-body :where(input[type="checkbox"]){-webkit-appearance:auto;appearance:auto;background:initial;border:initial;border-radius:initial;width:auto;height:auto;padding:0;display:inline-block;vertical-align:middle;}';
+    $css[] = '.markdown-editor-body{color:var(' . $style['text_token'] . ', var(--sr-text));font-size:' . (int) $style['font_size'] . 'px;line-height:' . (string) $style['line_height'] . ';' . ($maxWidth > 0 ? 'max-width:' . $maxWidth . 'px;margin-inline:auto;' : '') . '}';
     $css[] = '.markdown-editor-body p{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
     $css[] = '.markdown-editor-body>*+*{margin-top:' . (int) $style['block_gap'] . 'px;}';
     $css[] = '.markdown-editor-body h1,.markdown-editor-body h2,.markdown-editor-body h3,.markdown-editor-body h4,.markdown-editor-body h5,.markdown-editor-body h6{margin:' . (int) $style['heading_margin'] . 'px 0 ' . (int) max(8, (int) $style['paragraph_margin']) . 'px;font-weight:' . (int) $style['heading_weight'] . ';line-height:' . (string) $style['heading_line_height'] . ';color:var(' . $style['heading_token'] . ', var(--sr-text));}';

@@ -42,6 +42,9 @@ sr_htmlpurifier_runtime_assert(!is_dir($root . '/modules/htmlpurifier/vendor/cac
 $config = sr_rich_text_purifier_config();
 sr_htmlpurifier_runtime_assert(strtolower((string) $config->get('Core.Encoding')) === 'utf-8', 'Purifier config must use UTF-8.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Doctype') === 'HTML 4.01 Transitional', 'Purifier config doctype must remain explicit.');
+sr_htmlpurifier_runtime_assert((string) $config->get('HTML.DefinitionID') === 'saanraan-rich-text', 'Purifier config must use the saanraan rich text definition ID.');
+sr_htmlpurifier_runtime_assert((int) $config->get('HTML.DefinitionRev') === 2, 'Purifier config definition revision must track rich text allowlist changes.');
+sr_htmlpurifier_runtime_assert(str_contains((string) $config->get('HTML.Allowed'), 'h1'), 'Purifier config must allow CKEditor heading 1 output.');
 sr_htmlpurifier_runtime_assert(!str_contains((string) $config->get('HTML.Allowed'), 'data-sr-url-embed'), 'Purifier config must not allow embed marker attributes.');
 sr_htmlpurifier_runtime_assert($config->get('URI.AllowedSchemes') === ['http' => true, 'https' => true], 'Purifier config must allow only http and https schemes.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Nofollow') === true, 'Purifier config must enable HTML.Nofollow.');
@@ -63,6 +66,11 @@ sr_htmlpurifier_runtime_assert(!str_contains(strtolower($sanitized), 'src="http:
 sr_htmlpurifier_runtime_assert(str_contains($sanitized, '<a href="https://example.com/safe" rel="nofollow noopener noreferrer">safe</a>'), 'Purifier-backed sanitizer output must keep safe links with server rel policy.');
 sr_htmlpurifier_runtime_assert(!str_contains($sanitized, 'sr-url-embed-marker') && !str_contains($sanitized, 'data-sr-url-embed'), 'Purifier-backed sanitizer output must remove embed marker attributes.');
 sr_htmlpurifier_runtime_assert(str_contains($sanitized, '<img src="https://example.com/a.png" alt="good" width="640" height="480">'), 'Purifier-backed sanitizer output must keep safe HTTPS images.');
+
+$headingPayload = '<h1 class="ck-heading_heading1">큰 제목</h1><ul class="ck-list"><li><span>항목</span></li></ul>';
+$headingSanitized = sr_sanitize_rich_text_html($headingPayload);
+sr_htmlpurifier_runtime_assert(str_contains($headingSanitized, '<h1>큰 제목</h1>'), 'Purifier-backed sanitizer output must preserve CKEditor heading 1 semantics.');
+sr_htmlpurifier_runtime_assert(str_contains($headingSanitized, '<ul><li>항목</li></ul>'), 'Purifier-backed sanitizer output must preserve CKEditor list semantics.');
 
 if ($errors !== []) {
     fwrite(STDERR, "HTML Purifier runtime checks failed:\n");

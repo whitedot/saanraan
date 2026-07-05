@@ -1,0 +1,153 @@
+.content-body,
+.community-post-body {
+    background: transparent;
+    border-radius: 0;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    padding: 0;
+    word-break: normal;
+}
+
+.content-body *,
+.content-body *::before,
+.content-body *::after,
+.community-post-body *,
+.community-post-body *::before,
+.community-post-body *::after {
+    box-sizing: border-box;
+}
+
+.content-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption),
+.community-post-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+    padding: 0;
+}
+
+.content-body :where(a),
+.community-post-body :where(a) {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.content-body :where(ul),
+.community-post-body :where(ul) {
+    list-style: disc outside;
+    padding-inline-start: 1.5em;
+}
+
+.content-body :where(ol),
+.community-post-body :where(ol) {
+    list-style: decimal outside;
+    padding-inline-start: 1.5em;
+}
+
+.content-body :where(ul ul, ol ul),
+.community-post-body :where(ul ul, ol ul) {
+    list-style-type: circle;
+}
+
+.content-body :where(ul ul ul, ol ul ul),
+.community-post-body :where(ul ul ul, ol ul ul) {
+    list-style-type: square;
+}
+
+.content-body :where(table),
+.community-post-body :where(table) {
+    border-collapse: collapse;
+    display: table;
+    text-indent: 0;
+}
+
+.content-body :where(thead),
+.community-post-body :where(thead) {
+    display: table-header-group;
+}
+
+.content-body :where(tbody),
+.community-post-body :where(tbody) {
+    display: table-row-group;
+}
+
+.content-body :where(tr),
+.community-post-body :where(tr) {
+    display: table-row;
+}
+
+.content-body :where(th, td),
+.community-post-body :where(th, td) {
+    display: table-cell;
+    vertical-align: top;
+}
+
+.content-body :is(p, ul, ol, blockquote, pre, table),
+.community-post-body :is(p, ul, ol, blockquote, pre, table) {
+    margin: 0;
+}
+
+.content-body :is(a, li, dd, figcaption, code),
+.community-post-body :is(a, li, dd, figcaption, code) {
+    overflow-wrap: anywhere;
+}
+
+.content-body :is(pre, table),
+.community-post-body :is(pre, table) {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.content-body pre,
+.community-post-body pre {
+    white-space: pre-wrap;
+}
+
+.content-body :is(h1, h2, h3, h4, h5, h6),
+.community-post-body :is(h1, h2, h3, h4, h5, h6) {
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0;
+    line-height: inherit;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.content-body :is(h1, h2, h3, h4, h5, h6):first-child,
+.community-post-body :is(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
+}
+
+.content-body h1,
+.content-body h2,
+.content-body h3,
+.content-body :is(h4, h5, h6),
+.community-post-body h1,
+.community-post-body h2,
+.community-post-body h3,
+.community-post-body :is(h4, h5, h6) {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.content-body img,
+.community-post-body img {
+    display: block;
+    height: auto;
+    margin: 0;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.content-body :is(video, iframe, embed, object),
+.community-post-body :is(video, iframe, embed, object) {
+    display: block;
+    max-width: 100%;
+}
+
+.content-body blockquote,
+.community-post-body blockquote {
+    border-left: 0;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding-left: 0;
+}

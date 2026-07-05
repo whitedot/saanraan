@@ -86,6 +86,18 @@ $options = sr_editor_options($enabledPdo);
 sr_markdown_editor_check_assert(isset($options['markdown']), 'Enabled markdown_editor should expose Markdown editor option.');
 sr_markdown_editor_check_assert(sr_editor_available($enabledPdo, 'markdown'), 'Enabled markdown_editor should make markdown editor available.');
 sr_markdown_editor_check_assert(
+    sr_content_body_format_for_editor($enabledPdo, 'markdown', '') === 'markdown',
+    'Content item Markdown editor selection should save markdown body_format when renderer is enabled.'
+);
+sr_markdown_editor_check_assert(
+    sr_content_body_format_for_editor($disabledPdo, 'markdown', 'markdown') === 'plain',
+    'Content item Markdown editor selection should fall back to plain when renderer is disabled.'
+);
+sr_markdown_editor_check_assert(
+    sr_content_body_format_for_editor($enabledPdo, 'html', '') === 'html',
+    'Content item direct HTML editor selection should save html body_format.'
+);
+sr_markdown_editor_check_assert(
     str_contains(sr_editor_textarea_attributes($enabledPdo, 'markdown'), 'data-sr-editor-format-value="markdown"'),
     'Markdown editor textarea attributes should set body_format=markdown through contract format_value.'
 );
@@ -111,12 +123,16 @@ sr_markdown_editor_check_assert(
         && str_contains($css, 'text-underline-offset:'),
     'Markdown style profile should emit expanded element controls for headings, lists, and tables.'
 );
+$resetCss = file_get_contents(SR_ROOT . '/assets/editor-md.css');
 sr_markdown_editor_check_assert(
-    str_contains($css, '.markdown-editor-body :where(ul){list-style:disc outside;}')
-        && str_contains($css, '.markdown-editor-body :where(table){display:table;text-indent:0;}')
-        && str_contains($css, '-webkit-appearance:auto;appearance:auto')
-        && str_contains($css, 'line-height:1.25;color:var('),
-    'Markdown style profile should include a scoped body reset that counters admin/public common CSS.'
+    is_string($resetCss)
+        && str_contains($resetCss, '.markdown-editor-body :where(ul)')
+        && str_contains($resetCss, 'list-style: disc outside')
+        && str_contains($resetCss, '.markdown-editor-body :where(table)')
+        && str_contains($resetCss, 'display: table')
+        && str_contains($resetCss, '-webkit-appearance: auto')
+        && str_contains(sr_markdown_editor_preview_css($enabledPdo), '.markdown-editor-body :where(input[type="checkbox"])'),
+    'Markdown editor-md.css should include a scoped body reset and admin preview should load it before the profile CSS.'
 );
 $settingsView = file_get_contents(SR_ROOT . '/modules/markdown_editor/views/admin-settings.php');
 sr_markdown_editor_check_assert(
@@ -133,8 +149,10 @@ sr_markdown_editor_check_assert(
 );
 $contentMarkdownStylesheets = sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
 sr_markdown_editor_check_assert(
+    ($contentMarkdownStylesheets[0] ?? '') === '/assets/editor-md.css'
+        &&
     count(array_filter($contentMarkdownStylesheets, static fn (string $stylesheet): bool => str_contains($stylesheet, '/markdown-editor/style.css?v='))) === 1,
-    'Content public markdown bodies should include the markdown editor stylesheet URL.'
+    'Content public markdown bodies should include editor-md.css before the markdown editor stylesheet URL.'
 );
 sr_markdown_editor_check_assert(
     sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
@@ -142,8 +160,10 @@ sr_markdown_editor_check_assert(
 );
 $communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
 sr_markdown_editor_check_assert(
+    ($communityMarkdownStylesheets[0] ?? '') === '/assets/editor-md.css'
+        &&
     count(array_filter($communityMarkdownStylesheets, static fn (string $stylesheet): bool => str_contains($stylesheet, '/markdown-editor/style.css?v='))) === 1,
-    'Community public markdown bodies should include the markdown editor stylesheet URL.'
+    'Community public markdown bodies should include editor-md.css before the markdown editor stylesheet URL.'
 );
 
 $inline = sr_markdown_render($enabledPdo, "# Title\n\nSecond", 'inline');

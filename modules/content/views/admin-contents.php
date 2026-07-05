@@ -57,7 +57,12 @@ $newContentFileAssetSettings = [
 ];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
-$contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
+$contentEditorOptions = $pdo instanceof PDO ? sr_editor_options($pdo, true) : ['inherit' => '상위 설정 사용', 'textarea' => '기본 textarea', 'html' => 'HTML'];
+$contentEditorStoredKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true);
+if (!isset($contentEditorOptions[$contentEditorStoredKey])) {
+    $contentEditorStoredKey = 'inherit';
+}
+$contentEditorKey = $pdo instanceof PDO ? sr_content_effective_editor_key($pdo, ['editor_key' => $contentEditorStoredKey]) : 'textarea';
 $contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'content_basic';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, $contentEditorToolbarPreset) : '';
 if ($contentEditorAttributes !== '' && $contentEditorKey === 'ckeditor') {
@@ -532,6 +537,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
                 <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('content_admin_contents_editor_key', 'editor_key', $contentEditorOptions, $contentEditorStoredKey, true); ?>
+                    <p class="form-help"><?php echo sr_e('기본값 사용은 콘텐츠 환경설정의 본문 에디터를 따릅니다. 저장 후 이 콘텐츠를 다시 열면 선택한 에디터로 본문을 편집합니다.'); ?></p>
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
                     <small><?php echo sr_e(in_array($contentEditorKey, ['html', 'ckeditor'], true) ? 'HTML 본문은 허용된 태그와 속성만 정화해 저장합니다.' : ($contentEditorKey === 'markdown' ? 'Markdown 본문은 공개 출력 시 제한된 문법으로 HTML 변환됩니다.' : sr_t('content::ui.content.plain.save.723dab58'))); ?></small>

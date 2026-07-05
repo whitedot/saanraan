@@ -589,6 +589,8 @@ function sr_rich_text_purifier_config(): HTMLPurifier_Config
     $config = HTMLPurifier_Config::createDefault();
     $config->set('Core.Encoding', 'UTF-8');
     $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
+    $config->set('HTML.DefinitionID', 'saanraan-rich-text');
+    $config->set('HTML.DefinitionRev', 2);
     $config->set('HTML.Allowed', 'p,br,strong,em,u,s,blockquote,ul,ol,li,a[href|rel],h1,h2,h3,img[src|alt|width|height]');
     $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
     $config->set('HTML.Nofollow', true);
@@ -823,6 +825,19 @@ function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo
 function sr_body_format(string $value): string
 {
     return in_array($value, ['plain', 'html', 'markdown'], true) ? $value : 'plain';
+}
+
+function sr_body_editor_stylesheets(string $bodyFormat, string $bodyEditorKey = ''): array
+{
+    $bodyFormat = sr_body_format($bodyFormat);
+    if ($bodyFormat === 'markdown') {
+        return ['/assets/editor-md.css'];
+    }
+    if ($bodyFormat === 'html' && sr_editor_normalize_key($bodyEditorKey) === 'ckeditor') {
+        return ['/assets/editor-ck.css'];
+    }
+
+    return [];
 }
 
 function sr_markdown_text_html(string $markdown): string

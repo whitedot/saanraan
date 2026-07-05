@@ -411,6 +411,27 @@ $checks = [
         ],
     ],
     [
+        'label' => 'markdown body editor stylesheet',
+        'path' => '/assets/editor-md.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.markdown-editor-body',
+            'list-style: disc outside',
+            'display: table',
+        ],
+    ],
+    [
+        'label' => 'ckeditor body editor stylesheet',
+        'path' => '/assets/editor-ck.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.content-body',
+            '.community-post-body',
+            'list-style: disc outside',
+            'display: table',
+        ],
+    ],
+    [
         'label' => 'site sample view theme stylesheet',
         'path' => '/assets/theme/sample.css',
         'allowed_statuses' => [200],

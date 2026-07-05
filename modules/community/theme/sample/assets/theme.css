@@ -119,13 +119,13 @@
     border-block-end: 6px solid var(--sr-primary);
 }
 
-.content-layout-body :is(.content-home-latest-item, .content-body, .content-comments, .content-series-nav, .content-downloads, .content-group-item, .content-group-pick) {
+.content-layout-body :is(.content-home-latest-item, .content-comments, .content-series-nav, .content-downloads, .content-group-item, .content-group-pick) {
     background: var(--sr-surface);
     border: 4px solid var(--sr-border);
     box-shadow: 10px 10px 0 var(--sr-primary);
 }
 
-.content-layout-body :is(.content-body, .content-comments, .content-series-nav, .content-downloads) {
+.content-layout-body :is(.content-comments, .content-series-nav, .content-downloads) {
     border-radius: 0;
 }
 
@@ -137,7 +137,7 @@
     text-underline-offset: .12em;
 }
 
-.content-layout-body :is(.content-home-hero-meta, .content-home-hero-group, .content-home-latest-meta, .content-home-latest-excerpt, .content-home-latest-footer time, .content-meta, .content-group-item-meta, .content-header > p, .content-body blockquote) {
+.content-layout-body :is(.content-home-hero-meta, .content-home-hero-group, .content-home-latest-meta, .content-home-latest-excerpt, .content-home-latest-footer time, .content-meta, .content-group-item-meta, .content-header > p) {
     color: var(--content-muted);
     font-weight: 800;
 }
@@ -210,8 +210,7 @@
 .example-content-panel,
 .example-content-timeline-item,
 .example-content-reader-main,
-.example-content-reader-rail,
-.example-content-body {
+.example-content-reader-rail {
     background: var(--sr-surface);
     border: 4px solid var(--sr-border);
     box-shadow: 10px 10px 0 var(--sr-primary);
@@ -286,7 +285,6 @@
 
 .example-content-body {
     box-shadow: none;
-    line-height: 1.75;
 }
 
 .example-content-comments {
@@ -502,7 +500,6 @@
     grid-column: 1 / -1;
 }
 
-.example-community-body,
 .example-content-body {
     overflow-wrap: anywhere;
 }
@@ -529,7 +526,7 @@
 }
 
 @media (max-width: 640px) {
-    .content-layout-body :is(.content-home-latest-item, .content-body, .content-comments, .content-series-nav, .content-downloads, .content-group-item, .content-group-pick) {
+    .content-layout-body :is(.content-home-latest-item, .content-comments, .content-series-nav, .content-downloads, .content-group-item, .content-group-pick) {
         box-shadow: 6px 6px 0 var(--sr-primary);
     }
 

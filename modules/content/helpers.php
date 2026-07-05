@@ -641,6 +641,26 @@ function sr_content_editor_key(PDO $pdo): string
     return sr_editor_effective_key($pdo, (string) $settings['editor']);
 }
 
+function sr_content_item_editor_key(string $editorKey, bool $allowInherit = false): string
+{
+    $editorKey = strtolower(trim($editorKey));
+    if ($allowInherit && ($editorKey === '' || $editorKey === 'inherit')) {
+        return 'inherit';
+    }
+
+    return sr_editor_normalize_key($editorKey, $allowInherit);
+}
+
+function sr_content_effective_editor_key(PDO $pdo, array $content): string
+{
+    $editorKey = sr_content_item_editor_key((string) ($content['editor_key'] ?? 'inherit'), true);
+    if ($editorKey === 'inherit') {
+        return sr_content_editor_key($pdo);
+    }
+
+    return sr_editor_effective_key($pdo, $editorKey);
+}
+
 function sr_content_editor_toolbar_preset(PDO $pdo): string
 {
     $settings = sr_content_settings($pdo);
@@ -656,6 +676,23 @@ function sr_content_html_body_enabled(PDO $pdo): bool
 function sr_content_markdown_body_enabled(PDO $pdo): bool
 {
     return sr_content_editor_key($pdo) === 'markdown';
+}
+
+function sr_content_body_format_for_editor(PDO $pdo, string $editorKey, string $postedBodyFormat): string
+{
+    $editorKey = sr_editor_effective_key($pdo, $editorKey);
+    $postedBodyFormat = sr_body_format($postedBodyFormat);
+    if ($editorKey === 'html') {
+        return 'html';
+    }
+    if ($editorKey === 'ckeditor' && $postedBodyFormat === 'html') {
+        return 'html';
+    }
+    if (($editorKey === 'markdown' || $postedBodyFormat === 'markdown') && sr_markdown_renderer_available($pdo)) {
+        return 'markdown';
+    }
+
+    return 'plain';
 }
 
 function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
@@ -678,6 +715,10 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
     $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
+    $editorStylesheets = sr_body_editor_stylesheets(
+        (string) ($page['body_format'] ?? 'plain'),
+        sr_content_effective_editor_key($pdo, $page)
+    );
     $markdownStylesheets = (string) ($page['body_format'] ?? 'plain') === 'markdown'
         ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
         : [];
@@ -686,6 +727,7 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
         : [];
 
     return array_values(array_unique(array_merge(
+        $editorStylesheets,
         $markdownStylesheets,
         $embedStylesheets
     )));
@@ -703,6 +745,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'summary' => '',
         'cover_image_url' => '',
         'body_text' => '',
+        'editor_key' => 'inherit',
         'status' => (string) ($defaults['status'] ?? 'draft'),
         'layout_key' => (string) ($defaults['layout_key'] ?? ($pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : '')),
         'asset_access_enabled' => (int) ($defaults['asset_access_enabled'] ?? 0),

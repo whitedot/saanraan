@@ -153,72 +153,16 @@
 }
 
 .content-body {
-    background: #fff;
-    border-radius: 8px;
+    background: transparent;
+    border-radius: 0;
     box-sizing: border-box;
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-body);
     font-size: var(--type-body-size);
     line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
-    padding: 18px;
-    word-break: normal;
-}
-
-.content-body *,
-.content-body *::before,
-.content-body *::after {
-    box-sizing: border-box;
-}
-
-.content-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
     padding: 0;
-}
-
-.content-body :where(a) {
-    color: inherit;
-    text-decoration: underline;
-}
-
-.content-body :where(ul) {
-    list-style: disc outside;
-    padding-inline-start: 1.5em;
-}
-
-.content-body :where(ol) {
-    list-style: decimal outside;
-    padding-inline-start: 1.5em;
-}
-
-.content-body :where(ul ul, ol ul) {
-    list-style-type: circle;
-}
-
-.content-body :where(ul ul ul, ol ul ul) {
-    list-style-type: square;
-}
-
-.content-body :where(table) {
-    border-collapse: collapse;
-    display: table;
-    text-indent: 0;
-}
-
-.content-body :where(thead) {
-    display: table-header-group;
-}
-
-.content-body :where(tbody) {
-    display: table-row-group;
-}
-
-.content-body :where(tr) {
-    display: table-row;
-}
-
-.content-body :where(th, td) {
-    display: table-cell;
-    vertical-align: top;
+    word-break: normal;
 }
 
 .content-cover-figure {
@@ -231,76 +175,6 @@
     height: auto;
     object-fit: cover;
     width: 100%;
-}
-
-.content-body :is(p, ul, ol, blockquote, pre, table) {
-    margin: 0 0 1.45em;
-}
-
-.content-body :is(a, li, dd, figcaption, code) {
-    overflow-wrap: anywhere;
-}
-
-.content-body :is(pre, table) {
-    max-width: 100%;
-    overflow-x: auto;
-}
-
-.content-body pre {
-    white-space: pre-wrap;
-}
-
-.content-body :is(h1, h2, h3, h4, h5, h6) {
-    color: var(--sr-text, var(--text-strong, #242424));
-    font-family: var(--font-secondary);
-    letter-spacing: 0;
-    line-height: var(--type-section-title-line-height);
-    margin: 2em 0 .65em;
-    overflow-wrap: anywhere;
-}
-
-.content-body :is(h1, h2, h3, h4, h5, h6):first-child {
-    margin-top: 0;
-}
-
-.content-body h1 {
-    font-size: var(--type-page-title-size);
-    font-weight: var(--font-weight-bold);
-}
-
-.content-body h2 {
-    font-size: var(--type-section-title-size);
-    font-weight: var(--font-weight-semibold);
-}
-
-.content-body h3 {
-    font-size: var(--type-card-title-size);
-    font-weight: var(--font-weight-semibold);
-}
-
-.content-body :is(h4, h5, h6) {
-    font-size: var(--type-body-size);
-    font-weight: var(--font-weight-semibold);
-}
-
-.content-body img {
-    display: block;
-    height: auto;
-    margin: 32px auto;
-    max-width: 100%;
-}
-
-.content-body :is(video, iframe, embed, object) {
-    display: block;
-    max-width: 100%;
-}
-
-.content-body blockquote {
-    border-left: 3px solid var(--sr-text, var(--text-strong, #242424));
-    color: var(--sr-muted, var(--text-muted, #3d3d3d));
-    font-size: var(--type-body-size);
-    line-height: var(--type-body-line-height);
-    padding-left: 20px;
 }
 
 .content-access-notice,
@@ -1552,11 +1426,6 @@
     color: var(--content-muted);
 }
 
-.content-body blockquote {
-    border-left-color: var(--color-primary);
-    color: var(--content-muted);
-}
-
 .content-series-nav,
 .content-downloads,
 .content-comments {
@@ -1569,7 +1438,6 @@
     background: #fff;
 }
 
-[data-color-scheme="dark"] .content-body,
 [data-color-scheme="dark"] .content-comments {
     background: var(--content-surface);
 }

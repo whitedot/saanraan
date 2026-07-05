@@ -212,6 +212,7 @@ foreach ([
     'modules/ckeditor/vendor/ckeditor5/LICENSE.md',
     'modules/ckeditor/vendor/ckeditor5/COPYING.GPL',
     'modules/ckeditor/vendor/ckeditor5/README.md',
+    'assets/editor-ck.css',
     'modules/ckeditor/assets/saanraan-ckeditor.js',
     'modules/ckeditor/assets/saanraan-ckeditor.css',
 ] as $file) {
@@ -262,6 +263,8 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.js
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/views/admin-contents.php', [
+    'sr_content_effective_editor_key($pdo',
+    'sr_admin_radio_toggle_group_html(\'content_admin_contents_editor_key\', \'editor_key\'',
     'data-sr-editor-upload-url',
     'sr_content_body_file_upload_url()',
     'data-sr-editor-upload-csrf',
@@ -364,20 +367,49 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.cs
     'display: table',
 ]);
 
+sr_ckeditor_assets_require_markers('assets/editor-ck.css', [
+    '.content-body',
+    '.community-post-body',
+    'background: transparent',
+    'padding: 0',
+    '.content-body :where(ul)',
+    '.community-post-body :where(ul)',
+    'list-style: disc outside',
+    '.content-body :where(table)',
+    '.community-post-body :where(table)',
+    'display: table',
+    '.content-body h1',
+    'font-size: inherit',
+]);
+
+sr_ckeditor_assets_require_markers('core/helpers/output.php', [
+    'function sr_body_editor_stylesheets',
+    'sr_editor_normalize_key($bodyEditorKey) === \'ckeditor\'',
+    "'/assets/editor-ck.css'",
+]);
+
+sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
+    'sr_content_effective_editor_key($pdo, $page)',
+]);
+
+sr_ckeditor_assets_require_markers('modules/community/helpers/posts.php', [
+    'sr_community_effective_post_editor($pdo, $postBoard, $settings)',
+    'sr_body_editor_stylesheets((string) ($post[\'body_format\'] ?? \'plain\'), $postEditorKey)',
+]);
+
+sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'html') === [], 'Direct HTML bodies should not load editor-ck.css.');
+sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'ckeditor') === ['/assets/editor-ck.css'], 'CKEditor HTML bodies should load editor-ck.css.');
+
 foreach ([
-    'modules/content/theme/basic/assets/module.css' => '.content-body',
-    'modules/content/theme/sample/assets/module.css' => '.content-body',
-    'modules/community/theme/basic/assets/module.css' => '.community-post-body',
-    'modules/community/theme/sample/assets/module.css' => '.community-post-body',
-] as $bodyStylesheet => $bodySelector) {
-    sr_ckeditor_assets_require_markers($bodyStylesheet, [
-        $bodySelector . ' :is(h1, h2, h3, h4, h5, h6)',
-        $bodySelector . ' h1',
-        'font-size: var(--type-page-title-size)',
-        $bodySelector . ' :where(ul)',
-        'list-style: disc outside',
-        $bodySelector . ' :where(table)',
-        'display: table',
+    'modules/content/theme/basic/assets/module.css',
+    'modules/content/theme/sample/assets/module.css',
+    'modules/community/theme/basic/assets/module.css',
+    'modules/community/theme/sample/assets/module.css',
+] as $bodyStylesheet) {
+    sr_ckeditor_assets_forbid_markers($bodyStylesheet, [
+        ':where(ul)',
+        ':where(table)',
+        'font-size: inherit',
     ]);
 }
 

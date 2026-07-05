@@ -130,6 +130,8 @@ sr_rich_text_policy_contains('docs/risk-register.md', [
 sr_rich_text_policy_contains('core/helpers/output.php', [
     'sr_strip_rich_text_dropped_containers($html)',
     'HTML.Allowed',
+    'HTML.DefinitionID',
+    'HTML.DefinitionRev',
     'URI.AllowedSchemes',
     'HTML.Nofollow',
     'HTML.TargetBlank',
@@ -142,6 +144,8 @@ sr_rich_text_policy_contains('core/helpers/output.php', [
 sr_rich_text_policy_contains('docs/rich-text-sanitizer-policy.md', [
     'HTML Purifier 설정 경계',
     'HTML.Allowed',
+    'HTML.DefinitionID',
+    'HTML.DefinitionRev',
     'URI.AllowedSchemes',
     'HTML.Nofollow',
     'HTML.TargetBlank',

@@ -56,6 +56,7 @@ function sr_content_copy_runtime_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
+        editor_key TEXT NOT NULL DEFAULT "inherit",
         status TEXT NOT NULL,
         view_count INTEGER NOT NULL DEFAULT 0,
         layout_key TEXT NOT NULL DEFAULT "",
@@ -96,6 +97,7 @@ function sr_content_copy_runtime_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
+        editor_key TEXT NOT NULL DEFAULT "inherit",
         status TEXT NOT NULL,
         layout_key TEXT NOT NULL DEFAULT "",
         asset_access_enabled INTEGER NOT NULL DEFAULT 0,
@@ -207,7 +209,7 @@ $now = '2026-06-11 00:00:00';
 $sourceUrl = '/content/runtime-copy-embedded';
 $sourceBody = '<p>원본 본문</p><p><a href="' . $sourceUrl . '">' . $sourceUrl . '</a></p>';
 
-$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "published", 12, 1, 1, :published_at, :created_at, :updated_at)')->execute([
+$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, editor_key, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "html", "published", 12, 1, 1, :published_at, :created_at, :updated_at)')->execute([
     'id' => $embeddedContentId,
     'slug' => 'runtime-copy-embedded',
     'title' => 'Runtime copy embedded',
@@ -218,7 +220,7 @@ $pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text
     'updated_at' => $now,
 ]);
 
-$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "published", 987, 1, 1, :published_at, :created_at, :updated_at)')->execute([
+$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, editor_key, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "html", "published", 987, 1, 1, :published_at, :created_at, :updated_at)')->execute([
     'id' => $sourceContentId,
     'slug' => 'runtime-copy-source',
     'title' => 'Runtime copy source',
@@ -262,11 +264,12 @@ $newContentId = sr_content_copy($pdo, $sourceContentId, [
     'series_titles' => ['1' => 'Copied runtime series'],
 ], 2);
 
-$newContent = sr_content_copy_runtime_row($pdo, 'SELECT slug, title, body_text, body_format, status, view_count, created_by, updated_by FROM sr_content_items WHERE id = :id', ['id' => $newContentId]);
+$newContent = sr_content_copy_runtime_row($pdo, 'SELECT slug, title, body_text, body_format, editor_key, status, view_count, created_by, updated_by FROM sr_content_items WHERE id = :id', ['id' => $newContentId]);
 sr_content_copy_runtime_assert((string) ($newContent['slug'] ?? '') === 'runtime-copy-target', 'content copy fixture should create the copied content slug.');
 sr_content_copy_runtime_assert((string) ($newContent['status'] ?? '') === 'draft', 'content copy fixture should keep copied content as draft.');
 sr_content_copy_runtime_assert((int) ($newContent['view_count'] ?? -1) === 0, 'content copy fixture should not copy source view count.');
 sr_content_copy_runtime_assert((string) ($newContent['body_format'] ?? '') === 'html', 'content copy fixture should preserve html body format.');
+sr_content_copy_runtime_assert((string) ($newContent['editor_key'] ?? '') === 'html', 'content copy fixture should preserve explicit editor key.');
 sr_content_copy_runtime_assert(str_contains((string) ($newContent['body_text'] ?? ''), $sourceUrl), 'content copy fixture should preserve embedded source URL.');
 
 $newCache = sr_content_copy_runtime_row($pdo, 'SELECT owner_id, source_url, canonical_url, target_module, target_type, target_id, cache_status, created_by_account_id FROM sr_url_embed_cache WHERE owner_id = :owner_id LIMIT 1', ['owner_id' => $newContentId]);
@@ -286,6 +289,7 @@ sr_content_copy_runtime_assert((string) ($series['title'] ?? '') === 'Copied run
 sr_content_copy_runtime_assert((int) ($series['content_id'] ?? 0) === $newContentId && (int) ($series['active_content_id'] ?? 0) === $newContentId, 'content copy fixture should attach the copied content to the copied series.');
 sr_content_copy_runtime_assert((string) ($series['episode_label'] ?? '') === '1화' && (int) ($series['sort_order'] ?? 0) === 5, 'content copy fixture should preserve copied series item metadata.');
 sr_content_copy_runtime_assert((int) sr_content_copy_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_revisions WHERE content_id = :content_id AND status = "draft"', ['content_id' => $newContentId]) === 1, 'content copy fixture should record a draft revision for the copied content.');
+sr_content_copy_runtime_assert((string) sr_content_copy_runtime_scalar($pdo, 'SELECT editor_key FROM sr_content_revisions WHERE content_id = :content_id LIMIT 1', ['content_id' => $newContentId]) === 'html', 'content copy fixture should record the copied editor key in the revision.');
 
 if ($errors !== []) {
     fwrite(STDERR, "content copy runtime checks failed:\n");

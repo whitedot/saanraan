@@ -1198,6 +1198,23 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
     }
 
+    $postEditorKey = '';
+    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+        $postBoardId = (int) ($post['board_id'] ?? 0);
+        if ($postBoardId > 0) {
+            $postBoard = sr_community_board_by_id($pdo, $postBoardId);
+            if (is_array($postBoard)) {
+                $postEditorKey = sr_community_effective_post_editor($pdo, $postBoard, $settings);
+            }
+        }
+        if ($postEditorKey === '' && is_array($settings) && isset($settings['post_editor'])) {
+            $postEditorKey = sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
+        } elseif ($postEditorKey === '' && $settings === null) {
+            $communitySettings = sr_community_settings($pdo);
+            $postEditorKey = sr_editor_effective_key($pdo, (string) ($communitySettings['post_editor'] ?? 'textarea'));
+        }
+    }
+    $editorStylesheets = sr_body_editor_stylesheets((string) ($post['body_format'] ?? 'plain'), $postEditorKey);
     $markdownStylesheets = (string) ($post['body_format'] ?? 'plain') === 'markdown'
         ? sr_markdown_stylesheets($pdo, $bodyText, 'full')
         : [];
@@ -1206,6 +1223,7 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
         : [];
 
     return array_values(array_unique(array_merge(
+        $editorStylesheets,
         $markdownStylesheets,
         $embedStylesheets
     )));

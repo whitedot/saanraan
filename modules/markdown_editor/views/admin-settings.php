@@ -7,7 +7,7 @@ $customDeclarations = is_array($settings['custom_declarations_json'] ?? null) ? 
 $tokenOptions = sr_markdown_editor_token_options();
 $selectorOptions = sr_markdown_editor_style_selector_options();
 $sampleResult = sr_markdown_editor_render($pdo, sr_markdown_editor_sample_markdown(), 'full');
-$sampleCss = sr_markdown_editor_css($pdo);
+$sampleCss = sr_markdown_editor_preview_css($pdo);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

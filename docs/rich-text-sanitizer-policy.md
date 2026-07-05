@@ -21,6 +21,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 현재 Purifier 설정 기준:
 
 - `HTML.Allowed`는 산란 rich text allowlist와 같은 태그/속성 경계로 제한한다.
+- `HTML.DefinitionID`는 산란 rich text 전용 ID를 사용하고, `HTML.DefinitionRev`는 allowlist 변경 때 올려 serializer cache가 예전 정의를 재사용하지 않게 한다.
 - `URI.AllowedSchemes`는 `http`, `https`만 허용한다. 최종 canonicalizer는 이미지 `src`에서 외부 `http://`를 다시 제거한다.
 - `HTML.Nofollow`는 켜고 `HTML.TargetBlank`는 끈다.
 - `Cache.SerializerPath`는 `storage/cache/htmlpurifier` 아래만 사용한다.

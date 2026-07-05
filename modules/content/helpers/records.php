@@ -10,12 +10,10 @@ function sr_content_input_values(?PDO $pdo = null): array
     $pageGroupIdValue = trim(sr_post_string('content_group_id', 20));
     $pageGroupId = preg_match('/\A[1-9][0-9]*\z/', $pageGroupIdValue) === 1 ? (int) $pageGroupIdValue : 0;
     $pageGroupIdInvalid = $pageGroupIdValue !== '' && $pageGroupIdValue !== '0' && $pageGroupId === 0;
-    $bodyFormat = 'plain';
-    if ($pdo instanceof PDO && ((sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) || sr_content_editor_key($pdo) === 'html')) {
-        $bodyFormat = 'html';
-    } elseif ($pdo instanceof PDO && sr_markdown_renderer_available($pdo) && (sr_post_string('body_format', 20) === 'markdown' || sr_content_markdown_body_enabled($pdo))) {
-        $bodyFormat = 'markdown';
-    }
+    $rawEditorKey = sr_post_string('editor_key', 40);
+    $editorKey = sr_content_item_editor_key($rawEditorKey, true);
+    $effectiveEditorKey = $pdo instanceof PDO ? sr_content_effective_editor_key($pdo, ['editor_key' => $editorKey]) : 'textarea';
+    $bodyFormat = $pdo instanceof PDO ? sr_content_body_format_for_editor($pdo, $effectiveEditorKey, sr_post_string('body_format', 20)) : 'plain';
     $bodyText = sr_post_string_without_truncation('body_text', 100000);
     if (!is_string($bodyText)) {
         $bodyText = '';
@@ -42,6 +40,8 @@ function sr_content_input_values(?PDO $pdo = null): array
         'cover_image_delete' => $coverImageDelete ? 1 : 0,
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
+        'editor_key' => $editorKey,
+        'raw_editor_key' => $rawEditorKey,
         'status' => sr_post_string('status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
@@ -188,6 +188,13 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     } elseif ((string) ($values['body_format'] ?? 'plain') === 'markdown' && !sr_markdown_renderer_available($pdo)) {
         $errors[] = 'Markdown 본문을 저장하려면 Markdown Editor 플러그인을 활성화하세요.';
     }
+    $rawEditorKey = strtolower(trim((string) ($values['raw_editor_key'] ?? $values['editor_key'] ?? '')));
+    $editorKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? ''), true);
+    if ($rawEditorKey !== '' && $rawEditorKey !== $editorKey) {
+        $errors[] = '본문 에디터 값이 올바르지 않습니다.';
+    } elseif (!isset(sr_editor_options($pdo, true)[$editorKey])) {
+        $errors[] = '본문 에디터 값이 올바르지 않습니다.';
+    }
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
@@ -305,7 +312,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'UPDATE sr_content_items
                  SET content_group_id = :content_group_id,
                      slug = :slug, title = :title, summary = :summary, cover_image_url = :cover_image_url, body_text = :body_text,
-                     body_format = :body_format, status = :status,
+                     body_format = :body_format,
+                     editor_key = :editor_key,
+                     status = :status,
                      layout_key = :layout_key,
                      asset_access_enabled = :asset_access_enabled,
                      asset_module = :asset_module,
@@ -342,6 +351,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
+                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -376,9 +386,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -388,6 +398,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
+                'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -474,9 +485,9 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_revisions
-            (content_id, content_group_id, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (content_id, content_group_id, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:content_id, :content_group_id, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:content_id, :content_group_id, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -486,6 +497,7 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
         'body_text' => (string) $values['body_text'],
         'body_format' => (string) ($values['body_format'] ?? 'plain'),
+        'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'inherit'), true),
         'status' => (string) $values['status'],
         'layout_key' => (string) ($values['layout_key'] ?? ''),
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
@@ -611,9 +623,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_items
-                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
              VALUES
-                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
         );
         $stmt->execute([
             'content_group_id' => (int) ($copy['content_group_id'] ?? 0) > 0 ? (int) $copy['content_group_id'] : null,
@@ -623,6 +635,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'cover_image_url' => (string) ($copy['cover_image_url'] ?? ''),
             'body_text' => (string) ($copy['body_text'] ?? ''),
             'body_format' => (string) ($copy['body_format'] ?? 'plain'),
+            'editor_key' => sr_content_item_editor_key((string) ($copy['editor_key'] ?? 'inherit'), true),
             'status' => 'draft',
             'layout_key' => (string) ($copy['layout_key'] ?? ''),
             'asset_access_enabled' => (int) ($copy['asset_access_enabled'] ?? 0),
@@ -1000,6 +1013,7 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                  cover_image_url = '',
                  body_text = :body_text,
                  body_format = 'plain',
+                 editor_key = 'inherit',
                  status = 'deleted'
              WHERE content_id = :content_id"
         );
@@ -1052,6 +1066,7 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                  cover_image_url = '',
                  body_text = :body_text,
                  body_format = 'plain',
+                 editor_key = 'inherit',
                  status = 'deleted',
                  asset_access_enabled = 0,
                  asset_module = '',

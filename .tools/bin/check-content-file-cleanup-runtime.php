@@ -71,6 +71,7 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
+        editor_key TEXT NOT NULL DEFAULT "inherit",
         status TEXT NOT NULL,
         content_group_id INTEGER,
         layout_key TEXT NOT NULL DEFAULT "",
@@ -111,6 +112,7 @@ function sr_content_file_cleanup_schema(PDO $pdo): void
         cover_image_url TEXT NOT NULL DEFAULT "",
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
+        editor_key TEXT NOT NULL DEFAULT "inherit",
         status TEXT NOT NULL,
         layout_key TEXT NOT NULL DEFAULT "",
         asset_access_enabled INTEGER NOT NULL DEFAULT 0,
@@ -283,23 +285,25 @@ $downloadPath = $downloadKey !== '' ? sr_content_file_cleanup_put($downloadKey, 
 $sharedPath = $sharedKey !== '' ? sr_content_file_cleanup_put($sharedKey, 'shared file') : '';
 $bodyPath = $bodyKey !== '' ? sr_content_file_cleanup_put($bodyKey, 'body image') : '';
 
-$pdo->prepare('INSERT INTO sr_content_items (id, title, slug, summary, body_text, body_format, status, created_by, updated_by, created_at, updated_at) VALUES (:id, :title, :slug, :summary, :body_text, :body_format, :status, 1, 1, :created_at, :updated_at)')->execute([
+$pdo->prepare('INSERT INTO sr_content_items (id, title, slug, summary, body_text, body_format, editor_key, status, created_by, updated_by, created_at, updated_at) VALUES (:id, :title, :slug, :summary, :body_text, :body_format, :editor_key, :status, 1, 1, :created_at, :updated_at)')->execute([
     'id' => $contentId,
     'title' => 'Runtime cleanup content',
     'slug' => 'runtime-cleanup-content',
     'summary' => 'summary',
     'body_text' => '<p><img src="/content/body-file?content_id=' . (string) $contentId . '&file=body-delete.png"></p>',
     'body_format' => 'html',
+    'editor_key' => 'html',
     'status' => 'published',
     'created_at' => $now,
     'updated_at' => $now,
 ]);
-$pdo->prepare('INSERT INTO sr_content_revisions (content_id, title, summary, body_text, body_format, status, created_by, created_at) VALUES (:content_id, :title, :summary, :body_text, :body_format, :status, 1, :created_at)')->execute([
+$pdo->prepare('INSERT INTO sr_content_revisions (content_id, title, summary, body_text, body_format, editor_key, status, created_by, created_at) VALUES (:content_id, :title, :summary, :body_text, :body_format, :editor_key, :status, 1, :created_at)')->execute([
     'content_id' => $contentId,
     'title' => 'Runtime cleanup content',
     'summary' => 'summary',
     'body_text' => 'revision body',
     'body_format' => 'html',
+    'editor_key' => 'html',
     'status' => 'published',
     'created_at' => $now,
 ]);
@@ -383,10 +387,11 @@ if ($canWriteBodyStorage) {
     sr_content_file_cleanup_assert((int) ($result['body_files_deleted'] ?? -1) === 0, 'content file cleanup fixture should skip physical body file deletion when storage is not writable.');
 }
 
-$content = sr_content_file_cleanup_row($pdo, 'SELECT title, summary, body_text, body_format, status, asset_access_enabled, asset_module, asset_access_amount FROM sr_content_items WHERE id = :id', ['id' => $contentId]);
+$content = sr_content_file_cleanup_row($pdo, 'SELECT title, summary, body_text, body_format, editor_key, status, asset_access_enabled, asset_module, asset_access_amount FROM sr_content_items WHERE id = :id', ['id' => $contentId]);
 sr_content_file_cleanup_assert((string) ($content['status'] ?? '') === 'deleted', 'content file cleanup fixture should mark content deleted.');
 sr_content_file_cleanup_assert((string) ($content['summary'] ?? 'x') === '', 'content file cleanup fixture should clear content summary.');
 sr_content_file_cleanup_assert((string) ($content['body_format'] ?? '') === 'plain', 'content file cleanup fixture should downgrade redacted body to plain.');
+sr_content_file_cleanup_assert((string) ($content['editor_key'] ?? '') === 'inherit', 'content file cleanup fixture should reset redacted content editor key to inherit.');
 sr_content_file_cleanup_assert((int) ($content['asset_access_enabled'] ?? -1) === 0 && (string) ($content['asset_module'] ?? 'x') === '' && (int) ($content['asset_access_amount'] ?? -1) === 0, 'content file cleanup fixture should disable paid content settings.');
 
 $file = sr_content_file_cleanup_row($pdo, 'SELECT title, original_name, storage_key, storage_path, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount FROM sr_content_files WHERE id = :id', ['id' => $downloadFileId]);
