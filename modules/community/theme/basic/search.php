@@ -42,7 +42,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     $boardUrl = '/community/board?key=' . rawurlencode((string) ($post['board_key'] ?? ''));
                     $postExcerpt = (int) ($post['is_secret'] ?? 0) === 1 || empty($post['search_excerpt_allowed'])
                         ? ''
-                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 180);
+                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), 180);
                     ?>
                     <li class="community-search-result">
                         <div class="community-search-result-meta">

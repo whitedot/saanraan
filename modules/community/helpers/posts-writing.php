@@ -204,7 +204,6 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
          SET status = 'deleted',
              title = :title,
              body_text = '',
-             body_format = 'plain',
              author_public_name_snapshot = '',
              guest_author_name = '',
              guest_password_hash = NULL,
@@ -284,7 +283,6 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  extra_values_json = :extra_values_json,
                  title = :title,
                  body_text = :body_text,
-                 body_format = :body_format,
                  seo_title = :seo_title,
                  seo_description = :seo_description,
                  og_title = :og_title,
@@ -299,7 +297,6 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
             'title' => trim((string) $values['title']),
             'body_text' => $bodyText,
-            'body_format' => $bodyFormat,
             'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),
             'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
             'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
@@ -436,11 +433,7 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         $normalizedSettings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
         $postEditorKey = sr_editor_effective_key($pdo, (string) ($normalizedSettings['post_editor'] ?? 'textarea'));
     }
-    if ($pdo instanceof PDO && ((sr_post_string('body_format', 20) === 'html' && sr_community_html_post_body_enabled($pdo, $board, $settings)) || $postEditorKey === 'html')) {
-        $bodyFormat = 'html';
-    } elseif ($pdo instanceof PDO && sr_markdown_renderer_available($pdo) && (sr_post_string('body_format', 20) === 'markdown' || sr_community_markdown_post_body_enabled($pdo, $board, $settings))) {
-        $bodyFormat = 'markdown';
-    }
+    $bodyFormat = sr_community_body_format_for_editor_key($postEditorKey);
 
     $bodyText = sr_post_string_without_truncation('body_text', sr_community_post_body_storage_max_bytes());
     if ($bodyFormat === 'html' && is_string($bodyText)) {
@@ -510,9 +503,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, extra_values_json, title, body_text, body_format, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, og_title, og_description, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, extra_values_json, title, body_text, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, og_title, og_description, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :extra_values_json, :title, :body_text, :body_format, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :og_title, :og_description, :is_secret, :summary_feed_candidate, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :extra_values_json, :title, :body_text, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :og_title, :og_description, :is_secret, :summary_feed_candidate, :status, 0, NULL, :created_at, :updated_at)'
     );
     $guestValues = sr_community_guest_author_values_for_storage($values);
     $params = [
@@ -528,7 +521,6 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'title' => trim((string) $values['title']),
         'body_text' => $bodyText,
-        'body_format' => $bodyFormat,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),

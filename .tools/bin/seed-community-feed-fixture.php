@@ -197,9 +197,9 @@ function sr_community_feed_fixture_seed(PDO $pdo, string $runKey, int $postCount
 
         $postStmt = $pdo->prepare(
             'INSERT INTO sr_community_posts
-                (board_id, category_id, author_account_id, author_public_name_snapshot, guest_author_name, title, body_text, body_format, is_secret, status, view_count, last_commented_at, created_at, updated_at)
+                (board_id, category_id, author_account_id, author_public_name_snapshot, guest_author_name, title, body_text, is_secret, status, view_count, last_commented_at, created_at, updated_at)
              VALUES
-                (:board_id, NULL, NULL, :author_public_name_snapshot, "", :title, :body_text, "plain", :is_secret, :status, :view_count, :last_commented_at, :created_at, :updated_at)'
+                (:board_id, NULL, NULL, :author_public_name_snapshot, "", :title, :body_text, :is_secret, :status, :view_count, :last_commented_at, :created_at, :updated_at)'
         );
         $commentStmt = $pdo->prepare(
             'INSERT INTO sr_community_comments

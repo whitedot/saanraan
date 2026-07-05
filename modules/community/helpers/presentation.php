@@ -254,7 +254,7 @@ function sr_community_home_post_image_url(PDO $pdo, array $post, array $board, a
     }
 
     $postId = (int) ($post['id'] ?? 0);
-    if ($postId < 1 || (string) ($post['body_format'] ?? 'plain') !== 'html') {
+    if ($postId < 1 || sr_community_post_body_format($pdo, $post, $settings) !== 'html') {
         return '';
     }
 
@@ -330,7 +330,7 @@ function sr_community_home_post_feed_from_rows(PDO $pdo, array $rows, array $boa
         if ($homeExcerptAllowed && !array_key_exists('home_excerpt', $post)) {
             $post['home_excerpt'] = !empty($post['is_secret'])
                 ? ''
-                : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
+                : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), 160);
         }
         $posts[] = $post;
     }
@@ -398,7 +398,6 @@ function sr_community_home_post_feed_rows_by_snapshots(PDO $pdo, array $snapshot
             'guest_user_agent_hash' => null,
             'title' => (string) ($snapshot['title'] ?? ''),
             'body_text' => '',
-            'body_format' => 'plain',
             'is_secret' => !empty($snapshot['is_secret']) ? 1 : 0,
             'status' => 'published',
             'view_count' => max(0, (int) ($snapshot['view_count'] ?? 0)),

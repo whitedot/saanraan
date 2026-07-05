@@ -294,7 +294,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -393,6 +393,46 @@ function sr_community_body_excerpt(string $bodyText, string $bodyFormat, int $le
     return (function_exists('mb_substr') ? mb_substr($plainText, 0, $length) : substr($plainText, 0, $length)) . '...';
 }
 
+function sr_community_body_format_for_editor_key(string $editorKey): string
+{
+    $editorKey = sr_editor_normalize_key($editorKey);
+    if ($editorKey === 'markdown') {
+        return 'markdown';
+    }
+    if (in_array($editorKey, ['html', 'ckeditor'], true)) {
+        return 'html';
+    }
+
+    return 'plain';
+}
+
+function sr_community_post_body_format(PDO $pdo, array $post, ?array $settings = null): string
+{
+    $boardId = (int) ($post['board_id'] ?? 0);
+    if ($boardId > 0) {
+        $boardEditorValue = null;
+        try {
+            $boardEditorValue = sr_community_board_setting_value($pdo, $boardId, 'post_editor');
+        } catch (Throwable) {
+            $boardEditorValue = null;
+        }
+        $boardEditor = is_string($boardEditorValue) ? sr_community_post_editor_key($boardEditorValue) : '';
+        if ($boardEditor !== '') {
+            return sr_community_body_format_for_editor_key(sr_editor_effective_key($pdo, $boardEditor));
+        }
+    }
+
+    if (!is_array($settings)) {
+        try {
+            $settings = sr_community_settings($pdo);
+        } catch (Throwable) {
+            $settings = [];
+        }
+    }
+
+    return sr_community_body_format_for_editor_key(sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')));
+}
+
 function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0, int $authorAccountId = 0): int
 {
     if ($boardId < 1) {
@@ -477,7 +517,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
     }
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS published_comment_count
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -632,7 +672,7 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.reaction_preset_key, p.reaction_comment_preset_key, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.reaction_preset_key, p.reaction_comment_preset_key, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -947,7 +987,7 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.body_text, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,
@@ -1164,9 +1204,10 @@ function sr_community_plain_text_html(string $value, bool $linkUrls = false): st
 function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO $pdo = null): string
 {
     $bodyText = (string) ($post['body_text'] ?? '');
-    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+    $bodyFormat = $pdo instanceof PDO ? sr_community_post_body_format($pdo, $post, $settings) : 'plain';
+    if ($bodyFormat === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
-    } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
+    } elseif ($bodyFormat === 'markdown') {
         $rendered = $pdo instanceof PDO ? sr_markdown_render($pdo, $bodyText, 'full') : null;
         $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
@@ -1188,9 +1229,10 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     }
 
     $bodyText = (string) ($post['body_text'] ?? '');
-    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+    $bodyFormat = sr_community_post_body_format($pdo, $post, $settings);
+    if ($bodyFormat === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
-    } elseif ((string) ($post['body_format'] ?? 'plain') === 'markdown') {
+    } elseif ($bodyFormat === 'markdown') {
         $rendered = sr_markdown_render($pdo, $bodyText, 'full');
         $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
@@ -1199,7 +1241,7 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     }
 
     $postEditorKey = '';
-    if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+    if ($bodyFormat === 'html') {
         $postBoardId = (int) ($post['board_id'] ?? 0);
         if ($postBoardId > 0) {
             $postBoard = sr_community_board_by_id($pdo, $postBoardId);
@@ -1214,8 +1256,8 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
             $postEditorKey = sr_editor_effective_key($pdo, (string) ($communitySettings['post_editor'] ?? 'textarea'));
         }
     }
-    $editorStylesheets = sr_body_editor_stylesheets((string) ($post['body_format'] ?? 'plain'), $postEditorKey);
-    $markdownStylesheets = (string) ($post['body_format'] ?? 'plain') === 'markdown'
+    $editorStylesheets = sr_body_editor_stylesheets($bodyFormat, $postEditorKey);
+    $markdownStylesheets = $bodyFormat === 'markdown'
         ? sr_markdown_stylesheets($pdo, $bodyText, 'full')
         : [];
     $embedStylesheets = sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)

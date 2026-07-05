@@ -36,7 +36,7 @@ $communityFrameModifier = 'account';
                         $postStatus = (string) ($post['status'] ?? 'published');
                         $postExcerpt = !empty($post['is_secret'])
                             ? ''
-                            : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160);
+                            : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), 160);
                         ?>
                         <article class="community-home-post community-board-post-list-item">
                             <div class="community-home-post-body">

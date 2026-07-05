@@ -25,7 +25,7 @@ $communityFrameModifier = 'home';
                         $postImageUrl = (string) ($post['home_image_url'] ?? '');
                         $postExcerpt = !empty($post['is_secret']) || empty($post['home_excerpt_allowed'])
                             ? ''
-                            : (string) ($post['home_excerpt'] ?? sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160));
+                            : (string) ($post['home_excerpt'] ?? sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), 160));
                         $postAuthorLabel = sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo);
                         $postAuthorInitial = $postAuthorLabel !== ''
                             ? (function_exists('mb_substr') ? mb_substr($postAuthorLabel, 0, 1) : substr($postAuthorLabel, 0, 1))

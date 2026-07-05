@@ -55,7 +55,6 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         extra_values_json TEXT NULL,
         title TEXT NOT NULL,
         body_text TEXT NOT NULL DEFAULT "",
-        body_format TEXT NOT NULL DEFAULT "plain",
         reaction_preset_key TEXT NOT NULL DEFAULT "",
         reaction_comment_preset_key TEXT NOT NULL DEFAULT "",
         is_secret INTEGER NOT NULL DEFAULT 0,
@@ -225,10 +224,9 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
     $latestCommentsCached = sr_community_home_latest_comments($pdo, sr_community_feed_cache_public_baseline_board_ids($baselineBoards), $homeExcerptAllowed, 10, true);
     $s3BodyImageUrl = sr_community_home_post_image_url($pdo, [
         'id' => 9001,
-        'body_format' => 'html',
         'body_text' => '<p><img src="/community/body-file?post_id=9001&amp;file=body.webp&amp;d=s3"></p>',
         'is_secret' => 0,
-    ], ['id' => 1, 'read_policy' => 'public', 'effective_read_policy' => 'public'], $settings, true);
+    ], ['id' => 1, 'read_policy' => 'public', 'effective_read_policy' => 'public'], array_merge($settings, ['post_editor' => 'html']), true);
 
     sr_check_community_feed_cache_contract_assert(
         array_map(static fn (array $post): int => (int) $post['id'], $latest) === [2, 1],

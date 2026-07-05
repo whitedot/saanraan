@@ -81,7 +81,7 @@ function sr_measure_community_home_feed_variant_sql(PDO $pdo, string $sort, arra
 
     return [
         'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
-                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -404,7 +404,6 @@ function sr_measure_community_home_feed_create_fixture(PDO $pdo, int $postCount,
         extra_values_json TEXT NULL,
         title VARCHAR(255) NOT NULL,
         body_text TEXT NOT NULL,
-        body_format VARCHAR(20) NOT NULL DEFAULT "plain",
         reaction_preset_key VARCHAR(80) NOT NULL DEFAULT "",
         reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT "",
         is_secret TINYINT NOT NULL DEFAULT 0,
@@ -485,9 +484,9 @@ function sr_measure_community_home_feed_create_fixture(PDO $pdo, int $postCount,
     $pdo->beginTransaction();
     $postStmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (id, board_id, author_account_id, author_public_name_snapshot, title, body_text, body_format, is_secret, status, view_count, created_at, updated_at)
+            (id, board_id, author_account_id, author_public_name_snapshot, title, body_text, is_secret, status, view_count, created_at, updated_at)
          VALUES
-            (:id, :board_id, :author_account_id, :author_public_name_snapshot, :title, :body_text, "plain", :is_secret, :status, :view_count, :created_at, :updated_at)'
+            (:id, :board_id, :author_account_id, :author_public_name_snapshot, :title, :body_text, :is_secret, :status, :view_count, :created_at, :updated_at)'
     );
     $commentStmt = $pdo->prepare('INSERT INTO sr_community_comments (id, post_id, status) VALUES (:id, :post_id, :status)');
     $attachmentStmt = $pdo->prepare(

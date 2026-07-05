@@ -69,7 +69,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
                 $postExcerpt = !empty($post['is_secret']) || empty($listExcerptEnabled)
                     ? ''
-                    : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), (int) $listExcerptLength);
+                    : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), (int) $listExcerptLength);
                 $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
                 ?>
                 <article class="example-community-post-card">

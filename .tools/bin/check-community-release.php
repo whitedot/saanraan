@@ -555,7 +555,7 @@ sr_community_release_file_contains('modules/community/privacy-export.php', [
     'WHERE reporter_account_id = :account_id',
     'WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id',
     'WHERE account_id = :account_id',
-    'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at',
+    'SELECT id, board_id, title, body_text, status, created_at, updated_at',
     'SELECT id, post_id, body_text, status, created_at, updated_at',
 ], 'Community privacy-export.php');
 $privacyExportContent = is_file('modules/community/privacy-export.php') ? (string) file_get_contents('modules/community/privacy-export.php') : '';
@@ -651,7 +651,6 @@ $requiredInstallFragments = [
         'UNIQUE KEY uq_sr_community_board_setting_sources_key (board_id, setting_key)',
     ],
     'sr_community_posts' => [
-        'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
         'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
         'extra_values_json TEXT NULL',
         'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',

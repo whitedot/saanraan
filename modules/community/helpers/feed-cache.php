@@ -513,7 +513,7 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
 
     return [
         'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
-                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -570,8 +570,10 @@ function sr_community_feed_cache_card_snapshot(array $post): array
     $postId = (int) ($post['post_id'] ?? $post['id'] ?? 0);
     $boardId = (int) ($post['board_id'] ?? 0);
     $bodyProfileHash = '';
-    if (($GLOBALS['pdo'] ?? null) instanceof PDO && (string) ($post['body_format'] ?? 'plain') === 'markdown') {
-        $markdownResult = sr_markdown_render($GLOBALS['pdo'], (string) ($post['body_text'] ?? ''), 'plain');
+    $pdo = ($GLOBALS['pdo'] ?? null) instanceof PDO ? $GLOBALS['pdo'] : null;
+    $bodyFormat = $pdo instanceof PDO ? sr_community_post_body_format($pdo, $post) : 'plain';
+    if ($pdo instanceof PDO && $bodyFormat === 'markdown') {
+        $markdownResult = sr_markdown_render($pdo, (string) ($post['body_text'] ?? ''), 'plain');
         $bodyProfileHash = is_array($markdownResult) ? (string) ($markdownResult['profile_hash'] ?? '') : '';
     }
 
@@ -585,7 +587,7 @@ function sr_community_feed_cache_card_snapshot(array $post): array
         'comment_count' => max(0, (int) ($post['published_comment_count'] ?? $post['comment_count'] ?? 0)),
         'thumbnail_source' => sr_community_feed_cache_thumbnail_source_marker($post),
         'is_secret' => !empty($post['is_secret']) ? 1 : 0,
-        'excerpt' => !empty($post['is_secret']) ? '' : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 160),
+        'excerpt' => !empty($post['is_secret']) ? '' : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), $bodyFormat, 160),
         'body_profile_hash' => $bodyProfileHash,
         'created_at' => sr_clean_single_line((string) ($post['created_at'] ?? ''), 40),
         'updated_at' => sr_clean_single_line((string) ($post['updated_at'] ?? ''), 40),

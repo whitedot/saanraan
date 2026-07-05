@@ -393,8 +393,8 @@ sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
 ]);
 
 sr_ckeditor_assets_require_markers('modules/community/helpers/posts.php', [
-    'sr_community_effective_post_editor($pdo, $postBoard, $settings)',
-    'sr_body_editor_stylesheets((string) ($post[\'body_format\'] ?? \'plain\'), $postEditorKey)',
+    '$bodyFormat = sr_community_post_body_format($pdo, $post, $settings)',
+    'sr_body_editor_stylesheets($bodyFormat, $postEditorKey)',
 ]);
 
 sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'html') === [], 'Direct HTML bodies should not load editor-ck.css.');

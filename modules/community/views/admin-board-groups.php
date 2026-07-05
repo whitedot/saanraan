@@ -21,7 +21,6 @@ $selectedBoardGroupStatuses = is_array($boardGroupListFilters['status'] ?? null)
 $adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardGroupsPage === 'list', '/admin/community/board-groups');
 
 $settingLabels = [
-    'post_editor' => '게시글 에디터',
     'read_policy' => sr_t('community::ui.text.0b6c5dfd'),
     'write_policy' => sr_t('community::ui.text.4f05f6a8'),
     'comment_policy' => sr_t('community::ui.text.0550e13c'),

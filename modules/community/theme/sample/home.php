@@ -57,7 +57,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
                         </h2>
                         <?php if (empty($post['is_secret']) && !empty($post['home_excerpt_allowed'])) { ?>
-                            <p><?php echo sr_e((string) ($post['home_excerpt'] ?? sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), 150))); ?></p>
+                            <p><?php echo sr_e((string) ($post['home_excerpt'] ?? sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), 150))); ?></p>
                         <?php } ?>
                         <footer>
                             <span><?php echo sr_e($postAuthorLabel); ?></span>

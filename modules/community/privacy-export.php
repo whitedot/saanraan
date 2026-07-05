@@ -324,9 +324,9 @@ return static function (PDO $pdo, int $accountId): array {
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
+        /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, status, created_at, updated_at */
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
-                p.title, p.author_public_name_snapshot, p.extra_values_json, p.body_text, p.body_format, p.status, p.created_at, p.updated_at
+                p.title, p.author_public_name_snapshot, p.extra_values_json, p.body_text, p.status, p.created_at, p.updated_at
          FROM sr_community_posts p
          ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id

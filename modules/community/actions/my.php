@@ -50,7 +50,7 @@ if ($myReadableBoardIds !== []) {
     if ($myType === 'posts') {
         $stmt = $pdo->prepare(
             'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ', p.author_account_id,
-                    p.title, p.body_text, p.body_format, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
+                    p.title, p.body_text, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
                     (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count
              FROM sr_community_posts p
              INNER JOIN sr_community_boards b ON b.id = p.board_id

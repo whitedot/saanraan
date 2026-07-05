@@ -162,7 +162,6 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
             extra_values_json TEXT NOT NULL DEFAULT "[]",
             title TEXT NOT NULL,
             body_text TEXT NOT NULL,
-            body_format TEXT NOT NULL DEFAULT "plain",
             reaction_preset_key TEXT NOT NULL DEFAULT "",
             reaction_comment_preset_key TEXT NOT NULL DEFAULT "",
             seo_title TEXT NOT NULL DEFAULT "",

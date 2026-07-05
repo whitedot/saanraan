@@ -155,10 +155,10 @@ sr_markdown_editor_check_assert(
     'Content public markdown bodies should include editor-md.css before the markdown editor stylesheet URL.'
 );
 sr_markdown_editor_check_assert(
-    sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
+    sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'embed_enabled' => false], ['post_editor' => 'markdown', 'embed_enabled' => false], $enabledPdo) !== [],
     'Community markdown body stylesheets should be returned even when URL embeds are disabled.'
 );
-$communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
+$communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'embed_enabled' => false], ['post_editor' => 'markdown', 'embed_enabled' => false], $enabledPdo);
 sr_markdown_editor_check_assert(
     ($communityMarkdownStylesheets[0] ?? '') === '/assets/editor-md.css'
         &&

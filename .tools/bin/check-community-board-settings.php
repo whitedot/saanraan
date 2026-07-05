@@ -93,7 +93,6 @@ function sr_check_community_board_settings_runtime(): void
             extra_values_json TEXT NULL,
             title TEXT NOT NULL,
             body_text TEXT NOT NULL,
-            body_format TEXT NOT NULL DEFAULT 'plain',
             reaction_preset_key TEXT NOT NULL DEFAULT '',
             reaction_comment_preset_key TEXT NOT NULL DEFAULT '',
             seo_title TEXT NOT NULL DEFAULT '',
@@ -267,22 +266,21 @@ function sr_check_community_board_settings_runtime(): void
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (id, board_id, author_account_id, title, body_text, body_format, is_secret, status, view_count, created_at, updated_at)
+            (id, board_id, author_account_id, title, body_text, is_secret, status, view_count, created_at, updated_at)
          VALUES
-            (:id, 10, 0, :title, :body_text, :body_format, :is_secret, :status, :view_count, :created_at, :updated_at)'
+            (:id, 10, 0, :title, :body_text, :is_secret, :status, :view_count, :created_at, :updated_at)'
     );
     foreach ([
-        ['id' => 1, 'title' => 'first', 'body_text' => 'alpha body', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'published', 'view_count' => 5],
-        ['id' => 2, 'title' => 'second', 'body_text' => 'beta body', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'published', 'view_count' => 30],
-        ['id' => 3, 'title' => 'third', 'body_text' => '<p>gamma<br>body</p>', 'body_format' => 'html', 'is_secret' => 0, 'status' => 'published', 'view_count' => 10],
-        ['id' => 4, 'title' => 'draft', 'body_text' => 'hidden', 'body_format' => 'plain', 'is_secret' => 0, 'status' => 'draft', 'view_count' => 999],
-        ['id' => 5, 'title' => 'secret alpha', 'body_text' => 'private token', 'body_format' => 'plain', 'is_secret' => 1, 'status' => 'published', 'view_count' => 1],
+        ['id' => 1, 'title' => 'first', 'body_text' => 'alpha body', 'is_secret' => 0, 'status' => 'published', 'view_count' => 5],
+        ['id' => 2, 'title' => 'second', 'body_text' => 'beta body', 'is_secret' => 0, 'status' => 'published', 'view_count' => 30],
+        ['id' => 3, 'title' => 'third', 'body_text' => '<p>gamma<br>body</p>', 'is_secret' => 0, 'status' => 'published', 'view_count' => 10],
+        ['id' => 4, 'title' => 'draft', 'body_text' => 'hidden', 'is_secret' => 0, 'status' => 'draft', 'view_count' => 999],
+        ['id' => 5, 'title' => 'secret alpha', 'body_text' => 'private token', 'is_secret' => 1, 'status' => 'published', 'view_count' => 1],
     ] as $post) {
         $stmt->execute([
             'id' => $post['id'],
             'title' => $post['title'],
             'body_text' => $post['body_text'],
-            'body_format' => $post['body_format'],
             'is_secret' => $post['is_secret'],
             'status' => $post['status'],
             'view_count' => $post['view_count'],

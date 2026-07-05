@@ -652,9 +652,9 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
     $summaryFeedCandidate = sr_community_summary_feed_candidate_value_for_board($pdo, $targetBoardId);
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, title, body_text, body_format, reaction_preset_key, reaction_comment_preset_key, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, title, body_text, reaction_preset_key, reaction_comment_preset_key, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :title, :body_text, :body_format, :reaction_preset_key, :reaction_comment_preset_key, :is_secret, :summary_feed_candidate, :status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :title, :body_text, :reaction_preset_key, :reaction_comment_preset_key, :is_secret, :summary_feed_candidate, :status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     $processed = 0;
     foreach ($maps as $map) {
@@ -666,13 +666,13 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', (int) $job['id'], $lockToken);
             continue;
         }
+        $sourceBodyFormat = sr_community_post_body_format($pdo, $post);
         $params = [
             'board_id' => $targetBoardId,
             'author_account_id' => (int) $post['author_account_id'],
             'author_public_name_snapshot' => (string) ($post['author_public_name_snapshot'] ?? ''),
             'title' => (string) $post['title'],
             'body_text' => (string) $post['body_text'],
-            'body_format' => (string) ($post['body_format'] ?? 'plain'),
             'reaction_preset_key' => (string) ($post['reaction_preset_key'] ?? ''),
             'reaction_comment_preset_key' => (string) ($post['reaction_comment_preset_key'] ?? ''),
             'is_secret' => (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0,
@@ -690,7 +690,7 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
                 $params['category_id'] = null;
             }
         }
-        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+        if ($sourceBodyFormat === 'html') {
             $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
         }
         $createdBodyFiles = [];
@@ -699,7 +699,7 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
         try {
             $insert->execute($params);
             $newPostId = (int) $pdo->lastInsertId();
-            if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+            if ($sourceBodyFormat === 'html') {
                 $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $params['body_text'], $createdBodyFiles);
                 $bodyText = sr_community_sanitize_post_html($bodyText);
                 if ($bodyText !== (string) $params['body_text']) {

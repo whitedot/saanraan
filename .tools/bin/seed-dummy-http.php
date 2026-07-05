@@ -770,7 +770,6 @@ function seed_create_community_post(string $runKey, int $index, array $literatur
         'title' => (string) ($literatureText['title'] ?? '근대 문학') . ' 원문 ' . $n,
         'category_id' => '0',
         'body_text' => $bodyText,
-        'body_format' => 'plain',
         'series_mode' => 'none',
         'series_id' => '0',
         'new_series_title' => '',
