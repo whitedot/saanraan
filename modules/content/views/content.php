@@ -16,6 +16,7 @@ if (sr_content_clean_cover_image_url((string) ($page['cover_image_url'] ?? '')) 
     $seo['og']['image'] = (string) $page['cover_image_url'];
 }
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
+$contentImageFiles = isset($contentImageFiles) && is_array($contentImageFiles) ? $contentImageFiles : [];
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
@@ -129,6 +130,32 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <p class="content-access-notice">쿠폰으로 열람했습니다.</p>
             <?php } ?>
             <div class="content-body">
+                <?php if ($contentImageFiles !== []) { ?>
+                    <section class="content-image-thumbnails" aria-label="<?php echo sr_e('첨부 이미지'); ?>">
+                        <?php foreach ($contentImageFiles as $contentImageFile) { ?>
+                            <?php
+                            $contentImageOriginalUrl = (string) ($contentImageFile['original_url'] ?? '');
+                            $contentImageThumbnailUrl = (string) ($contentImageFile['thumbnail_url'] ?? $contentImageOriginalUrl);
+                            if ($contentImageOriginalUrl === '' || $contentImageThumbnailUrl === '') {
+                                continue;
+                            }
+                            $contentImageName = (string) ($contentImageFile['original_name'] ?? '');
+                            $contentImageSize = (int) ($contentImageFile['size_bytes'] ?? 0);
+                            ?>
+                            <figure class="content-image-thumbnail">
+                                <a class="content-image-thumbnail-link" href="<?php echo sr_e($contentImageOriginalUrl); ?>" data-content-image-layer-trigger>
+                                    <img src="<?php echo sr_e($contentImageThumbnailUrl); ?>" alt="<?php echo sr_e($contentImageName); ?>" loading="lazy">
+                                </a>
+                                <figcaption class="content-image-thumbnail-caption">
+                                    <a href="<?php echo sr_e(sr_content_file_public_url($contentImageFile, (int) ($page['id'] ?? 0))); ?>"><?php echo sr_e($contentImageName !== '' ? $contentImageName : '첨부 이미지'); ?></a>
+                                    <?php if ($contentImageSize > 0) { ?>
+                                        <span><?php echo sr_e(sr_content_format_bytes($contentImageSize)); ?></span>
+                                    <?php } ?>
+                                </figcaption>
+                            </figure>
+                        <?php } ?>
+                    </section>
+                <?php } ?>
                 <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
             </div>
             <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>

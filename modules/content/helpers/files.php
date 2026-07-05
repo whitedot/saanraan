@@ -64,6 +64,15 @@ function sr_content_file_mime_is_allowed(string $mimeType): bool
     return in_array(strtolower(trim($mimeType)), sr_content_file_mime_types_for_extensions(sr_content_file_allowed_extensions()), true);
 }
 
+function sr_content_file_is_image(array $file): bool
+{
+    return in_array(strtolower((string) ($file['mime_type'] ?? '')), [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ], true);
+}
+
 function sr_content_file_storage_driver(array $file): string
 {
     $driver = strtolower((string) ($file['storage_driver'] ?? 'local'));
@@ -124,6 +133,63 @@ function sr_content_files_for_content(PDO $pdo, int $pageId): array
     ]);
 
     return $stmt->fetchAll();
+}
+
+function sr_content_file_public_url(array $file, int $contentId = 0, bool $inline = false): string
+{
+    $fileId = (int) ($file['id'] ?? 0);
+    if ($fileId < 1) {
+        return '';
+    }
+
+    $resolvedContentId = $contentId > 0 ? $contentId : (int) ($file['content_id'] ?? 0);
+    $url = '/content/download?id=' . rawurlencode((string) $fileId);
+    if ($resolvedContentId > 0) {
+        $url .= '&content_id=' . rawurlencode((string) $resolvedContentId);
+    }
+    if ($inline) {
+        $url .= '&inline=1';
+    }
+
+    return sr_url($url);
+}
+
+function sr_content_file_view_image_thumbnail_options(array $file): array
+{
+    unset($file);
+
+    return [
+        'width' => 640,
+        'height' => 360,
+        'mode' => 'contain',
+        'quality' => 82,
+        'format' => 'source',
+        'require_cache' => true,
+    ];
+}
+
+function sr_content_file_view_image_thumbnail_url(PDO $pdo, array $file, int $contentId = 0): string
+{
+    if ((int) ($file['id'] ?? 0) < 1 || !sr_content_file_is_image($file)) {
+        return '';
+    }
+
+    $publicUrl = sr_content_file_public_url($file, $contentId, true);
+    if ($publicUrl === '') {
+        return '';
+    }
+
+    return sr_thumbnail_public_url($pdo, [
+        'public' => true,
+        'module_key' => 'content',
+        'storage_driver' => sr_content_file_storage_driver($file),
+        'storage_key' => sr_content_file_storage_key($file),
+        'mime_type' => (string) ($file['mime_type'] ?? ''),
+        'size_bytes' => (int) ($file['size_bytes'] ?? 0),
+        'checksum_sha256' => (string) ($file['checksum_sha256'] ?? ''),
+        'source_path' => sr_content_file_path($file) ?? '',
+        'public_url' => $publicUrl,
+    ], sr_content_file_view_image_thumbnail_options($file));
 }
 
 function sr_content_file_by_id(PDO $pdo, int $fileId, int $contentId = 0): ?array

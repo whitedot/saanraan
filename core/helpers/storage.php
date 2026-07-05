@@ -523,6 +523,137 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     return sr_thumbnail_public_cache_url($cacheRelative);
 }
 
+function sr_thumbnail_protected_file(array $source, array $options): ?array
+{
+    $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
+    $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
+    $sourcePath = '';
+    if ($driver === 'local' && is_string($source['source_path'] ?? null)) {
+        $sourcePath = (string) $source['source_path'];
+    }
+    if (!in_array($driver, ['local', 's3'], true) || (!sr_storage_key_is_safe($key) && $sourcePath === '')) {
+        return null;
+    }
+
+    $sourceFile = $sourcePath !== ''
+        ? sr_thumbnail_local_source_file($sourcePath, (int) ($options['max_source_bytes'] ?? 20971520))
+        : sr_storage_copy_to_temp_file($driver, $key, [
+            'max_bytes' => (int) ($options['max_source_bytes'] ?? 20971520),
+        ]);
+    if (!is_array($sourceFile) || !is_string($sourceFile['path'] ?? null)) {
+        return null;
+    }
+    $sourcePath = (string) $sourceFile['path'];
+
+    $imageInfo = @getimagesize($sourcePath);
+    if (!is_array($imageInfo) || (int) ($imageInfo[0] ?? 0) < 1 || (int) ($imageInfo[1] ?? 0) < 1) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+    $detectedImageMime = strtolower(trim((string) ($imageInfo['mime'] ?? sr_upload_detect_mime($sourcePath))));
+    if (!in_array($detectedImageMime, sr_thumbnail_supported()['mime_types'], true)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+    $sourcePixels = (int) ($imageInfo[0] ?? 0) * (int) ($imageInfo[1] ?? 0);
+    if ($sourcePixels > max(1, (int) ($options['max_source_pixels'] ?? 40000000))) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+
+    $normalized = sr_thumbnail_normalize_options($options);
+    if (!empty($options['preserve_aspect'])) {
+        $sourceWidth = (int) ($imageInfo[0] ?? 0);
+        $sourceHeight = (int) ($imageInfo[1] ?? 0);
+        $targetWidth = min((int) $normalized['width'], $sourceWidth);
+        $targetHeight = max(1, min(2000, (int) round($sourceHeight * ($targetWidth / max(1, $sourceWidth)))));
+        $normalized['width'] = max(1, $targetWidth);
+        $normalized['height'] = $targetHeight;
+        $normalized['mode'] = 'contain';
+    }
+
+    $format = $normalized['format'] === 'source' ? sr_thumbnail_format_for_mime($detectedImageMime) : $normalized['format'];
+    $format = $format === 'jpeg' ? 'jpg' : $format;
+    $contentType = match ($format) {
+        'jpg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        default => '',
+    };
+    if ($contentType === '') {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+
+    $moduleKey = sr_thumbnail_module_key($source);
+    $sourceId = $key !== '' ? $key : (string) ($sourceFile['source_id'] ?? $sourcePath);
+    $sourceHash = hash('sha256', $driver . ':' . $sourceId);
+    $sourceVersion = sr_thumbnail_source_version($source, $sourceFile, $sourcePath);
+    $variantKey = sr_thumbnail_variant_key($normalized);
+    $cacheRelative = 'cache/private-thumbnails/' . $moduleKey . '/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceVersion . '.' . $format;
+    $cachePath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $cacheRelative);
+    if (is_file($cachePath)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+
+        return [
+            'path' => $cachePath,
+            'content_type' => $contentType,
+            'content_length' => (int) filesize($cachePath),
+        ];
+    }
+
+    $cacheDir = dirname($cachePath);
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0755, true) && !is_dir($cacheDir)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+    if (!is_writable($cacheDir)) {
+        @chmod($cacheDir, 0775);
+    }
+    if (!is_writable($cacheDir)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+
+    $temporaryPath = $cachePath . '.tmp.' . bin2hex(random_bytes(8));
+    if (!sr_thumbnail_create_gd($sourcePath, $temporaryPath, $detectedImageMime, $format, $normalized)
+        || @getimagesize($temporaryPath) === false
+        || !@rename($temporaryPath, $cachePath)
+    ) {
+        @unlink($temporaryPath);
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return null;
+    }
+
+    if (!empty($sourceFile['cleanup'])) {
+        @unlink($sourcePath);
+    }
+    @chmod($cachePath, 0664);
+
+    return [
+        'path' => $cachePath,
+        'content_type' => $contentType,
+        'content_length' => (int) filesize($cachePath),
+    ];
+}
+
 function sr_thumbnail_local_source_file(string $sourcePath, int $maxBytes): ?array
 {
     if ($sourcePath === '' || str_contains($sourcePath, "\0")) {
@@ -589,17 +720,22 @@ function sr_thumbnail_delete_variants(array $source): void
 
     $sourceHash = hash('sha256', $driver . ':' . $sourceId);
     $prefix = substr($sourceHash, 0, 2);
-    $legacyDir = SR_ROOT . '/storage/cache/thumbnails/' . $prefix;
-    foreach (glob($legacyDir . '/' . $sourceHash . '_*') ?: [] as $file) {
-        if (is_file($file)) {
-            @unlink($file);
-        }
-    }
-
-    foreach (glob(SR_ROOT . '/storage/cache/thumbnails/*/' . $prefix, GLOB_ONLYDIR) ?: [] as $dir) {
-        foreach (glob($dir . '/' . $sourceHash . '_*') ?: [] as $file) {
+    foreach ([
+        SR_ROOT . '/storage/cache/thumbnails',
+        SR_ROOT . '/storage/cache/private-thumbnails',
+    ] as $cacheRoot) {
+        $legacyDir = $cacheRoot . '/' . $prefix;
+        foreach (glob($legacyDir . '/' . $sourceHash . '_*') ?: [] as $file) {
             if (is_file($file)) {
                 @unlink($file);
+            }
+        }
+
+        foreach (glob($cacheRoot . '/*/' . $prefix, GLOB_ONLYDIR) ?: [] as $dir) {
+            foreach (glob($dir . '/' . $sourceHash . '_*') ?: [] as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
             }
         }
     }

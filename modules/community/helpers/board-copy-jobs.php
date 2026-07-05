@@ -1054,6 +1054,10 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockT
     foreach ($maps as $map) {
         sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         if (sr_storage_delete((string) $map['created_storage_driver'], (string) $map['created_storage_key'])) {
+            sr_thumbnail_delete_variants([
+                'storage_driver' => (string) $map['created_storage_driver'],
+                'storage_key' => (string) $map['created_storage_key'],
+            ]);
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned', '', '', '', $jobId, $lockToken);
         } else {
             $failed++;

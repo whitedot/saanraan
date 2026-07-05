@@ -963,6 +963,10 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
                 $failedFiles++;
                 sr_content_record_storage_cleanup_failure($pdo, 'content_delete_file', $pageId, $driver, $key, '콘텐츠 삭제 후 첨부 파일 저장소 정리에 실패했습니다.');
             } elseif ($key !== '') {
+                sr_thumbnail_delete_variants([
+                    'storage_driver' => $driver,
+                    'storage_key' => $key,
+                ]);
                 $deletedFiles++;
             }
         }

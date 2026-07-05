@@ -28,6 +28,7 @@ $storageKey = sr_content_file_storage_key($file);
 if (!sr_content_file_mime_is_allowed($mimeType) || $storageKey === '') {
     sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
 }
+$disposition = sr_get_string('inline', 1) === '1' && sr_content_file_is_image($file) ? 'inline' : 'attachment';
 
 $recordedSize = (int) ($file['size_bytes'] ?? 0);
 $recordedChecksum = (string) ($file['checksum_sha256'] ?? '');
@@ -46,7 +47,7 @@ $filePath = null;
 if ($driver === 's3') {
     $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
         'response-content-type' => sr_download_content_type($mimeType),
-        'response-content-disposition' => sr_download_content_disposition((string) $file['original_name']),
+        'response-content-disposition' => sr_download_content_disposition((string) $file['original_name'], $disposition),
     ]);
     if ($downloadUrl === '') {
         sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
@@ -113,6 +114,6 @@ if ($downloadUrl !== '') {
     sr_redirect_trusted_external($downloadUrl);
 }
 
-sr_send_download_headers($mimeType, (string) $file['original_name'], 'attachment', $recordedSize, 'private, no-store, no-cache, must-revalidate');
+sr_send_download_headers($mimeType, (string) $file['original_name'], $disposition, $recordedSize, 'private, no-store, no-cache, must-revalidate');
 readfile($filePath);
 sr_finish_response();

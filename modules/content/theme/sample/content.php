@@ -4,6 +4,7 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
 $page = isset($page) && is_array($page) ? $page : [];
 $pageAccess = isset($pageAccess) && is_array($pageAccess) ? $pageAccess : ['allowed' => true];
 $contentFiles = isset($contentFiles) && is_array($contentFiles) ? $contentFiles : [];
+$contentImageFiles = isset($contentImageFiles) && is_array($contentImageFiles) ? $contentImageFiles : [];
 $contentComments = isset($contentComments) && is_array($contentComments) ? $contentComments : [];
 $contentAdminPreview = !empty($contentAdminPreview);
 $seoTitle = (string) (($page['seo_title'] ?? '') ?: ($page['title'] ?? '콘텐츠'));
@@ -89,6 +90,32 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } else { ?>
                 <?php echo sr_public_feedback_toasts('content', (string) ($pageActionNotice ?? ''), is_array($pageActionErrors ?? null) ? $pageActionErrors : []); ?>
                 <div class="example-content-body content-body">
+                    <?php if ($contentImageFiles !== []) { ?>
+                        <section class="content-image-thumbnails" aria-label="<?php echo sr_e('첨부 이미지'); ?>">
+                            <?php foreach ($contentImageFiles as $contentImageFile) { ?>
+                                <?php
+                                $contentImageOriginalUrl = (string) ($contentImageFile['original_url'] ?? '');
+                                $contentImageThumbnailUrl = (string) ($contentImageFile['thumbnail_url'] ?? $contentImageOriginalUrl);
+                                if ($contentImageOriginalUrl === '' || $contentImageThumbnailUrl === '') {
+                                    continue;
+                                }
+                                $contentImageName = (string) ($contentImageFile['original_name'] ?? '');
+                                $contentImageSize = (int) ($contentImageFile['size_bytes'] ?? 0);
+                                ?>
+                                <figure class="content-image-thumbnail">
+                                    <a class="content-image-thumbnail-link" href="<?php echo sr_e($contentImageOriginalUrl); ?>" data-content-image-layer-trigger>
+                                        <img src="<?php echo sr_e($contentImageThumbnailUrl); ?>" alt="<?php echo sr_e($contentImageName); ?>" loading="lazy">
+                                    </a>
+                                    <figcaption class="content-image-thumbnail-caption">
+                                        <a href="<?php echo sr_e(sr_content_file_public_url($contentImageFile, (int) ($page['id'] ?? 0))); ?>"><?php echo sr_e($contentImageName !== '' ? $contentImageName : '첨부 이미지'); ?></a>
+                                        <?php if ($contentImageSize > 0) { ?>
+                                            <span><?php echo sr_e(sr_content_format_bytes($contentImageSize)); ?></span>
+                                        <?php } ?>
+                                    </figcaption>
+                                </figure>
+                            <?php } ?>
+                        </section>
+                    <?php } ?>
                     <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
                 </div>
 

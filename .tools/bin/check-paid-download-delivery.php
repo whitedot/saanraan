@@ -67,10 +67,10 @@ if (!is_string($contentDownload)) {
     if (!sr_check_order($contentDownload, "sr_storage_signed_url('s3'", 'sr_content_charge_file_download(')) {
         $errors[] = 'Content downloads must prepare the S3 signed URL before charging assets.';
     }
-    if (strpos($contentDownload, "'response-content-disposition' => sr_download_content_disposition((string) \$file['original_name'])") === false) {
+    if (strpos($contentDownload, "'response-content-disposition' => sr_download_content_disposition((string) \$file['original_name'], \$disposition)") === false) {
         $errors[] = 'Content downloads must use the shared download disposition helper for signed URLs.';
     }
-    if (strpos($contentDownload, "sr_send_download_headers(\$mimeType, (string) \$file['original_name'], 'attachment', \$recordedSize, 'private, no-store, no-cache, must-revalidate')") === false) {
+    if (strpos($contentDownload, "sr_send_download_headers(\$mimeType, (string) \$file['original_name'], \$disposition, \$recordedSize, 'private, no-store, no-cache, must-revalidate')") === false) {
         $errors[] = 'Content downloads must use the shared download header helper for local streaming.';
     }
     if (strpos($contentDownload, "header('Content-Disposition:") !== false || strpos($contentDownload, "header('Content-Length: ' . (string) \$recordedSize)") !== false) {

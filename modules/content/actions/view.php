@@ -94,7 +94,19 @@ if (!$contentAdminPreview && !empty($pageAccess['allowed']) && sr_content_should
     $page['view_count'] = (int) ($page['view_count'] ?? 0) + 1;
 }
 
-$contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
+$contentFiles = !empty($pageAccess['allowed']) ? sr_content_files_for_content($pdo, (int) $page['id']) : [];
+$contentImageFiles = [];
+foreach ($contentFiles as $contentFile) {
+    if (!sr_content_file_is_image($contentFile) || sr_content_file_download_required($contentFile)) {
+        continue;
+    }
+
+    $contentFile['original_url'] = sr_content_file_public_url($contentFile, (int) $page['id'], true);
+    $contentFile['thumbnail_url'] = sr_content_file_view_image_thumbnail_url($pdo, $contentFile, (int) $page['id']);
+    if ((string) ($contentFile['original_url'] ?? '') !== '' && (string) ($contentFile['thumbnail_url'] ?? '') !== '') {
+        $contentImageFiles[] = $contentFile;
+    }
+}
 $contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
 $contentComments = !empty($pageAccess['allowed']) ? sr_content_comments($pdo, (int) $page['id']) : [];
 $contentCommentNotice = $_SESSION['sr_content_comment_notice'] ?? '';

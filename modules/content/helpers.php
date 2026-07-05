@@ -714,7 +714,7 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
         $html = sr_url_embed_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
-    return $html;
+    return sr_content_body_file_thumbnail_html($html);
 }
 
 function sr_content_body_embed_stylesheets(array $page, ?array $settings = null, ?PDO $pdo = null): array

@@ -335,7 +335,7 @@ sr_ckeditor_assets_require_markers('modules/content/actions/admin-body-file-uplo
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/helpers/body-files.php', [
-    'function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = \'\'): void',
+    'function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = \'\', bool $thumbnail = false): void',
     'sr_member_current_account($pdo)',
     'sr_admin_has_permission($pdo, (int) $account[\'id\'], \'/admin/content\', \'edit\')',
     '!sr_content_body_file_token_is_valid($tmpToken)',

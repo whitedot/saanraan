@@ -75,6 +75,90 @@ function sr_content_body_file_content_proxy_url(int $contentId, string $fileName
     return sr_url('/content/body-file?content_id=' . rawurlencode((string) $contentId) . '&file=' . rawurlencode($fileName));
 }
 
+function sr_content_body_file_thumbnail_url_from_ref(array $ref): string
+{
+    $type = (string) ($ref['type'] ?? '');
+    $fileName = sr_content_body_file_clean_name((string) ($ref['file'] ?? ''));
+    if ($fileName === '') {
+        return '';
+    }
+
+    if ($type === 'tmp') {
+        $token = (string) ($ref['token'] ?? '');
+        if (preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+            return '';
+        }
+        return sr_content_body_file_tmp_proxy_url($token, $fileName) . '&thumb=1';
+    }
+
+    if ($type === 'content') {
+        $contentId = (int) ($ref['content_id'] ?? 0);
+        if ($contentId < 1) {
+            return '';
+        }
+        return sr_content_body_file_content_proxy_url($contentId, $fileName) . '&thumb=1';
+    }
+
+    return '';
+}
+
+function sr_content_body_file_thumbnail_html(string $html): string
+{
+    if ($html === '' || !class_exists('DOMDocument')) {
+        return $html;
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-content-body-thumbnail-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return $html;
+    }
+
+    $changed = false;
+    foreach ($document->getElementsByTagName('img') as $image) {
+        if (!$image instanceof DOMElement) {
+            continue;
+        }
+
+        $originalSrc = $image->getAttribute('src');
+        $ref = sr_content_body_file_ref_from_url($originalSrc);
+        if ($ref === null) {
+            continue;
+        }
+
+        $thumbnailUrl = sr_content_body_file_thumbnail_url_from_ref($ref);
+        if ($thumbnailUrl === '') {
+            continue;
+        }
+
+        $image->setAttribute('data-sr-original-src', $originalSrc);
+        $image->setAttribute('src', $thumbnailUrl);
+        if (!$image->hasAttribute('loading')) {
+            $image->setAttribute('loading', 'lazy');
+        }
+        $changed = true;
+    }
+
+    if (!$changed) {
+        return $html;
+    }
+
+    $root = $document->getElementById('sr-content-body-thumbnail-root');
+    if (!$root instanceof DOMElement) {
+        return $html;
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $output .= $document->saveHTML($child);
+    }
+
+    return $output !== '' ? $output : $html;
+}
+
 function sr_content_upload_body_file(PDO $pdo, int $accountId, array $file, string $token): array
 {
     unset($pdo, $accountId);
@@ -215,6 +299,10 @@ function sr_content_finalize_body_files(PDO $pdo, int $contentId, string $html, 
 
         try {
             sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+            sr_thumbnail_delete_variants([
+                'storage_driver' => 'local',
+                'storage_key' => $sourceKey,
+            ]);
             sr_storage_delete('local', $sourceKey);
         } catch (Throwable $exception) {
             sr_content_record_storage_cleanup_failure($pdo, 'body_file_finalize', $contentId, 'local', $sourceKey, $exception->getMessage());
@@ -263,6 +351,11 @@ function sr_content_cleanup_unreferenced_body_files(PDO $pdo, int $contentId, st
         $key = sr_content_body_file_content_key($contentId, $entry);
         if ($key !== '' && !sr_storage_delete('local', $key)) {
             sr_content_record_storage_cleanup_failure($pdo, 'body_file_unreferenced', $contentId, 'local', $key, '본문에서 제거된 이미지 저장소 정리에 실패했습니다.');
+        } elseif ($key !== '') {
+            sr_thumbnail_delete_variants([
+                'storage_driver' => 'local',
+                'storage_key' => $key,
+            ]);
         }
     }
 }
@@ -281,6 +374,10 @@ function sr_content_cleanup_body_files_for_deleted_content(PDO $pdo, array $cont
             }
             $key = sr_content_body_file_content_key($contentId, $entry);
             if ($key !== '' && sr_storage_delete('local', $key)) {
+                sr_thumbnail_delete_variants([
+                    'storage_driver' => 'local',
+                    'storage_key' => $key,
+                ]);
                 $deleted++;
             } elseif ($key !== '') {
                 sr_content_record_storage_cleanup_failure($pdo, 'body_file_content_delete', $contentId, 'local', $key, '콘텐츠 삭제 후 본문 이미지 저장소 정리에 실패했습니다.');
@@ -325,6 +422,10 @@ function sr_content_cleanup_expired_body_files(PDO $pdo, int $limit = 10): array
             }
             $key = 'content/body/tmp/' . $token . '/' . $cleanEntry;
             if (sr_storage_delete('local', $key)) {
+                sr_thumbnail_delete_variants([
+                    'storage_driver' => 'local',
+                    'storage_key' => $key,
+                ]);
                 $deleted++;
             } else {
                 $failed++;
@@ -337,7 +438,7 @@ function sr_content_cleanup_expired_body_files(PDO $pdo, int $limit = 10): array
     return ['deleted' => $deleted, 'failed' => $failed];
 }
 
-function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = ''): void
+function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = '', bool $thumbnail = false): void
 {
     $key = '';
     if ($tmpToken !== '') {
@@ -368,6 +469,30 @@ function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, s
     $path = sr_storage_local_path($key);
     if (!is_string($path)) {
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
+    }
+
+    if ($thumbnail) {
+        $thumbnailFile = sr_thumbnail_protected_file([
+            'module_key' => 'content_body',
+            'storage_driver' => 'local',
+            'storage_key' => $key,
+            'mime_type' => $mimeType,
+            'size_bytes' => (int) ($head['content_length'] ?? 0),
+            'source_path' => $path,
+        ], [
+            'width' => 1280,
+            'height' => 1280,
+            'mode' => 'contain',
+            'quality' => 82,
+            'format' => 'source',
+            'preserve_aspect' => true,
+            'max_source_bytes' => sr_content_body_file_upload_max_bytes(),
+        ]);
+        if (is_array($thumbnailFile) && is_string($thumbnailFile['path'] ?? null)) {
+            sr_send_file_headers((string) $thumbnailFile['content_type'], (int) ($thumbnailFile['content_length'] ?? 0), 'private, max-age=300');
+            readfile((string) $thumbnailFile['path']);
+            sr_finish_response();
+        }
     }
 
     sr_send_file_headers($mimeType, (int) ($head['content_length'] ?? 0), 'private, max-age=300');
