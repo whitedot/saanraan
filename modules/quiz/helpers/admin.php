@@ -1330,6 +1330,7 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
     $now = sr_now();
     $deletedTitle = '삭제된 퀴즈';
     $deletedBody = '삭제된 퀴즈입니다.';
+    $coverImageCleanupFailureId = 0;
     $oldStmt = $pdo->prepare('SELECT cover_image_url FROM sr_quiz_sets WHERE id = :id AND deleted_at IS NULL LIMIT 1');
     $oldStmt->execute(['id' => $quizId]);
     $oldRow = $oldStmt->fetch();
@@ -1466,13 +1467,23 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
                  resolution_note = ''
              WHERE quiz_id = :quiz_id"
         )->execute(['quiz_id' => $quizId]);
+        if ($oldCoverImageUrl !== '') {
+            $storage = sr_quiz_cover_image_storage_reference_from_url($oldCoverImageUrl);
+            if (is_array($storage)) {
+                $driver = (string) ($storage['driver'] ?? 'local');
+                $key = (string) ($storage['key'] ?? '');
+                if ($key !== '' && sr_quiz_cover_image_reference_count($pdo, $oldCoverImageUrl, $quizId) < 1) {
+                    $coverImageCleanupFailureId = sr_quiz_record_storage_cleanup_pending($pdo, 'quiz_cover_image', $quizId, $driver, $key);
+                }
+            }
+        }
 
         $pdo->commit();
         if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
             sr_url_embed_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
         }
         if ($oldCoverImageUrl !== '') {
-            sr_quiz_delete_cover_image_storage($pdo, $oldCoverImageUrl, $quizId);
+            sr_quiz_delete_cover_image_storage($pdo, $oldCoverImageUrl, $quizId, $coverImageCleanupFailureId);
         }
         return true;
     } catch (Throwable $exception) {

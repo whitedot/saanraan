@@ -225,7 +225,7 @@ function sr_quiz_cover_image_reference_count(PDO $pdo, string $url, int $exceptQ
     return (int) $stmt->fetchColumn();
 }
 
-function sr_quiz_delete_cover_image_storage(PDO $pdo, string $url, int $exceptQuizId = 0): array
+function sr_quiz_delete_cover_image_storage(PDO $pdo, string $url, int $exceptQuizId = 0, int $pendingFailureId = 0): array
 {
     $storage = sr_quiz_cover_image_storage_reference_from_url($url);
     if (!is_array($storage)) {
@@ -239,7 +239,9 @@ function sr_quiz_delete_cover_image_storage(PDO $pdo, string $url, int $exceptQu
         return ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => $reference];
     }
 
-    $failureId = sr_quiz_record_storage_cleanup_pending($pdo, 'quiz_cover_image', $exceptQuizId, $driver, $key);
+    $failureId = $pendingFailureId > 0
+        ? $pendingFailureId
+        : sr_quiz_record_storage_cleanup_pending($pdo, 'quiz_cover_image', $exceptQuizId, $driver, $key);
     $deleted = sr_storage_delete($driver, $key);
     sr_quiz_update_storage_cleanup_result(
         $pdo,

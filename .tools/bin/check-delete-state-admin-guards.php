@@ -36,6 +36,7 @@ $adminShell = $read('modules/admin/assets/admin-shell.js');
 $surveyHelpers = $read('modules/survey/helpers.php');
 $surveyAdminHelpers = $read('modules/survey/helpers/admin-surveys.php');
 $surveyAction = $read('modules/survey/actions/admin-surveys.php');
+$surveyComments = $read('modules/survey/helpers/comments.php');
 $surveyInstall = $read('modules/survey/install.sql');
 $surveyUpdate = $read('modules/survey/updates/2026.07.001.sql');
 
@@ -136,6 +137,11 @@ $assertContains(
     'Quiz cover image deletion must pre-record storage cleanup attempts.'
 );
 $assertContains(
+    $quizAdminHelpers,
+    "\$coverImageCleanupFailureId = sr_quiz_record_storage_cleanup_pending",
+    'Quiz soft delete must record cleanup pending before commit.'
+);
+$assertContains(
     $quizInstall,
     'CREATE TABLE IF NOT EXISTS sr_quiz_storage_cleanup_failures',
     'Quiz install schema must include storage cleanup failures.'
@@ -185,6 +191,11 @@ $assertContains(
     $surveyHelpers,
     'sr_survey_record_storage_cleanup_pending',
     'Survey cover image deletion must pre-record storage cleanup attempts.'
+);
+$assertContains(
+    $surveyComments,
+    "\$coverImageCleanupFailureId = sr_survey_record_storage_cleanup_pending",
+    'Survey soft delete must record cleanup pending before commit.'
 );
 $assertContains(
     $surveyInstall,

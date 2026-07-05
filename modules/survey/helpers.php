@@ -238,7 +238,7 @@ function sr_survey_cover_image_reference_count(PDO $pdo, string $url, int $excep
     return (int) $stmt->fetchColumn();
 }
 
-function sr_survey_delete_cover_image_storage(PDO $pdo, string $url, int $exceptSurveyId = 0): array
+function sr_survey_delete_cover_image_storage(PDO $pdo, string $url, int $exceptSurveyId = 0, int $pendingFailureId = 0): array
 {
     $storage = sr_survey_cover_image_storage_reference_from_url($url);
     if (!is_array($storage)) {
@@ -252,7 +252,9 @@ function sr_survey_delete_cover_image_storage(PDO $pdo, string $url, int $except
         return ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => $reference];
     }
 
-    $failureId = sr_survey_record_storage_cleanup_pending($pdo, 'survey_cover_image', $exceptSurveyId, $driver, $key);
+    $failureId = $pendingFailureId > 0
+        ? $pendingFailureId
+        : sr_survey_record_storage_cleanup_pending($pdo, 'survey_cover_image', $exceptSurveyId, $driver, $key);
     $deleted = sr_storage_delete($driver, $key);
     sr_survey_update_storage_cleanup_result(
         $pdo,

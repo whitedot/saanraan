@@ -338,6 +338,7 @@ function sr_survey_soft_delete_redacted(PDO $pdo, int $surveyId, int $accountId)
     $now = sr_now();
     $deletedTitle = '삭제된 설문';
     $deletedBody = '삭제된 설문입니다.';
+    $coverImageCleanupFailureId = 0;
     $oldStmt = $pdo->prepare('SELECT cover_image_url FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1');
     $oldStmt->execute(['id' => $surveyId]);
     $oldRow = $oldStmt->fetch();
@@ -468,10 +469,20 @@ function sr_survey_soft_delete_redacted(PDO $pdo, int $surveyId, int $accountId)
                  error_message = ''
              WHERE survey_id = :survey_id"
         )->execute(['survey_id' => $surveyId]);
+        if ($oldCoverImageUrl !== '') {
+            $storage = sr_survey_cover_image_storage_reference_from_url($oldCoverImageUrl);
+            if (is_array($storage)) {
+                $driver = (string) ($storage['driver'] ?? 'local');
+                $key = (string) ($storage['key'] ?? '');
+                if ($key !== '' && sr_survey_cover_image_reference_count($pdo, $oldCoverImageUrl, $surveyId) < 1) {
+                    $coverImageCleanupFailureId = sr_survey_record_storage_cleanup_pending($pdo, 'survey_cover_image', $surveyId, $driver, $key);
+                }
+            }
+        }
 
         $pdo->commit();
         if ($oldCoverImageUrl !== '') {
-            sr_survey_delete_cover_image_storage($pdo, $oldCoverImageUrl, $surveyId);
+            sr_survey_delete_cover_image_storage($pdo, $oldCoverImageUrl, $surveyId, $coverImageCleanupFailureId);
         }
         return true;
     } catch (Throwable $exception) {
