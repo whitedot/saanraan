@@ -48,7 +48,7 @@ plugin = 특정 모듈이나 계약 파일에 붙어 동작하는 확장
 - 자기 테이블은 있을 수 있지만 독립 도메인이라기보다 어댑터 성격이다.
 - 소셜 로그인 제공자, 결제 수단 어댑터, 에디터 연동처럼 특정 모듈의 확장점에 붙는다.
 
-CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type => plugin`으로 등록하고, 적용 대상 textarea와 저장/출력 정책은 화면을 소유한 모듈이 결정한다. 콘텐츠는 콘텐츠 환경설정에서 에디터와 콘텐츠 본문 툴바 구성을 저장하고, 커뮤니티는 환경설정에서 게시글 툴바 구성을 저장하며 환경설정/게시판 그룹/게시판에서 에디터 선택을 저장한다. 팝업레이어는 팝업레이어 설정에서 본문 에디터를 저장하고, 약관/방침 문서는 새 문서의 첫 버전과 새 version 작성 화면에서 본문 입력 모드를 선택한다. 코어 내장 `textarea`, `HTML`, `Markdown`은 플러그인이 아니라 저장 형식과 출력 helper만 제공하는 기본 입력 방식이다. HTML은 저장/출력 경계에서 공통 rich text sanitizer를 통과하고, Markdown은 제한된 문법을 escape 기반 HTML로 렌더링한다. CKEditor 플러그인은 에셋 로딩, 초기화 스크립트, 전역 기본 툴바 preset, 화면 소유 모듈이 넘긴 upload endpoint에 대한 adapter 연결만 소유하고, 화면 소유 모듈은 `body_format`, HTML sanitizer, plain text URL 자동 링크 여부, Markdown 출력, 파일 권한과 보존 정책을 책임진다. CKEditor 툴바 preset은 콘텐츠/커뮤니티 환경설정의 명시 override, CKEditor 전역 기본 `toolbar_preset`, 코드 fallback 순서로 적용한다. 관리자 공통 에디터 설정은 업로드 endpoint를 자동으로 제공하지 않으며, 알림/팝업레이어/설정 화면처럼 rich textarea를 가진 소유 모듈이 필요할 때만 자기 subject id 또는 setting key 기준 upload endpoint를 textarea에 명시한다. CKEditor 설정은 관리자 사이드바의 `플러그인` 분류에서 접근할 수 있지만, 이 메뉴는 도메인 관리 화면이 아니라 플러그인 런타임 자산 설정이다. 플러그인이 비활성화되거나 에셋 로딩에 실패하면 일반 textarea 제출이 유지되어야 한다.
+CKEditor와 Markdown Editor 같은 에디터 연동은 플러그인이다. 플러그인은 `type => plugin`으로 등록하고, 적용 대상 textarea와 저장/출력 정책은 화면을 소유한 모듈이 결정한다. 콘텐츠는 콘텐츠 환경설정에서 에디터와 콘텐츠 본문 툴바 구성을 저장하고, 커뮤니티는 환경설정에서 게시글 툴바 구성을 저장하며 환경설정/게시판 그룹/게시판에서 에디터 선택을 저장한다. 팝업레이어는 팝업레이어 설정에서 본문 에디터를 저장하고, 약관/방침 문서는 새 문서의 첫 버전과 새 version 작성 화면에서 본문 입력 모드를 선택한다. 코어 내장 `textarea`와 직접 `HTML`은 플러그인이 아니라 저장 형식과 출력 helper가 제공하는 기본 입력 방식이다. Markdown 입력 후보, 새 Markdown 저장 허용, Markdown 출력 스타일은 `markdown_editor` 플러그인의 `editor-options.php`와 `markdown-renderer.php` 계약이 활성화되어 있을 때만 제공한다. 기존 저장값의 `body_format=markdown`은 비활성 환경에서도 제한된 legacy fallback으로 읽을 수 있지만, 새 저장은 renderer 계약이 없으면 거부하거나 plain fallback으로 닫아야 한다. HTML은 저장/출력 경계에서 공통 rich text sanitizer를 통과하고, Markdown은 renderer 계약이 raw HTML을 허용하지 않는 단일 parser/style profile로 escape 기반 HTML, plain text, stylesheet 결과를 반환한다. CKEditor 플러그인은 에셋 로딩, 초기화 스크립트, 전역 기본 툴바 preset, 화면 소유 모듈이 넘긴 upload endpoint에 대한 adapter 연결만 소유하고, 화면 소유 모듈은 `body_format`, HTML sanitizer, plain text URL 자동 링크 여부, Markdown 출력, 파일 권한과 보존 정책을 책임진다. CKEditor 툴바 preset은 콘텐츠/커뮤니티 환경설정의 명시 override, CKEditor 전역 기본 `toolbar_preset`, 코드 fallback 순서로 적용한다. 관리자 공통 에디터 설정은 업로드 endpoint를 자동으로 제공하지 않으며, 알림/팝업레이어/설정 화면처럼 rich textarea를 가진 소유 모듈이 필요할 때만 자기 subject id 또는 setting key 기준 upload endpoint를 textarea에 명시한다. CKEditor와 Markdown Editor 설정은 관리자 사이드바의 `플러그인` 분류에서 접근할 수 있지만, 이 메뉴는 도메인 관리 화면이 아니라 플러그인 런타임 자산 설정이다. 플러그인이 비활성화되거나 에셋 로딩에 실패하면 일반 textarea 제출이 유지되어야 한다.
 
 공식 선택 모듈로 만든다:
 
@@ -101,6 +101,7 @@ modules/{module_key}/
 - member-mfa-providers.php (optional)
 - homepage-candidates.php (optional)
 - editor-options.php (optional)
+- markdown-renderer.php (optional)
 - coupon-targets.php (optional)
 - coupon-references.php (optional)
 - payment-ledger-targets.php (optional)
@@ -983,6 +984,7 @@ return [
 - `member-mfa-providers.php`: 로그인 2차 인증 provider 후보. provider key, label, method, 로그인 지원 여부, 회원 직접 등록 지원 여부를 선언한다.
 - `homepage-candidates.php`: 과거 초기화면 저장 경로와 모듈 소유 공개 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
+- `markdown-renderer.php`: Markdown 본문 렌더러 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `antispam-targets.php`: 자동등록방지 적용 대상 후보. 화면과 제출 정책을 소유한 모듈이 대상 key, label, 기본 적용 모드를 선언하고, `antispam` 모듈은 설정 UI와 정책 조회에 사용한다.
@@ -1091,9 +1093,18 @@ return [
 
 - 배열을 반환한다.
 - `key`, `label`, 선택 `helpers`, 선택 `assets_function`을 제공한다.
-- core의 기본 `textarea`, `HTML`, `Markdown` 외 에디터 플러그인이 관리자 설정 후보로 노출될 때 사용한다.
+- core의 기본 `textarea`, `HTML` 외 에디터 플러그인이 관리자 설정 후보로 노출될 때 사용한다. Markdown 후보도 `markdown_editor` 플러그인이 이 계약으로 제공한다.
 - `assets_function` callable 형식은 `function (PDO $pdo, string $presetKey): string`이다.
 - 화면 소유 모듈은 저장한 editor key를 core helper에 넘기고, core helper는 활성 플러그인의 계약만 읽어 textarea 속성과 에셋 HTML을 만든다.
+
+`markdown-renderer.php`:
+
+- callable 또는 renderer 배열을 반환한다.
+- `format_key`는 `markdown`이어야 하며, 선택 `helpers`, `render_function`, `available_function`, `stylesheets_function`을 제공한다.
+- `render_function` callable 형식은 `function (PDO $pdo, string $markdown, string $mode, array $context): array`이다.
+- `mode`는 `full`, `inline`, `plain` 중 하나이며, 결과는 `html`, `plain_text`, `stylesheets`, `profile_hash`를 포함해야 한다.
+- renderer는 raw HTML을 그대로 통과시키지 않고 parser/style profile에 따라 escape 기반 HTML을 만들어야 한다.
+- 화면 소유 모듈은 새 Markdown 저장 전에 renderer 사용 가능 여부를 서버에서 확인하고, 비활성 상태의 새 저장은 거부하거나 plain fallback으로 처리해야 한다.
 
 `logo-positions.php`:
 
@@ -1372,6 +1383,7 @@ return [
 | `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
 | `homepage-candidates.php` | core/admin | `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 과거 저장값이나 모듈 소유 공개 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
+| `markdown-renderer.php` | core body renderer | Markdown 본문 출력, plain text 추출, 스타일시트 수집 | Markdown 렌더러와 스타일 프로파일 |
 | `oauth-providers.php` | `member_oauth` 모듈 | OAuth 설정 화면, 로그인 버튼 렌더링, 인증 callback 처리 | 설치된 provider 플러그인의 OAuth endpoint와 client 설정 key 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백. `target_type`은 전역 유일 키여야 한다. |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
@@ -1428,6 +1440,7 @@ return [
 | `antispam` | `paths.php`, `admin-menu.php` | `antispam-targets.php`, `antispam-providers.php` |
 | `antispam_captcha_providers` | `antispam-providers.php` | 없음 |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | 없음 |
+| `markdown_editor` | `paths.php`, `admin-menu.php`, `editor-options.php`, `markdown-renderer.php` | 없음 |
 | `reaction` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `reaction-targets.php`, `notification-events.php` |
 
 모듈 메타데이터 작성 기준:

@@ -51,6 +51,7 @@
 | 운영 | `policy_documents` | 약관, 방침, 동의 문서와 published version 참조 계약 |
 | 운영 | `privacy` | 관리자 전용 개인정보 대응 기록과 사본 제공 보조 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
+| 플러그인 | `markdown_editor` | Markdown 입력, 렌더링, 스타일 프로파일 |
 
 ## 주요 요청 표면
 
