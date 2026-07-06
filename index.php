@@ -196,17 +196,18 @@ if ($method === 'GET' && $path === '/ui-kit') {
     exit;
 }
 
-if ($method === 'GET' && ($path === '/content/ui-kit' || $path === '/community/ui-kit' || $path === '/quiz/ui-kit')) {
-    $uiKitModuleKey = $path === '/content/ui-kit' ? 'content' : ($path === '/community/ui-kit' ? 'community' : 'quiz');
+if ($method === 'GET' && in_array($path, ['/content/ui-kit', '/community/ui-kit', '/quiz/ui-kit', '/survey/ui-kit'], true)) {
+    $uiKitPathParts = explode('/', trim($path, '/'));
+    $uiKitModuleKey = (string) ($uiKitPathParts[0] ?? '');
+    if (!sr_module_enabled($pdo, $uiKitModuleKey)) {
+        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+        exit;
+    }
+
     sr_site_member_only_guard($pdo, $site, $method, $path, [
         'module_key' => $uiKitModuleKey,
         'route' => 'GET ' . $path,
     ]);
-
-    if (sr_module_record_entry($pdo, $uiKitModuleKey) === null) {
-        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
-        exit;
-    }
 
     $uiKitActionFile = SR_ROOT . '/modules/' . $uiKitModuleKey . '/actions/ui-kit.php';
     if (!is_file($uiKitActionFile)) {

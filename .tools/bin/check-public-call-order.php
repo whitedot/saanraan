@@ -219,6 +219,43 @@ function sr_public_call_order_check_public_post_csrf(): void
     }
 }
 
+function sr_public_call_order_check_module_ui_kit_gate(): void
+{
+    $source = sr_public_call_order_source(SR_ROOT . '/index.php');
+    if ($source === '') {
+        sr_public_call_order_error('Cannot read index.php for module UI kit gate check.');
+        return;
+    }
+
+    foreach (['/content/ui-kit', '/community/ui-kit', '/quiz/ui-kit', '/survey/ui-kit'] as $path) {
+        if (!str_contains($source, "'" . $path . "'")) {
+            sr_public_call_order_error('index.php module UI kit gate must include ' . $path . '.');
+        }
+    }
+
+    $enabledPosition = strpos($source, 'sr_module_enabled($pdo, $uiKitModuleKey)');
+    $guardPosition = strpos($source, 'sr_site_member_only_guard($pdo, $site, $method, $path, [', strpos($source, '$uiKitModuleKey'));
+    if ($enabledPosition === false) {
+        sr_public_call_order_error('index.php module UI kit gate must require enabled module status.');
+    }
+    if ($enabledPosition !== false && $guardPosition !== false && $enabledPosition > $guardPosition) {
+        sr_public_call_order_error('index.php module UI kit gate must check enabled status before member-only guard.');
+    }
+    if (str_contains($source, 'sr_module_record_entry($pdo, $uiKitModuleKey)')) {
+        sr_public_call_order_error('index.php module UI kit gate must not allow installed-but-disabled modules.');
+    }
+
+    $adminUiKitSource = sr_public_call_order_source(SR_ROOT . '/modules/admin/views/ui-kit.php');
+    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+        if (!str_contains($adminUiKitSource, "sr_module_enabled(\$pdo, '" . $moduleKey . "')")) {
+            sr_public_call_order_error('Admin UI kit link must require enabled module status: ' . $moduleKey);
+        }
+    }
+    if (str_contains($adminUiKitSource, 'sr_module_record_entry($pdo,')) {
+        sr_public_call_order_error('Admin UI kit links must not include installed-but-disabled modules.');
+    }
+}
+
 function sr_public_call_order_relative(string $file): string
 {
     $file = str_replace('\\', '/', $file);
@@ -231,6 +268,7 @@ sr_public_call_order_check_layout_pairs();
 sr_public_call_order_check_output_slot_assets();
 sr_public_call_order_check_embed_stylesheets();
 sr_public_call_order_check_public_post_csrf();
+sr_public_call_order_check_module_ui_kit_gate();
 
 if ($errors !== []) {
     foreach ($errors as $error) {
