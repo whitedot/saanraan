@@ -33,14 +33,22 @@ if (sr_request_method() === 'POST') {
     $receiveGroupKeys = sr_message_group_keys_from_setting($_POST['receive_group_keys'] ?? []);
     $memberReceiveOptEnabled = sr_post_string('member_receive_opt_enabled', 10) === '1';
     $defaultMemberReceiveEnabled = sr_post_string('default_member_receive_enabled', 10) === '1';
-    $windowSeconds = min(86400, max(60, (int) sr_post_string('message_create_window_seconds', 20)));
-    $limit = min(200, max(1, (int) sr_post_string('message_create_limit', 20)));
+    $windowSeconds = sr_admin_post_int_in_range('message_create_window_seconds', 60, 86400);
+    $limit = sr_admin_post_int_in_range('message_create_limit', 1, 200);
 
     if ($sendPolicy === 'group' && $sendGroupKeys === []) {
         $errors[] = '발신 정책이 회원 그룹이면 발신 가능 그룹을 하나 이상 선택해 주세요.';
     }
     if ($receivePolicy === 'group' && $receiveGroupKeys === []) {
         $errors[] = '수신 정책이 회원 그룹이면 수신 가능 그룹을 하나 이상 선택해 주세요.';
+    }
+    if ($windowSeconds === null) {
+        $errors[] = '발송 제한 시간은 60초 이상 86400초 이하로 입력해 주세요.';
+        $windowSeconds = (int) ($settings['message_create_window_seconds'] ?? 300);
+    }
+    if ($limit === null) {
+        $errors[] = '발송 제한 건수는 1건 이상 200건 이하로 입력해 주세요.';
+        $limit = (int) ($settings['message_create_limit'] ?? 20);
     }
 
     if ($errors === []) {

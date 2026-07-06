@@ -46,6 +46,8 @@ $pdo->prepare('INSERT INTO sr_admin_account_permissions (account_id, menu_path, 
     ->execute(['account_id' => 2, 'menu_path' => '/admin/message/settings', 'action_key' => 'edit', 'created_at' => $now]);
 $pdo->prepare('INSERT INTO sr_admin_account_permissions (account_id, menu_path, action_key, created_at) VALUES (:account_id, :menu_path, :action_key, :created_at)')
     ->execute(['account_id' => 3, 'menu_path' => '/admin/community/posts', 'action_key' => 'view', 'created_at' => $now]);
+$pdo->prepare('INSERT INTO sr_admin_account_permissions (account_id, menu_path, action_key, created_at) VALUES (:account_id, :menu_path, :action_key, :created_at)')
+    ->execute(['account_id' => 8, 'menu_path' => '/admin/members', 'action_key' => 'view', 'created_at' => $now]);
 $pdo->exec("INSERT INTO sr_member_groups (id, group_key, title, status, created_at, updated_at) VALUES (1, 'vip', 'VIP', 'enabled', '', '')");
 $pdo->exec("INSERT INTO sr_member_group_memberships (group_id, account_id, status, granted_at, updated_at) VALUES (1, 5, 'active', '', '')");
 $pdo->exec("INSERT INTO sr_message_member_settings (account_id, receive_enabled, created_at, updated_at) VALUES (6, 1, '', ''), (7, 0, '', '')");
@@ -74,6 +76,22 @@ $optInSettings = [
     'receive_group_keys' => [],
     'default_member_receive_enabled' => true,
 ];
+$openSettings = [
+    'message_enabled' => true,
+    'send_policy' => 'all',
+    'send_group_keys' => [],
+    'receive_policy' => 'all',
+    'receive_group_keys' => [],
+    'default_member_receive_enabled' => true,
+];
+$receiveGroupSettings = [
+    'message_enabled' => true,
+    'send_policy' => 'all',
+    'send_group_keys' => [],
+    'receive_policy' => 'group',
+    'receive_group_keys' => ['vip'],
+    'default_member_receive_enabled' => true,
+];
 
 sr_message_policy_assert(
     sr_message_account_can_send($pdo, ['id' => 1], $restrictedSettings),
@@ -82,6 +100,10 @@ sr_message_policy_assert(
 sr_message_policy_assert(
     sr_message_account_can_send($pdo, ['id' => 2], $restrictedSettings),
     'Staff with message edit permission must bypass message send group conditions.'
+);
+sr_message_policy_assert(
+    sr_message_account_can_send($pdo, ['id' => 8], $restrictedSettings),
+    'Staff with member list view permission must bypass message send group conditions.'
 );
 sr_message_policy_assert(
     !sr_message_account_can_send($pdo, ['id' => 3], $restrictedSettings),
@@ -98,6 +120,22 @@ sr_message_policy_assert(
 sr_message_policy_assert(
     sr_message_account_can_send($pdo, ['id' => 1], $disabledSettings),
     'Manager bypass must still allow operational sends when send_policy=disabled.'
+);
+sr_message_policy_assert(
+    sr_message_account_can_send($pdo, ['id' => 6], $openSettings),
+    'Regular member with receive setting enabled must send when send_policy=all.'
+);
+sr_message_policy_assert(
+    !sr_message_account_can_send($pdo, ['id' => 7], $openSettings),
+    'Regular member with receive setting disabled must not send messages.'
+);
+sr_message_policy_assert(
+    !sr_message_account_can_send($pdo, ['id' => 6], $receiveGroupSettings),
+    'Regular member outside receive-allowed groups must not send messages.'
+);
+sr_message_policy_assert(
+    sr_message_account_can_send($pdo, ['id' => 5], $receiveGroupSettings),
+    'Regular member inside receive-allowed groups must send when send_policy=all.'
 );
 sr_message_policy_assert(
     sr_message_account_can_receive($pdo, ['id' => 6, 'status' => 'active'], ['id' => 4], $optInSettings),

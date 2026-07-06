@@ -186,7 +186,8 @@ function sr_message_account_is_staff_bypass(PDO $pdo, int $accountId): bool
     }
 
     return sr_admin_is_owner($pdo, $accountId)
-        || sr_admin_has_permission($pdo, $accountId, '/admin/message/settings', 'edit');
+        || sr_admin_has_permission($pdo, $accountId, '/admin/message/settings', 'edit')
+        || sr_admin_has_permission($pdo, $accountId, '/admin/members', 'view');
 }
 
 function sr_message_account_matches_group_policy(PDO $pdo, int $accountId, array $groupKeys): bool
@@ -201,6 +202,31 @@ function sr_message_account_matches_group_policy(PDO $pdo, int $accountId, array
     return function_exists('sr_member_account_in_any_group') && sr_member_account_in_any_group($pdo, $accountId, $groupKeys);
 }
 
+function sr_message_account_can_receive_for_send(PDO $pdo, int $accountId, array $settings): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $memberSettings = sr_message_member_settings($pdo, $accountId, $settings);
+    if (empty($memberSettings['receive_enabled'])) {
+        return false;
+    }
+
+    $policy = (string) ($settings['receive_policy'] ?? 'all');
+    if ($policy === 'disabled') {
+        return false;
+    }
+    if ($policy === 'group') {
+        return sr_message_account_matches_group_policy($pdo, $accountId, (array) ($settings['receive_group_keys'] ?? []));
+    }
+    if ($policy === 'opt_in') {
+        return !empty($memberSettings['has_row']);
+    }
+
+    return $policy === 'all';
+}
+
 function sr_message_account_can_send(PDO $pdo, array $account, ?array $settings = null): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
@@ -210,6 +236,9 @@ function sr_message_account_can_send(PDO $pdo, array $account, ?array $settings 
     }
     if (sr_message_account_is_staff_bypass($pdo, $accountId)) {
         return true;
+    }
+    if (!sr_message_account_can_receive_for_send($pdo, $accountId, $settings)) {
+        return false;
     }
 
     $policy = (string) $settings['send_policy'];

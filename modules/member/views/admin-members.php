@@ -6,6 +6,7 @@ $adminPageSubtitle = [
 ];
 $adminContainerClass = 'admin-page-member-list admin-ui-scope';
 $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
+$memberMessageWriteAvailable = !empty($memberMessageWriteAvailable);
 if ($memberAdminPage === 'create_form') {
     $adminPageTitle = sr_t('member::ui.member.e9679572');
     $adminPageSubtitle = '가입 안내와 초기 비밀번호 전달 절차를 함께 확인하세요.';
@@ -441,6 +442,9 @@ foreach ($allowedStatuses as $status) {
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                <?php if ($memberMessageWriteAvailable && $memberStatus === 'active' && (string) ($member['account_public_hash'] ?? '') !== '') { ?>
+                                    <a href="<?php echo sr_e(sr_url('/message/write?to_account=' . rawurlencode((string) $member['account_public_hash']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="쪽지 발송" title="쪽지 발송"><?php echo sr_material_icon_html('mail'); ?></a>
+                                <?php } ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
@@ -464,6 +468,9 @@ foreach ($allowedStatuses as $status) {
     </div>
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
+        <?php if ($memberMessageWriteAvailable) { ?>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('mail'); ?> 쪽지 발송</span>
+        <?php } ?>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('rule'); ?> <?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></span>
     </div>

@@ -29,6 +29,13 @@ $memberAdminProfileExtraFieldDefinitions = array_values(array_filter(
     }
 ));
 $memberAdminProfileExtraValues = [];
+$memberMessageWriteAvailable = false;
+if (sr_module_enabled($pdo, 'message') && is_file(SR_ROOT . '/modules/message/helpers.php')) {
+    require_once SR_ROOT . '/modules/message/helpers.php';
+    $messageSettings = sr_message_settings($pdo);
+    $memberMessageWriteAvailable = sr_message_enabled($pdo, $messageSettings)
+        && sr_message_account_can_send($pdo, $account, $messageSettings);
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
