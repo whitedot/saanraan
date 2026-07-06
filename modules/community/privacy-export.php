@@ -306,6 +306,7 @@ return static function (PDO $pdo, int $accountId): array {
         'asset_recovery_failures' => [],
         'publisher_reward_logs' => [],
         'submission_consents' => [],
+        'post_drafts' => [],
         '_limits' => [],
     ];
 
@@ -365,6 +366,18 @@ return static function (PDO $pdo, int $accountId): array {
          LIMIT 1001'
     );
     $empty['comments'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'comments', $sectionLimits);
+
+    if (function_exists('sr_community_post_drafts_table_exists') && sr_community_post_drafts_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT id, board_id, draft_mode, post_id, title, body_format, body_text, form_state_json,
+                    body_tmp_ref_count, last_saved_at, created_at, updated_at
+             FROM sr_community_post_drafts
+             WHERE account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1001'
+        );
+        $empty['post_drafts'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'post_drafts', $sectionLimits);
+    }
 
     $stmt = $pdo->prepare(
         'SELECT id, post_id, original_name, mime_type, size_bytes, width, height, status, created_at

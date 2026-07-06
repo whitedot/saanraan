@@ -180,6 +180,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-privacy-consent' => '개인정보 동의',
     'community-settings-section-assets' => '자산/과금',
     'community-settings-section-series' => '시리즈',
+    'community-settings-section-drafts' => '임시저장',
     'community-settings-section-reaction' => '리액션',
     'community-settings-section-thumbnail' => '썸네일',
     'community-settings-section-display' => '공개 화면',
@@ -543,6 +544,46 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_series_enabled', 'series_enabled', '1', !empty($settings['series_enabled']), '사용'); ?>
                 <p class="form-help">꺼져 있으면 시리즈 생성, 연결, 관리, 스크랩, 공개 내비게이션과 커뮤니티 메인 시리즈 섹션을 사용하지 않습니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-drafts" class="card" data-admin-section-anchor>
+        <h2>임시저장</h2>
+        <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_draft_autosave_enabled">자동 임시저장</label>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('community_admin_settings_draft_autosave_enabled', 'draft_autosave_enabled', '1', !empty($settings['draft_autosave_enabled']), '사용'); ?>
+                    <p class="form-help">로그인 회원의 게시글 작성/수정 화면에서 제목, 본문, 카테고리, 선택형 폼 상태를 서버 draft로 저장합니다. 비회원 글, 댓글, 파일 input 값은 저장하지 않습니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_draft_autosave_interval_seconds">저장 간격 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_settings_draft_autosave_interval_seconds" type="number" name="draft_autosave_interval_seconds" min="30" max="600" value="<?php echo sr_e((string) (int) ($settings['draft_autosave_interval_seconds'] ?? 60)); ?>" required class="form-input">
+                        <span class="input-group-text">초</span>
+                    </div>
+                    <p class="form-help">클라이언트는 변경이 있을 때만 저장하고, 실패 시 같은 탭의 sessionStorage 버퍼를 유지합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_draft_retention_days">보존기간 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_settings_draft_retention_days" type="number" name="draft_retention_days" min="1" max="30" value="<?php echo sr_e((string) (int) ($settings['draft_retention_days'] ?? 7)); ?>" required class="form-input">
+                        <span class="input-group-text">일</span>
+                    </div>
+                    <p class="form-help">만료 draft는 자동저장 성공 경로와 작성/수정 화면 진입 경로에서 제한된 개수로 정리합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_settings_draft_max_count_per_account">계정당 최대 개수 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <input id="community_admin_settings_draft_max_count_per_account" type="number" name="draft_max_count_per_account" min="1" max="100" value="<?php echo sr_e((string) (int) ($settings['draft_max_count_per_account'] ?? 20)); ?>" required class="form-input">
+                    <p class="form-help">새 draft 저장 뒤 최신순 상한을 넘는 오래된 draft를 정리합니다. 여러 탭에서 같은 글을 편집하면 마지막 저장이 우선합니다.</p>
+                </div>
             </div>
         </div>
     </section>

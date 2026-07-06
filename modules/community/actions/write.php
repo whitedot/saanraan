@@ -343,7 +343,13 @@ if ($isPostRequest) {
         }
         if ($createdPostStatus === 'pending') {
             $_SESSION['sr_community_post_notice'] = (string) ($accountGuardWriteDecision['message'] ?? '게시글이 검토 대기 상태로 저장되었습니다.');
+            if (!$isGuestAuthor) {
+                sr_community_draft_delete($pdo, (int) $account['id'], (int) $board['id'], 'create');
+            }
             sr_redirect('/community/my?type=posts');
+        }
+        if (!$isGuestAuthor) {
+            sr_community_draft_delete($pdo, (int) $account['id'], (int) $board['id'], 'create');
         }
         sr_redirect('/community/post?id=' . (string) $postId);
     }
@@ -357,6 +363,20 @@ if ($isPostRequest) {
         'series_values' => $seriesValues,
     ];
     sr_redirect('/community/write?key=' . rawurlencode((string) $board['board_key']));
+}
+
+$communityDraftPayload = [];
+if (
+    !$isGuestAuthor
+    && sr_community_draft_autosave_enabled($settings)
+    && sr_community_post_drafts_table_exists($pdo)
+) {
+    try {
+        sr_community_draft_cleanup($pdo, $settings, 20);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'community_draft_write_cleanup');
+    }
+    $communityDraftPayload = sr_community_draft_restore_payload(sr_community_draft_fetch($pdo, (int) $account['id'], (int) $board['id'], 'create'));
 }
 
 $skinKey = sr_community_board_skin_key($pdo, $board);

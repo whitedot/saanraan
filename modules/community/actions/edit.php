@@ -228,6 +228,9 @@ if ($isPostRequest) {
             ],
         ]);
         $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.post_updated');
+        if (is_array($account)) {
+            sr_community_draft_delete($pdo, (int) $account['id'], (int) $board['id'], 'edit', $postId);
+        }
         sr_redirect('/community/post?id=' . (string) $postId);
     }
 
@@ -246,6 +249,22 @@ $pageTitle = sr_t('community::action.title.post_edit');
 $formAction = '/community/edit?id=' . (string) $postId;
 $submitLabel = sr_t('community::action.submit.edit');
 $postIdField = $postId;
+$communityDraftPayload = [];
+if (
+    is_array($account)
+    && sr_community_draft_autosave_enabled($settings)
+    && sr_community_post_drafts_table_exists($pdo)
+) {
+    try {
+        sr_community_draft_cleanup($pdo, $settings, 20);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'community_draft_edit_cleanup');
+    }
+    $communityDraftPayload = sr_community_draft_restore_payload(
+        sr_community_draft_fetch($pdo, (int) $account['id'], (int) $board['id'], 'edit', $postId),
+        sr_community_draft_content_hash_for_post($pdo, $post)
+    );
+}
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'form');
 

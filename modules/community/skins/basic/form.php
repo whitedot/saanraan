@@ -33,6 +33,18 @@ if (($ckeditorEnabled || (!isset($postIdField) && ($imageUploadEnabled || $fileU
     $communityPrivacyConsentDisplayTargets[] = 'attachment_upload';
 }
 $communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_for($pdo, $board, 'post');
+$communityDraftEnabled = !$isGuestAuthorForm && !empty($settings['draft_autosave_enabled']);
+$communityDraftMode = isset($postIdField) && is_int($postIdField) ? 'edit' : 'create';
+$communityDraftPayload = isset($communityDraftPayload) && is_array($communityDraftPayload) ? $communityDraftPayload : [];
+$communityDraftConfig = [
+    'enabled' => $communityDraftEnabled,
+    'endpoint' => sr_url('/community/draft/autosave'),
+    'mode' => $communityDraftMode,
+    'account_id' => is_array($account ?? null) ? (int) $account['id'] : 0,
+    'board_key' => (string) ($board['board_key'] ?? ''),
+    'post_id' => isset($postIdField) && is_int($postIdField) ? $postIdField : 0,
+    'interval_seconds' => sr_community_draft_autosave_interval_seconds($settings),
+];
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -85,8 +97,26 @@ $communityFrameModifier = 'form';
 
         <?php echo sr_public_feedback_toasts('community', '', $errors); ?>
 
-        <form method="post" action="<?php echo sr_e(sr_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?>>
+        <?php if ($communityDraftEnabled && $communityDraftPayload !== []) { ?>
+            <div class="alert alert-info alert-removable" role="status" data-community-draft-panel>
+                <p data-community-draft-message>
+                    저장된 임시글이 있습니다.<?php echo !empty($communityDraftPayload['conflict']) ? ' 원글 내용이 바뀌어 덮어쓰기 전에 확인이 필요합니다.' : ''; ?><?php echo (int) ($communityDraftPayload['body_tmp_refs_removed'] ?? 0) > 0 ? ' 세션이 바뀐 임시 이미지는 복원에서 제외됩니다.' : ''; ?>
+                </p>
+                <div class="admin-row-actions">
+                    <button type="button" class="btn btn-sm btn-solid-primary" data-community-draft-restore>복원</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-community-draft-discard>삭제</button>
+                </div>
+            </div>
+        <?php } ?>
+
+        <form method="post" action="<?php echo sr_e(sr_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?><?php echo $communityDraftEnabled ? ' data-community-draft-form' : ''; ?>>
             <?php echo sr_csrf_field(); ?>
+            <?php if ($communityDraftEnabled) { ?>
+                <input type="hidden" name="draft_mode" value="<?php echo sr_e($communityDraftMode); ?>">
+                <input type="hidden" name="board_key" value="<?php echo sr_e((string) ($board['board_key'] ?? '')); ?>">
+                <script type="application/json" data-community-draft-config><?php echo sr_js_json_encode($communityDraftConfig); ?></script>
+                <script type="application/json" data-community-draft-payload><?php echo sr_js_json_encode($communityDraftPayload); ?></script>
+            <?php } ?>
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">
             <?php } ?>

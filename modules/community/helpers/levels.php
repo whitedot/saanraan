@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/community/helpers/post-body-settings.php';
+require_once SR_ROOT . '/modules/community/helpers/drafts.php';
 
 function sr_community_default_settings(): array
 {
@@ -56,6 +57,10 @@ function sr_community_default_settings(): array
             ? ($settings['layout_extra_menu_keys_json'] ?? [])
             : [],
         'series_enabled' => (bool) ($settings['series_enabled'] ?? true),
+        'draft_autosave_enabled' => (bool) ($settings['draft_autosave_enabled'] ?? false),
+        'draft_autosave_interval_seconds' => (int) ($settings['draft_autosave_interval_seconds'] ?? 60),
+        'draft_retention_days' => (int) ($settings['draft_retention_days'] ?? 7),
+        'draft_max_count_per_account' => (int) ($settings['draft_max_count_per_account'] ?? 20),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
         'post_body_min_length' => sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0),
@@ -249,6 +254,10 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     }
     $settings['layout_extra_menu_keys_json'] = sr_community_layout_extra_menu_items_from_settings($settings);
     $settings['series_enabled'] = sr_community_bool_setting($settings['series_enabled'] ?? true);
+    $settings['draft_autosave_enabled'] = sr_community_bool_setting($settings['draft_autosave_enabled'] ?? false);
+    $settings['draft_autosave_interval_seconds'] = sr_community_draft_autosave_interval_seconds($settings);
+    $settings['draft_retention_days'] = sr_community_draft_retention_days($settings);
+    $settings['draft_max_count_per_account'] = sr_community_draft_max_count_per_account($settings);
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
     $settings['post_body_min_length'] = sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0);

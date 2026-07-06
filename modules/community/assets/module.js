@@ -367,12 +367,288 @@
     });
   }
 
+  function communityDraftJson(element) {
+    if (!element) {
+      return {};
+    }
+    try {
+      return JSON.parse(element.textContent || '{}') || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function communityDraftStorageKey(config) {
+    return [
+      'sr.community.draft',
+      String(config.account_id || 0),
+      config.mode || 'create',
+      config.board_key || '',
+      String(config.post_id || 0)
+    ].join(':');
+  }
+
+  function communityDraftEditorTextarea(form) {
+    return form.querySelector('textarea[name="body_text"]');
+  }
+
+  function communityDraftSyncEditorToTextarea(form) {
+    var textarea = communityDraftEditorTextarea(form);
+    if (!textarea) {
+      return;
+    }
+    var editor = textarea._srCkeditorInstance || (textarea.id && window.srCkeditorInstances ? window.srCkeditorInstances[textarea.id] : null);
+    if (editor && typeof editor.getData === 'function') {
+      textarea.value = editor.getData();
+    }
+  }
+
+  function communityDraftSetBody(form, value) {
+    var textarea = communityDraftEditorTextarea(form);
+    if (!textarea) {
+      return;
+    }
+    textarea.value = value || '';
+    var editor = textarea._srCkeditorInstance || (textarea.id && window.srCkeditorInstances ? window.srCkeditorInstances[textarea.id] : null);
+    if (editor && typeof editor.setData === 'function') {
+      editor.setData(textarea.value);
+    }
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function communityDraftSnapshot(form) {
+    communityDraftSyncEditorToTextarea(form);
+    var fields = {};
+    Array.prototype.slice.call(form.elements).forEach(function (field) {
+      if (!field.name || field.type === 'file' || field.name === 'csrf_token') {
+        return;
+      }
+      if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) {
+        return;
+      }
+      if (Object.prototype.hasOwnProperty.call(fields, field.name)) {
+        if (!Array.isArray(fields[field.name])) {
+          fields[field.name] = [fields[field.name]];
+        }
+        fields[field.name].push(field.value);
+        return;
+      }
+      fields[field.name] = field.value;
+    });
+    return fields;
+  }
+
+  function communityDraftApply(form, payload) {
+    if (!payload || typeof payload !== 'object') {
+      return;
+    }
+    var title = form.querySelector('[name="title"]');
+    if (title && Object.prototype.hasOwnProperty.call(payload, 'title')) {
+      title.value = payload.title || '';
+      title.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'body_text')) {
+      communityDraftSetBody(form, payload.body_text || '');
+    }
+    var category = form.querySelector('[name="category_id"]');
+    if (category && Object.prototype.hasOwnProperty.call(payload, 'category_id')) {
+      category.value = String(payload.category_id || '');
+      category.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    var secret = form.querySelector('[name="is_secret"]');
+    if (secret && Object.prototype.hasOwnProperty.call(payload, 'is_secret')) {
+      secret.checked = String(payload.is_secret || '0') === '1';
+      secret.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    var extra = payload.extra_field_values || {};
+    Object.keys(extra).forEach(function (key) {
+      var control = form.querySelector('[name="community_extra_fields[' + key.replace(/"/g, '\\"') + ']"]');
+      if (!control) {
+        return;
+      }
+      if (control.type === 'checkbox') {
+        control.checked = String(extra[key] || '') === '1';
+      } else {
+        control.value = extra[key] || '';
+      }
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    var series = payload.series_values || {};
+    [
+      ['series_mode', 'series_mode'],
+      ['series_id', 'series_id'],
+      ['new_series_title', 'new_series_title'],
+      ['series_episode_label', 'episode_label'],
+      ['series_sort_order', 'sort_order']
+    ].forEach(function (item) {
+      var control = form.querySelector('[name="' + item[0] + '"]');
+      if (!control || !Object.prototype.hasOwnProperty.call(series, item[1])) {
+        return;
+      }
+      if (control.type === 'radio') {
+        Array.prototype.slice.call(form.querySelectorAll('[name="' + item[0] + '"]')).forEach(function (radio) {
+          radio.checked = radio.value === String(series[item[1]]);
+        });
+      } else {
+        control.value = String(series[item[1]] || '');
+      }
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  function communityDraftPanel(form, payload) {
+    var panel = document.querySelector('[data-community-draft-panel]');
+    if (panel) {
+      return panel;
+    }
+    if (!payload || Object.keys(payload).length < 1) {
+      return null;
+    }
+    panel = document.createElement('div');
+    panel.className = 'alert alert-info alert-removable';
+    panel.setAttribute('role', 'status');
+    panel.setAttribute('data-community-draft-panel', '');
+    panel.innerHTML = '<p data-community-draft-message>저장된 임시글이 있습니다.</p><div class="admin-row-actions"><button type="button" class="btn btn-sm btn-solid-primary" data-community-draft-restore>복원</button> <button type="button" class="btn btn-sm btn-outline-secondary" data-community-draft-discard>삭제</button></div>';
+    form.parentNode.insertBefore(panel, form);
+    return panel;
+  }
+
+  function communityDraftPayloadFromStorageSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') {
+      return {};
+    }
+    var extra = {};
+    Object.keys(snapshot).forEach(function (key) {
+      var match = /^community_extra_fields\[([a-zA-Z0-9_]+)\]$/.exec(key);
+      if (match) {
+        extra[match[1]] = snapshot[key];
+      }
+    });
+    return {
+      title: snapshot.title || '',
+      body_text: snapshot.body_text || '',
+      category_id: snapshot.category_id || 0,
+      is_secret: snapshot.is_secret || 0,
+      extra_field_values: extra,
+      series_values: {
+        series_mode: snapshot.series_mode || 'none',
+        series_id: snapshot.series_id || 0,
+        new_series_title: snapshot.new_series_title || '',
+        episode_label: snapshot.series_episode_label || '',
+        sort_order: snapshot.series_sort_order || 0
+      }
+    };
+  }
+
+  function initDraftAutosave() {
+    Array.prototype.slice.call(document.querySelectorAll('[data-community-draft-form]')).forEach(function (form) {
+      if (form.getAttribute('data-community-draft-ready') === '1') {
+        return;
+      }
+      var config = communityDraftJson(form.querySelector('[data-community-draft-config]'));
+      if (!config.enabled || !config.endpoint) {
+        return;
+      }
+      var serverPayload = communityDraftJson(form.querySelector('[data-community-draft-payload]'));
+      var storageKey = communityDraftStorageKey(config);
+      var storagePayload = {};
+      try {
+        storagePayload = JSON.parse(window.sessionStorage.getItem(storageKey) || '{}') || {};
+      } catch (error) {
+        storagePayload = {};
+      }
+      var restorePayload = Object.keys(serverPayload).length > 0 ? serverPayload : communityDraftPayloadFromStorageSnapshot(storagePayload);
+      var panel = communityDraftPanel(form, restorePayload);
+      if (panel) {
+        var restore = panel.querySelector('[data-community-draft-restore]');
+        var discard = panel.querySelector('[data-community-draft-discard]');
+        if (restore) {
+          restore.addEventListener('click', function () {
+            communityDraftApply(form, restorePayload);
+            panel.remove();
+          });
+        }
+        if (discard) {
+          discard.addEventListener('click', function () {
+            var data = new FormData(form);
+            data.set('draft_action', 'delete');
+            window.sessionStorage.removeItem(storageKey);
+            fetch(config.endpoint, {
+              method: 'POST',
+              body: data,
+              credentials: 'same-origin',
+              headers: { 'Accept': 'application/json' }
+            }).catch(function () {});
+            panel.remove();
+          });
+        }
+      }
+
+      var interval = Math.max(30, Math.min(600, Number(config.interval_seconds || 60))) * 1000;
+      var lastHash = '';
+      var inFlight = false;
+      var timer = 0;
+      var backoff = interval;
+
+      function saveDraft() {
+        if (inFlight) {
+          return;
+        }
+        var snapshot = communityDraftSnapshot(form);
+        var hash = JSON.stringify(snapshot);
+        window.sessionStorage.setItem(storageKey, hash);
+        if (hash === lastHash) {
+          return;
+        }
+        inFlight = true;
+        var data = new FormData(form);
+        fetch(config.endpoint, {
+          method: 'POST',
+          body: data,
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json' }
+        }).then(function (response) {
+          return response.json().catch(function () {
+            return { ok: false, message: 'invalid_json' };
+          }).then(function (payload) {
+            return { status: response.status, payload: payload };
+          });
+        }).then(function (result) {
+          if (result.status >= 200 && result.status < 300 && result.payload && result.payload.ok) {
+            lastHash = hash;
+            backoff = interval;
+            window.sessionStorage.setItem(storageKey, hash);
+          } else {
+            backoff = Math.min(interval * 8, Math.max(interval, backoff * 2));
+          }
+        }).catch(function () {
+          backoff = Math.min(interval * 8, Math.max(interval, backoff * 2));
+        }).finally(function () {
+          inFlight = false;
+          window.clearTimeout(timer);
+          timer = window.setTimeout(saveDraft, backoff);
+        });
+      }
+
+      form.addEventListener('input', function () {
+        window.sessionStorage.setItem(storageKey, JSON.stringify(communityDraftSnapshot(form)));
+      });
+      form.addEventListener('change', function () {
+        window.sessionStorage.setItem(storageKey, JSON.stringify(communityDraftSnapshot(form)));
+      });
+      timer = window.setTimeout(saveDraft, interval);
+      form.setAttribute('data-community-draft-ready', '1');
+    });
+  }
+
   function init() {
     initImageLayer();
     initToasts();
     initCopyUrlButtons();
     initScrollTargetButtons();
     initAssetConfirmationSubmitClose();
+    initDraftAutosave();
   }
 
   if (document.readyState === 'loading') {

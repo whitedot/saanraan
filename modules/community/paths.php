@@ -17,6 +17,7 @@ return [
     'POST /community/write' => 'actions/write.php',
     'GET /community/edit' => 'actions/edit.php',
     'POST /community/edit' => 'actions/edit.php',
+    'POST /community/draft/autosave' => 'actions/draft-autosave.php',
     'POST /community/delete' => 'actions/delete.php',
     'POST /community/comment' => 'actions/comment.php',
     'POST /community/comment/edit' => 'actions/comment-edit.php',

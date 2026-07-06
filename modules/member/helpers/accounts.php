@@ -307,6 +307,19 @@ function sr_member_require_login(PDO $pdo): array
     return $account;
 }
 
+function sr_member_require_login_json(PDO $pdo): array
+{
+    sr_request_contract_mark('auth_checked');
+
+    $account = sr_member_current_account($pdo);
+    if ($account === null) {
+        sr_request_contract_guard_blocked('auth');
+        sr_json_response(['ok' => false, 'message' => 'auth_required'], 401, ['Cache-Control: no-store']);
+    }
+
+    return $account;
+}
+
 function sr_member_redirect_mfa_setup_required(): void
 {
     $_SESSION['sr_member_account_flash'] = [

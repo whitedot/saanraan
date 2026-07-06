@@ -57,6 +57,8 @@ rich text sanitizer payload 회귀 점검
 
 커뮤니티 일반 게시글 작성/수정 화면에서는 SEO/OG 메타 필드가 보이지 않아야 한다. 직접 POST로 `seo_title`, `seo_description`, `og_title`, `og_description`을 보내도 신규 게시글에는 저장되지 않고, 기존 SEO/OG 값이 있는 게시글을 작성자가 수정해도 해당 값이 빈 값이나 조작된 POST 값으로 덮어써지지 않아야 한다. 공개 상세 화면의 title, description, OG 메타 fallback은 제목과 공개 가능한 본문 기준으로 계속 동작해야 한다.
 
+커뮤니티 임시저장을 확인할 때는 `/admin/community/settings`의 임시저장 섹션에서 자동 임시저장, 저장 간격, 보존기간, 계정당 최대 개수가 서버 검증 범위 안에서만 저장되는지 먼저 확인한다. 활성화 후 로그인 회원의 `/community/write?key=...`와 `/community/edit?id=...` 화면에서 제목, 본문, 카테고리, 비밀글, 추가 필드, 시리즈 선택을 바꾼 뒤 `/community/draft/autosave`가 JSON으로 성공 응답하고 새로 열었을 때 복원/삭제 alert가 나타나는지 확인한다. 복원은 CKEditor와 일반 textarea 모두에 본문을 되돌려야 하고, 삭제는 서버 draft와 같은 탭 `sessionStorage` 버퍼를 지워야 한다. 비로그인, CSRF 실패, 쓰기/수정 권한 없음, 자동저장 비활성 상태는 draft를 만들지 않고 401/400/403 계열 JSON으로 끝나야 한다. 정식 작성/수정 성공 후에는 같은 context의 draft가 삭제되어 다시 복원 alert가 나타나지 않아야 한다. 파일 input 값은 복원 대상이 아니며, 세션이 바뀐 임시 본문 이미지는 안내 문구로 대체되는지 확인한다.
+
 1.0 릴리스 후보에서는 정적 점검 통과만으로 완료 판정하지 않는다. [1.0 범위 잠금 기준](1.0-scope.md)의 포함 모듈을 기준으로 HTTP 스모크와 필요한 브라우저 수동 점검을 함께 기록한다.
 
 릴리스 후보나 큰 운영 보강 묶음에서는 개별 smoke를 실행하기 전에 설치 DB 게이트 상태표를 먼저 만든다.

@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.052',
+    'version' => '2026.07.001',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -99,6 +99,10 @@ return [
         'level_comment_score' => 2,
         'identity_restricted_board_required' => false,
         'series_enabled' => true,
+        'draft_autosave_enabled' => false,
+        'draft_autosave_interval_seconds' => 60,
+        'draft_retention_days' => 7,
+        'draft_max_count_per_account' => 20,
         'layout_key' => 'community.basic',
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',

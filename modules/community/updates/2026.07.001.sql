@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS sr_community_post_drafts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    board_id BIGINT UNSIGNED NOT NULL,
+    draft_mode VARCHAR(20) NOT NULL,
+    post_id BIGINT UNSIGNED NULL,
+    context_hash CHAR(64) NOT NULL,
+    base_content_hash CHAR(64) NULL,
+    title VARCHAR(160) NOT NULL DEFAULT '',
+    body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
+    body_text MEDIUMTEXT NOT NULL,
+    form_state_json TEXT NULL,
+    body_tmp_ref_count INT NOT NULL DEFAULT 0,
+    last_saved_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_post_drafts_context (context_hash),
+    KEY idx_sr_community_post_drafts_account_updated (account_id, updated_at, id),
+    KEY idx_sr_community_post_drafts_board_mode_post (board_id, draft_mode, post_id),
+    KEY idx_sr_community_post_drafts_updated (updated_at)
+);

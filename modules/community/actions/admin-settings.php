@@ -135,6 +135,10 @@ if (sr_request_method() === 'POST') {
         $layoutExtraMenuItems = sr_community_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []);
         $layoutExtraMenuKeys = sr_community_layout_extra_menu_keys_from_value($layoutExtraMenuItems);
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
+        $draftAutosaveEnabled = ($_POST['draft_autosave_enabled'] ?? '') === '1';
+        $draftAutosaveIntervalSeconds = sr_admin_post_int_in_range('draft_autosave_interval_seconds', 30, 600);
+        $draftRetentionDays = sr_admin_post_int_in_range('draft_retention_days', 1, 30);
+        $draftMaxCountPerAccount = sr_admin_post_int_in_range('draft_max_count_per_account', 1, 100);
         $defaultSettlementCurrency = sr_site_default_currency($pdo);
         $assetSettings = [];
         foreach (sr_community_module_asset_setting_prefixes() as $assetPrefix) {
@@ -279,6 +283,18 @@ if (sr_request_method() === 'POST') {
         if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
             $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
         }
+        if ($draftAutosaveIntervalSeconds === null) {
+            $errors[] = '임시저장 간격은 30초 이상 600초 이하로 입력하세요.';
+            $draftAutosaveIntervalSeconds = (int) ($settings['draft_autosave_interval_seconds'] ?? 60);
+        }
+        if ($draftRetentionDays === null) {
+            $errors[] = '임시저장 보존기간은 1일 이상 30일 이하로 입력하세요.';
+            $draftRetentionDays = (int) ($settings['draft_retention_days'] ?? 7);
+        }
+        if ($draftMaxCountPerAccount === null) {
+            $errors[] = '계정당 임시저장 최대 개수는 1개 이상 100개 이하로 입력하세요.';
+            $draftMaxCountPerAccount = (int) ($settings['draft_max_count_per_account'] ?? 20);
+        }
         if ($thumbnailCriterionInput !== $thumbnailCriterion) {
             $errors[] = '썸네일 생성 기준 선택이 올바르지 않습니다.';
         }
@@ -417,6 +433,10 @@ if (sr_request_method() === 'POST') {
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
                 ['layout_extra_menu_keys_json', sr_community_layout_extra_menu_keys_json($layoutExtraMenuItems), 'json'],
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
+                ['draft_autosave_enabled', $draftAutosaveEnabled ? '1' : '0', 'bool'],
+                ['draft_autosave_interval_seconds', (string) $draftAutosaveIntervalSeconds, 'int'],
+                ['draft_retention_days', (string) $draftRetentionDays, 'int'],
+                ['draft_max_count_per_account', (string) $draftMaxCountPerAccount, 'int'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['post_body_min_length', (string) $postBodyMinLength, 'int'],

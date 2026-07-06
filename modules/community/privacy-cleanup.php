@@ -82,6 +82,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $accountGuardAnonymizedCount = 0;
     $assetRecoveryFailureAnonymizedCount = 0;
     $assetRecoveryFailureActorLinksCleared = 0;
+    $postDraftDeletedCount = 0;
 
     foreach (['sr_community_posts', 'sr_community_comments'] as $tableName) {
         if (!$columnExists($pdo, $tableName, 'author_public_name_snapshot')) {
@@ -127,6 +128,15 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
             ]);
             $postExtraValuesAnonymizedCount++;
         }
+    }
+
+    if ($columnExists($pdo, 'sr_community_post_drafts', 'account_id')) {
+        $stmt = $pdo->prepare(
+            'DELETE FROM sr_community_post_drafts
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $postDraftDeletedCount = $stmt->rowCount();
     }
 
     if (function_exists('sr_community_post_field_values_table_exists') && sr_community_post_field_values_table_exists($pdo)) {
@@ -330,6 +340,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
         'community_post_extra_values_anonymized_count' => $postExtraValuesAnonymizedCount,
         'community_post_field_values_anonymized_count' => $postFieldValuesAnonymizedCount,
+        'community_post_draft_deleted_count' => $postDraftDeletedCount,
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
         'community_attachment_download_log_anonymized_count' => $attachmentDownloadLogAnonymizedCount,
         'community_post_read_payment_log_anonymized_count' => $postReadPaymentLogAnonymizedCount,
