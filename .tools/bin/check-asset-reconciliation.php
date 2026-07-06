@@ -223,6 +223,20 @@ if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true))
     if (sr_ledger_table_pair_is_allowed('sr_reward_transactions', 'sr_reward_balances')) {
         sr_asset_reconciliation_check_error('reversed ledger table pair should not be allowed.');
     }
+    try {
+        sr_ledger_create_transaction($pdo, [
+            'balance_table' => 'sr_point_balances',
+            'transaction_table' => 'sr_point_transactions',
+        ], [
+            'account_id' => 1,
+            'amount' => 10,
+        ]);
+        sr_asset_reconciliation_check_error('point ledger primitive should require expiration extra columns.');
+    } catch (InvalidArgumentException $exception) {
+        if (!str_contains($exception->getMessage(), 'expires_at')) {
+            sr_asset_reconciliation_check_error('point ledger primitive should report the missing expiration extra column.');
+        }
+    }
 } else {
     sr_asset_reconciliation_check_error('PDO sqlite driver is required for asset reconciliation fixture.');
 }

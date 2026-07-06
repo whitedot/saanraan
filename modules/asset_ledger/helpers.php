@@ -13,6 +13,9 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
         throw new InvalidArgumentException('Ledger table name is invalid.');
     }
 
+    $transactionExtraValues = sr_ledger_transaction_extra_values($config, $data);
+    sr_ledger_assert_required_transaction_extra_columns($balanceTable, $transactionTable, array_keys($transactionExtraValues));
+
     $accountId = (int) ($data['account_id'] ?? 0);
     $amount = (int) ($data['amount'] ?? 0);
     $transactionType = (string) ($data['transaction_type'] ?? 'adjustment');
@@ -21,7 +24,6 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
     $referenceId = (string) ($data['reference_id'] ?? '');
     $createdByAccountId = sr_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
     $createdAt = (string) ($data['created_at'] ?? sr_now());
-    $transactionExtraValues = sr_ledger_transaction_extra_values($config, $data);
 
     if ($accountId <= 0) {
         throw new InvalidArgumentException('Account id is required.');
@@ -155,6 +157,26 @@ function sr_ledger_transaction_extra_values(array $config, array $data): array
     }
 
     return $values;
+}
+
+function sr_ledger_assert_required_transaction_extra_columns(string $balanceTable, string $transactionTable, array $extraColumns): void
+{
+    foreach (sr_ledger_required_transaction_extra_columns($balanceTable, $transactionTable) as $requiredColumn) {
+        if (!in_array($requiredColumn, $extraColumns, true)) {
+            throw new InvalidArgumentException('Ledger transaction extra column is required: ' . $requiredColumn);
+        }
+    }
+}
+
+function sr_ledger_required_transaction_extra_columns(string $balanceTable, string $transactionTable): array
+{
+    $pairKey = $balanceTable . ':' . $transactionTable;
+    $requiredColumns = [
+        'sr_point_balances:sr_point_transactions' => ['expires_at', 'expires_remaining', 'expired_at'],
+        'sr_reward_balances:sr_reward_transactions' => ['expires_at', 'expires_remaining', 'expired_at'],
+    ];
+
+    return $requiredColumns[$pairKey] ?? [];
 }
 
 function sr_ledger_pdo_driver(PDO $pdo): string
