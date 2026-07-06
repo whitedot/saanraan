@@ -107,6 +107,7 @@ modules/{module_key}/
 - coupon-targets.php (optional)
 - coupon-references.php (optional)
 - payment-ledger-targets.php (optional)
+- asset-recovery-targets.php (optional)
 - banner-references.php (optional)
 - popup-layer-references.php (optional)
 - member-group-references.php (optional)
@@ -991,6 +992,7 @@ return [
 - `editor-options.php`: textarea 강화 에디터 후보
 - `markdown-renderer.php`: Markdown 본문 렌더러 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
+- `asset-recovery-targets.php`: 공통 미회수 큐의 source label, subject link, 회수 재시도 callback 후보
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `antispam-targets.php`: 자동등록방지 적용 대상 후보. 화면과 제출 정책을 소유한 모듈이 대상 key, label, 기본 적용 모드를 선언하고, `antispam` 모듈은 설정 UI와 정책 조회에 사용한다.
 - `antispam-providers.php`: 자동등록방지 외부 CAPTCHA provider 후보. provider endpoint와 widget script URL은 HTTPS 공개 URL이어야 하며, `antispam` 모듈은 provider 검증 POST 직전에 endpoint가 공개망 host로 해석되는지 다시 확인한다.
