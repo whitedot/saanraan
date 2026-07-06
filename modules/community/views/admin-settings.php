@@ -79,10 +79,6 @@ $privacyConsentDocumentSelectOptionsHtml = static function (string $selectedDocu
 
     return $html;
 };
-$messageWritePolicyLabels = [
-    'member' => sr_t('community::ui.message_policy.member'),
-    'group' => sr_t('community::ui.message_policy.group'),
-];
 $thumbnailCriterionValue = sr_community_thumbnail_criterion((string) ($settings['thumbnail_criterion'] ?? 'width'));
 $canViewCommunityThumbnailFileCache = !empty($canViewCommunityThumbnailFileCache);
 $canViewCommunityEmbedManager = !empty($canViewCommunityEmbedManager);
@@ -118,21 +114,6 @@ $communitySettingsHelp = [
         'id' => 'community_settings_help_level_auto_recalculate',
         'title' => sr_t('community::help.level_auto_recalculate.title'),
         'body' => $communitySettingsHelpBodyHtml(['community::help.level_auto_recalculate.body.1', 'community::help.level_auto_recalculate.body.2']),
-    ],
-    'message_policy' => [
-        'id' => 'community_settings_help_message_policy',
-        'title' => sr_t('community::help.message_policy.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.message_policy.body.1', 'community::help.message_policy.body.2', 'community::help.message_policy.body.3', 'community::help.message_policy.body.4']),
-    ],
-    'message_group' => [
-        'id' => 'community_settings_help_message_group',
-        'title' => sr_t('community::help.message_group.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.message_group.body.1', 'community::help.message_group.body.2']),
-    ],
-    'message_min_level' => [
-        'id' => 'community_settings_help_message_min_level',
-        'title' => sr_t('community::help.message_min_level.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.message_min_level.body.1', 'community::help.message_min_level.body.2']),
     ],
     'asset_settings' => [
         'id' => 'community_settings_help_asset_settings',

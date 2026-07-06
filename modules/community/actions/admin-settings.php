@@ -384,19 +384,6 @@ if (sr_request_method() === 'POST') {
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
 
-        if ($messageEnabled && sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
-            $errors[] = sr_t('community::action.admin.message_group_list_too_long');
-        } else {
-            $invalidGroupKeys = $messageEnabled ? sr_community_invalid_board_group_keys_from_input_value($messageWriteGroupKeysInput) : [];
-            if ($invalidGroupKeys !== []) {
-                $errors[] = sr_t('community::action.admin.message_group_keys_invalid', ['keys' => implode(', ', $invalidGroupKeys)]);
-            }
-        }
-
-        $unknownGroupKeys = $messageEnabled ? array_values(array_diff($messageWriteGroupKeys, $enabledMemberGroupKeys)) : [];
-        if ($unknownGroupKeys !== []) {
-            $errors[] = sr_t('community::action.admin.message_group_keys_inactive', ['keys' => implode(', ', $unknownGroupKeys)]);
-        }
         if ($errors === []) {
             $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'community' LIMIT 1");
             $stmt->execute();

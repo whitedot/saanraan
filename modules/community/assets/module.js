@@ -414,6 +414,76 @@
     return true;
   }
 
+  function communityDraftTextHasContent(value) {
+    var text = String(value || '');
+    if (/<(?:img|video|audio|iframe|object|embed)\b/i.test(text)) {
+      return true;
+    }
+    return text.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, ' ').trim() !== '';
+  }
+
+  function communityDraftObjectHasValue(object) {
+    if (!object || typeof object !== 'object') {
+      return false;
+    }
+    return Object.keys(object).some(function (key) {
+      var value = object[key];
+      if (Array.isArray(value)) {
+        return value.some(function (item) {
+          return communityDraftTextHasContent(item);
+        });
+      }
+      if (value && typeof value === 'object') {
+        return communityDraftObjectHasValue(value);
+      }
+      return communityDraftTextHasContent(value);
+    });
+  }
+
+  function communityDraftPayloadHasContent(payload) {
+    if (!payload || typeof payload !== 'object') {
+      return false;
+    }
+    if (communityDraftTextHasContent(payload.title) || communityDraftTextHasContent(payload.body_text)) {
+      return true;
+    }
+    if (Number(payload.category_id || 0) > 0 || String(payload.is_secret || '0') === '1') {
+      return true;
+    }
+    if (communityDraftObjectHasValue(payload.extra_field_values || {})) {
+      return true;
+    }
+    var series = payload.series_values || {};
+    if (!series || typeof series !== 'object') {
+      return false;
+    }
+    return String(series.series_mode || 'none') !== 'none'
+      || Number(series.series_id || 0) > 0
+      || communityDraftTextHasContent(series.new_series_title)
+      || communityDraftTextHasContent(series.episode_label);
+  }
+
+  function communityDraftSnapshotHasContent(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') {
+      return false;
+    }
+    if (communityDraftTextHasContent(snapshot.title) || communityDraftTextHasContent(snapshot.body_text)) {
+      return true;
+    }
+    if (Number(snapshot.category_id || 0) > 0 || String(snapshot.is_secret || '0') === '1') {
+      return true;
+    }
+    if (String(snapshot.series_mode || 'none') !== 'none'
+      || Number(snapshot.series_id || 0) > 0
+      || communityDraftTextHasContent(snapshot.new_series_title)
+      || communityDraftTextHasContent(snapshot.series_episode_label)) {
+      return true;
+    }
+    return Object.keys(snapshot).some(function (key) {
+      return /^community_extra_fields\[[a-zA-Z0-9_]+\]$/.test(key) && communityDraftTextHasContent(snapshot[key]);
+    });
+  }
+
   function communityDraftEditorTextarea(form) {
     return form.querySelector('textarea[name="body_text"]');
   }
@@ -544,6 +614,9 @@
     if (!snapshot || typeof snapshot !== 'object') {
       return {};
     }
+    if (!communityDraftSnapshotHasContent(snapshot)) {
+      return {};
+    }
     var extra = {};
     Object.keys(snapshot).forEach(function (key) {
       var match = /^community_extra_fields\[([a-zA-Z0-9_]+)\]$/.exec(key);
@@ -584,7 +657,7 @@
       } catch (error) {
         storagePayload = {};
       }
-      var restorePayload = Object.keys(serverPayload).length > 0 ? serverPayload : communityDraftPayloadFromStorageSnapshot(storagePayload);
+      var restorePayload = communityDraftPayloadHasContent(serverPayload) ? serverPayload : communityDraftPayloadFromStorageSnapshot(storagePayload);
       var panel = communityDraftPanel(form, restorePayload);
       if (panel) {
         var restore = panel.querySelector('[data-community-draft-restore]');
@@ -616,6 +689,8 @@
       var inFlight = false;
       var timer = 0;
       var backoff = interval;
+      var submitInProgress = false;
+      var autosaveController = null;
 
       function scheduleNextDraftSave(delay) {
         window.clearTimeout(timer);
@@ -623,24 +698,35 @@
       }
 
       function saveDraft() {
-        if (inFlight) {
+        if (inFlight || submitInProgress) {
           return;
         }
         var snapshot = communityDraftSnapshot(form);
         var hash = JSON.stringify(snapshot);
+        if (!communityDraftSnapshotHasContent(snapshot)) {
+          communityDraftStorageRemove(storageKey);
+          lastHash = '';
+          scheduleNextDraftSave(interval);
+          return;
+        }
         communityDraftStorageSet(storageKey, hash);
         if (hash === lastHash) {
           scheduleNextDraftSave(interval);
           return;
         }
         inFlight = true;
+        autosaveController = window.AbortController ? new window.AbortController() : null;
         var data = new FormData(form);
-        fetch(config.endpoint, {
+        var fetchOptions = {
           method: 'POST',
           body: data,
           credentials: 'same-origin',
           headers: { 'Accept': 'application/json' }
-        }).then(function (response) {
+        };
+        if (autosaveController) {
+          fetchOptions.signal = autosaveController.signal;
+        }
+        fetch(config.endpoint, fetchOptions).then(function (response) {
           return response.json().catch(function () {
             return { ok: false, message: 'invalid_json' };
           }).then(function (payload) {
@@ -658,7 +744,10 @@
           backoff = Math.min(interval * 8, Math.max(interval, backoff * 2));
         }).finally(function () {
           inFlight = false;
-          scheduleNextDraftSave(backoff);
+          autosaveController = null;
+          if (!submitInProgress) {
+            scheduleNextDraftSave(backoff);
+          }
         });
       }
 
@@ -667,6 +756,14 @@
       });
       form.addEventListener('change', function () {
         communityDraftStorageSet(storageKey, JSON.stringify(communityDraftSnapshot(form)));
+      });
+      form.addEventListener('submit', function () {
+        submitInProgress = true;
+        window.clearTimeout(timer);
+        communityDraftStorageRemove(storageKey);
+        if (autosaveController && typeof autosaveController.abort === 'function') {
+          autosaveController.abort();
+        }
       });
       scheduleNextDraftSave(interval);
       form.setAttribute('data-community-draft-ready', '1');

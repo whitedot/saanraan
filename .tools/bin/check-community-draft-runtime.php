@@ -182,7 +182,7 @@ $form = sr_community_draft_check_file(SR_ROOT . '/modules/community/theme/basic/
 sr_community_draft_check_assert(str_contains($form, 'data-community-draft-form') && str_contains($form, 'data-community-draft-payload'), 'Community form should expose draft config and restore payload.');
 
 $js = sr_community_draft_check_file(SR_ROOT . '/modules/community/assets/module.js');
-foreach (['sessionStorage', 'data-community-draft-restore', 'data-community-draft-discard', 'fetch(config.endpoint', 'function scheduleNextDraftSave', 'hash === lastHash'] as $marker) {
+foreach (['sessionStorage', 'data-community-draft-restore', 'data-community-draft-discard', 'fetch(config.endpoint', 'function scheduleNextDraftSave', 'hash === lastHash', 'function communityDraftPayloadHasContent', 'function communityDraftSnapshotHasContent', "form.addEventListener('submit'", 'communityDraftStorageRemove(storageKey)', 'autosaveController.abort'] as $marker) {
     sr_community_draft_check_assert(str_contains($js, $marker), 'Community module JS is missing draft marker: ' . $marker);
 }
 sr_community_draft_check_assert(!str_contains($js, 'localStorage'), 'Community draft buffer should not use localStorage.');
