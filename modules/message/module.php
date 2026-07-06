@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => '회원 간 쪽지 수발신을 제공하는 모듈입니다.',
     'admin' => [
-        'category' => 'service',
-        'category_label' => '서비스',
-        'category_order' => 30,
-        'menu_order' => 12,
+        'category' => 'member',
+        'category_label' => '회원',
+        'category_order' => 10,
+        'menu_order' => 13,
         'icon' => ['type' => 'symbol', 'name' => 'mail'],
     ],
     'saanraan' => [

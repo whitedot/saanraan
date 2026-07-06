@@ -204,7 +204,7 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community message write entry',
+        'label' => 'message write entry',
         'path' => '/message/write',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
@@ -305,21 +305,21 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community messages auth guard',
+        'label' => 'messages auth guard',
         'path' => '/messages',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community message view auth guard',
+        'label' => 'message view auth guard',
         'path' => '/message?id=1',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community message write action auth guard',
+        'label' => 'message write action auth guard',
         'method' => 'POST',
         'path' => '/message/write',
         'allowed_statuses' => [302, 404],
@@ -327,7 +327,7 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community message delete action auth guard',
+        'label' => 'message delete action auth guard',
         'method' => 'POST',
         'path' => '/message/delete',
         'allowed_statuses' => [302, 404],

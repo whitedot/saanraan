@@ -30,6 +30,7 @@
 | 회원 | `identity_verification` | 외부 본인확인 attempt/result/link, provider 설정, privacy/cleanup/retention 계약 |
 | 플러그인 | `identity_kcp` | NHN KCP 휴대폰 본인확인 provider 계약 |
 | 플러그인 | `identity_inicis` | KG이니시스 통합인증 본인확인 provider 계약 |
+| 회원 | `message` | 회원 간 쪽지, 수신 설정, 쪽지 신고 대상 계약. 일반 회원은 본인 계정이 현재 수신 가능한 상태여야 쪽지를 발신할 수 있고, 회원 목록을 볼 수 있는 관리자는 회원 목록에서 활성 회원에게 쪽지를 보낼 수 있다. |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
@@ -44,7 +45,6 @@
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |
 | 서비스 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩 |
-| 서비스 | `message` | 회원 간 쪽지, 수신 설정, 쪽지 신고 대상 계약 |
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계 보상 기반 |
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 기반 |
 | 서비스 | `reaction` | 콘텐츠, 커뮤니티, 퀴즈, 설문 공통 리액션 정의와 원장 |

@@ -58,6 +58,10 @@ function sr_admin_navigation_runtime_pdo(): PDO
     $pdo->exec(
         "INSERT INTO sr_modules (module_key, status)
          VALUES
+            ('member', 'enabled'),
+            ('member_oauth', 'enabled'),
+            ('identity_verification', 'enabled'),
+            ('message', 'enabled'),
             ('community', 'enabled'),
             ('seo', 'enabled'),
             ('notification', 'enabled')"
@@ -110,9 +114,31 @@ foreach ($groups as $group) {
     }
 }
 sr_admin_navigation_runtime_assert(isset($moduleGroups['seo']), 'Admin navigation runtime fixture must expose SEO module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['member']), 'Admin navigation runtime fixture must expose member module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['member_oauth']), 'Admin navigation runtime fixture must expose member OAuth module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['identity_verification']), 'Admin navigation runtime fixture must expose identity verification module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['message']), 'Admin navigation runtime fixture must expose message module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['community']), 'Admin navigation runtime fixture must expose community module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['notification']), 'Admin navigation runtime fixture must expose notification module menu group.');
 sr_admin_navigation_runtime_assert((int) ($moduleGroups['seo']['order'] ?? 0) === 50, 'Admin navigation runtime fixture must use SEO module admin menu order.');
+sr_admin_navigation_runtime_assert((int) ($moduleGroups['message']['order'] ?? 0) === 13, 'Admin navigation runtime fixture must place message directly after identity verification in the member category.');
+$memberGroupKeys = [];
+foreach ($groups as $group) {
+    if ((string) ($group['category'] ?? '') !== 'member') {
+        continue;
+    }
+    $memberGroupKeys = array_map(
+        static fn (array $moduleGroup): string => (string) ($moduleGroup['module_key'] ?? ''),
+        array_values(array_filter((array) ($group['module_groups'] ?? []), 'is_array'))
+    );
+}
+sr_admin_navigation_runtime_assert($memberGroupKeys !== [], 'Admin navigation runtime fixture must include a member category.');
+$identityMenuPosition = array_search('identity_verification', $memberGroupKeys, true);
+$messageMenuPosition = array_search('message', $memberGroupKeys, true);
+sr_admin_navigation_runtime_assert(
+    is_int($identityMenuPosition) && is_int($messageMenuPosition) && $messageMenuPosition === $identityMenuPosition + 1,
+    'Admin navigation runtime fixture must place message after identity verification in the member sidebar category.'
+);
 $communityBoardMenuItem = [];
 foreach ((array) ($moduleGroups['community']['items'] ?? []) as $communityMenuItem) {
     if (!is_array($communityMenuItem) || (string) ($communityMenuItem['path'] ?? '') !== '/admin/community/boards') {

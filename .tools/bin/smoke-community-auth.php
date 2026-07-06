@@ -384,7 +384,7 @@ try {
         sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, 'name="recipient_account_id"');
         sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, '/message/write?to=');
         $messageCsrf = sr_auth_smoke_csrf($messageForm, 'message write form');
-        $messageBody = 'Saanraan authenticated community message smoke ' . $runToken . '.';
+        $messageBody = 'Saanraan authenticated message smoke ' . $runToken . '.';
         $messageResponse = sr_auth_smoke_request($baseUrl, 'POST', '/message/write', [
             'csrf_token' => $messageCsrf,
             'recipient_identifier' => $recipientIdentifier,

@@ -247,7 +247,7 @@ function sr_admin_code_label_context_options(): array
             'privacy_request' => '개인정보 요청 대응 기록',
             'community_attachment' => '커뮤니티 첨부파일',
             'community_asset_policy_set' => '커뮤니티 포인트/금액 정책',
-            'community_message' => '커뮤니티 쪽지',
+            'community_message' => '쪽지',
             'community_post' => '커뮤니티 게시글',
             'community_comment' => '커뮤니티 댓글',
             'community_report' => '커뮤니티 신고',

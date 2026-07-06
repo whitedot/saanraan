@@ -211,7 +211,7 @@ $optionalModules = [
         'name' => '커뮤니티',
         'version' => '2026.07.001',
         'label' => sr_t('install.module.community.label'),
-        'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
+        'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
