@@ -53,6 +53,7 @@ return [
         'mfa_login_mode' => 'disabled',
         'mfa_login_enabled' => false,
         'mfa_login_providers_json' => '["email","totp"]',
+        'session_lifetime_seconds' => 86400,
         'login_throttle_window_seconds' => 900,
         'login_throttle_account_limit' => 5,
         'login_throttle_ip_limit' => 20,

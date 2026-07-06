@@ -272,6 +272,10 @@ if (sr_request_method() === 'POST') {
                 'removed_profile_extra_field_keys' => $removedProfileExtraFieldKeys,
                 'removed_profile_extra_field_value_count' => $deletedProfileExtraFieldValues,
                 'removed_profile_extra_field_value_count_estimate' => $removedProfileExtraFieldValueCount,
+                'integer_settings' => array_reduce(array_keys(sr_member_integer_setting_keys()), static function (array $carry, string $key) use ($settings): array {
+                    $carry[$key] = (int) ($settings[$key] ?? 0);
+                    return $carry;
+                }, []),
             ],
         ]);
 

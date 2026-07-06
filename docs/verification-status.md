@@ -94,6 +94,13 @@ php .tools/bin/smoke-http.php
 - `.tools/bin/check-asset-settlement-contract.php`는 settlement plan fixture로 0원 처리, 정확 충당, 통화 최소단위 미만 rational carry, carry 부족 안내 오탐 방지, 1단위 미만 ceil overpay 금지, 통화 불일치, 알 수 없는 통화 fail-closed, rounding policy snapshot을 확인한다. 또한 콘텐츠 열람, 콘텐츠 완료, 커뮤니티 자산 이벤트의 placeholder와 원장 row가 같은 PDO transaction 안에서 함께 rollback/commit되는지 SQLite fixture로 확인하고, 커뮤니티 글쓰기/댓글/유료 열람/첨부 다운로드 액션이 settlement currency를 가진 공통 자산 이벤트 helper로 들어가는지 정적 marker로 고정한다. #396 denomination 결정 gate의 asset-unit, purchase-power 통화, min-unit, record-time frozen, 표시 formatter 경계 문서 marker도 이 검사에 포함한다.
 - 정적 점검과 SQLite/`pcntl` 병렬 claim fixture는 실제 설치 DB의 HTTP 요청 경합 전체를 증명하지 않으므로, 1.0 전에는 `smoke-asset-idempotency-http.php` 같은 확인 token 병렬 HTTP 동시 제출을 실행해 중복 원장 거래가 없는지 확인하고 설치 DB 기반 관리자 정정 실행 확인을 별도 보완 대상으로 둔다.
 
+### 회원 세션 유효시간
+
+현재 기준:
+
+- `.tools/bin/check-member-session-lifetime-runtime.php`는 SQLite fixture로 기본 86400초, 설정값 기반 신규 세션 `expires_at`, 설정값 clamp, 설정 단축의 `created_at + 현재 lifetime` 읽기 시점 무효화, 설정 연장 시 저장된 `expires_at` 초과 부활 방지, cleanup의 `created_at` 기준 삭제, 설정 테이블 누락과 설정 helper 누락 시 86400초 fallback을 확인한다.
+- `.tools/bin/check-member-auth-policy.php`는 세션 lifetime helper의 `function_exists()` guard, `Throwable` fallback, `sr_member_create_session($pdo, $accountId)` 시그니처 유지, `sr_member_session_is_current()`의 `created_at` SELECT와 effective expiry 계산, cleanup의 `created_at` 조건, 회원 설정 감사 metadata의 정수 설정 snapshot marker를 확인한다.
+
 ### HTML sanitizer와 CKEditor
 
 필요한 증거:

@@ -1917,7 +1917,7 @@ function sr_member_create_session(PDO $pdo, int $accountId): string
 {
     $sessionTokenHash = hash('sha256', bin2hex(random_bytes(32)));
     $now = sr_now();
-    $expiresAt = date('Y-m-d H:i:s', time() + 86400);
+    $expiresAt = date('Y-m-d H:i:s', time() + sr_member_session_lifetime_seconds($pdo));
 
     try {
         $stmt = $pdo->prepare(
@@ -1942,6 +1942,22 @@ function sr_member_create_session(PDO $pdo, int $accountId): string
     return $sessionTokenHash;
 }
 
+function sr_member_session_lifetime_seconds(PDO $pdo): int
+{
+    if (function_exists('sr_member_settings') && function_exists('sr_module_metadata') && function_exists('sr_module_settings')) {
+        try {
+            $settings = sr_member_settings($pdo);
+            $lifetime = (int) ($settings['session_lifetime_seconds'] ?? 86400);
+
+            return sr_member_clamp_int($lifetime, 1800, 2592000);
+        } catch (Throwable $exception) {
+            return 86400;
+        }
+    }
+
+    return 86400;
+}
+
 function sr_member_cleanup_sessions(PDO $pdo, int $revokedRetentionDays = 30): int
 {
     if (!sr_member_sessions_table_exists($pdo)) {
@@ -1950,15 +1966,18 @@ function sr_member_cleanup_sessions(PDO $pdo, int $revokedRetentionDays = 30): i
 
     $now = sr_now();
     $revokedBefore = date('Y-m-d H:i:s', time() - max(1, $revokedRetentionDays) * 86400);
+    $createdBefore = date('Y-m-d H:i:s', time() - sr_member_session_lifetime_seconds($pdo));
 
     try {
         $stmt = $pdo->prepare(
             'DELETE FROM sr_member_sessions
              WHERE expires_at < :now
+                OR created_at < :created_before
                 OR (revoked_at IS NOT NULL AND revoked_at < :revoked_before)'
         );
         $stmt->execute([
             'now' => $now,
+            'created_before' => $createdBefore,
             'revoked_before' => $revokedBefore,
         ]);
     } catch (PDOException $exception) {
@@ -1981,7 +2000,7 @@ function sr_member_session_is_current(PDO $pdo, int $accountId): bool
 
     try {
         $stmt = $pdo->prepare(
-            'SELECT id, expires_at, revoked_at, last_seen_at
+            'SELECT id, expires_at, revoked_at, created_at, last_seen_at
              FROM sr_member_sessions
              WHERE account_id = :account_id
                AND session_token_hash = :session_token_hash
@@ -1996,7 +2015,18 @@ function sr_member_session_is_current(PDO $pdo, int $accountId): bool
         return false;
     }
 
-    if (!is_array($session) || $session['revoked_at'] !== null || (string) $session['expires_at'] < sr_now()) {
+    if (!is_array($session) || $session['revoked_at'] !== null) {
+        return false;
+    }
+
+    $storedExpiresAt = strtotime((string) $session['expires_at']);
+    $createdAt = strtotime((string) $session['created_at']);
+    if ($storedExpiresAt === false || $createdAt === false) {
+        return false;
+    }
+
+    $effectiveExpiresAt = min($storedExpiresAt, $createdAt + sr_member_session_lifetime_seconds($pdo));
+    if ($effectiveExpiresAt < time()) {
         return false;
     }
 

@@ -725,6 +725,31 @@ if ($sessionHelper !== '') {
         'Current member session rotation helper should regenerate PHP and member session tokens.'
     );
     sr_member_auth_policy_assert(
+        strpos($sessionHelper, 'function sr_member_session_lifetime_seconds(PDO $pdo): int') !== false
+            && strpos($sessionHelper, "function_exists('sr_member_settings')") !== false
+            && strpos($sessionHelper, "function_exists('sr_module_metadata')") !== false
+            && strpos($sessionHelper, "function_exists('sr_module_settings')") !== false
+            && strpos($sessionHelper, 'catch (Throwable $exception)') !== false
+            && strpos($sessionHelper, 'return 86400;') !== false,
+        'Member session lifetime helper should fall back to the 86400 second default when settings helpers are unavailable or fail.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($sessionHelper, 'sr_member_create_session(PDO $pdo, int $accountId): string') !== false
+            && strpos($sessionHelper, 'time() + sr_member_session_lifetime_seconds($pdo)') !== false,
+        'Member session creation should keep its public signature and use the configured session lifetime.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($sessionHelper, 'SELECT id, expires_at, revoked_at, created_at, last_seen_at') !== false
+            && strpos($sessionHelper, '$effectiveExpiresAt = min($storedExpiresAt, $createdAt + sr_member_session_lifetime_seconds($pdo));') !== false
+            && strpos($sessionHelper, 'if ($effectiveExpiresAt < time())') !== false,
+        'Member session current check should apply the stored expiry and current configured created_at lifetime cap.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($sessionHelper, '$createdBefore = date(\'Y-m-d H:i:s\', time() - sr_member_session_lifetime_seconds($pdo));') !== false
+            && strpos($sessionHelper, 'OR created_at < :created_before') !== false,
+        'Member session cleanup should delete rows invalidated by the current created_at lifetime cap.'
+    );
+    sr_member_auth_policy_assert(
         strpos($sessionHelper, 'function sr_member_login(PDO $pdo, array $account): bool') !== false
             && strpos($sessionHelper, "if (\$sessionTokenHash !== '') {\n        \$_SESSION['sr_session_token_hash'] = \$sessionTokenHash;") !== false
             && strpos($sessionHelper, "unset(\$_SESSION['sr_session_token_hash']);") !== false,
@@ -1263,6 +1288,11 @@ if ($adminSettingsAction !== '') {
             && strpos($adminSettingsAction, '$settings[$key] = $integerValue;') !== false
             && strpos($adminSettingsAction, 'sr_member_clamp_int((int) $rawValue') === false,
         'Member settings action should reject out-of-range integer settings instead of truncating or clamping submitted values.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminSettingsAction, 'array_keys(sr_member_integer_setting_keys())') !== false
+            && strpos($adminSettingsAction, "'integer_settings' => array_reduce(") !== false,
+        'Member settings audit metadata should include the generic integer settings snapshot.'
     );
     sr_member_auth_policy_assert(
         strpos($adminSettingsAction, "\$memberIdentityVerificationAvailable = sr_module_enabled(\$pdo, 'identity_verification')") !== false

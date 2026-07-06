@@ -29,6 +29,7 @@ function sr_member_default_settings(): array
         'mfa_login_mode' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null),
         'mfa_login_enabled' => sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null) !== 'disabled',
         'mfa_login_providers_json' => is_string($settings['mfa_login_providers_json'] ?? null) ? (string) $settings['mfa_login_providers_json'] : '["email","totp"]',
+        'session_lifetime_seconds' => (int) ($settings['session_lifetime_seconds'] ?? 86400),
         'login_throttle_window_seconds' => (int) ($settings['login_throttle_window_seconds'] ?? 900),
         'login_throttle_account_limit' => (int) ($settings['login_throttle_account_limit'] ?? 5),
         'login_throttle_ip_limit' => (int) ($settings['login_throttle_ip_limit'] ?? 20),
@@ -331,6 +332,7 @@ function sr_member_skin_view(string $skinKey, string $viewKey): string
 function sr_member_integer_setting_keys(): array
 {
     return [
+        'session_lifetime_seconds' => ['default' => 86400, 'min' => 1800, 'max' => 2592000],
         'login_throttle_window_seconds' => ['default' => 900, 'min' => 0, 'max' => 86400],
         'login_throttle_account_limit' => ['default' => 5, 'min' => 0, 'max' => 1000],
         'login_throttle_ip_limit' => ['default' => 20, 'min' => 0, 'max' => 1000],

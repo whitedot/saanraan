@@ -51,6 +51,15 @@ $memberSettingsHelp = [
             'member::help.settings.throttle_window.body.2',
         ]),
     ],
+    'session_lifetime' => [
+        'id' => 'member-settings-help-session-lifetime-modal',
+        'title' => '회원 세션 유효시간',
+        'body_html' => sr_member_admin_help_body_html([
+            '회원 로그인 세션은 마지막 활동 기준이 아니라 로그인 또는 세션 회전 시점부터 계산하는 절대 유효시간입니다.',
+            '시간을 줄이면 기존 세션에도 읽기 시점 상한으로 적용되므로 저장한 관리자 본인도 다음 요청에서 로그아웃될 수 있습니다.',
+            '브라우저 세션 쿠키와 PHP 런타임 세션 수명은 별도이므로, 브라우저를 닫거나 런타임 세션이 먼저 정리되면 이 시간보다 빨리 재로그인이 필요할 수 있습니다.',
+        ]),
+    ],
     'throttle_account' => [
         'id' => 'member-settings-help-throttle-account-modal',
         'title' => sr_t('member::help.settings.throttle_account.title'),
@@ -117,6 +126,8 @@ $memberIdentityVerificationAvailable = isset($memberIdentityVerificationAvailabl
 $memberIdentityVerificationInputAttributes = $memberIdentityVerificationAvailable
     ? ''
     : ' disabled aria-describedby="member-settings-identity-unavailable"';
+$memberRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
+$memberRuntimeSessionLifetimeSeconds = (int) ($memberRuntimeConfig['session']['lifetime_seconds'] ?? 86400);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -379,6 +390,16 @@ $memberSettingsSectionNavItems = [
 
     <section id="member-settings-section-login" class="card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.login.b726ae4b')); ?></h2>
+        <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('member_admin_settings_session_lifetime_seconds', '회원 세션 유효시간', $memberSettingsHelp['session_lifetime']['id'], $memberSettingsHelpOpenLabel, true); ?>
+            <div class="form-field">
+                <div class="input-group admin-input-unit">
+                    <input id="member_admin_settings_session_lifetime_seconds" type="number" name="session_lifetime_seconds" value="<?php echo sr_e((string) $settings['session_lifetime_seconds']); ?>" required class="form-input" min="1800" max="2592000">
+                    <span class="input-group-text">초</span>
+                </div>
+                <small class="form-help">1800초부터 2592000초까지 설정할 수 있습니다. 현재 PHP 런타임 세션 저장소 수명은 <?php echo sr_e(number_format($memberRuntimeSessionLifetimeSeconds)); ?>초이며, 브라우저 세션 쿠키나 런타임 세션이 먼저 끝나면 회원 세션 만료 전에도 재로그인이 필요할 수 있습니다.</small>
+            </div>
+        </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_login_throttle_window_seconds', sr_t('member::ui.text.c7f70c10'), $memberSettingsHelp['throttle_window']['id'], $memberSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
