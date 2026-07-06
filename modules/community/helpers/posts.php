@@ -393,17 +393,10 @@ function sr_community_body_excerpt(string $bodyText, string $bodyFormat, int $le
     return (function_exists('mb_substr') ? mb_substr($plainText, 0, $length) : substr($plainText, 0, $length)) . '...';
 }
 
-function sr_community_body_format_for_editor_key(string $editorKey): string
+function sr_community_body_format_for_editor_key(PDO $pdo, string $editorKey): string
 {
-    $editorKey = sr_editor_normalize_key($editorKey);
-    if ($editorKey === 'markdown') {
-        return 'markdown';
-    }
-    if (in_array($editorKey, ['html', 'ckeditor'], true)) {
-        return 'html';
-    }
-
-    return 'plain';
+    $formatValue = sr_editor_format_value($pdo, $editorKey);
+    return $formatValue === 'markdown' && !sr_markdown_renderer_available($pdo) ? 'plain' : $formatValue;
 }
 
 function sr_community_post_body_format(PDO $pdo, array $post, ?array $settings = null): string
@@ -418,7 +411,7 @@ function sr_community_post_body_format(PDO $pdo, array $post, ?array $settings =
         }
         $boardEditor = is_string($boardEditorValue) ? sr_community_post_editor_key($boardEditorValue) : '';
         if ($boardEditor !== '') {
-            return sr_community_body_format_for_editor_key(sr_editor_effective_key($pdo, $boardEditor));
+            return sr_community_body_format_for_editor_key($pdo, sr_editor_effective_key($pdo, $boardEditor));
         }
     }
 
@@ -430,7 +423,7 @@ function sr_community_post_body_format(PDO $pdo, array $post, ?array $settings =
         }
     }
 
-    return sr_community_body_format_for_editor_key(sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')));
+    return sr_community_body_format_for_editor_key($pdo, sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')));
 }
 
 function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0, int $authorAccountId = 0): int

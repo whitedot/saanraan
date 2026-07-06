@@ -3010,6 +3010,17 @@ function sr_coupon_asset_transaction(PDO $pdo, string $assetModule, array $data)
     return (int) $transactionFunction($pdo, $data);
 }
 
+function sr_coupon_asset_refund_transactions(PDO $pdo, string $assetModule, array $data): array
+{
+    $assetOptions = sr_coupon_asset_options($pdo);
+    if (!isset($assetOptions[$assetModule])) {
+        throw new RuntimeException('쿠폰 발급에 사용할 수 없는 포인트/금액 항목입니다.');
+    }
+
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+    return sr_member_asset_create_refund_transactions($pdo, $assetModule, $data, $assetOptions);
+}
+
 function sr_coupon_claim_paid_campaign_with_asset(PDO $pdo, string $campaignKey, int $accountId, string $intentToken, array $assetModules, string $claimSource = 'coupon_zone', array $sourceContext = []): array
 {
     if (!sr_coupon_usage_enabled($pdo)) {
@@ -4084,17 +4095,16 @@ function sr_coupon_refund_paid_issue_assets(PDO $pdo, int $issueId, int $adminAc
                 'reference_id' => sr_coupon_asset_refund_reference_id($assetModule, $sourceTransactionId),
                 'created_by_account_id' => $adminAccountId,
             ];
-            if ($assetModule === 'point') {
-                $transactionData['refund_expiration_policy'] = 'original';
-            }
+            $transactionData['refund_expiration_policy'] = 'original';
 
-            $refundTransactionId = sr_coupon_asset_transaction($pdo, $assetModule, $transactionData);
-            $refundTransactions[] = [
-                'asset_module' => $assetModule,
-                'source_transaction_id' => $sourceTransactionId,
-                'refund_transaction_id' => $refundTransactionId,
-                'amount' => $amount,
-            ];
+            foreach (sr_coupon_asset_refund_transactions($pdo, $assetModule, $transactionData) as $refundTransactionId) {
+                $refundTransactions[] = [
+                    'asset_module' => $assetModule,
+                    'source_transaction_id' => $sourceTransactionId,
+                    'refund_transaction_id' => $refundTransactionId,
+                    'amount' => $amount,
+                ];
+            }
         }
         if ($refundTransactions === []) {
             throw new InvalidArgumentException('환불할 자산 차감 스냅샷이 없습니다.');

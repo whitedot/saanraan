@@ -1501,9 +1501,7 @@ function sr_community_refund_attachment_download(PDO $pdo, int $downloadLogId, i
                 'reference_id' => $assetModule . '_transaction:' . (string) $transactionId,
                 'created_by_account_id' => $adminAccountId,
             ];
-            if ($assetModule === 'point') {
-                $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
-            }
+            $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
             $paymentLedgerReferences[] = [
                 'item_kind' => 'asset_transaction',
                 'owner_module' => $assetModule,
@@ -1516,15 +1514,9 @@ function sr_community_refund_attachment_download(PDO $pdo, int $downloadLogId, i
                 'reference_type' => 'community_asset_log',
                 'reference_id' => (string) (int) ($accessLog['id'] ?? 0),
             ];
-            if ($assetModule === 'point' && function_exists('sr_point_create_refund_transactions')) {
-                foreach (sr_point_create_refund_transactions($pdo, $transactionData) as $refundTransactionId) {
-                    $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
-                }
-                continue;
+            foreach (sr_community_create_asset_refund_transactions($pdo, $assetModule, $transactionData) as $refundTransactionId) {
+                $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
             }
-
-            $refundTransactionId = sr_community_create_asset_transaction($pdo, $assetModule, $transactionData);
-            $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
         }
 
         $accessRevoked = false;

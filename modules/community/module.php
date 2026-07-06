@@ -44,6 +44,7 @@ return [
             'reaction-targets.php',
             'antispam-targets.php',
             'payment-ledger-targets.php',
+            'asset-recovery-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

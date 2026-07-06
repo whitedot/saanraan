@@ -52,11 +52,16 @@ $requireContains('modules/asset_ledger/helpers.php', [
     'sr_asset_recovery_record_failure',
     'sr_asset_recovery_record_reversal_link',
     'sr_asset_recovery_retry',
-    "function_exists('sr_module_enabled') && !sr_module_enabled(\$pdo, 'community')",
-    "!is_file(SR_ROOT . '/modules/community/helpers.php')",
-    "!function_exists('sr_community_reverse_asset_grant_for_operation')",
+    "sr_enabled_module_contract_files(\$pdo, 'asset-recovery-targets.php', ['asset_ledger'])",
+    "\$retryFunction = (string) (\$contract['retry_function'] ?? '')",
+    'source 모듈이 미회수 재시도 계약을 제공하지 않습니다.',
     'AND version = :version',
-    "(string) \$failure['reversal_event_key'],\n            (string) \$failure['reversal_event_key'],\n            'asset.recovery.retry'",
+    "(string) \$failure['reversal_event_key'],\n        (string) \$failure['reversal_event_key'],\n        'asset.recovery.retry'",
+]);
+$requireContains('modules/community/asset-recovery-targets.php', [
+    "'retry_function' => 'sr_community_reverse_asset_grant_for_operation'",
+    "'community.post'",
+    "'community.comment'",
 ]);
 $requireContains('modules/asset_ledger/paths.php', [
     'GET /admin/assets/recovery-failures',

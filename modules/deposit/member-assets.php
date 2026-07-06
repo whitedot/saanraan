@@ -12,6 +12,7 @@ return [
     'summary_icon' => 'payments',
     'transaction_function' => 'sr_deposit_create_transaction',
     'transaction_lookup_function' => 'sr_deposit_transaction_by_reference',
+    'balance_table' => 'sr_deposit_balances',
     'transaction_table' => 'sr_deposit_transactions',
     'use_type' => 'use',
     'credit_type' => 'deposit',

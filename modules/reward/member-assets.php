@@ -12,6 +12,7 @@ return [
     'summary_icon' => 'savings',
     'transaction_function' => 'sr_reward_create_transaction',
     'transaction_lookup_function' => 'sr_reward_transaction_by_reference',
+    'balance_table' => 'sr_reward_balances',
     'transaction_table' => 'sr_reward_transactions',
     'use_type' => 'use',
     'credit_type' => 'grant',

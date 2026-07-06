@@ -1410,6 +1410,16 @@ function sr_community_create_asset_transaction(PDO $pdo, string $assetModule, ar
     return (int) $transactionFunction($pdo, $data);
 }
 
+function sr_community_create_asset_refund_transactions(PDO $pdo, string $assetModule, array $data): array
+{
+    if (!sr_community_asset_module_is_available($pdo, $assetModule)) {
+        throw new RuntimeException('Community asset module is not available.');
+    }
+
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+    return sr_member_asset_create_refund_transactions($pdo, $assetModule, $data, sr_community_asset_modules($pdo));
+}
+
 function sr_community_asset_board_setting(PDO $pdo, array $board, array $settings, string $key, mixed $default): string
 {
     $boardId = (int) ($board['id'] ?? 0);

@@ -433,7 +433,7 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         $normalizedSettings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
         $postEditorKey = sr_editor_effective_key($pdo, (string) ($normalizedSettings['post_editor'] ?? 'textarea'));
     }
-    $bodyFormat = sr_community_body_format_for_editor_key($postEditorKey);
+    $bodyFormat = $pdo instanceof PDO ? sr_community_body_format_for_editor_key($pdo, $postEditorKey) : 'plain';
 
     $bodyText = sr_post_string_without_truncation('body_text', sr_community_post_body_storage_max_bytes());
     if ($bodyFormat === 'html' && is_string($bodyText)) {

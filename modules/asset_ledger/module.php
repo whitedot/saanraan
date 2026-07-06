@@ -31,5 +31,9 @@ return [
             'privacy-export.php',
             'privacy-cleanup.php',
         ],
+        'consumes' => [
+            'member-assets.php',
+            'asset-recovery-targets.php',
+        ],
     ],
 ];

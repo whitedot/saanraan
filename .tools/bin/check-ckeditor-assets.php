@@ -465,7 +465,7 @@ sr_ckeditor_assets_require_markers('core/helpers/output.php', [
 sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
     'sr_content_effective_editor_key($pdo, $page)',
     'function sr_content_effective_body_format(PDO $pdo, array $page): string',
-    '$editorKey === \'html\' || $editorKey === \'ckeditor\'',
+    'sr_editor_format_value($pdo, $editorKey)',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/markdown_editor/assets/editor.js', [

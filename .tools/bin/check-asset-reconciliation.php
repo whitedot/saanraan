@@ -37,16 +37,26 @@ sr_asset_reconciliation_check_file_contains('modules/asset_ledger/helpers.php', 
     'function sr_asset_reconcile_all',
     'function sr_asset_reconcile_module',
     'function sr_asset_reconciliation_summary',
-    'sr_point_balances',
-    'sr_reward_balances',
-    'sr_deposit_balances',
+    'sr_member_ledger_asset_definitions($pdo)',
     'missing_balance_row',
     'balance_sum_mismatch',
     'last_balance_after_mismatch',
     'nonzero_balance_without_transactions',
     'balance_after_sequence_mismatch',
     'function sr_asset_reconcile_sequence_mismatches',
-    "'sr_deposit_balances' => 'sr_deposit_transactions'",
+    'member-assets.php balance_table 또는 transaction_table이 없습니다.',
+]);
+sr_asset_reconciliation_check_file_contains('modules/point/member-assets.php', [
+    "'balance_table' => 'sr_point_balances'",
+    "'transaction_table' => 'sr_point_transactions'",
+]);
+sr_asset_reconciliation_check_file_contains('modules/reward/member-assets.php', [
+    "'balance_table' => 'sr_reward_balances'",
+    "'transaction_table' => 'sr_reward_transactions'",
+]);
+sr_asset_reconciliation_check_file_contains('modules/deposit/member-assets.php', [
+    "'balance_table' => 'sr_deposit_balances'",
+    "'transaction_table' => 'sr_deposit_transactions'",
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/reward/helpers.php', [

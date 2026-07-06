@@ -105,11 +105,15 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
         $balanceFunction = (string) ($contract['balance_function'] ?? '');
         $transactionFunction = (string) ($contract['transaction_function'] ?? '');
         $transactionLookupFunction = (string) ($contract['transaction_lookup_function'] ?? '');
+        $refundSplitFunction = (string) ($contract['refund_split_function'] ?? '');
         if (!function_exists($balanceFunction) || !function_exists($transactionFunction)) {
             continue;
         }
         if ($transactionLookupFunction !== '' && !function_exists($transactionLookupFunction)) {
             $transactionLookupFunction = '';
+        }
+        if ($refundSplitFunction !== '' && !function_exists($refundSplitFunction)) {
+            $refundSplitFunction = '';
         }
 
         $assets[$moduleKey] = [
@@ -119,6 +123,8 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
             'balance_function' => $balanceFunction,
             'transaction_function' => $transactionFunction,
             'transaction_lookup_function' => $transactionLookupFunction,
+            'refund_split_function' => $refundSplitFunction,
+            'balance_table' => (string) ($contract['balance_table'] ?? ''),
             'transaction_table' => (string) ($contract['transaction_table'] ?? ''),
             'use_type' => (string) ($contract['use_type'] ?? 'use'),
             'credit_type' => (string) ($contract['credit_type'] ?? 'grant'),
@@ -134,6 +140,34 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
     });
 
     return $assets;
+}
+
+function sr_member_asset_create_refund_transactions(PDO $pdo, string $assetModule, array $data, array $assetOptions = []): array
+{
+    if ($assetOptions === []) {
+        $assetOptions = sr_member_ledger_asset_definitions($pdo);
+    }
+    if (!isset($assetOptions[$assetModule])) {
+        throw new RuntimeException('Member asset module is not available.');
+    }
+
+    $assetOption = $assetOptions[$assetModule];
+    $refundSplitFunction = (string) ($assetOption['refund_split_function'] ?? '');
+    if ($refundSplitFunction !== '' && function_exists($refundSplitFunction)) {
+        $transactionIds = $refundSplitFunction($pdo, $data);
+        if (!is_array($transactionIds)) {
+            throw new RuntimeException('Member asset refund split function returned an invalid value.');
+        }
+
+        return array_values(array_map('intval', $transactionIds));
+    }
+
+    $transactionFunction = (string) ($assetOption['transaction_function'] ?? '');
+    if ($transactionFunction === '' || !function_exists($transactionFunction)) {
+        throw new RuntimeException('Member asset transaction function is not available.');
+    }
+
+    return [(int) $transactionFunction($pdo, $data)];
 }
 
 function sr_member_asset_purchase_power_from_contract(?PDO $pdo, array $contract): array

@@ -97,12 +97,16 @@ foreach (glob('modules/*/member-assets.php') ?: [] as $contractFile) {
 
     $transactionFunction = (string) ($contract['transaction_function'] ?? '');
     $lookupFunction = (string) ($contract['transaction_lookup_function'] ?? '');
+    $balanceTable = (string) ($contract['balance_table'] ?? '');
     $transactionTable = (string) ($contract['transaction_table'] ?? '');
     $helperPath = sr_member_assets_contract_helper_path($moduleKey, $contract);
 
     if ($transactionFunction === '') {
         sr_member_assets_contract_error('transaction_function is required: ' . $contractFile);
         continue;
+    }
+    if ($balanceTable === '') {
+        sr_member_assets_contract_error('balance_table is required for reconciliation: ' . $contractFile);
     }
     if ($transactionTable === '') {
         sr_member_assets_contract_error('transaction_table is required for reconciliation: ' . $contractFile);
@@ -148,10 +152,12 @@ foreach (glob('modules/*/member-assets.php') ?: [] as $contractFile) {
 }
 
 sr_member_assets_contract_check_contains('docs/module-guide.md', [
-    '`transaction_function`은 호출자가 이미 시작한 같은 PDO transaction에 동참해야 하며',
-    '`member-assets.php`',
-    '`transaction_lookup_function`',
-]);
+        '`transaction_function`은 호출자가 이미 시작한 같은 PDO transaction에 동참해야 하며',
+        '`member-assets.php`',
+        '`transaction_lookup_function`',
+        '`balance_table`',
+        '`refund_split_function`',
+    ]);
 
 sr_member_assets_contract_check_contains('docs/verification-status.md', [
     'check-member-assets-transaction-contract.php',

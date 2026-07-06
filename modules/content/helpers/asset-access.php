@@ -397,6 +397,16 @@ function sr_content_create_asset_transaction(PDO $pdo, string $assetModule, arra
     return (int) $transactionFunction($pdo, $data);
 }
 
+function sr_content_create_asset_refund_transactions(PDO $pdo, string $assetModule, array $data): array
+{
+    if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
+        throw new RuntimeException('Page asset module is not available.');
+    }
+
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+    return sr_member_asset_create_refund_transactions($pdo, $assetModule, $data, sr_content_asset_modules($pdo));
+}
+
 function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
     $settlementAmount = max(0, $settlementAmount);
@@ -825,9 +835,7 @@ function sr_content_refund_view_payment(PDO $pdo, int $paymentLogId, int $adminA
                 'reference_id' => $assetModule . '_transaction:' . (string) $transactionId,
                 'created_by_account_id' => $adminAccountId,
             ];
-            if ($assetModule === 'point') {
-                $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
-            }
+            $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
             $paymentLedgerReferences[] = [
                 'item_kind' => 'asset_transaction',
                 'owner_module' => $assetModule,
@@ -841,15 +849,9 @@ function sr_content_refund_view_payment(PDO $pdo, int $paymentLogId, int $adminA
                 'reference_id' => (string) (int) ($accessLog['id'] ?? 0),
             ];
 
-            if ($assetModule === 'point' && function_exists('sr_point_create_refund_transactions')) {
-                foreach (sr_point_create_refund_transactions($pdo, $transactionData) as $refundTransactionId) {
-                    $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
-                }
-                continue;
+            foreach (sr_content_create_asset_refund_transactions($pdo, $assetModule, $transactionData) as $refundTransactionId) {
+                $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
             }
-
-            $refundTransactionId = sr_content_create_asset_transaction($pdo, $assetModule, $transactionData);
-            $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
         }
 
         $couponRefund = [];

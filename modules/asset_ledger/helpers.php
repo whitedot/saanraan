@@ -717,13 +717,10 @@ function sr_asset_recovery_update_manual_status(PDO $pdo, int $failureId, string
 
 function sr_asset_recovery_source_label(string $sourceModule): string
 {
-    return match ($sourceModule) {
-        'community' => '커뮤니티',
-        'content' => '콘텐츠',
-        'quiz' => '퀴즈',
-        'survey' => '설문',
-        default => $sourceModule,
-    };
+    $sourceModule = strtolower(trim($sourceModule));
+    $contract = sr_asset_recovery_target_contract(null, $sourceModule);
+    $label = trim((string) ($contract['label'] ?? ''));
+    return $label !== '' ? $label : $sourceModule;
 }
 
 function sr_asset_recovery_subject_link(array $failure): array
@@ -731,14 +728,47 @@ function sr_asset_recovery_subject_link(array $failure): array
     $sourceModule = (string) ($failure['source_module'] ?? '');
     $subjectType = (string) ($failure['subject_type'] ?? '');
     $subjectId = (int) ($failure['subject_id'] ?? 0);
-    if ($sourceModule === 'community' && $subjectType === 'community.post') {
-        return ['url' => '/admin/community/posts?q=' . rawurlencode((string) $subjectId), 'label' => '게시글'];
-    }
-    if ($sourceModule === 'community' && $subjectType === 'community.comment') {
-        return ['url' => '/admin/community/comments?q=' . rawurlencode((string) $subjectId), 'label' => '댓글'];
+    $contract = sr_asset_recovery_target_contract(null, $sourceModule);
+    $subjectLinks = is_array($contract['subject_links'] ?? null) ? $contract['subject_links'] : [];
+    $link = is_array($subjectLinks[$subjectType] ?? null) ? $subjectLinks[$subjectType] : [];
+    $urlTemplate = (string) ($link['url_template'] ?? '');
+    $url = $urlTemplate !== '' ? str_replace('{subject_id}', rawurlencode((string) $subjectId), $urlTemplate) : '';
+    if ($url !== '' && !sr_is_safe_relative_url($url)) {
+        $url = '';
     }
 
-    return ['url' => '', 'label' => $subjectType !== '' ? $subjectType : '대상'];
+    $label = trim((string) ($link['label'] ?? ''));
+    return ['url' => $url, 'label' => $label !== '' ? $label : ($subjectType !== '' ? $subjectType : '대상')];
+}
+
+function sr_asset_recovery_target_contract(?PDO $pdo, string $sourceModule): array
+{
+    $sourceModule = strtolower(trim($sourceModule));
+    if ($sourceModule === '' || !sr_is_safe_module_key($sourceModule)) {
+        return [];
+    }
+
+    if ($pdo instanceof PDO) {
+        $contractFiles = sr_enabled_module_contract_files($pdo, 'asset-recovery-targets.php', ['asset_ledger']);
+        $file = $contractFiles[$sourceModule] ?? '';
+        $contract = $file !== '' ? sr_load_module_contract_file($sourceModule, $file) : null;
+    } else {
+        $file = SR_ROOT . '/modules/' . $sourceModule . '/asset-recovery-targets.php';
+        $contract = is_file($file) ? require $file : null;
+    }
+    if (!is_array($contract)) {
+        return [];
+    }
+
+    $helpers = (string) ($contract['helpers'] ?? '');
+    if ($helpers !== '' && preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) === 1) {
+        $helperPath = SR_ROOT . '/modules/' . $sourceModule . '/' . $helpers;
+        if (is_file($helperPath)) {
+            require_once $helperPath;
+        }
+    }
+
+    return $contract;
 }
 
 function sr_asset_recovery_retry(PDO $pdo, int $failureId, int $actorAccountId): array
@@ -748,75 +778,88 @@ function sr_asset_recovery_retry(PDO $pdo, int $failureId, int $actorAccountId):
         throw new RuntimeException('이미 처리된 미회수 기록입니다.');
     }
 
-    if ((string) ($failure['source_module'] ?? '') === 'community') {
-        if (function_exists('sr_module_enabled') && !sr_module_enabled($pdo, 'community')) {
-            return [
-                'operation_allowed' => false,
-                'recovery_status' => 'failed',
-                'message' => '커뮤니티 모듈이 활성화되어 있지 않아 미회수 재시도를 실행할 수 없습니다.',
-            ];
-        }
-        if (!is_file(SR_ROOT . '/modules/community/helpers.php')) {
-            return [
-                'operation_allowed' => false,
-                'recovery_status' => 'failed',
-                'message' => '커뮤니티 회수 helper를 찾을 수 없습니다.',
-            ];
-        }
-        require_once SR_ROOT . '/modules/community/helpers.php';
-        if (!function_exists('sr_community_reverse_asset_grant_for_operation')) {
-            return [
-                'operation_allowed' => false,
-                'recovery_status' => 'failed',
-                'message' => '커뮤니티 회수 callback을 확인할 수 없습니다.',
-            ];
-        }
-        $result = sr_community_reverse_asset_grant_for_operation(
-            $pdo,
-            (int) $failure['account_id'],
-            (string) $failure['grant_event_key'],
-            (string) $failure['subject_type'],
-            (int) $failure['subject_id'],
-            (string) $failure['reversal_event_key'],
-            (string) $failure['reversal_event_key'],
-            'asset.recovery.retry',
-            [
-                'operation_event_key' => 'manual_retry',
-                'actor_account_id' => $actorAccountId,
-                'actor_type' => 'admin',
-                'route_context' => 'admin.assets.recovery_failures',
-            ]
-        );
-
-        return is_array($result) ? $result : [
+    $sourceModule = strtolower(trim((string) ($failure['source_module'] ?? '')));
+    if ($sourceModule === '' || !sr_is_safe_module_key($sourceModule)) {
+        return [
             'operation_allowed' => false,
             'recovery_status' => 'failed',
-            'message' => '커뮤니티 회수 callback이 올바른 결과를 반환하지 않았습니다.',
+            'message' => 'source 모듈 key가 올바르지 않습니다.',
+        ];
+    }
+    if (function_exists('sr_module_enabled') && !sr_module_enabled($pdo, $sourceModule)) {
+        return [
+            'operation_allowed' => false,
+            'recovery_status' => 'failed',
+            'message' => 'source 모듈이 활성화되어 있지 않아 미회수 재시도를 실행할 수 없습니다.',
+        ];
+    }
+    $contract = sr_asset_recovery_target_contract($pdo, $sourceModule);
+    if ($contract === []) {
+        return [
+            'operation_allowed' => false,
+            'recovery_status' => 'failed',
+            'message' => 'source 모듈이 미회수 재시도 계약을 제공하지 않습니다.',
         ];
     }
 
-    throw new RuntimeException('이 source 모듈은 아직 재회수 callback을 제공하지 않습니다.');
+    $retryFunction = (string) ($contract['retry_function'] ?? '');
+    if ($retryFunction === '' || !function_exists($retryFunction)) {
+        return [
+            'operation_allowed' => false,
+            'recovery_status' => 'failed',
+            'message' => 'source 모듈의 미회수 재시도 callback을 확인할 수 없습니다.',
+        ];
+    }
+
+    $result = $retryFunction(
+        $pdo,
+        (int) $failure['account_id'],
+        (string) $failure['grant_event_key'],
+        (string) $failure['subject_type'],
+        (int) $failure['subject_id'],
+        (string) $failure['reversal_event_key'],
+        (string) $failure['reversal_event_key'],
+        'asset.recovery.retry',
+        [
+            'operation_event_key' => 'manual_retry',
+            'actor_account_id' => $actorAccountId,
+            'actor_type' => 'admin',
+            'route_context' => 'admin.assets.recovery_failures',
+        ]
+    );
+
+    return is_array($result) ? $result : [
+        'operation_allowed' => false,
+        'recovery_status' => 'failed',
+        'message' => 'source 모듈의 미회수 재시도 callback이 올바른 결과를 반환하지 않았습니다.',
+    ];
 }
 
-function sr_asset_reconciliation_targets(): array
+function sr_asset_reconciliation_targets(?PDO $pdo = null): array
 {
-    return [
-        'point' => [
-            'label' => '포인트',
-            'balance_table' => 'sr_point_balances',
-            'transaction_table' => 'sr_point_transactions',
-        ],
-        'reward' => [
-            'label' => '적립금',
-            'balance_table' => 'sr_reward_balances',
-            'transaction_table' => 'sr_reward_transactions',
-        ],
-        'deposit' => [
-            'label' => '예치금',
-            'balance_table' => 'sr_deposit_balances',
-            'transaction_table' => 'sr_deposit_transactions',
-        ],
-    ];
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $targets = [];
+    foreach (sr_member_ledger_asset_definitions($pdo) as $moduleKey => $asset) {
+        $balanceTable = (string) ($asset['balance_table'] ?? '');
+        $transactionTable = (string) ($asset['transaction_table'] ?? '');
+        if ($balanceTable === '' || $transactionTable === '') {
+            $targets[(string) $moduleKey] = [
+                'label' => (string) ($asset['label'] ?? $moduleKey),
+                'status' => 'contract_missing',
+                'message' => 'member-assets.php balance_table 또는 transaction_table이 없습니다.',
+            ];
+            continue;
+        }
+
+        $targets[(string) $moduleKey] = [
+            'label' => (string) ($asset['label'] ?? $moduleKey),
+            'balance_table' => $balanceTable,
+            'transaction_table' => $transactionTable,
+        ];
+    }
+
+    return $targets;
 }
 
 function sr_asset_reconcile_all(PDO $pdo, int $maxRows = 50, bool $enabledOnly = true): array
@@ -824,7 +867,21 @@ function sr_asset_reconcile_all(PDO $pdo, int $maxRows = 50, bool $enabledOnly =
     $maxRows = max(1, min(500, $maxRows));
     $results = [];
 
-    foreach (sr_asset_reconciliation_targets() as $moduleKey => $target) {
+    foreach (sr_asset_reconciliation_targets($pdo) as $moduleKey => $target) {
+        if ((string) ($target['status'] ?? '') === 'contract_missing') {
+            $results[(string) $moduleKey] = [
+                'module_key' => (string) $moduleKey,
+                'label' => (string) $target['label'],
+                'status' => 'error',
+                'message' => (string) $target['message'],
+                'total_accounts' => 0,
+                'mismatch_count' => 0,
+                'mismatches' => [],
+                'truncated' => false,
+            ];
+            continue;
+        }
+
         if ($enabledOnly && function_exists('sr_module_enabled') && !sr_module_enabled($pdo, (string) $moduleKey)) {
             $results[(string) $moduleKey] = [
                 'module_key' => (string) $moduleKey,

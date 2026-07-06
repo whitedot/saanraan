@@ -12,6 +12,8 @@ return [
     'summary_icon' => 'database',
     'transaction_function' => 'sr_point_create_transaction',
     'transaction_lookup_function' => 'sr_point_transaction_by_reference',
+    'refund_split_function' => 'sr_point_create_refund_transactions',
+    'balance_table' => 'sr_point_balances',
     'transaction_table' => 'sr_point_transactions',
     'use_type' => 'use',
     'credit_type' => 'grant',

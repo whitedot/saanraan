@@ -84,8 +84,7 @@ if ($pdo instanceof PDO) {
     foreach ($contentEditorOptions as $optionEditorKey => $optionEditorLabel) {
         $optionEditorKey = sr_content_item_editor_key((string) $optionEditorKey);
         $effectiveOptionEditorKey = sr_editor_effective_key($pdo, $optionEditorKey);
-        $formatSeed = $effectiveOptionEditorKey === 'ckeditor' ? 'html' : '';
-        $formatValue = sr_content_body_format_for_editor($pdo, $effectiveOptionEditorKey, $formatSeed);
+        $formatValue = sr_content_body_format_for_editor($pdo, $effectiveOptionEditorKey, '');
         $config = [
             'editor' => $effectiveOptionEditorKey,
             'format' => $formatValue,
@@ -618,7 +617,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('content_admin_contents_editor_key', 'editor_key', $contentEditorOptions, $contentEditorStoredKey, true); ?>
                     <p class="form-help"><?php echo sr_e($contentEditorHelpText); ?></p>
-                    <input type="hidden" name="body_format" value="<?php echo sr_e(sr_content_body_format_for_editor($pdo, $contentEditorKey, $contentEditorKey === 'ckeditor' ? 'html' : '')); ?>" data-content-body-format-input>
+                    <input type="hidden" name="body_format" value="<?php echo sr_e(sr_content_body_format_for_editor($pdo, $contentEditorKey, '')); ?>" data-content-body-format-input>
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>
                     <br>
                     <small data-content-editor-help><?php echo sr_e($contentEditorModeHelpTexts[$contentEditorKey] ?? $contentEditorModeHelpTexts['textarea']); ?></small>

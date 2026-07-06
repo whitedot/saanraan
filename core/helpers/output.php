@@ -1147,6 +1147,20 @@ function sr_editor_effective_key(PDO $pdo, string $editorKey): string
     return sr_editor_available($pdo, $editorKey) ? $editorKey : 'textarea';
 }
 
+function sr_editor_format_value(PDO $pdo, string $editorKey): string
+{
+    $editorKey = sr_editor_effective_key($pdo, $editorKey);
+    if ($editorKey === 'html') {
+        return 'html';
+    }
+    if ($editorKey === 'textarea') {
+        return 'plain';
+    }
+
+    $contract = sr_editor_contracts($pdo)[$editorKey] ?? [];
+    return sr_body_format((string) ($contract['format_value'] ?? 'plain'));
+}
+
 function sr_editor_options(PDO $pdo, bool $allowInherit = false): array
 {
     $options = $allowInherit ? ['inherit' => '상위 설정 사용'] : [];
@@ -1165,13 +1179,8 @@ function sr_editor_textarea_attributes(PDO $pdo, string $editorKey, string $pres
     if ($editorKey === 'textarea') {
         return '';
     }
-    if ($editorKey === 'html') {
-        return ' data-sr-editor="html" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="html"';
-    }
 
-    $contract = sr_editor_contracts($pdo)[$editorKey] ?? [];
-    $formatValue = sr_body_format((string) ($contract['format_value'] ?? 'plain'));
-    return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="' . sr_e($formatValue) . '"';
+    return ' data-sr-editor="' . sr_e($editorKey) . '" data-sr-editor-preset="' . sr_e($presetKey) . '" data-sr-editor-format-name="' . sr_e($formatFieldName) . '" data-sr-editor-format-value="' . sr_e(sr_editor_format_value($pdo, $editorKey)) . '"';
 }
 
 function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 'default'): string

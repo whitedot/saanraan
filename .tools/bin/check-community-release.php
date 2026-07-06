@@ -339,6 +339,7 @@ $requiredPackageEntries = [
     'views',
     'coupon-targets.php',
     'payment-ledger-targets.php',
+    'asset-recovery-targets.php',
     'member-group-references.php',
 ];
 $allowedPackageEntries = array_merge($requiredPackageEntries, [
@@ -377,6 +378,7 @@ $requiredContracts = [
     'operational-status.php',
     'retention-targets.php',
     'antispam-targets.php',
+    'asset-recovery-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))

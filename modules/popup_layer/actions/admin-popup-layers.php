@@ -269,11 +269,9 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'save') {
         $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);
-        $bodyFormat = 'plain';
-        if ($popupLayerEditorKey === 'html' || ($popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html')) {
-            $bodyFormat = 'html';
-        } elseif ($popupLayerEditorKey === 'markdown' && sr_markdown_renderer_available($pdo)) {
-            $bodyFormat = 'markdown';
+        $bodyFormat = sr_editor_format_value($pdo, $popupLayerEditorKey);
+        if ($bodyFormat === 'markdown' && !sr_markdown_renderer_available($pdo)) {
+            $bodyFormat = 'plain';
         }
         $rawBodyText = sr_post_string('body_text', 5000);
         $bodyText = $bodyFormat === 'html'

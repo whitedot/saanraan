@@ -665,26 +665,28 @@ function sr_content_editor_toolbar_preset(PDO $pdo): string
 
 function sr_content_html_body_enabled(PDO $pdo): bool
 {
-    return in_array(sr_content_editor_key($pdo), ['html', 'ckeditor'], true);
+    return sr_editor_format_value($pdo, sr_content_editor_key($pdo)) === 'html';
 }
 
 function sr_content_markdown_body_enabled(PDO $pdo): bool
 {
-    return sr_content_editor_key($pdo) === 'markdown';
+    return sr_editor_format_value($pdo, sr_content_editor_key($pdo)) === 'markdown';
 }
 
 function sr_content_body_format_for_editor(PDO $pdo, string $editorKey, string $postedBodyFormat): string
 {
     $editorKey = sr_editor_effective_key($pdo, $editorKey);
     $postedBodyFormat = sr_body_format($postedBodyFormat);
-    if ($editorKey === 'html' || $editorKey === 'ckeditor') {
-        return 'html';
-    }
-    if (($editorKey === 'markdown' || $postedBodyFormat === 'markdown') && sr_markdown_renderer_available($pdo)) {
-        return 'markdown';
+    $formatValue = sr_editor_format_value($pdo, $editorKey);
+    if ($formatValue === 'markdown' && !sr_markdown_renderer_available($pdo)) {
+        return 'plain';
     }
 
-    return 'plain';
+    if ($formatValue !== 'plain') {
+        return $formatValue;
+    }
+
+    return $postedBodyFormat === 'markdown' && sr_markdown_renderer_available($pdo) ? 'markdown' : 'plain';
 }
 
 function sr_content_effective_body_format(PDO $pdo, array $page): string
@@ -695,11 +697,7 @@ function sr_content_effective_body_format(PDO $pdo, array $page): string
     }
 
     $editorKey = sr_content_effective_editor_key($pdo, $page);
-    if ($editorKey === 'html' || $editorKey === 'ckeditor') {
-        return 'html';
-    }
-
-    return 'plain';
+    return sr_editor_format_value($pdo, $editorKey);
 }
 
 function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
