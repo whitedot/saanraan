@@ -74,6 +74,7 @@ sr_asset_reconciliation_check_file_contains('modules/deposit/helpers.php', [
 
 sr_asset_reconciliation_check_file_contains('modules/point/helpers.php', [
     'function sr_point_insert_ledger_transaction',
+    'sr_ledger_create_transaction($pdo',
     'expires_remaining',
     'sr_point_transactions',
 ]);
@@ -213,8 +214,8 @@ if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true))
     if (!sr_ledger_table_pair_is_allowed('sr_deposit_balances', 'sr_deposit_transactions')) {
         sr_asset_reconciliation_check_error('deposit ledger table pair should be allowed.');
     }
-    if (sr_ledger_table_pair_is_allowed('sr_point_balances', 'sr_point_transactions')) {
-        sr_asset_reconciliation_check_error('point ledger table pair should stay outside the generic ledger helper because point has expiration fields.');
+    if (!sr_ledger_table_pair_is_allowed('sr_point_balances', 'sr_point_transactions')) {
+        sr_asset_reconciliation_check_error('point ledger table pair should be allowed after expiration columns moved into generic ledger extras.');
     }
     if (!sr_ledger_table_pair_is_allowed('sr_reward_balances', 'sr_reward_transactions')) {
         sr_asset_reconciliation_check_error('reward ledger table pair should be allowed after expiration columns moved into generic ledger extras.');

@@ -1166,6 +1166,7 @@ function sr_ledger_table_pair_is_allowed(string $balanceTable, string $transacti
 
     $allowedPairs = [
         'sr_deposit_balances' => 'sr_deposit_transactions',
+        'sr_point_balances' => 'sr_point_transactions',
         'sr_reward_balances' => 'sr_reward_transactions',
     ];
 

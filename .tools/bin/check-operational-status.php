@@ -574,7 +574,7 @@ foreach ([
 }
 
 foreach ([
-    'sr_ledger_insert_ignore_into_clause($pdo)',
+    'sr_ledger_create_transaction($pdo',
     'sr_ledger_for_update_clause($pdo)',
     'function sr_point_expire_due_transactions(PDO $pdo',
     'function sr_point_expire_due_preview_transactions(PDO $pdo',

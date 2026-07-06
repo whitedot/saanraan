@@ -471,7 +471,7 @@ sr_reward_check_file('modules/point/helpers.php', [
     'sr_point_refunded_amount_for_reference_locked',
     'Point refund amount exceeds remaining reference amount.',
     'sr_ledger_for_update_clause($pdo)',
-    'sr_ledger_insert_ignore_into_clause($pdo)',
+    'sr_ledger_create_transaction($pdo',
 ]);
 sr_reward_check_file('modules/reward/helpers.php', [
     'reference_type',

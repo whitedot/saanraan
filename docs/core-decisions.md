@@ -122,12 +122,12 @@
 - `point`, `reward`, `deposit`, `community` 중 하나라도 활성 상태이면 `asset_ledger` 비활성화는 UI와 서버 POST 모두에서 차단한다. 삭제 기능이 추가될 때도 같은 차단 기준을 적용한다.
 - 자동 설치/활성화는 감사 로그의 `module.foundation.installed` 또는 `module.foundation.enabled` 이벤트로 남기고, 관리자 처리 결과에는 기반 모듈이 함께 준비되었다고 표시한다.
 - `asset_ledger`는 통합 balance/transaction 테이블을 만들지 않는다. 실제 자산 테이블은 계속 각 자산 모듈이 소유한다.
-- 테이블명은 호출 모듈이 명시적으로 넘기되, helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_deposit_balances`/`sr_deposit_transactions`, `sr_reward_balances`/`sr_reward_transactions`다.
+- 테이블명은 호출 모듈이 명시적으로 넘기되, helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_deposit_balances`/`sr_deposit_transactions`, `sr_point_balances`/`sr_point_transactions`, `sr_reward_balances`/`sr_reward_transactions`다.
 - 음수 허용, 거래 유형, 사유, 참조 의미, 관리자 권한, 환불/취소/만료 정책은 호출 모듈이 책임진다.
 - 환전 가능 여부와 환금성 여부는 자산 모듈의 좁은 계약과 환전 모듈 정책으로 판단하고, 코어나 회원 테이블에 자산 도메인 컬럼을 추가하지 않는다.
 - helper는 원자적 balance update와 transaction insert 같은 좁은 DB primitive에 머문다.
 - 원장 조회 UI, 정산, 만료, 지급 정책, 통계, 외부 결제 연동은 코어에 넣지 않는다.
-- `reward`는 만료 컬럼을 allowlisted extra transaction column으로 넘겨 `asset_ledger`의 공통 transaction helper를 사용하되, 만료와 소비 매핑 및 회수 정책은 계속 reward 모듈이 소유한다. `point`는 환불 분할과 만료 소비 정책 때문에 아직 자체 insert helper 경로를 유지한다.
+- `point`와 `reward`는 만료 컬럼을 allowlisted extra transaction column으로 넘겨 `asset_ledger`의 공통 transaction helper를 사용하되, 환불 분할, 만료, 소비 매핑 및 회수 정책은 계속 각 자산 모듈이 소유한다.
 - 보상 회수 실패 큐는 `asset_ledger`의 공통 운영 기반으로 둔다. `sr_asset_recovery_failures`는 정상 지급 로그가 아니라 실패한 회수 작업만 저장하며, dedupe key는 `source:{source_module}:{source_log_id}:rev:{reversal_event_key}` 형식을 사용한다. 공통 관리자 화면은 포인트/금액 미회수 관리 화면으로 제공하고, 지급 로그는 각 자산/도메인 모듈의 읽기 전용 로그 화면에 둔다.
 - 회수 실패 상태는 `open`, `recovered`, `manually_resolved`, `cancelled`를 사용한다. `recovered`는 전액 회수 종결, `manually_resolved`는 운영자의 오프라인 처리 또는 회수 포기 인정, `cancelled`는 회수 대상 제외다. 수동 해소와 취소는 남은 `unrecovered_amount`를 0으로 만들지 않고 보존한다. 부분 회수 원장 거래는 `sr_asset_recovery_reversal_links`로 회수 row와 연결한다.
 - 회수 실패 큐의 개인정보 export/cleanup은 `asset_ledger`가 소유한다. `operation_context_json`은 allowlist 키만 저장하고, `failure_reason`은 enum/code로 기록한다.
