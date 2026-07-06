@@ -742,71 +742,20 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
 
 function sr_reward_insert_ledger_transaction(PDO $pdo, array $data): int
 {
-    $accountId = (int) ($data['account_id'] ?? 0);
-    $amount = (int) ($data['amount'] ?? 0);
-    $transactionType = (string) ($data['transaction_type'] ?? 'adjustment');
-    $reason = (string) ($data['reason'] ?? '');
-    $referenceType = (string) ($data['reference_type'] ?? '');
-    $referenceId = (string) ($data['reference_id'] ?? '');
-    $createdByAccountId = sr_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
-    $createdAt = (string) ($data['created_at'] ?? sr_now());
-    $expiresAt = $data['expires_at'] ?? null;
-    $expiresRemaining = max(0, (int) ($data['expires_remaining'] ?? 0));
+    $data['expires_remaining'] = max(0, (int) ($data['expires_remaining'] ?? 0));
+    $data['expired_at'] = $data['expired_at'] ?? null;
 
-    $stmt = $pdo->prepare(
-        sr_ledger_insert_ignore_into_clause($pdo) . ' sr_reward_balances (account_id, balance, created_at, updated_at)
-         VALUES (:account_id, 0, :created_at, :updated_at)'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'created_at' => $createdAt,
-        'updated_at' => $createdAt,
-    ]);
-
-    $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
-    $stmt->execute(['account_id' => $accountId]);
-    $balanceRow = $stmt->fetch();
-    if (!is_array($balanceRow)) {
-        throw new RuntimeException('Reward balance row was not created.');
-    }
-
-    $balanceAfter = (int) $balanceRow['balance'] + $amount;
-    if ($balanceAfter < 0) {
-        throw new RuntimeException('Reward balance cannot be negative.');
-    }
-
-    $stmt = $pdo->prepare(
-        'UPDATE sr_reward_balances
-         SET balance = :balance, updated_at = :updated_at
-         WHERE account_id = :account_id'
-    );
-    $stmt->execute([
-        'balance' => $balanceAfter,
-        'updated_at' => $createdAt,
-        'account_id' => $accountId,
-    ]);
-
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_reward_transactions
-            (account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at)
-         VALUES
-            (:account_id, :amount, :balance_after, :transaction_type, :reason, :reference_type, :reference_id, :created_by_account_id, :expires_at, :expires_remaining, NULL, :created_at)'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'amount' => $amount,
-        'balance_after' => $balanceAfter,
-        'transaction_type' => $transactionType,
-        'reason' => $reason,
-        'reference_type' => $referenceType,
-        'reference_id' => $referenceId,
-        'created_by_account_id' => $createdByAccountId,
-        'expires_at' => $expiresAt,
-        'expires_remaining' => $expiresRemaining,
-        'created_at' => $createdAt,
-    ]);
-
-    return (int) $pdo->lastInsertId();
+    return sr_ledger_create_transaction($pdo, [
+        'balance_table' => 'sr_reward_balances',
+        'transaction_table' => 'sr_reward_transactions',
+        'balance_row_error' => 'Reward balance row was not created.',
+        'negative_balance_error' => 'Reward balance cannot be negative.',
+        'transaction_extra_columns' => [
+            'expires_at' => 'expires_at',
+            'expires_remaining' => 'expires_remaining',
+            'expired_at' => 'expired_at',
+        ],
+    ], $data);
 }
 
 function sr_reward_consume_expiring_grants(PDO $pdo, int $accountId, int $amount, int $consumeTransactionId = 0, ?string $now = null): int

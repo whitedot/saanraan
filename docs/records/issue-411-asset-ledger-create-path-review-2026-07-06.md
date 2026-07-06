@@ -4,16 +4,16 @@
 
 This record reviews whether `point`, `reward`, and `deposit` can share `sr_ledger_create_transaction()` as the transaction creation primitive after the `member-assets.php` contract shape from issue #410 was clarified.
 
-The current implementation should not migrate `point` or `reward` in the same unit. `deposit` is the reference implementation for the generic primitive, while `point` and `reward` still own expiration lot, consumption mapping, and reclaim/refund policy around their transaction insert paths.
+The first implementation unit migrates `reward` to the generic primitive after `sr_ledger_create_transaction()` gained an allowlisted extra transaction column contract. `deposit` remains the reference implementation for the basic primitive. `point` still owns the wider refund split path and is reviewed as a separate unit.
 
 ## Comparison
 
 | Axis | `deposit` | `point` | `reward` | Decision |
 | --- | --- | --- | --- | --- |
-| Generic primitive use | Uses `sr_ledger_create_transaction()` in `sr_deposit_create_transaction()` | Uses `sr_point_insert_ledger_transaction()` | Uses `sr_reward_insert_ledger_transaction()` | Keep `deposit` as reference |
-| Balance table lock | Primitive locks `sr_deposit_balances` | Module helper locks `sr_point_balances` | Module helper locks `sr_reward_balances` | Common lock order exists, but module fields differ |
-| Transaction fields | Basic amount, balance, type, reason, reference, actor, created time | Adds `expires_at`, `expires_remaining`, `expired_at` | Adds `expires_at`, `expires_remaining`, `expired_at` | `point`/`reward` need a wider insert contract |
-| Expiration lot | None in transaction primitive | Grant/refund lots and consumption rows in `sr_point_expiration_consumptions` | Grant/refund lots and consumption rows in `sr_reward_expiration_consumptions` | Keep module-owned until a lot-aware primitive exists |
+| Generic primitive use | Uses `sr_ledger_create_transaction()` in `sr_deposit_create_transaction()` | Uses `sr_point_insert_ledger_transaction()` | `sr_reward_insert_ledger_transaction()` delegates to `sr_ledger_create_transaction()` | Migrate one asset at a time |
+| Balance table lock | Primitive locks `sr_deposit_balances` | Module helper locks `sr_point_balances` | Primitive locks `sr_reward_balances` | Common lock order is retained |
+| Transaction fields | Basic amount, balance, type, reason, reference, actor, created time | Adds `expires_at`, `expires_remaining`, `expired_at` | Adds `expires_at`, `expires_remaining`, `expired_at` via allowlisted extra columns | Wider insert contract is now primitive-supported |
+| Expiration lot | None in transaction primitive | Grant/refund lots and consumption rows in `sr_point_expiration_consumptions` | Grant/reclaim lots and consumption rows in `sr_reward_expiration_consumptions` stay module-owned around the primitive insert | Keep policy logic module-owned |
 | Refund handling | Single referenced refund transaction | `refund_split_function` can split one refund into several transactions by source expiration | Single transaction today, but expiration state is still module-owned | Use `member-assets.php` capability instead of key branching |
 | Reclaim policy | None | None | `transaction_type=reclaim` with target transaction reference and remaining amount checks | Keep reward-specific helper |
 | Rollback boundary | Primitive joins outer PDO transaction | Module helper joins outer PDO transaction | Module helper joins outer PDO transaction | Existing invariant is compatible |
@@ -21,12 +21,11 @@ The current implementation should not migrate `point` or `reward` in the same un
 
 ## Decision
 
-`deposit` remains the only asset module using `sr_ledger_create_transaction()` directly. `point` and `reward` are not migrated in this issue because their transaction creation path is also the owner of expiration lots, consumption mapping, and reward reclaim policy.
+`deposit` and `reward` now use `sr_ledger_create_transaction()` for the atomic balance update and transaction insert. The primitive still does not own expiration, consumption mapping, refund, or reclaim policy; it only accepts allowlisted module-owned transaction columns such as `expires_at`, `expires_remaining`, and `expired_at`.
 
-Future migration is possible only as a module-sized unit:
+The remaining `point` migration is possible only as a module-sized unit:
 
-- Move one asset module at a time.
-- Extend the primitive or add a lot-aware primitive before moving `point` or `reward`.
+- Preserve the refund split path while replacing only the primitive balance/insert section.
 - Preserve dedupe, balance locking, rollback, refund/reversal reference, expiration consumption, and reclaim fixtures in the same change.
 - Do not keep a long-lived half-migrated state inside one asset module.
 

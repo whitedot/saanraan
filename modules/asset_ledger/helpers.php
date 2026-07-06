@@ -20,6 +20,8 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
     $referenceType = (string) ($data['reference_type'] ?? '');
     $referenceId = (string) ($data['reference_id'] ?? '');
     $createdByAccountId = sr_ledger_nullable_positive_int($data['created_by_account_id'] ?? null);
+    $createdAt = (string) ($data['created_at'] ?? sr_now());
+    $transactionExtraValues = sr_ledger_transaction_extra_values($config, $data);
 
     if ($accountId <= 0) {
         throw new InvalidArgumentException('Account id is required.');
@@ -29,7 +31,6 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
         throw new InvalidArgumentException('Amount must not be zero.');
     }
 
-    $now = sr_now();
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
@@ -42,8 +43,8 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
         );
         $stmt->execute([
             'account_id' => $accountId,
-            'created_at' => $now,
-            'updated_at' => $now,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
         ]);
 
         $stmt = $pdo->prepare(
@@ -68,17 +69,31 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
         );
         $stmt->execute([
             'balance' => $balanceAfter,
-            'updated_at' => $now,
+            'updated_at' => $createdAt,
             'account_id' => $accountId,
         ]);
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO ' . $transactionTable . '
-                (account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at)
-             VALUES
-                (:account_id, :amount, :balance_after, :transaction_type, :reason, :reference_type, :reference_id, :created_by_account_id, :created_at)'
-        );
-        $stmt->execute([
+        $transactionColumns = [
+            'account_id',
+            'amount',
+            'balance_after',
+            'transaction_type',
+            'reason',
+            'reference_type',
+            'reference_id',
+            'created_by_account_id',
+        ];
+        $transactionParams = [
+            ':account_id',
+            ':amount',
+            ':balance_after',
+            ':transaction_type',
+            ':reason',
+            ':reference_type',
+            ':reference_id',
+            ':created_by_account_id',
+        ];
+        $executeParams = [
             'account_id' => $accountId,
             'amount' => $amount,
             'balance_after' => $balanceAfter,
@@ -87,8 +102,24 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
             'reference_type' => $referenceType,
             'reference_id' => $referenceId,
             'created_by_account_id' => $createdByAccountId,
-            'created_at' => $now,
-        ]);
+        ];
+        foreach ($transactionExtraValues as $column => $value) {
+            $paramName = 'extra_' . $column;
+            $transactionColumns[] = $column;
+            $transactionParams[] = ':' . $paramName;
+            $executeParams[$paramName] = $value;
+        }
+        $transactionColumns[] = 'created_at';
+        $transactionParams[] = ':created_at';
+        $executeParams['created_at'] = $createdAt;
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO ' . $transactionTable . '
+                (' . implode(', ', $transactionColumns) . ')
+             VALUES
+                (' . implode(', ', $transactionParams) . ')'
+        );
+        $stmt->execute($executeParams);
 
         $transactionId = (int) $pdo->lastInsertId();
         if ($startedTransaction) {
@@ -103,6 +134,27 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
 
         throw $exception;
     }
+}
+
+function sr_ledger_transaction_extra_values(array $config, array $data): array
+{
+    $extraColumns = $config['transaction_extra_columns'] ?? [];
+    if (!is_array($extraColumns) || $extraColumns === []) {
+        return [];
+    }
+
+    $values = [];
+    foreach ($extraColumns as $column => $dataKey) {
+        $column = (string) $column;
+        $dataKey = is_string($dataKey) ? $dataKey : $column;
+        if (!sr_ledger_is_safe_column_name($column)) {
+            throw new InvalidArgumentException('Ledger transaction column name is invalid.');
+        }
+
+        $values[$column] = $data[$dataKey] ?? null;
+    }
+
+    return $values;
 }
 
 function sr_ledger_pdo_driver(PDO $pdo): string
@@ -1101,6 +1153,11 @@ function sr_ledger_is_safe_table_name(string $tableName): bool
     return preg_match('/\Asr_[a-z0-9_]{1,120}\z/', $tableName) === 1;
 }
 
+function sr_ledger_is_safe_column_name(string $columnName): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $columnName) === 1;
+}
+
 function sr_ledger_table_pair_is_allowed(string $balanceTable, string $transactionTable): bool
 {
     if (!sr_ledger_is_safe_table_name($balanceTable) || !sr_ledger_is_safe_table_name($transactionTable)) {
@@ -1109,6 +1166,7 @@ function sr_ledger_table_pair_is_allowed(string $balanceTable, string $transacti
 
     $allowedPairs = [
         'sr_deposit_balances' => 'sr_deposit_transactions',
+        'sr_reward_balances' => 'sr_reward_transactions',
     ];
 
     return isset($allowedPairs[$balanceTable]) && $allowedPairs[$balanceTable] === $transactionTable;
