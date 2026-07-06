@@ -388,6 +388,32 @@
     ].join(':');
   }
 
+  function communityDraftStorageGet(key) {
+    try {
+      return window.sessionStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function communityDraftStorageSet(key, value) {
+    try {
+      window.sessionStorage.setItem(key, value);
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
+  function communityDraftStorageRemove(key) {
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
   function communityDraftEditorTextarea(form) {
     return form.querySelector('textarea[name="body_text"]');
   }
@@ -554,7 +580,7 @@
       var storageKey = communityDraftStorageKey(config);
       var storagePayload = {};
       try {
-        storagePayload = JSON.parse(window.sessionStorage.getItem(storageKey) || '{}') || {};
+        storagePayload = JSON.parse(communityDraftStorageGet(storageKey) || '{}') || {};
       } catch (error) {
         storagePayload = {};
       }
@@ -573,7 +599,7 @@
           discard.addEventListener('click', function () {
             var data = new FormData(form);
             data.set('draft_action', 'delete');
-            window.sessionStorage.removeItem(storageKey);
+            communityDraftStorageRemove(storageKey);
             fetch(config.endpoint, {
               method: 'POST',
               body: data,
@@ -602,7 +628,7 @@
         }
         var snapshot = communityDraftSnapshot(form);
         var hash = JSON.stringify(snapshot);
-        window.sessionStorage.setItem(storageKey, hash);
+        communityDraftStorageSet(storageKey, hash);
         if (hash === lastHash) {
           scheduleNextDraftSave(interval);
           return;
@@ -624,7 +650,7 @@
           if (result.status >= 200 && result.status < 300 && result.payload && result.payload.ok) {
             lastHash = hash;
             backoff = interval;
-            window.sessionStorage.setItem(storageKey, hash);
+            communityDraftStorageSet(storageKey, hash);
           } else {
             backoff = Math.min(interval * 8, Math.max(interval, backoff * 2));
           }
@@ -637,10 +663,10 @@
       }
 
       form.addEventListener('input', function () {
-        window.sessionStorage.setItem(storageKey, JSON.stringify(communityDraftSnapshot(form)));
+        communityDraftStorageSet(storageKey, JSON.stringify(communityDraftSnapshot(form)));
       });
       form.addEventListener('change', function () {
-        window.sessionStorage.setItem(storageKey, JSON.stringify(communityDraftSnapshot(form)));
+        communityDraftStorageSet(storageKey, JSON.stringify(communityDraftSnapshot(form)));
       });
       scheduleNextDraftSave(interval);
       form.setAttribute('data-community-draft-ready', '1');
