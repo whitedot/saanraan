@@ -591,6 +591,11 @@
       var timer = 0;
       var backoff = interval;
 
+      function scheduleNextDraftSave(delay) {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(saveDraft, delay);
+      }
+
       function saveDraft() {
         if (inFlight) {
           return;
@@ -599,6 +604,7 @@
         var hash = JSON.stringify(snapshot);
         window.sessionStorage.setItem(storageKey, hash);
         if (hash === lastHash) {
+          scheduleNextDraftSave(interval);
           return;
         }
         inFlight = true;
@@ -626,8 +632,7 @@
           backoff = Math.min(interval * 8, Math.max(interval, backoff * 2));
         }).finally(function () {
           inFlight = false;
-          window.clearTimeout(timer);
-          timer = window.setTimeout(saveDraft, backoff);
+          scheduleNextDraftSave(backoff);
         });
       }
 
@@ -637,7 +642,7 @@
       form.addEventListener('change', function () {
         window.sessionStorage.setItem(storageKey, JSON.stringify(communityDraftSnapshot(form)));
       });
-      timer = window.setTimeout(saveDraft, interval);
+      scheduleNextDraftSave(interval);
       form.setAttribute('data-community-draft-ready', '1');
     });
   }

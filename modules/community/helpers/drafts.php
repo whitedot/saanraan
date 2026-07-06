@@ -123,10 +123,21 @@ function sr_community_draft_body_text_for_restore(string $bodyText, string $body
         return ['body_text' => $bodyText, 'tmp_refs_removed' => 0];
     }
 
-    $html = $document->saveHTML();
-    $html = is_string($html) ? preg_replace('/^<\?xml encoding="UTF-8">\s*/', '', $html) : $bodyText;
+    $root = $document->getElementsByTagName('div')->item(0);
+    $html = '';
+    if ($root instanceof DOMElement) {
+        foreach ($root->childNodes as $childNode) {
+            $childHtml = $document->saveHTML($childNode);
+            if (is_string($childHtml)) {
+                $html .= $childHtml;
+            }
+        }
+    } else {
+        $saved = $document->saveHTML();
+        $html = is_string($saved) ? (string) preg_replace('/^<\?xml encoding="UTF-8">\s*/', '', $saved) : $bodyText;
+    }
 
-    return ['body_text' => (string) $html, 'tmp_refs_removed' => $removed];
+    return ['body_text' => $html !== '' ? $html : $bodyText, 'tmp_refs_removed' => $removed];
 }
 
 function sr_community_draft_form_state_json(array $state): string

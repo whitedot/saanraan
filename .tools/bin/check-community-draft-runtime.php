@@ -29,6 +29,20 @@ function sr_now(): string
     return date('Y-m-d H:i:s');
 }
 
+function sr_community_body_file_ref_from_url(string $url): ?array
+{
+    if (str_contains($url, 'tmp-token')) {
+        return ['type' => 'tmp', 'token' => 'tmp-token'];
+    }
+
+    return null;
+}
+
+function sr_community_body_file_token_is_valid(string $token): bool
+{
+    return false;
+}
+
 function sr_community_draft_check_file(string $path): string
 {
     $content = is_file($path) ? file_get_contents($path) : false;
@@ -143,6 +157,13 @@ $hashB = sr_community_draft_content_hash([
 ]);
 sr_community_draft_check_assert(hash_equals($hashA, $hashB), 'Draft content hash should exclude series-only form state.');
 
+if (class_exists('DOMDocument')) {
+    $restoreBody = sr_community_draft_body_text_for_restore('<p>앞<img src="/community/body/tmp/tmp-token/image.png">뒤</p>', 'html');
+    sr_community_draft_check_assert((int) ($restoreBody['tmp_refs_removed'] ?? 0) === 1, 'Restore should remove invalid temporary body image references.');
+    sr_community_draft_check_assert(!str_starts_with((string) ($restoreBody['body_text'] ?? ''), '<div>'), 'Restore should not leak the temporary DOM wrapper into body_text.');
+    sr_community_draft_check_assert(str_contains((string) ($restoreBody['body_text'] ?? ''), '임시 이미지는 다시 업로드'), 'Restore should include the temporary image placeholder.');
+}
+
 $paths = sr_community_draft_check_file(SR_ROOT . '/modules/community/paths.php');
 sr_community_draft_check_assert(str_contains($paths, "'POST /community/draft/autosave' => 'actions/draft-autosave.php'"), 'Community paths should expose the autosave JSON action.');
 
@@ -161,7 +182,7 @@ $form = sr_community_draft_check_file(SR_ROOT . '/modules/community/theme/basic/
 sr_community_draft_check_assert(str_contains($form, 'data-community-draft-form') && str_contains($form, 'data-community-draft-payload'), 'Community form should expose draft config and restore payload.');
 
 $js = sr_community_draft_check_file(SR_ROOT . '/modules/community/assets/module.js');
-foreach (['sessionStorage', 'data-community-draft-restore', 'data-community-draft-discard', 'fetch(config.endpoint'] as $marker) {
+foreach (['sessionStorage', 'data-community-draft-restore', 'data-community-draft-discard', 'fetch(config.endpoint', 'function scheduleNextDraftSave', 'hash === lastHash'] as $marker) {
     sr_community_draft_check_assert(str_contains($js, $marker), 'Community module JS is missing draft marker: ' . $marker);
 }
 sr_community_draft_check_assert(!str_contains($js, 'localStorage'), 'Community draft buffer should not use localStorage.');
