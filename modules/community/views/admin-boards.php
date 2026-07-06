@@ -516,7 +516,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_post_editor">게시글 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_post_editor', 'post_editor', $editorOptions, $boardField($formBoard, 'post_editor', 'textarea'), true); ?>
-                    <p class="form-help">게시판에 저장된 에디터 설정이 없으면 커뮤니티 환경설정을 사용합니다.</p>
+                    <p class="form-help">게시판에 저장된 에디터 설정이 없으면 커뮤니티 환경설정을 사용합니다. 커뮤니티 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로, 이 값을 바꾸면 기존 게시글의 공개 출력 방식도 함께 바뀔 수 있습니다.</p>
                 </div>
             </div>
         </section>

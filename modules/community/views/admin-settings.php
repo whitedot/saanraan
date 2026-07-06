@@ -684,7 +684,7 @@ $communitySettingsSectionNavItems = [
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
-                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
+                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다. 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로, 이 기본값을 상속하는 기존 게시판의 공개 출력 방식도 함께 바뀔 수 있습니다.</p>
             </div>
         </div>
         <div class="form-row">

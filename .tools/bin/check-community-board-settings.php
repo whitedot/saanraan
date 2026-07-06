@@ -485,6 +485,42 @@ function sr_check_community_board_settings_runtime(): void
     if (!sr_community_effective_board_summary_feed_enabled($pdo, $board)) {
         sr_check_community_board_settings_error('community board summary feed enabled override failed.');
     }
+    $formatPost = ['id' => 3, 'board_id' => 10, 'body_text' => '<p>gamma<br>body</p>'];
+    if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'plain') {
+        sr_check_community_board_settings_error('community post body format should default to plain when no board editor setting is stored.');
+    }
+    $boardSettingStmt->execute([
+        'setting_key' => 'post_editor',
+        'setting_value' => 'html',
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'html') {
+        sr_check_community_board_settings_error('community post body format must follow the current board editor setting for existing posts.');
+    }
+    $pdo->prepare(
+        "UPDATE sr_community_board_settings
+            SET setting_value = 'textarea'
+          WHERE board_id = 10
+            AND setting_key = 'post_editor'"
+    )->execute();
+    if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'html']) !== 'plain') {
+        sr_check_community_board_settings_error('community post body format must change with the current board editor setting instead of a stored row snapshot.');
+    }
+    $pdo->prepare(
+        "UPDATE sr_community_board_settings
+            SET setting_value = 'markdown'
+          WHERE board_id = 10
+            AND setting_key = 'post_editor'"
+    )->execute();
+    if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'plain') {
+        sr_check_community_board_settings_error('community post body format must fall back to plain when markdown editor is configured but inactive.');
+    }
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (3, 'markdown_editor', '2026.07.001', 'enabled')");
+    if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'markdown') {
+        sr_check_community_board_settings_error('community post body format must use markdown when the current board editor setting is active.');
+    }
     sr_community_sync_board_summary_feed_candidates($pdo, 10, false);
     $candidateCount = (int) $pdo->query('SELECT COUNT(*) FROM sr_community_posts WHERE board_id = 10 AND summary_feed_candidate = 0')->fetchColumn();
     if ($candidateCount !== 5) {
@@ -541,6 +577,14 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-sett
     '[\'post_body_min_length\', (string) $postBodyMinLength, \'int\']',
     '[\'post_body_max_length\', (string) $postBodyMaxLength, \'int\']',
 ], 'community global post body length setting save');
+sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
+    '게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
+    '기존 게시판의 공개 출력 방식도 함께 바뀔 수 있습니다.',
+], 'community global post editor operational warning');
+sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
+    '커뮤니티 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
+    '기존 게시글의 공개 출력 방식도 함께 바뀔 수 있습니다.',
+], 'community board post editor operational warning');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",

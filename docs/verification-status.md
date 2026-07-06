@@ -102,7 +102,7 @@ php .tools/bin/smoke-http.php
 - CKEditor가 생성하는 정상 HTML fixture
 - XSS payload 제거 fixture
 - URL 임베드가 저장 HTML에 marker/script/iframe을 남기지 않고, 렌더 fragment sanitizer가 계약 `target_module`의 custom tag/data attribute 네임스페이스를 허용하며, 계약 제공 모듈 밖 `target_module` 선언을 등록하지 않는지 확인하는 fixture
-- plain textarea fallback, 직접 HTML 입력, Markdown 렌더링, 커뮤니티 게시글의 에디터 설정 기반 출력 경계 확인
+- plain textarea fallback, 직접 HTML 입력, Markdown 렌더링, 커뮤니티 게시글의 에디터 설정 기반 출력 경계 확인. 커뮤니티 게시글은 저장 시점의 `body_format` row snapshot을 보존하지 않는 정책이므로, 게시판 에디터 변경과 에디터 플러그인 비활성화가 기존 글 출력 방식에 미치는 영향을 fixture로 확인한다.
 
 현재 기준:
 
