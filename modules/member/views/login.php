@@ -7,6 +7,7 @@ $seo = [
 ];
 $identifierLabel = sr_t('member::ui.email.95b727cb');
 $loginSiteName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
+$loginMemberOnlyEnabled = is_array($site ?? null) && !empty($site['member_only_enabled']);
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey, [
     'output_slots' => [
@@ -23,6 +24,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </div>
             <div class="card-body member-skin-basic-stack">
                 <p class="member-skin-basic-muted type-small"><?php echo sr_e($loginSiteName . ' 계정으로 계속 진행합니다.'); ?></p>
+                <?php if ($loginMemberOnlyEnabled) { ?>
+                    <div class="alert alert-info">
+                        <?php echo sr_e('회원 전용 사이트입니다. 로그인 후 이용할 수 있습니다.'); ?>
+                    </div>
+                <?php } ?>
 
                 <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 

@@ -161,6 +161,7 @@ if (
     $site !== null
     && $site['status'] === 'maintenance'
     && $path !== '/login'
+    && $path !== '/login/mfa'
     && $path !== '/logout'
     && strpos($path, '/admin') !== 0
 ) {
