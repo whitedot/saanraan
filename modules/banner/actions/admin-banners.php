@@ -196,6 +196,7 @@ if (sr_request_method() === 'POST') {
                     'target_key' => '',
                 ]);
                 if (($referenceResult['errors'] ?? []) !== []) {
+                    $bannerReferenceFocusIds[$selectedId] = $selectedId;
                     $errors[] = '배너 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다.';
                     break;
                 }
