@@ -37,6 +37,7 @@ $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutBeforeLayoutHtml = '';
 $layoutAfterLayoutHtml = '';
+$layoutBusinessInfoHtml = sr_site_business_info_html($layoutPdo, 'public-layout');
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutLogoTopUsage = ['layout_provider_key' => 'core', 'slot_key' => 'top'];
@@ -374,6 +375,7 @@ if (
                 </div>
             </div>
         </div>
+        <?php echo $layoutBusinessInfoHtml; ?>
     </footer>
     <?php echo $layoutAfterLayoutHtml; ?>
     <?php echo sr_script_tags($layoutScripts); ?>

@@ -424,6 +424,36 @@
     width: auto;
 }
 
+.content-layout-business-info {
+    color: var(--sr-muted, var(--color-default-600, #6b7280));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    line-height: 1.5;
+    margin: 10px auto 0;
+    max-width: 1360px;
+    padding: 0;
+    width: min(1360px, 100%);
+}
+
+.content-layout-business-info-item {
+    display: inline-flex;
+    gap: 4px;
+    min-width: 0;
+}
+
+.content-layout-business-info dt {
+    color: var(--sr-muted-strong, var(--sr-text, var(--color-default-700, #374151)));
+    font-weight: 600;
+    margin: 0;
+}
+
+.content-layout-business-info dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .content-theme-dropdown {
     flex: 0 0 auto;
     position: relative;

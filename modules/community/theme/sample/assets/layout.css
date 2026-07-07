@@ -781,6 +781,35 @@
     width: auto;
 }
 
+.community-layout-business-info {
+    color: var(--sr-muted, var(--color-default-600, #6b7280));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    line-height: 1.5;
+    margin: 10px 0 0;
+    padding: 0;
+    width: 100%;
+}
+
+.community-layout-business-info-item {
+    display: inline-flex;
+    gap: 4px;
+    min-width: 0;
+}
+
+.community-layout-business-info dt {
+    color: var(--sr-muted-strong, var(--sr-text, var(--color-default-700, #374151)));
+    font-weight: 600;
+    margin: 0;
+}
+
+.community-layout-business-info dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .community-theme-dropdown {
     flex: 0 0 auto;
     position: relative;

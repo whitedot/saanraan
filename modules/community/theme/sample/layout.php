@@ -49,6 +49,7 @@ $layoutBeforeLayoutHtml = '';
 $layoutModuleBeforeLayoutHtml = '';
 $layoutModuleBeforeFooterHtml = '';
 $layoutAfterLayoutHtml = '';
+$layoutBusinessInfoHtml = sr_site_business_info_html($layoutPdo, 'community-layout');
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
@@ -423,6 +424,7 @@ if (
                 </div>
             </div>
         </div>
+        <?php echo $layoutBusinessInfoHtml; ?>
     </footer>
     <?php echo $layoutAfterLayoutHtml; ?>
     <?php echo sr_script_tags($layoutScripts); ?>
