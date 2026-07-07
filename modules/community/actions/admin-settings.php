@@ -30,6 +30,7 @@ $communityThemeOptions = sr_community_theme_options();
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
 $reactionPresetOptions = $communityReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$communityPrivacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
 $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings['privacy_consent_document_key'] ?? ''));
 foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)] ?? ''));
@@ -121,6 +122,17 @@ if (sr_request_method() === 'POST') {
         $privacyConsentRequirePost = !empty($privacyConsentRequires['post']);
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);
+        if (!$communityPrivacyConsentPolicyDocumentsAvailable) {
+            if ($privacyConsentEnabled) {
+                $errors[] = '개인정보 수집 및 이용동의를 사용하려면 약관/방침 관리 모듈을 활성화하고 게시된 정책 문서를 먼저 준비하세요.';
+            }
+            $privacyConsentEnabled = false;
+            $privacyConsentDocumentKeys = array_fill_keys(sr_community_privacy_consent_target_keys(), '');
+            $privacyConsentDocumentKey = 'community_privacy_default';
+            $privacyConsentRequirePost = false;
+            $privacyConsentRequireComment = false;
+            $privacyConsentRequireAttachmentUpload = false;
+        }
         $reactionEnabledInput = ($_POST['reaction_enabled'] ?? '') === '1';
         $reactionPostPresetInput = sr_post_string('reaction_post_preset_key', 80);
         $reactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);

@@ -78,6 +78,14 @@ $boardField = static function (array $board, string $key, string $default = ''):
 $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
+$communityBoardReactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+$communityBoardReactionInputAttributes = $communityBoardReactionAvailable
+    ? ''
+    : ' disabled aria-describedby="community-board-reaction-unavailable"';
+$communityBoardPrivacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
+$communityBoardPrivacyConsentInputAttributes = $communityBoardPrivacyConsentPolicyDocumentsAvailable
+    ? ''
+    : ' disabled aria-describedby="community-board-privacy-consent-unavailable"';
 $privacyConsentDocumentOptions = [];
 $thumbnailCriterionValue = sr_community_thumbnail_criterion($boardField($formBoard ?? [], 'thumbnail_criterion', (string) ($settings['thumbnail_criterion'] ?? 'width')));
 if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
@@ -893,17 +901,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_reaction_enabled">리액션 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_reaction_enabled">
-                        <input id="community_admin_boards_reaction_enabled" type="checkbox" name="reaction_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_reaction_enabled" type="checkbox" name="reaction_enabled" value="1" class="form-switch form-switch-light"<?php echo $communityBoardReactionAvailable && $boardField($formBoard, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?><?php echo $communityBoardReactionInputAttributes; ?>>
                         <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_reaction_enabled', $boardSettingSource($formBoard, 'reaction_enabled')); ?>
                     <p class="form-help">커뮤니티 환경설정과 별도로 이 게시판의 리액션 표시 여부를 정합니다.</p>
+                    <?php if (!$communityBoardReactionAvailable) { ?>
+                        <div id="community-board-reaction-unavailable" class="alert alert-warning" role="alert">
+                            리액션 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 게시판 리액션 설정을 사용할 수 없습니다.
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_reaction_post_preset_key">게시글 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="community_admin_boards_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">
+                    <select id="community_admin_boards_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select"<?php echo $communityBoardReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $boardField($formBoard, 'reaction_post_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
@@ -915,7 +928,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_reaction_comment_preset_key">댓글 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="community_admin_boards_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <select id="community_admin_boards_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $communityBoardReactionInputAttributes; ?>>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $boardField($formBoard, 'reaction_comment_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
@@ -931,21 +944,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_boards_privacy_consent_enabled">동의 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_privacy_consent_enabled">
-                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
+                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo $communityBoardPrivacyConsentPolicyDocumentsAvailable && $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?><?php echo $communityBoardPrivacyConsentInputAttributes; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
+                    <?php if (!$communityBoardPrivacyConsentPolicyDocumentsAvailable) { ?>
+                        <div id="community-board-privacy-consent-unavailable" class="alert alert-warning" role="alert">
+                            약관/방침 관리 모듈이 설치되어 있지 않거나 활성화되어 있지 않고, 게시된 정책 문서가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row" data-admin-required-selection-mode="any">
-                <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo $communityBoardPrivacyConsentPolicyDocumentsAvailable && $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                 <div class="form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">
                         <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
                             <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
                             <div class="community-privacy-consent-document-row">
                                 <label for="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>"><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></label>
-                                <select id="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                <select id="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select"<?php echo $communityBoardPrivacyConsentInputAttributes; ?> data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
                                     <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($formBoard, $privacyConsentTargetKey)); ?>
                                 </select>
                                 <?php echo $settingSourceRadioHtml('source_' . $privacyConsentDocumentSettingKey, $boardSettingSource($formBoard, $privacyConsentDocumentSettingKey)); ?>

@@ -135,6 +135,34 @@ function sr_community_privacy_consent_policy_document_options(PDO $pdo, string $
     return $options;
 }
 
+function sr_community_privacy_consent_policy_documents_available(PDO $pdo): bool
+{
+    if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+    if (!function_exists('sr_policy_document_enabled_choices') || !function_exists('sr_policy_document_module_ready')) {
+        return false;
+    }
+
+    try {
+        if (!sr_policy_document_module_ready($pdo)) {
+            return false;
+        }
+
+        foreach (sr_policy_document_enabled_choices($pdo) as $policyDocumentChoice) {
+            if ((int) ($policyDocumentChoice['published_version_id'] ?? 0) > 0) {
+                return true;
+            }
+        }
+    } catch (Throwable) {
+        return false;
+    }
+
+    return false;
+}
+
 function sr_community_bool_from_setting(string $value): bool
 {
     return in_array($value, ['1', 'true', 'yes', 'on'], true);

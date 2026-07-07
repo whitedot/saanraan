@@ -22,6 +22,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
     $enabledMemberGroupKeys = is_array($context['enabled_member_group_keys'] ?? null) ? $context['enabled_member_group_keys'] : [];
     $assetModuleOptions = is_array($context['asset_module_options'] ?? null) ? $context['asset_module_options'] : [];
     $reactionPresetOptions = is_array($context['reaction_preset_options'] ?? null) ? $context['reaction_preset_options'] : [];
+    $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+    $privacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
         $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);
@@ -91,9 +93,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $listDefaultSortInput = sr_post_string('list_default_sort', 20);
         $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
         $summaryFeedEnabled = ($_POST['summary_feed_enabled'] ?? '') === '1';
-        $reactionEnabled = ($_POST['reaction_enabled'] ?? '') === '1';
-        $reactionPostPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
-        $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+        $reactionEnabledInput = ($_POST['reaction_enabled'] ?? '') === '1';
+        $reactionPostPresetInput = sr_post_string('reaction_post_preset_key', 80);
+        $reactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
+        $reactionEnabled = $reactionAvailable && $reactionEnabledInput;
+        $reactionPostPresetKey = '';
+        $reactionCommentPresetKey = '';
+        if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key')) {
+            $reactionPostPresetKey = sr_reaction_setting_preset_key($pdo, $reactionPostPresetInput);
+            $reactionCommentPresetKey = sr_reaction_setting_preset_key($pdo, $reactionCommentPresetInput);
+        }
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
         $editingBoardId = 0;
         if ($intent === 'update') {
@@ -132,6 +141,17 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $privacyConsentRequirePost = !empty($privacyConsentRequires['post']);
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);
+        if (!$privacyConsentPolicyDocumentsAvailable) {
+            if ($privacyConsentEnabled) {
+                $errors[] = '개인정보 수집 및 이용동의를 사용하려면 약관/방침 관리 모듈을 활성화하고 게시된 정책 문서를 먼저 준비하세요.';
+            }
+            $privacyConsentEnabled = false;
+            $privacyConsentDocumentKeys = array_fill_keys(sr_community_privacy_consent_target_keys(), '');
+            $privacyConsentDocumentKey = 'community_privacy_default';
+            $privacyConsentRequirePost = false;
+            $privacyConsentRequireComment = false;
+            $privacyConsentRequireAttachmentUpload = false;
+        }
         $extraFieldsInput = sr_post_string_without_truncation('extra_fields_json', 20000);
         $extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput);
         $extraFieldsJson = $extraFieldDefinitionErrors === [] && is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
@@ -407,6 +427,19 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         }
         if ($listDefaultSortInput !== $listDefaultSort) {
             $errors[] = '목록 기본 정렬 값이 올바르지 않습니다.';
+        }
+
+        if (!$reactionAvailable) {
+            if ($reactionEnabledInput || $reactionPostPresetInput !== '' || $reactionCommentPresetInput !== '') {
+                $errors[] = '게시판 리액션 설정을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
+            }
+        } else {
+            foreach (['reaction_post_preset_key' => $reactionPostPresetKey, 'reaction_comment_preset_key' => $reactionCommentPresetKey] as $reactionSettingKey => $reactionPresetKey) {
+                if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+                    $errors[] = '게시판 리액션 프리셋 값이 올바르지 않습니다.';
+                    break;
+                }
+            }
         }
 
         if ($privacyConsentEnabled) {

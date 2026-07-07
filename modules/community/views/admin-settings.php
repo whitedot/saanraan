@@ -16,6 +16,12 @@ $communityReactionAvailable = isset($communityReactionAvailable)
 $communityReactionInputAttributes = $communityReactionAvailable
     ? ''
     : ' disabled aria-describedby="community-settings-reaction-unavailable"';
+$communityPrivacyConsentPolicyDocumentsAvailable = isset($communityPrivacyConsentPolicyDocumentsAvailable)
+    ? (bool) $communityPrivacyConsentPolicyDocumentsAvailable
+    : sr_community_privacy_consent_policy_documents_available($pdo);
+$communityPrivacyConsentInputAttributes = $communityPrivacyConsentPolicyDocumentsAvailable
+    ? ''
+    : ' disabled aria-describedby="community-settings-privacy-consent-unavailable"';
 $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communitySiteMenuOptions): void {
     ?>
     <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
@@ -362,21 +368,26 @@ $communitySettingsSectionNavItems = [
                 <label class="form-label" for="community_admin_settings_privacy_consent_enabled">동의 사용</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_settings_privacy_consent_enabled">
-                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
+                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-switch-light"<?php echo $communityPrivacyConsentPolicyDocumentsAvailable && !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?><?php echo $communityPrivacyConsentInputAttributes; ?> data-community-privacy-consent-enabled>
                         <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
+                    <?php if (!$communityPrivacyConsentPolicyDocumentsAvailable) { ?>
+                        <div id="community-settings-privacy-consent-unavailable" class="alert alert-warning" role="alert">
+                            약관/방침 관리 모듈이 설치되어 있지 않거나 활성화되어 있지 않고, 게시된 정책 문서가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row" data-admin-required-selection-mode="any">
-                <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo !empty($settings['privacy_consent_enabled']) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo $communityPrivacyConsentPolicyDocumentsAvailable && !empty($settings['privacy_consent_enabled']) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                 <div class="form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">
                         <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
                             <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
                             <label class="community-privacy-consent-document-row" for="<?php echo sr_e('community_admin_settings_' . $privacyConsentDocumentSettingKey); ?>">
                                 <span><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></span>
-                                <select id="<?php echo sr_e('community_admin_settings_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                <select id="<?php echo sr_e('community_admin_settings_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select"<?php echo $communityPrivacyConsentInputAttributes; ?> data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
                                     <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($settings, $privacyConsentTargetKey)); ?>
                                 </select>
                             </label>
