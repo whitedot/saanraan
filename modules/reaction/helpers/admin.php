@@ -620,7 +620,7 @@ function sr_reaction_cleanup_disabled_records(PDO $pdo, string $reactionKey, str
         if (!is_array($definition)) {
             $errors[] = '리액션 정의를 찾을 수 없습니다.';
         } elseif ((string) ($definition['status'] ?? '') !== 'disabled') {
-            $errors[] = '사용 중지된 리액션만 기존 레코드를 정리할 수 있습니다.';
+            $errors[] = '사용 중지된 리액션만 기존 사용 기록을 정리할 수 있습니다.';
         }
     }
 
@@ -691,7 +691,7 @@ function sr_reaction_cleanup_disabled_records(PDO $pdo, string $reactionKey, str
             $pdo->rollBack();
         }
         sr_log_exception($exception, 'reaction_disabled_records_cleanup');
-        return ['ok' => false, 'errors' => ['기존 레코드 처리 중 오류가 발생했습니다.']];
+        return ['ok' => false, 'errors' => ['기존 사용 기록 처리 중 오류가 발생했습니다.']];
     }
 
     return [

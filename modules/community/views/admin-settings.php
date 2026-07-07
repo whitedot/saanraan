@@ -287,55 +287,55 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_enabled">계정 publication hold</label>
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_enabled">반복 신고 작성자 게시 보류</label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_publication_hold_enabled', 'account_guard_publication_hold_enabled', '1', !empty($settings['account_guard_publication_hold_enabled']), '사용'); ?>
                     <p class="form-help">같은 작성자의 여러 게시글 자동조치가 겹칠 때 신규 게시글을 검토 대기로 보낼지 정합니다. 댓글 자동조치는 기본 집계에 포함하지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_threshold">publication hold 대상 수 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_threshold">자동조치 게시글 수 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <input id="community_admin_settings_account_guard_publication_hold_threshold" type="number" name="account_guard_publication_hold_threshold" min="2" max="20" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_threshold'] ?? 3)); ?>" required class="form-input">
-                    <p class="form-help">서로 다른 게시글 active auto_action 수를 기준으로 합니다. 단일 대상 자동조치만으로는 계정 guard를 만들지 않습니다.</p>
+                    <p class="form-help">서로 다른 게시글이 자동 임시 조치된 건수를 기준으로 합니다. 한 게시글만으로는 작성자 게시 보류를 만들지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_duration_minutes">publication hold 기간 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_duration_minutes">게시 보류 기간 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <div class="input-group">
                         <input id="community_admin_settings_account_guard_publication_hold_duration_minutes" type="number" name="account_guard_publication_hold_duration_minutes" min="10" max="10080" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120)); ?>" required class="form-input">
                         <span class="input-group-text">분</span>
                     </div>
-                    <p class="form-help">만료 후에도 hold 중 생긴 pending 게시글은 자동 공개하지 않고 관리자 검토 대상으로 남깁니다.</p>
+                    <p class="form-help">기간이 끝나도 보류 중 작성된 검토 대기 게시글은 자동 공개하지 않고 관리자 검토 대상으로 남깁니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_overlap_review_percent">overlap 검토 기준 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_overlap_review_percent">신고자 중복률 검토 기준 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <div class="input-group">
                         <input id="community_admin_settings_account_guard_publication_hold_overlap_review_percent" type="number" name="account_guard_publication_hold_overlap_review_percent" min="0" max="100" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80)); ?>" required class="form-input">
                         <span class="input-group-text">%</span>
                     </div>
-                    <p class="form-help">대상 간 신고자 집합 overlap이 이 값 이상이면 자동 hold 대신 needs_review 이벤트만 남깁니다.</p>
+                    <p class="form-help">자동조치된 게시글들의 신고자가 이 비율 이상 겹치면 자동 보류하지 않고 운영자 검토 대상으로만 남깁니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_enabled">confirmed 기반 hold</label>
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_enabled">확정 조치 반복 게시 보류</label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_confirmed_hold_enabled', 'account_guard_confirmed_hold_enabled', '1', !empty($settings['account_guard_confirmed_hold_enabled']), '사용'); ?>
-                    <p class="form-help">운영자가 확정한 반복 위반만 입력으로 삼습니다. 자동 경로는 회원 계정을 정지하지 않고 community guard까지만 적용합니다.</p>
+                    <p class="form-help">운영자가 신고 자동조치를 확정 처리한 반복 이력만 기준으로 삼습니다. 자동 경로는 회원 계정을 정지하지 않고 커뮤니티 글쓰기 보류만 적용합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_threshold">confirmed 확정 건수 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_threshold">확정 조치 건수 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <input id="community_admin_settings_account_guard_confirmed_hold_threshold" type="number" name="account_guard_confirmed_hold_threshold" min="2" max="20" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3)); ?>" required class="form-input">
-                    <p class="form-help">released 또는 dismissed된 신고/자동조치는 작성자 불이익 집계에 포함하지 않습니다.</p>
+                    <p class="form-help">해제했거나 기각한 신고/자동조치는 작성자 불이익 집계에 포함하지 않습니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_window_days">confirmed 집계 기간 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_window_days">확정 조치 집계 기간 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <div class="input-group">
                         <input id="community_admin_settings_account_guard_confirmed_hold_window_days" type="number" name="account_guard_confirmed_hold_window_days" min="1" max="365" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30)); ?>" required class="form-input">
@@ -344,7 +344,7 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_duration_minutes">confirmed hold 기간 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_duration_minutes">반복 보류 기간 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <div class="input-group">
                         <input id="community_admin_settings_account_guard_confirmed_hold_duration_minutes" type="number" name="account_guard_confirmed_hold_duration_minutes" min="10" max="10080" value="<?php echo sr_e((string) (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440)); ?>" required class="form-input">

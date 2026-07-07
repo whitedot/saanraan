@@ -37,10 +37,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <section class="card admin-list-card admin-community-account-guards">
-    <div class="card-header"><h2 class="card-title">계정 guard</h2></div>
+    <div class="card-header"><h2 class="card-title">회원 작성 제한</h2></div>
     <div class="table-wrapper">
         <table class="table table-list admin-community-account-guard-table">
-            <caption class="sr-only">활성 커뮤니티 계정 guard 목록</caption>
+            <caption class="sr-only">활성 커뮤니티 회원 작성 제한 목록</caption>
             <thead>
                 <tr>
                     <th>회원</th>
@@ -55,7 +55,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($accountGuardRows === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">활성 계정 guard가 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state">활성 회원 작성 제한이 없습니다.</td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($accountGuardRows as $accountGuard) { ?>
@@ -67,7 +67,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $accountGuardReason = trim((string) ($accountGuard['trigger_reason'] ?? ''));
                         $accountGuardSourceType = trim((string) ($accountGuard['source_type'] ?? ''));
                         $accountGuardSourceId = (int) ($accountGuard['source_id'] ?? 0);
-                        $accountGuardSource = $accountGuardSourceType !== '' && $accountGuardSourceId > 0 ? $accountGuardSourceType . ' #' . (string) $accountGuardSourceId : '';
+                        $accountGuardSourceLabels = [
+                            'report_auto_action' => '신고 자동조치',
+                        ];
+                        $accountGuardSourceLabel = (string) ($accountGuardSourceLabels[$accountGuardSourceType] ?? $accountGuardSourceType);
+                        $accountGuardSource = $accountGuardSourceLabel !== '' && $accountGuardSourceId > 0 ? $accountGuardSourceLabel . ' #' . (string) $accountGuardSourceId : '';
                         ?>
                         <tr>
                             <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
@@ -96,9 +100,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             'q' => '"guard_type":"' . $accountGuardType . '"',
                                         ], '', '&', PHP_QUERY_RFC3986));
                                         ?>
-                                        <a href="<?php echo sr_e($accountGuardLogUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light" aria-label="계정 guard 로그 새 탭으로 열기" title="계정 guard 로그"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                        <a href="<?php echo sr_e($accountGuardLogUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light" aria-label="작성 제한 로그 새 탭으로 열기" title="작성 제한 로그"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                                     <?php } ?>
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-warning" aria-label="계정 guard 해제" title="계정 guard 해제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($accountGuardModalId); ?>" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_material_icon_html('lock_open'); ?></button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-warning" aria-label="작성 제한 해제" title="작성 제한 해제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($accountGuardModalId); ?>" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_material_icon_html('lock_open'); ?></button>
                                 </div>
                             </td>
                         </tr>
@@ -123,7 +127,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="intent" value="release_account_guard">
                     <input type="hidden" name="guard_id" value="<?php echo sr_e((string) $accountGuardId); ?>">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($accountGuardModalId); ?>-title" class="modal-title">계정 guard 해제</h3>
+                        <h3 id="<?php echo sr_e($accountGuardModalId); ?>-title" class="modal-title">작성 제한 해제</h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($accountGuardModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
@@ -138,7 +142,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <label for="<?php echo sr_e($accountGuardReleaseNoteId); ?>" class="form-label">해제 메모 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">
                                 <textarea id="<?php echo sr_e($accountGuardReleaseNoteId); ?>" name="release_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus></textarea>
-                                <small class="form-help">계정 guard 해제는 감사 로그에 운영자, 대상 guard, 해제 메모를 남깁니다.</small>
+                                <small class="form-help">작성 제한 해제는 감사 로그에 운영자, 대상 제한, 해제 메모를 남깁니다.</small>
                             </div>
                         </div>
                     </div>

@@ -12,7 +12,7 @@ $antispamSectionNavItems = [
     'antispam-section-policy' => '기본 정책',
     'antispam-section-targets' => '적용 대상',
     'antispam-section-challenge' => '검증 방식',
-    'antispam-section-provider-common' => '프로바이더 공통',
+    'antispam-section-provider-common' => '외부 검사 공통',
 ];
 $antispamSelectedChallengeType = (string) $settings['challenge_type'];
 ?>
@@ -99,7 +99,7 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
             <div class="form-row">
                 <span class="form-label">산술 문제</span>
                 <div class="form-field">
-                    <p class="admin-form-static">외부 CAPTCHA 프로바이더 없이 짧은 산술 문제로 검증합니다.</p>
+                    <p class="admin-form-static">외부 CAPTCHA 연결 없이 짧은 산술 문제로 검증합니다.</p>
                 </div>
             </div>
         </div>
@@ -113,16 +113,16 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
             ?>
             <div class="form-grid" data-antispam-challenge-panel="<?php echo sr_e((string) $providerKey); ?>"<?php echo $providerSelected ? '' : ' hidden'; ?>>
                 <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> site key</label>
+                    <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> 사이트 키</label>
                     <div class="form-field">
                         <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>" type="text" name="<?php echo sr_e($siteKeySetting); ?>" maxlength="255" value="<?php echo sr_e((string) ($settings[$siteKeySetting] ?? '')); ?>" class="form-input form-control-full" data-antispam-challenge-control<?php echo $providerControlDisabled; ?>>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> secret key</label>
+                    <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> 비밀 키</label>
                     <div class="form-field">
                         <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>" type="password" name="<?php echo sr_e($secretKeySetting); ?>" maxlength="255" value="" placeholder="<?php echo sr_e(sr_antispam_secret_display((string) ($settings[$secretKeySetting] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password" data-antispam-challenge-control<?php echo $providerControlDisabled; ?>>
-                        <p class="form-help">비워 두면 기존 secret을 유지합니다.</p>
+                        <p class="form-help">비워 두면 기존 비밀 키를 유지합니다.</p>
                     </div>
                 </div>
                 <?php if ((string) ($provider['score_setting'] ?? '') !== '') { ?>
@@ -140,9 +140,9 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
     </section>
 
     <section id="antispam-section-provider-common" class="card" data-admin-section-anchor>
-        <h2>프로바이더 공통</h2>
+        <h2>외부 검사 공통</h2>
         <div class="form-row">
-            <label class="form-label" for="antispam_admin_provider_timeout_seconds">프로바이더 타임아웃 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="antispam_admin_provider_timeout_seconds">외부 검사 제한 시간 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <div class="input-group admin-input-unit">
                     <input id="antispam_admin_provider_timeout_seconds" type="number" name="provider_timeout_seconds" min="1" max="10" value="<?php echo sr_e((string) $settings['provider_timeout_seconds']); ?>" required class="form-input">
@@ -151,11 +151,11 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="antispam_admin_provider_failure_policy">프로바이더 실패 정책 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="antispam_admin_provider_failure_policy">외부 검사 실패 시 처리 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <select id="antispam_admin_provider_failure_policy" name="provider_failure_policy" class="form-select" required>
                     <option value="fail_closed"<?php echo (string) $settings['provider_failure_policy'] === 'fail_closed' ? ' selected' : ''; ?>>검증 실패</option>
-                    <option value="fallback_math"<?php echo (string) $settings['provider_failure_policy'] === 'fallback_math' ? ' selected' : ''; ?>>산술 문제 fallback</option>
+                    <option value="fallback_math"<?php echo (string) $settings['provider_failure_policy'] === 'fallback_math' ? ' selected' : ''; ?>>산술 문제로 대체</option>
                 </select>
             </div>
         </div>
@@ -169,7 +169,7 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="antispam_admin_provider_action_check_enabled">프로바이더 action 확인</label>
+            <label class="form-label" for="antispam_admin_provider_action_check_enabled">외부 검사 동작 확인</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_action_check_enabled">
                     <input id="antispam_admin_provider_action_check_enabled" type="checkbox" name="provider_action_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_action_check_enabled']) ? ' checked' : ''; ?>>
@@ -178,7 +178,7 @@ $antispamSelectedChallengeType = (string) $settings['challenge_type'];
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="antispam_admin_provider_hostname_check_enabled">프로바이더 hostname 확인</label>
+            <label class="form-label" for="antispam_admin_provider_hostname_check_enabled">외부 검사 호스트 이름 확인</label>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_hostname_check_enabled">
                     <input id="antispam_admin_provider_hostname_check_enabled" type="checkbox" name="provider_hostname_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_hostname_check_enabled']) ? ' checked' : ''; ?>>

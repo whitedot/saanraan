@@ -58,7 +58,7 @@ if (sr_request_method() === 'POST') {
         }
     }
     if (!in_array((string) $postedSettings['provider_failure_policy'], ['fail_closed', 'fallback_math'], true)) {
-        $errors[] = '외부 provider 실패 정책이 올바르지 않습니다.';
+        $errors[] = '외부 검사 실패 시 처리 방식이 올바르지 않습니다.';
         $postedSettings['provider_failure_policy'] = 'fail_closed';
     }
     $selectedProviderKey = (string) $postedSettings['challenge_type'];
@@ -85,7 +85,7 @@ if (sr_request_method() === 'POST') {
         }
         $secretInput = sr_post_string_without_truncation($secretKeySetting, 255);
         if ($secretInput === null) {
-            $errors[] = 'provider secret key는 255자 이내로 입력해 주세요.';
+            $errors[] = '외부 검사 비밀 키는 255자 이내로 입력해 주세요.';
             $postedSettings[$secretKeySetting] = (string) ($settings[$secretKeySetting] ?? '');
             continue;
         }
@@ -98,10 +98,10 @@ if (sr_request_method() === 'POST') {
         $provider = $providerOptions[(string) $postedSettings['challenge_type']] ?? null;
         if (is_array($provider)) {
             if ((string) $postedSettings[(string) $provider['site_key_setting']] === '' || (string) $postedSettings[(string) $provider['secret_key_setting']] === '') {
-                $errors[] = '선택한 외부 provider의 site key와 secret key를 입력해 주세요.';
+                $errors[] = '선택한 외부 검사의 사이트 키와 비밀 키를 입력해 주세요.';
             }
         } else {
-            $errors[] = '선택한 외부 provider 플러그인을 활성화해 주세요.';
+            $errors[] = '선택한 외부 검사 플러그인을 활성화해 주세요.';
         }
     }
 

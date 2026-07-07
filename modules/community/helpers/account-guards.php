@@ -34,9 +34,9 @@ function sr_community_account_guard_status_is_active(string $status): bool
 function sr_community_account_guard_type_label(string $guardType): string
 {
     return [
-        'publication_hold' => '게시글 검토 보류',
-        'confirmed_hold' => '반복 확정 보류',
-        'write_cooldown' => '작성 제한',
+        'publication_hold' => '신규 게시글 검토 대기',
+        'confirmed_hold' => '확정 조치 반복 보류',
+        'write_cooldown' => '작성 일시 제한',
         'needs_review' => '운영자 검토 필요',
     ][$guardType] ?? $guardType;
 }

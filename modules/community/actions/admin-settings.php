@@ -226,27 +226,27 @@ if (sr_request_method() === 'POST') {
             $reportAutoActionPublicMode = (string) ($settings['report_auto_action_public_mode'] ?? 'exclude');
         }
         if ($accountGuardPublicationHoldThreshold === null) {
-            $errors[] = '계정 publication hold 대상 수는 2 이상 20 이하로 입력하세요.';
+            $errors[] = '반복 신고 작성자 게시 보류의 자동조치 게시글 수는 2 이상 20 이하로 입력하세요.';
             $accountGuardPublicationHoldThreshold = (int) ($settings['account_guard_publication_hold_threshold'] ?? 3);
         }
         if ($accountGuardPublicationHoldOverlapReviewPercent === null) {
-            $errors[] = '계정 publication hold overlap 검토 기준은 0 이상 100 이하로 입력하세요.';
+            $errors[] = '반복 신고 작성자 게시 보류의 신고자 중복률 검토 기준은 0 이상 100 이하로 입력하세요.';
             $accountGuardPublicationHoldOverlapReviewPercent = (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80);
         }
         if ($accountGuardPublicationHoldDurationMinutes === null) {
-            $errors[] = '계정 publication hold 기간은 10분 이상 10080분 이하로 입력하세요.';
+            $errors[] = '반복 신고 작성자 게시 보류 기간은 10분 이상 10080분 이하로 입력하세요.';
             $accountGuardPublicationHoldDurationMinutes = (int) ($settings['account_guard_publication_hold_duration_minutes'] ?? 120);
         }
         if ($accountGuardConfirmedHoldThreshold === null) {
-            $errors[] = 'confirmed 기반 hold 확정 건수는 2 이상 20 이하로 입력하세요.';
+            $errors[] = '확정 조치 반복 게시 보류의 확정 조치 건수는 2 이상 20 이하로 입력하세요.';
             $accountGuardConfirmedHoldThreshold = (int) ($settings['account_guard_confirmed_hold_threshold'] ?? 3);
         }
         if ($accountGuardConfirmedHoldWindowDays === null) {
-            $errors[] = 'confirmed 기반 hold 집계 기간은 1일 이상 365일 이하로 입력하세요.';
+            $errors[] = '확정 조치 반복 게시 보류의 집계 기간은 1일 이상 365일 이하로 입력하세요.';
             $accountGuardConfirmedHoldWindowDays = (int) ($settings['account_guard_confirmed_hold_window_days'] ?? 30);
         }
         if ($accountGuardConfirmedHoldDurationMinutes === null) {
-            $errors[] = 'confirmed 기반 hold 기간은 10분 이상 10080분 이하로 입력하세요.';
+            $errors[] = '확정 조치 반복 게시 보류 기간은 10분 이상 10080분 이하로 입력하세요.';
             $accountGuardConfirmedHoldDurationMinutes = (int) ($settings['account_guard_confirmed_hold_duration_minutes'] ?? 1440);
         }
 

@@ -32,11 +32,11 @@ if (sr_request_method() === 'POST') {
         'completion_ttl_seconds' => $completionTtl ?? (int) $settings['completion_ttl_seconds'],
     ];
     if ($mockLabel === '') {
-        $errors[] = 'Mock provider 라벨을 입력해 주세요.';
+        $errors[] = '테스트 로그인 표시명을 입력해 주세요.';
         $postedSettings['mock_label'] = (string) $settings['mock_label'];
     }
     if ($stateTtl === null || $completionTtl === null) {
-        $errors[] = 'OAuth state 유효 시간을 확인해 주세요.';
+        $errors[] = '외부 로그인 유효 시간을 확인해 주세요.';
     }
 
     $enabledProviders = [];
@@ -74,23 +74,23 @@ if (sr_request_method() === 'POST') {
         $enabled = ($_POST[$enabledKey] ?? '') === '1';
 
         if ($clientId === null || $secret === null || $sortOrder === null) {
-            $errors[] = $providerLabel . ' provider 설정 값을 확인해 주세요.';
+            $errors[] = $providerLabel . ' 로그인 제공자 설정 값을 확인해 주세요.';
             $clientId = (string) ($provider['client_id'] ?? '');
             $scope = sr_member_oauth_scope_setting_value_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
             $sortOrder = (int) ($provider['sort_order'] ?? 0);
         }
         if (strlen($scope) > 1000) {
-            $errors[] = $providerLabel . ' scope 항목은 전체 1000자 이하로 입력해 주세요.';
+            $errors[] = $providerLabel . ' 권한 범위 항목은 전체 1000자 이하로 입력해 주세요.';
             $scope = sr_member_oauth_scope_setting_value_with_required($provider['scope'] ?? ($provider['scopes'] ?? []), $provider);
         }
         if ($enabled && $label === '') {
-            $errors[] = $providerKey . ' provider 라벨을 입력해 주세요.';
+            $errors[] = $providerKey . ' 버튼 표시명을 입력해 주세요.';
         }
         if ($enabled && trim((string) $clientId) === '') {
-            $errors[] = $providerKey . ' provider client id를 입력해 주세요.';
+            $errors[] = $providerKey . ' 클라이언트 ID를 입력해 주세요.';
         }
         if ($enabled && !$hasStoredSecret && trim((string) $secret) === '') {
-            $errors[] = $providerKey . ' provider client secret을 입력해 주세요.';
+            $errors[] = $providerKey . ' 클라이언트 비밀값을 입력해 주세요.';
         }
 
         $postedSettings[$enabledKey] = $enabled;

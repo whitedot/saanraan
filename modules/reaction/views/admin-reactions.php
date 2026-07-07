@@ -3,7 +3,7 @@
 $reactionAdminPage = isset($reactionAdminPage) && is_string($reactionAdminPage) ? $reactionAdminPage : 'definitions';
 $reactionAdminPath = $reactionAdminPage === 'presets' ? '/admin/reactions/presets' : ($reactionAdminPage === 'records' ? '/admin/reactions/records' : '/admin/reactions');
 $reactionAdminFormAction = sr_url($reactionAdminPath);
-$adminPageTitle = $reactionAdminPage === 'presets' ? '리액션 Preset 관리' : ($reactionAdminPage === 'records' ? '리액션 레코드 점검' : '리액션 정의 관리');
+$adminPageTitle = $reactionAdminPage === 'presets' ? '리액션 묶음 관리' : ($reactionAdminPage === 'records' ? '리액션 사용 기록 점검' : '리액션 정의 관리');
 $adminContainerClass = 'admin-page-reactions admin-ui-scope';
 $reactionDefinitions = isset($reactionDefinitions) && is_array($reactionDefinitions) ? $reactionDefinitions : [];
 $reactionPresets = isset($reactionPresets) && is_array($reactionPresets) ? $reactionPresets : [];
@@ -23,12 +23,42 @@ $reactionTargetStatusClasses = [
     'active' => 'is-normal',
     'published' => 'is-normal',
     'enabled' => 'is-normal',
+    'private' => 'is-left',
     'unknown' => 'is-left',
     'broken' => 'is-blocked',
     'deleted' => 'is-blocked',
     'disabled' => 'is-blocked',
     'hidden' => 'is-blocked',
 ];
+$reactionTargetStatusLabels = [
+    'active' => '사용',
+    'published' => '공개',
+    'enabled' => '사용',
+    'private' => '접근 제한',
+    'unknown' => '확인 필요',
+    'broken' => '대상 확인 실패',
+    'deleted' => '삭제됨',
+    'disabled' => '중지',
+    'hidden' => '숨김',
+];
+$reactionTargetTypeLabelCache = [];
+$reactionTargetTypeLabel = static function (string $targetModule, string $targetType) use ($pdo, &$reactionTargetTypeLabelCache): string {
+    $targetKey = $targetModule . '/' . $targetType;
+    if (array_key_exists($targetKey, $reactionTargetTypeLabelCache)) {
+        return $reactionTargetTypeLabelCache[$targetKey];
+    }
+
+    $contract = function_exists('sr_reaction_target_contract')
+        ? sr_reaction_target_contract($pdo, $targetModule, $targetType)
+        : null;
+    $label = is_array($contract) ? trim((string) ($contract['label'] ?? '')) : '';
+    if ($label === '') {
+        $label = '대상';
+    }
+
+    $reactionTargetTypeLabelCache[$targetKey] = $label;
+    return $label;
+};
 $disabledDefinitions = array_values(array_filter($reactionDefinitions, static function (array $definition): bool {
     return (string) ($definition['status'] ?? '') === 'disabled' && (int) ($definition['record_count'] ?? 0) > 0;
 }));
@@ -65,10 +95,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-summary-meta">정의 <strong><?php echo sr_e((string) count($reactionDefinitions)); ?>개</strong></span>
             <span class="admin-summary-meta">사용 중지 처리 대상 <strong><?php echo sr_e((string) count($disabledDefinitions)); ?>개</strong></span>
         <?php } elseif ($reactionAdminPage === 'presets') { ?>
-            <span class="admin-summary-meta">Preset <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
-            <span class="admin-summary-meta">공개 preset key 수는 최대 12개입니다.</span>
+            <span class="admin-summary-meta">묶음 <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
+            <span class="admin-summary-meta">공개 리액션 키 수는 최대 12개입니다.</span>
         <?php } else { ?>
-            <span class="admin-summary-meta">최근 레코드 <strong><?php echo sr_e((string) count($reactionRecords)); ?>개</strong></span>
+            <span class="admin-summary-meta">최근 사용 기록 <strong><?php echo sr_e((string) count($reactionRecords)); ?>개</strong></span>
             <span class="admin-summary-meta">최대 100건까지 조회합니다.</span>
         <?php } ?>
     </div>
@@ -83,7 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input id="reaction_record_account_id" type="text" name="account_id" class="form-input filtering-input" maxlength="80" autocomplete="off" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e(sr_admin_member_public_hash(isset($config) && is_array($config) ? $config : sr_runtime_config(), (int) $reactionRecordFilters['account_id'])) : ''; ?>">
             </div>
             <div class="filtering-field filtering-field-fill">
-                <label for="reaction_record_key" class="filtering-label">리액션 key</label>
+                <label for="reaction_record_key" class="filtering-label">리액션 키</label>
                 <input id="reaction_record_key" type="text" name="reaction_key" class="form-input filtering-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['reaction_key'] ?? '')); ?>">
             </div>
         </div>
@@ -112,14 +142,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </form>
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">리액션 레코드 목록</h2>
+        <h2 class="card-title">리액션 사용 기록</h2>
     </div>
     <div class="admin-list-summary-row">
         <span class="admin-summary-meta">조회 결과 <?php echo sr_e(number_format(count($reactionRecords))); ?>건</span>
     </div>
     <div class="table-wrapper">
         <table class="table table-list admin-reaction-record-table">
-            <caption class="sr-only">리액션 레코드 최근 목록</caption>
+            <caption class="sr-only">리액션 사용 기록 최근 목록</caption>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -132,7 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($reactionRecords === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state">조회된 리액션 레코드가 없습니다.</td></tr>
+                    <tr><td colspan="6" class="admin-empty-state">조회된 리액션 사용 기록이 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($reactionRecords as $record) { ?>
                     <?php
@@ -140,12 +170,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $recordTarget = isset($reactionRecordTargets[$recordTargetKey]) && is_array($reactionRecordTargets[$recordTargetKey]) ? $reactionRecordTargets[$recordTargetKey] : null;
                     $recordTargetStatus = is_array($recordTarget) ? (string) ($recordTarget['status'] ?? 'broken') : 'unknown';
                     $recordTargetLabel = is_array($recordTarget) && (string) ($recordTarget['label'] ?? '') !== '' ? (string) $recordTarget['label'] : '#' . (string) ($record['target_id'] ?? '');
+                    $recordTargetTypeLabel = $reactionTargetTypeLabel((string) ($record['target_module'] ?? ''), (string) ($record['target_type'] ?? ''));
+                    $recordReactionLabel = trim((string) ($record['reaction_label'] ?? ''));
+                    if ($recordReactionLabel === '') {
+                        $recordReactionLabel = '정의 없음';
+                    }
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($record['id'] ?? 0)); ?></td>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($record['account_id'] ?? 0)); ?></td>
                         <td class="admin-table-break">
-                            <code><?php echo sr_e((string) ($record['target_module'] ?? '')); ?>/<?php echo sr_e((string) ($record['target_type'] ?? '')); ?>/<?php echo sr_e((string) ($record['target_id'] ?? '')); ?></code>
+                            <strong><?php echo sr_e($recordTargetTypeLabel); ?> #<?php echo sr_e((string) ($record['target_id'] ?? '')); ?></strong>
                             <br>
                             <?php if (is_array($recordTarget) && (string) ($recordTarget['public_url'] ?? '') !== '') { ?>
                                 <a href="<?php echo sr_e(sr_url((string) $recordTarget['public_url'])); ?>" target="_blank" rel="noopener"><?php echo sr_e($recordTargetLabel); ?></a>
@@ -157,18 +192,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e((string) ($reactionTargetStatusClasses[$recordTargetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e($recordTargetStatus); ?></span>
+                            <span class="admin-status <?php echo sr_e((string) ($reactionTargetStatusClasses[$recordTargetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($reactionTargetStatusLabels[$recordTargetStatus] ?? '확인 필요')); ?></span>
                             <?php if (is_array($recordTarget) && empty($recordTarget['can_write'])) { ?>
                                 <br><span class="admin-summary-meta">쓰기 불가</span>
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <?php echo sr_e((string) ($record['reaction_label'] ?? $record['reaction_key'] ?? '')); ?>
-                            <br><code><?php echo sr_e((string) ($record['reaction_key'] ?? '')); ?></code>
-                            <?php $recordReactionStatus = (string) ($record['reaction_status'] ?? ''); ?>
-                            <?php if ($recordReactionStatus !== '') { ?>
-                                <br><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$recordReactionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($recordReactionStatus, 'module_status')); ?></span>
-                            <?php } ?>
+                            <?php echo sr_e($recordReactionLabel); ?>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($record['updated_at'] ?? '')); ?></td>
                     </tr>
@@ -176,8 +206,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
-    <?php echo sr_admin_status_description_list_html('reaction_target_status', array_combine(array_keys($reactionTargetStatusClasses), array_keys($reactionTargetStatusClasses)) ?: [], [], '대상 상태 설명'); ?>
-    <?php echo sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지'], [], '리액션 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('reaction_target_status', $reactionTargetStatusLabels, [], '대상 상태 설명'); ?>
 </section>
 <?php } ?>
 
@@ -198,7 +227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>표시</th>
                     <th>아이콘</th>
                     <th>상태</th>
-                    <th>사용 레코드</th>
+                    <th>사용 기록</th>
                     <th>정렬</th>
                     <th class="text-end">관리</th>
                 </tr>
@@ -253,20 +282,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">사용 중지 key의 기존 레코드 처리</h2>
+        <h2 class="card-title">사용 중지 키의 기존 사용 기록 처리</h2>
     </div>
-    <p class="admin-summary-meta">사용 중지된 key는 신규 적용/변경이 차단되고 공개 UI에서 숨겨집니다. 기존 레코드는 보관하거나, 삭제하거나, 다른 active key로 병합할 수 있습니다.</p>
+    <p class="admin-summary-meta">사용 중지된 키는 신규 적용/변경이 차단되고 공개 화면에서 숨겨집니다. 기존 사용 기록은 보관하거나, 삭제하거나, 다른 사용 중 리액션 키로 병합할 수 있습니다.</p>
     <?php if ($disabledDefinitions === []) { ?>
-        <p class="admin-empty-state">처리할 사용 중지 key 레코드가 없습니다.</p>
+        <p class="admin-empty-state">처리할 사용 중지 키 사용 기록이 없습니다.</p>
     <?php } else { ?>
         <div class="table-wrapper">
             <table class="table table-list admin-reaction-cleanup-table">
-                <caption class="sr-only">사용 중지 리액션 레코드 처리 대상</caption>
+                <caption class="sr-only">사용 중지 리액션 사용 기록 처리 대상</caption>
                 <thead>
                     <tr>
                         <th>키</th>
                         <th>표시명</th>
-                        <th>기존 레코드</th>
+                        <th>기존 사용 기록</th>
                         <th class="text-end">관리</th>
                     </tr>
                 </thead>
@@ -298,29 +327,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($reactionAdminPage === 'presets') { ?>
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">Preset</h2>
+        <h2 class="card-title">리액션 묶음</h2>
         <div class="card-actions">
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreatePresetModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-preset-create-modal" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('add'); ?>추가</button>
         </div>
     </div>
-    <p class="admin-summary-meta">1차 정책은 단일 선택만 지원합니다. 선택한 key 순서대로 공개 버튼이 표시됩니다.</p>
+    <p class="admin-summary-meta">1차 정책은 단일 선택만 지원합니다. 선택한 리액션 키 순서대로 공개 버튼이 표시됩니다.</p>
     <div class="table-wrapper">
         <table class="table table-list admin-reaction-preset-table">
-            <caption class="sr-only">리액션 preset 목록</caption>
+            <caption class="sr-only">리액션 묶음 목록</caption>
             <thead>
                 <tr>
                     <th>키</th>
                     <th>이름</th>
                     <th>상태</th>
                     <th>공개 표시</th>
-                    <th>리액션 key</th>
+                    <th>리액션 키</th>
                     <th>정렬</th>
                     <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($reactionPresets === []) { ?>
-                    <tr><td colspan="7" class="admin-empty-state">등록된 preset이 없습니다.</td></tr>
+                    <tr><td colspan="7" class="admin-empty-state">등록된 리액션 묶음이 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($reactionPresets as $preset) { ?>
                     <?php
@@ -356,7 +385,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($preset['sort_order'] ?? 100)); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="Preset 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $presetModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($presetModalId); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="리액션 묶음 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $presetModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($presetModalId); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -404,7 +433,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <label for="reaction_new_icon_value">아이콘 값</label>
                         <input id="reaction_new_icon_value" type="text" name="icon_value" class="form-input" maxlength="180" list="reaction-material-icon-options" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('icon_value', 180)) : ''; ?>">
-                        <p class="form-help">이모지는 문자 그대로, Material 아이콘은 key를 입력하거나 목록에서 고르세요. 이미지 업로드를 선택하면 저장 후 자동으로 채워집니다.</p>
+                        <p class="form-help">이모지는 문자 그대로, Material 아이콘은 아이콘 키를 입력하거나 목록에서 고르세요. 이미지 업로드를 선택하면 저장 후 자동으로 채워집니다.</p>
                     </div>
                     <div class="form-field">
                         <label for="reaction_new_icon_image">아이콘 이미지</label>
@@ -465,7 +494,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </select>
                             <?php if ((string) ($definition['status'] ?? '') === 'disabled') { ?>
-                                <p class="form-help">사용 중지된 key의 기존 레코드는 기본적으로 보관됩니다.</p>
+                                <p class="form-help">사용 중지된 키의 기존 사용 기록은 기본적으로 보관됩니다.</p>
                             <?php } ?>
                         </div>
                         <div class="form-field">
@@ -523,22 +552,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="intent" value="cleanup_records">
                 <input type="hidden" name="reaction_key" value="<?php echo sr_e($reactionKey); ?>">
                 <div class="modal-header">
-                    <h3 id="<?php echo sr_e($cleanupModalTitleId); ?>" class="modal-title">기존 레코드 처리 <code><?php echo sr_e($reactionKey); ?></code></h3>
+                    <h3 id="<?php echo sr_e($cleanupModalTitleId); ?>" class="modal-title">기존 사용 기록 처리 <code><?php echo sr_e($reactionKey); ?></code></h3>
                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($cleanupModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
-                    <p class="admin-summary-meta">기존 레코드 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
+                    <p class="admin-summary-meta">기존 사용 기록 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
                     <div class="form-field">
                         <label for="<?php echo sr_e($cleanupModalId); ?>_policy">처리 방식</label>
                         <select id="<?php echo sr_e($cleanupModalId); ?>_policy" name="cleanup_policy" class="form-select">
                             <option value="keep_public_hidden">보관하고 공개 UI에서 숨김</option>
                             <option value="keep_admin_statistics">보관하고 관리자/통계에만 표시</option>
-                            <option value="delete">기존 레코드 삭제</option>
-                            <option value="merge">다른 reaction key로 병합</option>
+                            <option value="delete">기존 사용 기록 삭제</option>
+                            <option value="merge">다른 리액션 키로 병합</option>
                         </select>
                     </div>
                     <div class="form-field">
-                        <label for="<?php echo sr_e($cleanupModalId); ?>_merge_target">병합 대상 key</label>
+                        <label for="<?php echo sr_e($cleanupModalId); ?>_merge_target">병합 대상 키</label>
                         <select id="<?php echo sr_e($cleanupModalId); ?>_merge_target" name="merge_target_key" class="form-select">
                             <option value="">선택 안 함</option>
                             <?php foreach ($activeDefinitions as $activeDefinition) { ?>
@@ -546,7 +575,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e($activeKey); ?>"><?php echo sr_e((string) ($activeDefinition['label'] ?? $activeKey)); ?> (<?php echo sr_e($activeKey); ?>)</option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">병합을 선택할 때만 사용합니다. 같은 회원/target에 대상 key가 이미 있으면 source row는 삭제됩니다.</p>
+                        <p class="form-help">병합을 선택할 때만 사용합니다. 같은 회원이 같은 대상에 병합 대상 키를 이미 사용했다면 중복되는 기존 기록은 삭제됩니다.</p>
                     </div>
                     <div class="form-field">
                         <label for="<?php echo sr_e($cleanupModalId); ?>_confirm">확인 문구</label>
@@ -572,13 +601,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="save_preset">
             <input type="hidden" name="status" value="active">
             <div class="modal-header">
-                <h3 id="reaction-preset-create-modal-title" class="modal-title">Preset 추가</h3>
+                <h3 id="reaction-preset-create-modal-title" class="modal-title">리액션 묶음 추가</h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
             </div>
             <div class="modal-body">
                 <div class="form-grid">
                     <div class="form-field">
-                        <label for="reaction_new_preset_key">Preset 키 <span class="sr-required-label">(필수)</span></label>
+                        <label for="reaction_new_preset_key">묶음 키 <span class="sr-required-label">(필수)</span></label>
                         <input id="reaction_new_preset_key" type="text" name="preset_key" class="form-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input required value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('preset_key', 80)) : ''; ?>">
                     </div>
                     <div class="form-field">
@@ -599,7 +628,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="reaction_new_preset_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('description', 255)) : ''; ?>">
                 </div>
                 <fieldset class="form-field">
-                    <legend>리액션 key <span class="sr-required-label">(필수)</span></legend>
+                    <legend>리액션 키 <span class="sr-required-label">(필수)</span></legend>
                     <?php foreach ($reactionDefinitions as $definition) { ?>
                         <?php $key = (string) ($definition['reaction_key'] ?? ''); ?>
                         <label class="admin-check-row">
@@ -639,7 +668,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="intent" value="save_preset">
                 <input type="hidden" name="id" value="<?php echo sr_e((string) $presetId); ?>">
                 <div class="modal-header">
-                    <h3 id="<?php echo sr_e($presetModalTitleId); ?>" class="modal-title">Preset 수정 <code><?php echo sr_e($presetKey); ?></code></h3>
+                    <h3 id="<?php echo sr_e($presetModalTitleId); ?>" class="modal-title">리액션 묶음 수정 <code><?php echo sr_e($presetKey); ?></code></h3>
                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e($reactionCloseLabel); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
@@ -670,7 +699,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="<?php echo sr_e($presetModalId); ?>_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo sr_e((string) ($preset['description'] ?? '')); ?>">
                     </div>
                     <fieldset class="form-field">
-                        <legend>리액션 key <span class="sr-required-label">(필수)</span></legend>
+                        <legend>리액션 키 <span class="sr-required-label">(필수)</span></legend>
                         <?php foreach ($reactionDefinitions as $definition) { ?>
                             <?php $key = (string) ($definition['reaction_key'] ?? ''); ?>
                             <label class="admin-check-row">

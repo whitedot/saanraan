@@ -47,7 +47,7 @@ $files = [
         'data-community-privacy-consent-required' => 'Community board consent required label must stay conditional.',
     ],
     'modules/reaction/views/admin-reactions.php' => [
-        '<legend>리액션 key <span class="sr-required-label">(필수)</span></legend>' => 'Reaction preset key checkbox groups must keep the required legend marker.',
+        '<legend>리액션 키 <span class="sr-required-label">(필수)</span></legend>' => 'Reaction preset key checkbox groups must keep the required legend marker.',
         'name="reaction_keys[]"' => 'Reaction preset key checkbox groups must submit selected reaction keys.',
     ],
 ];

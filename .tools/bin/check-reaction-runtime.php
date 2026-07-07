@@ -456,6 +456,16 @@ $assert(
         && is_array($adminMenu['items'] ?? null),
     'reaction module should provide public and admin routes.'
 );
+$adminReactionView = file_get_contents(SR_ROOT . '/modules/reaction/views/admin-reactions.php');
+$assert(is_string($adminReactionView), 'reaction admin view should be readable.');
+if (is_string($adminReactionView)) {
+    $assert(str_contains($adminReactionView, '$reactionTargetStatusLabels'), 'reaction record admin view should map target status codes to Korean labels.');
+    $assert(str_contains($adminReactionView, 'sr_reaction_target_contract'), 'reaction record admin view should use target contract labels for target values.');
+    $assert(!str_contains($adminReactionView, "<code><?php echo sr_e((string) (\$record['target_module'] ?? '')); ?>/<?php echo sr_e((string) (\$record['target_type'] ?? '')); ?>/<?php echo sr_e((string) (\$record['target_id'] ?? '')); ?></code>"), 'reaction record admin view should not display raw target module/type/id as the primary target value.');
+    $assert(!str_contains($adminReactionView, "<code><?php echo sr_e((string) (\$record['reaction_key'] ?? '')); ?></code>"), 'reaction record admin view should not display raw reaction keys as the primary reaction value.');
+    $assert(!str_contains($adminReactionView, '$recordReactionStatus ='), 'reaction record admin view should not render a duplicate reaction status badge in the reaction value column.');
+    $assert(!str_contains($adminReactionView, "sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지'], [], '리액션 상태 설명')"), 'reaction record admin view should not render a duplicate reaction status legend.');
+}
 
 $targetContractFiles = [
     'content' => SR_ROOT . '/modules/content/reaction-targets.php',

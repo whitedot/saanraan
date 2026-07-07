@@ -178,7 +178,7 @@ sr_antispam_check_assert(str_contains($adminView, 'data-antispam-challenge-panel
 sr_antispam_check_assert(str_contains($adminView, 'class="form-grid" data-antispam-challenge-panel'), 'Antispam challenge panels must preserve admin form row styling.');
 sr_antispam_check_assert(!str_contains($adminView, 'data-antispam-challenge-switch'), 'Antispam admin view must not use switch controls for exclusive challenge type selection.');
 sr_antispam_check_assert(str_contains($adminView, "'antispam-section-challenge' => '검증 방식'"), 'Antispam sticky tabs must include a challenge type section.');
-sr_antispam_check_assert(str_contains($adminView, "'antispam-section-provider-common' => '프로바이더 공통'"), 'Antispam sticky tabs must include a provider common section.');
+sr_antispam_check_assert(str_contains($adminView, "'antispam-section-provider-common' => '외부 검사 공통'"), 'Antispam sticky tabs must include a provider common section.');
 sr_antispam_check_assert(!str_contains($adminView, "str_replace('_', '-', (string) \$providerKey)"), 'Antispam sticky tabs must not expose provider-specific sections.');
 
 $helpers = sr_antispam_check_read('modules/antispam/helpers.php');

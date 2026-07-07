@@ -43,7 +43,7 @@ if (sr_request_method() === 'POST') {
         $releaseNote = sr_post_string_without_truncation('release_note', 1000);
 
         if ($guardId < 1) {
-            $errors[] = '해제할 계정 guard를 선택하세요.';
+            $errors[] = '해제할 작성 제한을 선택하세요.';
         }
         if ($releaseNote === null) {
             $errors[] = '해제 메모는 1000자 이하로 입력하세요.';
@@ -98,20 +98,20 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
                 $pdo->commit();
-                $notice = '계정 guard를 해제했습니다.';
+                $notice = '작성 제한을 해제했습니다.';
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
                 if ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_missing') {
-                    $errors[] = '해제할 계정 guard를 찾을 수 없습니다.';
+                    $errors[] = '해제할 작성 제한을 찾을 수 없습니다.';
                 } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_not_active') {
-                    $errors[] = '이미 종료된 계정 guard입니다. 목록을 새로고침한 뒤 다시 확인하세요.';
+                    $errors[] = '이미 종료된 작성 제한입니다. 목록을 새로고침한 뒤 다시 확인하세요.';
                 } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'account_guard_release_failed') {
-                    $errors[] = '계정 guard를 해제하지 못했습니다.';
+                    $errors[] = '작성 제한을 해제하지 못했습니다.';
                 } else {
                     sr_log_exception($exception, 'community_account_guard_release_failed');
-                    $errors[] = '계정 guard 해제 중 오류가 발생했습니다.';
+                    $errors[] = '작성 제한 해제 중 오류가 발생했습니다.';
                 }
             }
         }

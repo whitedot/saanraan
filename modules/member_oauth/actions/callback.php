@@ -22,12 +22,12 @@ if (!is_array($statePreview)) {
     $statePreview = sr_member_oauth_state_by_token($pdo, $stateToken, 'link');
 }
 if (!is_array($statePreview) || (string) $statePreview['provider_key'] !== $providerKey) {
-    sr_render_error(400, 'OAuth state is invalid.');
+    sr_render_error(400, '외부 로그인 확인값이 올바르지 않습니다.');
 }
 
 $state = sr_member_oauth_consume_state($pdo, $stateToken, $providerKey, (string) $statePreview['flow_type']);
 if (!is_array($state)) {
-    sr_render_error(400, 'OAuth state is invalid.');
+    sr_render_error(400, '외부 로그인 확인값이 올바르지 않습니다.');
 }
 
 if (!empty($providers[$providerKey]['mock'])) {

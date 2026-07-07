@@ -119,7 +119,7 @@ if (sr_request_method() === 'POST') {
                     'reaction_keys' => array_values(array_map('strval', (array) ($presetValues['reaction_keys'] ?? []))),
                 ],
             ]);
-            $notice = '리액션 preset을 저장했습니다.';
+            $notice = '리액션 묶음을 저장했습니다.';
         } else {
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }
@@ -154,7 +154,7 @@ if (sr_request_method() === 'POST') {
                     'conflict_deleted_count' => (int) ($result['conflict_deleted_count'] ?? 0),
                 ],
             ]);
-            $notice = '기존 레코드 처리 방식을 적용했습니다.';
+            $notice = '기존 사용 기록 처리 방식을 적용했습니다.';
         } else {
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }

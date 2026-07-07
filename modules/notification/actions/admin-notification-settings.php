@@ -84,28 +84,28 @@ if (sr_request_method() === 'POST') {
         $errors[] = '웹 자동 실행 간격은 10초부터 3600초 사이로 입력하세요.';
     }
     if ($settings['delivery_web_runner_batch_size'] < 1 || $settings['delivery_web_runner_batch_size'] > 5) {
-        $errors[] = '웹 자동 실행 배치 크기는 1부터 5 사이로 입력하세요.';
+        $errors[] = '웹 실행당 발송 수는 1부터 5 사이로 입력하세요.';
     }
     if ($settings['delivery_manual_batch_size'] < 1 || $settings['delivery_manual_batch_size'] > 50) {
-        $errors[] = '관리자 수동 실행 배치 크기는 1부터 50 사이로 입력하세요.';
+        $errors[] = '수동 실행당 발송 수는 1부터 50 사이로 입력하세요.';
     }
     if ($settings['delivery_cli_batch_size'] < 1 || $settings['delivery_cli_batch_size'] > 100) {
-        $errors[] = 'CLI 실행 배치 크기는 1부터 100 사이로 입력하세요.';
+        $errors[] = '명령줄 실행당 발송 수는 1부터 100 사이로 입력하세요.';
     }
     if ($settings['delivery_max_attempts'] < 1 || $settings['delivery_max_attempts'] > 20) {
         $errors[] = '최대 재시도 횟수는 1부터 20 사이로 입력하세요.';
     }
     if ($settings['delivery_lock_timeout_seconds'] < 30 || $settings['delivery_lock_timeout_seconds'] > 3600) {
-        $errors[] = '처리 lock 만료 시간은 30초부터 3600초 사이로 입력하세요.';
+        $errors[] = '처리 점유 만료 시간은 30초부터 3600초 사이로 입력하세요.';
     }
     if ($slackWebhookUrlInput === null) {
-        $errors[] = 'Slack webhook URL은 255자 이내로 입력하세요.';
+        $errors[] = 'Slack 수신 URL은 255자 이내로 입력하세요.';
     }
     if ($discordWebhookUrlInput === null) {
-        $errors[] = 'Discord webhook URL은 255자 이내로 입력하세요.';
+        $errors[] = 'Discord 수신 URL은 255자 이내로 입력하세요.';
     }
     if ($telegramBotTokenInput === null) {
-        $errors[] = 'Telegram bot token은 255자 이내로 입력하세요.';
+        $errors[] = 'Telegram 봇 토큰은 255자 이내로 입력하세요.';
     }
     if (!in_array($settings['external_push_failure_policy'], ['retry', 'dead'], true)) {
         $errors[] = '외부 푸시 실패 정책을 선택하세요.';
@@ -121,10 +121,10 @@ if (sr_request_method() === 'POST') {
     }
     if ($settings['email_channel_enabled'] && $settings['email_transport'] === 'http_api') {
         if ($settings['email_from_email'] === '') {
-            $errors[] = 'HTTP API 발송에는 발신 이메일이 필요합니다.';
+            $errors[] = '메일 API 발송에는 발신 이메일이 필요합니다.';
         }
         if ($settings['email_http_api_endpoint'] === '' || !sr_mail_http_api_endpoint_is_allowed($settings['email_http_api_endpoint'])) {
-            $errors[] = '메일 HTTP API endpoint는 공개 HTTPS URL이어야 합니다.';
+            $errors[] = '메일 API 전송 URL은 공개 HTTPS URL이어야 합니다.';
         }
     }
     if ($settings['external_push_enabled']) {
@@ -139,28 +139,28 @@ if (sr_request_method() === 'POST') {
             $enabledProviderCount++;
         }
         if ($enabledProviderCount < 1) {
-            $errors[] = '외부 푸시 사용 시 provider를 하나 이상 켜세요.';
+            $errors[] = '외부 푸시 사용 시 발송 채널을 하나 이상 켜세요.';
         }
         if ($settings['slack_webhook_enabled'] && $settings['slack_channel_label'] === '') {
             $errors[] = 'Slack 채널 표시명을 입력하세요.';
         }
         if ($settings['slack_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
-            $errors[] = 'Slack webhook URL은 HTTPS URL이어야 합니다.';
+            $errors[] = 'Slack 수신 URL은 HTTPS URL이어야 합니다.';
         }
         if ($settings['discord_webhook_enabled'] && $settings['discord_channel_label'] === '') {
             $errors[] = 'Discord 채널 표시명을 입력하세요.';
         }
         if ($settings['discord_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['discord_webhook_url'])) {
-            $errors[] = 'Discord webhook URL은 HTTPS URL이어야 합니다.';
+            $errors[] = 'Discord 수신 URL은 HTTPS URL이어야 합니다.';
         }
         if ($settings['telegram_bot_enabled'] && $settings['telegram_channel_label'] === '') {
             $errors[] = 'Telegram 채널 표시명을 입력하세요.';
         }
         if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_bot_token_is_allowed((string) $settings['telegram_bot_token'])) {
-            $errors[] = 'Telegram bot token 형식이 올바르지 않습니다.';
+            $errors[] = 'Telegram 봇 토큰 형식이 올바르지 않습니다.';
         }
         if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_chat_id_is_allowed((string) $settings['telegram_chat_id'])) {
-            $errors[] = 'Telegram chat ID 형식이 올바르지 않습니다.';
+            $errors[] = 'Telegram 대화방 ID 형식이 올바르지 않습니다.';
         }
     }
 

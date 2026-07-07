@@ -179,7 +179,7 @@ if (sr_request_method() === 'POST') {
                     . number_format((int) ($deliveryRunResult['sent'] ?? 0))
                     . '건, 재시도 대기 '
                     . number_format((int) ($deliveryRunResult['failed'] ?? 0))
-                    . '건, dead-letter '
+                    . '건, 실패 보관 '
                     . number_format((int) ($deliveryRunResult['dead'] ?? 0))
                     . '건입니다.';
             } catch (Throwable $exception) {

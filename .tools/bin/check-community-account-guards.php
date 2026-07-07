@@ -129,7 +129,7 @@ sr_community_account_guard_check_contains('modules/community/actions/admin-repor
 ]);
 
 sr_community_account_guard_check_contains('modules/community/views/admin-reports.php', [
-    '계정 guard',
+    '회원 작성 제한',
     'name="intent" value="release_account_guard"',
     'sr_community_account_guard_type_label',
     'sr_community_account_guard_status_label',
