@@ -13,12 +13,15 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
 
     $stmt = $pdo->prepare(
         'DELETE FROM sr_messages
-         WHERE sender_account_id = :account_id
-           AND recipient_account_id = :account_id
+         WHERE sender_account_id = :sender_account_id
+           AND recipient_account_id = :recipient_account_id
            AND sender_deleted_at IS NOT NULL
            AND recipient_deleted_at IS NOT NULL'
     );
-    $stmt->execute(['account_id' => $accountId]);
+    $stmt->execute([
+        'sender_account_id' => $accountId,
+        'recipient_account_id' => $accountId,
+    ]);
     $selfMessagesDeleted = $stmt->rowCount();
 
     return [

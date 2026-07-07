@@ -45,11 +45,13 @@ return static function (PDO $pdo, int $accountId, mixed $context = []): array {
              FROM sr_payment_record_items i
              INNER JOIN sr_payment_records r ON r.id = i.payment_record_id
              WHERE r.account_id = :account_id
-               AND (i.reference_id LIKE :account_marker_like OR i.snapshot_json LIKE :account_marker_like)'
+               AND (i.reference_id LIKE :reference_account_marker_like OR i.snapshot_json LIKE :snapshot_account_marker_like)'
         );
+        $accountMarkerLike = '%:account:' . (string) $accountId . '%';
         $itemSelectStmt->execute([
             'account_id' => $accountId,
-            'account_marker_like' => '%:account:' . (string) $accountId . '%',
+            'reference_account_marker_like' => $accountMarkerLike,
+            'snapshot_account_marker_like' => $accountMarkerLike,
         ]);
         $itemRows = $itemSelectStmt->fetchAll();
 

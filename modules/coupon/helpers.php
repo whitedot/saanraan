@@ -3460,12 +3460,14 @@ function sr_coupon_usable_account_issue_count(PDO $pdo, int $accountId): int
          WHERE i.account_id = :account_id
            AND i.status = 'active'
            AND d.status IN ('active', 'issue_stopped')
-           AND (i.starts_at IS NULL OR i.starts_at <= :now_value)
-           AND (i.expires_at IS NULL OR i.expires_at >= :now_value)"
+           AND (i.starts_at IS NULL OR i.starts_at <= :starts_now_value)
+           AND (i.expires_at IS NULL OR i.expires_at >= :expires_now_value)"
     );
+    $now = sr_now();
     $stmt->execute([
         'account_id' => $accountId,
-        'now_value' => sr_now(),
+        'starts_now_value' => $now,
+        'expires_now_value' => $now,
     ]);
 
     return (int) $stmt->fetchColumn();

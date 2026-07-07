@@ -27,7 +27,8 @@ if (!is_string($helper)) {
         || strpos($helper, 'clamp_starts_at_to_issued_at') === false
         || strpos($helper, '이미 만료된 쿠폰은 지급할 수 없습니다.') === false
         || strpos($helper, 'function sr_coupon_usable_account_issue_count(PDO $pdo, int $accountId): int') === false
-        || strpos($helper, 'AND (i.starts_at IS NULL OR i.starts_at <= :now_value)') === false
+        || strpos($helper, 'AND (i.starts_at IS NULL OR i.starts_at <= :starts_now_value)') === false
+        || strpos($helper, 'AND (i.expires_at IS NULL OR i.expires_at >= :expires_now_value)') === false
     ) {
         $errors[] = 'Coupon validity policy must validate definition policy, compute issue starts/expires, and exclude future-start issues from usable paths.';
     }
