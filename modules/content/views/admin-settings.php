@@ -35,10 +35,32 @@ $contentReactionAvailable = isset($contentReactionAvailable)
 $contentReactionInputAttributes = $contentReactionAvailable
     ? ''
     : ' disabled aria-describedby="content-settings-reaction-unavailable"';
-$contentIdentityVerificationAvailable = isset($contentIdentityVerificationAvailable)
-    ? (bool) $contentIdentityVerificationAvailable
-    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
-$contentIdentityVerificationInputAttributes = $contentIdentityVerificationAvailable
+$contentIdentityContentViewAvailable = isset($contentIdentityContentViewAvailable)
+    ? (bool) $contentIdentityContentViewAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'content.view'));
+$contentIdentityContentViewAdultAvailable = isset($contentIdentityContentViewAdultAvailable)
+    ? (bool) $contentIdentityContentViewAdultAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'content.view.adult'));
+$contentIdentityAuthorApplicationAvailable = isset($contentIdentityAuthorApplicationAvailable)
+    ? (bool) $contentIdentityAuthorApplicationAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'content.author_application'));
+$contentIdentityAuthorApplicationAdultAvailable = isset($contentIdentityAuthorApplicationAdultAvailable)
+    ? (bool) $contentIdentityAuthorApplicationAdultAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'content.author_application.adult'));
+$contentIdentityUnavailable = !$contentIdentityContentViewAvailable
+    || !$contentIdentityContentViewAdultAvailable
+    || !$contentIdentityAuthorApplicationAvailable
+    || !$contentIdentityAuthorApplicationAdultAvailable;
+$contentIdentityContentViewInputAttributes = $contentIdentityContentViewAvailable
+    ? ''
+    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+$contentIdentityContentViewAdultInputAttributes = $contentIdentityContentViewAdultAvailable
+    ? ''
+    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+$contentIdentityAuthorApplicationInputAttributes = $contentIdentityAuthorApplicationAvailable
+    ? ''
+    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+$contentIdentityAuthorApplicationAdultInputAttributes = $contentIdentityAuthorApplicationAdultAvailable
     ? ''
     : ' disabled aria-describedby="content-settings-identity-unavailable"';
 $contentLayoutExtraMenuItems = function_exists('sr_content_layout_extra_menu_items_from_settings') ? sr_content_layout_extra_menu_items_from_settings($settings) : [];
@@ -221,11 +243,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">콘텐츠 열람 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_required', 'identity_content_view_required', '1', $contentIdentityVerificationAvailable && !empty($settings['identity_content_view_required']), '사용', '', $contentIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_required', 'identity_content_view_required', '1', $contentIdentityContentViewAvailable && !empty($settings['identity_content_view_required']), '사용', '', $contentIdentityContentViewInputAttributes); ?>
                 <p class="form-help">사용하면 공개 콘텐츠를 보려는 회원에게 본인확인을 요구합니다.</p>
-                <?php if (!$contentIdentityVerificationAvailable) { ?>
+                <?php if ($contentIdentityUnavailable) { ?>
                     <div id="content-settings-identity-unavailable" class="alert alert-warning" role="alert">
-                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 콘텐츠 본인확인 설정을 사용할 수 없습니다.
+                        본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                     </div>
                 <?php } ?>
             </div>
@@ -233,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label">콘텐츠 열람 성인 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_adult_required', 'identity_content_view_adult_required', '1', $contentIdentityVerificationAvailable && !empty($settings['identity_content_view_adult_required']), '사용', '', $contentIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_adult_required', 'identity_content_view_adult_required', '1', $contentIdentityContentViewAdultAvailable && !empty($settings['identity_content_view_adult_required']), '사용', '', $contentIdentityContentViewAdultInputAttributes); ?>
                 <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 공개 콘텐츠를 볼 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
             </div>
         </div>
@@ -265,14 +287,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">작성자 신청 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_required', 'identity_author_application_required', '1', $contentIdentityVerificationAvailable && !empty($settings['identity_author_application_required']), '사용', '', $contentIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_required', 'identity_author_application_required', '1', $contentIdentityAuthorApplicationAvailable && !empty($settings['identity_author_application_required']), '사용', '', $contentIdentityAuthorApplicationInputAttributes); ?>
                 <p class="form-help">사용하면 콘텐츠 작성자 신청 전에 본인확인을 요구합니다.</p>
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">작성자 신청 성인 본인확인</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_adult_required', 'identity_author_application_adult_required', '1', $contentIdentityVerificationAvailable && !empty($settings['identity_author_application_adult_required']), '사용', '', $contentIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_adult_required', 'identity_author_application_adult_required', '1', $contentIdentityAuthorApplicationAdultAvailable && !empty($settings['identity_author_application_adult_required']), '사용', '', $contentIdentityAuthorApplicationAdultInputAttributes); ?>
                 <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 콘텐츠 작성자 신청을 받을 수 있습니다.</p>
             </div>
         </div>

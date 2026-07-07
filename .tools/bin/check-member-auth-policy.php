@@ -1295,12 +1295,16 @@ if ($adminSettingsAction !== '') {
         'Member settings audit metadata should include the generic integer settings snapshot.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminSettingsAction, "\$memberIdentityVerificationAvailable = sr_module_enabled(\$pdo, 'identity_verification')") !== false
-            && strpos($adminSettingsAction, '본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.') !== false
+        strpos($adminSettingsAction, '$memberIdentityRegistrationAvailable') !== false
+            && strpos($adminSettingsAction, '$memberIdentityWithdrawalAvailable') !== false
+            && strpos($adminSettingsAction, '$memberIdentityAccountSecurityAvailable') !== false
+            && strpos($adminSettingsAction, '회원가입 본인확인을 사용하려면 본인확인 사용을 켜고 회원가입 목적을 지원하는 제공자를 설정하세요.') !== false
+            && strpos($adminSettingsAction, '회원탈퇴 본인확인을 사용하려면 본인확인 사용을 켜고 회원탈퇴 목적을 지원하는 제공자를 설정하세요.') !== false
+            && strpos($adminSettingsAction, '계정보안작업 본인확인을 사용하려면 본인확인 사용을 켜고 계정 보안 목적을 지원하는 제공자를 설정하세요.') !== false
             && strpos($adminSettingsAction, "\$settings['identity_registration_mode'] = 'disabled';") !== false
             && strpos($adminSettingsAction, "\$settings['identity_withdrawal_required'] = false;") !== false
             && strpos($adminSettingsAction, "\$settings['identity_account_security_required'] = false;") !== false,
-        'Member settings action should reject and normalize identity settings when the identity verification module is unavailable.'
+        'Member settings action should reject and normalize identity settings when identity verification is unavailable for each purpose.'
     );
 }
 
@@ -1339,11 +1343,13 @@ if ($adminSettingsView !== '') {
         'Member settings view should expose avatar visibility/required settings, dynamic profile field builder, and removed field value cleanup confirmation.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminSettingsView, '$memberIdentityVerificationAvailable') !== false
+        strpos($adminSettingsView, '$memberIdentityRegistrationAvailable') !== false
+            && strpos($adminSettingsView, '$memberIdentityWithdrawalAvailable') !== false
+            && strpos($adminSettingsView, '$memberIdentityAccountSecurityAvailable') !== false
             && strpos($adminSettingsView, 'member-settings-identity-unavailable') !== false
-            && strpos($adminSettingsView, '본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 회원 본인확인 설정을 사용할 수 없습니다.') !== false
+            && strpos($adminSettingsView, '본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.') !== false
             && strpos($adminSettingsView, 'disabled aria-describedby="member-settings-identity-unavailable"') !== false,
-        'Member settings view should disable identity verification controls and show an unavailable notice when the module is not installed or active.'
+        'Member settings view should disable identity verification controls and show an unavailable notice when identity verification is unavailable for each purpose.'
     );
 }
 

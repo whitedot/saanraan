@@ -91,30 +91,30 @@ foreach ([
     'community' => [
         'action' => 'modules/community/actions/admin-settings.php',
         'view' => 'modules/community/views/admin-settings.php',
-        'available' => '$communityIdentityVerificationAvailable',
+        'available' => '$communityIdentityRestrictedBoardAvailable',
         'notice' => 'community-settings-identity-unavailable',
-        'error' => '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '제한 게시판 본인확인을 사용하려면 본인확인 사용을 켜고 제한 게시판 목적을 지원하는 제공자를 설정하세요.',
     ],
     'reward' => [
         'action' => 'modules/reward/actions/admin-rewards-settings.php',
         'view' => 'modules/reward/views/admin-settings.php',
-        'available' => '$rewardIdentityVerificationAvailable',
+        'available' => '$rewardIdentityWithdrawalAvailable',
         'notice' => 'reward-settings-identity-unavailable',
-        'error' => '출금 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '출금 신청 본인확인을 사용하려면 본인확인 사용을 켜고 적립금 출금 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'deposit' => [
         'action' => 'modules/deposit/actions/admin-deposits-settings.php',
         'view' => 'modules/deposit/views/admin-settings.php',
-        'available' => '$depositIdentityVerificationAvailable',
+        'available' => '$depositIdentityRefundAvailable',
         'notice' => 'deposit-settings-identity-unavailable',
-        'error' => '환불 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '환불 신청 본인확인을 사용하려면 본인확인 사용을 켜고 예치금 환불 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'asset_exchange' => [
         'action' => 'modules/asset_exchange/actions/admin-asset-exchange-settings.php',
         'view' => 'modules/asset_exchange/views/admin-asset-exchange-settings.php',
-        'available' => '$assetExchangeIdentityVerificationAvailable',
+        'available' => '$assetExchangeIdentityAvailable',
         'notice' => 'asset-exchange-settings-identity-unavailable',
-        'error' => '환전 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
 ] as $moduleKey => $definition) {
     $mustContain($definition['action'], [

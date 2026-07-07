@@ -10,10 +10,10 @@ $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_en
 $rewardDisplayName = (string) ($settings['display_name'] ?? '적립금');
 $rewardUnitLabel = (string) ($settings['unit_label'] ?? '원');
 $rewardDefaultExpirationDays = (string) sr_reward_normalize_expiration_days($settings['default_expiration_days'] ?? 0);
-$rewardIdentityVerificationAvailable = isset($rewardIdentityVerificationAvailable)
-    ? (bool) $rewardIdentityVerificationAvailable
-    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
-$rewardIdentityVerificationInputAttributes = $rewardIdentityVerificationAvailable
+$rewardIdentityWithdrawalAvailable = isset($rewardIdentityWithdrawalAvailable)
+    ? (bool) $rewardIdentityWithdrawalAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'reward.withdrawal_request'));
+$rewardIdentityVerificationInputAttributes = $rewardIdentityWithdrawalAvailable
     ? ''
     : ' disabled aria-describedby="reward-settings-identity-unavailable"';
 $allNotificationCasesEnabled = $notificationCases !== [];
@@ -130,11 +130,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <label class="form-label" for="reward_identity_withdrawal_required">출금 신청 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityVerificationAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityWithdrawalAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
-                <?php if (!$rewardIdentityVerificationAvailable) { ?>
+                <?php if (!$rewardIdentityWithdrawalAvailable) { ?>
                     <div id="reward-settings-identity-unavailable" class="alert alert-warning" role="alert">
-                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 출금 신청 본인확인 설정을 사용할 수 없습니다.
+                        본인확인 사용이 꺼져 있거나 적립금 출금 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
                     </div>
                 <?php } ?>
             </div>

@@ -17,8 +17,14 @@ $settings = sr_reward_settings($pdo);
 $memberGroups = sr_member_groups($pdo);
 $notificationCases = sr_reward_notification_cases();
 $notificationChannelOptions = sr_reward_notification_channel_options($pdo);
-$rewardIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$rewardIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($rewardIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$rewardIdentityWithdrawalAvailable = $rewardIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'reward.withdrawal_request');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -31,8 +37,8 @@ if (sr_request_method() === 'POST') {
     $defaultExpirationDays = sr_reward_normalize_expiration_days($defaultExpirationDaysInput);
     $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
     $identityWithdrawalRequired = sr_post_string('identity_withdrawal_required', 1) === '1';
-    if (!$rewardIdentityVerificationAvailable && $identityWithdrawalRequired) {
-        $errors[] = '출금 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+    if (!$rewardIdentityWithdrawalAvailable && $identityWithdrawalRequired) {
+        $errors[] = '출금 신청 본인확인을 사용하려면 본인확인 사용을 켜고 적립금 출금 신청 목적을 지원하는 제공자를 설정하세요.';
         $identityWithdrawalRequired = false;
     }
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];

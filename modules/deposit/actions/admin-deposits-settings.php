@@ -17,8 +17,14 @@ $settings = sr_deposit_settings($pdo);
 $memberGroups = sr_member_groups($pdo);
 $notificationCases = sr_deposit_notification_cases();
 $notificationChannelOptions = sr_deposit_notification_channel_options($pdo);
-$depositIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$depositIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($depositIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$depositIdentityRefundAvailable = $depositIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'deposit.refund_request');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -29,8 +35,8 @@ if (sr_request_method() === 'POST') {
     $unitLabel = sr_deposit_clean_text(sr_post_string('unit_label', 40), 20);
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
     $identityRefundRequired = sr_post_string('identity_refund_required', 1) === '1';
-    if (!$depositIdentityVerificationAvailable && $identityRefundRequired) {
-        $errors[] = '환불 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+    if (!$depositIdentityRefundAvailable && $identityRefundRequired) {
+        $errors[] = '환불 신청 본인확인을 사용하려면 본인확인 사용을 켜고 예치금 환불 신청 목적을 지원하는 제공자를 설정하세요.';
         $identityRefundRequired = false;
     }
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];

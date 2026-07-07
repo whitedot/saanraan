@@ -8,6 +8,11 @@ $surveyReactionAvailable = sr_module_enabled($pdo, 'reaction')
 if ($surveyReactionAvailable) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+$surveyIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($surveyIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $permissionPath = '/admin/surveys/settings';
@@ -17,6 +22,12 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = $surveyReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$surveyIdentityViewAvailable = $surveyIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'survey.view');
+$surveyIdentityViewAdultAvailable = $surveyIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'survey.view.adult');
 $surveyLayoutOptions = sr_survey_layout_options($pdo);
 $publicThemeOptions = sr_survey_theme_options();
 $siteMenuOptions = [];

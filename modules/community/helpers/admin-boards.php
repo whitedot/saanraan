@@ -34,18 +34,22 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $identityVerificationEnabled = ($_POST['identity_verification_enabled'] ?? '') === '1';
         $identityVerificationPurpose = sr_community_identity_verification_purpose(sr_post_string('identity_verification_purpose', 30));
         $identityVerificationRequiredActions = sr_community_identity_verification_required_actions_input($_POST['identity_verification_required_actions'] ?? []);
-        $identityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+        $identityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+        if ($identityVerificationModuleAvailable) {
+            require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+        }
+        $identityVerificationPurposeKey = $identityVerificationPurpose === 'adult'
+            ? 'community.adult_board'
+            : 'community.restricted_board';
+        $identityVerificationAvailable = $identityVerificationModuleAvailable
+            && function_exists('sr_identity_verification_available')
+            && sr_identity_verification_available($pdo, $identityVerificationPurposeKey);
         if ($identityVerificationEnabled) {
             if ($identityVerificationRequiredActions === []) {
                 $errors[] = '본인확인을 사용할 행위를 1개 이상 선택하세요.';
             }
             if (!$identityVerificationAvailable) {
-                $errors[] = '게시판 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
-            } else {
-                require_once SR_ROOT . '/modules/identity_verification/helpers.php';
-                if ($identityVerificationPurpose === 'adult' && function_exists('sr_identity_verification_adult_setting_errors')) {
-                    $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, true, '성인 본인확인 정책'));
-                }
+                $errors[] = '게시판 본인확인을 사용하려면 본인확인 사용을 켜고 선택한 게시판 본인확인 기준을 지원하는 제공자를 설정하세요.';
             }
         }
         $skinKey = sr_post_string('skin_key', 40);

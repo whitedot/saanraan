@@ -4,10 +4,10 @@ $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySett
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
 $communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 $communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
-$communityIdentityVerificationAvailable = isset($communityIdentityVerificationAvailable)
-    ? (bool) $communityIdentityVerificationAvailable
-    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
-$communityIdentityVerificationInputAttributes = $communityIdentityVerificationAvailable
+$communityIdentityRestrictedBoardAvailable = isset($communityIdentityRestrictedBoardAvailable)
+    ? (bool) $communityIdentityRestrictedBoardAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'community.restricted_board'));
+$communityIdentityVerificationInputAttributes = $communityIdentityRestrictedBoardAvailable
     ? ''
     : ' disabled aria-describedby="community-settings-identity-unavailable"';
 $communityReactionAvailable = isset($communityReactionAvailable)
@@ -250,11 +250,11 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_identity_restricted_board_required">제한 게시판 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', $communityIdentityVerificationAvailable && !empty($settings['identity_restricted_board_required']), '사용', '', $communityIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', $communityIdentityRestrictedBoardAvailable && !empty($settings['identity_restricted_board_required']), '사용', '', $communityIdentityVerificationInputAttributes); ?>
                 <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
-                <?php if (!$communityIdentityVerificationAvailable) { ?>
+                <?php if (!$communityIdentityRestrictedBoardAvailable) { ?>
                     <div id="community-settings-identity-unavailable" class="alert alert-warning" role="alert">
-                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 제한 게시판 본인확인 설정을 사용할 수 없습니다.
+                        본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
                     </div>
                 <?php } ?>
             </div>

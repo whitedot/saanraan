@@ -10,8 +10,14 @@ $communityReactionAvailable = sr_module_enabled($pdo, 'reaction')
 if ($communityReactionAvailable) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
-$communityIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$communityIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($communityIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$communityIdentityRestrictedBoardAvailable = $communityIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'community.restricted_board');
 
 $account = sr_member_require_login($pdo);
 
@@ -72,8 +78,8 @@ if (sr_request_method() === 'POST') {
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $levelMaxForValidation = $levelMaxValue !== null ? $levelMaxValue : $maxLevel;
         $identityRestrictedBoardRequired = ($_POST['identity_restricted_board_required'] ?? '') === '1';
-        if (!$communityIdentityVerificationAvailable && $identityRestrictedBoardRequired) {
-            $errors[] = '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+        if (!$communityIdentityRestrictedBoardAvailable && $identityRestrictedBoardRequired) {
+            $errors[] = '제한 게시판 본인확인을 사용하려면 본인확인 사용을 켜고 제한 게시판 목적을 지원하는 제공자를 설정하세요.';
             $identityRestrictedBoardRequired = false;
         }
         $reportAutoActionEnabled = ($_POST['report_auto_action_enabled'] ?? '') === '1';

@@ -10,11 +10,23 @@ $contentReactionAvailable = sr_module_enabled($pdo, 'reaction')
 if ($contentReactionAvailable) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
-if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
+$contentIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($contentIdentityVerificationModuleAvailable) {
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 }
-$contentIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
-    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+$contentIdentityContentViewAvailable = $contentIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'content.view');
+$contentIdentityContentViewAdultAvailable = $contentIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'content.view.adult');
+$contentIdentityAuthorApplicationAvailable = $contentIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'content.author_application');
+$contentIdentityAuthorApplicationAdultAvailable = $contentIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'content.author_application.adult');
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'view');
@@ -127,20 +139,21 @@ if (sr_request_method() === 'POST') {
     } elseif (!empty($postedSettings['member_submission_author_reward_enabled'])) {
         $errors[] = '작성자 보상 포인트/금액 항목을 선택하세요.';
     }
-    if (!$contentIdentityVerificationAvailable) {
-        if (
-            !empty($postedSettings['identity_content_view_required'])
-            || !empty($postedSettings['identity_content_view_adult_required'])
-            || !empty($postedSettings['identity_author_application_required'])
-            || !empty($postedSettings['identity_author_application_adult_required'])
-        ) {
-            $errors[] = '콘텐츠 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
-        }
-    } elseif (function_exists('sr_identity_verification_adult_setting_errors')) {
-        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인'));
-        $errors = array_merge($errors, sr_identity_verification_adult_setting_errors($pdo, !empty($postedSettings['identity_author_application_adult_required']), '작성자 신청 성인 본인확인'));
-    } elseif (!empty($postedSettings['identity_content_view_adult_required']) || !empty($postedSettings['identity_author_application_adult_required'])) {
-        $errors[] = '성인 본인확인을 사용하려면 본인확인 모듈을 활성화해야 합니다.';
+    if (!$contentIdentityContentViewAvailable && !empty($postedSettings['identity_content_view_required'])) {
+        $errors[] = '콘텐츠 열람 본인확인을 사용하려면 본인확인 사용을 켜고 콘텐츠 열람 목적을 지원하는 제공자를 설정하세요.';
+        $postedSettings['identity_content_view_required'] = false;
+    }
+    if (!$contentIdentityContentViewAdultAvailable && !empty($postedSettings['identity_content_view_adult_required'])) {
+        $errors[] = '콘텐츠 열람 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 성인 열람 목적 제공자를 설정하세요.';
+        $postedSettings['identity_content_view_adult_required'] = false;
+    }
+    if (!$contentIdentityAuthorApplicationAvailable && !empty($postedSettings['identity_author_application_required'])) {
+        $errors[] = '작성자 신청 본인확인을 사용하려면 본인확인 사용을 켜고 작성자 신청 목적을 지원하는 제공자를 설정하세요.';
+        $postedSettings['identity_author_application_required'] = false;
+    }
+    if (!$contentIdentityAuthorApplicationAdultAvailable && !empty($postedSettings['identity_author_application_adult_required'])) {
+        $errors[] = '작성자 신청 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 작성자 신청 성인 목적 제공자를 설정하세요.';
+        $postedSettings['identity_author_application_adult_required'] = false;
     }
 
     if ($errors === []) {

@@ -238,8 +238,18 @@ $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     : '';
 $communityBoardManagerPermissions = sr_community_board_manager_permission_options();
 $communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
-$communityBoardIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$communityBoardIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($communityBoardIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$communityBoardIdentityRestrictedAvailable = $communityBoardIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'community.restricted_board');
+$communityBoardIdentityAdultAvailable = $communityBoardIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'community.adult_board');
+$communityBoardIdentityVerificationAvailable = $communityBoardIdentityRestrictedAvailable || $communityBoardIdentityAdultAvailable;
 $communityBoardIdentityDisabledAttributes = $communityBoardIdentityVerificationAvailable ? '' : ' disabled aria-describedby="community-board-identity-unavailable"';
 $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
@@ -621,23 +631,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_identity_verification_enabled">본인확인</label>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('community_admin_boards_identity_verification_enabled', 'identity_verification_enabled', '1', $communityBoardIdentityVerificationAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1', '사용', '', $communityBoardIdentityDisabledAttributes); ?>
+                    <?php
+                    $communityBoardIdentityPurposeValue = $boardField($formBoard, 'identity_verification_purpose', 'real_name');
+                    $communityBoardIdentitySelectedPurposeAvailable = $communityBoardIdentityPurposeValue === 'adult'
+                        ? $communityBoardIdentityAdultAvailable
+                        : $communityBoardIdentityRestrictedAvailable;
+                    ?>
+                    <?php echo sr_admin_switch_html('community_admin_boards_identity_verification_enabled', 'identity_verification_enabled', '1', $communityBoardIdentitySelectedPurposeAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1', '사용', '', $communityBoardIdentityDisabledAttributes); ?>
                     <?php echo $settingSourceRadioHtml('source_identity_verification_enabled', $boardSettingSource($formBoard, 'identity_verification_enabled')); ?>
                     <?php if (!$communityBoardIdentityVerificationAvailable) { ?>
                         <div id="community-board-identity-unavailable" class="alert alert-warning" role="alert">
-                            본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 게시판 본인확인 정책을 사용할 수 없습니다.
+                            본인확인 사용이 꺼져 있거나 게시판 목적을 지원하는 제공자가 준비되지 않아 정책을 사용할 수 없습니다.
                         </div>
                     <?php } ?>
                     <p class="form-help">사용하면 선택한 행위에서 본인확인 통과 여부를 서버에서 확인합니다.</p>
                 </div>
             </div>
-            <?php $communityBoardIdentityEnabled = $communityBoardIdentityVerificationAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1'; ?>
+            <?php $communityBoardIdentityEnabled = $communityBoardIdentitySelectedPurposeAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1'; ?>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 기준 <span class="sr-required-label" data-community-board-identity-required<?php echo $communityBoardIdentityEnabled ? '' : ' hidden'; ?>>(필수)</span></label>
                 <div class="form-field">
                     <select id="community_admin_boards_identity_verification_purpose" name="identity_verification_purpose" class="form-select"<?php echo $communityBoardIdentityDisabledAttributes; ?><?php echo $communityBoardIdentityEnabled ? ' required' : ''; ?> data-community-board-identity-purpose>
                         <?php foreach (sr_community_identity_verification_purpose_options() as $purposeKey => $purposeLabel) { ?>
-                            <option value="<?php echo sr_e($purposeKey); ?>"<?php echo $boardField($formBoard, 'identity_verification_purpose', 'real_name') === $purposeKey ? ' selected' : ''; ?>>
+                            <?php $purposeAvailable = $purposeKey === 'adult' ? $communityBoardIdentityAdultAvailable : $communityBoardIdentityRestrictedAvailable; ?>
+                            <option value="<?php echo sr_e($purposeKey); ?>"<?php echo $communityBoardIdentityPurposeValue === $purposeKey ? ' selected' : ''; ?><?php echo $purposeAvailable ? '' : ' disabled'; ?>>
                                 <?php echo sr_e($purposeLabel); ?>
                             </option>
                         <?php } ?>

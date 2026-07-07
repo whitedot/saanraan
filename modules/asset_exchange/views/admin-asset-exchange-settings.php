@@ -9,10 +9,10 @@ $assetExchangeInputAttributes = $assetExchangeAvailable
     ? ''
     : ' disabled aria-describedby="asset-exchange-settings-unavailable"';
 $notificationGroups = isset($notificationGroups) && is_array($notificationGroups) ? $notificationGroups : [];
-$assetExchangeIdentityVerificationAvailable = isset($assetExchangeIdentityVerificationAvailable)
-    ? (bool) $assetExchangeIdentityVerificationAvailable
-    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
-$assetExchangeIdentityVerificationInputAttributes = $assetExchangeIdentityVerificationAvailable
+$assetExchangeIdentityAvailable = isset($assetExchangeIdentityAvailable)
+    ? (bool) $assetExchangeIdentityAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'asset.exchange'));
+$assetExchangeIdentityVerificationInputAttributes = $assetExchangeIdentityAvailable
     ? ''
     : ' disabled aria-describedby="asset-exchange-settings-identity-unavailable"';
 $allNotificationCasesEnabled = $notificationGroups !== [];
@@ -54,11 +54,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <label class="form-label" for="asset_exchange_settings_identity_exchange_required">환전 신청 본인확인</label>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('asset_exchange_settings_identity_exchange_required', 'identity_exchange_required', '1', $assetExchangeIdentityVerificationAvailable && (string) ($settings['identity_exchange_required'] ?? '0') === '1', '사용', '', $assetExchangeIdentityVerificationInputAttributes); ?>
+                <?php echo sr_admin_switch_html('asset_exchange_settings_identity_exchange_required', 'identity_exchange_required', '1', $assetExchangeIdentityAvailable && (string) ($settings['identity_exchange_required'] ?? '0') === '1', '사용', '', $assetExchangeIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 환전을 실행할 때마다 본인확인을 요구합니다.</p>
-                <?php if (!$assetExchangeIdentityVerificationAvailable) { ?>
+                <?php if (!$assetExchangeIdentityAvailable) { ?>
                     <div id="asset-exchange-settings-identity-unavailable" class="alert alert-warning" role="alert">
-                        본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 환전 신청 본인확인 설정을 사용할 수 없습니다.
+                        본인확인 사용이 꺼져 있거나 자산 환전 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
                     </div>
                 <?php } ?>
             </div>

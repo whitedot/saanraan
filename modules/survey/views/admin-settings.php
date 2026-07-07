@@ -14,10 +14,17 @@ $surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($s
     <?php
 };
 $surveyLayoutExtraMenuItems = function_exists('sr_survey_layout_extra_menu_items_from_settings') ? sr_survey_layout_extra_menu_items_from_settings($settings) : [];
-$surveyIdentityVerificationAvailable = isset($surveyIdentityVerificationAvailable)
-    ? (bool) $surveyIdentityVerificationAvailable
-    : (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php'));
-$surveyIdentityVerificationInputAttributes = $surveyIdentityVerificationAvailable
+$surveyIdentityViewAvailable = isset($surveyIdentityViewAvailable)
+    ? (bool) $surveyIdentityViewAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'survey.view'));
+$surveyIdentityViewAdultAvailable = isset($surveyIdentityViewAdultAvailable)
+    ? (bool) $surveyIdentityViewAdultAvailable
+    : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'survey.view.adult'));
+$surveyIdentityUnavailable = !$surveyIdentityViewAvailable || !$surveyIdentityViewAdultAvailable;
+$surveyIdentityViewInputAttributes = $surveyIdentityViewAvailable
+    ? ''
+    : ' disabled aria-describedby="survey-settings-identity-unavailable"';
+$surveyIdentityViewAdultInputAttributes = $surveyIdentityViewAdultAvailable
     ? ''
     : ' disabled aria-describedby="survey-settings-identity-unavailable"';
 $surveyReactionAvailable = isset($surveyReactionAvailable)
@@ -264,11 +271,11 @@ $surveySettingsHelp = [
             <div class="form-row">
                 <span class="form-label">설문 참여 본인확인</span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('survey_settings_identity_view_required', 'identity_view_required', '1', $surveyIdentityVerificationAvailable && !empty($settings['identity_view_required']), '사용', '', $surveyIdentityVerificationInputAttributes); ?>
+                    <?php echo sr_admin_switch_html('survey_settings_identity_view_required', 'identity_view_required', '1', $surveyIdentityViewAvailable && !empty($settings['identity_view_required']), '사용', '', $surveyIdentityViewInputAttributes); ?>
                     <p class="form-help">사용하면 설문 상세와 응답 전에 본인확인을 요구합니다.</p>
-                    <?php if (!$surveyIdentityVerificationAvailable) { ?>
+                    <?php if ($surveyIdentityUnavailable) { ?>
                         <div id="survey-settings-identity-unavailable" class="alert alert-warning" role="alert">
-                            본인확인 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 설문 본인확인 설정을 사용할 수 없습니다.
+                            본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                         </div>
                     <?php } ?>
                 </div>
@@ -276,7 +283,7 @@ $surveySettingsHelp = [
             <div class="form-row">
                 <span class="form-label">설문 참여 성인 본인확인</span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('survey_settings_identity_view_adult_required', 'identity_view_adult_required', '1', $surveyIdentityVerificationAvailable && !empty($settings['identity_view_adult_required']), '사용', '', $surveyIdentityVerificationInputAttributes); ?>
+                    <?php echo sr_admin_switch_html('survey_settings_identity_view_adult_required', 'identity_view_adult_required', '1', $surveyIdentityViewAdultAvailable && !empty($settings['identity_view_adult_required']), '사용', '', $surveyIdentityViewAdultInputAttributes); ?>
                     <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 설문에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
                 </div>
             </div>

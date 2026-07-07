@@ -16,8 +16,14 @@ $settings = sr_asset_exchange_settings($pdo);
 $assetExchangeAssets = sr_asset_exchange_assets($pdo);
 $assetExchangeAvailable = count($assetExchangeAssets) >= 2;
 $notificationGroups = sr_asset_exchange_notification_groups($pdo);
-$assetExchangeIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$assetExchangeIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($assetExchangeIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$assetExchangeIdentityAvailable = $assetExchangeIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'asset.exchange');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -30,8 +36,8 @@ if (sr_request_method() === 'POST') {
     if (!$assetExchangeAvailable && $postedExchangeEnabled) {
         $errors[] = '환전을 사용하려면 환전 가능한 자산 모듈을 2개 이상 설치하고 활성화하세요.';
     }
-    if (!$assetExchangeIdentityVerificationAvailable && (string) $postedSettings['identity_exchange_required'] === '1') {
-        $errors[] = '환전 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
+    if (!$assetExchangeIdentityAvailable && (string) $postedSettings['identity_exchange_required'] === '1') {
+        $errors[] = '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.';
         $postedSettings['identity_exchange_required'] = '0';
     }
     $settings = $postedSettings;

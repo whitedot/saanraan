@@ -8,6 +8,11 @@ $quizReactionAvailable = sr_module_enabled($pdo, 'reaction')
 if ($quizReactionAvailable) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+$quizIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($quizIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $permissionPath = '/admin/quiz/settings';
@@ -21,6 +26,12 @@ $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $publicLayoutOptions = sr_quiz_layout_options($pdo);
 $publicThemeOptions = sr_quiz_theme_options();
 $reactionPresetOptions = $quizReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$quizIdentityViewAvailable = $quizIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'quiz.view');
+$quizIdentityViewAdultAvailable = $quizIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'quiz.view.adult');
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';

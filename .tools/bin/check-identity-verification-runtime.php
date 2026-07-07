@@ -278,10 +278,12 @@ $contentViewAction = file_get_contents($root . '/modules/content/actions/view.ph
 if (!is_string($contentSettingsAction) || !is_string($contentSettingsView) || !is_string($contentViewAction)) {
     $errors[] = 'content identity access files must be readable.';
 } elseif (!str_contains($contentSettingsAction, "'identity_content_view_required' => sr_post_string('identity_content_view_required', 1) === '1'")
-    || !str_contains($contentSettingsAction, "\$contentIdentityVerificationAvailable = sr_module_enabled(\$pdo, 'identity_verification')")
-    || !str_contains($contentSettingsAction, '콘텐츠 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
-    || !str_contains($contentSettingsAction, "sr_identity_verification_adult_setting_errors(\$pdo, !empty(\$postedSettings['identity_content_view_adult_required']), '콘텐츠 열람 성인 본인확인')")
-    || !str_contains($contentSettingsView, '$contentIdentityVerificationAvailable')
+    || !str_contains($contentSettingsAction, '$contentIdentityContentViewAvailable')
+    || !str_contains($contentSettingsAction, '$contentIdentityContentViewAdultAvailable')
+    || !str_contains($contentSettingsAction, '콘텐츠 열람 본인확인을 사용하려면 본인확인 사용을 켜고 콘텐츠 열람 목적을 지원하는 제공자를 설정하세요.')
+    || !str_contains($contentSettingsAction, '콘텐츠 열람 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 성인 열람 목적 제공자를 설정하세요.')
+    || !str_contains($contentSettingsView, '$contentIdentityContentViewAvailable')
+    || !str_contains($contentSettingsView, '$contentIdentityContentViewAdultAvailable')
     || !str_contains($contentSettingsView, 'content-settings-identity-unavailable')
     || !str_contains($contentSettingsView, "'identity_content_view_required', '1'")
     || !str_contains($contentSettingsView, "'identity_content_view_adult_required', '1'")
@@ -297,11 +299,13 @@ $quizSkinView = file_get_contents($root . '/modules/quiz/skins/basic/view.php');
 if (!is_string($quizHelpers) || !is_string($quizSettingsView) || !is_string($quizSkinView)) {
     $errors[] = 'quiz identity access files must be readable.';
 } elseif (!str_contains($quizHelpers, "'identity_view_required' => false")
-    || !str_contains($quizHelpers, '퀴즈 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
+    || !str_contains($quizHelpers, '퀴즈 참여 본인확인을 사용하려면 본인확인 사용을 켜고 퀴즈 참여 목적을 지원하는 제공자를 설정하세요.')
+    || !str_contains($quizHelpers, '퀴즈 참여 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 퀴즈 성인 참여 목적 제공자를 설정하세요.')
     || !str_contains($quizHelpers, 'function sr_quiz_enforce_identity_view_policy(')
     || !str_contains($quizHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'quiz.view'")
     || !str_contains($quizHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'quiz.view.adult')")
-    || !str_contains($quizSettingsView, '$quizIdentityVerificationAvailable')
+    || !str_contains($quizSettingsView, '$quizIdentityViewAvailable')
+    || !str_contains($quizSettingsView, '$quizIdentityViewAdultAvailable')
     || !str_contains($quizSettingsView, 'quiz-settings-identity-unavailable')
     || !str_contains($quizSettingsView, "'identity_view_required', '1'")
     || !str_contains($quizSettingsView, "'identity_view_adult_required', '1'")
@@ -316,11 +320,13 @@ $surveySkinView = file_get_contents($root . '/modules/survey/skins/basic/view.ph
 if (!is_string($surveyHelpers) || !is_string($surveySettingsView) || !is_string($surveySkinView)) {
     $errors[] = 'survey identity access files must be readable.';
 } elseif (!str_contains($surveyHelpers, "'identity_view_required' => false")
-    || !str_contains($surveyHelpers, '설문 본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.')
+    || !str_contains($surveyHelpers, '설문 참여 본인확인을 사용하려면 본인확인 사용을 켜고 설문 참여 목적을 지원하는 제공자를 설정하세요.')
+    || !str_contains($surveyHelpers, '설문 참여 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 설문 성인 참여 목적 제공자를 설정하세요.')
     || !str_contains($surveyHelpers, 'function sr_survey_enforce_identity_view_policy(')
     || !str_contains($surveyHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'survey.view'")
     || !str_contains($surveyHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'survey.view.adult')")
-    || !str_contains($surveySettingsView, '$surveyIdentityVerificationAvailable')
+    || !str_contains($surveySettingsView, '$surveyIdentityViewAvailable')
+    || !str_contains($surveySettingsView, '$surveyIdentityViewAdultAvailable')
     || !str_contains($surveySettingsView, 'survey-settings-identity-unavailable')
     || !str_contains($surveySettingsView, "'identity_view_required', '1'")
     || !str_contains($surveySettingsView, "'identity_view_adult_required', '1'")
@@ -333,30 +339,30 @@ $identityConsumerFiles = [
     'community' => [
         'action' => file_get_contents($root . '/modules/community/actions/admin-settings.php'),
         'view' => file_get_contents($root . '/modules/community/views/admin-settings.php'),
-        'available_marker' => '$communityIdentityVerificationAvailable',
+        'available_marker' => '$communityIdentityRestrictedBoardAvailable',
         'notice_marker' => 'community-settings-identity-unavailable',
-        'error_marker' => '제한 게시판 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error_marker' => '제한 게시판 본인확인을 사용하려면 본인확인 사용을 켜고 제한 게시판 목적을 지원하는 제공자를 설정하세요.',
     ],
     'reward' => [
         'action' => file_get_contents($root . '/modules/reward/actions/admin-rewards-settings.php'),
         'view' => file_get_contents($root . '/modules/reward/views/admin-settings.php'),
-        'available_marker' => '$rewardIdentityVerificationAvailable',
+        'available_marker' => '$rewardIdentityWithdrawalAvailable',
         'notice_marker' => 'reward-settings-identity-unavailable',
-        'error_marker' => '출금 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error_marker' => '출금 신청 본인확인을 사용하려면 본인확인 사용을 켜고 적립금 출금 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'deposit' => [
         'action' => file_get_contents($root . '/modules/deposit/actions/admin-deposits-settings.php'),
         'view' => file_get_contents($root . '/modules/deposit/views/admin-settings.php'),
-        'available_marker' => '$depositIdentityVerificationAvailable',
+        'available_marker' => '$depositIdentityRefundAvailable',
         'notice_marker' => 'deposit-settings-identity-unavailable',
-        'error_marker' => '환불 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error_marker' => '환불 신청 본인확인을 사용하려면 본인확인 사용을 켜고 예치금 환불 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'asset_exchange' => [
         'action' => file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange-settings.php'),
         'view' => file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php'),
-        'available_marker' => '$assetExchangeIdentityVerificationAvailable',
+        'available_marker' => '$assetExchangeIdentityAvailable',
         'notice_marker' => 'asset-exchange-settings-identity-unavailable',
-        'error_marker' => '환전 신청 본인확인을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.',
+        'error_marker' => '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
 ];
 foreach ($identityConsumerFiles as $identityConsumerKey => $identityConsumerFile) {

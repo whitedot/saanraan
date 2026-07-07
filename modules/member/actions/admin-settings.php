@@ -16,8 +16,20 @@ $notice = (string) $flashResult['notice'];
 $settings = sr_member_settings($pdo);
 $integerSettingKeys = sr_member_integer_setting_keys();
 $memberMfaProviderDefinitions = sr_member_mfa_provider_definitions($pdo);
-$memberIdentityVerificationAvailable = sr_module_enabled($pdo, 'identity_verification')
+$memberIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($memberIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$memberIdentityRegistrationAvailable = $memberIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'member.registration');
+$memberIdentityWithdrawalAvailable = $memberIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'member.withdrawal');
+$memberIdentityAccountSecurityAvailable = $memberIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'member.account_security');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -39,16 +51,16 @@ if (sr_request_method() === 'POST') {
     $settings['identity_registration_mode'] = sr_member_identity_requirement_mode($_POST['identity_registration_mode'] ?? null);
     $settings['identity_withdrawal_required'] = ($_POST['identity_withdrawal_required'] ?? '') === '1';
     $settings['identity_account_security_required'] = ($_POST['identity_account_security_required'] ?? '') === '1';
-    if (!$memberIdentityVerificationAvailable) {
-        if (
-            $settings['identity_registration_mode'] !== 'disabled'
-            || $settings['identity_withdrawal_required']
-            || $settings['identity_account_security_required']
-        ) {
-            $errors[] = '본인확인 설정을 사용하려면 본인확인 모듈을 먼저 설치하고 활성화하세요.';
-        }
+    if (!$memberIdentityRegistrationAvailable && $settings['identity_registration_mode'] !== 'disabled') {
+        $errors[] = '회원가입 본인확인을 사용하려면 본인확인 사용을 켜고 회원가입 목적을 지원하는 제공자를 설정하세요.';
         $settings['identity_registration_mode'] = 'disabled';
+    }
+    if (!$memberIdentityWithdrawalAvailable && $settings['identity_withdrawal_required']) {
+        $errors[] = '회원탈퇴 본인확인을 사용하려면 본인확인 사용을 켜고 회원탈퇴 목적을 지원하는 제공자를 설정하세요.';
         $settings['identity_withdrawal_required'] = false;
+    }
+    if (!$memberIdentityAccountSecurityAvailable && $settings['identity_account_security_required']) {
+        $errors[] = '계정보안작업 본인확인을 사용하려면 본인확인 사용을 켜고 계정 보안 목적을 지원하는 제공자를 설정하세요.';
         $settings['identity_account_security_required'] = false;
     }
     $settings['mfa_login_mode'] = sr_member_mfa_login_mode($_POST['mfa_login_mode'] ?? null);
