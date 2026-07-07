@@ -623,10 +623,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="form-help">사용하면 선택한 행위에서 본인확인 통과 여부를 서버에서 확인합니다.</p>
                 </div>
             </div>
+            <?php $communityBoardIdentityEnabled = $communityBoardIdentityVerificationAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1'; ?>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 기준 <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="community_admin_boards_identity_verification_purpose">본인확인 기준 <span class="sr-required-label" data-community-board-identity-required<?php echo $communityBoardIdentityEnabled ? '' : ' hidden'; ?>>(필수)</span></label>
                 <div class="form-field">
-                    <select id="community_admin_boards_identity_verification_purpose" name="identity_verification_purpose" class="form-select"<?php echo $communityBoardIdentityDisabledAttributes; ?> required>
+                    <select id="community_admin_boards_identity_verification_purpose" name="identity_verification_purpose" class="form-select"<?php echo $communityBoardIdentityDisabledAttributes; ?><?php echo $communityBoardIdentityEnabled ? ' required' : ''; ?> data-community-board-identity-purpose>
                         <?php foreach (sr_community_identity_verification_purpose_options() as $purposeKey => $purposeLabel) { ?>
                             <option value="<?php echo sr_e($purposeKey); ?>"<?php echo $boardField($formBoard, 'identity_verification_purpose', 'real_name') === $purposeKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e($purposeLabel); ?>
@@ -638,7 +639,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <span class="form-label">본인확인 범위 <span class="sr-required-label">(필수)</span></span>
+                <span class="form-label">본인확인 범위 <span class="sr-required-label" data-community-board-identity-required<?php echo $communityBoardIdentityEnabled ? '' : ' hidden'; ?>>(필수)</span></span>
                 <div class="form-field">
                     <?php $selectedIdentityActions = sr_community_identity_verification_required_actions_from_value($boardField($formBoard, 'identity_verification_required_actions', '[]')); ?>
                     <?php $identityActionOptions = sr_community_identity_verification_action_options(); ?>
@@ -1767,6 +1768,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
+    var identityVerificationEnabled = document.querySelector('#community_admin_boards_identity_verification_enabled');
+    var identityPurpose = document.querySelector('[data-community-board-identity-purpose]');
+    var identityRequiredLabels = Array.prototype.slice.call(document.querySelectorAll('[data-community-board-identity-required]'));
+    var identityActionControls = Array.prototype.slice.call(document.querySelectorAll('input[name="identity_verification_required_actions[]"]'));
+    if (identityVerificationEnabled) {
+        function clearCommunityBoardIdentityValidation(control) {
+            if (!control) {
+                return;
+            }
+            if (typeof control.setCustomValidity === 'function') {
+                control.setCustomValidity('');
+            }
+            control.removeAttribute('aria-invalid');
+            control.classList.remove('form-input-invalid', 'form-select-invalid', 'form-textarea-invalid', 'form-choice-invalid');
+        }
+
+        function syncCommunityBoardIdentityRequired() {
+            var enabled = identityVerificationEnabled.checked && !identityVerificationEnabled.disabled;
+            identityRequiredLabels.forEach(function (label) {
+                label.hidden = !enabled;
+            });
+            if (identityPurpose) {
+                identityPurpose.required = enabled;
+                if (!enabled) {
+                    clearCommunityBoardIdentityValidation(identityPurpose);
+                }
+            }
+            if (!enabled) {
+                identityActionControls.forEach(clearCommunityBoardIdentityValidation);
+            }
+        }
+
+        identityVerificationEnabled.addEventListener('change', syncCommunityBoardIdentityRequired);
+        syncCommunityBoardIdentityRequired();
+    }
+
     var privacyConsentEnabled = document.querySelector('[data-community-privacy-consent-enabled]');
     var privacyConsentControls = document.querySelector('[data-community-privacy-consent-controls]');
     if (privacyConsentEnabled && privacyConsentControls) {
