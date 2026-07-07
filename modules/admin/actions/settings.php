@@ -135,7 +135,12 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                     'admin_color_scheme' => $adminColorScheme,
                     'list_pagination_per_page' => $listPaginationPerPage,
                 ]);
-                $notice = '설정을 저장했습니다.';
+                $notice = (string) ($postResult['notice'] ?? '');
+                if ($notice === '' || $notice === '사이트 설정을 저장했습니다.') {
+                    $notice = '설정을 저장했습니다.';
+                } else {
+                    $notice = str_replace('사이트 설정을 저장했습니다.', '설정을 저장했습니다.', $notice);
+                }
             } else {
                 $adminThemeKey = $postedThemeKey;
                 $adminColorScheme = $postedColorScheme;

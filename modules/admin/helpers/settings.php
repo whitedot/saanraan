@@ -1388,6 +1388,7 @@ function sr_admin_handle_settings_post(
     $notice = '';
     $values = sr_admin_site_setting_values($site, $pdo);
     $intent = sr_post_string('intent', 40);
+    $siteNameReferenceCount = 0;
 
     if ($intent !== 'site') {
         $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
@@ -1466,6 +1467,16 @@ function sr_admin_handle_settings_post(
                         'title_suffix' => '제목 접미사',
                         'meta_description' => '기본 설명',
                     ] as $siteMetaKey => $siteMetaLabel) {
+                        $siteMetaValue = (string) ($values[$siteMetaKey] ?? '');
+                        if (strpos($siteMetaValue, $oldSiteName) === false) {
+                            continue;
+                        }
+
+                        if ($siteMetaValue === (string) ($previousValues[$siteMetaKey] ?? '')) {
+                            $values[$siteMetaKey] = str_replace($oldSiteName, (string) $values['name'], $siteMetaValue);
+                            continue;
+                        }
+
                         if (strpos((string) ($values[$siteMetaKey] ?? ''), $oldSiteName) !== false) {
                             $errors[] = $siteMetaLabel . '에 이전 사이트명이 포함되어 있습니다. 사이트명과 함께 수정해 주세요.';
                         }
@@ -1484,7 +1495,7 @@ function sr_admin_handle_settings_post(
                 if (($referenceResult['errors'] ?? []) !== []) {
                     $errors[] = '사이트명 참조 계약 오류가 있어 저장할 수 없습니다.';
                 } elseif (($referenceResult['rows'] ?? []) !== []) {
-                    $errors[] = '이전 사이트명이 다른 모듈 설정에 직접 포함되어 있어 저장할 수 없습니다. 참조 현황을 먼저 확인하세요.';
+                    $siteNameReferenceCount = count($referenceResult['rows']);
                 }
             }
         }
@@ -1542,6 +1553,9 @@ function sr_admin_handle_settings_post(
             $site = sr_load_site($pdo);
             $values = sr_admin_site_setting_values(is_array($site) ? $site : null, $pdo);
             $notice = '사이트 설정을 저장했습니다.';
+            if ($siteNameReferenceCount > 0) {
+                $notice .= ' 이전 사이트명이 포함된 모듈 설정 ' . (string) $siteNameReferenceCount . '건은 참조 현황에서 확인하세요.';
+            }
         }
     }
 
@@ -1550,5 +1564,6 @@ function sr_admin_handle_settings_post(
         'notice' => $notice,
         'values' => $values,
         'site' => $site,
+        'site_name_reference_count' => $siteNameReferenceCount,
     ];
 }
