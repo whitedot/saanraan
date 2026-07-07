@@ -465,8 +465,8 @@ $checks = [
         ],
     ],
     [
-        'label' => 'public UI stylesheet',
-        'path' => '/assets/ui-kit.css',
+        'label' => 'public common stylesheet',
+        'path' => '/assets/common.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.public-ui-scope',
@@ -498,8 +498,8 @@ $checks = [
         ],
     ],
     [
-        'label' => 'community theme UI stylesheet',
-        'path' => '/modules/community/theme/basic/assets/ui-kit.css',
+        'label' => 'community theme common stylesheet',
+        'path' => '/modules/community/theme/basic/assets/common.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-ui-scope',

@@ -858,7 +858,7 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'reset.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'module.css');
     $themeStylesheet = sr_module_view_theme_stylesheet_url('survey', $themeKey);
     if ($themeStylesheet !== '') {
@@ -897,7 +897,7 @@ function sr_survey_ui_kit_layout_context(array $settings, array $context = []): 
     $context = sr_survey_public_layout_context($settings, $context);
     $themeKey = sr_survey_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('survey', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 

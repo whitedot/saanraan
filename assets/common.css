@@ -1,15 +1,41 @@
 /*
- * Saanraan public UI kit primitive layer.
+ * Saanraan public common component layer.
  * Owns reusable public UI primitives and public UI combinations.
- */
-/*
- * Saanraan common UI kit layer.
- * Loaded only by public runtimes that opt into the kit profile.
- * Owns reusable primitives such as buttons, cards, tables, badges, forms,
- * dropdowns, modals, tabs, and icon sizing.
  * Do not add admin shell chrome or module-specific screen layout here.
  */
 :root{--color-choice-light-active:#718cb0}
+.alert{align-items:center;border:1px solid color-mix(in oklab,currentColor 10%,transparent);border-radius:var(--radius);box-shadow:0 1px 2px color-mix(in oklab,currentColor 6%,transparent);display:flex;font-size:var(--text-sm);font-weight:var(--font-weight-medium);line-height:var(--text-sm--line-height);padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3)}
+.alert-block{display:block}
+.alert a{color:inherit}
+.alert-primary{background-color:color-mix(in oklab,var(--color-primary) 15%,transparent);color:var(--color-primary)}
+.alert-secondary{background-color:color-mix(in oklab,var(--color-secondary) 15%,transparent);color:var(--color-secondary)}
+.alert-success{background-color:color-mix(in oklab,var(--color-success) 15%,transparent);color:var(--color-success)}
+.alert-danger{background-color:color-mix(in oklab,var(--color-danger) 15%,transparent);color:var(--color-danger)}
+.alert-warning{background-color:color-mix(in oklab,var(--color-warning) 15%,transparent);color:var(--color-warning)}
+.alert-info{background-color:color-mix(in oklab,var(--color-info) 15%,transparent);color:var(--color-info)}
+.alert-light{background-color:var(--color-light);color:var(--color-default-700)}
+.alert-dark{background-color:color-mix(in oklab,var(--color-dark) 10%,transparent);color:var(--color-dark)}
+.alert-solid{border-color:color-mix(in oklab,currentColor 10%,transparent);color:var(--color-white)}
+.alert-solid.alert-primary{background-color:var(--color-primary);color:var(--color-white)}
+.alert-solid.alert-secondary{background-color:var(--color-secondary);color:var(--color-white)}
+.alert-solid.alert-success{background-color:var(--color-success);color:var(--color-slate-950)}
+.alert-solid.alert-danger{background-color:var(--color-danger);color:var(--color-white)}
+.alert-solid.alert-warning{background-color:var(--color-warning);color:var(--color-white)}
+.alert-solid.alert-info{background-color:var(--color-info);color:var(--color-white)}
+.alert-solid.alert-light{background-color:var(--color-light);color:var(--color-default-900)}
+.alert-solid.alert-dark{background-color:var(--color-dark);color:var(--color-white)}
+.alert .alert-close-leading:is(.btn-ghost-default,.btn-ghost-light){color:inherit}
+.alert-primary:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-primary) 18%,var(--color-card));color:color-mix(in oklab,var(--color-primary) 84%,var(--color-white))}
+.alert-secondary:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-secondary) 18%,var(--color-card));color:color-mix(in oklab,var(--color-secondary) 84%,var(--color-white))}
+.alert-success:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-success) 18%,var(--color-card));color:color-mix(in oklab,var(--color-success) 84%,var(--color-white))}
+.alert-danger:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-danger) 18%,var(--color-card));color:color-mix(in oklab,var(--color-danger) 84%,var(--color-white))}
+.alert-warning:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-warning) 18%,var(--color-card));color:color-mix(in oklab,var(--color-warning) 84%,var(--color-white))}
+.alert-info:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-info) 18%,var(--color-card));color:color-mix(in oklab,var(--color-info) 84%,var(--color-white))}
+.alert-light:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-default-600) 18%,var(--color-card));color:color-mix(in oklab,var(--color-default-600) 84%,var(--color-white))}
+.alert-dark:where([data-theme=dark],[data-theme=dark] *,[data-color-scheme=dark],[data-color-scheme=dark] *){background-color:color-mix(in oklab,var(--color-default-700) 18%,var(--color-card));color:color-mix(in oklab,var(--color-default-700) 84%,var(--color-white))}
+.alert-removable{transition:opacity 300ms var(--default-transition-timing-function),transform 300ms var(--default-transition-timing-function)}
+.alert-removable.removing{opacity:0;transform:translateX(calc(var(--spacing) * 5))}
+.alert-close-leading{line-height:normal;margin-inline-start:auto}
 .btn :is(svg,.sr-icon),.btn-icon :is(svg,.sr-icon),.dropdown-toggle :is(svg,.sr-icon),.dropdown-item :is(svg,.sr-icon){width:1em;height:1em;flex:0 0 auto}
 .btn{z-index:10;cursor:pointer;justify-content:center;align-items:center;column-gap:calc(var(--spacing) * 2);border-radius:var(--radius);border-style:solid;border-width:1px;border-color:#0000;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 1.75);text-align:center;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);transition-property:background-color,border-color,color,box-shadow,opacity;transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);display:inline-flex;position:relative}
 .btn-sm{padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.25);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}

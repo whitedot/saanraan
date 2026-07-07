@@ -419,7 +419,7 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $context['module_menu_label'] = '콘텐츠 메뉴';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'reset.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'module.css');
     $themeStylesheet = sr_module_view_theme_stylesheet_url('content', $themeKey);
     if ($themeStylesheet !== '') {
@@ -488,7 +488,7 @@ function sr_content_ui_kit_layout_context(array $settings, array $context = []):
     $context = sr_content_public_layout_context($settings, $context);
     $themeKey = sr_content_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 

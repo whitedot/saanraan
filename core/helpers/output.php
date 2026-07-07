@@ -1281,7 +1281,7 @@ function sr_public_style_profile_paths(string $profile): array
     ];
 
     if ($profile === 'kit') {
-        $paths[] = '/assets/ui-kit.css';
+        $paths[] = '/assets/common.css';
     }
 
     return $paths;

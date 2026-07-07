@@ -1259,10 +1259,10 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Module reset stylesheet copy must match source: ' . $moduleResetStylesheetPath . ' -> assets/reset.css');
         }
 
-        $moduleUiStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/ui-kit.css';
+        $moduleUiStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/common.css';
         $moduleUiStylesheet = is_file($moduleUiStylesheetPath) ? file_get_contents($moduleUiStylesheetPath) : false;
         if (!is_string($moduleUiStylesheet) || !str_contains($moduleUiStylesheet, '.' . $moduleKey . '-ui-scope') || str_contains($moduleUiStylesheet, '.public-ui-') || str_contains($moduleUiStylesheet, '--public-ui-')) {
-            sr_check_add_error('Module UI kit stylesheet must use module UI namespace: ' . $moduleUiStylesheetPath);
+            sr_check_add_error('Module common stylesheet must use module UI namespace: ' . $moduleUiStylesheetPath);
         }
 
         $moduleUiKitLayoutPath = 'modules/' . $moduleKey . '/theme/basic/assets/ui-kit-layout.css';
@@ -1406,7 +1406,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         $body = (string) ($matches['body'] ?? '');
         $expectedOrder = [
             "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'reset.css')",
-            "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'ui-kit.css')",
+            "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'common.css')",
             "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'module.css')",
         ];
         if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {

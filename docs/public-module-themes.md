@@ -41,7 +41,7 @@ modules/survey/theme/{theme_key}/ui-kit.php
 assets/theme/{theme_key}.css
 modules/{module_key}/theme/{theme_key}/layout.php
 modules/{module_key}/theme/{theme_key}/assets/reset.css
-modules/{module_key}/theme/{theme_key}/assets/ui-kit.css
+modules/{module_key}/theme/{theme_key}/assets/common.css
 modules/{module_key}/theme/{theme_key}/assets/ui-kit-layout.css
 modules/{module_key}/theme/{theme_key}/assets/layout.css
 modules/{module_key}/theme/{theme_key}/assets/module.css
@@ -69,7 +69,7 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 기본 호출 순서는 다음과 같다.
 
 1. 화면 소유 모듈 theme `assets/reset.css`
-2. 화면 소유 모듈 theme `assets/ui-kit.css`
+2. 화면 소유 모듈 theme `assets/common.css`
 3. 선택된 layout provider theme `layout.php`
 4. 선택된 layout provider theme `assets/layout.css`
 5. 화면 소유 모듈 theme `assets/module.css`

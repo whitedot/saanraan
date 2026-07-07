@@ -855,7 +855,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'reset.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'module.css');
     $themeStylesheet = sr_module_view_theme_stylesheet_url('quiz', $themeKey);
     if ($themeStylesheet !== '') {
@@ -897,7 +897,7 @@ function sr_quiz_ui_kit_layout_context(array $settings, array $context = []): ar
     $context = sr_quiz_public_layout_context($settings, $context);
     $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit.css');
+    $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'common.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'ui-kit-layout.css');
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 

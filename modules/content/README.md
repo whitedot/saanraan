@@ -67,7 +67,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 ## UI Kit
 
-콘텐츠 모듈 전용 UI-KIT 미리보기는 `/content/ui-kit` 사용자 화면에서 현재 콘텐츠 공개 레이아웃 설정과 선택 theme을 적용해 제공한다. 모듈 서브메뉴에는 노출하지 않고 관리자 UI-KIT의 사용자 화면 링크에서 접근한다. 미리보기 page view는 `modules/content/theme/{theme_key}/ui-kit.php`, 샘플 partial은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 선택 theme의 `modules/content/theme/{theme_key}/assets/ui-kit.css`와 `ui-kit-layout.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
+콘텐츠 모듈 전용 UI-KIT 미리보기는 `/content/ui-kit` 사용자 화면에서 현재 콘텐츠 공개 레이아웃 설정과 선택 theme을 적용해 제공한다. 모듈 서브메뉴에는 노출하지 않고 관리자 UI-KIT의 사용자 화면 링크에서 접근한다. 미리보기 page view는 `modules/content/theme/{theme_key}/ui-kit.php`, 샘플 partial은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 선택 theme의 `modules/content/theme/{theme_key}/assets/common.css`와 `ui-kit-layout.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
 
 ## 노출 위치
 

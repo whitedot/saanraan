@@ -145,7 +145,7 @@ foreach ([
     '/assets/layout.css',
     '/assets/module.css',
     '/assets/theme/sample.css',
-    '/assets/ui-kit.css',
+    '/assets/common.css',
     '/assets/ui-kit-layout.css',
     '/assets/public-layout.js',
     '/assets/fonts/material-symbols-outlined.ttf',
