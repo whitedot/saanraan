@@ -181,6 +181,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php if (isset($popupLayerReferenceFocusResultsById) && is_array($popupLayerReferenceFocusResultsById) && $popupLayerReferenceFocusResultsById !== []) { ?>
+    <div class="admin-notice">
+        <span class="admin-notice-icon">!</span>
+        <div class="admin-notice-copy">
+            <strong><?php echo sr_e('참조 현황 확인 필요'); ?></strong>
+            <p><?php echo sr_e('차단된 팝업레이어가 현재 목록 조건에 보이지 않을 수 있습니다. 아래 대상의 참조 현황을 확인하세요.'); ?></p>
+            <div class="admin-row-actions">
+                <?php foreach ($popupLayerReferenceFocusResultsById as $focusPopupId => $focusReferenceResult) { ?>
+                    <?php
+                    $focusPopupRow = isset($popupLayerReferenceFocusRowsById[$focusPopupId]) && is_array($popupLayerReferenceFocusRowsById[$focusPopupId]) ? $popupLayerReferenceFocusRowsById[$focusPopupId] : [];
+                    $focusPopupModalId = 'popup-layer-reference-focus-modal-' . (string) (int) $focusPopupId;
+                    $popupLayerReferenceModals .= sr_admin_read_reference_modal_html($focusPopupModalId, '팝업레이어 참조 현황', $focusReferenceResult);
+                    ?>
+                    <span class="admin-status is-blocked"><?php echo sr_e('#' . (string) (int) $focusPopupId . ' ' . (string) ($focusPopupRow['title'] ?? '팝업레이어')); ?></span>
+                    <?php echo sr_admin_read_reference_button_html($focusPopupModalId, $focusReferenceResult); ?>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>">
         <section class="card">
@@ -491,6 +512,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/popup-layers')); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
@@ -510,7 +532,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    </section>
     <?php echo $popupLayerCopyModals; ?>
-    <?php echo $popupLayerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($popupPagination, '팝업레이어 목록 페이지'); ?>
     <script>
     (function () {
@@ -789,5 +810,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 }());
 </script>
+
+<?php echo $popupLayerReferenceModals; ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

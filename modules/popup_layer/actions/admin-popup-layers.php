@@ -14,6 +14,16 @@ $allowedMatchTypes = ['all', 'exact'];
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
+$flashData = isset($flashResult['data']) && is_array($flashResult['data']) ? $flashResult['data'] : [];
+$popupLayerReferenceFocusIds = [];
+if (isset($flashData['popup_layer_reference_focus_ids']) && is_array($flashData['popup_layer_reference_focus_ids'])) {
+    foreach ($flashData['popup_layer_reference_focus_ids'] as $rawFocusId) {
+        $focusId = (int) $rawFocusId;
+        if ($focusId > 0) {
+            $popupLayerReferenceFocusIds[$focusId] = $focusId;
+        }
+    }
+}
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 if (!in_array($popupLayerAdminPage, ['list', 'form'], true)) {
     $popupLayerAdminPage = 'list';
@@ -89,8 +99,10 @@ if (sr_request_method() === 'POST') {
                 'target_key' => '',
             ]);
             if (($referenceResult['errors'] ?? []) !== []) {
+                $popupLayerReferenceFocusIds[$popupId] = $popupId;
                 $errors[] = '팝업레이어 참조 계약 오류가 있어 삭제할 수 없습니다.';
             } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $popupLayerReferenceFocusIds[$popupId] = $popupId;
                 $errors[] = '다른 모듈에서 이 팝업레이어를 참조하고 있어 삭제할 수 없습니다. 참조 현황을 먼저 확인하세요.';
             }
         }
@@ -127,6 +139,9 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '팝업 삭제 중 오류가 발생했습니다.';
             }
         }
+        $resultData = $popupLayerReferenceFocusIds !== [] ? ['popup_layer_reference_focus_ids' => array_values($popupLayerReferenceFocusIds)] : [];
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $resultData));
+        sr_redirect($returnTo);
     } elseif ($intent === 'batch_status') {
         $operationKey = sr_post_string('operation_key', 80);
         $targetStatus = sr_post_string('target_status', 30);
@@ -204,6 +219,9 @@ if (sr_request_method() === 'POST') {
                 }
             }
             if ($errors === [] && $blockedReferenceIds !== []) {
+                foreach ($blockedReferenceIds as $blockedReferenceId) {
+                    $popupLayerReferenceFocusIds[(int) $blockedReferenceId] = (int) $blockedReferenceId;
+                }
                 $errors[] = '다른 모듈에서 참조 중인 팝업레이어가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
             }
         }
@@ -264,7 +282,8 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        $resultData = $popupLayerReferenceFocusIds !== [] ? ['popup_layer_reference_focus_ids' => array_values($popupLayerReferenceFocusIds)] : [];
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $resultData));
         sr_redirect($returnTo);
     } elseif ($intent === 'save') {
         $isCreate = $popupId <= 0;
@@ -394,8 +413,10 @@ if (sr_request_method() === 'POST') {
                 'target_key' => '',
             ]);
             if (($referenceResult['errors'] ?? []) !== []) {
+                $popupLayerReferenceFocusIds[$popupId] = $popupId;
                 $errors[] = '팝업레이어 참조 계약 오류가 있어 상태를 변경할 수 없습니다.';
             } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $popupLayerReferenceFocusIds[$popupId] = $popupId;
                 $errors[] = '다른 모듈에서 이 팝업레이어를 참조하고 있어 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.';
             }
         }
@@ -562,6 +583,8 @@ foreach ($stmt->fetchAll() as $row) {
 
 $popups = [];
 $popupLayerReadReferencesById = [];
+$popupLayerReferenceFocusRowsById = [];
+$popupLayerReferenceFocusResultsById = [];
 $popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.coupon_claim_campaign_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
                     t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
              FROM sr_popup_layers p
@@ -654,10 +677,43 @@ if ($popupLayerAdminPage === 'list') {
         if ($popupId < 1) {
             continue;
         }
+        unset($popupLayerReferenceFocusIds[$popupId]);
         $popupLayerReadReferencesById[$popupId] = sr_read_reference_collect($pdo, 'popup-layer-references.php', [
             'owner_module_key' => 'popup_layer',
             'target_type' => 'popup_layer',
             'target_id' => $popupId,
+            'target_key' => '',
+        ]);
+    }
+}
+if ($popupLayerReferenceFocusIds !== []) {
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($popupLayerReferenceFocusIds) as $index => $focusId) {
+        $paramKey = 'focus_popup_layer_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $focusId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT id, title, status
+         FROM sr_popup_layers
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY id ASC'
+    );
+    foreach ($params as $paramKey => $focusId) {
+        $stmt->bindValue($paramKey, $focusId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $focusId = (int) ($row['id'] ?? 0);
+        if ($focusId < 1) {
+            continue;
+        }
+        $popupLayerReferenceFocusRowsById[$focusId] = $row;
+        $popupLayerReferenceFocusResultsById[$focusId] = sr_read_reference_collect($pdo, 'popup-layer-references.php', [
+            'owner_module_key' => 'popup_layer',
+            'target_type' => 'popup_layer',
+            'target_id' => $focusId,
             'target_key' => '',
         ]);
     }

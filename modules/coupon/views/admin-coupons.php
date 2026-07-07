@@ -851,6 +851,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
                                     <input type="hidden" name="status" value="active">
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'active' ? ' disabled' : ''; ?>>사용 중</button>
                                 </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>">
@@ -858,6 +859,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
                                     <input type="hidden" name="status" value="issue_stopped">
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'issue_stopped' ? ' disabled' : ''; ?>>지급 중지</button>
                                 </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>"<?php echo $couponEmailWarningAttribute('issue.definition_disabled'); ?>>
@@ -865,6 +867,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
                                     <input type="hidden" name="status" value="disabled">
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
                                     <button type="submit" class="btn btn-sm btn-solid-light"<?php echo (string) $definition['status'] === 'disabled' ? ' disabled' : ''; ?>>사용 중지</button>
                                 </form>
                             </div>

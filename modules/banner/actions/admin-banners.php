@@ -14,6 +14,16 @@ $allowedMatchTypes = ['all', 'exact'];
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
+$flashData = isset($flashResult['data']) && is_array($flashResult['data']) ? $flashResult['data'] : [];
+$bannerReferenceFocusIds = [];
+if (isset($flashData['banner_reference_focus_ids']) && is_array($flashData['banner_reference_focus_ids'])) {
+    foreach ($flashData['banner_reference_focus_ids'] as $rawFocusId) {
+        $focusId = (int) $rawFocusId;
+        if ($focusId > 0) {
+            $bannerReferenceFocusIds[$focusId] = $focusId;
+        }
+    }
+}
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
     $bannerAdminPage = 'list';
@@ -80,8 +90,10 @@ if (sr_request_method() === 'POST') {
                 'target_key' => '',
             ]);
             if (($referenceResult['errors'] ?? []) !== []) {
+                $bannerReferenceFocusIds[$bannerId] = $bannerId;
                 $errors[] = '배너 참조 계약 오류가 있어 삭제할 수 없습니다.';
             } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $bannerReferenceFocusIds[$bannerId] = $bannerId;
                 $errors[] = '다른 모듈에서 이 배너를 참조하고 있어 삭제할 수 없습니다. 참조 현황을 먼저 확인하세요.';
             }
         }
@@ -192,6 +204,9 @@ if (sr_request_method() === 'POST') {
                 }
             }
             if ($errors === [] && $blockedReferenceIds !== []) {
+                foreach ($blockedReferenceIds as $blockedReferenceId) {
+                    $bannerReferenceFocusIds[(int) $blockedReferenceId] = (int) $blockedReferenceId;
+                }
                 $errors[] = '다른 모듈에서 참조 중인 배너가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
             }
         }
@@ -252,7 +267,8 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        $resultData = $bannerReferenceFocusIds !== [] ? ['banner_reference_focus_ids' => array_values($bannerReferenceFocusIds)] : [];
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $resultData));
         sr_redirect($returnTo);
     } elseif ($intent === 'save') {
         $isCreate = $bannerId <= 0;
@@ -412,8 +428,10 @@ if (sr_request_method() === 'POST') {
                 'target_key' => '',
             ]);
             if (($referenceResult['errors'] ?? []) !== []) {
+                $bannerReferenceFocusIds[$bannerId] = $bannerId;
                 $errors[] = '배너 참조 계약 오류가 있어 상태를 변경할 수 없습니다.';
             } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $bannerReferenceFocusIds[$bannerId] = $bannerId;
                 $errors[] = '다른 모듈에서 이 배너를 참조하고 있어 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.';
             }
         }
@@ -545,7 +563,8 @@ if (sr_request_method() === 'POST') {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 
-    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    $resultData = $bannerReferenceFocusIds !== [] ? ['banner_reference_focus_ids' => array_values($bannerReferenceFocusIds)] : [];
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice, $resultData));
     sr_redirect($returnTo);
 }
 
@@ -591,6 +610,8 @@ foreach ($stmt->fetchAll() as $row) {
 
 $banners = [];
 $bannerReadReferencesById = [];
+$bannerReferenceFocusRowsById = [];
+$bannerReferenceFocusResultsById = [];
 $bannerSql = 'SELECT b.id, b.title, ' . sr_banner_content_select_sql($pdo, 'b') . ', b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM sr_banners b
@@ -683,10 +704,43 @@ if ($bannerAdminPage === 'list') {
         if ($bannerId < 1) {
             continue;
         }
+        unset($bannerReferenceFocusIds[$bannerId]);
         $bannerReadReferencesById[$bannerId] = sr_read_reference_collect($pdo, 'banner-references.php', [
             'owner_module_key' => 'banner',
             'target_type' => 'banner',
             'target_id' => $bannerId,
+            'target_key' => '',
+        ]);
+    }
+}
+if ($bannerReferenceFocusIds !== []) {
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($bannerReferenceFocusIds) as $index => $focusId) {
+        $paramKey = 'focus_banner_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $focusId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT id, title, status
+         FROM sr_banners
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY id ASC'
+    );
+    foreach ($params as $paramKey => $focusId) {
+        $stmt->bindValue($paramKey, $focusId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $focusId = (int) ($row['id'] ?? 0);
+        if ($focusId < 1) {
+            continue;
+        }
+        $bannerReferenceFocusRowsById[$focusId] = $row;
+        $bannerReferenceFocusResultsById[$focusId] = sr_read_reference_collect($pdo, 'banner-references.php', [
+            'owner_module_key' => 'banner',
+            'target_type' => 'banner',
+            'target_id' => $focusId,
             'target_key' => '',
         ]);
     }

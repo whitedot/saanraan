@@ -334,7 +334,7 @@ if (sr_request_method() === 'POST') {
                 $notice .= ' 사용 전 지급건 ' . (string) (int) $disabledNotificationResult['notification_count'] . '건에 회수 알림을 발송했습니다.';
             }
             sr_admin_flash_result(sr_admin_action_result([], $notice));
-            sr_redirect('/admin/coupons');
+            sr_redirect($returnTo);
         } elseif ($intent === 'set_issue_status' && $couponAdminPage === 'issues') {
             $issueId = sr_admin_post_positive_int('issue_id');
             if ($issueId < 1) {

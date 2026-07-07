@@ -187,6 +187,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php if (isset($bannerReferenceFocusResultsById) && is_array($bannerReferenceFocusResultsById) && $bannerReferenceFocusResultsById !== []) { ?>
+    <div class="admin-notice">
+        <span class="admin-notice-icon">!</span>
+        <div class="admin-notice-copy">
+            <strong><?php echo sr_e('참조 현황 확인 필요'); ?></strong>
+            <p><?php echo sr_e('차단된 배너가 현재 목록 조건에 보이지 않을 수 있습니다. 아래 대상의 참조 현황을 확인하세요.'); ?></p>
+            <div class="admin-row-actions">
+                <?php foreach ($bannerReferenceFocusResultsById as $focusBannerId => $focusReferenceResult) { ?>
+                    <?php
+                    $focusBannerRow = isset($bannerReferenceFocusRowsById[$focusBannerId]) && is_array($bannerReferenceFocusRowsById[$focusBannerId]) ? $bannerReferenceFocusRowsById[$focusBannerId] : [];
+                    $focusBannerModalId = 'banner-reference-focus-modal-' . (string) (int) $focusBannerId;
+                    $bannerReferenceModals .= sr_admin_read_reference_modal_html($focusBannerModalId, '배너 참조 현황', $focusReferenceResult);
+                    ?>
+                    <span class="admin-status is-blocked"><?php echo sr_e('#' . (string) (int) $focusBannerId . ' ' . (string) ($focusBannerRow['title'] ?? '배너')); ?></span>
+                    <?php echo sr_admin_read_reference_button_html($focusBannerModalId, $focusReferenceResult); ?>
+                <?php } ?>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
 <?php if ($bannerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-admin-subject-form data-sr-validate-form data-public-target-value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>">
         <section class="card">
@@ -544,6 +565,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners')); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('banner::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('banner::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
@@ -564,7 +586,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    </section>
     <?php echo $bannerCopyModals; ?>
-    <?php echo $bannerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
     <script>
     (function () {
@@ -891,5 +912,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 }());
 </script>
+
+<?php echo $bannerReferenceModals; ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
