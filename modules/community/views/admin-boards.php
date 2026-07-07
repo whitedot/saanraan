@@ -640,9 +640,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_admin_switch_html('community_admin_boards_identity_verification_enabled', 'identity_verification_enabled', '1', $communityBoardIdentitySelectedPurposeAvailable && $boardField($formBoard, 'identity_verification_enabled', '0') === '1', '사용', '', $communityBoardIdentityDisabledAttributes); ?>
                     <?php echo $settingSourceRadioHtml('source_identity_verification_enabled', $boardSettingSource($formBoard, 'identity_verification_enabled')); ?>
                     <?php if (!$communityBoardIdentityVerificationAvailable) { ?>
-                        <div id="community-board-identity-unavailable" class="alert alert-warning" role="alert">
+                        <p id="community-board-identity-unavailable" class="form-help form-help-warning">
                             본인확인 사용이 꺼져 있거나 게시판 목적을 지원하는 제공자가 준비되지 않아 정책을 사용할 수 없습니다.
-                        </div>
+                        </p>
                     <?php } ?>
                     <p class="form-help">사용하면 선택한 행위에서 본인확인 통과 여부를 서버에서 확인합니다.</p>
                 </div>
@@ -924,9 +924,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_reaction_enabled', $boardSettingSource($formBoard, 'reaction_enabled')); ?>
                     <p class="form-help">커뮤니티 환경설정과 별도로 이 게시판의 리액션 표시 여부를 정합니다.</p>
                     <?php if (!$communityBoardReactionAvailable) { ?>
-                        <div id="community-board-reaction-unavailable" class="alert alert-warning" role="alert">
+                        <p id="community-board-reaction-unavailable" class="form-help form-help-warning">
                             리액션 모듈이 설치되어 있지 않거나 활성화되어 있지 않아 게시판 리액션 설정을 사용할 수 없습니다.
-                        </div>
+                        </p>
                     <?php } ?>
                 </div>
             </div>
@@ -966,9 +966,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
                     <?php if (!$communityBoardPrivacyConsentPolicyDocumentsAvailable) { ?>
-                        <div id="community-board-privacy-consent-unavailable" class="alert alert-warning" role="alert">
+                        <p id="community-board-privacy-consent-unavailable" class="form-help form-help-warning">
                             약관/방침 관리 모듈이 설치되어 있지 않거나 활성화되어 있지 않고, 게시된 정책 문서가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
-                        </div>
+                        </p>
                     <?php } ?>
                 </div>
             </div>

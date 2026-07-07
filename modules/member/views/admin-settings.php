@@ -189,14 +189,14 @@ $memberSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="modules_member_admin_settings_identity_registration_mode"><?php echo sr_e('회원가입 전 본인확인'); ?> <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="modules_member_admin_settings_identity_registration_mode"><?php echo sr_e('회원가입 전 본인확인'); ?><?php echo $memberIdentityRegistrationAvailable ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></label>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_identity_registration_mode', 'identity_registration_mode', sr_member_identity_registration_mode_options(), $memberIdentityRegistrationAvailable ? (string) ($settings['identity_registration_mode'] ?? 'disabled') : 'disabled', true, $memberIdentityRegistrationInputAttributes); ?>
                     <small class="form-help">필수는 가입 전 본인확인을 완료해야 가입할 수 있고, 선택은 가입 화면에 본인확인 버튼만 표시합니다.</small>
                     <?php if ($memberIdentityUnavailable) { ?>
-                        <div id="member-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                        <p id="member-settings-identity-unavailable" class="form-help form-help-warning">
                             본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
-                        </div>
+                        </p>
                     <?php } ?>
                 </div>
             </div>

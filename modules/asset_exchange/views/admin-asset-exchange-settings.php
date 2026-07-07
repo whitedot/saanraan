@@ -40,14 +40,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">환전 사용 여부</h2>
         </div>
         <div class="form-row">
-            <label class="form-label" for="asset_exchange_settings_exchange_enabled">환전 사용 여부 <span class="sr-required-label">(필수)</span></label>
+            <label class="form-label" for="asset_exchange_settings_exchange_enabled">환전 사용 여부<?php echo $assetExchangeAvailable ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('asset_exchange_settings_exchange_enabled', 'exchange_enabled', ['0' => '끄기', '1' => '켜기'], $assetExchangeAvailable ? (string) ($settings['exchange_enabled'] ?? '1') : '0', true, $assetExchangeInputAttributes); ?>
                 <p class="form-help">끄면 환전 정책이 사용 상태여도 회원 환전 신청, 예상 금액 계산, 확정 실행을 모두 막습니다. 기존 환전 로그 조회와 정정은 유지됩니다.</p>
                 <?php if (!$assetExchangeAvailable) { ?>
-                    <div id="asset-exchange-settings-unavailable" class="alert alert-warning" role="alert">
+                    <p id="asset-exchange-settings-unavailable" class="form-help form-help-warning">
                         환전 가능한 자산 모듈이 2개 이상 설치되어 있고 활성화되어야 환전을 켤 수 있습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>
@@ -57,9 +57,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('asset_exchange_settings_identity_exchange_required', 'identity_exchange_required', '1', $assetExchangeIdentityAvailable && (string) ($settings['identity_exchange_required'] ?? '0') === '1', '사용', '', $assetExchangeIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 환전을 실행할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$assetExchangeIdentityAvailable) { ?>
-                    <div id="asset-exchange-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="asset-exchange-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 자산 환전 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>

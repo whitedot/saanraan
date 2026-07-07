@@ -122,9 +122,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', $depositIdentityRefundAvailable && !empty($settings['identity_refund_required']), '사용', '', $depositIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$depositIdentityRefundAvailable) { ?>
-                    <div id="deposit-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="deposit-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 예치금 환불 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>

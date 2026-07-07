@@ -150,6 +150,7 @@ foreach ([
     '/assets/public-layout.js',
     '/assets/fonts/material-symbols-outlined.ttf',
     '/modules/admin/assets/tokens.css',
+    '/modules/admin/assets/ui-kit-layout.css',
     '/modules/content/theme/basic/assets/reset.css',
     '/modules/content/theme/basic/assets/layout.css',
     '/modules/content/theme/basic/assets/module.css',

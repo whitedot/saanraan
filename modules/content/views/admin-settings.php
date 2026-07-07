@@ -207,7 +207,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', $contentReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $contentReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠와 댓글의 리액션 위젯을 표시하지 않습니다.</p>
                 <?php if (!$contentReactionAvailable) { ?>
-                    <div id="content-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</div>
+                    <p id="content-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
                 <?php } ?>
             </div>
         </div>
@@ -246,9 +246,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_required', 'identity_content_view_required', '1', $contentIdentityContentViewAvailable && !empty($settings['identity_content_view_required']), '사용', '', $contentIdentityContentViewInputAttributes); ?>
                 <p class="form-help">사용하면 공개 콘텐츠를 보려는 회원에게 본인확인을 요구합니다.</p>
                 <?php if ($contentIdentityUnavailable) { ?>
-                    <div id="content-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="content-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>

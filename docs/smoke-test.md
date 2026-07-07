@@ -288,6 +288,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /assets/public-layout.js 정적 파일 응답과 공통 공개 layout 스크롤 header 동작 기준 확인
 /assets/common.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
 /assets/ui-kit-layout.css 정적 파일 응답과 `/ui-kit` 미리보기 helper 확인
+/modules/admin/assets/ui-kit-layout.css 정적 파일 응답과 `/admin/ui-kit` 미리보기 helper 확인
 /modules/community/theme/basic/assets/reset.css 정적 파일 응답과 커뮤니티 공개 foundation 확인
 /modules/community/theme/basic/assets/layout.css 정적 파일 응답과 커뮤니티 공개 layout shell 확인
 /modules/community/theme/basic/assets/module.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인

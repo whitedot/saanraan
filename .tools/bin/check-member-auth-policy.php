@@ -1347,6 +1347,7 @@ if ($adminSettingsView !== '') {
             && strpos($adminSettingsView, '$memberIdentityWithdrawalAvailable') !== false
             && strpos($adminSettingsView, '$memberIdentityAccountSecurityAvailable') !== false
             && strpos($adminSettingsView, 'member-settings-identity-unavailable') !== false
+            && strpos($adminSettingsView, 'form-help-warning') !== false
             && strpos($adminSettingsView, '본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.') !== false
             && strpos($adminSettingsView, 'disabled aria-describedby="member-settings-identity-unavailable"') !== false,
         'Member settings view should disable identity verification controls and show an unavailable notice when identity verification is unavailable for each purpose.'

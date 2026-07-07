@@ -253,9 +253,9 @@ $communitySettingsSectionNavItems = [
                 <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', $communityIdentityRestrictedBoardAvailable && !empty($settings['identity_restricted_board_required']), '사용', '', $communityIdentityVerificationInputAttributes); ?>
                 <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
                 <?php if (!$communityIdentityRestrictedBoardAvailable) { ?>
-                    <div id="community-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="community-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>
@@ -373,9 +373,9 @@ $communitySettingsSectionNavItems = [
                     </label>
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                     <?php if (!$communityPrivacyConsentPolicyDocumentsAvailable) { ?>
-                        <div id="community-settings-privacy-consent-unavailable" class="alert alert-warning" role="alert">
+                        <p id="community-settings-privacy-consent-unavailable" class="form-help form-help-warning">
                             약관/방침 관리 모듈이 설치되어 있지 않거나 활성화되어 있지 않고, 게시된 정책 문서가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
-                        </div>
+                        </p>
                     <?php } ?>
                 </div>
             </div>
@@ -588,7 +588,7 @@ $communitySettingsSectionNavItems = [
                 <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', $communityReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $communityReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
                 <?php if (!$communityReactionAvailable) { ?>
-                    <div id="community-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</div>
+                    <p id="community-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
                 <?php } ?>
             </div>
         </div>

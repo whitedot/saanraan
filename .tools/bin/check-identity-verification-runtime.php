@@ -376,6 +376,7 @@ foreach ($identityConsumerFiles as $identityConsumerKey => $identityConsumerFile
         || !str_contains($identityConsumerAction, (string) $identityConsumerFile['error_marker'])
         || !str_contains($identityConsumerView, (string) $identityConsumerFile['available_marker'])
         || !str_contains($identityConsumerView, (string) $identityConsumerFile['notice_marker'])
+        || !str_contains($identityConsumerView, 'form-help-warning')
         || !str_contains($identityConsumerView, 'disabled aria-describedby=')
     ) {
         $errors[] = $identityConsumerKey . ' settings must disable identity verification controls when the identity module is unavailable.';

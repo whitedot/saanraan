@@ -406,7 +406,7 @@ $quizSettingsSectionNavItems = [
                     </select>
                     <p class="form-help">개별 퀴즈에서 값을 비워두면 이 값을 사용합니다.</p>
                     <?php if (!$quizReactionAvailable) { ?>
-                        <div id="quiz-settings-reaction-unavailable" class="alert alert-info">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</div>
+                        <p id="quiz-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
                     <?php } ?>
                 </div>
             </div>
@@ -535,9 +535,9 @@ $quizSettingsSectionNavItems = [
                 <?php echo sr_admin_switch_html('quiz_settings_identity_view_required', 'identity_view_required', '1', $quizIdentityViewAvailable && !empty($settings['identity_view_required']), '사용', '', $quizIdentityViewInputAttributes); ?>
                 <p class="form-help">사용하면 퀴즈 상세와 응시 전에 본인확인을 요구합니다.</p>
                 <?php if ($quizIdentityUnavailable) { ?>
-                    <div id="quiz-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="quiz-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>

@@ -133,9 +133,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityWithdrawalAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$rewardIdentityWithdrawalAvailable) { ?>
-                    <div id="reward-settings-identity-unavailable" class="alert alert-warning" role="alert">
+                    <p id="reward-settings-identity-unavailable" class="form-help form-help-warning">
                         본인확인 사용이 꺼져 있거나 적립금 출금 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
-                    </div>
+                    </p>
                 <?php } ?>
             </div>
         </div>

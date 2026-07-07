@@ -482,6 +482,14 @@ $checks = [
         ],
     ],
     [
+        'label' => 'admin UI kit layout stylesheet',
+        'path' => '/modules/admin/assets/ui-kit-layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.admin-ui-kit-samples',
+        ],
+    ],
+    [
         'label' => 'content sample view theme stylesheet',
         'path' => '/modules/content/theme/sample/assets/theme.css',
         'allowed_statuses' => [200],

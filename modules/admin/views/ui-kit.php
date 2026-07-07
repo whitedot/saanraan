@@ -54,7 +54,7 @@ if (sr_module_enabled($pdo, 'survey') && is_file(SR_ROOT . '/modules/survey/acti
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit.css')); ?>">
+<link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit-layout.css')); ?>">
 
 <section class="card">
     <div class="card-header">

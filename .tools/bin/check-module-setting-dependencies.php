@@ -47,6 +47,7 @@ foreach ([
         $definition['available'],
         $definition['attributes'],
         $definition['notice'],
+        'form-help-warning',
         'disabled aria-describedby=',
     ], $moduleKey . ' reaction settings view dependency state');
 }
@@ -83,6 +84,7 @@ foreach ([
         $definition['available'],
         $definition['attributes'],
         $definition['notice'],
+        'form-help-warning',
         'disabled aria-describedby=',
     ], $moduleKey . ' reaction preset view dependency state');
 }
@@ -124,6 +126,7 @@ foreach ([
     $mustContain($definition['view'], [
         $definition['available'],
         $definition['notice'],
+        'form-help-warning',
         'disabled aria-describedby=',
     ], $moduleKey . ' identity settings view dependency state');
 }
@@ -136,6 +139,7 @@ $mustContain('modules/asset_exchange/views/admin-asset-exchange-settings.php', [
     '$assetExchangeAvailable',
     '$assetExchangeInputAttributes',
     'asset-exchange-settings-unavailable',
+    'form-help-warning',
     '환전 가능한 자산 모듈이 2개 이상 설치되어 있고 활성화되어야 환전을 켤 수 있습니다.',
 ], 'asset exchange enabled setting dependency state');
 
