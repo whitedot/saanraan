@@ -368,7 +368,7 @@ php .tools/bin/smoke-privacy-export-cleanup.php
 - 설문 쿠폰 보상 정책이 쿠폰 정의를 참조하고 있으면 서버가 최신 `coupon-references.php` 결과로 비활성화 영향을 표시한다.
 - 콘텐츠나 커뮤니티 설정에서 직접 선택한 배너/팝업레이어가 있으면 해당 배너/팝업레이어 삭제 POST가 차단된다.
 - 적립금/예치금/콘텐츠/커뮤니티/회원 자동 규칙에서 쓰는 enabled 회원 그룹은 비활성 또는 보관 상태로 바꾸는 POST가 차단된다.
-- 제목 접미사나 기본 설명이 기존 사이트명 그대로인 상태에서 사이트명을 바꾸면 같은 저장 요청에서 새 사이트명으로 함께 보정된다. 로고 alt text처럼 다른 모듈 설정에 기존 사이트명이 직접 들어 있어도 사이트명 변경 POST는 저장되고, 토스트와 참조 현황으로 후속 확인을 안내한다. malformed 계약 파일, 누락 callable, 잘못된 row 같은 사이트명 참조 계약 오류는 저장을 차단한다.
+- 제목 접미사나 기본 설명이 기존 사이트명 그대로인 상태에서 사이트명을 바꾸면 같은 저장 요청에서 새 사이트명으로 함께 보정된다. 로고 alt text처럼 다른 모듈 설정에 기존 사이트명이 직접 들어 있어도 사이트명 변경 POST는 저장되고, 리다이렉트 후 토스트와 이전 사이트명 기준 참조 현황으로 후속 확인을 안내한다. malformed 계약 파일, 누락 callable, 잘못된 row 같은 사이트명 참조 계약 오류는 저장을 차단한다.
 - `php .tools/bin/check-read-reference-contracts.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 - 보상/접근권 중복 방지 기준은 `php .tools/bin/check-reward-abuse-standards.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 

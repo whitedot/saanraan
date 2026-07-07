@@ -1389,6 +1389,7 @@ function sr_admin_handle_settings_post(
     $values = sr_admin_site_setting_values($site, $pdo);
     $intent = sr_post_string('intent', 40);
     $siteNameReferenceCount = 0;
+    $siteNameReferenceOldValue = '';
 
     if ($intent !== 'site') {
         $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
@@ -1496,6 +1497,7 @@ function sr_admin_handle_settings_post(
                     $errors[] = '사이트명 참조 계약 오류가 있어 저장할 수 없습니다.';
                 } elseif (($referenceResult['rows'] ?? []) !== []) {
                     $siteNameReferenceCount = count($referenceResult['rows']);
+                    $siteNameReferenceOldValue = (string) ($previousValues['name'] ?? '');
                 }
             }
         }
@@ -1565,5 +1567,8 @@ function sr_admin_handle_settings_post(
         'values' => $values,
         'site' => $site,
         'site_name_reference_count' => $siteNameReferenceCount,
+        'data' => [
+            'site_name_reference_old_value' => $siteNameReferenceCount > 0 ? $siteNameReferenceOldValue : '',
+        ],
     ];
 }

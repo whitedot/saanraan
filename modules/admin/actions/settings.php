@@ -13,6 +13,7 @@ $notice = '';
 $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
+$flashData = isset($flashResult['data']) && is_array($flashResult['data']) ? $flashResult['data'] : [];
 $values = sr_admin_site_setting_values($site ?? null, $pdo);
 $adminSettings = sr_admin_settings($pdo);
 $adminThemeOptions = sr_admin_theme_options();
@@ -385,20 +386,28 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 }
 
 if (sr_request_method() === 'POST') {
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/settings');
+    $actionResultData = [];
+    if (isset($postResult) && is_array($postResult) && isset($postResult['data']) && is_array($postResult['data'])) {
+        $actionResultData = $postResult['data'];
+    }
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice, $actionResultData), '/admin/settings');
 }
 
 $localeOptions = sr_available_locale_options($site ?? null);
 $homepageCandidates = sr_admin_homepage_candidate_options($pdo, (string) ($values['home_path'] ?? '/'));
 $currentHomepageAvailable = sr_site_home_path_is_available($pdo, (string) ($values['home_path'] ?? '/'));
 $publicLayoutHealthWarnings = sr_public_layout_health_warnings($pdo, $site);
+$siteNameReferenceOldValue = trim((string) ($flashData['site_name_reference_old_value'] ?? ''));
+if ($siteNameReferenceOldValue === '') {
+    $siteNameReferenceOldValue = (string) ($values['name'] ?? '');
+}
 $siteNameReadReferences = sr_read_reference_collect($pdo, 'site-setting-references.php', [
     'owner_module_key' => 'admin',
     'target_type' => 'site_setting',
     'target_id' => 0,
     'target_key' => 'site.name',
 ], [
-    'old_value' => (string) ($values['name'] ?? ''),
+    'old_value' => $siteNameReferenceOldValue,
     'new_value' => (string) ($values['name'] ?? ''),
 ]);
 $currencyChangeCanChange = sr_admin_is_owner($pdo, (int) $account['id']);

@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-function sr_admin_action_result(array $errors = [], string $notice = ''): array
+function sr_admin_action_result(array $errors = [], string $notice = '', array $data = []): array
 {
     return [
         'errors' => array_values(array_map('strval', $errors)),
         'notice' => $notice,
+        'data' => $data,
     ];
 }
 
@@ -18,7 +19,8 @@ function sr_admin_flash_result(array $result): void
 
     $_SESSION['sr_admin_action_result'] = sr_admin_action_result(
         isset($result['errors']) && is_array($result['errors']) ? $result['errors'] : [],
-        (string) ($result['notice'] ?? '')
+        (string) ($result['notice'] ?? ''),
+        isset($result['data']) && is_array($result['data']) ? $result['data'] : []
     );
 }
 
@@ -37,7 +39,8 @@ function sr_admin_pop_flash_result(): array
 
     return sr_admin_action_result(
         isset($result['errors']) && is_array($result['errors']) ? $result['errors'] : [],
-        (string) ($result['notice'] ?? '')
+        (string) ($result['notice'] ?? ''),
+        isset($result['data']) && is_array($result['data']) ? $result['data'] : []
     );
 }
 
