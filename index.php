@@ -163,6 +163,7 @@ if (
     && $path !== '/login'
     && $path !== '/login/mfa'
     && $path !== '/logout'
+    && $path !== '/logo-manager/image'
     && strpos($path, '/admin') !== 0
 ) {
     sr_render_error(503, '현재 점검 중입니다.');
