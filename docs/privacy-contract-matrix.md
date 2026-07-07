@@ -58,7 +58,7 @@
 
 | 표면 | 현재 포함 모듈 | 주요 개인정보성 필드와 처리 표면 | 마일스톤 12 연결 |
 | --- | --- | --- | --- |
-| 쿠키와 브라우저 저장소 | `member`, `popup_layer`, `admin`, `antispam`, `antispam_captcha_providers`, `banner` | 세션 쿠키, 팝업 닫기 쿠키, 관리자 UI `localStorage`, CAPTCHA provider script와 remote IP 전달 옵션, 배너 클릭 dedupe hash | #151, #152, #160 |
+| 쿠키와 브라우저 저장소 | `core`, `member`, `popup_layer`, `admin`, `antispam`, `antispam_captcha_providers`, `banner` | 세션 쿠키, 팝업 닫기 쿠키, 공개 화면 색상 모드 `localStorage`, 관리자 UI `localStorage`, CAPTCHA provider script와 remote IP 전달 옵션, 배너 클릭 dedupe hash | #151, #152, #160 |
 | 계정 원천과 인증 | `member`, `member_oauth`, `member_oauth_providers`, `identity_verification`, `identity_kcp`, `identity_inicis`, `message` | 계정 식별자/email hash, 세션/token hash, MFA factor secret ciphertext/fingerprint/recovery code hash, OAuth provider subject hash, email snapshot, state/nonce/code verifier hash, 본인확인 CI/DI/이름/휴대폰 HMAC hash, 가입 동의 snapshot, 쪽지 수신 설정, OAuth/본인확인 provider 계약 | #158, #159, #160, #161 |
 | 정책 문서와 동의 | `member`, `policy_documents`, `community`, `survey` | 회원 동의 증적, 정책 문서 버전 snapshot, 안내메일 delivery account 연결, 제출/응답 동의 snapshot | #151, #158, #160, #161 |
 | 사용자 제출과 활동 | `community`, `content`, `quiz`, `survey`, `reaction` | 작성자/응답자/시도자 account 연결, 댓글/쪽지/스크랩/리액션, answer/metadata snapshot, IP/UA hash, 제3자 식별자 | #155, #158, #159, #161 |
@@ -70,7 +70,7 @@
 
 | 이슈 | 현재 기준에서 반드시 포함할 추가 모듈/표면 | 선행 판단 |
 | --- | --- | --- |
-| #151 쿠키 동의 관리 | `antispam`, `antispam_captcha_providers`, `popup_layer`, `admin`, `banner`, `member`, `community`, `privacy` | 로그인 세션 쿠키와 CSRF/session state는 필수 보안 저장소로 두고, `privacy`의 공개 쿠키 설정 배너가 `sr_cookie_consent`로 기능성 저장소 항목별 허용 여부를 기록한다. 현재 기능성 항목은 `popup_dismissal`이며, 팝업 닫기 쿠키는 이 항목 동의가 있을 때만 저장한다. CAPTCHA provider script와 remote IP 전달은 보안 목적 외부 처리자 표면으로 기록하고, 마케팅/분석 script를 추가하려면 사전 동의 gate와 항목별 설정을 먼저 구현한다. |
+| #151 쿠키 동의 관리 | `core`, `antispam`, `antispam_captcha_providers`, `popup_layer`, `admin`, `banner`, `member`, `community`, `privacy` | 로그인 세션 쿠키와 CSRF/session state는 필수 보안 저장소로 두고, 공개 화면 색상 모드 `localStorage`는 사용자가 직접 고른 표시 설정 저장소로 안내한다. `privacy`의 공개 쿠키 설정 배너가 `sr_cookie_consent`로 기능성 저장소 항목별 허용 여부를 기록한다. 현재 기능성 항목은 `popup_dismissal`이며, 팝업 닫기 쿠키는 이 항목 동의가 있을 때만 저장한다. CAPTCHA provider script와 remote IP 전달은 보안 목적 외부 처리자 표면으로 기록하고, 마케팅/분석 script를 추가하려면 사전 동의 gate와 항목별 설정을 먼저 구현한다. |
 | #152 배너 클릭 hash | `banner`, `member` | `click_key_hash`가 account, session hash, IP/UA hash에서 파생될 수 있으므로 가명성 dedupe 데이터로 분류한다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 조정하고, 배너별 총 클릭 수는 유지하되 오래된 dedupe hash는 정리한다. 배너 복사에서는 집계 클릭 수만 선택 복사하고 dedupe hash row는 복제하지 않는다. |
 | #153 전역 감사 로그 | `admin`, `privacy`, `logo_manager`, 전체 관리자 action | 감사 로그는 본인 export 기본 범위에서 제외하고 운영 보존 데이터로 둔다. actor account, IP/UA, metadata는 저장 전 sanitize와 표시 전 redaction을 적용하며, `/admin/retention`의 관리자 작업 로그 보관일로 정리한다. |
 | #154 알림 delivery recipient | `notification`, `policy_documents`, `member_oauth`, `message`, `reaction`, `community`, `content`, `quiz`, `survey` | site delivery와 대상 회원 email delivery는 export에 포함하고 다른 회원 email recipient는 제외한다. push endpoint delivery는 masked recipient로만 제공한다. 탈퇴/익명화 시 push endpoint ciphertext는 제거하고, 정책문서 안내메일 delivery는 account 연결을 제거한다. 일반 delivery retention은 알림 보관일을 따른다. |

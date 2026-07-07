@@ -37,6 +37,10 @@ function sr_privacy_cookie_consent_essential_items(): array
             'label' => sr_t('privacy::cookie.item.session_security.label'),
             'description' => sr_t('privacy::cookie.item.session_security.description'),
         ],
+        'display_preferences' => [
+            'label' => sr_t('privacy::cookie.item.display_preferences.label'),
+            'description' => sr_t('privacy::cookie.item.display_preferences.description'),
+        ],
     ];
 }
 
