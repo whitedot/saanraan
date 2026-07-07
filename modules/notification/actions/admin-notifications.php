@@ -164,7 +164,7 @@ if (sr_request_method() === 'POST') {
                     'target_type' => 'notification_delivery',
                     'target_id' => '',
                     'result' => 'success',
-                    'message' => 'Notification delivery runner ran manually.',
+                    'message' => '알림 발송 처리기를 수동 실행했습니다.',
                     'metadata' => [
                         'batch_size' => $batchSize,
                         'claimed' => (int) ($deliveryRunResult['claimed'] ?? 0),

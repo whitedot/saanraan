@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '설문 리워드 로그';
+$adminPageTitle = '설문 보상 로그';
 $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-survey-reward-logs admin-ui-scope';
 $surveyRewardFilters = isset($surveyRewardFilters) && is_array($surveyRewardFilters) ? $surveyRewardFilters : ['survey_id' => 0, 'status' => '', 'provider' => '', 'q' => ''];
@@ -9,6 +9,20 @@ $surveyRewardSurveyOptions = isset($surveyRewardSurveyOptions) && is_array($surv
 $surveyRewardDetailFilterOpen = !empty($surveyRewardDetailFilterOpen);
 $surveyRewardStatusOptions = isset($surveyRewardStatusOptions) && is_array($surveyRewardStatusOptions) ? $surveyRewardStatusOptions : [];
 $surveyRewardProviderOptions = isset($surveyRewardProviderOptions) && is_array($surveyRewardProviderOptions) ? $surveyRewardProviderOptions : [];
+$surveyRewardAssetOptions = isset($surveyRewardAssetOptions) && is_array($surveyRewardAssetOptions) ? $surveyRewardAssetOptions : [];
+$surveyRewardModuleLabel = static function (string $moduleKey) use ($surveyRewardAssetOptions): string {
+    if ($moduleKey === 'coupon') {
+        return '쿠폰';
+    }
+
+    return (string) ($surveyRewardAssetOptions[$moduleKey]['label'] ?? $moduleKey);
+};
+$surveyRewardReferenceTypeLabel = static function (string $referenceType): string {
+    return [
+        'survey_reward' => '설문 보상',
+        'coupon_issue' => '쿠폰 발급',
+    ][$referenceType] ?? ($referenceType !== '' ? $referenceType : '참조');
+};
 $surveyRewardStatusClass = static function (string $status): string {
     return match ($status) {
         'granted' => 'is-normal',
@@ -52,7 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_filter_radio_toggle_group_html('survey_reward_log_status_filter', 'status', $surveyRewardStatusOptions, [(string) ($surveyRewardFilters['status'] ?? '')], '전체'); ?>
             </div>
             <div class="filtering-field">
-                <span class="filtering-label">공급자</span>
+                <span class="filtering-label">보상 종류</span>
                 <?php echo sr_admin_filter_radio_toggle_group_html('survey_reward_log_provider_filter', 'provider', $surveyRewardProviderOptions, [(string) ($surveyRewardFilters['provider'] ?? '')], '전체'); ?>
             </div>
         </div>
@@ -66,14 +80,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">리워드 로그</h2>
+        <h2 class="card-title">보상 로그</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($surveyRewardPagination); ?>
     </div>
     <div class="table-wrapper">
         <table class="table table-list admin-survey-reward-log-table">
-            <caption class="sr-only">설문 응답 리워드 로그</caption>
+            <caption class="sr-only">설문 응답 보상 로그</caption>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -88,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($surveyRewardLogs === []) { ?>
                     <tr>
-                        <td colspan="7" class="admin-empty-state">리워드 로그가 없습니다.</td>
+                        <td colspan="7" class="admin-empty-state">보상 로그가 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($surveyRewardLogs as $rewardLog) { ?>
@@ -129,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break">
                             <strong><?php echo sr_e(sr_survey_reward_provider_label((string) ($rewardLog['reward_provider'] ?? ''))); ?></strong>
                             <small class="admin-summary-meta">
-                                <?php echo sr_e((string) ($rewardLog['reward_module'] ?? '')); ?>
+                                <?php echo sr_e($surveyRewardModuleLabel((string) ($rewardLog['reward_module'] ?? ''))); ?>
                                 <?php if (($rewardLog['reward_amount'] ?? null) !== null) { ?>
                                     <?php echo sr_e(number_format((int) ($rewardLog['reward_amount'] ?? 0))); ?>
                                 <?php } ?>
@@ -138,7 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-break admin-survey-reward-log-reference-cell">
                             <?php if ($referenceType !== '' || $referenceId !== '') { ?>
-                                <span><?php echo sr_e($referenceType !== '' ? $referenceType : '참조'); ?> #<?php echo sr_e($referenceId !== '' ? $referenceId : '0'); ?></span>
+                                <span><?php echo sr_e($surveyRewardReferenceTypeLabel($referenceType)); ?> #<?php echo sr_e($referenceId !== '' ? $referenceId : '0'); ?></span>
                             <?php } else { ?>
                                 <span class="admin-summary-meta">없음</span>
                             <?php } ?>
@@ -155,6 +169,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_status_description_list_html('survey_reward_log_status', array_combine(sr_survey_reward_log_statuses(), array_map('sr_survey_reward_log_status_label', sr_survey_reward_log_statuses())) ?: []); ?>
 </section>
 
-<?php echo sr_admin_pagination_html($surveyRewardPagination, '설문 리워드 로그 페이지'); ?>
+<?php echo sr_admin_pagination_html($surveyRewardPagination, '설문 보상 로그 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

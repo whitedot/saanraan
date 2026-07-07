@@ -37,18 +37,18 @@
 | 커뮤니티 게시자 보상 실패 | `sr_community_publisher_reward_logs.status = 'failed'` | 즉시 지연 초과 | 게시글/첨부/게시자 ID | `/admin/community/publisher-rewards` |
 | 콘텐츠 작성자 보상 대기 | `sr_content_author_reward_logs.status = 'pending'` | 15분 초과 시 지연 | 제출본/콘텐츠/작성자 ID | `/admin/content/author-rewards` |
 | 콘텐츠 작성자 보상 실패 | `sr_content_author_reward_logs.status = 'failed'` | 즉시 지연 초과 | 제출본/콘텐츠/작성자 ID | `/admin/content/author-rewards` |
-| 알림 delivery 대기 | `sr_notification_deliveries.status IN ('queued', 'processing')` | 1시간 초과 시 지연 | 알림 제목 또는 delivery ID | 알림 delivery 관리 |
-| 알림 delivery 실패 | `sr_notification_deliveries.status IN ('failed', 'dead')` | 즉시 지연 초과 | 알림 제목 또는 delivery ID | 알림 delivery 관리 |
+| 알림 발송 대기 | `sr_notification_deliveries.status IN ('queued', 'processing')` | 1시간 초과 시 지연 | 알림 제목 또는 발송 ID | 알림 발송 관리 |
+| 알림 발송 실패 | `sr_notification_deliveries.status IN ('failed', 'dead')` | 즉시 지연 초과 | 알림 제목 또는 발송 ID | 알림 발송 관리 |
 | 콘텐츠 저장소 정리 대기 | `sr_content_storage_cleanup_failures.status = 'pending'` | 24시간 초과 시 지연 | storage key | 콘텐츠 저장소 정리 실패 목록 |
 | 커뮤니티 저장소 정리 대기 | `sr_community_storage_cleanup_failures.status = 'pending'` | 24시간 초과 시 지연 | storage key | 커뮤니티 저장소 정리 실패 목록 |
 | 게시판 복사 진행 중 | `sr_community_board_copy_jobs.status IN ('pending', 'running')` | 15분 초과 시 지연 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
 | 게시판 복사 실패 | `sr_community_board_copy_jobs.status IN ('failed', 'canceled')` | 즉시 지연 초과 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
 | 커뮤니티 레벨 재계산 진행 중 | `sr_community_level_recalculate_jobs.status = 'running'` | 15분 초과 시 지연 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
 | 커뮤니티 레벨 재계산 실패 | `sr_community_level_recalculate_jobs.status = 'failed'` | 즉시 지연 초과 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
-| 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 리워드 로그 |
-| 퀴즈 보상 지급 실패 | `sr_quiz_reward_grants.status = 'failed'` | 즉시 지연 초과 | 퀴즈 제목 또는 ID | 퀴즈 리워드 로그 |
-| 설문 보상 지급 대기 | `sr_survey_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 설문 제목 또는 ID | 설문 리워드 로그 |
-| 설문 보상 지급 실패 | `sr_survey_reward_grants.status = 'failed'` | 즉시 지연 초과 | 설문 제목 또는 ID | 설문 리워드 로그 |
+| 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 보상 로그 |
+| 퀴즈 보상 지급 실패 | `sr_quiz_reward_grants.status = 'failed'` | 즉시 지연 초과 | 퀴즈 제목 또는 ID | 퀴즈 보상 로그 |
+| 설문 보상 지급 대기 | `sr_survey_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 설문 제목 또는 ID | 설문 보상 로그 |
+| 설문 보상 지급 실패 | `sr_survey_reward_grants.status = 'failed'` | 즉시 지연 초과 | 설문 제목 또는 ID | 설문 보상 로그 |
 | 포인트 만료 처리 대상 | `sr_point_transactions.expires_at <= NOW() AND expires_remaining > 0` | 24시간 초과 시 지연 | 계정 ID | 포인트 만료 CLI 또는 포인트 거래 흐름 |
 
 ## 추가 권장

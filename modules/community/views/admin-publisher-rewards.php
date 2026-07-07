@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '회원 리워드 로그';
+$adminPageTitle = '게시자 보상 로그';
 $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-publisher-rewards admin-ui-scope';
 $publisherRewardFilters = isset($publisherRewardFilters) && is_array($publisherRewardFilters) ? $publisherRewardFilters : ['status' => '', 'q' => ''];
@@ -40,14 +40,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">리워드 로그</h2>
+        <h2 class="card-title">보상 로그</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($publisherRewardPagination); ?>
     </div>
     <div class="table-wrapper">
         <table class="table table-list admin-community-publisher-reward-table">
-            <caption class="sr-only">첨부 다운로드 게시자 리워드 로그</caption>
+            <caption class="sr-only">첨부 다운로드 게시자 보상 로그</caption>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($publisherRewardLogs === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state">리워드 로그가 없습니다.</td>
+                        <td colspan="9" class="admin-empty-state">보상 로그가 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($publisherRewardLogs as $rewardLog) { ?>
@@ -132,6 +132,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_status_description_list_html('community_publisher_reward_status', array_combine(sr_community_publisher_reward_statuses(), array_map('sr_community_publisher_reward_status_label', sr_community_publisher_reward_statuses())) ?: []); ?>
 </section>
 
-<?php echo sr_admin_pagination_html($publisherRewardPagination, '게시자 리워드 로그 페이지'); ?>
+<?php echo sr_admin_pagination_html($publisherRewardPagination, '게시자 보상 로그 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

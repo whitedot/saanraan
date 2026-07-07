@@ -164,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $deliveryStatusTitleParts[] = '다음 시도 ' . (string) $delivery['next_attempt_at'];
                         }
                         if ((string) ($delivery['locked_at'] ?? '') !== '') {
-                            $deliveryStatusTitleParts[] = 'Lock ' . (string) $delivery['locked_at'];
+                            $deliveryStatusTitleParts[] = '처리 점유 ' . (string) $delivery['locked_at'];
                         }
                         $deliveryStatusTitle = $deliveryStatusTitleParts !== [] ? implode(' / ', $deliveryStatusTitleParts) : '';
                         ?>

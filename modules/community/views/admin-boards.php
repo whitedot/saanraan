@@ -1237,7 +1237,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <span class="form-label">게시자 리워드</span>
+                            <span class="form-label">게시자 보상</span>
                             <div class="form-field">
                                 <label class="form-check form-label" for="community_board_paid_attachment_download_publisher_reward_enabled">
                                     <input id="community_board_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
@@ -1247,7 +1247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="community_board_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
+                            <label class="form-label" for="community_board_paid_attachment_download_publisher_reward_rate">게시자 보상 지급률</label>
                             <div class="form-field">
                                 <div class="input-group admin-asset-single-amount-group admin-community-publisher-reward-rate-group">
                                     <input id="community_board_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e($boardField($formBoard, 'paid_attachment_download_publisher_reward_rate', '0')); ?>" class="form-input admin-community-publisher-reward-rate-input">

@@ -40,7 +40,7 @@ return [
             'order' => 28,
         ],
         [
-            'label' => '작성자 리워드 로그',
+            'label' => '작성자 보상 로그',
             'path' => '/admin/content/author-rewards',
             'order' => 28.5,
         ],

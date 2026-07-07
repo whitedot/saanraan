@@ -632,7 +632,7 @@ function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, 
         return sr_survey_issue_coupon_reward_grant($pdo, $survey, $grantId, $responseId, $accountId, $policy, $now);
     }
     if ($provider !== 'ledger_asset' || !isset($assetOptions[$module])) {
-        return sr_survey_mark_reward_grant_failed($pdo, $grantId, '보상 공급자 또는 자산 계약을 찾을 수 없습니다.', $now);
+        return sr_survey_mark_reward_grant_failed($pdo, $grantId, '보상 종류 또는 자산 계약을 찾을 수 없습니다.', $now);
     }
     $transactionFunction = (string) ($assetOptions[$module]['transaction_function'] ?? '');
     if (!function_exists($transactionFunction)) {

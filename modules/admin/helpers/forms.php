@@ -363,7 +363,7 @@ function sr_admin_status_description_options(string $context, array $labels = []
         ],
         'delivery_status' => [
             'queued' => '외부 채널 발송을 기다립니다.',
-            'processing' => '발송 runner가 처리 중입니다.',
+            'processing' => '발송 처리기가 처리 중입니다.',
             'sent' => '외부 채널 발송이 완료되었습니다.',
             'failed' => '발송 실패 후 재시도 또는 확인이 필요합니다.',
             'canceled' => '관리자 또는 정책에 의해 발송이 취소되었습니다.',

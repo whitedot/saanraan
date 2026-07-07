@@ -199,7 +199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="admin-community-board-copy-job-action-right">
                     <?php if ($canRetry) { ?>
-                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('실패 map을 다시 대기 상태로 돌립니다. 이미 복사된 항목은 유지됩니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
+                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('실패 항목을 다시 대기 상태로 돌립니다. 이미 복사된 항목은 유지됩니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
                     <?php } ?>
                     <?php if ($canRun) { ?>
                         <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '다음 단계'); ?></button>

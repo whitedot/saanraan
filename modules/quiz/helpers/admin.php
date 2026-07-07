@@ -529,7 +529,7 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     if ((int) ($values['reward_enabled'] ?? 0) === 1) {
         $rewardProvider = (string) ($values['reward_provider'] ?? 'ledger_asset');
         if (!in_array($rewardProvider, sr_quiz_reward_providers(), true)) {
-            $errors[] = '보상 공급자 값이 올바르지 않습니다.';
+            $errors[] = '보상 종류 값이 올바르지 않습니다.';
         }
         if (!in_array((string) ($values['reward_dedupe_scope'] ?? 'per_quiz'), sr_quiz_reward_dedupe_scopes(), true)) {
             $errors[] = '보상 중복 제한 값이 올바르지 않습니다.';

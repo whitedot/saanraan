@@ -1099,7 +1099,7 @@ function sr_policy_document_mail_jobs(PDO $pdo): array
 {
     $stmt = $pdo->query(
         'SELECT j.id, j.job_key, j.status, j.subject_snapshot, j.dry_run, j.created_at, j.updated_at,
-                d.document_key,
+                d.document_key, d.title AS document_title,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id) AS delivery_count,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "queued") AS queued_count,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "processing") AS processing_count,

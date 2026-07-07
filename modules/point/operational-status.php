@@ -19,5 +19,7 @@ return [
                 LIMIT 5',
     'target_fallback_prefix' => '계정',
     'followup' => '포인트 만료 CLI 또는 다음 포인트 거래 처리 흐름을 확인합니다.',
+    'action_url' => '/admin/points/transactions',
+    'action_label' => '포인트 거래 내역',
   ],
 ];

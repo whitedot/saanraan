@@ -48,7 +48,7 @@ sr_survey_check_contains(
 );
 foreach ([
     "'GET /admin/surveys/reward-logs' => 'actions/admin-reward-logs.php'",
-    "'label' => '리워드 로그'",
+    "'label' => '보상 로그'",
     "'path' => '/admin/surveys/reward-logs'",
 ] as $needle) {
     sr_survey_check_contains(
@@ -82,14 +82,14 @@ foreach ([
     );
 }
 foreach ([
-    '$adminPageTitle = \'설문 리워드 로그\'',
+    '$adminPageTitle = \'설문 보상 로그\'',
     'action="<?php echo sr_e(sr_url(\'/admin/surveys/reward-logs\')); ?>"',
     'filtering filtering-card',
     'survey_reward_log_detail_filters',
     'data-filtering-toggle',
     'data-filtering-reset',
     'name="survey_id"',
-    '리워드 로그가 없습니다.',
+    '보상 로그가 없습니다.',
     'sr_survey_reward_log_status_label',
     'sr_survey_reward_provider_label',
 ] as $needle) {

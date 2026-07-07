@@ -10,7 +10,7 @@ return [
             'order' => 10,
         ],
         [
-            'label' => '리워드 로그',
+            'label' => '보상 로그',
             'path' => '/admin/quiz/attempts',
             'order' => 20,
         ],

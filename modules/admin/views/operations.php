@@ -15,9 +15,6 @@ $statusClass = static function (string $status): string {
         default => 'is-danger',
     };
 };
-$followupUrl = static function (string $label): string {
-    return str_starts_with($label, 'community.board_copy.') ? '/admin/community/board-copy-jobs' : '';
-};
 ?>
 
 <section class="card admin-list-card admin-list-form">
@@ -58,8 +55,9 @@ $followupUrl = static function (string $label): string {
                     $rowMessage = trim((string) ($row['message'] ?? ''));
                     $rowTargets = isset($row['targets']) && is_array($row['targets']) ? $row['targets'] : [];
                     $rowFollowup = (string) ($row['followup'] ?? '');
-                    $rowFollowupUrl = $followupUrl((string) ($row['label'] ?? ''));
-                    $rowFollowupActionLabel = $rowFollowupUrl !== '' ? '게시판 작업 관리' : '';
+                    $rowActionUrl = $rowStatus !== 'ok' ? (string) ($row['action_url'] ?? '') : '';
+                    $rowActionLabel = trim((string) ($row['action_label'] ?? '처리 화면'));
+                    $rowActionLabel = $rowActionLabel !== '' ? $rowActionLabel : '처리 화면';
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">
@@ -68,8 +66,8 @@ $followupUrl = static function (string $label): string {
                             </span>
                         </td>
                         <td class="admin-table-nowrap text-center">
-                            <?php if ($rowFollowupUrl !== '') { ?>
-                                <a href="<?php echo sr_e(sr_url($rowFollowupUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e($rowFollowupActionLabel . ' 바로가기'); ?>" title="<?php echo sr_e($rowFollowupActionLabel); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                            <?php if ($rowActionUrl !== '') { ?>
+                                <a href="<?php echo sr_e(sr_url($rowActionUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e($rowActionLabel . ' 바로가기'); ?>" title="<?php echo sr_e($rowActionLabel); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                             <?php } else { ?>
                                 -
                             <?php } ?>
@@ -92,11 +90,11 @@ $followupUrl = static function (string $label): string {
                         </td>
                         <td class="admin-table-break">
                             <?php if ($rowTargets !== []) { ?>
-                                <ul class="admin-operations-target-list">
+                                <div class="admin-operations-target-list">
                                     <?php foreach ($rowTargets as $target) { ?>
-                                        <li><?php echo sr_e((string) $target); ?></li>
+                                        <div><?php echo sr_e((string) $target); ?></div>
                                     <?php } ?>
-                                </ul>
+                                </div>
                             <?php } else { ?>
                                 -
                             <?php } ?>

@@ -497,7 +497,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></caption>
                 <thead>
                     <tr>
-                        <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
+                        <th><?php echo sr_e(sr_t('policy_documents::ui.document_title')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
                         <th><?php echo sr_e(sr_t('policy_documents::ui.mail_counts')); ?></th>
                         <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
@@ -512,7 +512,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php foreach ($mailJobs as $mailJob) { ?>
                         <?php $mailJobStatus = (string) $mailJob['status']; ?>
                         <tr>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) $mailJob['document_key']); ?></td>
+                            <td class="admin-table-break">
+                                <strong><?php echo sr_e((string) ($mailJob['document_title'] ?? $mailJob['document_key'])); ?></strong>
+                            </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($mailJobStatus)); ?>"><?php echo sr_e($policyDocumentMailStatusLabels[$mailJobStatus] ?? $mailJobStatus); ?></span></td>
                             <td class="admin-table-nowrap">
                                 <?php echo sr_e('완료 ' . number_format((int) $mailJob['sent_count']) . ' / 전체 ' . number_format((int) $mailJob['delivery_count'])); ?>

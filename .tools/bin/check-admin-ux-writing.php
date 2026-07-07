@@ -42,6 +42,8 @@ $blockedPatterns = [
     '/외부 provider|provider secret key|site key와 secret key|프로바이더 타임아웃|프로바이더 공통|산술 문제 fallback/u' => '자동등록방지 설정 문구에는 외부 provider 대신 외부 검사처럼 운영자용 한국어 표현을 쓰세요.',
     '/Mock provider|Mock 제공자|OAuth state|provider client id|provider client secret|provider 라벨|Scope 항목|Scope 추가|Claim path|Claim 선택/u' => '회원 OAuth 설정 문구에는 provider, scope, claim 같은 구현 용어보다 운영자용 한국어 표현을 먼저 쓰세요.',
     '/리액션 Preset|Preset 관리|Preset 추가|Preset 수정|리액션 preset|리액션 레코드|기존 레코드|사용 레코드|reaction key|source row/u' => '리액션 관리자 문구에는 preset/record 같은 내부 표현보다 묶음, 사용 기록, 리액션 키를 쓰세요.',
+    '/리워드 로그|작성자 리워드|게시자 리워드|퀴즈 리워드|설문 리워드/u' => '관리자 보상 화면 문구에는 리워드 대신 보상을 쓰세요.',
+    '/알림 delivery|Dead-letter|Lock 만료|실패 map/u' => '관리자 운영 문구에는 delivery/lock/map 같은 내부 표현보다 발송, 작업 잠금, 항목 같은 한국어 표현을 쓰세요.',
 ];
 
 $scanFiles = ['docs/admin-ui-guide.md', 'modules/admin/helpers/action-results.php'];

@@ -119,13 +119,13 @@ if (sr_request_method() === 'POST') {
     }
     if ((string) $postedSettings['member_submission_author_reward_asset_module'] !== '') {
         if (!isset($assetModuleOptions[(string) $postedSettings['member_submission_author_reward_asset_module']])) {
-            $errors[] = '작성자 리워드 포인트/금액 항목이 올바르지 않습니다.';
+            $errors[] = '작성자 보상 포인트/금액 항목이 올바르지 않습니다.';
         }
         if ($postedAuthorRewardAmount === null || (int) $postedSettings['member_submission_author_reward_amount'] < 1) {
-            $errors[] = '작성자 리워드 금액은 1 이상으로 입력하세요.';
+            $errors[] = '작성자 보상 금액은 1 이상으로 입력하세요.';
         }
     } elseif (!empty($postedSettings['member_submission_author_reward_enabled'])) {
-        $errors[] = '작성자 리워드 포인트/금액 항목을 선택하세요.';
+        $errors[] = '작성자 보상 포인트/금액 항목을 선택하세요.';
     }
     if (!$contentIdentityVerificationAvailable) {
         if (

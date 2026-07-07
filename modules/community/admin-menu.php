@@ -76,7 +76,7 @@ return [
             'order' => 90,
         ],
         [
-            'label' => '리워드 로그',
+            'label' => '보상 로그',
             'path' => '/admin/community/publisher-rewards',
             'order' => 95,
         ],

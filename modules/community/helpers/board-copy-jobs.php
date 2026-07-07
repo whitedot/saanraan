@@ -327,7 +327,7 @@ function sr_community_board_copy_job_run(PDO $pdo, int $jobId, int $accountId, a
 function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $lockToken): void
 {
     if ($jobId < 1 || $lockToken === '') {
-        throw new RuntimeException('복사 작업 lock token이 없습니다.');
+        throw new RuntimeException('복사 작업 잠금 토큰이 없습니다.');
     }
 
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_jobs WHERE id = :id AND status = 'running' AND lock_token = :lock_token");
@@ -336,7 +336,7 @@ function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $l
         'lock_token' => $lockToken,
     ]);
     if ((int) $stmt->fetchColumn() !== 1) {
-        throw new RuntimeException('복사 작업 lock이 만료되었거나 다른 요청이 이어받았습니다.');
+        throw new RuntimeException('복사 작업 잠금이 만료되었거나 다른 요청이 이어받았습니다.');
     }
 }
 

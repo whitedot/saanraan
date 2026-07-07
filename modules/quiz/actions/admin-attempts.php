@@ -76,6 +76,18 @@ foreach ($attempts as $attempt) {
 }
 $attemptAssetOptions = sr_quiz_asset_options($pdo);
 $attemptRewardGrants = sr_quiz_admin_reward_grants_for_attempts($pdo, $attemptIds, $attemptAssetOptions);
+$attemptRewardModuleLabel = static function (string $moduleValue) use ($attemptAssetOptions): string {
+    $labels = [];
+    foreach (array_filter(array_map('trim', explode(',', $moduleValue))) as $moduleKey) {
+        if ($moduleKey === 'coupon') {
+            $labels[] = '쿠폰';
+            continue;
+        }
+        $labels[] = (string) ($attemptAssetOptions[$moduleKey]['label'] ?? $moduleKey);
+    }
+
+    return $labels !== [] ? implode(', ', $labels) : '';
+};
 $attemptCanEdit = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz/attempts', 'edit');
 $attemptReturnTo = sr_admin_current_get_url('/admin/quiz/attempts');
 $attemptReclaimModals = [];
@@ -92,7 +104,7 @@ $grantStatusOptions = [
     'failed' => sr_quiz_reward_grant_status_label('failed'),
 ];
 
-$adminPageTitle = '퀴즈 리워드 로그';
+$adminPageTitle = '퀴즈 보상 로그';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/quiz/attempts');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -131,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">리워드 로그</h2>
+        <h2 class="card-title">보상 로그</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php if (empty($attemptSort['is_default'])) { ?>
@@ -221,7 +233,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break">
                             <span class="admin-status <?php echo sr_e($rewardStatusClass); ?>"><?php echo sr_e($rewardLabel); ?></span>
                             <?php if ($grantCount > 0) { ?>
-                                <br><span class="admin-summary-meta"><?php echo sr_e((string) ($attempt['reward_modules'] ?? '')); ?> <?php echo sr_e(number_format((int) ($attempt['reward_amount_total'] ?? 0))); ?></span>
+                                <br><span class="admin-summary-meta"><?php echo sr_e($attemptRewardModuleLabel((string) ($attempt['reward_modules'] ?? ''))); ?> <?php echo sr_e(number_format((int) ($attempt['reward_amount_total'] ?? 0))); ?></span>
                             <?php } ?>
                             <?php if ((string) ($attempt['error_message'] ?? '') !== '') { ?>
                                 <br><span class="admin-summary-meta"><?php echo sr_e((string) $attempt['error_message']); ?></span>
@@ -247,7 +259,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         ?>
                                         <div class="admin-summary-meta admin-quiz-reward-grant">
                                             <span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($grantStatus)); ?>"><?php echo sr_e(sr_quiz_reward_grant_status_label($grantStatus)); ?></span>
-                                            <span><?php echo sr_e(sr_quiz_reward_provider_label((string) ($grant['reward_provider'] ?? ''))); ?> · <?php echo sr_e((string) ($grant['reward_module'] ?? '')); ?> <?php echo sr_e(number_format((int) ($grant['reward_amount'] ?? 0))); ?></span>
+                                            <span><?php echo sr_e(sr_quiz_reward_provider_label((string) ($grant['reward_provider'] ?? ''))); ?> · <?php echo sr_e($attemptRewardModuleLabel((string) ($grant['reward_module'] ?? ''))); ?> <?php echo sr_e(number_format((int) ($grant['reward_amount'] ?? 0))); ?></span>
                                             <?php if ($grantRemainingAmount > 0) { ?>
                                                 <span>회수 가능 <?php echo sr_e(number_format($grantRemainingAmount)); ?></span>
                                             <?php } ?>

@@ -416,7 +416,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     }
     if ($rewardEnabled) {
         if (!in_array($rewardProvider, sr_survey_reward_providers(), true)) {
-            $errors[] = '보상 공급자 값이 올바르지 않습니다.';
+            $errors[] = '보상 종류 값이 올바르지 않습니다.';
         }
         if (!in_array($rewardDedupeScope, sr_survey_reward_dedupe_scopes(), true)) {
             $errors[] = '보상 중복 기준 값이 올바르지 않습니다.';

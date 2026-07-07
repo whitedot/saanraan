@@ -19,7 +19,9 @@ return [
                 LIMIT 5',
     'target_format' => '퀴즈 #{quiz_id} / 시도 #{attempt_id}',
     'target_fallback_prefix' => '퀴즈',
-    'followup' => '/admin/quiz/attempts 리워드 로그에서 보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
+    'followup' => '/admin/quiz/attempts 보상 로그에서 보상 정책과 자산 또는 쿠폰 지급 상태를 확인합니다.',
+    'action_url' => '/admin/quiz/attempts?grant_status[]=pending',
+    'action_label' => '퀴즈 보상 로그',
   ],
   [
     'label' => 'quiz.reward_grants.failed',
@@ -37,6 +39,8 @@ return [
                 LIMIT 5',
     'target_format' => '퀴즈 #{quiz_id} / 시도 #{attempt_id}',
     'target_fallback_prefix' => '퀴즈',
-    'followup' => '/admin/quiz/attempts 리워드 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
+    'followup' => '/admin/quiz/attempts 보상 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
+    'action_url' => '/admin/quiz/attempts?grant_status[]=failed',
+    'action_label' => '퀴즈 보상 로그',
   ],
 ];

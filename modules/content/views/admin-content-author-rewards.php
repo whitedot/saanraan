@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '작성자 리워드 로그';
+$adminPageTitle = '작성자 보상 로그';
 $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-content-author-rewards admin-ui-scope';
 $authorRewardFilters = isset($authorRewardFilters) && is_array($authorRewardFilters) ? $authorRewardFilters : ['status' => '', 'q' => ''];
@@ -39,14 +39,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">리워드 로그</h2>
+        <h2 class="card-title">보상 로그</h2>
     </div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($authorRewardPagination); ?>
     </div>
     <div class="table-wrapper">
         <table class="table table-list admin-content-author-reward-table">
-            <caption class="sr-only">회원 제출 콘텐츠 작성자 리워드 로그</caption>
+            <caption class="sr-only">회원 제출 콘텐츠 작성자 보상 로그</caption>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -62,7 +62,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($authorRewardLogs === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state">리워드 로그가 없습니다.</td>
+                        <td colspan="8" class="admin-empty-state">보상 로그가 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($authorRewardLogs as $rewardLog) { ?>
@@ -130,6 +130,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_status_description_list_html('content_author_reward_status', array_combine(sr_content_author_reward_statuses(), array_map('sr_content_author_reward_status_label', sr_content_author_reward_statuses())) ?: []); ?>
 </section>
 
-<?php echo sr_admin_pagination_html($authorRewardPagination, '작성자 리워드 로그 페이지'); ?>
+<?php echo sr_admin_pagination_html($authorRewardPagination, '작성자 보상 로그 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

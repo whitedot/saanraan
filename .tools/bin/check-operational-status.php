@@ -36,6 +36,8 @@ function sr_operational_status_fixture_check(PDO $pdo): void
         'warn_after_seconds' => 3600,
         'target_sql' => "SELECT status AS target_label, id AS target_fallback FROM sr_fixture_operation_queue WHERE status = 'pending' ORDER BY updated_at ASC, id ASC LIMIT 5",
         'followup' => 'fixture followup',
+        'action_url' => '/admin/fixture-queue?status=pending',
+        'action_label' => 'Fixture queue',
     ];
 
     $row = sr_admin_operational_status_row($pdo, $baseCheck);
@@ -50,6 +52,9 @@ function sr_operational_status_fixture_check(PDO $pdo): void
     if ((string) ($row['status'] ?? '') !== 'warning' || (int) ($row['count'] ?? 0) !== 1 || !is_int($row['age_seconds'] ?? null)) {
         sr_operational_status_error('Fixture recent pending queue should be warning with age_seconds.');
     }
+    if ((string) ($row['action_url'] ?? '') !== '/admin/fixture-queue?status=pending' || (string) ($row['action_label'] ?? '') !== 'Fixture queue') {
+        sr_operational_status_error('Fixture recent pending queue should preserve safe action metadata.');
+    }
     if (($row['targets'] ?? []) !== ['pending']) {
         sr_operational_status_error('Fixture recent pending queue should include target labels.');
     }
@@ -57,9 +62,17 @@ function sr_operational_status_fixture_check(PDO $pdo): void
     $formattedCheck = $baseCheck;
     $formattedCheck['target_sql'] = "SELECT status, id AS target_fallback FROM sr_fixture_operation_queue WHERE status = 'pending' ORDER BY updated_at ASC, id ASC LIMIT 5";
     $formattedCheck['target_format'] = '상태 {status}';
+    $formattedCheck['target_value_labels'] = ['status' => ['pending' => '대기']];
     $row = sr_admin_operational_status_row($pdo, $formattedCheck);
-    if (($row['targets'] ?? []) !== ['상태 pending']) {
-        sr_operational_status_error('Fixture formatted target labels should be built from selected columns.');
+    if (($row['targets'] ?? []) !== ['상태 대기']) {
+        sr_operational_status_error('Fixture formatted target labels should apply configured value labels.');
+    }
+
+    $invalidActionCheck = $baseCheck;
+    $invalidActionCheck['action_url'] = 'https://example.com/admin';
+    $row = sr_admin_operational_status_row($pdo, $invalidActionCheck);
+    if ((string) ($row['action_url'] ?? '') !== '') {
+        sr_operational_status_error('Fixture unsafe action URL should be dropped.');
     }
 
     $oldAt = date('Y-m-d H:i:s', time() - 7200);
@@ -173,7 +186,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
         $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
         $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
     }
-    $pdo->exec('CREATE TABLE sr_policy_documents (id INTEGER PRIMARY KEY AUTOINCREMENT, document_key TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_policy_documents (id INTEGER PRIMARY KEY AUTOINCREMENT, document_key TEXT NOT NULL, title TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_policy_document_versions (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_policy_document_mail_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, document_id INTEGER NOT NULL, version_id INTEGER NOT NULL, job_key TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, source_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
@@ -190,7 +203,7 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     $dueAt = date('Y-m-d H:i:s', time() - 90000);
     $futureAt = date('Y-m-d H:i:s', time() + 90000);
 
-    $pdo->exec("INSERT INTO sr_policy_documents (id, document_key) VALUES (1, 'member_terms')");
+    $pdo->exec("INSERT INTO sr_policy_documents (id, document_key, title) VALUES (1, 'member_terms', '이용약관')");
     $pdo->exec('INSERT INTO sr_policy_document_versions (id, document_id) VALUES (1, 1)');
     $stmt = $pdo->prepare('INSERT INTO sr_policy_document_mail_jobs (document_id, version_id, job_key, status, updated_at) VALUES (:document_id, :version_id, :job_key, :status, :updated_at)');
     $stmt->execute(['document_id' => 1, 'version_id' => 1, 'job_key' => 'member_terms:queued', 'status' => 'queued', 'updated_at' => $oldAt]);
@@ -239,8 +252,8 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if ((string) ($byLabel['policy_documents.mail_jobs.queued']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture queued policy document mail job should be overdue.');
     }
-    if (($byLabel['policy_documents.mail_jobs.queued']['targets'] ?? []) !== ['member_terms']) {
-        sr_operational_status_error('Bundle fixture queued policy document mail job should hide internal version keys from operator targets.');
+    if (($byLabel['policy_documents.mail_jobs.queued']['targets'] ?? []) !== ['이용약관']) {
+        sr_operational_status_error('Bundle fixture queued policy document mail job should show document titles instead of internal keys.');
     }
     if ((string) ($byLabel['policy_documents.mail_jobs.failed']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture failed policy document mail job should be overdue immediately.');
@@ -248,13 +261,13 @@ function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
     if ((string) ($byLabel['asset_recovery.open']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture open asset recovery should be overdue immediately.');
     }
-    if (($byLabel['asset_recovery.open']['targets'] ?? []) !== ['community post#10 / 계정 #7']) {
+    if (($byLabel['asset_recovery.open']['targets'] ?? []) !== ['커뮤니티 게시글#10 / 계정 #7']) {
         sr_operational_status_error('Bundle fixture open asset recovery should include source, subject, and account target.');
     }
     if ((string) ($byLabel['community.asset_recovery_legacy.open']['status'] ?? '') !== 'overdue') {
         sr_operational_status_error('Bundle fixture open legacy community asset recovery should be overdue immediately.');
     }
-    if (($byLabel['community.asset_recovery_legacy.open']['targets'] ?? []) !== ['point community.comment#11 / 계정 #8']) {
+    if (($byLabel['community.asset_recovery_legacy.open']['targets'] ?? []) !== ['포인트 커뮤니티 댓글#11 / 계정 #8']) {
         sr_operational_status_error('Bundle fixture open legacy community asset recovery should include asset module, subject, and account target.');
     }
     if ((int) ($byLabel['notification.deliveries.queued']['count'] ?? 0) !== 1) {
@@ -598,6 +611,10 @@ foreach ([
     'function sr_admin_operational_status_age_seconds(string $value): ?int',
     'function sr_admin_operational_status_safe_where(string $value): bool',
     'function sr_admin_operational_status_format_target(array $row, string $format): string',
+    'function sr_admin_operational_status_apply_target_value_labels(array $row, array $valueLabels): array',
+    'function sr_admin_operational_status_action_url(array $check): string',
+    'target_value_labels',
+    'action_url',
     'function sr_admin_operational_status_cli_row_line(array $row): string',
     'function sr_admin_operational_status_cli_summary_line(array $summary): string',
     "'overdue' => 0",
@@ -614,7 +631,7 @@ foreach ([
     'function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $lockToken): void',
     'function sr_community_board_copy_job_map_status_counts(PDO $pdo, int $jobId): array',
     'function sr_community_board_copy_job_failed_maps(PDO $pdo, int $jobId, int $limit = 10): array',
-    '복사 작업 lock이 만료되었거나 다른 요청이 이어받았습니다.',
+    '복사 작업 잠금이 만료되었거나 다른 요청이 이어받았습니다.',
 ] as $marker) {
     $boardCopyJobs = is_file('modules/community/helpers/board-copy-jobs.php') ? file_get_contents('modules/community/helpers/board-copy-jobs.php') : false;
     if (!is_string($boardCopyJobs) || !str_contains($boardCopyJobs, $marker)) {
@@ -625,7 +642,7 @@ foreach ([
 foreach ([
     '단계별 처리 현황',
     '실패 항목',
-    '실패 map을 다시 대기 상태로 돌립니다.',
+    '실패 항목을 다시 대기 상태로 돌립니다.',
 ] as $marker) {
     $boardCopyJobsView = is_file('modules/community/views/admin-board-copy-jobs.php') ? file_get_contents('modules/community/views/admin-board-copy-jobs.php') : false;
     if (!is_string($boardCopyJobsView) || !str_contains($boardCopyJobsView, $marker)) {
@@ -706,10 +723,10 @@ foreach ([
     '<th class="text-center">바로가기</th>',
     '<th>대상</th>',
     'colspan="9"',
-    'admin-operations-target-list',
-    'community.board_copy.',
-    '/admin/community/board-copy-jobs',
-    '게시판 작업 관리',
+    '<div class="admin-operations-target-list">',
+    "\$rowActionUrl = \$rowStatus !== 'ok' ?",
+    "\$row['action_url'] ?? ''",
+    "\$rowActionLabel",
     'btn btn-sm btn-icon btn-outline-secondary',
     "sr_material_icon_html('open_in_new')",
     'sr_admin_time_html($operationStatusCheckedAt)',

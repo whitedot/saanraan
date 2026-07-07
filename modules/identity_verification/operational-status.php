@@ -19,7 +19,17 @@ return [
                     ORDER BY expires_at ASC, id ASC
                     LIMIT 5",
         'target_format' => '{provider_key} {purpose}',
+        'target_value_labels' => [
+            'purpose' => [
+                'registration' => '회원가입',
+                'password_reset' => '비밀번호 재설정',
+                'content.author_application' => '콘텐츠 작성자 신청',
+                'member.withdrawal' => '회원 탈퇴',
+            ],
+        ],
         'target_fallback_prefix' => '본인확인 시도',
-        'followup' => 'provider return/callback 실패나 사용자 이탈 여부를 확인하고 보관 정리 대상에 포함합니다.',
+        'followup' => '본인확인 제공자 응답 실패나 사용자 이탈 여부를 확인하고 보관 정리 대상에 포함합니다.',
+        'action_url' => '/admin/identity-verifications',
+        'action_label' => '본인확인 이력',
     ],
 ];

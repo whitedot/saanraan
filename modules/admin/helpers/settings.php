@@ -164,7 +164,7 @@ function sr_admin_code_label_context_options(): array
             'sent' => '발송 완료',
             'failed' => '실패',
             'canceled' => '취소',
-            'dead' => 'Dead-letter',
+            'dead' => '재시도 제외',
         ],
         'url_embed_status' => [
             'active' => '정상',
@@ -283,7 +283,7 @@ function sr_admin_code_label_context_options(): array
             'deposit_refund_request' => '예치금 환불 신청',
             'quiz' => '퀴즈',
             'quiz_comment' => '퀴즈 댓글',
-            'quiz_reward_grant' => '퀴즈 리워드 지급',
+            'quiz_reward_grant' => '퀴즈 보상 지급',
             'quiz_set' => '퀴즈 세트',
             'reaction_definition' => '리액션 정의',
             'reaction_preset' => '리액션 프리셋',

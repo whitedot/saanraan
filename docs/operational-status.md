@@ -34,31 +34,33 @@ php .tools/bin/ops-status.php --help
 
 | 항목 | 의미 | 허용 지연 | 후속 확인 |
 | --- | --- | --- | --- |
-| `policy_documents.mail_jobs.queued` | 정책 문서 안내메일 발송 작업이 대기 중 | 1시간 | `/admin/policy-documents` 발송 배치와 delivery 상태 |
-| `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | `/admin/policy-documents` 실패 delivery 재대기/취소, 메일 설정, 재발송 기준 |
+| `identity_verification.expired_pending` | 유효 시간이 지난 본인확인 시도가 아직 대기 상태 | 즉시 | `/admin/identity-verifications` 이력에서 본인확인 제공자 응답 실패나 사용자 이탈 확인 |
+| `policy_documents.mail_jobs.queued` | 정책 문서 안내메일 발송 작업이 대기 중 | 1시간 | `/admin/policy-documents` 발송 배치와 발송 상태 |
+| `policy_documents.mail_jobs.failed` | 정책 문서 안내메일 발송 작업 실패 | 즉시 | `/admin/policy-documents` 실패 발송 작업 재대기/취소, 메일 설정, 재발송 기준 |
 | `asset_recovery.open` | 포인트/금액 회수 실패가 미해소 상태로 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 재회수, 수동 해소, 취소 기준 |
-| `community.asset_recovery_legacy.open` | 커뮤니티 legacy 자산 미회수 row가 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 공통 미회수 큐와 legacy 잔여 row |
+| `community.asset_recovery_legacy.open` | 커뮤니티 이전 자산 미회수 기록이 남아 있음 | 즉시 | `/admin/assets/recovery-failures` 공통 미회수 대기열과 이전 잔여 기록 |
 | `community.publisher_rewards.pending` | 커뮤니티 첨부 다운로드 게시자 보상 로그가 대기 중 | 15분 | `/admin/community/publisher-rewards` 보상 로그와 자산 지급 상태 |
-| `community.publisher_rewards.failed` | 커뮤니티 첨부 다운로드 게시자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
+| `community.publisher_rewards.failed` | 커뮤니티 첨부 다운로드 게시자 보상 실패 | 즉시 | `/admin/community/publisher-rewards` 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
 | `content.author_rewards.pending` | 회원 제출 콘텐츠 작성자 보상 로그가 대기 중 | 15분 | `/admin/content/author-rewards` 보상 로그와 자산 지급 상태 |
-| `content.author_rewards.failed` | 회원 제출 콘텐츠 작성자 보상 실패 | 즉시 | 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
-| `notification.deliveries.queued` | 이메일 등 외부 delivery가 대기 또는 처리 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정, runner 실행 상태 |
-| `notification.deliveries.failed` | delivery 실패 또는 dead-letter가 남아 있음 | 즉시 | 실패 사유, 설정 수정, 재발송 또는 취소 기준 |
-| `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | 콘텐츠 관리자 정리 실패 목록과 재시도 |
-| `community.storage_cleanup.pending` | 커뮤니티 삭제 후 저장소 파일 정리 실패 | 24시간 | 게시판 관리자 정리 실패 목록과 재시도 |
-| `community.board_copy.active` | 게시판 복사 작업이 대기 또는 실행 중 | 15분 | 복사 작업 진행 상태와 lock 만료 |
+| `content.author_rewards.failed` | 회원 제출 콘텐츠 작성자 보상 실패 | 즉시 | `/admin/content/author-rewards` 실패 사유, 중복 지급 가능성, 수동 처리 기준 |
+| `notification.deliveries.queued` | 이메일 등 외부 발송 작업이 대기 또는 처리 중 | 1시간 | `/admin/notification-deliveries` 발송 목록, 외부 발송 설정, 처리기 실행 상태 |
+| `notification.deliveries.failed` | 발송 실패 또는 재시도 제외 작업이 남아 있음 | 즉시 | `/admin/notification-deliveries` 실패 사유, 설정 수정, 재발송 또는 취소 기준 |
+| `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | `/admin/content-groups` 콘텐츠 저장소 정리 실패 목록과 재시도 |
+| `community.storage_cleanup.pending` | 커뮤니티 삭제 후 저장소 파일 정리 실패 | 24시간 | `/admin/community/boards` 게시판 저장소 정리 실패 목록과 재시도 |
+| `community.board_copy.active` | 게시판 복사 작업이 대기 또는 실행 중 | 15분 | `/admin/community/board-copy-jobs` 복사 작업 진행 상태와 작업 잠금 만료 |
 | `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | `/admin/community/board-copy-jobs` 실패 단계, 실패 항목, 부분 생성물 정리 |
 | `community.level_recalculate.running` | 커뮤니티 레벨 재계산 작업이 실행 중 | 15분 | `/admin/community/levels` 재계산 진행 상태와 재실행 필요 여부 |
-| `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | 실패 사유, 재실행 가능 여부 |
-| `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | `/admin/quiz/attempts` 리워드 로그에서 보상 정책, 자산/쿠폰 provider 상태 확인 |
-| `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | `/admin/quiz/attempts` 리워드 로그에서 관리자 복구 또는 수동 완료 판단 |
-| `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | `/admin/surveys/reward-logs` 리워드 로그에서 보상 정책, 자산/쿠폰 provider 상태 확인 |
-| `survey.reward_grants.failed` | 설문 보상 지급 실패 | 즉시 | `/admin/surveys/reward-logs` 리워드 로그에서 관리자 복구 또는 수동 완료 판단 |
-| `point.expiration.due` | 만료 시각이 지난 포인트 잔여분 | 24시간 | `php .tools/bin/expire-points.php` 또는 다음 포인트 거래 |
+| `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | `/admin/community/levels` 실패 사유, 재실행 가능 여부 |
+| `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | `/admin/quiz/attempts` 보상 로그에서 보상 정책, 자산/쿠폰 지급 상태 확인 |
+| `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | `/admin/quiz/attempts` 보상 로그에서 관리자 복구 또는 수동 완료 판단 |
+| `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | `/admin/surveys/reward-logs` 보상 로그에서 보상 정책, 자산/쿠폰 지급 상태 확인 |
+| `survey.reward_grants.failed` | 설문 보상 지급 실패 | 즉시 | `/admin/surveys/reward-logs` 보상 로그에서 관리자 복구 또는 수동 완료 판단 |
+| `payment_ledger.pending_reversal` | 결제 기록 항목의 되돌림 상태가 대기 중 | 즉시 | 결제 기록을 소유한 도메인 모듈의 취소/환불 흐름 |
+| `point.expiration.due` | 만료 시각이 지난 포인트 잔여분 | 24시간 | `php .tools/bin/expire-points.php` 또는 다음 포인트 거래, `/admin/points/transactions` 대상 거래 확인 |
 
 미설치 환경에서는 명령이 `saanraan is not installed.`를 출력하고 종료한다. 모듈이 비활성화되어 있으면 해당 항목은 `skipped`로 표시한다.
 
-관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시한다. 화면은 데이터를 바꾸지 않으므로 재시도나 정정은 각 소유 모듈의 관리자 action에서 처리한다.
+관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시하고, 내부 key는 가능한 경우 한국어 라벨로 바꾼다. 화면은 데이터를 바꾸지 않으므로 재시도나 정정은 각 소유 모듈의 관리자 action에서 처리한다. 상태가 `정상`이 아닌 행은 소유 모듈 계약의 안전한 내부 `action_url`이 있으면 바로가기 버튼을 표시한다.
 
 운영 상태 점검 정의는 각 소유 모듈의 `operational-status.php` 계약 파일이 제공하고, 관리자 모듈은 활성 모듈의 계약을 읽어 read-only 점검 행으로 조율한다. `table`과 `age_column`은 단일 SQL 식별자만 허용하고, `where` 조건은 세미콜론, SQL 주석, DDL/DML 키워드가 있으면 오류로 처리한다. `.tools/bin/check-operational-status.php`는 안전한 조건, 위험한 식별자, 위험한 `where` 조건, CLI row/summary 출력 형식, 번들 신호 일부의 실제 count/overdue 계산을 SQLite fixture로 확인해 read-only 점검 경계를 유지한다.
 
@@ -66,15 +68,15 @@ php .tools/bin/ops-status.php --help
 
 ### 정책 문서 안내메일 기준
 
-정책 문서 version을 published 상태로 만들면 `sr_policy_document_mail_jobs`와 회원별 `sr_policy_document_mail_deliveries`가 생성된다. 미래 시행일을 지정한 version도 먼저 published로 고지할 수 있으며, 안내메일 본문에는 시행일을 포함한다. 같은 문서의 새 안내메일 작업이 생성되면 기존의 `queued`, `processing`, `failed` 작업은 더 오래된 변경 안내로 보고 남은 delivery를 `cancelled`로 닫는다. 발송 batch는 `queued` delivery 또는 오래된 `processing` claim만 먼저 `processing`으로 claim한 뒤, 그 요청이 claim한 row만 발송한다. 따라서 같은 job을 운영자가 다시 실행하거나 cron 후보로 옮기더라도 아직 claim하지 못한 row를 중복 발송하지 않는다.
+정책 문서 버전을 published 상태로 만들면 `sr_policy_document_mail_jobs`와 회원별 `sr_policy_document_mail_deliveries`가 생성된다. 미래 시행일을 지정한 버전도 먼저 published로 고지할 수 있으며, 안내메일 본문에는 시행일을 포함한다. 같은 문서의 새 안내메일 작업이 생성되면 기존의 `queued`, `processing`, `failed` 작업은 더 오래된 변경 안내로 보고 남은 발송 작업을 `cancelled`로 닫는다. 발송 배치는 `queued` 발송 작업 또는 오래된 `processing` 점유 작업만 먼저 `processing`으로 점유한 뒤, 그 요청이 점유한 행만 발송한다. 따라서 같은 작업을 운영자가 다시 실행하거나 cron 후보로 옮기더라도 아직 점유하지 못한 행을 중복 발송하지 않는다.
 
-delivery 상태는 `queued`, `processing`, `sent`, `failed`, `skipped`, `cancelled`로 본다. 비활성 회원은 `skipped`로 닫고, 발송 실패 row는 `/admin/policy-documents`에서 `queued`로 되돌려 재시도하거나 `cancelled`로 닫는다. `sent`는 터미널 상태로 보고 재대기나 취소 대상으로 되돌리지 않는다. 취소는 아직 완료되지 않은 `queued`, `processing`, `failed`만 닫으며, 작업 목록에는 대기/처리중/실패/건너뜀/취소 count를 함께 표시한다.
+발송 상태는 `queued`, `processing`, `sent`, `failed`, `skipped`, `cancelled`로 본다. 비활성 회원은 `skipped`로 닫고, 발송 실패 행은 `/admin/policy-documents`에서 `queued`로 되돌려 재시도하거나 `cancelled`로 닫는다. `sent`는 터미널 상태로 보고 재대기나 취소 대상으로 되돌리지 않는다. 취소는 아직 완료되지 않은 `queued`, `processing`, `failed`만 닫으며, 작업 목록에는 대기/처리중/실패/건너뜀/취소 수를 함께 표시한다.
 
-### 알림 delivery 재시도/취소 기준
+### 알림 발송 재시도/취소 기준
 
-`/admin/notification-deliveries`는 외부 발송 작업 상태를 확인하고 이메일 delivery runner를 수동 실행할 수 있다. runner는 `queued` 작업을 `processing`으로 claim한 뒤 성공하면 `sent`, 실패하면 backoff를 둔 `queued` 또는 최대 시도 초과 시 `dead`로 전환한다. 재시도는 `failed`, `canceled`, `dead` 상태를 `queued`로 되돌리는 작업이며, 이때 provider message ID, 오류 메시지, 시도 시각, lock, 다음 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued`, `processing`, `failed`, `dead` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed`, `dead`, `sent`로 표시하는 전이는 운영자가 외부 provider 상태를 확인한 뒤 수행하며, 모든 상태 변경과 수동 runner 실행은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 상태 업데이트, 감사 로그 기록을 거쳐야 한다.
+`/admin/notification-deliveries`는 외부 발송 작업 상태를 확인하고 이메일 발송 처리기를 수동 실행할 수 있다. 처리기는 `queued` 작업을 `processing`으로 점유한 뒤 성공하면 `sent`, 실패하면 재시도 대기 `queued` 또는 최대 시도 초과 시 `dead`로 전환한다. 재시도는 `failed`, `canceled`, `dead` 상태를 `queued`로 되돌리는 작업이며, 이때 외부 발송 메시지 ID, 오류 메시지, 시도 시각, 처리 점유, 다음 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued`, `processing`, `failed`, `dead` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed`, `dead`, `sent`로 표시하는 전이는 운영자가 외부 발송 상태를 확인한 뒤 수행하며, 모든 상태 변경과 수동 처리기 실행은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 상태 업데이트, 감사 로그 기록을 거쳐야 한다.
 
-알림 delivery 기본 실행 모델은 공유호스팅을 기준으로 한다. 웹 GET 요청 말미에는 설정된 간격마다 작은 배치만 처리하고, 관리자는 `/admin/notification-deliveries`에서 대기 작업을 수동 실행할 수 있다. cron이 가능한 환경에서는 다음 CLI runner를 권장한다.
+알림 발송 기본 실행 모델은 공유호스팅을 기준으로 한다. 웹 GET 요청 말미에는 설정된 간격마다 작은 배치만 처리하고, 관리자는 `/admin/notification-deliveries`에서 대기 작업을 수동 실행할 수 있다. cron이 가능한 환경에서는 다음 CLI 처리기를 권장한다.
 
 ```sh
 php .tools/bin/run-notification-deliveries.php
@@ -117,11 +119,11 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 | 작업 | 지연 허용 | 주의 기준 |
 | --- | --- | --- |
 | 사이트 알림 생성 | 낮음 | 생성 실패가 원 업무 실패로 전파되지 않아야 함 |
-| 이메일 delivery | 중간, 1시간 | `queued`/`processing`이 오래 남거나 `failed`/`dead`가 증가하면 provider 설정과 runner 확인 |
+| 이메일 발송 | 중간, 1시간 | `queued`/`processing`이 오래 남거나 `failed`/`dead`가 증가하면 외부 발송 설정과 처리기 확인 |
 | 포인트 만료 | 중간, 24시간 | 만료 예정 잔여분이 누적되면 수동 만료 실행 |
 | 저장소 파일 정리 | 중간, 24시간 | 실패 항목이 계속 남으면 파일 유실/권한 문제 확인 |
-| 게시판 복사 | 낮음, 15분 | `running` lock이 오래 유지되면 takeover 또는 실패 처리 기준 확인 |
-| 커뮤니티 레벨 재계산 | 낮음, 15분 | `running` job이 오래 남거나 `failed`가 생기면 재계산 재실행 필요 여부 확인 |
+| 게시판 복사 | 낮음, 15분 | `running` 작업 잠금이 오래 유지되면 이어받기 또는 실패 처리 기준 확인 |
+| 커뮤니티 레벨 재계산 | 낮음, 15분 | `running` 작업이 오래 남거나 `failed`가 생기면 재계산 재실행 필요 여부 확인 |
 | 콘텐츠/커뮤니티/퀴즈/설문 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
 
 ## Cron 후보
@@ -159,13 +161,13 @@ php .tools/bin/run-notification-deliveries.php --help
 - 보상 지급 pending/failed 상태
 - 실패가 회귀인지, 환경 미준비인지, 기존 보완 항목인지
 
-## Board Copy Lock 기준
+## 게시판 복사 잠금 기준
 
-게시판 복사 batch job의 `lock_token`은 fencing token이다. 실행 요청이 lock을 얻은 뒤 stage를 처리할 때는 현재 job row가 `running` 상태이고 같은 `lock_token`을 유지하는지 확인한다. token을 잃은 요청은 map 상태, 복사 결과, cleanup 결과를 계속 쓰면 안 된다.
+게시판 복사 배치 작업의 `lock_token`은 중복 쓰기를 막는 점유 토큰이다. 실행 요청이 작업 잠금을 얻은 뒤 단계를 처리할 때는 현재 작업 행이 `running` 상태이고 같은 `lock_token`을 유지하는지 확인한다. 토큰을 잃은 요청은 항목 상태, 복사 결과, 정리 결과를 계속 쓰면 안 된다.
 
-`.tools/bin/check-community-board-copy-job-lock.php`는 이 기준을 고정한다. 체커는 `sr_community_board_copy_job_assert_lock()`이 stale token, 빈 token, 종료된 job을 거부하는지 SQLite fixture로 확인하고, stage/map 처리 helper가 lock token을 받는 marker를 점검한다.
+`.tools/bin/check-community-board-copy-job-lock.php`는 이 기준을 고정한다. 체커는 `sr_community_board_copy_job_assert_lock()`이 오래된 토큰, 빈 토큰, 종료된 작업을 거부하는지 SQLite fixture로 확인하고, 단계/항목 처리 helper가 `lock_token`을 받는 marker를 점검한다.
 
 ## 1.0 전 보강 대상
 
-- 게시판 복사 job lock 만료 takeover와 늦은 쓰기 거부를 설치 DB 또는 staging에서 smoke 기록으로 남긴다.
+- 게시판 복사 작업 잠금 만료 이어받기와 늦은 쓰기 거부를 설치 DB 또는 staging에서 smoke 기록으로 남긴다.
 - 퀴즈/설문 보상 실패 복구 절차를 자산 reconciliation과 연결해 기록한다.

@@ -33,5 +33,6 @@ $surveyRewardProviderOptions = [];
 foreach (sr_survey_reward_providers() as $provider) {
     $surveyRewardProviderOptions[$provider] = sr_survey_reward_provider_label($provider);
 }
+$surveyRewardAssetOptions = sr_survey_asset_options($pdo);
 
 include SR_ROOT . '/modules/survey/views/admin-reward-logs.php';

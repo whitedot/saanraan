@@ -19,7 +19,9 @@ return [
                 LIMIT 5',
     'target_format' => '설문 #{survey_id} / 응답 #{response_id}',
     'target_fallback_prefix' => '설문',
-    'followup' => '/admin/surveys/reward-logs 리워드 로그에서 보상 정책과 자산 또는 쿠폰 provider 상태를 확인합니다.',
+    'followup' => '/admin/surveys/reward-logs 보상 로그에서 보상 정책과 자산 또는 쿠폰 지급 상태를 확인합니다.',
+    'action_url' => '/admin/surveys/reward-logs?status=pending',
+    'action_label' => '설문 보상 로그',
   ],
   [
     'label' => 'survey.reward_grants.failed',
@@ -37,6 +39,8 @@ return [
                 LIMIT 5',
     'target_format' => '설문 #{survey_id} / 응답 #{response_id}',
     'target_fallback_prefix' => '설문',
-    'followup' => '/admin/surveys/reward-logs 리워드 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
+    'followup' => '/admin/surveys/reward-logs 보상 로그에서 중복 지급 없이 복구할 수 있는지 확인합니다.',
+    'action_url' => '/admin/surveys/reward-logs?status=failed',
+    'action_label' => '설문 보상 로그',
   ],
 ];

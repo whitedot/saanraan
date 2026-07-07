@@ -15,7 +15,7 @@ return [
             'order' => 20,
         ],
         [
-            'label' => '리워드 로그',
+            'label' => '보상 로그',
             'path' => '/admin/surveys/reward-logs',
             'order' => 25,
         ],

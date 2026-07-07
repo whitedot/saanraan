@@ -929,7 +929,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="survey_reward_provider">보상 공급자</label>
+                    <label class="form-label" for="survey_reward_provider">보상 종류</label>
                     <div class="form-field">
                         <?php $policyProvider = is_array($editPolicy) ? (string) ($editPolicy['reward_provider'] ?? 'ledger_asset') : 'ledger_asset'; ?>
                         <select id="survey_reward_provider" name="reward_provider" class="form-select">

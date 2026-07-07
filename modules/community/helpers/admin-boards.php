@@ -512,7 +512,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             $errors = array_merge($errors, sr_community_asset_policy_set_asset_match_errors($pdo, $assetPolicySetIds, $assetModulesForPolicy, $assetLabel));
         }
         if ($assetSettings['paid_attachment_download_publisher_reward_rate'] === null) {
-            $errors[] = '첨부 다운로드 게시자 리워드 지급률이 올바르지 않습니다.';
+            $errors[] = '첨부 다운로드 게시자 보상 지급률이 올바르지 않습니다.';
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
         foreach ([$reactionPostPresetKey, $reactionCommentPresetKey] as $reactionPresetKey) {

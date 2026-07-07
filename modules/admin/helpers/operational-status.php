@@ -63,6 +63,8 @@ function sr_admin_operational_status_row(PDO $pdo, array $check): array
         'message' => '',
         'targets' => [],
         'followup' => (string) ($check['followup'] ?? ''),
+        'action_url' => sr_admin_operational_status_action_url($check),
+        'action_label' => sr_admin_operational_status_single_line((string) ($check['action_label'] ?? '처리 화면')),
     ];
 
     if ($moduleKey !== '' && !sr_module_enabled($pdo, $moduleKey)) {
@@ -137,7 +139,9 @@ function sr_admin_operational_status_targets(PDO $pdo, array $check): array
     $targets = [];
     $fallbackPrefix = trim((string) ($check['target_fallback_prefix'] ?? ''));
     $format = trim((string) ($check['target_format'] ?? ''));
+    $valueLabels = isset($check['target_value_labels']) && is_array($check['target_value_labels']) ? $check['target_value_labels'] : [];
     foreach ($rows as $row) {
+        $row = sr_admin_operational_status_apply_target_value_labels($row, $valueLabels);
         $label = $format !== ''
             ? sr_admin_operational_status_format_target($row, $format)
             : sr_admin_operational_status_single_line((string) ($row['target_label'] ?? ''));
@@ -151,6 +155,40 @@ function sr_admin_operational_status_targets(PDO $pdo, array $check): array
     }
 
     return $targets;
+}
+
+function sr_admin_operational_status_apply_target_value_labels(array $row, array $valueLabels): array
+{
+    foreach ($valueLabels as $key => $labels) {
+        if (!is_string($key) || !is_array($labels) || !array_key_exists($key, $row)) {
+            continue;
+        }
+
+        $value = (string) $row[$key];
+        if ($value !== '' && array_key_exists($value, $labels)) {
+            $row[$key] = sr_admin_operational_status_single_line((string) $labels[$value]);
+        }
+    }
+
+    return $row;
+}
+
+function sr_admin_operational_status_action_url(array $check): string
+{
+    $url = trim((string) ($check['action_url'] ?? ''));
+    if ($url === '') {
+        return '';
+    }
+
+    if (function_exists('sr_is_safe_relative_url')) {
+        return sr_is_safe_relative_url($url) ? $url : '';
+    }
+
+    if ($url[0] !== '/' || str_starts_with($url, '//') || strpos($url, '\\') !== false) {
+        return '';
+    }
+
+    return preg_match('/[\x00-\x1F\x7F]/', $url) === 1 ? '' : $url;
 }
 
 function sr_admin_operational_status_format_target(array $row, string $format): string
